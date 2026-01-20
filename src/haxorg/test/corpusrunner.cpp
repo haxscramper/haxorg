@@ -1140,14 +1140,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
 
     if (spec.debug.printErrorsToFile || spec.debug.traceAll) {
-        hstd::ext::StrCache cache;
-
-        cache.getFileSource = [&](std::string const& path) -> std::string {
-            LOGIC_ASSERTION_CHECK_FMT(path == "<mock>", "{}", path);
-            return spec.source.toBase();
-        };
-
-        auto reports = p.parseContext->collectDiagnostics(p.node);
+        auto cache   = p.parseContext->getDiagnosticStrings();
+        auto reports = p.parseContext->collectDiagnostics(p.node, cache);
 
         writeFile(
             spec,
@@ -1171,7 +1165,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             for (auto const& report : reports) {
                 auto tmp = report;
                 tmp.config.with_debug_writes(debug);
-                formatted += tmp.to_string(cache, color);
+                formatted += tmp.to_string(*cache, color);
                 formatted += "\n";
             }
 

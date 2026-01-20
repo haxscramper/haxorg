@@ -149,7 +149,7 @@ def todo_collector(ctx: haxorg_cli.CliRunContext) -> TodoCollectorResult:
     nodes = haxorg_cli.parsePathList(ctx, ctx.opts.generate.todo_collector.infile)
     entires = list(itertools.chain(*[rec_node(node, ctx.opts) for node in nodes]))
 
-    _generate_report(ctx.opts, entires, result)
+    _generate_report(ctx, entires, result)
 
     return result
 

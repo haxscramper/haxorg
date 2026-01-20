@@ -378,6 +378,8 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<hstd::ext::Cache>(m, "Cache")
+    ;
   pybind11::class_<org::parse::OrgParseFragment>(m, "parseOrgParseFragment")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::OrgParseFragment {
                         org::parse::OrgParseFragment result{};
@@ -431,7 +433,12 @@ node can have subnodes.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<org::parse::ParseContext, std::shared_ptr<org::parse::ParseContext>>(m, "ParseContext")
-    .def("getDiagnosticStrings", static_cast<hstd::ext::StrCache(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::parse::ParseContext> {
+                        auto result = std::make_shared<org::parse::ParseContext>();
+                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
+                        return result;
+                        }))
+    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
     .def("addSource",
          static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
          pybind11::arg("path"),
@@ -464,11 +471,20 @@ node can have subnodes.)RAW")
          pybind11::arg("file"),
          pybind11::arg("opts"))
     .def("collectDiagnostics",
-         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectDiagnostics),
-         pybind11::arg("tree"))
+         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics),
+         pybind11::arg("tree"),
+         pybind11::arg("cache"))
     .def("collectErrorNodes",
          static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes),
          pybind11::arg("tree"))
+    .def("__repr__", [](org::parse::ParseContext const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::ParseContext const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
     ;
   pybind11::class_<org::imm::ImmId>(m, "ImmId")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::imm::ImmId {

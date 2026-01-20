@@ -66,7 +66,7 @@ struct CodeSpan {
     bool contains(int offset) const { return range.contains(offset); }
 };
 
-class Cache {
+class [[refl]] Cache {
   public:
     // Fetch the `Source` identified by the given ID, if possible.
     // TODO: Don't box

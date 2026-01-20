@@ -7,6 +7,7 @@ export interface haxorg_wasm_module_auto {
   OrgJson: OrgJsonConstructor;
   Org: OrgConstructor;
   OperationsTracer: OperationsTracerConstructor;
+  Cache: CacheConstructor;
   ParseOrgParseFragment: ParseOrgParseFragmentConstructor;
   OrgParseParameters: OrgParseParametersConstructor;
   OrgDirectoryParseParameters: OrgDirectoryParseParametersConstructor;
@@ -1728,6 +1729,8 @@ export interface OperationsTracer {
   activeLevel: number
   traceBuffer: string
 }
+export interface CacheConstructor { new(): Cache; }
+export interface Cache {  }
 export interface ParseOrgParseFragmentConstructor { new(): ParseOrgParseFragment; }
 export interface ParseOrgParseFragment {
   baseLine: number
@@ -1745,7 +1748,7 @@ export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryPar
 export interface OrgDirectoryParseParameters {  }
 export interface ParseContextConstructor { new(): ParseContext; }
 export interface ParseContext {
-  getDiagnosticStrings(): StrCache;
+  getDiagnosticStrings(): StdShared_ptr<Cache>;
   addSource(path: string, content: string): ParseSourceFileId;
   parseFileOpts(file: string, opts: OrgParseParameters): Org;
   parseFile(file: string): Org;
@@ -1754,7 +1757,7 @@ export interface ParseContext {
   parseDirectory(path: string): haxorg_wasm.Optional<Org>;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-  collectDiagnostics(tree: Org): haxorg_wasm.Vec<Report>;
+  collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.Vec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.Vec<ErrorGroup>;
 }
 export interface ImmIdConstructor { new(): ImmId; }

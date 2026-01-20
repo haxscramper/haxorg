@@ -363,14 +363,14 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
 
 int DiaVersionStore::addDocument(const std::string& document) {
     auto node    = parse_context->parseString(document, "<text>");
-    auto reports = parse_context->collectDiagnostics(node);
     auto cache   = parse_context->getDiagnosticStrings();
+    auto reports = parse_context->collectDiagnostics(node, cache);
 
     if (!reports.empty()) {
         HSLOG_WARNING("Input document was parsed with diagnostics");
         for (auto const& report : reports) {
             try {
-                HSLOG_ERROR("{}", report.to_string(cache, false));
+                HSLOG_ERROR("{}", report.to_string(*cache, false));
             } catch (std::exception& e) {
                 HSLOG_ERROR(
                     "Failed to format report {}\n{}", e.what(), report);

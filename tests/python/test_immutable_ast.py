@@ -6,7 +6,8 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 def test_immutable_ast_conversion() -> None:
-    node = org.parseString("random paragraph", "<test>")
+    parse = org.ParseContext()
+    node = parse.parseString("random paragraph", "<test>")
     context = org.initImmutableAstContext()
     version = context.addRoot(node)
     root_adapter = version.getRootAdapter()
@@ -16,7 +17,8 @@ def test_immutable_ast_conversion() -> None:
 
 
 def test_immutable_ast_mind_map() -> None:
-    node = org.parseString("""Paragraph [[id:subtree-id]]
+    parse = org.ParseContext()
+    node = parse.parseString("""Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
@@ -62,8 +64,8 @@ corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
 
 def test_mind_map_from_directory() -> None:
     dir = corpus_dir.joinpath("mind_map_directory")
-    dir_opts = org.OrgDirectoryParseParameters()
-    node = org.parseDirectoryOpts(str(dir), dir_opts)
+    parse = org.ParseContext()
+    node = parse.parseDirectory(str(dir))
 
     initial_version = org.initImmutableAstContext()
     version = initial_version.addRoot(node)

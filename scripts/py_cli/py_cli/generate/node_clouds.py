@@ -15,11 +15,8 @@ CAT = __name__
 
 @beartype
 def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:
-    if not run:
-        run = haxorg_cli.get_run(opts)  # type: ignore
-
-    assert opts.generate
-    assert opts.generate.node_clouds
+    assert ctx.opts.generate
+    assert ctx.opts.generate.node_clouds
     count: defaultdict[tuple[str, str], int] = defaultdict(lambda: 0)
 
     def visit(node: org.Org) -> None:
@@ -34,8 +31,8 @@ def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:
             for sub in node:
                 visit(sub)
 
-    for file in opts.generate.node_clouds.infile:
-        node = haxorg_cli.parseCachedFile(opts, file)
+    for file in ctx.opts.generate.node_clouds.infile:
+        node = haxorg_cli.parseCachedFile(ctx, file)
         visit(node)
 
     df = pd.DataFrame(
@@ -43,11 +40,11 @@ def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:
         columns=["kind", "text", "count"],
     )
 
-    df.to_csv(opts.generate.node_clouds.outfile, index=False)
+    df.to_csv(ctx.opts.generate.node_clouds.outfile, index=False)
 
 
 @click.command("node_clouds")
 @haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
 @click.pass_context
 def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
-    node_clouds(haxorg_cli.get_opts(ctx))
+    node_clouds(haxorg_cli.get_run(ctx))

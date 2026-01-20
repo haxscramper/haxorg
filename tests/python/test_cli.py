@@ -45,36 +45,39 @@ def test_tex_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_tex import export_tex
 
     export_tex(
-        haxorg_opts.RootOptions(
-            export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
-                                             tex=haxorg_opts.TexExportOptions(
-                                                 infile=org_file,
-                                                 outfile=tex_file,
-                                                 do_compile=False,
-                                             ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(
+                export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
+                                                 tex=haxorg_opts.TexExportOptions(
+                                                     infile=org_file,
+                                                     outfile=tex_file,
+                                                     do_compile=False,
+                                                 )))))
 
 
 @pytest.mark.test_release
 def test_html_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_html import export_html
     export_html(
-        haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-            html=haxorg_opts.ExportHtmlOptions(
-                infile=all_org_file,
-                outfile=stable_test_dir.joinpath("html_file.html"),
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+                html=haxorg_opts.ExportHtmlOptions(
+                    infile=all_org_file,
+                    outfile=stable_test_dir.joinpath("html_file.html"),
+                )))))
 
 
 @pytest.mark.test_release
 def test_sqlite_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_sqlite import export_sqlite
     export_sqlite(
-        haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-            **get_export_debug(stable_test_dir),
-            sqlite=haxorg_opts.ExportSQliteOptions(
-                infile=[all_org_file],
-                outfile=stable_test_dir.joinpath("out_file.sqlite"),
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+                **get_export_debug(stable_test_dir),
+                sqlite=haxorg_opts.ExportSQliteOptions(
+                    infile=[all_org_file],
+                    outfile=stable_test_dir.joinpath("out_file.sqlite"),
+                )))))
 
 
 def has_cmd(cmd: str) -> bool:
@@ -91,12 +94,6 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
     dir = stable_test_dir
     dir.mkdir(parents=True, exist_ok=True)
     out_file = dir.joinpath("out_file.json")
-    dir.joinpath("tree.txt").write_text(
-        org.treeRepr(
-            org.parseString(all_org_file.read_text(), "<mock>"),
-            colored=False,
-        ))
-
     opts = haxorg_opts.RootOptions(
         export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
                                          pandoc=haxorg_opts.ExportPandocOptions(
@@ -104,7 +101,7 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
                                              outfile=out_file,
                                          )))
 
-    export_pandoc(opts, haxorg_cli.get_run(opts))
+    export_pandoc(haxorg_cli.get_run(opts))
 
     if has_cmd("pandoc"):
         pandoc = local["pandoc"]
@@ -167,7 +164,7 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
                                                  do_compile=has_cmd("typst"),
                                              )))
 
-        export_typst(opts)
+        export_typst(haxorg_cli.get_run(opts))
 
         assert attach_dst.exists()
         assert attach2_dst.exists()
@@ -225,7 +222,7 @@ subtree = "changeSubtree"
                                              do_compile=False,
                                          )))
 
-    export_typst(opts)
+    export_typst(haxorg_cli.get_run(opts))
 
     text = outfile.read_text()
     assert "customSubtree" in text
@@ -252,11 +249,12 @@ def test_story_grid(stable_test_dir: Path) -> None:
 """)
 
     story_grid(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            story_grid=haxorg_opts.StoryGridOpts(
-                infile=org_file,
-                outfile=res_file,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                story_grid=haxorg_opts.StoryGridOpts(
+                    infile=org_file,
+                    outfile=res_file,
+                )))))
 
 
 @pytest.mark.test_release
@@ -272,11 +270,12 @@ Word1 Word1 Word1
 """)
 
     node_clouds(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            node_clouds=haxorg_opts.GenerateNodeCloudOptions(
-                infile=[org_file],
-                outfile=csv_file,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                node_clouds=haxorg_opts.GenerateNodeCloudOptions(
+                    infile=[org_file],
+                    outfile=csv_file,
+                )))))
 
     df = pd.read_csv(csv_file)
     mapping = {key: group for key, group in df.groupby("kind")}
@@ -322,11 +321,12 @@ def test_subtree_clocking(stable_test_dir: Path) -> None:
 """)
 
     subtree_clocking(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            subtree_clocking=haxorg_opts.ClockTimeAnalysisOptions(
-                infile=[org_file],
-                outfile=csv_file,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                subtree_clocking=haxorg_opts.ClockTimeAnalysisOptions(
+                    infile=[org_file],
+                    outfile=csv_file,
+                )))))
 
     df = pd.read_csv(csv_file)
     assert df["tags"][0] == "tag##sub1,tag2"
@@ -359,12 +359,13 @@ Sentence with Character name should trigger radio target detection
         """)
 
     codex_tracking(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            codex_tracking=haxorg_opts.CodexTrackingOptions(
-                target_file=target_file,
-                codex_files=[codex_file],
-                outfile=outfile,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                codex_tracking=haxorg_opts.CodexTrackingOptions(
+                    target_file=target_file,
+                    codex_files=[codex_file],
+                    outfile=outfile,
+                )))))
 
 
 @pytest.mark.unstable
@@ -410,12 +411,13 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
 """)
 
     activity_analysis(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            activity_analysis=haxorg_opts.GenerateActivityAnalysisOptions(
-                infile=[org_file],
-                db_path=db_file,
-                outdir=stable_test_dir,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                activity_analysis=haxorg_opts.GenerateActivityAnalysisOptions(
+                    infile=[org_file],
+                    db_path=db_file,
+                    outdir=stable_test_dir,
+                )))))
 
     assert db_file.exists()
     engine = open_sqlite(db_file)
@@ -481,7 +483,7 @@ def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
             f"Org diagram tool at {opts.generate.mind_map.org_diagram_tool} does not exist"
         )
 
-    gen_mind_map(opts)
+    gen_mind_map(haxorg_cli.get_run(opts))
 
 
 @pytest.mark.test_release
@@ -492,12 +494,13 @@ def test_tag_sorting(stable_test_dir: Path) -> None:
     tag_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/cli/tag_collection")
 
     result = sort_reposutory_tags(
-        haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-            sort_tags=haxorg_opts.TagSortingOptions(
-                input_dir=tag_dir,
-                tag_glossary_file=tag_dir.joinpath("glossary.org"),
-                output_dir=stable_test_dir,
-            ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
+                sort_tags=haxorg_opts.TagSortingOptions(
+                    input_dir=tag_dir,
+                    tag_glossary_file=tag_dir.joinpath("glossary.org"),
+                    output_dir=stable_test_dir,
+                )))))
 
     def tag_pair(one: tuple[str, ...], two: tuple[str, ...], it: TagDuplicate) -> bool:
         return (it.tag1.tag == one and it.tag2.tag == two) or (it.tag2.tag == one and
@@ -544,9 +547,10 @@ def test_todo_collector(stable_test_dir: Path) -> None:
     """)
 
     result = todo_collector(
-        haxorg_opts.RootOptions(**get_root_debug(stable_test_dir),
-                                generate=haxorg_opts.GenerateOptions(
-                                    todo_collector=haxorg_opts.TodoCollectorOptions(
-                                        infile=[stable_test_dir],
-                                        outdir=stable_test_dir.joinpath("report.txt"),
-                                    ))))
+        haxorg_cli.get_run(
+            haxorg_opts.RootOptions(**get_root_debug(stable_test_dir),
+                                    generate=haxorg_opts.GenerateOptions(
+                                        todo_collector=haxorg_opts.TodoCollectorOptions(
+                                            infile=[stable_test_dir],
+                                            outdir=stable_test_dir.joinpath("report.txt"),
+                                        )))))

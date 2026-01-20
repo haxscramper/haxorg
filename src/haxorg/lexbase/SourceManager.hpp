@@ -18,31 +18,18 @@ struct SourceManager {
     hstd::dod::Store<SourceFileId, SourceFile>               store;
     hstd::ext::Unordered1to1Bimap<std::string, SourceFileId> path_ids;
 
-    std::string getPath(SourceFileId const& id) const {
-        return path_ids.at_left(id);
-    }
+    std::string getPath(SourceFileId const& id) const;
 
-    SourceFileId getId(std::string const& path) const {
-        return path_ids.at_right(path);
-    }
+    SourceFileId getId(std::string const& path) const;
 
-    std::string const& getSourceContent(SourceFileId const& id) const {
-        return store.at(id).content;
-    }
+    std::string const& getSourceContent(SourceFileId const& id) const;
 
     std::string const& getContentTextForPath(
-        std::string const& path) const {
-        return store.at(getId(path)).content;
-    }
+        std::string const& path) const;
 
     SourceFileId addSource(
         std::string const& path,
-        std::string const& content) {
-        auto result = store.add(
-            SourceFile{.path = path, .content = content});
-        path_ids.add_unique(path, result);
-        return result;
-    }
+        std::string const& content);
 };
 
 

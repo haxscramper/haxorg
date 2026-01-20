@@ -105,7 +105,9 @@ struct [[refl(
     ParseContext();
     ParseContext(hstd::SPtr<SourceManager> const& source);
 
-    [[refl]] hstd::ext::StrCache getDiagnosticStrings();
+    BOOST_DESCRIBE_CLASS(ParseContext, (), (), (), ());
+
+    [[refl]] std::shared_ptr<hstd::ext::Cache> getDiagnosticStrings();
 
     [[refl]] SourceFileId addSource(
         std::string const& path,
@@ -138,9 +140,29 @@ struct [[refl(
         std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
     [[refl]] hstd::Vec<hstd::ext::Report> collectDiagnostics(
-        org::sem::SemId<org::sem::Org> const& tree);
+        org::sem::SemId<org::sem::Org> const&    tree,
+        std::shared_ptr<hstd::ext::Cache> const& cache);
 
     [[refl]] hstd::Vec<sem::SemId<sem::ErrorGroup>> collectErrorNodes(
         org::sem::SemId<org::sem::Org> const& tree);
 };
+
+struct DiagnosticsParseContext : public hstd::ext::Cache {
+    hstd::UnorderedMap<
+        org::parse::SourceFileId,
+        std::shared_ptr<hstd::ext::Source>>
+        sources;
+
+    std::shared_ptr<ParseContext> context;
+
+    DiagnosticsParseContext(std::shared_ptr<ParseContext> const& context)
+        : context{context} {};
+
+    virtual std::shared_ptr<hstd::ext::Source> fetch(
+        const hstd::ext::Id& id) override;
+    virtual std::optional<std::string> display(
+        const hstd::ext::Id& id) const override;
+};
+
+
 } // namespace org::parse

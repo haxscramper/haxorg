@@ -58,7 +58,8 @@ def parseFile(
 
             org.setGetParsedNode(dir_opts, parse_node_impl)
 
-        result = org.parseFileWithIncludes(str(file.resolve()), dir_opts)
+        log(CAT).info(f"Parse file with includes {file}")
+        result = ctx.parse.parseFileWithIncludes(str(file.resolve()), dir_opts)
     else:
         if parse_opts:
             result = ctx.parse.parseFileOpts(str(file.resolve()), parse_opts)
@@ -136,8 +137,6 @@ def getParseOpts(root: RootOptions, infile: Path) -> org.OrgParseParameters:
     if root.parse_traceDir:
         parse_opts.parseTracePath = get_file(root.parse_traceDir, "parse")
 
-    parse_opts.currentFile = str(infile)
-
     return parse_opts
 
 
@@ -176,7 +175,7 @@ def parseDirectory(ctx: CliRunContext, dir: Path) -> org.Org:
             return org.Empty()
 
     org.setGetParsedNode(dir_opts, parse_node_impl)
-    return org.parseDirectoryOpts(str(dir), dir_opts)
+    return ctx.parse.parseDirectoryOpts(str(dir), dir_opts)
 
 
 @beartype
@@ -189,6 +188,7 @@ def get_opts(ctx: click.Context) -> RootOptions:
     return pack_context(ctx, RootOptions, cli_kwargs=get_user_provided_params(ctx))
 
 
+@beartype
 def get_run(opts: RootOptions | click.Context) -> CliRunContext:
     if isinstance(opts, RootOptions):
         return CliRunContext(opts)
