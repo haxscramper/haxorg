@@ -139,7 +139,7 @@ def test_unexpected_field_passed() -> None:
 def test_sem_parser_expected() -> None:
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
-    corpus_data = [CorpusFile.model_validate(load_yaml(file)) for file in corpus_files]
+    corpus_data = [(CorpusFile.model_validate(load_yaml(file)), file) for file in corpus_files]
 
     table = tags.table(**borders)
     row = tags.tr()
@@ -150,7 +150,7 @@ def test_sem_parser_expected() -> None:
     table.add(row)
     parse = org.ParseContext()
 
-    for file in corpus_data:
+    for file, path in corpus_data:
         for entry in file.items:
             head_row = tags.tr()
             head_row.add(
@@ -166,7 +166,7 @@ def test_sem_parser_expected() -> None:
             row.add(tags.td(tags.pre(text), _class="source-cell"))
 
             if entry.debug.doLexBase and entry.debug.doLex and entry.debug.doParse:
-                node = parse.parseString(text, "<test>")
+                node = parse.parseString(text, f"<{path.stem}-{entry.name}>")
                 yaml_pre = tags.pre()
                 try:
                     yaml_text = org.exportToYamlString(

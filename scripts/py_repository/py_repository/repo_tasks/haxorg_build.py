@@ -51,7 +51,7 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
         "-S",
         get_script_root(ctx),
         "-G",
-        "Ninja",
+        ctx.config.build_conf.cmake_generator,
         *get_cmake_defines(ctx),
         cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
         cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),

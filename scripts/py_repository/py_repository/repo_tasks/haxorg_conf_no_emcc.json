@@ -2,15 +2,17 @@
   "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
   "use_unchanged_tasks": true,
   "use_dependencies"   : true,
+  "build_conf"         : {"cmake_generator": "Unix Makefiles"},
   "py_test_conf"       : {
     "extra_pytest_args"     : [
-      "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestCoverallOrg",
-      "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestDoc1",
-      "tests/python/test_cli.py",
-      "tests/python/test_code_eval.py::test_trivial_code_eval",
-      "tests/python/test_coverall.py::test_total_representation",
-      "tests/python/test_immutable_ast.py::test_mind_map_from_directory",
-      "tests/python/test_simple_org_use.py::test_sem_parser_expected"
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestCoverallOrg",
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestDoc1",
+      // "tests/python/test_cli.py",
+      // "tests/python/test_code_eval.py::test_trivial_code_eval",
+      // "tests/python/test_coverall.py::test_total_representation",
+      // "tests/python/test_immutable_ast.py::test_mind_map_from_directory",
+      // "tests/python/test_simple_org_use.py::test_sem_parser_expected",
+      // "tests/python/test_cli.py::test_tag_sorting"
     ],
     "real_time_output_print": true
   }

@@ -49,6 +49,7 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     use_msgpack: bool = True
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
+    cmake_generator: str = "Ninja"
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
@@ -74,12 +75,12 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     example_build: bool = Field(True, description="Build example projects")
     example_run: bool = Field(True, description="Run example projects and tests")
     include_graph: bool = Field(True, description="Generate include graph visualization")
-    symbol_size: bool = Field(True, description="Visualization for the library symbol sizes")
+    symbol_size: bool = Field(True,
+                              description="Visualization for the library symbol sizes")
 
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True
-
 
 
 class HaxorgExampleConfig(BaseModel, extra="forbid"):

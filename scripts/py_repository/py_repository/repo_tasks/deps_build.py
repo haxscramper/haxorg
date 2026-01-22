@@ -79,7 +79,7 @@ def build_develop_deps(ctx: TaskContext) -> None:
                     "-S",
                     deps_dir.joinpath(item.deps_name),
                     "-G",
-                    "Ninja",
+                    ctx.config.build_conf.cmake_generator,
                     cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
                         item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
@@ -170,7 +170,7 @@ def build_release_deps(
             "-S",
             str(src_root),
             "-G",
-            "Ninja",
+            ctx.config.build_conf.cmake_generator,
             *cond(
                 deps_install_dir,
                 [cmake_opt("ORG_DEPS_INSTALL_ROOT", deps_install_dir)],

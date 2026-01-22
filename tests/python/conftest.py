@@ -7,6 +7,7 @@ import os
 import subprocess
 import time
 import warnings
+import sys
 from pathlib import Path
 
 import pytest
@@ -397,3 +398,51 @@ def cached_test_dir(request: pytest.FixtureRequest) -> Path:
     return get_test_dir(
         request,
         Path(platformdirs.user_cache_dir("haxorg_test")).joinpath("py_test_cache"))
+
+
+@pytest.fixture
+def cpp_debugger(request: Any) -> dict[str, bool]:
+
+    @beartype
+    def run_under_lldb() -> None:
+        test_path = str(request.node.fspath)
+        test_name = request.node.name
+
+        lldb_script_content = """breakpoint set -E C++
+breakpoint set -n __cxa_throw
+breakpoint set -n abort
+breakpoint set -n std::terminate
+run
+bt
+continue
+"""
+
+        script_path = Path("/tmp/debug.lldb")
+        script_path.write_text(lldb_script_content)
+
+        pytest_cmd = [
+            sys.executable, "-m", "pytest", f"{test_path}::{test_name}", "-v", "-s",
+            "--tb=line"
+        ]
+
+        lldb_cmd = ["lldb", "--source", str(script_path), "--"] + pytest_cmd
+
+        try:
+            subprocess.run(lldb_cmd)
+        finally:
+            script_path.unlink()
+
+    @beartype
+    def finalizer() -> None:
+        if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
+            run_under_lldb()
+
+    request.addfinalizer(finalizer)
+    return {"debug_enabled": True}
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: Any, call: Any) -> Any:
+    outcome = yield
+    rep = outcome.get_result()
+    setattr(item, f"rep_{rep.when}", rep)

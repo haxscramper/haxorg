@@ -12,8 +12,8 @@ TEST(BimapTest, AddUnique) {
     EXPECT_EQ(bimap.at_right(1), "one");
     EXPECT_EQ(bimap.at_left("one"), 1);
 
-    EXPECT_THROW(bimap.add_unique(1, "one"), std::runtime_error);
-    EXPECT_THROW(bimap.add_unique(2, "one"), std::runtime_error);
+    EXPECT_THROW(bimap.add_unique(1, "one"), hstd::runtime_error);
+    EXPECT_THROW(bimap.add_unique(2, "one"), hstd::runtime_error);
 }
 
 

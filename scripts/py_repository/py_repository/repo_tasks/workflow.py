@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+import commentjson
 
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 import rich_click as click
@@ -51,7 +52,8 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
 
     if opts.config_override:
         config_json = merge_dicts(
-            [config_json, json.loads(opts.config_override.read_text())])
+            [config_json,
+             commentjson.loads(opts.config_override.read_text())])
 
     config_obj = HaxorgConfig(**config_json)
     if opts.verbose:
