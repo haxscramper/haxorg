@@ -20,7 +20,7 @@ from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes, get_cmd_debug_file, run_command
-from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_script_root
+from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_build_root, get_script_root
 from py_repository.repo_tasks.config import HaxorgLogLevel, get_tmpdir
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
@@ -377,6 +377,10 @@ def run_docker_release_test(
 def run_develop_ci(ctx: TaskContext) -> None:
     "Execute all CI tasks"
     conf = ctx.config
+
+    if conf.develop_ci_conf.coverage:
+        for file in get_build_root(ctx).rglob("*.gcda"):
+            file.unlink()
 
     log(CAT).info("Running binary task set")
     if conf.develop_ci_conf.deps:
