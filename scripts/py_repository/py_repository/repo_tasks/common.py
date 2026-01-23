@@ -171,6 +171,22 @@ def ctx_read_text(ctx: TaskContext, path: Path) -> str:
 
 
 @beartype
+def ctx_remove_file(ctx: TaskContext, path: Path) -> None:
+    if ctx.docker_container is not None:
+        exit_code, output = ctx.docker_container.exec_run(
+            cmd=["rm", str(path)],
+            demux=True,
+        )
+        if exit_code != 0:
+            _, stderr = output
+            raise RuntimeError(
+                f"Failed to remove file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+            )
+    else:
+        path.unlink()
+
+
+@beartype
 def get_real_build_basename(ctx: TaskContext, component: str) -> str:
     """
     Get basename of the binary output directory for component

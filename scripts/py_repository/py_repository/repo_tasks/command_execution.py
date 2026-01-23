@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import docker
 import docker.models.containers
@@ -366,6 +367,49 @@ def run_command_with_json_args(
 
     else:
         return run_command(ctx, cmd, [json.dumps(args)], **kwargs)
+
+
+@beartype
+def run_cmake_configure(
+    ctx: TaskContext,
+    build_dir: Path,
+    script_root: Path,
+    generator: str,
+    args: List[str],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    from py_repository.repo_tasks.common import check_path_exists, ctx_read_text, ctx_remove_file
+    cache = build_dir.joinpath("CMakeCache.txt")
+    if check_path_exists(ctx, cache):
+        old_generator_line = [
+            line for line in ctx_read_text(ctx, cache).splitlines()
+            if "CMAKE_GENERATOR:INTERNAL=" in line
+        ][0]
+
+        match = re.match("^CMAKE_GENERATOR:INTERNAL=(.*?)$", old_generator_line)
+        assert match
+        old_generator = match.group(1)
+        if old_generator != generator:
+            log(CAT).info(
+                f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
+                f"Removing cache file {cache}")
+
+            ctx_remove_file(ctx, cache)
+
+    return run_command(
+        ctx,
+        "cmake",
+        [
+            "-B",
+            str(build_dir),
+            "-S",
+            str(script_root),
+            "-G",
+            generator,
+            *args,
+        ],
+        **kwargs,
+    )
 
 
 @beartype

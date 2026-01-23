@@ -11,7 +11,7 @@ from py_ci.data_build import CmakeFlagConfig, CmakeOptConfig, ExternalDep, get_e
 from py_ci.util_scripting import cmake_opt, get_j_cap
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_cmake_build, run_command
+from py_repository.repo_tasks.command_execution import get_cmd_debug_file, run_cmake_build, run_cmake_configure, run_command
 from py_repository.repo_tasks.common import check_path_exists, ensure_existing_dir, get_build_root, get_log_dir, get_script_root
 from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths, get_deps_build_dir, get_deps_install_dir, get_toolchain_path
 from py_repository.repo_tasks.haxorg_build import build_release_archive
@@ -25,7 +25,8 @@ CAT = __name__
 @haxorg_task()
 def validate_dependencies_install(ctx: TaskContext) -> None:
     install_dir = get_deps_install_dir(ctx).joinpath("paths.cmake")
-    assert check_path_exists(ctx, install_dir), f"No dependency paths found at '{install_dir}'"
+    assert check_path_exists(ctx,
+                             install_dir), f"No dependency paths found at '{install_dir}'"
 
 
 @beartype
@@ -70,18 +71,14 @@ def build_develop_deps(ctx: TaskContext) -> None:
 
         log(CAT).info(f"Running build name='{item.build_name}' deps='{item.deps_name}'")
         if conf.build_develop_deps_conf.configure:
-            run_command(
+            run_cmake_configure(
                 ctx,
-                "cmake",
-                [
-                    "-B",
-                    build_dir.joinpath(item.build_name),
-                    "-S",
-                    deps_dir.joinpath(item.deps_name),
-                    "-G",
-                    ctx.config.build_conf.cmake_generator,
-                    cmake_opt("CMAKE_INSTALL_PREFIX", install_dir.joinpath(
-                        item.build_name)),
+                build_dir=build_dir.joinpath(item.build_name),
+                script_root=deps_dir.joinpath(item.deps_name),
+                generator=ctx.config.build_conf.cmake_generator,
+                args=[
+                    cmake_opt("CMAKE_INSTALL_PREFIX",
+                              install_dir.joinpath(item.build_name)),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
                     cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler),
                     cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler),
@@ -159,7 +156,8 @@ def build_release_deps(
         ])
 
         log(CAT).info(f"Unzipped package to {build_dir}")
-        src_root = build_dir.joinpath(f"{ctx.config.HAXORG_NAME}-{ctx.config.HAXORG_VERSION}-Source")
+        src_root = build_dir.joinpath(
+            f"{ctx.config.HAXORG_NAME}-{ctx.config.HAXORG_VERSION}-Source")
         src_build = build_dir.joinpath("build")
 
         install_dir = get_build_root(ctx).joinpath("deps_install")

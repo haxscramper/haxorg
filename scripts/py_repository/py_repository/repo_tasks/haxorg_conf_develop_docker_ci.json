@@ -2,6 +2,7 @@
   "log_level"          : "NORMAL",
   "use_unchanged_tasks": true,
   "instrument"         : {"coverage": true},
+  "build_conf"         : {"cmake_generator": "Unix Makefiles"},
   "develop_ci_conf"    : {
     "emscripten_deps" : false,
     "emscripten_build": false,
