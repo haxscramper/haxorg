@@ -118,7 +118,6 @@
     __IMPL(NamedProperty, Kind, (Kind)) \
     __IMPL(OrgDiagnostics, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
-    __IMPL(SourceLocation, (SourceLocation)) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
     __IMPL(LispCode::List, (LispCode, List)) \

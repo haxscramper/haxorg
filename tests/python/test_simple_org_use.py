@@ -23,13 +23,14 @@ from pygments import highlight
 from pygments.lexers import YamlLexer
 from pygments.formatters import HtmlFormatter
 
-osk = org.OrgSemKind
+osk: Type = org.OrgSemKind
 CAT = "test_simple_org_use.py"
 
 
 def test_word() -> None:
-    assert org.Document
-    node = org.parseString("*Text*", "test_word")
+    parse = org.ParseContext()
+    assert org.Document is not None
+    node = parse.parseString("*Text*", "<test_word>")
 
     assert node.getKind() == org.OrgSemKind.Document
     assert node[0].getKind() == org.OrgSemKind.Paragraph
@@ -38,7 +39,9 @@ def test_word() -> None:
 
 
 def test_attached_property_list() -> None:
-    node = org.parseString("""#+attr_list: :export nil
+    parse = org.ParseContext()
+    node = parse.parseString(
+        """#+attr_list: :export nil
 - =some_property= :: Value
     """, "<test>")
 
@@ -53,7 +56,9 @@ def test_attached_property_list() -> None:
 
 
 def test_attached_property_link() -> None:
-    node = org.parseString("""#+attr_link: :attach-method copy :attach-on-export t
+    parse = org.ParseContext()
+    node = parse.parseString(
+        """#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
     """, "<test>")
 
@@ -71,7 +76,8 @@ def test_attached_property_link() -> None:
 
 
 def test_subnode_visitor() -> None:
-    node = org.parseString("Word", "<test>")
+    parse = org.ParseContext()
+    node = parse.parseString("Word", "<test>")
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
     assert kinds == [osk.Document, osk.Paragraph, osk.Word, osk.DocumentOptions], kinds
@@ -133,7 +139,7 @@ def test_unexpected_field_passed() -> None:
 def test_sem_parser_expected() -> None:
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
-    corpus_data = [CorpusFile.model_validate(load_yaml(file)) for file in corpus_files]
+    corpus_data = [(CorpusFile.model_validate(load_yaml(file)), file) for file in corpus_files]
 
     table = tags.table(**borders)
     row = tags.tr()
@@ -142,8 +148,9 @@ def test_sem_parser_expected() -> None:
     row.add(tags.th("sem tree", _class="sem-column"))
 
     table.add(row)
+    parse = org.ParseContext()
 
-    for file in corpus_data:
+    for file, path in corpus_data:
         for entry in file.items:
             head_row = tags.tr()
             head_row.add(
@@ -159,9 +166,9 @@ def test_sem_parser_expected() -> None:
             row.add(tags.td(tags.pre(text), _class="source-cell"))
 
             if entry.debug.doLexBase and entry.debug.doLex and entry.debug.doParse:
-                node = org.parseString(text, "<test>")
+                node = parse.parseString(text, f"<{path.stem}-{entry.name}>")
                 yaml_pre = tags.pre()
-                try: 
+                try:
                     yaml_text = org.exportToYamlString(
                         node,
                         org.OrgYamlExportOpts(
@@ -175,20 +182,20 @@ def test_sem_parser_expected() -> None:
                     formatter = HtmlFormatter()
                     yaml_pre.add_raw_string(highlight(yaml_text, YamlLexer(), formatter))
 
-                except Exception as e: 
+                except Exception as e:
                     yaml_pre.add_raw_string(str(e))
 
                 row.add(tags.td(yaml_pre, _class="yaml-cell"))
 
                 tree = tags.pre()
-                try: 
+                try:
                     conv = Ansi2HTMLConverter()
                     tree.add_raw_string(
                         conv.convert(org.treeRepr(node, colored=True), full=False))
 
-                except Exception as e: 
+                except Exception as e:
                     tree.add_raw_string(str(e))
-                    
+
                 row.add(tags.td(tree, _class="sem-cell"))
 
             else:
@@ -227,11 +234,12 @@ def test_segment_tree() -> None:
 
 
 def test_doc1() -> None:
+    parse = org.ParseContext()
     file = Path("~/tmp/doc1.org").expanduser()
     if not file.exists():
         return
 
-    node = org.parseString(file.read_text(), "<test>")
+    node = parse.parseFile(str(file))
     text = org.treeRepr(node, colored=False)
     Path("/tmp/test_doc1.txt").write_text(text)
 

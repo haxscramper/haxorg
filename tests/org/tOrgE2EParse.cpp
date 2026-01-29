@@ -1,6 +1,6 @@
 #include "tOrgTestCommon.hpp"
 
-#include <haxorg/sem/SemOrgCereal.hpp>
+#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -21,10 +21,11 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
 }
 
 TEST(TestFiles, OrgCerealSerdeRoundtrip) {
-    auto node = org::parseFile(
-        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org",
+    org::parse::ParseContext parseContext;
+    auto                     node = parseContext.parseFile(
+        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org"
         // "/home/haxscramper/tmp/doc1.org",
-        OrgParseParameters::shared());
+    );
 
     writeFile(
         "/tmp/cereal_value_dump.json", org::exportToJsonString(node));
@@ -68,7 +69,7 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     std::string source = readFile(fs::path(file));
     p.run(source);
 
-    sem::OrgConverter converter{file};
+    sem::OrgConverter converter{};
     sem::SemId        write_node = converter
                                 .convertDocument(
                                     OrgAdapter(&p.nodes, OrgId(0)))
@@ -126,7 +127,7 @@ TEST(TestFiles, AllNodeCoverage) {
     p.run(source);
 
     SemSet            foundNodes;
-    sem::OrgConverter converter{file};
+    sem::OrgConverter converter{};
     sem::SemId        node = converter
                           .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
                           .value();

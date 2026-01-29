@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/YamlSerde.hpp>
@@ -409,7 +409,11 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                         hshow1(get_token_text(tok), opts).toString(false));
 
                     std::string result = //
-                        hstd::fmt("{0} {1} {2}", fmt1(line.index().value()), fmt1(tok.kind), text);
+                        hstd::fmt(
+                            "{0} {1} {2}",
+                            fmt1(line.index().value()),
+                            fmt1(tok.kind),
+                            text);
 
                     return result;
                 }}};
@@ -531,11 +535,12 @@ json toTestJson(org::sem::OrgArg arg) {
 }
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
-    CR<ParseSpec>        spec,
-    sem::SemId<sem::Org> node,
-    json                 expected) {
+    CR<ParseSpec>                 spec,
+    sem::SemId<sem::Org>          node,
+    json                          expected,
+    org::parse::ParseContext::Ptr parse_context) {
 
-    auto errors = org::collectErrorNodes(node);
+    auto errors = parse_context->collectErrorNodes(node);
 
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running sem comparison");
     HSLOG_TRACE("Error count {}", errors.size());
@@ -775,16 +780,19 @@ CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
         || spec.debug.printSem) {
 
         auto read = [](char c) { return visibleName(c).first; };
-        
-        Str const split = Str("-").repeated(60);
-        Str const blocks = formatter.store.toTreeRepr(fmt_result);
-        Str const source = spec.source;
-        Str const formatted = rerun.source;
-        Str const sourcearray = fmt1(spec.source | rv::transform(read) | rs::to<std::vector>());
-        Str const formattedarray = fmt1(rerun.source | rv::transform(read) | rs::to<std::vector>());
+
+        Str const split       = Str("-").repeated(60);
+        Str const blocks      = formatter.store.toTreeRepr(fmt_result);
+        Str const source      = spec.source;
+        Str const formatted   = rerun.source;
+        Str const sourcearray = fmt1(
+            spec.source | rv::transform(read) | rs::to<std::vector>());
+        Str const formattedarray = fmt1(
+            rerun.source | rv::transform(read) | rs::to<std::vector>());
         Str const fail = reformat_result.failDescribe.toString(false);
-        
-        auto reformatFail = hstd::fmt(R"(
+
+        auto reformatFail = hstd::fmt(
+            R"(
             
 source:
 
@@ -822,14 +830,14 @@ fail:
 {6}
 {0}
             
-)", 
-            split, // 0
-            source, // 1
-            formatted, // 2
-            sourcearray, // 3
+)",
+            split,          // 0
+            source,         // 1
+            formatted,      // 2
+            sourcearray,    // 3
             formattedarray, // 4
-            blocks, // 5
-            fail // 6
+            blocks,         // 5
+            fail            // 6
         );
 
         writeFile(
@@ -884,7 +892,10 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     }
 
     __perf_trace("cli", "tokenize base");
-    p.tokenizeBase(spec.source, params);
+    p.tokenizeBase(
+        spec.source,
+        params,
+        p.parseContext->addSource("<spec-base-lex>", spec.source));
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
         || spec.debug.printBaseLexedToFile) {
@@ -1089,7 +1100,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     CR<Str>       relDebug) {
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running spec sem");
     __perf_trace("cli", "sem convert");
-    sem::OrgConverter converter{p.parser->currentFile};
+    sem::OrgConverter converter{};
 
     converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
     if (converter.TraceState) {
@@ -1129,14 +1140,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
 
     if (spec.debug.printErrorsToFile || spec.debug.traceAll) {
-        hstd::ext::StrCache cache;
-
-        cache.getFileSource = [&](std::string const& path) -> std::string {
-            LOGIC_ASSERTION_CHECK_FMT(path == "<mock>", "{}", path);
-            return spec.source.toBase();
-        };
-
-        auto reports = org::collectDiagnostics(cache, p.node);
+        auto cache   = p.parseContext->getDiagnosticStrings();
+        auto reports = p.parseContext->collectDiagnostics(p.node, cache);
 
         writeFile(
             spec,
@@ -1160,7 +1165,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             for (auto const& report : reports) {
                 auto tmp = report;
                 tmp.config.with_debug_writes(debug);
-                formatted += tmp.to_string(cache, color);
+                formatted += tmp.to_string(*cache, color);
                 formatted += "\n";
             }
 
@@ -1177,9 +1182,10 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
 
     if (spec.sem.has_value()) {
-        return compareSem(spec, document, spec.sem.value());
+        return compareSem(
+            spec, document, spec.sem.value(), p.parseContext);
     } else {
-        auto errors = org::collectErrorNodes(document.asOrg());
+        auto errors = p.parseContext->collectErrorNodes(document.asOrg());
         if (errors.empty()) {
             HSLOG_INFO("Parse OK, no errors detected, no errors expected");
             return RunResult::SemCompare{{.isOk = true}};
@@ -1289,7 +1295,7 @@ std::string TestParams::testName() const {
                                    : std::string("<spec>"),
              file.stem())) {
         if (std::isalnum(ch) || ch == '_') {
-            final.push_back(ch); 
+            final.push_back(ch);
         } else {
             final.push_back('_');
         }

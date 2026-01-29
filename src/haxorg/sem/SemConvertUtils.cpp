@@ -44,18 +44,9 @@ org::sem::OrgDiagnostics OrgConverter::MakeConvert(
     return org::sem::OrgDiagnostics{res};
 }
 
-hstd::Opt<org::sem::SourceLocation> OrgConverter::MakeSourceLocation(
+hstd::Opt<org::parse::SourceLoc> OrgConverter::MakeSourceLocation(
     org::parse::OrgAdapter const& a) {
-    auto loc = getLoc(a);
-    if (loc.has_value()) {
-        org::sem::SourceLocation sloc;
-        sloc.column = loc->column;
-        sloc.line   = loc->line;
-        sloc.file   = this->currentFile;
-        return sloc;
-    } else {
-        return std::nullopt;
-    }
+    return getLoc(a);
 }
 
 OrgConverter::ConvertError OrgConverter::wrapError(
@@ -71,15 +62,10 @@ OrgConverter::ConvertError OrgConverter::wrapError(
     return result;
 }
 
-Opt<org::parse::LineCol> OrgConverter::getLoc(
+Opt<org::parse::SourceLoc> OrgConverter::getLoc(
     CR<parse::OrgAdapter> adapter) {
     if (adapter.isTerminal()) {
-        if (adapter.val().isFake()) {
-            return std::nullopt;
-        } else {
-            return org::parse::LineCol{
-                adapter.val().line, adapter.val().col};
-        }
+        return adapter.val().loc.value();
     } else if (adapter.isMono()) {
         return std::nullopt;
 
@@ -88,7 +74,7 @@ Opt<org::parse::LineCol> OrgConverter::getLoc(
         for (org::parse::OrgId const& id : nested.value()) {
             parse::OrgAdapter sub{adapter.group, id};
             if (sub.isTerminal() && !sub.val().isFake()) {
-                return org::parse::LineCol{sub.val().line, sub.val().col};
+                return sub.val().loc;
             }
         }
     }
@@ -97,7 +83,7 @@ Opt<org::parse::LineCol> OrgConverter::getLoc(
 }
 
 std::string OrgConverter::getLocMsg(CR<parse::OrgAdapter> adapter) {
-    Opt<parse::LineCol>    loc = getLoc(adapter);
+    Opt<parse::SourceLoc>  loc = getLoc(adapter);
     Opt<parse::OrgTokenId> tok;
     if (adapter.get().isTerminal()) { tok = adapter.get().getToken(); }
 
@@ -118,7 +104,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     auto getLoc = [&]() -> std::string {
         std::string res;
         if (in.node.has_value()) {
-            Opt<parse::LineCol> loc = this->getLoc(in.node.value());
+            Opt<parse::SourceLoc> loc = this->getLoc(in.node.value());
             if (loc.has_value()) {
                 res = hstd::fmt("{}:{} ", loc->line, loc->column);
             }

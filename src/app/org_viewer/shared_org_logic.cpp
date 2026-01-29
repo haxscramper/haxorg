@@ -1,7 +1,8 @@
 #include "shared_org_logic.hpp"
-#include <haxorg/sem/SemOrgCereal.hpp>
+#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/ext/logger.hpp>
+
 
 const std::unordered_set<std::string> COMPLETED_TASK_SET = {
     "DONE",
@@ -20,14 +21,15 @@ const SemSet AGENDA_NODE_TYPES = {
 
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
-    const fs::path& infile,
-    const fs::path& graph_path,
-    const fs::path& context_path,
-    const fs::path& epoch_path,
-    const fs::path& cache_file,
-    bool            use_cache) {
-    auto dir_opts   = org::OrgDirectoryParseParameters::shared();
-    auto parse_opts = org::OrgParseParameters::shared();
+    const fs::path&               infile,
+    const fs::path&               graph_path,
+    const fs::path&               context_path,
+    const fs::path&               epoch_path,
+    const fs::path&               cache_file,
+    org::parse::ParseContext::Ptr parse_context,
+    bool                          use_cache) {
+    auto dir_opts   = org::parse::OrgDirectoryParseParameters::shared();
+    auto parse_opts = org::parse::OrgParseParameters::shared();
 
     if (!use_cache || checkOrgFilesChanged(infile, cache_file)
         || !fs::exists(graph_path) || !fs::exists(context_path)
@@ -36,14 +38,15 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
         dir_opts->getParsedNode = [&](const std::string& path)
             -> org::sem::SemId<org::sem::Org> {
             // try {
-            parse_opts->currentFile = path;
-            return org::parseStringOpts(hstd::readFile(path), parse_opts);
+            return parse_context->parseFileOpts(
+                hstd::readFile(path), parse_opts);
             // } catch (const std::exception& e) {
             //     return org::sem::SemId<org::sem::Empty>::New();
             // }
         };
 
-        auto node = org::parseDirectoryOpts(infile.string(), dir_opts);
+        auto node = parse_context->parseDirectoryOpts(
+            infile.string(), dir_opts);
         auto initial_context = org::initImmutableAstContext();
         auto version         = initial_context->addRoot(node.value());
 
@@ -120,7 +123,10 @@ hstd::Str OrgAgendaNode::getAgeDisplay() const {
 
 void OrgAgendaNode::pushBack(OrgAgendaNode::Ptr other) {
     auto kind = other->data->getKind();
-    assert(AGENDA_NODE_TYPES.contains(kind));
+    LOGIC_ASSERTION_CHECK_FMT(
+        AGENDA_NODE_TYPES.contains(kind),
+        "{} is not an agenda node type",
+        kind);
     children.push_back(other);
 }
 

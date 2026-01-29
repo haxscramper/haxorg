@@ -8,7 +8,8 @@ import pytest
 CAT = __name__
 
 def test_trivial_code_eval() -> None:
-    node = org.parseString("""#+begin_src test :results value raw
+    parse = org.ParseContext()
+    node = parse.parseString("""#+begin_src test :results value raw
 content
 #+end_src""", "<test>")
 
@@ -24,7 +25,7 @@ content
 
     conf.evalBlock = eval_block
 
-    ev = org.evaluateCodeBlocks(node, conf)
+    ev = org.evaluateCodeBlocks(node, conf, parse)
 
     Path("/tmp/result.txt").write_text(org.treeRepr(ev, colored=False))
 
@@ -46,7 +47,8 @@ content
 
 @pytest.mark.skip()
 def test_babel_eval_trivial() -> None:
-    node = org.parseString("""#+begin_src plantuml
+    parse = org.ParseContext()
+    node = parse.parseString("""#+begin_src plantuml
 @startuml
 Alice -> Bob: Authentication Request
 Bob --> Alice: Authentication Response

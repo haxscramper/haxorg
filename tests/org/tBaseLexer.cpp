@@ -1,4 +1,4 @@
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 #include <gtest/gtest.h>
 #include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/stdlib/Json.hpp>
@@ -8,9 +8,9 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/test/corpusrunner.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/SemOrgCereal.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/serde/SemOrgCereal.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include "../common.hpp"
 #include "hstd/ext/logger.hpp"
@@ -41,8 +41,9 @@ TEST(ManualFileRun, TestCoverallOrg) {
             },
             getDebugDir());
 
+        org::parse::ParseContext ctx;
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content, file));
+        auto n     = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
@@ -54,18 +55,20 @@ TEST(ManualFileRun, TestCoverallOrg) {
         writeFile(
             getDebugFile("imm_repr_clean.txt"),
             n.getRootAdapter()
-                .treeRepr(imm::ImmAdapter::TreeReprConf{
-                    .withAuxFields = true,
-                })
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields = true,
+                    })
                 .toString(false));
 
         writeFile(
             getDebugFile("imm_repr_refl.txt"),
             n.getRootAdapter()
-                .treeRepr(imm::ImmAdapter::TreeReprConf{
-                    .withAuxFields  = true,
-                    .withReflFields = true,
-                })
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields  = true,
+                        .withReflFields = true,
+                    })
                 .toString(false));
 
         {
@@ -121,23 +124,26 @@ TEST(ManualFileRun, TestDoc1) {
             getDebugDir());
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content, file));
+        org::parse::ParseContext ctx;
+        auto n = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("TestDoc1_clean.txt"),
             n.getRootAdapter()
-                .treeRepr(imm::ImmAdapter::TreeReprConf{
-                    .withAuxFields = true,
-                })
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields = true,
+                    })
                 .toString(false));
 
         writeFile(
             getDebugFile("TestDoc1_refl.txt"),
             n.getRootAdapter()
-                .treeRepr(imm::ImmAdapter::TreeReprConf{
-                    .withAuxFields  = true,
-                    .withReflFields = true,
-                })
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields  = true,
+                        .withReflFields = true,
+                    })
                 .toString(false));
 
         writeFile(
@@ -161,20 +167,22 @@ TEST(ManualFileRun, TestDoc2) {
             getDebugDir());
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(org::parseString(content, file));
+        org::parse::ParseContext ctx;
+        auto n = start->init(ctx.parseString(content, file));
     }
 }
 
 TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
-        auto opts = OrgDirectoryParseParameters::shared();
+        org::parse::ParseContext ctx;
+        auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
         opts->getParsedNode = [&](std::string const& path) {
-            return parseFile(path, org::OrgParseParameters::shared());
+            return ctx.parseFile(path);
         };
 
-        auto parsed = parseFileWithIncludes(file, opts);
+        auto parsed = ctx.parseFileWithIncludes(file, opts);
     }
 }
 
@@ -182,11 +190,12 @@ TEST(ManualFileRun, TestMain1) {
 void test_dir_parsing(fs::path const& dir, bool trace) {
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
 
-    auto opts = org::OrgDirectoryParseParameters::shared();
+    org::parse::ParseContext ctx;
+    auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
     opts->getParsedNode = [&](std::string const& path) {
         fs::path relative = fs::relative(path, dir);
-        auto     params   = org::OrgParseParameters::shared();
+        auto     params   = org::parse::OrgParseParameters::shared();
         if (trace) {
             params->parseTracePath = getDebugFile(
                 (relative / "parse_trace.log").native());
@@ -197,7 +206,8 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
             params->semTracePath = getDebugFile(
                 (relative / "sem_trace_path.log").native());
         }
-        auto node = org::parseFile(path, params);
+
+        auto node = ctx.parseFile(path);
 
         if (trace) {
             writeTreeRepr(
@@ -219,7 +229,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     };
 
     LOG(INFO) << "Parse directory content";
-    auto parse = org::parseDirectoryOpts(dir, opts);
+    auto parse = ctx.parseDirectoryOpts(dir, opts);
 
     if (trace) {
         writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml"));

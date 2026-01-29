@@ -47,8 +47,7 @@ void OrgTokenizer::report(CR<Report> in) {
                 .value = at(in.id)->text,
             };
 
-            res.line   = at(in.id)->line;
-            res.column = at(in.id)->col;
+            res.loc = at(in.id)->loc;
         }
 
         os << to_json_eval(res).dump();

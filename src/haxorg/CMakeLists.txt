@@ -1,15 +1,8 @@
 add_library(haxorg)
 set_common_files(haxorg)
 
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/exporters/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/annotators/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/lexbase/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/parse/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/sem/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/tools/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/types/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/base_lexer/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/test/.*" SEARCH_BASE "${BASE}")
+glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/.*" SEARCH_BASE "${BASE}")
+
 
 set_target_output(haxorg)
 set_target_flags(haxorg)
@@ -27,13 +20,22 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
     OUT_VAR
     ORG_PROTO_GENERATED_FILES
     IMPORT_DIRS
-    "${BASE}/src/haxorg/sem"
+    "${BASE}/src/haxorg/serde"
     PROTOS
-    "${BASE}/src/haxorg/sem/SemOrgProto.proto"
-    "${BASE}/src/haxorg/sem/SemOrgProtoManual.proto"
+    "${BASE}/src/haxorg/serde/SemOrgProto.proto"
+    "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto"
     PROTOC_OUT_DIR
     "${CMAKE_CURRENT_BINARY_DIR}")
+
+  # Create a custom target for protobuf generation
+  add_custom_target(haxorg_generate_protobuf
+    DEPENDS ${ORG_PROTO_GENERATED_FILES}
+    COMMENT "Generating protobuf files"
+  )
+
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
+  add_dependencies(haxorg haxorg_generate_protobuf)
+  message(STATUS "ORG_PROTO_GENERATED_FILES = ${ORG_PROTO_GENERATED_FILES}")
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json

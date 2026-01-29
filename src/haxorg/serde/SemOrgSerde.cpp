@@ -1,5 +1,5 @@
-#include <haxorg/sem/SemOrgSerde.hpp>
-#include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+#include <haxorg/serde/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
 

@@ -292,12 +292,23 @@ class ProtoBuilder():
                     return tu.QualType.ForName("_".join(
                         typ.withoutSpace("sem").withoutSpace(
                             "org").flatQualName())).withExtraSpace("orgproto")
+                            
+                # FIXME Undocumented hardcoded list of types, easily breaking
+                # when adding new data shared between cxx and protobuf type
+                # definitions.
+                elif typ.name == "SourceLoc":
+                    result = typ.model_copy(
+                        update=dict(Parameters=aux_parameters(typ),
+                                    Spaces=[
+                                        tu.QualType.ForName("orgproto"),
+                                        tu.QualType.ForName("org_parse"),
+                                    ]))
+
+                    return result
 
                 else:
                     result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                    if "sem" in result.flatSpaceNames() or typ.name in [
-                            "UserTime", "LineCol"
-                    ]:
+                    if "sem" in result.flatSpaceNames() or typ.name in ["UserTime"]:
                         result = result.withoutSpace("sem").withoutSpace(
                             "org").withExtraSpace("orgproto")
 
@@ -789,7 +800,7 @@ class ProtoBuilder():
             writer_types.append(item)
 
             for meth in item.methods():
-                writer_methods.append(meth.asMethodDef(name)) # type: ignore
+                writer_methods.append(meth.asMethodDef(name))  # type: ignore
                 meth.Params.Body = None
 
         return (writer_types, writer_methods)

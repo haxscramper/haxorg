@@ -13,11 +13,11 @@ struct OrgConverter : public hstd::OperationsTracer {
   public:
     struct Errors {
         struct Base : std::exception {
-            hstd::Opt<parse::LineCol>    loc;
+            hstd::Opt<parse::SourceLoc>    loc;
             hstd::Opt<parse::OrgAdapter> adapter;
             hstd::Opt<Org*>              node;
             Base(
-                hstd::Opt<parse::LineCol>    loc     = std::nullopt,
+                hstd::Opt<parse::SourceLoc>    loc     = std::nullopt,
                 hstd::Opt<parse::OrgAdapter> adapter = std::nullopt,
                 hstd::Opt<Org*>              node    = std::nullopt)
                 : loc(loc), adapter(adapter), node(node) {}
@@ -39,8 +39,9 @@ struct OrgConverter : public hstd::OperationsTracer {
             OrgNodeKind kind;
             UnhandledKind(OrgNodeKind kind) : kind(kind) {}
             const char* what() const noexcept override {
-                return hstd::strdup(hstd::fmt(
-                    "Unexpected kind {} at {}", kind, getLocMsg()));
+                return hstd::strdup(
+                    hstd::fmt(
+                        "Unexpected kind {} at {}", kind, getLocMsg()));
             };
         };
     };
@@ -56,7 +57,7 @@ struct OrgConverter : public hstd::OperationsTracer {
             return std::visit(
                 [](auto const& in) { return in.what(); }, err);
         }
-        void setLoc(org::parse::LineCol const& loc) {
+        void setLoc(org::parse::SourceLoc const& loc) {
             std::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
 
@@ -78,7 +79,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvertError wrapError(
         Error const&                  err,
         org::parse::OrgAdapter const& adapter);
-    hstd::Opt<org::parse::LineCol> getLoc(
+    hstd::Opt<org::parse::SourceLoc> getLoc(
         org::parse::OrgAdapter const& adapter);
     std::string getLocMsg(org::parse::OrgAdapter const& adapter);
 
@@ -104,12 +105,8 @@ struct OrgConverter : public hstd::OperationsTracer {
 
   public:
     hstd::UPtr<OrgSpec> spec;
-    std::string         currentFile;
 
-    OrgConverter(std::string currentFile) : currentFile{currentFile} {
-        LOGIC_ASSERTION_CHECK(!currentFile.empty(), "");
-        spec = getOrgSpec();
-    }
+    OrgConverter() { spec = getOrgSpec(); }
 
     org::parse::OrgAdapter one(
         org::parse::OrgAdapter node,
@@ -301,7 +298,7 @@ struct OrgConverter : public hstd::OperationsTracer {
         char const*                 function    = __builtin_FUNCTION(),
         char const*                 file        = __builtin_FILE());
 
-    hstd::Opt<org::sem::SourceLocation> MakeSourceLocation(
+    hstd::Opt<org::parse::SourceLoc> MakeSourceLocation(
         org::parse::OrgAdapter const& a);
 
     SemId<Org> convert(In);

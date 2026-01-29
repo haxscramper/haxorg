@@ -8,27 +8,22 @@ CAT = "haxorg.export.html"
 
 
 @beartype
-def export_html(opts: haxorg_opts.RootOptions,
-                run: Optional[haxorg_cli.CliRunContext] = None) -> None:
-    assert opts.export
-    assert opts.export.html
-    assert opts.export.html.infile
-    assert opts.export.html.outfile
+def export_html(ctx: haxorg_cli.CliRunContext) -> None:
+    assert ctx.opts.export
+    assert ctx.opts.export.html
+    assert ctx.opts.export.html.infile
+    assert ctx.opts.export.html.outfile
 
-    if not run:
-        run = haxorg_cli.get_run(opts) # type: ignore
-
-    with run.event("Run html export", CAT):
-        node = haxorg_cli.parseCachedFile(opts, opts.export.html.infile)
+    with ctx.event("Run html export", CAT):
+        node = haxorg_cli.parseCachedFile(ctx, ctx.opts.export.html.infile)
         exp = ExporterHtml()
         document = exp.evalDocument(node)
-        opts.export.html.outfile.write_text(str(document))
+        ctx.opts.export.html.outfile.write_text(str(document))
 
-    run.finalize()
 
 
 @click.command("html")
 @haxorg_cli.get_wrap_options(haxorg_opts.ExportHtmlOptions)
 @click.pass_context
 def export_html_cli(ctx: click.Context, **kwargs: Any) -> None:
-    export_html(haxorg_cli.get_opts(ctx))
+    export_html(haxorg_cli.get_run(ctx))

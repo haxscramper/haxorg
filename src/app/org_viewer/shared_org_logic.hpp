@@ -3,9 +3,10 @@
 // #define NDEBUG 0
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 #include <unordered_map>
 #include <string>
@@ -27,12 +28,13 @@ bool checkOrgFilesChanged(
 void writeOrgFileCache(const fs::path& infile, const fs::path& cache_file);
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
-    const fs::path& infile,
-    const fs::path& graph_path,
-    const fs::path& context_path,
-    const fs::path& epoch_path,
-    const fs::path& cache_file,
-    bool            use_cache = true);
+    const fs::path&               infile,
+    const fs::path&               graph_path,
+    const fs::path&               context_path,
+    const fs::path&               epoch_path,
+    const fs::path&               cache_file,
+    org::parse::ParseContext::Ptr parse_context,
+    bool                          use_cache = true);
 
 class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
   public:

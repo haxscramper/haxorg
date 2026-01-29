@@ -6,15 +6,13 @@
 namespace org::parse {
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 
-struct LexerParams : hstd::OperationsTracer {
-    struct Loc {
-        int line;
-        int col;
-    };
-};
+struct LexerParams : hstd::OperationsTracer {};
 
 
-OrgTokenGroup tokenize(std::string const& text, LexerParams const& p);
+OrgTokenGroup tokenize(
+    std::string const&              text,
+    LexerParams const&              params,
+    org::parse::SourceFileId const& file_id);
 
 
 } // namespace org::parse

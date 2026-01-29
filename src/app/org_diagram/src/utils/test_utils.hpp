@@ -10,7 +10,7 @@
 #include <format>
 #include <functional>
 
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <org_diagram/src/model/DiaVersionStore.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 #include <org_diagram/src/model/DiaNodeTreeModel.hpp>
@@ -97,14 +97,18 @@ std::vector<ModelMismatch> compareModels(
 }
 
 struct ScopeManaged {
-    org::imm::ImmAstContext::Ptr imm_context;
-    DiaContext::Ptr              dia_context;
-    DiaVersionStore::Ptr         version_store;
+    org::imm::ImmAstContext::Ptr  imm_context;
+    org::parse::ParseContext::Ptr parse_context;
+    DiaContext::Ptr               dia_context;
+    DiaVersionStore::Ptr          version_store;
     ScopeManaged()
         : imm_context{org::imm::ImmAstContext::init_start_context()}
+        , parse_context{org::parse::ParseContext::shared()}
         , dia_context{DiaContext::shared()}
-        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
-    //
+        , version_store{DiaVersionStore::shared(
+              imm_context,
+              dia_context,
+              parse_context)} //
     {}
 };
 
@@ -126,11 +130,12 @@ struct ScopeV12DiagramDiff : ScopeV12 {
 };
 
 struct ScopeDiagramTree {
-    org::imm::ImmAstContext::Ptr imm_context;
-    hstd::SPtr<DiaContext>       dia_context;
+    org::imm::ImmAstContext::Ptr  imm_context;
+    org::parse::ParseContext::Ptr parse_context;
+    hstd::SPtr<DiaContext>        dia_context;
 
     org::imm::ImmAstVersion getAdapter(std::string const& text) {
-        auto parsed = org::parseString(text, "<scope>");
+        auto parsed = parse_context->parseString(text, "<scope>");
         return imm_context->addRoot(parsed);
     }
 

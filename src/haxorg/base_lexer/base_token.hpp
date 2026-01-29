@@ -9,12 +9,10 @@
 namespace org::parse {
 
 struct OrgFill {
-    hstd::Str text;
-    int       line = -1;
-    int       col  = -1;
-    int       pos  = -1;
-    bool      isFake() const { return line == -1 && col == -1; }
-    DESC_FIELDS(OrgFill, (text, line, col, pos));
+    hstd::Str                      text;
+    hstd::Opt<org::parse::SourceLoc> loc;
+    bool isFake() const { return !loc.has_value(); }
+    DESC_FIELDS(OrgFill, (text, loc));
 };
 
 using OrgToken   = Token<OrgTokenKind, OrgFill>;
@@ -30,12 +28,17 @@ struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
         FormatContext&             ctx) const {
         std::formatter<std::string>{}.format("<", ctx);
         ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
-        std::formatter<std::string>{}.format(">:", ctx);
-        ::hstd::fmt_ctx(p.line, ctx);
-        std::formatter<std::string>{}.format(":", ctx);
-        ::hstd::fmt_ctx(p.col, ctx);
-        std::formatter<std::string>{}.format(":", ctx);
-        ::hstd::fmt_ctx(p.pos, ctx);
+        std::formatter<std::string>{}.format(">", ctx);
+        if (p.loc.has_value()) {
+            ::hstd::fmt_ctx(":", ctx);
+            ::hstd::fmt_ctx(p.loc->line, ctx);
+            std::formatter<std::string>{}.format(":", ctx);
+            ::hstd::fmt_ctx(p.loc->column, ctx);
+            std::formatter<std::string>{}.format(":", ctx);
+            ::hstd::fmt_ctx(p.loc->pos, ctx);
+            std::formatter<std::string>{}.format("@", ctx);
+            ::hstd::fmt_ctx(p.loc->file_id.format(""), ctx);
+        }
         return ctx.out();
     }
 };

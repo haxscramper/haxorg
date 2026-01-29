@@ -1,11 +1,11 @@
 #include "DiaVersionStore.hpp"
 
 #include <hstd/stdlib/diffs.hpp>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 #include <vector>
-#include <haxorg/sem/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
 #include <algorithm>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -71,9 +71,12 @@ DiaAdapter DiaVersionStore::buildTree(imm::ImmAdapter const& adapter) {
 }
 
 DiaVersionStore::DiaVersionStore(
-    imm::ImmAstContext::Ptr context,
-    DiaContext::Ptr         dia_context)
-    : imm_context{context}, dia_context{dia_context} {}
+    imm::ImmAstContext::Ptr       context,
+    DiaContext::Ptr               dia_context,
+    org::parse::ParseContext::Ptr parse_context)
+    : imm_context{context}
+    , dia_context{dia_context}
+    , parse_context{parse_context} {}
 
 void DiaVersionStore::stepEditForward(
     imm::ImmAstVersion& vEdit,
@@ -243,11 +246,12 @@ void DiaVersionStore::stepEditForward(
                         movedIds.push_back(moved.id);
                     }
 
-                    result.incl(imm::insertSubnodes(
-                        target,
-                        movedIds,
-                        mov.newIndex.value_or(target.size()),
-                        edit));
+                    result.incl(
+                        imm::insertSubnodes(
+                            target,
+                            movedIds,
+                            mov.newIndex.value_or(target.size()),
+                            edit));
 
                     return result;
                 });
@@ -358,21 +362,15 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
 }
 
 int DiaVersionStore::addDocument(const std::string& document) {
-    hstd::ext::StrCache cache;
-
-    cache.getFileSource = [&](std::string const& path) -> std::string {
-        LOGIC_ASSERTION_CHECK_FMT(path == "<text>", "{}", path);
-        return document;
-    };
-
-    auto node    = parseString(document, "<text>");
-    auto reports = org::collectDiagnostics(cache, node);
+    auto node    = parse_context->parseString(document, "<text>");
+    auto cache   = parse_context->getDiagnosticStrings();
+    auto reports = parse_context->collectDiagnostics(node, cache);
 
     if (!reports.empty()) {
         HSLOG_WARNING("Input document was parsed with diagnostics");
         for (auto const& report : reports) {
             try {
-                HSLOG_ERROR("{}", report.to_string(cache, false));
+                HSLOG_ERROR("{}", report.to_string(*cache, false));
             } catch (std::exception& e) {
                 HSLOG_ERROR(
                     "Failed to format report {}\n{}", e.what(), report);

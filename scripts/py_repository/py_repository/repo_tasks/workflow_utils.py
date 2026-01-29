@@ -80,15 +80,16 @@ def haxorg_task(
                     context_obj = context["ctx"]
                     continue
 
-                # Get value from context params or use default
                 if param_name in context.get("params", {}):
                     value = context["params"][param_name]
+                elif param_name in context:
+                    value = context[param_name]
                 elif param.default != inspect.Parameter.empty:
                     value = param.default
                 else:
                     raise ValueError(
-                        f"Required parameter '{param_name}' not found in context for task {func.__name__}"
-                    )
+                        f"Required parameter '{param_name}' not found in context for task {func.__name__}. "
+                        f"Available parameters: {list(context.keys())}")
 
                 kwargs[param_name] = value
 
@@ -252,7 +253,6 @@ args: {args}
             op = self.graph.tasks[target_name]
             op.python_callable(ctx=self)
             return
-            
 
         dependent_indices = self.graph.graph.subcomponent(target_id, mode="in")
         sub_graph = self.graph.graph.induced_subgraph(dependent_indices)

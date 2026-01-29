@@ -7,7 +7,7 @@ from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
 from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg, build_reflection_tool, configure_cmake_haxorg
+from py_repository.repo_tasks.haxorg_build import build_haxorg, build_targets, configure_cmake_haxorg
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -59,7 +59,7 @@ CODEGEN_TASKS = [
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
-    build_reflection_tool(ctx=ctx)
+    build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
 
     for task in CODEGEN_TASKS:
         out_file = get_build_root(ctx, f"{task}.pb")
@@ -99,12 +99,9 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     if not ctx.config.generate_sources_conf.standalone:
-        config_copy = ctx.config.model_copy(deep=True)
-        config_copy.build_conf.target = ["py_textlayout_cpp"]
-        ctx_copy = ctx.with_temp_config(config_copy)
-        ctx_copy.run(build_haxorg, ctx=ctx_copy)
-        ctx_copy.run(generate_reflection_snapshot, ctx=ctx_copy)
-        ctx_copy.run(symlink_build, ctx=ctx_copy)
+        build_targets(ctx=ctx, targets=["py_textlayout_cpp"])
+        ctx.run(generate_reflection_snapshot, ctx=ctx)
+        ctx.run(symlink_build, ctx=ctx)
 
     from py_codegen.codegen import run_codegen_task
 
@@ -147,7 +144,7 @@ def merge_build_times(ctx: TaskContext) -> None:
 def generate_binary_size_report(ctx: TaskContext) -> None:
     from py_repository.code_analysis import gen_symbol_size_report as gsrs
     if ctx.config.binary_size_conf.update_db:
-        build_reflection_tool(ctx=ctx)
+        build_targets(ctx=ctx, targets=["reflection_tool"])
         gsrs.generate_binary_size_db(ctx)
     gsrs.generate_symbol_size_report(ctx)
 
@@ -159,7 +156,7 @@ def generate_include_graph(ctx: TaskContext) -> None:
                                       "build/haxorg/compile_commands_with_headers.json")
     # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
-    build_reflection_tool(ctx=ctx)
+    build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
 
     from py_repository.code_analysis.gen_include_graph import gen_include_graph
     gen_include_graph(

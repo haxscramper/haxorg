@@ -1,6 +1,6 @@
 #include "ImmOrgGraph.hpp"
-#include "haxorg/sem/ImmOrgEdit.hpp"
-#include "haxorg/sem/SemBaseApi.hpp"
+#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>

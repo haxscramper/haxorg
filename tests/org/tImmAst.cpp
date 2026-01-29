@@ -44,8 +44,7 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
-    auto node  = org::parseDirectoryOpts(
-        file, org::OrgDirectoryParseParameters::shared());
+    auto node  = parseContext->parseDirectory(file);
     ASSERT_TRUE(node.has_value());
     auto version = store->addRoot(node.value());
     auto state   = org::graph::MapGraphState::FromAstContext(
@@ -456,20 +455,22 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto                    t2 = rows1.at(0).nested.at(0);
             imm::ImmAstReplaceGroup result;
-            result.incl(imm::replaceNode(
-                t2.nameOrigin,
-                ast->add(
-                    org::asOneNode(
-                        org::parseString("New title", "<test-1>")),
-                    ctx),
-                ctx));
-            result.incl(imm::replaceNode(
-                t2.storyEventOrigin,
-                ast->add(
-                    org::asOneNode(org::parseString(
-                        "New story event description", "<test-2>")),
-                    ctx),
-                ctx));
+            result.incl(
+                imm::replaceNode(
+                    t2.nameOrigin,
+                    ast->add(
+                        org::asOneNode(parseContext->parseString(
+                            "New title", "<test-1>")),
+                        ctx),
+                    ctx));
+            result.incl(
+                imm::replaceNode(
+                    t2.storyEventOrigin,
+                    ast->add(
+                        org::asOneNode(parseContext->parseString(
+                            "New story event description", "<test-2>")),
+                        ctx),
+                    ctx));
             return result;
         });
 
@@ -584,8 +585,9 @@ Paragraph under subtitle 2
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"},
             false,
-            selector.linkField(imm::ImmReflFieldId::FromTypeField(
-                &imm::ImmOrg::subnodes)));
+            selector.linkField(
+                imm::ImmReflFieldId::FromTypeField(
+                    &imm::ImmOrg::subnodes)));
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
@@ -694,8 +696,9 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
         selector.searchAnyKind(
             {OrgSemKind::Subtree},
             true,
-            selector.linkField(imm::ImmReflFieldId::FromTypeField(
-                &imm::ImmSubtree::title)));
+            selector.linkField(
+                imm::ImmReflFieldId::FromTypeField(
+                    &imm::ImmSubtree::title)));
         selector.searchAnyKind({OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);

@@ -28,9 +28,11 @@ class MindMapBuildArtifacts():
     mman_initial_path: Path
 
 
-def gen_mind_map(opts: haxorg_opts.RootOptions) -> MindMapBuildArtifacts:
+@beartype
+def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
     result = MindMapBuildArtifacts()
     logging.getLogger("fontTools.ttLib.ttFont").setLevel(logging.WARNING)
+    opts = ctx.opts
     assert opts.generate
     assert opts.generate.mind_map
     mind_map_opts = opts.generate.mind_map

@@ -3,7 +3,7 @@
 #include <org_imgui/gui_lib/block_graph.hpp>
 #include <org_imgui/gui_lib/node_grid_graph.hpp>
 #include <org_imgui/gui_lib/imgui_utils.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <org_imgui/gui_lib/im_org_ui_common.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
@@ -367,4 +367,5 @@ void apply_doc_block_actions(
 
 void doc_editor_loop(
     GLFWwindow*                    window,
-    org::sem::SemId<org::sem::Org> node);
+    org::sem::SemId<org::sem::Org> node,
+    org::parse::ParseContext::Ptr parse_context);

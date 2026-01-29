@@ -33,9 +33,12 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::OrgJson> time) {}
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<org::parse::LineCol> time) {}
+void Exporter<V, R>::visit(R& res, CR<org::parse::SourceLoc> time) {}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, float const& time) {}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::parse::SourceFileId const& time) {}
 
 #include "Exporter.tcc"

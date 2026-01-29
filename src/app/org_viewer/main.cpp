@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
             hstd::log::init_file_sink(config.log_path.value()));
     }
 
+    auto parse_context = org::parse::ParseContext::shared();
+
     HSLOG_INFO("Started org_viewer");
 
     auto node = loadCachedImmNode(
@@ -48,6 +50,7 @@ int main(int argc, char* argv[]) {
         config.context_path,
         config.epoch_path,
         config.cache_file,
+        parse_context,
         config.use_cache);
 
     QApplication a(argc, argv);

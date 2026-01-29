@@ -62,40 +62,30 @@ struct MainWindow : public QMainWindow {
     Q_OBJECT
 
   public:
-    StartupArgc                  conf;
-    DiaScene*                    scene{};
-    DiagramView*                 view{};
-    QSpinBox*                    gridSnapBox{};
-    QTreeView*                   treeView{};
-    DiaSceneItemModel*           treeModel{};
-    QWidget*                     propertiesPanel{};
-    QVBoxLayout*                 propertiesLayout{};
-    QPushButton*                 createEdgeButton{};
-    QPushButton*                 createGroupButton{};
-    QPushButton*                 deleteSelectedNodeButton{};
-    QCheckBox*                   showGridCheck{};
-    QPushButton*                 gridColorButton{};
-    QSlider*                     zoomSlider{};
-    QLabel*                      zoomLabel{};
-    QPushButton*                 zoomFitButton{};
-    DiaSelectionManager*         selectionManager{};
-    org::imm::ImmAstContext::Ptr imm_context;
-    DiaContext::Ptr              dia_context;
-    DiaVersionStore::Ptr         version_store;
+    StartupArgc                   conf;
+    DiaScene*                     scene{};
+    DiagramView*                  view{};
+    QSpinBox*                     gridSnapBox{};
+    QTreeView*                    treeView{};
+    DiaSceneItemModel*            treeModel{};
+    QWidget*                      propertiesPanel{};
+    QVBoxLayout*                  propertiesLayout{};
+    QPushButton*                  createEdgeButton{};
+    QPushButton*                  createGroupButton{};
+    QPushButton*                  deleteSelectedNodeButton{};
+    QCheckBox*                    showGridCheck{};
+    QPushButton*                  gridColorButton{};
+    QSlider*                      zoomSlider{};
+    QLabel*                       zoomLabel{};
+    QPushButton*                  zoomFitButton{};
+    DiaSelectionManager*          selectionManager{};
+    org::imm::ImmAstContext::Ptr  imm_context;
+    DiaContext::Ptr               dia_context;
+    org::parse::ParseContext::Ptr parse_context;
+    DiaVersionStore::Ptr          version_store;
 
 
-    MainWindow(StartupArgc const& conf)
-        : QMainWindow{nullptr}
-        , conf{conf}
-        , imm_context{org::imm::ImmAstContext::init_start_context()}
-        , dia_context{DiaContext::shared()}
-        , version_store{DiaVersionStore::shared(imm_context, dia_context)}
-    //
-    {
-        setupUI();
-        connectSignals();
-        loadFile(QString::fromStdString(conf.documentPath));
-    }
+    MainWindow(StartupArgc const& conf);
 
     void setupUI();
     void connectSignals();

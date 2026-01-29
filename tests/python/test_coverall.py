@@ -1100,7 +1100,8 @@ def test_total_representation() -> None:
     """
 
     file = org_corpus_dir.joinpath("py_validated_all.org")
-    node = org.parseFile(str(file), org.OrgParseParameters())
+    parse = org.ParseContext()
+    node = parse.parseFile(str(file))
     Path(gettempdir()).joinpath("content.yaml").write_text(
         org.exportToYamlString(node, org.OrgYamlExportOpts()))
     Path(gettempdir()).joinpath("content.txt").write_text(
@@ -1281,7 +1282,8 @@ def test_total_representation() -> None:
 @beartype
 def get_test_node_from_text(prefix: str = "", postfix: str = "") -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
-    node = org.parseString(prefix + file.read_text() + postfix, "<test>")
+    parse = org.ParseContext()
+    node = parse.parseString(prefix + file.read_text() + postfix, "<test>")
     return node
 
 
@@ -1289,7 +1291,8 @@ def get_test_node_from_text(prefix: str = "", postfix: str = "") -> org.Org:
 def get_test_node_from_file() -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
     opts = org.OrgDirectoryParseParameters()
-    return org.parseFileWithIncludes(str(file), opts)
+    parse = org.ParseContext()
+    return parse.parseFileWithIncludes(str(file), opts)
 
 
 def test_run_typst_exporter(cov: Coverage) -> None:
@@ -1314,12 +1317,14 @@ def test_run_typst_exporter(cov: Coverage) -> None:
         except CommandNotFound:
             pass
 
-        exp.expr(org.parseString("word", "<test>"))
+        parse = org.ParseContext()
+        exp.expr(parse.parseString("word", "<test>"))
         exp.evalParagraph(org.Paragraph())
 
         with pytest.raises(ValueError) as ex:
+            parse = org.ParseContext()
             ExporterTypst().evalTop(
-                org.parseString(
+                parse.parseString(
                     """
             - header :: body
             - mixed
@@ -1328,8 +1333,9 @@ def test_run_typst_exporter(cov: Coverage) -> None:
             assert "mixed description list" in str(ex.value)
 
         with pytest.raises(ValueError) as ex:
+            parse = org.ParseContext()
             ExporterTypst().evalTop(
-                org.parseString(
+                parse.parseString(
                     """
 #+begin_export typst :edit-config
 

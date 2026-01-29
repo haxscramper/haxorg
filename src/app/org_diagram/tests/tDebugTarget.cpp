@@ -5,7 +5,7 @@
 #include <org_diagram/src/utils/test_utils.hpp>
 #include <QTimer>
 #include <QSignalSpy>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 #include <org_diagram/src/model/layout/ElkLayoutManager.hpp>
 

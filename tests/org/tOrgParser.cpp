@@ -3,6 +3,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <haxorg/api/EvalContext.hpp>
 
 using namespace org;
 using namespace hstd;
@@ -61,7 +62,7 @@ TEST(OrgParseSem, TracerOperations1) {
     p.parser->setTraceFile(parser_trace);
     p.parser->traceStructured = true;
 
-    sem::OrgConverter converter{p.parser->currentFile};
+    sem::OrgConverter converter{};
     fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;
@@ -71,13 +72,12 @@ TEST(OrgParseSem, TracerOperations1) {
     fs::path lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
     params.setTraceFile(lex_trace);
     params.traceStructured = true;
-    p.tokenizeBase(text, params);
-    p.tokenizeConvert();
-    p.parse();
+    p.run(text, params);
 
     auto document = converter
-                        .convertDocument(org::parse::OrgAdapter(
-                            &p.nodes, org::parse::OrgId(0)))
+                        .convertDocument(
+                            org::parse::OrgAdapter(
+                                &p.nodes, org::parse::OrgId(0)))
                         .value();
 
     org::algo::ExporterJson exp{};
@@ -1182,17 +1182,6 @@ TEST(OrgParseSem, List) {
             "Desc");
     }
     {
-        auto l = parseOne<sem::List>("- Desc :: value");
-        EXPECT_EQ(l.size(), 1);
-        org::setDescriptionListItemBody(
-            l, "Desc", {parseOne<sem::Paragraph>("value")});
-
-        EXPECT_EQ(l.size(), 1);
-        org::setDescriptionListItemBody(
-            l, "Desc2", {parseOne<sem::Paragraph>("value")});
-        EXPECT_EQ(l.size(), 2);
-    }
-    {
         auto l = parseOne<sem::List>("- Item");
         EXPECT_EQ(l.size(), 1);
         org::insertListItemBody(l, 0, {parseOne<sem::Paragraph>("Item2")});
@@ -1541,7 +1530,8 @@ TEST(OrgParseSem, CodeBlockEval) {
     auto get = [](std::string const&         code,
                   hstd::Opt<fs::path> const& path = std::nullopt)
         -> sem::OrgCodeEvalInput {
-        org::OrgCodeEvalParameters conf;
+        org::OrgCodeEvalParameters conf{
+            org::parse::ParseContext::shared()};
         Vec<sem::OrgCodeEvalInput> buf;
         auto doc = path ? testParseString(code, path->native())
                         : testParseString(code);
@@ -1931,11 +1921,10 @@ TEST(OrgParseSem, CmdCallNode) {
 }
 
 TEST(OrgParseSem, DocumentFragments) {
-    auto opts         = OrgParseParameters::shared();
-    opts->currentFile = "<DocumentFragments>";
+    auto opts = org::parse::OrgParseParameters::shared();
     opts->getFragments =
-        [](std::string const& text) -> Vec<OrgParseFragment> {
-        return org::extractCommentBlocks(text, {"//#"});
+        [](std::string const& text) -> Vec<org::parse::OrgParseFragment> {
+        return org::parse::extractCommentBlocks(text, {"//#"});
     };
 
     opts->semTracePath       = getDebugFile("sem_trace.log");
@@ -1943,7 +1932,9 @@ TEST(OrgParseSem, DocumentFragments) {
     opts->tokenTracePath     = getDebugFile("token_trace.log");
     opts->baseTokenTracePath = getDebugFile("base_token_trace.log");
 
-    auto node = org::parseStringOpts(
+    org::parse::ParseContext ctx;
+
+    auto node = ctx.parseStringOpts(
         R"(
 struct [[refl]] OrgParseFragment {
     //# Documenting with org-mode comments
@@ -1957,6 +1948,7 @@ struct [[refl]] OrgParseFragment {
     DESC_FIELDS(OrgParseFragment, (baseLine, baseCol, text));
 };
 )",
+        "<fragmented-string>",
         opts);
 
     writeTreeRepr(node, getDebugFile("parsed.yaml"));

@@ -9,6 +9,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
 PYBIND11_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
 PYBIND11_MAKE_OPAQUE(immer::box<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(immer::box<std::optional<hstd::Str>>)
@@ -135,6 +139,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_hstdVec<org::sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_hstdVec<hstd::ext::Report>(m, "VecOfReport", type_registry_guard);
+  bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "VecOfSemIdOfErrorGroup", type_registry_guard);
   bind_immerflex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmFlexVectorOfImmIdTOfImmErrorItem", type_registry_guard);
   bind_immerbox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
   bind_immerbox<std::optional<hstd::Str>>(m, "ImmBoxOfStdOptionalOfStr", type_registry_guard);
@@ -252,6 +258,25 @@ PYBIND11_MODULE(pyhaxorg, m) {
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::parse::SourceLoc>(m, "parseSourceLoc")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::SourceLoc {
+                        org::parse::SourceLoc result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("line", &org::parse::SourceLoc::line)
+    .def_readwrite("column", &org::parse::SourceLoc::column)
+    .def_readwrite("pos", &org::parse::SourceLoc::pos)
+    .def_readwrite("file_id", &org::parse::SourceLoc::file_id)
+    .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::SourceLoc const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::OrgJson>(m, "OrgJson")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgJson {
                         org::sem::OrgJson result{};
@@ -284,24 +309,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                      })
     .def("__getattr__",
          [](org::sem::OrgJson const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::parse::LineCol>(m, "parseLineCol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::LineCol {
-                        org::parse::LineCol result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &org::parse::LineCol::line)
-    .def_readwrite("column", &org::parse::LineCol::column)
-    .def_readwrite("pos", &org::parse::LineCol::pos)
-    .def("__repr__", [](org::parse::LineCol const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::LineCol const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -367,6 +374,114 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](hstd::OperationsTracer const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<hstd::ext::Cache>(m, "Cache")
+    ;
+  pybind11::class_<org::parse::OrgParseFragment>(m, "parseOrgParseFragment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::parse::OrgParseFragment {
+                        org::parse::OrgParseFragment result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("baseLine", &org::parse::OrgParseFragment::baseLine)
+    .def_readwrite("baseCol", &org::parse::OrgParseFragment::baseCol)
+    .def_readwrite("text", &org::parse::OrgParseFragment::text)
+    .def("__repr__", [](org::parse::OrgParseFragment const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgParseFragment const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::parse::OrgParseParameters, std::shared_ptr<org::parse::OrgParseParameters>>(m, "OrgParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::parse::OrgParseParameters> {
+                        auto result = std::make_shared<org::parse::OrgParseParameters>();
+                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("baseTokenTracePath", &org::parse::OrgParseParameters::baseTokenTracePath)
+    .def_readwrite("tokenTracePath", &org::parse::OrgParseParameters::tokenTracePath)
+    .def_readwrite("parseTracePath", &org::parse::OrgParseParameters::parseTracePath)
+    .def_readwrite("semTracePath", &org::parse::OrgParseParameters::semTracePath)
+    .def("__repr__", [](org::parse::OrgParseParameters const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgParseParameters const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::parse::OrgDirectoryParseParameters, std::shared_ptr<org::parse::OrgDirectoryParseParameters>>(m, "OrgDirectoryParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::parse::OrgDirectoryParseParameters> {
+                        auto result = std::make_shared<org::parse::OrgDirectoryParseParameters>();
+                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](org::parse::OrgDirectoryParseParameters const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgDirectoryParseParameters const& _self, std::string const& name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::parse::ParseContext, std::shared_ptr<org::parse::ParseContext>>(m, "ParseContext")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::parse::ParseContext> {
+                        auto result = std::make_shared<org::parse::ParseContext>();
+                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
+                        return result;
+                        }))
+    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .def("addSource",
+         static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
+         pybind11::arg("path"),
+         pybind11::arg("content"))
+    .def("parseFileOpts",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseFileOpts),
+         pybind11::arg("file"),
+         pybind11::arg("opts"))
+    .def("parseFile",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile),
+         pybind11::arg("file"))
+    .def("parseString",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::string const&)>(&org::parse::ParseContext::parseString),
+         pybind11::arg("text"),
+         pybind11::arg("file_name"))
+    .def("parseStringOpts",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const, std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseStringOpts),
+         pybind11::arg("text"),
+         pybind11::arg("file_name"),
+         pybind11::arg("opts"))
+    .def("parseDirectory",
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
+         pybind11::arg("path"))
+    .def("parseDirectoryOpts",
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
+         pybind11::arg("path"),
+         pybind11::arg("opts"))
+    .def("parseFileWithIncludes",
+         static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes),
+         pybind11::arg("file"),
+         pybind11::arg("opts"))
+    .def("collectDiagnostics",
+         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics),
+         pybind11::arg("tree"),
+         pybind11::arg("cache"))
+    .def("collectErrorNodes",
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes),
+         pybind11::arg("tree"))
+    .def("__repr__", [](org::parse::ParseContext const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::ParseContext const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -1489,59 +1604,6 @@ field subset.)RAW")
     ;
   pybind11::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
     ;
-  pybind11::class_<org::OrgParseFragment>(m, "OrgParseFragment")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::OrgParseFragment {
-                        org::OrgParseFragment result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("baseLine", &org::OrgParseFragment::baseLine)
-    .def_readwrite("baseCol", &org::OrgParseFragment::baseCol)
-    .def_readwrite("text", &org::OrgParseFragment::text)
-    .def("__repr__", [](org::OrgParseFragment const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::OrgParseFragment const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::OrgParseParameters, std::shared_ptr<org::OrgParseParameters>>(m, "OrgParseParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::OrgParseParameters> {
-                        auto result = std::make_shared<org::OrgParseParameters>();
-                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("baseTokenTracePath", &org::OrgParseParameters::baseTokenTracePath)
-    .def_readwrite("tokenTracePath", &org::OrgParseParameters::tokenTracePath)
-    .def_readwrite("parseTracePath", &org::OrgParseParameters::parseTracePath)
-    .def_readwrite("semTracePath", &org::OrgParseParameters::semTracePath)
-    .def_readwrite("currentFile", &org::OrgParseParameters::currentFile)
-    .def("__repr__", [](org::OrgParseParameters const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::OrgParseParameters const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::OrgDirectoryParseParameters, std::shared_ptr<org::OrgDirectoryParseParameters>>(m, "OrgDirectoryParseParameters")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> std::shared_ptr<org::OrgDirectoryParseParameters> {
-                        auto result = std::make_shared<org::OrgDirectoryParseParameters>();
-                        org::bind::python::init_fields_from_kwargs(*result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](org::OrgDirectoryParseParameters const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::OrgDirectoryParseParameters const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::OrgYamlExportOpts {
                         org::OrgYamlExportOpts result{};
@@ -2228,28 +2290,6 @@ ingoing elements.)RAW")
                      })
     .def("__getattr__",
          [](org::bind::python::ExporterPython const& _self, std::string const& name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::SourceLocation>(m, "SourceLocation")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SourceLocation {
-                        org::sem::SourceLocation result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &org::sem::SourceLocation::line)
-    .def_readwrite("column", &org::sem::SourceLocation::column)
-    .def_readwrite("pos", &org::sem::SourceLocation::pos)
-    .def_readwrite("file", &org::sem::SourceLocation::file)
-    .def("__eq__",
-         static_cast<bool(org::sem::SourceLocation::*)(org::sem::SourceLocation const&) const>(&org::sem::SourceLocation::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::SourceLocation const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::SourceLocation const& _self, std::string const& name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -10109,26 +10149,6 @@ ingoing elements.)RAW")
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
         pybind11::arg("breakdown"),
         pybind11::arg_v("isActive", 0));
-  m.def("parseFile",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseFile),
-        pybind11::arg("file"),
-        pybind11::arg("opts"));
-  m.def("parseString",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::string const&)>(&org::parseString),
-        pybind11::arg("text"),
-        pybind11::arg("currentFile"));
-  m.def("parseStringOpts",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, std::shared_ptr<org::OrgParseParameters> const&)>(&org::parseStringOpts),
-        pybind11::arg("text"),
-        pybind11::arg("opts"));
-  m.def("parseDirectoryOpts",
-        static_cast<std::optional<org::sem::SemId<org::sem::Org>>(*)(std::string const&, std::shared_ptr<org::OrgDirectoryParseParameters> const&)>(&org::parseDirectoryOpts),
-        pybind11::arg("path"),
-        pybind11::arg("opts"));
-  m.def("parseFileWithIncludes",
-        static_cast<org::sem::SemId<org::sem::File>(*)(std::string const&, std::shared_ptr<org::OrgDirectoryParseParameters> const&)>(&org::parseFileWithIncludes),
-        pybind11::arg("file"),
-        pybind11::arg("opts"));
   m.def("initImmutableAstContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext));
   m.def("asOneNode",
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&)>(&org::asOneNode),
@@ -10216,7 +10236,7 @@ ingoing elements.)RAW")
         pybind11::arg("node"),
         pybind11::arg("callback"));
   m.def("setShouldProcessPath",
-        static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
         pybind11::arg("parameters"),
         pybind11::arg("callback"));
   m.def("serializeAstContextToText",
@@ -10241,12 +10261,13 @@ ingoing elements.)RAW")
         static_cast<pybind11::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
         pybind11::arg("store"));
   m.def("setGetParsedNode",
-        static_cast<void(*)(org::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
         pybind11::arg("params"),
         pybind11::arg("callback"));
   m.def("evaluateCodeBlocks",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&, std::shared_ptr<org::parse::ParseContext>)>(&org::bind::python::evaluateCodeBlocks),
         pybind11::arg("node"),
-        pybind11::arg("conf"));
+        pybind11::arg("conf"),
+        pybind11::arg("parse_context"));
 }
 /* clang-format on */

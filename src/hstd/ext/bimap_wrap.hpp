@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 
 namespace hstd::ext {
@@ -60,7 +61,7 @@ class Unordered1to1Bimap {
 
     void add_unique(L const& left, R const& right) {
         if (contains_left(left) || contains_right(right)) {
-            throw std::runtime_error(
+            throw hstd::runtime_error::init(
                 "add_unique failed: Keys already exist.");
         }
         bimap.insert({left, right});
@@ -111,5 +112,3 @@ struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>>
         return fmt_ctx("}", ctx);
     }
 };
-
-

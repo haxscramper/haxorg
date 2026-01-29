@@ -1,6 +1,6 @@
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Set.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
 #include <immer/flex_vector_transient.hpp>
@@ -8,9 +8,9 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/mp11.hpp>
 #include <boost/preprocessor.hpp>
-#include <haxorg/sem/ImmOrgHash.hpp>
+#include <haxorg/imm/ImmOrgHash.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 
 #include <boost/mp11/list.hpp>

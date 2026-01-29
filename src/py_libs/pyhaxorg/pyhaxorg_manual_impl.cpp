@@ -1,5 +1,5 @@
 #include "pyhaxorg_manual_impl.hpp"
-#include <haxorg/sem/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerde.hpp>
 
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
@@ -11,6 +11,7 @@
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <haxorg/api/EvalContext.hpp>
 
 using namespace org;
 using namespace hstd;
@@ -219,9 +220,10 @@ void org::bind::python::eachSubnodeRecSimplePath(
 }
 
 org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
-    org::sem::SemId<sem::Org>   node,
-    const PyCodeEvalParameters& conf) {
-    OrgCodeEvalParameters eval_conf{conf.debug};
+    org::sem::SemId<sem::Org>                 node,
+    const PyCodeEvalParameters&               conf,
+    std::shared_ptr<org::parse::ParseContext> parse_context) {
+    org::OrgCodeEvalParameters eval_conf{parse_context, conf.debug};
 
     eval_conf.evalBlock = [&](org::sem::OrgCodeEvalInput const& input)
         -> Vec<org::sem::OrgCodeEvalOutput> {
@@ -233,8 +235,8 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
 }
 
 void org::bind::python::setShouldProcessPath(
-    OrgDirectoryParseParameters* parameters,
-    pybind11::function           callback) {
+    org::parse::OrgDirectoryParseParameters* parameters,
+    pybind11::function                       callback) {
     parameters->shouldProcessPath =
         [callback](std::string const& fullPath) -> bool {
         return callback(fullPath).cast<bool>();
@@ -242,8 +244,8 @@ void org::bind::python::setShouldProcessPath(
 }
 
 void org::bind::python::setGetParsedNode(
-    OrgDirectoryParseParameters* params,
-    pybind11::function           callback) {
+    org::parse::OrgDirectoryParseParameters* params,
+    pybind11::function                       callback) {
     params->getParsedNode =
         [callback](std::string const& fullPath) -> sem::SemId<sem::Org> {
         return callback(fullPath).cast<sem::SemId<sem::Org>>();

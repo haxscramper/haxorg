@@ -54,14 +54,14 @@ def _format_list(items: List[org.Org]) -> Tuple[str, ...]:
     return tuple(res)
 
 
-def codex_tracking(opts: haxorg_opts.RootOptions) -> None:
-    assert opts.generate
-    assert opts.generate.codex_tracking
-    target_node = haxorg_cli.parseCachedFile(opts,
-                                             opts.generate.codex_tracking.target_file)
+def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
+    assert ctx.opts.generate
+    assert ctx.opts.generate.codex_tracking
+    target_node = haxorg_cli.parseCachedFile(ctx,
+                                             ctx.opts.generate.codex_tracking.target_file)
     codex_nodes = [
-        haxorg_cli.parseCachedFile(opts, f)
-        for f in opts.generate.codex_tracking.codex_files
+        haxorg_cli.parseCachedFile(ctx, f)
+        for f in ctx.opts.generate.codex_tracking.codex_files
     ]
 
     tracking: org.AstTrackingMap = org.getAstTrackingMap(
@@ -130,14 +130,14 @@ def codex_tracking(opts: haxorg_opts.RootOptions) -> None:
             ) for entry in radio_entries
         ])
 
-        opts.generate.codex_tracking.outfile.write_text(_format_dataframe_for_file(df))
+        ctx.opts.generate.codex_tracking.outfile.write_text(_format_dataframe_for_file(df))
 
     else:
-        opts.generate.codex_tracking.outfile.write_text("no codex entries detected")
+        ctx.opts.generate.codex_tracking.outfile.write_text("no codex entries detected")
 
 
 @click.command("codex_tracking")
 @haxorg_cli.get_wrap_options(haxorg_opts.CodexTrackingOptions)
 @click.pass_context
 def codex_tracking_cli(ctx: click.Context, **kwargs: Any) -> None:
-    codex_tracking(haxorg_cli.get_opts(ctx))
+    codex_tracking(haxorg_cli.get_run(ctx))

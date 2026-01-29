@@ -4,6 +4,7 @@ import json
 import logging
 from pathlib import Path
 
+import commentjson
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 import rich_click as click
 from beartype.typing import Any, Optional
@@ -13,7 +14,11 @@ from py_repository.repo_tasks import (examples_build, haxorg_base, haxorg_build,
 from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, setup_multi_file_logging
+from py_scriptutils.script_logging import (
+    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS,
+    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED,
+    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME,
+    CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE, log, setup_multi_file_logging)
 from py_scriptutils.toml_config_profiler import (apply_options, get_user_provided_params,
                                                  merge_dicts, options_from_model,
                                                  pack_context)
@@ -51,7 +56,8 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
 
     if opts.config_override:
         config_json = merge_dicts(
-            [config_json, json.loads(opts.config_override.read_text())])
+            [config_json,
+             commentjson.loads(opts.config_override.read_text())])
 
     config_obj = HaxorgConfig(**config_json)
     if opts.verbose:

@@ -9,14 +9,12 @@ CAT = __name__
 
 
 @beartype
-def node_clouds(opts: haxorg_opts.RootOptions,
-                run: Optional[haxorg_cli.CliRunContext] = None) -> None:
-    if not run:
-        run = haxorg_cli.get_run(opts)  # type: ignore
+def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:
+    pass
 
 
 @click.command("node_clouds")
 @haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
 @click.pass_context
 def node_cloud_cli(ctx: click.Context, **kwargs: Any) -> None:
-    node_clouds(haxorg_cli.get_opts(ctx))
+    node_clouds(haxorg_cli.get_run(ctx))

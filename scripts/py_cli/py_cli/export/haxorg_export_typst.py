@@ -14,14 +14,15 @@ CAT = "haxorg.export.typst"
 
 
 @beartype
-def export_typst(opts: haxorg_opts.RootOptions) -> None:
+def export_typst(ctx: haxorg_cli.CliRunContext) -> None:
+    opts = ctx.opts
     assert opts.export
     assert opts.export.typst
     infile = opts.export.typst.infile
     outfile = opts.export.typst.outfile
 
     parse_opts = haxorg_cli.getParseOpts(opts, infile)
-    node = haxorg_cli.parseFile(opts, Path(infile), parse_opts=parse_opts)
+    node = haxorg_cli.parseFile(ctx, Path(infile), parse_opts=parse_opts)
 
     typst = ExporterTypst()
     if opts.export.exportTraceFile:

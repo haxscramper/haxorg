@@ -264,34 +264,13 @@ def _generate_tag_files(
 
 
 @beartype
-def sort_reposutory_tags(
-        opts: haxorg_opts.RootOptions,
-        run: Optional[haxorg_cli.CliRunContext] = None) -> TagCollectionArtifacts:
-    if not run:
-        run = haxorg_cli.get_run(opts)  # type: ignore
-
+def sort_reposutory_tags(ctx: haxorg_cli.CliRunContext) -> TagCollectionArtifacts:
+    opts = ctx.opts
     assert opts.generate
     assert opts.generate.sort_tags
     dir_opts = org.OrgDirectoryParseParameters()
     result = TagCollectionArtifacts()
-
-    def parse_node_impl(path: str) -> org.Org:
-        try:
-            result = haxorg_cli.parseCachedFile(
-                opts,
-                Path(path),
-                parse_opts=haxorg_cli.getParseOpts(opts, Path(path)),
-            )
-
-            return result
-
-        except Exception as e:
-            log(CAT).error(f"Failed parsing {path}", exc_info=e)
-            return org.Empty()
-
-    org.setGetParsedNode(dir_opts, parse_node_impl)
-
-    target = org.parseDirectoryOpts(str(opts.generate.sort_tags.input_dir), dir_opts)
+    target = haxorg_cli.parseDirectory(ctx, opts.generate.sort_tags.input_dir)
     target_count: Dict[OrgTagDesc, int] = defaultdict(lambda: 0)
 
     def visit_target(node: org.Org) -> None:
@@ -301,7 +280,7 @@ def sort_reposutory_tags(
 
     org.eachSubnodeRec(target, visit_target)
 
-    glossary = haxorg_cli.parseCachedFile(opts,
+    glossary = haxorg_cli.parseCachedFile(ctx,
                                           Path(opts.generate.sort_tags.tag_glossary_file))
 
     glossary_usage = set()

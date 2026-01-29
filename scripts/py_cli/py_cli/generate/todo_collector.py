@@ -88,11 +88,11 @@ class TodoCollectorResult():
 
 
 @beartype
-def _generate_report(opts: haxorg_opts.RootOptions, entries: List[Entry],
+def _generate_report(ctx: haxorg_cli.CliRunContext, entries: List[Entry],
                      result: TodoCollectorResult) -> None:
 
-    assert opts.generate
-    assert opts.generate.todo_collector
+    assert ctx.opts.generate
+    assert ctx.opts.generate.todo_collector
 
     items: List[Dict[str, Any]] = list(dict())
 
@@ -122,7 +122,7 @@ def _generate_report(opts: haxorg_opts.RootOptions, entries: List[Entry],
 
     df = pd.DataFrame(items)
 
-    out_d = opts.generate.todo_collector.outdir
+    out_d = ctx.opts.generate.todo_collector.outdir
     out_d.mkdir(parents=True, exist_ok=True)
 
     result.nested_report = out_d.joinpath("nested.txt")
@@ -140,20 +140,16 @@ def _generate_report(opts: haxorg_opts.RootOptions, entries: List[Entry],
 
 
 @beartype
-def todo_collector(opts: haxorg_opts.RootOptions,
-                   run: Optional[haxorg_cli.CliRunContext] = None) -> TodoCollectorResult:
-    if not run:
-        run = haxorg_cli.get_run(opts)  # type: ignore
-
+def todo_collector(ctx: haxorg_cli.CliRunContext) -> TodoCollectorResult:
     result = TodoCollectorResult()
 
-    assert opts.generate
-    assert opts.generate.todo_collector
+    assert ctx.opts.generate
+    assert ctx.opts.generate.todo_collector
 
-    nodes = haxorg_cli.parsePathList(opts, opts.generate.todo_collector.infile)
-    entires = list(itertools.chain(*[rec_node(node, opts) for node in nodes]))
+    nodes = haxorg_cli.parsePathList(ctx, ctx.opts.generate.todo_collector.infile)
+    entires = list(itertools.chain(*[rec_node(node, ctx.opts) for node in nodes]))
 
-    _generate_report(opts, entires, result)
+    _generate_report(ctx, entires, result)
 
     return result
 
@@ -163,5 +159,5 @@ def todo_collector(opts: haxorg_opts.RootOptions,
 @click.pass_context
 def todo_collector_cli(ctx: click.Context, **kwargs: Any) -> None:
     log(CAT).info("Starting todo collector command")
-    result = todo_collector(haxorg_cli.get_opts(ctx))
+    result = todo_collector(haxorg_cli.get_run(ctx))
     log(CAT).info(f"Wrote JSON to {result.json_dump}")

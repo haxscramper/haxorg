@@ -345,7 +345,8 @@ class Py11Method(Py11Function):
     ) -> pya.MethodParams:
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name="__init__" if self.Func.IsConstructor else py_ident(self.PyName),
-            ResultTy=self.Func.result and py_type(self.Func.result, base_map), # type: ignore
+            ResultTy=self.Func.result and
+            py_type(self.Func.result, base_map),  # type: ignore
             Args=[
                 pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
                 for Arg in self.Func.arguments
@@ -616,7 +617,12 @@ class Py11Class:
         self.InitMagicMethods(ast=ast)
 
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]) -> None:
-        if self.Struct.IsDescribedRecord:
+        # FIXME Undocumented logic affecting the code generation
+        # features -- the type can be marked as a reflection target
+        # in the source code, but the default init is not generated 
+        # here -- provide 'else' fallback, and/or diagnostics for 
+        # missing reflection description.
+        if self.Struct.IsDescribedRecord: 
             body_impl = []
 
             if self.Struct.reflectionParams.backend.python.holder_type == "shared":
@@ -761,7 +767,12 @@ class Py11Class:
     def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
         res = pya.ClassParams(
             Name=self.getPyName(base_map=base_map),
-            Bases=[py_type(T, base_map=base_map) for T in self.Struct.bases])
+            Bases=[
+                py_type(T, base_map=base_map)
+                for T in self.Struct.bases
+                if T.name not in ["SharedPtrApi"]
+            ],
+        )
 
         Init = Py11Method(
             PyName="__init__",
@@ -769,9 +780,10 @@ class Py11Class:
                 name="",
                 result=QualType.ForName("None"),
                 arguments=[
-                    GenTuIdent(name=it.getPyName(),
-                               type=it.Field.type, # type: ignore
-                               value=ast.b.text("None")) for it in self.Fields
+                    GenTuIdent(
+                        name=it.getPyName(),
+                        type=it.Field.type,  # type: ignore
+                        value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
         )
@@ -867,7 +879,7 @@ Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass, Py11TypedefPass, Py11Functi
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Field.type.name not in ["SemId"]] # type: ignore
+    return [F for F in Fields if F.Field.type.name not in ["SemId"]]  # type: ignore
 
 
 @beartype
@@ -880,7 +892,8 @@ class Py11Module:
 
     nameTrack: Dict[str, QualType] = field(default_factory=dict)
 
-    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder, base_map: GenTypeMap) -> None:
+    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder,
+                base_map: GenTypeMap) -> None:
         for decl in decls:
             self.add_decl(decl, ast=ast, base_map=base_map)
 

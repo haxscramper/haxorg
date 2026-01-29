@@ -1,5 +1,4 @@
 /* clang-format off */
-void visit(R& res, sem::SourceLocation const& object);
 void visit(R& res, org::sem::LispCode::Data const& object);
 void visit(R& res, sem::LispCode const& object);
 void visit(R& res, sem::LispCode::Call const& object);

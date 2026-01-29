@@ -157,7 +157,8 @@ def plot_timestamped_events_with_pandas(
 
 
 @beartype
-def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
+def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
+    opts = ctx.opts
     assert opts.generate
     assert opts.generate.activity_analysis
     outdir: Path = glom.glom(opts, "generate.activity_analysis.outdir")
@@ -175,7 +176,7 @@ def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
         nodes: List[Tuple[org.Org, str]] = []
         for file in infile:
             log(CAT).info(file)
-            nodes.append((parseCachedFile(opts, file), file.name))
+            nodes.append((parseCachedFile(ctx, file), file.name))
 
         if sql_db.exists():
             sql_db.unlink()
@@ -208,4 +209,4 @@ def activity_analysis(opts: haxorg_opts.RootOptions) -> None:
 @haxorg_cli.get_wrap_options(haxorg_opts.GenerateActivityAnalysisOptions)
 @click.pass_context
 def activity_analysis_cli(ctx: click.Context, **kwargs: Any) -> None:
-    activity_analysis(haxorg_cli.get_opts(ctx))
+    activity_analysis(haxorg_cli.get_run(ctx))

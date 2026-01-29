@@ -1,7 +1,8 @@
 #include "dir_explorer.hpp"
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/ParseContext.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
@@ -24,11 +25,12 @@ struct FileState {
 struct ContentNode;
 
 struct DirContext {
-    org::imm::ImmAstContext::Ptr         ctx;
-    fs::path                             root;
-    UnorderedMap<Str, FileState>         fileStates;
-    UnorderedMap<Str, SPtr<ContentNode>> cache;
-    Vec<org::imm::ImmAstContext::Ptr>    roots;
+    org::imm::ImmAstContext::Ptr              ctx;
+    fs::path                                  root;
+    UnorderedMap<Str, FileState>              fileStates;
+    UnorderedMap<Str, SPtr<ContentNode>>      cache;
+    Vec<org::imm::ImmAstContext::Ptr>         roots;
+    std::shared_ptr<org::parse::ParseContext> parseContext;
 
     bool hadChanges(fs::path const& path) {
         if (auto old_state = fileStates.get(path.native())) {
@@ -113,7 +115,7 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
         HSLOG_INFO(
             "load", "Loading file {}", fs::relative(file, root).native());
-        auto node = org::parseString(readFile(file), file.native());
+        auto node = parseContext->parseFile(file);
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
         roots.push_back(root.context);

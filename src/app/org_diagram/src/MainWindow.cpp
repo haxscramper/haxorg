@@ -99,6 +99,22 @@ void DiaSelectionManager::setupConnections() {
         &DiaSelectionManager::onTreeNodesSelected);
 }
 
+MainWindow::MainWindow(const StartupArgc& conf)
+    : QMainWindow{nullptr}
+    , conf{conf}
+    , imm_context{org::imm::ImmAstContext::init_start_context()}
+    , dia_context{DiaContext::shared()}
+    , parse_context{org::parse::ParseContext::shared()}
+    , version_store{DiaVersionStore::shared(
+          imm_context,
+          dia_context,
+          parse_context)} //
+{
+    setupUI();
+    connectSignals();
+    loadFile(QString::fromStdString(conf.documentPath));
+}
+
 void MainWindow::setupUI() {
     treeModel = new DiaSceneItemModel{this};
     scene     = new DiaScene{treeModel, version_store, this};

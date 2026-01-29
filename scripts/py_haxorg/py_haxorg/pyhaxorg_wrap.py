@@ -1,8 +1,9 @@
-import sys
-from typing import TYPE_CHECKING
 import os
-from beartype import beartype
+import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+from beartype import beartype
 
 try:
     from py_scriptutils.repo_files import get_haxorg_repo_root_path
@@ -18,6 +19,7 @@ if str(package_dir) not in sys.path:
     sys.path.append(str(package_dir))
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from py_haxorg.pyhaxorg import *
 else:
@@ -41,9 +43,9 @@ def org_ident_normalize(input_str: str) -> str:
 
 @beartype
 def treeRepr(node: Org, colored: bool = True, maxDepth: int = 50) -> str:
-    return exportToTreeString( # type: ignore
+    return exportToTreeString(  # type: ignore
         node,
-        OrgTreeExportOpts( # type: ignore
+        OrgTreeExportOpts(  # type: ignore
             withColor=colored,
             maxDepth=maxDepth,
         ),

@@ -74,10 +74,11 @@ class DerivedLatexExporter(ExporterLatex):
 
 
 @beartype
-def export_tex(opts: haxorg_opts.RootOptions) -> None:
+def export_tex(ctx: haxorg_cli.CliRunContext) -> None:
+    opts = ctx.opts
     assert opts.export
     assert opts.export.tex
-    node = haxorg_cli.parseFile(opts, opts.export.tex.infile)
+    node = haxorg_cli.parseFile(ctx, opts.export.tex.infile)
 
     tex = DerivedLatexExporter()
     # tex.exp.enableFileTrace("/tmp/trace.txt", False)
@@ -96,4 +97,4 @@ def export_tex(opts: haxorg_opts.RootOptions) -> None:
 @haxorg_cli.get_wrap_options(haxorg_opts.TexExportOptions)
 @click.pass_context
 def export_tex_cli(ctx: click.Context, **kwargs: Any) -> None:
-    export_tex(haxorg_cli.get_opts(ctx))
+    export_tex(haxorg_cli.get_run(ctx))

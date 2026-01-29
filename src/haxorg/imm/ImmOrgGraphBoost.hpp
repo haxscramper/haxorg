@@ -1,7 +1,7 @@
 #pragma once
 #if !ORG_EMCC_BUILD
 #    include <boost/property_map/dynamic_property_map.hpp>
-#    include <haxorg/sem/ImmOrgGraph.hpp>
+#    include <haxorg/imm/ImmOrgGraph.hpp>
 
 #    include <boost/graph/graph_traits.hpp>
 #    include <hstd/ext/graphwrap.hpp>

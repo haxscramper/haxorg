@@ -8,7 +8,7 @@
 #include <QObject>
 #include <QMetaObject>
 #include <QDebug>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <boost/outcome.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Outcome.hpp>

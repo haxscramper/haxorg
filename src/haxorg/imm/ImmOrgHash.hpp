@@ -1,5 +1,5 @@
 #pragma once
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
 template <typename T>

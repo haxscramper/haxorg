@@ -2,7 +2,7 @@
 #if !ORG_EMCC_BUILD
 #    include <boost/graph/properties.hpp>
 #endif
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>

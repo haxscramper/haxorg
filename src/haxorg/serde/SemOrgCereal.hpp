@@ -1,6 +1,6 @@
 #pragma once
-#include <haxorg/sem/ImmOrg.hpp>
-#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 
 namespace org::imm {
 [[refl(R"({"unique-name": "serializeAstContextToText"})")]] std::string serializeToText(

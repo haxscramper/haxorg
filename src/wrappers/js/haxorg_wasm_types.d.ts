@@ -3,10 +3,15 @@ import * as haxorg_wasm from "./haxorg_utility_types";
 export interface haxorg_wasm_module_auto {
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
+  ParseSourceLoc: ParseSourceLocConstructor;
   OrgJson: OrgJsonConstructor;
-  ParseLineCol: ParseLineColConstructor;
   Org: OrgConstructor;
   OperationsTracer: OperationsTracerConstructor;
+  Cache: CacheConstructor;
+  ParseOrgParseFragment: ParseOrgParseFragmentConstructor;
+  OrgParseParameters: OrgParseParametersConstructor;
+  OrgDirectoryParseParameters: OrgDirectoryParseParametersConstructor;
+  ParseContext: ParseContextConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
   ImmPathStep: ImmPathStepConstructor;
@@ -98,9 +103,6 @@ export interface haxorg_wasm_module_auto {
   ImmAdapter: ImmAdapterConstructor;
   ImmAdapterTreeReprConf: ImmAdapterTreeReprConfConstructor;
   ImmAdapterVirtualBase: ImmAdapterVirtualBaseConstructor;
-  OrgParseFragment: OrgParseFragmentConstructor;
-  OrgParseParameters: OrgParseParametersConstructor;
-  OrgDirectoryParseParameters: OrgDirectoryParseParametersConstructor;
   OrgYamlExportOpts: OrgYamlExportOptsConstructor;
   OrgTreeExportOpts: OrgTreeExportOptsConstructor;
   AstTrackingPath: AstTrackingPathConstructor;
@@ -124,7 +126,6 @@ export interface haxorg_wasm_module_auto {
   GraphMapGraph: GraphMapGraphConstructor;
   GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
-  SourceLocation: SourceLocationConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -1643,11 +1644,6 @@ export interface haxorg_wasm_module_auto {
   }
   format_GraphMapLinkKind(value: GraphMapLinkKind): string;
   newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: boolean): Time;
-  parseFile(file: string, opts: OrgParseParameters): Org;
-  parseString(text: string, currentFile: string): Org;
-  parseStringOpts(text: string, opts: OrgParseParameters): Org;
-  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
-  parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
   initImmutableAstContext(): ImmAstContext;
   asOneNode(arg: Org): Org;
   formatToString(arg: Org): string;
@@ -1689,6 +1685,13 @@ export interface UserTime {
   getTimeDeltaSeconds(other: UserTime): Int64_t;
   toUnixTimestamp(): Int64_t;
 }
+export interface ParseSourceLocConstructor { new(): ParseSourceLoc; }
+export interface ParseSourceLoc {
+  line: number
+  column: number
+  pos: number
+  file_id: ParseSourceFileId
+}
 export interface OrgJsonConstructor { new(): OrgJson; }
 export interface OrgJson {
   getKind(): OrgJsonKind;
@@ -1703,12 +1706,6 @@ export interface OrgJson {
   getArray(): haxorg_wasm.Vec<OrgJson>;
   dump(indent: number): string;
 }
-export interface ParseLineColConstructor { new(): ParseLineCol; }
-export interface ParseLineCol {
-  line: number
-  column: number
-  pos: number
-}
 export interface OrgConstructor { new(): Org; }
 export interface Org {
   getKind(): OrgSemKind;
@@ -1717,7 +1714,7 @@ export interface Org {
   insert(pos: number, node: Org): void;
   at(idx: number): Org;
   is(kind: OrgSemKind): boolean;
-  loc: haxorg_wasm.Optional<ParseLineCol>
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
   subnodes: haxorg_wasm.Vec<Org>
 }
 export interface OperationsTracerConstructor { new(): OperationsTracer; }
@@ -1731,6 +1728,37 @@ export interface OperationsTracer {
   traceColored: boolean
   activeLevel: number
   traceBuffer: string
+}
+export interface CacheConstructor { new(): Cache; }
+export interface Cache {  }
+export interface ParseOrgParseFragmentConstructor { new(): ParseOrgParseFragment; }
+export interface ParseOrgParseFragment {
+  baseLine: number
+  baseCol: number
+  text: string
+}
+export interface OrgParseParametersConstructor { new(): OrgParseParameters; }
+export interface OrgParseParameters {
+  baseTokenTracePath: haxorg_wasm.Optional<string>
+  tokenTracePath: haxorg_wasm.Optional<string>
+  parseTracePath: haxorg_wasm.Optional<string>
+  semTracePath: haxorg_wasm.Optional<string>
+}
+export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
+export interface OrgDirectoryParseParameters {  }
+export interface ParseContextConstructor { new(): ParseContext; }
+export interface ParseContext {
+  getDiagnosticStrings(): StdShared_ptr<Cache>;
+  addSource(path: string, content: string): ParseSourceFileId;
+  parseFileOpts(file: string, opts: OrgParseParameters): Org;
+  parseFile(file: string): Org;
+  parseString(text: string, file_name: string): Org;
+  parseStringOpts(text: string, file_name: string, opts: OrgParseParameters): Org;
+  parseDirectory(path: string): haxorg_wasm.Optional<Org>;
+  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
+  parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
+  collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.Vec<Report>;
+  collectErrorNodes(tree: Org): haxorg_wasm.Vec<ErrorGroup>;
 }
 export interface ImmIdConstructor { new(): ImmId; }
 export interface ImmId {
@@ -2088,22 +2116,6 @@ export interface ImmAdapterTreeReprConf {
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
-export interface OrgParseFragmentConstructor { new(): OrgParseFragment; }
-export interface OrgParseFragment {
-  baseLine: number
-  baseCol: number
-  text: string
-}
-export interface OrgParseParametersConstructor { new(): OrgParseParameters; }
-export interface OrgParseParameters {
-  baseTokenTracePath: haxorg_wasm.Optional<string>
-  tokenTracePath: haxorg_wasm.Optional<string>
-  parseTracePath: haxorg_wasm.Optional<string>
-  semTracePath: haxorg_wasm.Optional<string>
-  currentFile: string
-}
-export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
-export interface OrgDirectoryParseParameters {  }
 export interface OrgYamlExportOptsConstructor { new(): OrgYamlExportOpts; }
 export interface OrgYamlExportOpts {
   skipNullFields: boolean
@@ -2272,15 +2284,6 @@ export interface GraphMapGraphState {
   getUnresolvedLink(node: ImmLinkAdapter, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
-}
-export interface SourceLocationConstructor { new(): SourceLocation; }
-export interface SourceLocation {
-  __eq__(other: SourceLocation): boolean;
-  SourceLocation(): void;
-  line: number
-  column: number
-  pos: number
-  file: haxorg_wasm.Optional<string>
 }
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
@@ -3425,7 +3428,7 @@ export interface OrgDiagnosticsParseTokenError {
   parserLine: number
   tokenKind: OrgTokenKind
   tokenText: string
-  loc: SourceLocation
+  loc: ParseSourceLoc
   errName: string
   errCode: string
 }
@@ -3438,7 +3441,7 @@ export interface OrgDiagnosticsParseError {
   parserLine: number
   errName: string
   errCode: string
-  loc: haxorg_wasm.Optional<SourceLocation>
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
 }
 export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
 export interface OrgDiagnosticsIncludeError {
@@ -3457,7 +3460,7 @@ export interface OrgDiagnosticsConvertError {
   convertFile: string
   errName: string
   errCode: string
-  loc: haxorg_wasm.Optional<SourceLocation>
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
 }
 export interface OrgDiagnosticsInternalErrorConstructor { new(): OrgDiagnosticsInternalError; }
 export interface OrgDiagnosticsInternalError {
@@ -3466,7 +3469,7 @@ export interface OrgDiagnosticsInternalError {
   function: string
   line: number
   file: string
-  loc: haxorg_wasm.Optional<SourceLocation>
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
 }
 export type OrgDiagnosticsData = haxorg_wasm.StdVariant<OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError>;
 export enum OrgDiagnosticsKind {

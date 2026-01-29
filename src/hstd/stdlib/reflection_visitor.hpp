@@ -390,8 +390,9 @@ struct ReflPath {
     }
 
     ReflPath addFieldName(Tag::field_name_type const& name) const {
-        return add(ReflPathItem<Tag>{
-            typename ReflPathItem<Tag>::FieldName{name}});
+        return add(
+            ReflPathItem<Tag>{
+                typename ReflPathItem<Tag>::FieldName{name}});
     }
 
     ReflPath add(ReflPath const& item) const {
@@ -538,8 +539,9 @@ struct ReflVisitor<T, Tag> {
         Vec<ReflPathItem<Tag>> result;
         for_each_field_with_base_value(
             value, [&]<typename B>(B const& base, auto const& ptr) {
-                result.push_back(ReflPathItem<Tag>::FromFieldName(
-                    ReflTypeTraits<Tag>::InitFieldName(base, ptr)));
+                result.push_back(
+                    ReflPathItem<Tag>::FromFieldName(
+                        ReflTypeTraits<Tag>::InitFieldName(base, ptr)));
             });
 
         return result;
@@ -866,6 +868,14 @@ template <typename Tag>
 struct ReflVisitor<int, Tag> : ReflVisitorLeafType<int, Tag> {};
 
 template <typename Tag>
+struct ReflVisitor<hstd::u32, Tag>
+    : ReflVisitorLeafType<hstd::u32, Tag> {};
+
+template <typename Tag>
+struct ReflVisitor<hstd::u16, Tag>
+    : ReflVisitorLeafType<hstd::u16, Tag> {};
+
+template <typename Tag>
 struct ReflVisitor<char, Tag> : ReflVisitorLeafType<char, Tag> {};
 
 template <typename Tag>
@@ -1104,19 +1114,20 @@ struct std::hash<hstd::ReflPathItem<Tag>> {
     std::size_t operator()(
         hstd::ReflPathItem<Tag> const& it) const noexcept {
         std::size_t result = 0;
-        it.visit(::hstd::overloaded{
-            [&](hstd::ReflPathItem<Tag>::Deref) {},
-            [&](hstd::ReflPathItem<Tag>::AnyKey value) {
-                typename hstd::ReflTypeTraits<Tag>::AnyHasherType h;
-                result = h(value.key);
-            },
-            [&](hstd::ReflPathItem<Tag>::Index value) {
-                ::hstd::hax_hash_combine(result, value.index);
-            },
-            [&](hstd::ReflPathItem<Tag>::FieldName value) {
-                ::hstd::hax_hash_combine(result, value.name);
-            },
-        });
+        it.visit(
+            ::hstd::overloaded{
+                [&](hstd::ReflPathItem<Tag>::Deref) {},
+                [&](hstd::ReflPathItem<Tag>::AnyKey value) {
+                    typename hstd::ReflTypeTraits<Tag>::AnyHasherType h;
+                    result = h(value.key);
+                },
+                [&](hstd::ReflPathItem<Tag>::Index value) {
+                    ::hstd::hax_hash_combine(result, value.index);
+                },
+                [&](hstd::ReflPathItem<Tag>::FieldName value) {
+                    ::hstd::hax_hash_combine(result, value.name);
+                },
+            });
         return result;
     }
 };

@@ -1,5 +1,5 @@
 #include <QTest>
-#include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
 #include <org_diagram/src/model/DiaVersionStore.hpp>
 #include <org_diagram/src/utils/common.hpp>
 #include <org_diagram/src/utils/test_utils.hpp>
@@ -75,7 +75,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     void testFromRegularText() {
         DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
-            DiaContext::shared()};
+            DiaContext::shared(),
+            org::parse::ParseContext::shared()};
         manager.addDocument("*bold*");
         manager.addDocument("/italic/");
     }
@@ -83,7 +84,8 @@ class DiaContextStoreTreeSwitchingTest : public QObject {
     void testGetSimpleDifference() {
         DiaVersionStore manager{
             org::imm::ImmAstContext::init_start_context(),
-            DiaContext::shared()};
+            DiaContext::shared(),
+            org::parse::ParseContext::shared()};
         manager.addDocument("word");
         manager.addDocument("word second");
     }

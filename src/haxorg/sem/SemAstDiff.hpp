@@ -1,7 +1,7 @@
 #pragma once
 #include <hstd/ext/astdiff.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 
 namespace org::algo {

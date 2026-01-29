@@ -41,7 +41,7 @@ def run_cmake_configure_component(
             cmake_opt("CMAKE_CXX_COMPILER", ctx.config.build_conf.cxx_compiler),
             cmake_opt("CMAKE_C_COMPILER", ctx.config.build_conf.c_compiler),
             "-G",
-            "Ninja",
+            ctx.config.build_conf.cmake_generator,
             "-Wno-dev",
         ] + args,
         **kwargs,

@@ -62,8 +62,9 @@ void ExporterTree::treeRepr(
         os.colored = false;
         ExporterTree(os).evalTop(org);
     } else {
-        throw FilesystemError::init(std::format(
-            "Could not open file {} for writing tree repr", path));
+        throw FilesystemError::init(
+            std::format(
+                "Could not open file {} for writing tree repr", path));
     }
 }
 
@@ -88,9 +89,9 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
 
     if (conf.withLineCol) {
         if (org->loc.has_value()) {
-            auto& [line, col, pos] = org->loc.value();
+            auto& [line, col, pos, file_id] = org->loc.value();
             os << " " << os.cyan() << fmt1(line) << ":" << fmt1(col) << "("
-               << fmt1(pos) << ")" << os.end();
+               << fmt1(pos) << ") " << fmt1(file_id) << os.end();
         } else {
             os << " loc=none";
         }
@@ -119,7 +120,7 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
         return;
     }
     // Location is printed as a part of 'init'
-    if (std::is_same_v<T, Opt<org::parse::LineCol>>) { return; }
+    if (std::is_same_v<T, Opt<org::parse::SourceLoc>>) { return; }
 
     __scope();
     indent();

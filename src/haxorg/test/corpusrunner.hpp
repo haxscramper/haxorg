@@ -156,9 +156,10 @@ class CorpusRunner : public hstd::OperationsTracer {
 
 
     RunResult::SemCompare compareSem(
-        hstd::CR<ParseSpec>  spec,
-        sem::SemId<sem::Org> node,
-        json                 expected);
+        hstd::CR<ParseSpec>           spec,
+        sem::SemId<sem::Org>          node,
+        json                          expected,
+        org::parse::ParseContext::Ptr parse_context);
 
     RunResult runSpec(
         hstd::CR<ParseSpec>   spec,
@@ -205,5 +206,3 @@ hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& param
     hstd::UnorderedMap<parse::OrgId, int> const* parseAddedOnLine);
 
 } // namespace org::test
-
-

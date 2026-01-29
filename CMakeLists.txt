@@ -199,7 +199,7 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(BoostPreprocessor CONFIG REQUIRED)
 endif()
 if(NOT ${ORG_EMCC_BUILD})
-  find_package(PythonLibs 3.13)
+  find_package(Python 3.13 COMPONENTS Interpreter Development REQUIRED)
 endif()
 if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
   find_package(Adaptagrams CONFIG REQUIRED)
@@ -224,7 +224,7 @@ if(${ORG_DEPS_USE_PROTOBUF})
 else()
   add_definitions(-DORG_DEPS_USE_PROTOBUF=0)
 endif()
-message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
+message(STATUS "Python_LIBRARIES = ${Python_LIBRARIES}")
 
 set(JSON_BuildTests
     OFF

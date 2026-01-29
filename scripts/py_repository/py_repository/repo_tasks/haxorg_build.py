@@ -17,7 +17,7 @@ from py_repository.repo_tasks.haxorg_base import (
     symlink_build,
 )
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import run_cmake_build, run_command
+from py_repository.repo_tasks.command_execution import run_cmake_build, run_cmake_configure, run_command
 from py_repository.repo_tasks.common import get_component_build_dir, get_script_root, get_build_root
 
 CAT = __name__
@@ -46,12 +46,6 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
     log(CAT).info("running haxorg cmake configuration")
 
     pass_flags = [
-        "-B",
-        get_component_build_dir(ctx, "haxorg"),
-        "-S",
-        get_script_root(ctx),
-        "-G",
-        "Ninja",
         *get_cmake_defines(ctx),
         cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
         cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),
@@ -63,10 +57,13 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
         ),
     ]
 
-    import shlex
-    Path("/tmp/cmake_configure_haxorg_flags.txt").write_text(
-        shlex.join([str(s) for s in pass_flags[6:]]))
-    run_command(ctx, "cmake", pass_flags)
+    run_cmake_configure(
+        ctx,
+        build_dir=get_component_build_dir(ctx, "haxorg"),
+        script_root=get_script_root(ctx),
+        generator=ctx.config.build_conf.cmake_generator,
+        args=pass_flags,
+    )
 
 
 @beartype
@@ -104,11 +101,12 @@ def build_haxorg(ctx: TaskContext) -> None:
 
 
 @haxorg_task()
-def build_reflection_tool(ctx: TaskContext) -> None:
+def build_targets(ctx: TaskContext, targets: List[str]) -> None:
     conf_copy = ctx.config.model_copy(deep=True)
-    conf_copy.build_conf.target = ["reflection_tool"]
+    conf_copy.build_conf.target = targets
     conf_copy.build_conf.force = True
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
+
 
 @haxorg_task(dependencies=[build_haxorg])
 def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:

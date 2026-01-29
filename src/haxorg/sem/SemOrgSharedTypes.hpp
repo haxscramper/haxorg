@@ -11,20 +11,6 @@
 #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace org::sem {
-struct SourceLocation {
-  BOOST_DESCRIBE_CLASS(SourceLocation,
-                       (),
-                       (),
-                       (),
-                       (line, column, pos, file))
-  int line = -1;
-  int column = -1;
-  int pos = -1;
-  hstd::Opt<hstd::Str> file = std::nullopt;
-  bool operator==(org::sem::SourceLocation const& other) const;
-  SourceLocation() {  }
-};
-
 struct LispCode {
   struct Call {
     BOOST_DESCRIBE_CLASS(Call,
@@ -1828,7 +1814,7 @@ struct OrgDiagnostics {
     int parserLine;
     OrgTokenKind tokenKind;
     hstd::Str tokenText;
-    org::sem::SourceLocation loc;
+    org::parse::SourceLoc loc;
     hstd::Str errName;
     hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;
@@ -1854,7 +1840,7 @@ struct OrgDiagnostics {
     int parserLine;
     hstd::Str errName;
     hstd::Str errCode;
-    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
+    hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
 
@@ -1894,7 +1880,7 @@ struct OrgDiagnostics {
     hstd::Str convertFile;
     hstd::Str errName;
     hstd::Str errCode;
-    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
+    hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     bool operator==(org::sem::OrgDiagnostics::ConvertError const& other) const;
   };
 
@@ -1910,7 +1896,7 @@ struct OrgDiagnostics {
     hstd::Str function;
     int line;
     hstd::Str file;
-    hstd::Opt<org::sem::SourceLocation> loc = std::nullopt;
+    hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     bool operator==(org::sem::OrgDiagnostics::InternalError const& other) const;
   };
 

@@ -1,6 +1,6 @@
 #include "im_test_common.hpp"
 #include <gui_lib/story_grid.hpp>
-#include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 
@@ -38,6 +38,7 @@ struct hstd::JsonSerde<hstd::ReflPathItem<Tag>> {
 
 struct StoryGridVars : public ImTestVarsBase {
     org::imm::ImmAstContext::Ptr         start;
+    org::parse::ParseContext::Ptr        parse_context;
     EditableOrgDocGroup                  history;
     StoryGridModel                       model;
     StoryGridConfig                      conf;
@@ -46,7 +47,8 @@ struct StoryGridVars : public ImTestVarsBase {
 
     StoryGridVars()
         : start{org::imm::ImmAstContext::init_start_context()}
-        , history{start}
+        , parse_context{org::parse::ParseContext::shared()}
+        , history{start, parse_context}
         , model{&history} {
         using Col          = TreeGridColumn;
         conf.gridViewport  = ImGui::GetMainViewport()->Size;
@@ -70,7 +72,8 @@ struct StoryGridVars : public ImTestVarsBase {
     }
 
     void add_text(std::string const& text) {
-        root            = model.history->addRoot(org::parseString(text, "<test>"));
+        root = model.history->addRoot(
+            parse_context->parseString(text, "<test>"));
         model.documents = model.history->migrate(model.documents).value();
         model.addDocument(root);
         model.rebuild(conf);
@@ -240,10 +243,10 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                                 ctx->Test, "scintilla_sink.log")),
                             [](hstd::log::log_record const& rec) -> bool {
                                 return rec.data.source_scope
-                                           == hstd::Vec<hstd::Str>{
-                                               "gui",
-                                               "widget",
-                                               "scintilla_editor"};
+                                    == hstd::Vec<hstd::Str>{
+                                        "gui",
+                                        "widget",
+                                        "scintilla_editor"};
                             });
                     }));
             }

@@ -1,6 +1,6 @@
 #include "story_grid.hpp"
 
-#include <haxorg/sem/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
 #include "block_graph.hpp"
 #include "imgui_internal.h"
 #include "imgui_utils.hpp"
@@ -10,17 +10,17 @@
 #include <queue>
 #include <hstd/ext/logger.hpp>
 #include <sys/inotify.h>
-#include <haxorg/sem/SemBaseApi.hpp>
-#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <haxorg/sem/ImmOrgGraphBoost.hpp>
+#include <haxorg/imm/ImmOrgGraphBoost.hpp>
 #include <hstd/ext/logger.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
 
-#include <haxorg/sem/ImmOrgGraphBoost.hpp>
+#include <haxorg/imm/ImmOrgGraphBoost.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
@@ -203,13 +203,13 @@ Opt<json> story_grid_loop(
     Vec<Str> const&  file,
     const Opt<json>& in_state,
     StoryGridConfig& conf) {
-    auto start = org::imm::ImmAstContext::init_start_context();
-    EditableOrgDocGroup docs{start};
+    auto start        = org::imm::ImmAstContext::init_start_context();
+    auto parseContext = std::make_shared<org::parse::ParseContext>();
+    EditableOrgDocGroup docs{start, parseContext};
     StoryGridModel      model{&docs};
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     for (auto const& f : file) {
-        auto doc = docs.addRoot(
-            org::parseString(hstd::readFile(f.toBase()), f));
+        auto doc        = docs.addRoot(parseContext->parseFile(f));
         model.documents = docs.migrate(model.documents).value();
         model.addDocument(doc);
         model.ctx.message(fmt("added file {}", f));
@@ -1888,11 +1888,11 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 
     CTX_MSG(fmt(
         "Initial nodes {}",
-        initial                                       //
-            | rv::transform(&MapNode::id)             //
-            | rv::transform(&org::imm::ImmUniqId::id) //
-            | rv::transform(&hstd::fmt1<org::imm::ImmId>)              //
-            | rs::to<Vec>()                           //
+        initial                                           //
+            | rv::transform(&MapNode::id)                 //
+            | rv::transform(&org::imm::ImmUniqId::id)     //
+            | rv::transform(&hstd::fmt1<org::imm::ImmId>) //
+            | rs::to<Vec>()                               //
         ));
 
 

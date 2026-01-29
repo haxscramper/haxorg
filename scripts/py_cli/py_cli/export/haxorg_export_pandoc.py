@@ -10,37 +10,30 @@ CAT = "haxorg.export.pandoc"
 
 
 @beartype
-def export_pandoc(
-    opts: haxorg_opts.RootOptions,
-    run: Optional[haxorg_cli.CliRunContext] = None,
-) -> None:
-    assert opts.export
-    assert opts.export.pandoc
-    assert opts.export.pandoc.infile
-    assert opts.export.pandoc.outfile
+def export_pandoc(ctx: haxorg_cli.CliRunContext) -> None:
+    assert ctx.opts.export
+    assert ctx.opts.export.pandoc
+    assert ctx.opts.export.pandoc.infile
+    assert ctx.opts.export.pandoc.outfile
 
-    if not run:
-        run = haxorg_cli.get_run(opts)  # type: ignore
+    with ctx.event("Run pandoc export", CAT):
+        node = haxorg_cli.parseCachedFile(ctx, ctx.opts.export.pandoc.infile)
 
-    with run.event("Run pandoc export", CAT):
-        node = haxorg_cli.parseCachedFile(opts, opts.export.pandoc.infile)
-
-        if opts.export.pandoc.debug_tree:
-            org.exportToTreeFile(node, str(opts.export.pandoc.debug_tree),
+        if ctx.opts.export.pandoc.debug_tree:
+            org.exportToTreeFile(node, str(ctx.opts.export.pandoc.debug_tree),
                                  org.OrgTreeExportOpts(withColor=False))
 
         exp = ExporterPandoc()
-        if opts.export.exportTraceFile:
-            exp.enableFileTrace(opts.export.exportTraceFile)
+        if ctx.opts.export.exportTraceFile:
+            exp.enableFileTrace(ctx.opts.export.exportTraceFile)
 
         document = exp.evalTop(node).toJson()[0]
-        opts.export.pandoc.outfile.write_text(json.dumps(document, indent=2))
+        ctx.opts.export.pandoc.outfile.write_text(json.dumps(document, indent=2))
 
-    run.finalize()
 
 
 @click.command("pandoc")
 @haxorg_cli.get_wrap_options(haxorg_opts.ExportPandocOptions)
 @click.pass_context
 def export_pandoc_cli(ctx: click.Context, **kwargs: Any) -> None:
-    export_pandoc(haxorg_cli.get_opts(ctx))
+    export_pandoc(haxorg_cli.get_run(ctx))
