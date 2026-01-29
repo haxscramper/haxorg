@@ -10,7 +10,8 @@
     "reflection"      : false,
     "coverage"        : true,
     "docs"            : false,
-    "include_graph"   : false
+    "include_graph"   : false,
+    "symbol_size"     : false
   },
   "coverage_conf"      : {
     "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"} ],
