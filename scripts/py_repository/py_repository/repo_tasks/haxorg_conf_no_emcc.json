@@ -1,9 +1,9 @@
 {
   "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
   "use_unchanged_tasks": true,
-  "use_dependencies"   : false,
+  "use_dependencies"   : true,
   "py_test_conf"       : {
-    "extra_pytest_args"     : ["tests/python/test_cli.py::test_mind_map"],
+    "extra_pytest_args"     : [],
     "real_time_output_print": true
   }
 }

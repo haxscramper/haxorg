@@ -23,7 +23,7 @@ from py_repository.repo_tasks.common import (ctx_write_text, ensure_existing_dir
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
-import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
+import py_codegen.proto_lib.reflection_defs as pb
 
 CAT = __name__
 
