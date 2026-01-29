@@ -1,6 +1,6 @@
 from copy import copy
 
-import py_codegen.proto_lib.reflection_tool.reflection_defs as pb
+import py_codegen.proto_lib.reflection_defs as pb
 import re
 
 from beartype import beartype
