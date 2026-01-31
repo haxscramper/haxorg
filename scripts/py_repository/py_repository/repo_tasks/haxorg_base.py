@@ -1,15 +1,27 @@
+import sys
 from pathlib import Path
+
 from beartype import beartype
 from beartype.typing import List, Optional
-import sys
-
-from py_repository.repo_tasks.config import HaxorgConfig
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_scriptutils.script_logging import log
-from py_repository.repo_tasks.common import check_path_exists, create_symlink, ctx_write_text, get_component_build_dir, get_script_root, ensure_existing_dir, get_build_root
-from py_repository.repo_tasks.command_execution import run_command
-from py_ci.data_build import get_external_deps_list, get_deps_install_config, get_emscripten_cmake_flags
+from py_ci.data_build import (
+    get_deps_install_config,
+    get_emscripten_cmake_flags,
+    get_external_deps_list,
+)
 from py_ci.util_scripting import cmake_opt
+from py_repository.repo_tasks.command_execution import get_python_binary, run_command
+from py_repository.repo_tasks.common import (
+    check_path_exists,
+    create_symlink,
+    ctx_write_text,
+    ensure_existing_dir,
+    get_build_root,
+    get_component_build_dir,
+    get_script_root,
+)
+from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -115,8 +127,7 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
-    _, python_stdout, _ = run_command(ctx, "uv", ["run", "which", "python"], capture=True)
-    result.append(cmake_opt("Python_EXECUTABLE", python_stdout.strip()))
+    result.append(cmake_opt("Python_EXECUTABLE", get_python_binary(ctx)))
 
     if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))

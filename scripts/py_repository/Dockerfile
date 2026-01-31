@@ -2,8 +2,6 @@ FROM fedora:latest
 
 RUN dnf update -y
 RUN dnf install -y python3 python3-devel python3-pip curl wget git
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
 ENV HOME=/root
 
 RUN dnf update -y

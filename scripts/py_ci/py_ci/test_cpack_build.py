@@ -12,13 +12,9 @@ import argparse
 
 WORKDIR: Path = Path("/haxorg/wip")
 SRC_DIR: Path = Path("/haxorg/src")
+DEPS_SRC: Path = Path("/haxorg/thirdparty")
 BUILD_TESTS: bool = True
 DEPS_BUILD: Path = WORKDIR / "deps_build"
-
-if os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"):
-    DEPS_SRC: Path = Path(os.getenv("HAXORG_THIRD_PARTY_DIR_PATH"))  # type: ignore
-else:
-    DEPS_SRC: Path = SRC_DIR / "thirdparty"  # type: ignore
 
 DEPS_INSTALL: Path = WORKDIR / "deps_install"
 ASSUME_CPACK_PRESENT = False
@@ -226,7 +222,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "sync",
                 "--all-groups",
             ],

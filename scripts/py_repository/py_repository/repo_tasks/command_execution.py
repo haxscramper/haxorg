@@ -453,6 +453,15 @@ def run_cmake_build(
     )
 
 
+@beartype
+def get_python_binary(ctx: TaskContext) -> Path:
+    _, python_stdout, _ = run_command(ctx, "uv", ["run", "which", "python"], capture=True)
+    python_stdout = Path(python_stdout.strip())
+    from py_repository.repo_tasks.common import check_is_file
+    assert check_is_file(ctx, python_stdout), f"File {python_stdout} does not exist"
+    return python_stdout
+
+
 def clone_repo_with_uncommitted_changes(
     ctx: TaskContext,
     src_repo: Path,
