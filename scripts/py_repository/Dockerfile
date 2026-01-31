@@ -36,9 +36,8 @@ RUN pyenv install 3.13
 WORKDIR /haxorg
 
 COPY pyproject.toml .
-COPY poetry.lock .
-RUN poetry env use $(pyenv prefix 3.13)/bin/python
-RUN poetry install --no-root --without local --without haxorg --no-interaction --no-ansi
+COPY uv.lock .
+RUN uv sync --all-groups
 
 WORKDIR /docker_toolchain
 

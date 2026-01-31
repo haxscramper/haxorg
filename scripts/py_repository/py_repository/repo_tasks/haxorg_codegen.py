@@ -18,8 +18,8 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
 
-    _, stdout, _ = run_command(ctx, "poetry", ["env", "info", "--path"], capture=True)
-    stdout = stdout.strip()
+    _, stdout, _ = run_command(ctx, "uv", ["run", "--all-groups", "which", "python"], capture=True)
+    stdout = stdout.strip().replace("/bin/python", "")
     log(CAT).info(f"Using protoc plugin path '{stdout}'")
     protoc_plugin = Path(stdout).joinpath("bin/protoc-gen-python_betterproto")
 

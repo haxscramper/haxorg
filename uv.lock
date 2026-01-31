@@ -7,6 +7,22 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[manifest]
+members = [
+    "cxx-repository",
+    "py-ci",
+    "py-cli",
+    "py-codegen",
+    "py-exporters",
+    "py-haxorg",
+    "py-haxorg-gui",
+    "py-repository",
+    "py-scriptutils",
+    "py-textlayout",
+    "py-wrappers",
+    "testtest",
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -1765,6 +1781,17 @@ version = "0.1.0"
 source = { editable = "scripts/py_exporters" }
 
 [[package]]
+name = "py-haxorg"
+version = "0.1.0"
+source = { editable = "scripts/py_haxorg" }
+dependencies = [
+    { name = "beartype" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "beartype", specifier = ">=0.22.0" }]
+
+[[package]]
 name = "py-haxorg-gui"
 version = "0.1.0"
 source = { editable = "scripts/py_haxorg_gui" }
@@ -1773,6 +1800,12 @@ source = { editable = "scripts/py_haxorg_gui" }
 name = "py-repository"
 version = "0.1.0"
 source = { editable = "scripts/py_repository" }
+dependencies = [
+    { name = "py-scriptutils" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "py-scriptutils", editable = "scripts/py_scriptutils" }]
 
 [[package]]
 name = "py-scriptutils"
@@ -2649,6 +2682,7 @@ local = [
     { name = "py-cli" },
     { name = "py-codegen" },
     { name = "py-exporters" },
+    { name = "py-haxorg" },
     { name = "py-haxorg-gui" },
     { name = "py-repository" },
     { name = "py-scriptutils" },
@@ -2710,6 +2744,7 @@ local = [
     { name = "py-cli", editable = "scripts/py_cli" },
     { name = "py-codegen", editable = "scripts/py_codegen" },
     { name = "py-exporters", editable = "scripts/py_exporters" },
+    { name = "py-haxorg", editable = "scripts/py_haxorg" },
     { name = "py-haxorg-gui", editable = "scripts/py_haxorg_gui" },
     { name = "py-repository", editable = "scripts/py_repository" },
     { name = "py-scriptutils", editable = "scripts/py_scriptutils" },

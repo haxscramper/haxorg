@@ -218,7 +218,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "--version",
             ],
             env=env,
@@ -227,22 +227,8 @@ def test_cpack_archive(
         run_cmd(
             [
                 "poetry",
-                "env",
-                "use",
-                python_version,
-            ],
-            env=env,
-        )
-
-        run_cmd(
-            [
-                "poetry",
-                "install",
-                "--no-root",
-                "--no-interaction",
-                "--no-ansi",
-                "--without",
-                "haxorg",
+                "sync",
+                "--all-groups",
             ],
             env=env,
             check=False,
@@ -265,7 +251,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "run",
                 "python",
                 "-m",
@@ -289,7 +275,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "remove",
                 "py_haxorg",
             ],
@@ -298,7 +284,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "add",
                 str(new_whl),
             ],
@@ -307,7 +293,7 @@ def test_cpack_archive(
 
         run_cmd(
             [
-                "poetry",
+                "uv",
                 "run",
                 "pytest",
                 "-vv",

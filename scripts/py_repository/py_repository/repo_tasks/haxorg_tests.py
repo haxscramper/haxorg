@@ -35,9 +35,10 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
 
     run_command(
         ctx,
-        "poetry",
+        "uv",
         [
             "run",
+            "--all-groups",
             "python",
             "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
         ],
@@ -45,7 +46,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
 
     retcode, stdout, stderr = run_command(
         ctx,
-        "poetry",
+        "uv",
         [
             "run",
             "pytest",
@@ -86,7 +87,7 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
     """
     run_command(
         ctx,
-        "poetry",
+        "uv",
         [
             "run",
             script,

@@ -63,22 +63,39 @@ local = [
   "py_repository",
   "py_wrappers",
   "cxx_repository",
+  "py_haxorg",
+]
+
+[tool.uv]
+default-groups = ["local"]
+
+[tool.uv.workspace]
+members = [
+    "scripts/py_haxorg",
+    "scripts/py_haxorg_gui",
+    "scripts/py_ci",
+    "scripts/py_textlayout",
+    "scripts/py_exporters",
+    "scripts/py_scriptutils",
+    "scripts/py_codegen",
+    "scripts/py_cli",
+    "scripts/py_repository",
+    "scripts/py_wrappers",
+    "scripts/cxx_repository",
 ]
 
 [tool.uv.sources]
-py_haxorg_gui   = { path = "scripts/py_haxorg_gui", editable = true }
-py_ci           = { path = "scripts/py_ci", editable = true }
-py_textlayout   = { path = "scripts/py_textlayout", editable = true }
-py_exporters    = { path = "scripts/py_exporters", editable = true }
-py_scriptutils  = { path = "scripts/py_scriptutils", editable = true }
-py_codegen      = { path = "scripts/py_codegen", editable = true }
-py_cli          = { path = "scripts/py_cli", editable = true }
-py_repository   = { path = "scripts/py_repository", editable = true }
-py_wrappers     = { path = "scripts/py_wrappers", editable = true }
-cxx_repository  = { path = "scripts/cxx_repository", editable = true }
-
-[tool.poetry.group.haxorg.dependencies]
-py_haxorg = {path = "./scripts/py_haxorg", develop=true}
+py_haxorg_gui   = { workspace = true }
+py_ci           = { workspace = true }
+py_textlayout   = { workspace = true }
+py_exporters    = { workspace = true }
+py_scriptutils  = { workspace = true }
+py_codegen      = { workspace = true }
+py_cli          = { workspace = true }
+py_repository   = { workspace = true }
+py_wrappers     = { workspace = true }
+cxx_repository  = { workspace = true }
+py_haxorg       = { workspace = true }
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"

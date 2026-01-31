@@ -25,7 +25,7 @@ def run_mypy(ctx: TaskContext) -> None:
     for py_file in script_files:
         code, stdout, stderr = run_command(
             ctx,
-            "poetry",
+            "uv",
             [
                 "run",
                 "mypy",

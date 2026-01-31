@@ -125,7 +125,7 @@ def run_docker_develop_test(
         "examples",
         "docs",
         "pyproject.toml",
-        "poetry.lock",
+        "uv.lock",
         "ignorelist.txt",
         ".git",
         "thirdparty",
@@ -162,7 +162,7 @@ def run_docker_develop_test(
     run_command(dctx, "ln", ["-sf", "/docker_toolchain", TOOL])
     run_command(dctx, "ls", ["-al", TOOL])
     container_path = get_container_var(container, "PATH")
-    run_command(dctx, "poetry", ["install", "--no-root", "--without", "haxorg"])
+    run_command(dctx, "uv", ["sync", "--all-groups"])
     run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])
     run_command(dctx, "git", ["config", "--global", "user.email", "you@example.com"])
     run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])
