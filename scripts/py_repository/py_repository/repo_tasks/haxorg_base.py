@@ -115,7 +115,8 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_FORCE_ADAPTAGRAMS_BUILD", False))
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
-    result.append(cmake_opt("Python_EXECUTABLE", sys.executable))
+    _, python_stdout, _ = run_command(ctx, "uv", ["run", "which", "python"], capture=True)
+    result.append(cmake_opt("Python_EXECUTABLE", python_stdout.strip()))
 
     if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))

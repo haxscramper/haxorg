@@ -23,33 +23,11 @@ RUN dnf install -y \
   pcre-devel capstone-devel freetype-devel patch libgit2 libgit2-devel stb-devel libatomic nodejs npm nodejs-npm \
   java-21-openjdk java-21-openjdk-devel unzip \
   clang++ llvm clang-devel clang-libs llvm-devel llvm-libs libzstd libzstd-devel zstd \
-  sqlite-devel
+  sqlite-devel \
+  which
 
-WORKDIR $HOME
-RUN git clone --depth=1 https://github.com/pyenv/pyenv.git .pyenv
-
-ENV PYENV_ROOT="$HOME/.pyenv"
-ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
-RUN ls "$PYENV_ROOT/bin"
-RUN pyenv install 3.13
-
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 WORKDIR /haxorg
-
-COPY pyproject.toml .
-COPY uv.lock .
-RUN uv sync --all-groups
-
-WORKDIR /docker_toolchain
-
-WORKDIR /haxorg
-
-
-
-# RUN wget -q "https://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz"
-# RUN tar xzf ncurses-5.9.tar.gz
-# RUN cd ncurses-5.9 && export CPPFLAGS="-P" && ./configure --with-shared --prefix=/usr/local --without-cxx --without-cxx-binding && make && make install
-# RUN ln -sf /usr/local/lib/libncurses.so.5 /usr/lib/libtinfo.so.5 
-
 
 ENV EMSDK=/opt/emsdk
 
@@ -76,7 +54,6 @@ RUN ln -s /opt/gradle-8.5 /opt/gradle
 ENV GRADLE_HOME=/opt/gradle
 ENV PATH=${GRADLE_HOME}/bin:${PATH}
 RUN rm /tmp/gradle-8.5-bin.zip
-RUN pyenv global $(pyenv versions --bare | grep "^3\.13\." | sort -V | tail -1)
 RUN dnf install -y lld
 
 RUN dnf clean all

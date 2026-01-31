@@ -1,5 +1,5 @@
 [project]
-name = "py-wrappers"
+name = "py_wrappers"
 version = "0.1.0"
 description = ""
 authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]

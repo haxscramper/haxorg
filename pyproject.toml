@@ -53,7 +53,6 @@ dependencies = [
 
 [dependency-groups]
 local = [
-  "py_haxorg_gui",
   "py_ci",
   "py_textlayout",
   "py_exporters",
@@ -66,13 +65,9 @@ local = [
   "py_haxorg",
 ]
 
-[tool.uv]
-default-groups = ["local"]
-
 [tool.uv.workspace]
 members = [
     "scripts/py_haxorg",
-    "scripts/py_haxorg_gui",
     "scripts/py_ci",
     "scripts/py_textlayout",
     "scripts/py_exporters",
@@ -85,7 +80,6 @@ members = [
 ]
 
 [tool.uv.sources]
-py_haxorg_gui   = { workspace = true }
 py_ci           = { workspace = true }
 py_textlayout   = { workspace = true }
 py_exporters    = { workspace = true }

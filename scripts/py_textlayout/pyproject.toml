@@ -1,5 +1,5 @@
 [project]
-name = "py-textlayout"
+name = "py_textlayout"
 version = "0.1.0"
 description = ""
 authors = [{ name = "haxscramper", email = "haxscramper@gmail.com" }]

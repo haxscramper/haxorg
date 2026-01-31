@@ -20,7 +20,7 @@ from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes, get_cmd_debug_file, run_command
-from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_build_root, get_script_root
+from py_repository.repo_tasks.common import docker_user, ensure_clean_file, get_build_root, get_script_root, ensure_existing_dir
 from py_repository.repo_tasks.config import HaxorgLogLevel, get_tmpdir
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
@@ -63,30 +63,23 @@ def stop_containers_from_image(image_name: str) -> None:
 
 
 @beartype
-def get_docker_mounts(ctx: TaskContext, items: List[str],
-                      build_tmp: Path) -> List[docker.types.Mount]:
-    mounts: List[docker.types.Mount] = []
+def get_docker_mount(ctx: TaskContext, docker_name: str,
+                     local_path: Path) -> docker.types.Mount:
 
     @beartype
     def docker_path(path: str) -> Path:
-        return Path("/haxorg").joinpath(path)
+        name_path = Path(path)
+        if name_path.is_absolute():
+            return name_path
+            
+        else:
+            return Path("/haxorg").joinpath(path)
 
-    for it in items:
-        mounts.append(
-            docker.types.Mount(
-                target=str(docker_path(it)),
-                source=str(get_script_root(ctx, it)),
-                type="bind",
-            ))
-
-    mounts.append(
-        docker.types.Mount(
-            target=str(docker_path("build")),
-            source=str(build_tmp),
-            type="bind",
-        ))
-
-    return mounts
+    return docker.types.Mount(
+        target=str(docker_path(docker_name)),
+        source=str(local_path),
+        type="bind",
+    )
 
 
 @beartype
@@ -104,37 +97,43 @@ def get_container_var(container: docker.models.containers.Container, varname: st
 @haxorg_task(dependencies=[build_docker_develop_image])
 def run_docker_develop_test(
         ctx: TaskContext,
-        build_dir: str = get_tmpdir("docker_develop", "build"),
+        build_dir: Path = get_tmpdir("docker_develop", "build"),
+        uv_cache: Path = get_tmpdir("docker_develop", "uv_venv"),
+        uv_venv: Path = get_tmpdir("docker_develop", "uv_venv"),
 ) -> None:
     """Run docker"""
 
-    HAXORG_BUILD_TMP = Path(build_dir)
-    if not HAXORG_BUILD_TMP.exists():
-        HAXORG_BUILD_TMP.mkdir(parents=True)
+    ensure_existing_dir(ctx, build_dir)
+    ensure_existing_dir(ctx, uv_cache)
+    ensure_existing_dir(ctx, uv_venv)
 
     stop_containers_from_image(ctx.config.HAXORG_DOCKER_IMAGE)
 
     client = docker.from_env()
 
-    mount_items: List[str] = [
-        "src",
-        "scripts",
-        "tests",
-        "benchmark",
-        "tasks.py",
-        "examples",
-        "docs",
-        "pyproject.toml",
-        "uv.lock",
-        "ignorelist.txt",
-        ".git",
-        "thirdparty",
-        "CMakeLists.txt",
-        "toolchain.cmake",
-        "HaxorgConfig.cmake.in",
-    ]
+    mounts: List[docker.types.Mount] = list()
+    for it in [
+            "src",
+            "scripts",
+            "tests",
+            "benchmark",
+            "tasks.py",
+            "examples",
+            "docs",
+            "pyproject.toml",
+            "uv.lock",
+            "ignorelist.txt",
+            ".git",
+            "thirdparty",
+            "CMakeLists.txt",
+            "toolchain.cmake",
+            "HaxorgConfig.cmake.in",
+    ]:
+        mounts.append(get_docker_mount(ctx, it, get_script_root(ctx, it)))
 
-    mounts = get_docker_mounts(ctx, mount_items, Path(build_dir))
+    mounts.append(get_docker_mount(ctx, "build", build_dir))
+    mounts.append(get_docker_mount(ctx, "uv_cache", uv_cache))
+    mounts.append(get_docker_mount(ctx, "uv_venv", uv_venv))
 
     cpu_count = os.cpu_count() or 6
     nano_cpus = int(cpu_count * 0.9 * 1e9)
@@ -152,15 +151,10 @@ def run_docker_develop_test(
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
     dctx.config.use_unchanged_tasks = True
-    # dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
     dctx.config.emscripten.toolchain = "/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
-    TOOL = "/haxorg/toolchain"
-
-    run_command(dctx, "ln", ["-sf", "/docker_toolchain", TOOL])
-    run_command(dctx, "ls", ["-al", TOOL])
     container_path = get_container_var(container, "PATH")
     run_command(dctx, "uv", ["sync", "--all-groups"])
     run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])

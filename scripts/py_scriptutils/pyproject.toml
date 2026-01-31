@@ -1,5 +1,5 @@
 [project]
-name = "py-scriptutils"
+name = "py_scriptutils"
 version = "0.1.0"
 description = ""
 authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]
