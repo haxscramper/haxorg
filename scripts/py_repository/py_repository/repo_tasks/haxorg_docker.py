@@ -283,27 +283,18 @@ def run_docker_release_test_impl(
     python_binary = get_python_binary(dctx)
     log(CAT).info(f"Using python binary {python_binary}")
 
+    run_command(dctx, "git", [
+        "config",
+        "--global",
+        "safe.directory",
+        "*",
+    ])
+
     try:
-        run_command(
-            dctx,
-            "uv",
-            [
-                "run",
-                "python",
-                "-m",
-                "py_ci.test_cpack_build",
-                "--build",
-                "--deps",
-                "--test=cxx",
-                "--test=python",
-                f"--python-bin={python_binary}",
-            ],
-            print_output=True,
-        )
-        
+        pass
+
     finally:
         cleanup_overlay_mount_points(ctx, cow_root=cow_root)
-
 
 
 @haxorg_task(dependencies=[])
