@@ -96,10 +96,6 @@ yapf = "^0.40.2"
 # on what to do instead, and I don't have time to deal with this bullshit, so fixing to whatever version 
 # I have installed at the moment. 
 
-# [build-system]
-# requires = ["poetry-core"]
-# build-backend = "poetry.core.masonry.api"
-
 [tool.pytest.ini_options]
 log_cli_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"
 log_capture_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"

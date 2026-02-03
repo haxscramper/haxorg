@@ -103,24 +103,6 @@ def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot") -> N
 
 
 
-
-
-# @haxorg_task(dependencies=[build_haxorg, generate_python_protobuf_files])
-# def py_cli(
-#     ctx: Context,
-#     arg: List[str] = [],
-# ):
-#     "Run haxorg CLI script"
-#     log(CAT).info(get_py_env(ctx))
-#     log(CAT).info(arg)
-#     run_command(
-#         ctx,
-#         "poetry",
-#         ["run", get_script_root("scripts/py_cli/haxorg.py"), *arg],
-#         env=get_py_env(ctx),
-#     )
-
-
 def get_poetry_lldb(test: str) -> list[str]:
     return [
         "run",
