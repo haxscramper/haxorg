@@ -11,10 +11,10 @@ void PrintAllWindows() {
         HSLOG_INFO(
             "im-test-common",
             "Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
-                window->Name,
-                window->ID,
-                window->Pos,
-                window->Size);
+            window->Name,
+            window->ID,
+            window->Pos,
+            window->Size);
     }
 }
 

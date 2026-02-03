@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 
+from datetime import datetime
+from datetime import timedelta
 import functools
 import itertools
-import statistics
-from datetime import datetime, timedelta
 from pathlib import Path
+import statistics
 
-import pandas as pd
-import py_haxorg.pyhaxorg_wrap as org
-import rich_click as click
 from beartype import beartype
-from beartype.typing import Any, List, Optional, Tuple
-from py_cli import haxorg_cli, haxorg_opts
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+import pandas as pd
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 from py_exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
+from py_haxorg.pyhaxorg_utils import evalDateTime
+from py_haxorg.pyhaxorg_utils import getFlatTags
+import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
+import rich_click as click
 
 CAT = __name__
 
@@ -130,4 +137,3 @@ def subtree_clocking(ctx: haxorg_cli.CliRunContext) -> None:
 @click.pass_context
 def subtree_clocking_cli(ctx: click.Context, **kwargs: Any) -> None:
     subtree_clocking(haxorg_cli.get_run(ctx))
-

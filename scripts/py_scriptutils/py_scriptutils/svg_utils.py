@@ -1,8 +1,11 @@
-from dominate import tags
-from numbers import Number
-from beartype import beartype
-from beartype.typing import Dict, Any
 import copy
+from numbers import Number
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from dominate import tags
+
 
 def rename_kwargs_for_svg(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     result = {}
@@ -33,7 +36,8 @@ class svg_circle(tags.html_tag):
 class svg_rect(tags.html_tag):
     tagname = "rect"
 
-    def __init__(self, x: int, y: int, width: int, height: int, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, x: int, y: int, width: int, height: int, *args: Any,
+                 **kwargs: Any) -> None:
         super().__init__(
             *args,
             x=x,
@@ -54,7 +58,8 @@ class svg_text(tags.html_tag):
 class svg_line(tags.html_tag):
     tagname = "line"
 
-    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args: Any,
+                 **kwargs: Any) -> None:
         super().__init__(
             x1=x1,
             x2=x2,
@@ -117,7 +122,6 @@ class svg_path(tags.html_tag):
 
     def __init__(self, d: SvgPathBuilder, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, d=str(d), **rename_kwargs_for_svg(kwargs))
-
 
 
 @beartype

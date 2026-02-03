@@ -1,9 +1,12 @@
-import py_wrappers.py_adaptagrams_wrap as wrap
-from beartype.typing import Dict, Any
+from pathlib import Path
 from pprint import pformat
+
+from beartype.typing import Any
+from beartype.typing import Dict
 from py_scriptutils.script_logging import to_debug_json
 from py_wrappers.py_adaptagrams_wrap import *
-from pathlib import Path
+import py_wrappers.py_adaptagrams_wrap as wrap
+
 
 def make_disconnected_graph(count: int, mult: int) -> wrap.GraphLayout:
     ir = wrap.GraphLayout()

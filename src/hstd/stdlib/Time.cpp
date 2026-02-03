@@ -59,12 +59,13 @@ std::string UserTime::format(Format kind) const {
 
     if (kind == Format::OrgFormat) {
         if (zone) {
-            auto info    = tz.lookup(cctz::convert(
-                cctz::civil_second(1970, 1, 1, 0, 0, 0),
-                cctz::utc_time_zone()));
-            int  offset  = info.offset / 60;
-            int  hours   = offset / 60;
-            int  minutes = offset % 60;
+            auto info = tz.lookup(
+                cctz::convert(
+                    cctz::civil_second(1970, 1, 1, 0, 0, 0),
+                    cctz::utc_time_zone()));
+            int offset  = info.offset / 60;
+            int hours   = offset / 60;
+            int minutes = offset % 60;
 
             if (minutes == 0) {
                 format += fmt(" {:+03}", hours);
@@ -113,8 +114,9 @@ int64_t UserTime::toUnixTimestamp() const {
     constexpr int64_t unix_max = 2147483647LL;
 
     if (seconds < unix_min || unix_max < seconds) {
-        throw std::out_of_range(std::format(
-            "Time {} is outside unix timestamp range", seconds));
+        throw std::out_of_range(
+            std::format(
+                "Time {} is outside unix timestamp range", seconds));
     }
 
     return seconds;

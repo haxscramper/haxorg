@@ -41,7 +41,8 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T const*>::isNil(ptr)) {
         std::string msg = "Expected non-nullptr value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
+        throw ::hstd::logic_assertion_error::init(
+            msg, line, function, file);
     }
 }
 
@@ -69,7 +70,8 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T>::isNil(ptr)) {
         std::string msg = "Expected non-nil value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
+        throw ::hstd::logic_assertion_error::init(
+            msg, line, function, file);
     }
 }
 } // namespace hstd

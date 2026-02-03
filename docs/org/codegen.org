@@ -35,4 +35,4 @@ Currently, those are the main code-generated file groups in the repository:
 - Python  bindings  :: =pybind11=  wrappers  are  automatically created  to
   expose all the fields in the org types.
 - Protobuf grammar :: Codegen  generates protobuf grammar description saved
-  in the ~serde/SemOrgProto.proto~ 
+  in the ~serde/SemOrgProto.proto~

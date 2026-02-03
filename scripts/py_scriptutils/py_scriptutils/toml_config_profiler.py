@@ -1,20 +1,28 @@
+from dataclasses import dataclass
+from dataclasses import field
 import functools
 import json
 import os
-import traceback
 from pathlib import Path
+import traceback
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import get_args
+from beartype.typing import get_origin
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Type
+from beartype.typing import TypeVar
+from py_scriptutils.files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import log
+from pydantic import AliasChoices
+from pydantic import BaseModel
+from pydantic_core import PydanticUndefined
 import rich_click as click
 import toml
 import yaml
-from dataclasses import dataclass, field
-from beartype import beartype
-from beartype.typing import (Any, Dict, List, Optional, Type, TypeVar, get_args,
-                             get_origin)
-from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-from pydantic import AliasChoices, BaseModel
-from pydantic_core import PydanticUndefined
 
 CAT = __name__
 
@@ -232,11 +240,11 @@ class SafeDict(dict):
 def interpolate_dictionary(base: Dict, substitution: Dict[str, str]) -> Dict:
     """
     Recursively replace string values from dictionary 'base' with strings interpolated using
-    substitution values. 
+    substitution values.
 
     {"base": "ZZ{replace}XX"} + {"replace": "---"} --> {"base": "ZZ---XX"}
 
-    This is used to interpolate configuration values in the toml files. 
+    This is used to interpolate configuration values in the toml files.
     """
 
     def rec_rewrite(d: Any) -> Any:

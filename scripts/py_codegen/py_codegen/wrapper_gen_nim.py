@@ -1,31 +1,37 @@
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 import itertools
 import math
-import re
-from dataclasses import dataclass, field
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Callable, List, NewType, Optional, Set, Union, Tuple
-from py_scriptutils.files import file_relpath
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
-from pydantic import BaseModel, Field
-import itertools
-from dataclasses import replace
-
+from beartype.typing import Callable
+from beartype.typing import List
+from beartype.typing import NewType
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Tuple
+from beartype.typing import Union
 import py_codegen.astbuilder_nim as nim
-from py_codegen.gen_tu_cpp import (
-    GenTuEnum,
-    GenTuEnumField,
-    GenTuField,
-    GenTuFunction,
-    GenTuStruct,
-    GenTuTypedef,
-    QualType,
-    QualTypeKind,
-)
-from py_codegen.refl_wrapper_graph import GenGraph, GenTuUnion
+from py_codegen.gen_tu_cpp import GenTuEnum
+from py_codegen.gen_tu_cpp import GenTuEnumField
+from py_codegen.gen_tu_cpp import GenTuField
+from py_codegen.gen_tu_cpp import GenTuFunction
+from py_codegen.gen_tu_cpp import GenTuStruct
+from py_codegen.gen_tu_cpp import GenTuTypedef
+from py_codegen.gen_tu_cpp import QualType
+from py_codegen.gen_tu_cpp import QualTypeKind
+from py_codegen.refl_wrapper_graph import GenGraph
+from py_codegen.refl_wrapper_graph import GenTuUnion
+from py_scriptutils.files import file_relpath
 from py_scriptutils.script_logging import log
+from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextOptions
+from pydantic import BaseModel
+from pydantic import Field
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -399,7 +405,8 @@ def field_to_nim(
 ) -> Tuple[nim.IdentParams, Optional[ConvRes]]:
     decl: Optional[ConvRes] = None
     if f.isTypeDecl:
-        DeclType = f.decl.name.model_copy(update=dict(name=f"{rec.name.name}_{f.name}_field"))
+        DeclType = f.decl.name.model_copy(update=dict(
+            name=f"{rec.name.name}_{f.name}_field"))
         match f.decl:
             case GenTuStruct():
                 decl = struct_to_nim(b, replace(f.decl, name=DeclType), conf)
@@ -459,8 +466,9 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
 
     NestedTypes = list(itertools.chain(*[Sub.types for Sub in SubConvs]))
     Procs = list(
-            itertools.chain(
-                *[function_to_nim(b, meth, conf).procs for meth in rec.methods])) + list(itertools.chain(*[Sub.procs for Sub in SubConvs]))
+        itertools.chain(*[function_to_nim(b, meth, conf).procs
+                          for meth in rec.methods])) + list(
+                              itertools.chain(*[Sub.procs for Sub in SubConvs]))
 
     return ConvRes(
         types=[nim.ObjectParams(
@@ -514,7 +522,8 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
 
 
 @beartype
-def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions) -> ConvRes:
+def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion,
+                    conf: NimOptions) -> ConvRes:
     match decl:
         case GenTuEnum():
             return enum_to_nim(builder, decl)

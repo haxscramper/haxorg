@@ -1,41 +1,61 @@
-from py_scriptutils import configure_asan
-
-import enum
+from collections import OrderedDict
 from copy import copy
-from pprint import pprint
-
-import pytest
+from dataclasses import dataclass
+from dataclasses import field
+from datetime import datetime
+import enum
+import io
 import json
-from tempfile import NamedTemporaryFile, TemporaryDirectory, mktemp
+from pathlib import Path
+from pprint import pprint
+import shutil
+from tempfile import mktemp
+from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
+from types import TracebackType
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Type
+from cxx_repository import burndown
+from hypothesis import assume
+from hypothesis import given
+from hypothesis import note
+from hypothesis import Phase
+from hypothesis import seed
+from hypothesis import settings
+from hypothesis import strategies as st
+from hypothesis import Verbosity
+from hypothesis.stateful import Bundle
+from hypothesis.stateful import precondition
+from hypothesis.stateful import rule
+from hypothesis.stateful import RuleBasedStateMachine
+from hypothesis.stateful import run_state_machine_as_test
+import pandas as pd
 import plumbum
 import plumbum.commands.base
-from py_scriptutils.files import get_haxorg_repo_root_path
-from beartype import beartype
-from beartype.typing import Dict, Optional, Type, List
-from types import TracebackType
-from py_scriptutils.toml_config_profiler import merge_dicts
-from pathlib import Path
-from datetime import datetime
-from dataclasses import dataclass, field
-import pandas as pd
-import shutil
-
-from rich.console import Console
-from rich.table import Column, Table, Style
-from rich import box
-from sqlalchemy import create_engine, Engine
-import io
+from py_scriptutils import configure_asan
 from py_scriptutils.auto_lldb import get_lldb_params
-
-from pydantic import BaseModel
-from beartype.typing import List, Optional, Literal, Set, Callable, Any
-from hypothesis import strategies as st, settings, given, assume, Verbosity, Phase, note, seed
-from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition, run_state_machine_as_test
+from py_scriptutils.files import get_haxorg_repo_root_path
+from py_scriptutils.os_utils import gettempdir
+from py_scriptutils.os_utils import json_path_serializer
 from py_scriptutils.script_logging import log
-from collections import OrderedDict
-
-from cxx_repository import burndown
-from py_scriptutils.os_utils import gettempdir, json_path_serializer
+from py_scriptutils.toml_config_profiler import merge_dicts
+from pydantic import BaseModel
+import pytest
+from rich import box
+from rich.console import Console
+from rich.table import Column
+from rich.table import Style
+from rich.table import Table
+from sqlalchemy import create_engine
+from sqlalchemy import Engine
 
 
 @beartype
@@ -591,12 +611,12 @@ class GitOpStrategy:
                                     file_content=self.files[name])
 
             case GitOperationKind.DELETE_FILE:
-                name = draw(st.sampled_from(self.files)) # type: ignore
+                name = draw(st.sampled_from(self.files))  # type: ignore
                 del self.files[name]
                 return GitOperation(operation=op, filename=name)
 
             case GitOperationKind.RENAME_FILE:
-                old_name = draw(st.sampled_from(self.files)) # type: ignore
+                old_name = draw(st.sampled_from(self.files))  # type: ignore
                 new_name = draw(file_names.filter(lambda x: x not in self.files))
                 self.files[new_name] = self.files[old_name]
                 del self.files[old_name]
@@ -617,11 +637,11 @@ class GitOpStrategy:
                                     branch_to_checkout=to_checkout)
 
             case GitOperationKind.MODIFY_FILE:
-                name = draw(st.sampled_from(self.files)) # type: ignore
+                name = draw(st.sampled_from(self.files))  # type: ignore
                 state = GitFileEditStrategy(self.files[name])
 
                 @st.composite
-                def get_operations(draw: st.DrawFn) -> GitFileEdit: 
+                def get_operations(draw: st.DrawFn) -> GitFileEdit:
                     return state.get_ops(draw)
 
                 modifications = draw(st.lists(get_operations(), min_size=5))

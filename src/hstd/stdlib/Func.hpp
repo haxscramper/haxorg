@@ -8,7 +8,7 @@ using Func = std::function<T>;
 
 
 template <typename T, typename F>
-std::function<F(T const& obj)> get_field_get(F T::*field) {
+std::function<F(T const& obj)> get_field_get(F T::* field) {
     return [field](T const& obj) -> F { return obj.*field; };
 }
 
@@ -18,9 +18,9 @@ std::function<F(T const& obj)> get_getter_get(F (T::*method)() const) {
 }
 
 template <typename T>
-std::function<bool(T const& obj)> get_method_filter(bool (T::*method)()
-                                                        const) {
+std::function<bool(T const& obj)> get_method_filter(
+    bool (T::*method)() const) {
     return [method](T const& obj) -> bool { return (obj.*method)(); };
 }
 
-}
+} // namespace hstd

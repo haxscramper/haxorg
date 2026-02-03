@@ -614,10 +614,11 @@ struct RestHandlerContext {
                     invoke_impl();
                     setResponseResult(http::status::ok);
                 } catch (cpptrace::exception& ex) {
-                    setResponseBody(json::object({
-                        {"what", ex.what()},
-                        {"trace", to_json_eval(ex.trace())},
-                    }));
+                    setResponseBody(
+                        json::object({
+                            {"what", ex.what()},
+                            {"trace", to_json_eval(ex.trace())},
+                        }));
                     setResponseResult(http::status::internal_server_error);
                 } catch (std::exception& ex) {
                     setResponseBody(json::object({{"what", ex.what()}}));
@@ -680,8 +681,9 @@ void place_argument(
             arg_specs.at(idx));
         ++idx;
     } catch (std::exception& ex) {
-        failed_arg_parse.push_back(json::object(
-            {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
+        failed_arg_parse.push_back(
+            json::object(
+                {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
     }
 }
 
@@ -840,11 +842,12 @@ struct HandlerImpl {
         s["name"]       = name;
         s["parameters"] = json::array();
         if (false && self) {
-            s["parameters"].push_back(ArgSpec{
-                .name = "self",
-                .type = self.value(),
-            }
-                                          .getApiSchema());
+            s["parameters"].push_back(
+                ArgSpec{
+                    .name = "self",
+                    .type = self.value(),
+                }
+                    .getApiSchema());
         }
 
         if (result) { s["result"] = result.value().getApiSchema(); }
@@ -936,17 +939,20 @@ class WSSession : public SharedPtrApi<WSSession> {
 
   private:
     void on_run() {
-        ws.set_option(websocket::stream_base::timeout::suggested(
-            beast::role_type::server));
-        ws.set_option(websocket::stream_base::decorator(
-            [](websocket::response_type& res) {
-                res.set(
-                    http::field::server,
-                    std::string(BOOST_BEAST_VERSION_STRING));
-            }));
+        ws.set_option(
+            websocket::stream_base::timeout::suggested(
+                beast::role_type::server));
+        ws.set_option(
+            websocket::stream_base::decorator(
+                [](websocket::response_type& res) {
+                    res.set(
+                        http::field::server,
+                        std::string(BOOST_BEAST_VERSION_STRING));
+                }));
 
-        ws.async_accept(beast::bind_front_handler(
-            &WSSession::on_accept, this->shared_from_this()));
+        ws.async_accept(
+            beast::bind_front_handler(
+                &WSSession::on_accept, this->shared_from_this()));
     }
 
     void on_accept(beast::error_code ec) {
@@ -1122,9 +1128,9 @@ class HttpSession : public SharedPtrApi<HttpSession> {
                 if (ctx.route == "/api/parseString") {
                     response->result(http::status::ok);
                     response->body() //
-                        = ctx
-                              .toJson(org::parseString(
-                                  ctx.getArg<std::string>({"text"})))
+                        = ctx.toJson(
+                                 org::parseString(
+                                     ctx.getArg<std::string>({"text"})))
                               .dump();
                 } else if (ctx.route == "/api/parseRoot") {
                     state->parseRoot(ctx.getArg<std::string>({"text"}));

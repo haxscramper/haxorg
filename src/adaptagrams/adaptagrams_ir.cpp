@@ -342,8 +342,9 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
                 nodes.append(sub_nodes);
             }
 
-            added_subgraphs.push_back(std::make_pair(
-                NodeSet{nodes.begin(), nodes.end()}, out_graph));
+            added_subgraphs.push_back(
+                std::make_pair(
+                    NodeSet{nodes.begin(), nodes.end()}, out_graph));
 
             return nodes;
         };

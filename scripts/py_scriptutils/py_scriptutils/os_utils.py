@@ -1,15 +1,18 @@
-from pathlib import Path
 import os
+from pathlib import Path
 import shutil
-from typing import Optional, Any
 import tempfile
+from typing import Any, Optional
 
-def rmdir_quiet(path: Path) -> None: 
+
+def rmdir_quiet(path: Path) -> None:
     if path.exists():
         shutil.rmtree(path)
 
+
 def gettempdir(*relative: str) -> Path:
     return Path(tempfile.gettempdir()).joinpath(*relative)
+
 
 def json_path_serializer(obj: Any) -> str:
     if isinstance(obj, Path):

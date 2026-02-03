@@ -1,7 +1,9 @@
-import pytest
 from pathlib import Path
 
+import pytest
+
 INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
+
 
 @pytest.mark.test_release
 def test_coverall_extract(stable_test_dir: Path) -> None:
@@ -11,7 +13,7 @@ def test_coverall_extract(stable_test_dir: Path) -> None:
         code_dir=INPUT.parent,
         output_dir=stable_test_dir,
     )
-    
+
     formatted = refl_test_driver.format_nim_code(value)
     assert len(formatted) == 1
 

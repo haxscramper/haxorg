@@ -137,26 +137,23 @@ struct TextLayout {
 
 namespace PYBIND11_NAMESPACE {
 namespace detail {
-    template <>
-    struct type_caster<TextLayout::Id> {
-      public:
-        PYBIND11_TYPE_CASTER(TextLayout::Id, const_name("BlockId"));
-        bool load(handle src, bool) {
-            PyObject* source = src.ptr();
-            PyObject* tmp    = PyNumber_Long(source);
-            if (!tmp) { return false; }
-            value.id.setValue(PyLong_AsUnsignedLong(tmp));
-            Py_DECREF(tmp);
-            return !PyErr_Occurred();
-        }
+template <>
+struct type_caster<TextLayout::Id> {
+  public:
+    PYBIND11_TYPE_CASTER(TextLayout::Id, const_name("BlockId"));
+    bool load(handle src, bool) {
+        PyObject* source = src.ptr();
+        PyObject* tmp    = PyNumber_Long(source);
+        if (!tmp) { return false; }
+        value.id.setValue(PyLong_AsUnsignedLong(tmp));
+        Py_DECREF(tmp);
+        return !PyErr_Occurred();
+    }
 
-        static handle cast(
-            TextLayout::Id src,
-            return_value_policy,
-            handle) {
-            return PyLong_FromUnsignedLongLong(src.id.getValue());
-        }
-    };
+    static handle cast(TextLayout::Id src, return_value_policy, handle) {
+        return PyLong_FromUnsignedLongLong(src.id.getValue());
+    }
+};
 } // namespace detail
 } // namespace PYBIND11_NAMESPACE
 

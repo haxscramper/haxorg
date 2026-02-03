@@ -1,14 +1,21 @@
-from py_textlayout.py_textlayout_wrap import TextLayout
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NewType, TypeAlias
-from beartype.typing import List, Optional, Dict, Any
-from beartype import beartype
-import py_codegen.astbuilder_base as base
-from pydantic import BaseModel, Field
-from pathlib import Path
-import toml
-from py_scriptutils.algorithm import cond, maybe_splice
+from dataclasses import dataclass
+from dataclasses import field
 from numbers import Number
+from pathlib import Path
+from typing import NewType, TYPE_CHECKING, TypeAlias
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+import py_codegen.astbuilder_base as base
+from py_scriptutils.algorithm import cond
+from py_scriptutils.algorithm import maybe_splice
+from py_textlayout.py_textlayout_wrap import TextLayout
+from pydantic import BaseModel
+from pydantic import Field
+import toml
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -52,8 +59,10 @@ class RawBlock():
 class RawLiteral():
     value: str
 
+
 AnyBlock: TypeAlias = BlockId | List[BlockId] | RawBlock | List[RawBlock]
 AnySingleValue: TypeAlias = BlockId | str | RawBlock | RawStr | RawLiteral
+
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
@@ -187,7 +196,9 @@ class ASTBuilder(base.AstbuilderBase):
         isFirst: bool = True,
     ) -> BlockId:
         body_list: List[BlockId | RawBlock] = body if isinstance(body, list) else [body]
-        b: List[BlockId] = [(it.value if isinstance(it, RawBlock) else it) for it in body_list]
+        b: List[BlockId] = [
+            (it.value if isinstance(it, RawBlock) else it) for it in body_list
+        ]
         arglist = []
 
         prefix = "#" if isFirst else ""

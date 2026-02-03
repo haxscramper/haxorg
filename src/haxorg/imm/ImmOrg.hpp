@@ -594,8 +594,8 @@ struct ImmAdapter;
     __FIELD_UPPERCASE,                                                    \
     __PARENT_TYPE,                                                        \
     __PARENT_KIND)                                                        \
-    [[refl]] BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)                         \
-        const& get##__FIELD_UPPERCASE() const;
+    [[refl]] BOOST_PP_REMOVE_PARENS(__FIELD_TYPE) const&                  \
+        get##__FIELD_UPPERCASE() const;
 
 #define __DECLARE_VALUE_WRITE_FIELD(                                      \
     __FIELD_TYPE,                                                         \
@@ -609,8 +609,8 @@ struct ImmAdapter;
 
 
 #define __DECLARE_VALUE_READ_TYPE(__KIND)                                 \
-    struct [[refl(                                                        \
-        R"({"default-constructor": false})")]] Imm##__KIND##ValueRead {   \
+    struct [[refl(R"({"default-constructor": false})")]] Imm##__KIND##    \
+        ValueRead {                                                       \
         org::imm::Imm##__KIND* ptr;                                       \
         Imm##__KIND##ValueRead(org::imm::Imm##__KIND const* ptr)          \
             : ptr{const_cast<org::imm::Imm##__KIND*>(ptr)} {}             \
@@ -619,9 +619,8 @@ struct ImmAdapter;
         DESC_FIELDS(Imm##__KIND##ValueRead, ());                          \
     };                                                                    \
                                                                           \
-    struct [[refl(                                                        \
-        R"({"default-constructor": false})")]] Imm##__KIND##Value         \
-        : public org::imm::Imm##__KIND##ValueRead {                       \
+    struct [[refl(R"({"default-constructor": false})")]] Imm##__KIND##    \
+        Value : public org::imm::Imm##__KIND##ValueRead {                 \
         using org::imm::Imm##__KIND##ValueRead::Imm##__KIND##ValueRead;   \
         EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
             __DECLARE_VALUE_WRITE_FIELD);                                 \
@@ -799,9 +798,10 @@ struct [[refl]] ImmAstVersion {
 
     /// \brief Execute ast editing callback and return a new AST version
     /// with all edits applied.
-    ImmAstVersion getEditVersion(hstd::Func<ImmAstReplaceGroup(
-                                     ImmAstContext::Ptr,
-                                     ImmAstEditContext&)> cb);
+    ImmAstVersion getEditVersion(
+        hstd::Func<
+            ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)>
+            cb);
 };
 
 struct ImmAstGraphvizConf {
@@ -1024,7 +1024,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
             withFieldSubset;
 
         template <typename F, typename T>
-        TreeReprConf& with_field(F T::*fieldPtr) {
+        TreeReprConf& with_field(F T::* fieldPtr) {
             withFieldSubset.incl(
                 {T::staticKind, ImmReflFieldId::FromTypeField(fieldPtr)});
             return *this;
@@ -1293,7 +1293,7 @@ struct ImmAdapterTBase : ImmAdapter {
     /// access, not for something that would have to be marked as 'edited'
     /// later on.
     template <typename F>
-    ImmAdapterT<F> getField(ImmIdT<F> T::*fieldPtr) const;
+    ImmAdapterT<F> getField(ImmIdT<F> T::* fieldPtr) const;
 
     template <typename F>
     ImmAdapterT<F> getField(
@@ -1585,15 +1585,15 @@ EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
 template <typename T>
 template <typename F>
 inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::*fieldPtr) const {
+    org::imm::ImmIdT<F> T::* fieldPtr) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, {}};
 }
 
 template <typename T>
 template <typename F>
 ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::*fieldPtr,
-    ImmPathStep const&      step) const {
+    org::imm::ImmIdT<F> T::* fieldPtr,
+    ImmPathStep const&       step) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
 }
 

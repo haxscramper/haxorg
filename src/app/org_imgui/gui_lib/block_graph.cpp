@@ -19,10 +19,11 @@ hstd::log::log_builder gr_log(
     int                       line     = __builtin_LINE(),
     char const*               function = __builtin_FUNCTION(),
     char const*               file     = __builtin_FILE()) {
-    return std::move(::hstd::log::log_builder{}
-                         .set_callsite(line, function, file)
-                         .severity(__severity)
-                         .source_scope({"gui", "logic", "block_graph"}));
+    return std::move(
+        ::hstd::log::log_builder{}
+            .set_callsite(line, function, file)
+            .severity(__severity)
+            .source_scope({"gui", "logic", "block_graph"}));
 }
 
 GC::Align::Spec spec(int rect, int offset = 0) {
@@ -83,22 +84,23 @@ void connect_vertical_constraints(
             auto next_row = row + 1;
             if (next_row <= maxRow) {
                 LaneNodePos next{.lane = lane_idx, .row = next_row};
-                lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Separate{
-                    .left = GC::
-                        Align{.nodes = Vec{spec(lyt.rectMap.at(node))}, .dimension = GraphDimension::YDIM},
-                    .right = GC::
-                        Align{.nodes = Vec{spec(lyt.rectMap.at(next))}, .dimension = GraphDimension::YDIM},
-                    .separationDistance //
-                    = float(
-                        float(
-                            lane.blocks.at(row).height
-                            + lane.blocks.at(next_row).height)
-                            / 2.0f
-                        + lane.blocks.at(row).bottomMargin
-                        + lane.blocks.at(next_row).topMargin),
-                    .isExactSeparation = true,
-                    .dimension         = GraphDimension::YDIM,
-                }});
+                lyt.ir.nodeConstraints.push_back(
+                    GraphNodeConstraint{GC::Separate{
+                        .left = GC::
+                            Align{.nodes = Vec{spec(lyt.rectMap.at(node))}, .dimension = GraphDimension::YDIM},
+                        .right = GC::
+                            Align{.nodes = Vec{spec(lyt.rectMap.at(next))}, .dimension = GraphDimension::YDIM},
+                        .separationDistance //
+                        = float(
+                            float(
+                                lane.blocks.at(row).height
+                                + lane.blocks.at(next_row).height)
+                                / 2.0f
+                            + lane.blocks.at(row).bottomMargin
+                            + lane.blocks.at(next_row).topMargin),
+                        .isExactSeparation = true,
+                        .dimension         = GraphDimension::YDIM,
+                    }});
             }
         }
 
@@ -374,17 +376,19 @@ int LaneBlockStack::addBlock(
     LOGIC_ASSERTION_CHECK_FMT(
         size.x != 0 && size.y != 0, "Cannot create block with no size");
 
-    auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
-        .lane = laneIndex,
-        .row  = blocks.size(),
-    });
+    auto [top, bottom] = conf.getDefaultBlockMargin(
+        LaneNodePos{
+            .lane = laneIndex,
+            .row  = blocks.size(),
+        });
 
-    blocks.push_back(LaneBlockNode{
-        .width        = static_cast<int>(size.x),
-        .height       = static_cast<int>(size.y),
-        .topMargin    = top,
-        .bottomMargin = bottom,
-    });
+    blocks.push_back(
+        LaneBlockNode{
+            .width        = static_cast<int>(size.x),
+            .height       = static_cast<int>(size.y),
+            .topMargin    = top,
+            .bottomMargin = bottom,
+        });
 
     return blocks.high();
 }
@@ -412,10 +416,11 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
             ImVec2 center = get_rect_center(rect.node);
             ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
             centers.push_back(C::Point{center - offset, {rect.node}});
-            offsets.push_back(C::Offset{
-                .offset = -offset,
-                .start  = C::Point{center, {rect.node}},
-            });
+            offsets.push_back(
+                C::Offset{
+                    .offset = -offset,
+                    .start  = C::Point{center, {rect.node}},
+                });
         }
 
         std::sort(
@@ -441,10 +446,11 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     };
 
     for (auto const& [rect_idx, rect] : enumerate(layout.fixed)) {
-        res.constraints.push_back(C{C::RectPosition{
-            .pos  = ImVec2(rect.left, rect.top),
-            .rect = rect_idx,
-        }});
+        res.constraints.push_back(
+            C{C::RectPosition{
+                .pos  = ImVec2(rect.left, rect.top),
+                .rect = rect_idx,
+            }});
     }
 
 
@@ -480,7 +486,6 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
                 break;
             }
             default: {
-                _dbg(c.getKind());
             }
         }
     }
@@ -690,10 +695,11 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
     //   └─┘   └╶┘
     connect_vertical_constraints(res, laneAlignments, topLaneAlign, *this);
 
-    res.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
-        .nodes     = topLaneAlign,
-        .dimension = GraphDimension::YDIM,
-    }});
+    res.ir.nodeConstraints.push_back(
+        GraphNodeConstraint{GC::Align{
+            .nodes     = topLaneAlign,
+            .dimension = GraphDimension::YDIM,
+        }});
 
     connect_inter_lane_constraints(res, laneAlignments, *this);
 
@@ -751,21 +757,23 @@ Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
             // this adjustment some blocks can either be placed too high
             // relative to the visible viewport, or below it. They are
             // marked as invisible.
-            res.push_back(RectSpec{
-                .lanePos   = lane_idx,
-                .blockId   = blockId,
-                .size      = im_size,
-                .pos       = im_pos,
-                .isVisible = !(
-                    (im_pos.y + im_size.y < 0)
-                    || (blockGraph.visible.height() < im_pos.y)),
-            });
+            res.push_back(
+                RectSpec{
+                    .lanePos   = lane_idx,
+                    .blockId   = blockId,
+                    .size      = im_size,
+                    .pos       = im_pos,
+                    .isVisible = !(
+                        (im_pos.y + im_size.y < 0)
+                        || (blockGraph.visible.height() < im_pos.y)),
+                });
         } else {
-            res.push_back(RectSpec{
-                .lanePos   = lane_idx,
-                .blockId   = blockId,
-                .isVisible = false,
-            });
+            res.push_back(
+                RectSpec{
+                    .lanePos   = lane_idx,
+                    .blockId   = blockId,
+                    .isVisible = false,
+                });
         }
     }
     return res;

@@ -1,16 +1,22 @@
 from dataclasses import dataclass
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Set
 import glom
 import igraph as ig
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Set
 from py_cli import haxorg_opts
-from py_cli.generate.mind_map import elk_converter, elk_schema
+from py_cli.generate.mind_map import elk_converter
+from py_cli.generate.mind_map import elk_schema
 from py_scriptutils.json_utils import Json
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 
 CAT = __name__
 

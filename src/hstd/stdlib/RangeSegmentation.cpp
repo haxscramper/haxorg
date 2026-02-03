@@ -22,10 +22,11 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
             slices.push_back(slice(s.first, s.last));
         }
 
-        trees.push_back(GroupTree{
-            .group = g,
-            .tree  = RangeTree<int>(slices),
-        });
+        trees.push_back(
+            GroupTree{
+                .group = g,
+                .tree  = RangeTree<int>(slices),
+            });
     }
 
     using SegmentKind = Pair<int, Vec<int>>; // group kind,
@@ -56,10 +57,11 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
     auto getAnnotations = [&]() {
         Vec<SequenceAnnotationTag> annotations;
         for (auto const& [group_Kind, segment_Kind] : prevKind) {
-            annotations.push_back(SequenceAnnotationTag{
-                .groupKind    = group_Kind,
-                .segmentKinds = segment_Kind,
-            });
+            annotations.push_back(
+                SequenceAnnotationTag{
+                    .groupKind    = group_Kind,
+                    .segmentKinds = segment_Kind,
+                });
         }
         return annotations;
     };
@@ -68,11 +70,12 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
         auto thisKind = getPointGroups(i);
         if (thisKind != prevKind) {
             if (!prevKind.empty()) {
-                result.push_back(SequenceAnnotation{
-                    .first       = lastStart,
-                    .last        = i - 1,
-                    .annotations = getAnnotations(),
-                });
+                result.push_back(
+                    SequenceAnnotation{
+                        .first       = lastStart,
+                        .last        = i - 1,
+                        .annotations = getAnnotations(),
+                    });
             }
 
             prevKind  = thisKind;
@@ -81,11 +84,12 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
     }
 
     if (lastStart < last && !prevKind.empty()) {
-        result.push_back(SequenceAnnotation{
-            .first       = lastStart,
-            .last        = last,
-            .annotations = getAnnotations(),
-        });
+        result.push_back(
+            SequenceAnnotation{
+                .first       = lastStart,
+                .last        = last,
+                .annotations = getAnnotations(),
+            });
     }
 
     return result;

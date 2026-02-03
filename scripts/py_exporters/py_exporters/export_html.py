@@ -1,13 +1,19 @@
+from dataclasses import dataclass
+
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import Optional
 import dominate
-from dominate.util import text
 import dominate.tags as tags
+from dominate.util import text
 from py_exporters.export_base import ExporterBase
+from py_haxorg.pyhaxorg_utils import formatDateTime
+from py_haxorg.pyhaxorg_utils import formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
-from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
-from dataclasses import dataclass
-from beartype.typing import Literal, Optional, Callable, Any, List
 
 CAT = "haxorg.export.html"
 
@@ -36,7 +42,8 @@ def add_new(html: tags.html_tag, sub: Any) -> tags.html_tag:
 
 class ExporterHtml(ExporterBase):
 
-    def __init__(self, get_break_tag: Optional[Callable[[org.Newline], Any]] = None) -> None:
+    def __init__(self,
+                 get_break_tag: Optional[Callable[[org.Newline], Any]] = None) -> None:
         super().__init__(self)
         self.get_break_tag = get_break_tag
 

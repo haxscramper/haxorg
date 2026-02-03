@@ -1,10 +1,13 @@
-from py_cli import haxorg_cli, haxorg_opts
-from beartype.typing import Any, Optional
-from py_exporters.export_pandoc import ExporterPandoc
 import json
-import rich_click as click
-import py_haxorg.pyhaxorg_wrap as org
+
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Optional
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+from py_exporters.export_pandoc import ExporterPandoc
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
 
 CAT = "haxorg.export.pandoc"
 
@@ -29,7 +32,6 @@ def export_pandoc(ctx: haxorg_cli.CliRunContext) -> None:
 
         document = exp.evalTop(node).toJson()[0]
         ctx.opts.export.pandoc.outfile.write_text(json.dumps(document, indent=2))
-
 
 
 @click.command("pandoc")

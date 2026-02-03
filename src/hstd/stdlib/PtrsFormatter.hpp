@@ -3,7 +3,6 @@
 #include <hstd/stdlib/Ptrs.hpp>
 
 
-
 template <typename T>
 struct std::formatter<hstd::SPtr<T>> : std::formatter<std::string> {
     template <typename FormatContext>
@@ -11,7 +10,7 @@ struct std::formatter<hstd::SPtr<T>> : std::formatter<std::string> {
         if (p.get() == nullptr) {
             return ::hstd::fmt_ctx("nullptr", ctx);
         } else {
-          return ::hstd::fmt_ctx(p.get(), ctx);
+            return ::hstd::fmt_ctx(p.get(), ctx);
         }
     }
 };

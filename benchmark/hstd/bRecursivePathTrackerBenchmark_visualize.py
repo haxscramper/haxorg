@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 
+from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
-from dataclasses import dataclass
-from beartype.typing import List, Dict, Any, Optional, Union
-import matplotlib.pyplot as plt
-import matplotlib.axes as plt_axes
-import rich_click as click
+
 from beartype import beartype
-import seaborn as sns
-import pandas as pd
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Union
+import matplotlib.axes as plt_axes
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import rich_click as click
+import seaborn as sns
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -258,7 +263,8 @@ class BenchmarkVisualizer:
         else:
             return time_value
 
-    def _plot_operation_comparison(self, ax: plt_axes.Axes, operation: str, df: pd.DataFrame) -> None:
+    def _plot_operation_comparison(self, ax: plt_axes.Axes, operation: str,
+                                   df: pd.DataFrame) -> None:
         grouped = df.groupby("implementation")["real_time_ms"].mean().sort_values()
 
         bars = ax.bar(range(len(grouped)), grouped.values)
@@ -272,7 +278,8 @@ class BenchmarkVisualizer:
         for i, (impl, time) in enumerate(grouped.items()):
             ax.text(i, time, f"{time:.2f}ms", ha="center", va="bottom")
 
-    def _plot_scaling_behavior(self, ax: plt_axes.Axes, operation: str, df: pd.DataFrame) -> None:
+    def _plot_scaling_behavior(self, ax: plt_axes.Axes, operation: str,
+                               df: pd.DataFrame) -> None:
         for impl in df["implementation"].unique():
             impl_data = df[df["implementation"] == impl]
 
@@ -328,7 +335,7 @@ def main(input_file: Path, output_dir: Path) -> None:
     visualizer.create_scaling_analysis(data, scaling_analysis)
     logger.info(f"Created scaling analysis plot in '{scaling_analysis}'")
 
-    perf_heatmap_path =  output_dir / "performance_heatmap.png"
+    perf_heatmap_path = output_dir / "performance_heatmap.png"
     visualizer.create_heatmap(data, perf_heatmap_path)
     logger.info(f"Created performance heatmap in '{perf_heatmap_path}")
 

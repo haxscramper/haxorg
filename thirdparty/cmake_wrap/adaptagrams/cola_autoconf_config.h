@@ -34,13 +34,15 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Define to the sub-directory where libtool stores uninstalled libraries. */
+/* Define to the sub-directory where libtool stores uninstalled libraries.
+ */
 #define LT_OBJDIR ".libs/"
 
 /* Name of package */
 #define PACKAGE "libcola"
 
-/* Define to the address where bug reports for this package should be sent. */
+/* Define to the address where bug reports for this package should be sent.
+ */
 #define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
@@ -65,7 +67,3 @@
 
 /* Version number of package */
 #define VERSION "0.1"
-
- 
-  
-

@@ -66,7 +66,7 @@ const hstd::log::log_category _cat = hstd::log::log_category{"cat"};
 
 TEST_F(LoggerTest, SimpleLog) {
     HSLOG_TRACE("trace");
-    HSLOG_DEBUG("debug");
+    HSLOG_DEBUG("debug"); // hook-ignore
     HSLOG_INFO("info");
     HSLOG_WARNING("warning");
     HSLOG_ERROR("error");
@@ -85,7 +85,7 @@ TEST_F(LoggerTest, DifferentialDebug) {
         auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
             log::log_differential_sink_factory{getDebugFile("res.diff")});
         HSLOG_TRACE("trace {}", counter);
-        HSLOG_DEBUG("debug {}", counter);
+        HSLOG_DEBUG("debug {}", counter); // hook-ignore
         HSLOG_INFO("info {}", counter);
         HSLOG_WARNING("warning {}", counter);
         HSLOG_ERROR("error {}", counter);

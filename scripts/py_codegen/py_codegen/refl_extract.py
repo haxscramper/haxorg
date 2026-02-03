@@ -1,40 +1,42 @@
+from copy import deepcopy
+from dataclasses import dataclass
+from dataclasses import field
+from hashlib import md5
 import io
 import json
 import os.path
-import time
-from copy import deepcopy
-from dataclasses import dataclass, field
-from hashlib import md5
 from pathlib import Path
-from pprint import pformat, pprint
-from typing import TYPE_CHECKING
+from pprint import pformat
+from pprint import pprint
 import sys
-from plumbum import local
+import time
+from typing import TYPE_CHECKING
 
-import py_scriptutils.toml_config_profiler as conf_provider
 from beartype import beartype
-from beartype.typing import (
-    Any,
-    Dict,
-    List,
-    NewType,
-    Optional,
-    Set,
-    Tuple,
-    TypeAlias,
-    Union,
-    cast,
-    Literal,
-)
+from beartype.typing import Any
+from beartype.typing import cast
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import NewType
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Tuple
+from beartype.typing import TypeAlias
+from beartype.typing import Union
 from plumbum import local
+from py_codegen.gen_tu_cpp import QualType
+from py_codegen.refl_read import conv_proto_file
+from py_codegen.refl_read import ConvTu
+from py_codegen.refl_read import open_proto_file
+from py_codegen.refl_wrapper_graph import GenGraph
+from py_codegen.refl_wrapper_graph import TuWrap
+import py_codegen.wrapper_gen_nim as gen_nim
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
-
-import py_codegen.wrapper_gen_nim as gen_nim
-from py_codegen.gen_tu_cpp import QualType
-from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file
-from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
+import py_scriptutils.toml_config_profiler as conf_provider
+from pydantic import BaseModel
+from pydantic import Field
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId
@@ -145,7 +147,7 @@ class PathMapping:
 def expand_input(conf: TuOptions) -> List[PathMapping]:
     """
     Generate list of file mappings based on input configuration options -- individual
-    files, globs or recursive directories. 
+    files, globs or recursive directories.
     """
     directory_root = Path(conf.header_root) and Path(conf.header_root)
     result: List[PathMapping] = []

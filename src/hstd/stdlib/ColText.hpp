@@ -371,7 +371,6 @@ inline ColText operator+(CR<ColText> text, CR<ColText> other) { ColStream s; s <
 // clang-format on
 
 
-
 template <typename T>
 ColText join(CR<ColText> separator, CR<T> container) {
     ColStream out;
@@ -385,5 +384,3 @@ ColText join(CR<ColText> separator, CR<T> container) {
 }
 
 } // namespace hstd
-
-

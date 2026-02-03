@@ -1,11 +1,11 @@
 from beartype.typing import List
-
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
-from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
+from py_repository.repo_tasks.workflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -15,7 +15,7 @@ CAT = __name__
 def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     """
     Execute the whole python test suite or run a single test file in non-interactive
-    LLDB debugger to work on compiled component issues. 
+    LLDB debugger to work on compiled component issues.
     """
 
     args = arg
@@ -75,6 +75,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     if retcode != 0:
         raise RuntimeError("running py tests failed")
 
+
 @haxorg_task(dependencies=[
     build_haxorg,
     generate_python_protobuf_files,
@@ -83,7 +84,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
 def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
     """
     Run script with arguments with all environment variables set.
-    Debug task. 
+    Debug task.
     """
     run_command(
         ctx,
@@ -99,6 +100,6 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
 @haxorg_task(dependencies=[run_py_tests])
 def run_py_tests_ci() -> None:
     """
-    CI task that builds base lexer codegen before running the build 
+    CI task that builds base lexer codegen before running the build
     """
     pass

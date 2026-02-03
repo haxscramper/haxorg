@@ -1,8 +1,12 @@
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
-from beartype import beartype
-from beartype.typing import Any, List, Optional, Tuple
-from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "haxorg.export.sqlite"
 
@@ -25,8 +29,10 @@ def export_sqlite(ctx: haxorg_cli.CliRunContext) -> None:
                 )):
                     nodes.append((haxorg_cli.parseFile(ctx, file), str(file)))
 
-        from py_exporters.export_sqlite import Base, registerDocument
-        from sqlalchemy import Engine, create_engine
+        from py_exporters.export_sqlite import Base
+        from py_exporters.export_sqlite import registerDocument
+        from sqlalchemy import create_engine
+        from sqlalchemy import Engine
         if ctx.opts.export.sqlite.outfile.exists():
             ctx.opts.export.sqlite.outfile.unlink()
 

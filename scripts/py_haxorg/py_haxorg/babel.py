@@ -1,7 +1,8 @@
-import py_haxorg.pyhaxorg_wrap as org
+from pathlib import Path
+
 from beartype import beartype
 from beartype.typing import Optional
-from pathlib import Path
+import py_haxorg.pyhaxorg_wrap as org
 
 
 @beartype

@@ -2,11 +2,17 @@
 """
 Parser for LaTeX log files.
 """
-import re
 from collections import deque
-from beartype.typing import List, Iterable, Optional, Tuple, Any
+from dataclasses import dataclass
+from dataclasses import field
+import re
+
 from beartype import beartype
-from dataclasses import dataclass, field
+from beartype.typing import Any
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
 
 CAT = __name__
 
@@ -48,7 +54,7 @@ class _LineIterWrapper:
 
     def __next__(self) -> str:
         if self.cache:
-            self.current = current = self.cache.popleft() # type: ignore
+            self.current = current = self.cache.popleft()  # type: ignore
         else:
             self.current = current = next(self.iterable)
         return current

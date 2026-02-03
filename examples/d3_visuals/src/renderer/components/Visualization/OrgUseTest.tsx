@@ -63,7 +63,7 @@ async function buildDirectoryStructure(rootPath: string): Promise<DirectoryStruc
 
 
 function is_accepted_path(path: string): boolean {
-  return path.indexOf("codex/lore") != -1 && path.endsWith('.org'); 
+  return path.indexOf("codex/lore") != -1 && path.endsWith('.org');
 }
 
 async function buildDirectoryEntry(path: string, name: string): Promise<DirectoryEntry> {
@@ -93,7 +93,7 @@ async function test_directory_read() {
   const test_directory = "/home/haxscramper/tmp/org_test_dir";
   var directory_opts = new window.module.OrgDirectoryParseParameters();
   const directory_structure: DirectoryStructure = await buildDirectoryStructure(test_directory);
-  console.log(directory_structure); 
+  console.log(directory_structure);
 
   function read_file_content(path: string): string {
     const entry = findEntryByPath(directory_structure.root, path, test_directory);
@@ -116,14 +116,14 @@ async function test_directory_read() {
     const entry = findEntryByPath(directory_structure.root, path, test_directory);
     const result = entry instanceof FileEntry;
     // console.log(`Is regular file ${path} -> ${result}`);
-    return result; 
+    return result;
   }
 
   function is_symlink(path: string): boolean {
     const entry = findEntryByPath(directory_structure.root, path, test_directory);
     const result = entry instanceof SymlinkEntry;
     // console.log(`Is symlink ${path} -> ${result}`);
-    return result; 
+    return result;
   }
 
   function get_entry_list(input: string): string[] {
@@ -148,32 +148,32 @@ async function test_directory_read() {
 
   function findEntryByPath(root: DirectoryEntry, targetPath: string, basePath: string): DirectoryContent | null {
     // console.log(`findEntryByPath called with targetPath: ${targetPath}, basePath: ${basePath}`);
-    
+
     if (targetPath === basePath) {
       // console.log(`Target path matches base path, returning root`);
       return root;
     }
-    
+
     if (!targetPath.startsWith(basePath + '/')) {
       // console.warn(`Target path does not start with basePath + '/', returning null`);
       return null;
     }
-    
+
     const relativePath = targetPath.substring(basePath.length + 1);
     // console.log(`Relative path: ${relativePath}`);
-    
+
     const pathParts = relativePath.split('/');
     // console.log(`Path parts:`, pathParts);
-    
+
     let current: DirectoryContent = root;
-    
+
     for (let i = 0; i < pathParts.length; i++) {
       const part = pathParts[i];
       // console.log(`Processing part ${i}: ${part}, current entry type: ${current.type}, name: ${current.name}`);
-      
+
       if (current instanceof DirectoryEntry) {
         // console.log(`Current is directory with ${current.children.length} children, children paths:`, current.children.map(child => child.path));
-        
+
         const found = current.children.find(child => child.path === current.path + '/' + part);
         if (!found) {
           // console.warn(`Part ${part} not found in children, returning null`);
@@ -186,7 +186,7 @@ async function test_directory_read() {
         return null;
       }
     }
-    
+
     // console.log(`Final result: ${current.name}, type: ${current.type}`);
     return current;
   }
@@ -206,30 +206,30 @@ async function test_directory_read() {
     console.log("Recursive node done");
 
   const context = window.module.initImmutableAstContext();
-  console.log("Created immutable AST context"); 
-  const root = context.addRoot(recursive_node.value()); 
+  console.log("Created immutable AST context");
+  const root = context.addRoot(recursive_node.value());
   console.log("Immutable AST build done");
 
   const graph_conf = new window.module.GraphMapConfig();
   var graph_state: org.GraphMapGraphState = window.module.GraphMapGraphState.FromAstContext(context);
   // graph_state.
-  console.log("Created graph state"); 
+  console.log("Created graph state");
   graph_state.addNodeRec(root.getRootAdapter(), graph_conf);
-  console.log("Added data to the graph state"); 
+  console.log("Added data to the graph state");
   console.log(`Created graph with ${graph_state.graph.nodeCount()} nodes`);
-  
+
 }
 
 
 export function OrgUseText() {
   const containerRef = useRef<HTMLDivElement>(null);
   const vizRef = useRef<CollapsibleTreeVisualization | null>(null);
-  
+
 
   useEffect(() => {
     if (!containerRef.current) return;
     test_directory_read();
-    
+
 
   }, []);
 

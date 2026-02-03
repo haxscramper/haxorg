@@ -1,17 +1,19 @@
 from dataclasses import dataclass
-import traceback
-import logging
-import sys
-
-from rich.logging import RichHandler
-from rich.console import Console
-from rich.text import Text
-from rich.console import Console
-
-from types import MethodType
 import enum
+import logging
 import os
-from beartype.typing import Any, Set, Callable, Optional, Literal
+import sys
+import traceback
+from types import MethodType
+
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Literal
+from beartype.typing import Optional
+from beartype.typing import Set
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.text import Text
 
 
 def is_ci() -> bool:
@@ -361,8 +363,9 @@ log("matplotlib").setLevel(logging.WARNING)
 
 import logging
 from pathlib import Path
-from beartype import beartype
 from typing import Dict
+
+from beartype import beartype
 from rich.text import Text
 
 

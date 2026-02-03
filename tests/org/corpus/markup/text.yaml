@@ -38,18 +38,18 @@ items:
               name: "symbol"
               parameters: []
               positional: [{kind: Empty}]
-              
+
   - name: "Symbol with argument"
     source: "\\symbol{\"Argument\"}"
     sem:
       kind: Document
       subnodes:
         - kind: Paragraph
-          subnodes: 
+          subnodes:
             - kind: Symbol
               name: "symbol"
               parameters: []
-              positional: 
+              positional:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Punctuation, text: "\""}

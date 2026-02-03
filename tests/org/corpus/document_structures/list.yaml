@@ -191,7 +191,7 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
       - {kind: Dedent}
-      
+
   - name: "List with unindented source code block"
     source: |
       - Item1

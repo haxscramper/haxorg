@@ -1,29 +1,42 @@
-from dataclasses import dataclass, field, replace
+from collections import defaultdict
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 from pathlib import Path
+import re
 from tempfile import TemporaryDirectory
 
-from py_scriptutils.os_utils import gettempdir
-import re
-import pandas as pd
-import py_repository.code_analysis.gen_coverage_cxx as cov
 from beartype import beartype
-from beartype.typing import List, Optional, Union, Dict, Tuple, Any
-from plumbum import local
-import rich.box
-from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.rich_utils import render_rich, render_rich_pprint
-import py_scriptutils.json_utils as ju
-from py_scriptutils.sqlalchemy_utils import (dump_db_all, dump_flat_table, format_db_all,
-                                             format_rich_query, open_sqlite_session,
-                                             Session)
-from sqlalchemy import select
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file
-from py_scriptutils.rich_utils import render_rich_pprint
-from collections import defaultdict
-import pytest
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Union
 from dominate import document
 import dominate.tags as tags
+import pandas as pd
+from plumbum import local
+import py_repository.code_analysis.gen_coverage_cxx as cov
+import py_scriptutils.json_utils as ju
+from py_scriptutils.os_utils import gettempdir
+from py_scriptutils.pandas_utils import assert_frame
+from py_scriptutils.pandas_utils import dataframe_to_rich_table
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.rich_utils import render_rich
+from py_scriptutils.rich_utils import render_rich_pprint
+from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import pprint_to_file
+from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.sqlalchemy_utils import dump_db_all
+from py_scriptutils.sqlalchemy_utils import dump_flat_table
+from py_scriptutils.sqlalchemy_utils import format_db_all
+from py_scriptutils.sqlalchemy_utils import format_rich_query
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from py_scriptutils.sqlalchemy_utils import Session
+import pytest
+import rich.box
+from sqlalchemy import select
 
 
 def dbg(map: Any) -> str:
@@ -151,7 +164,7 @@ class ProfileRunParams():
                     str(self.coverage_mapping_dump),
                 ),
                 output=str(self.get_sqlite()),
-                mode=cov.Mode.RunProfileMerge, 
+                mode=cov.Mode.RunProfileMerge,
             ).model_dump_json(indent=2))
 
         code, stdout, stderr = cmd.run([str(self.get_params())])
@@ -834,7 +847,7 @@ template <typename T>
 struct Exporter {
     void impl_1();
     void impl_2();
-};             
+};
                 """,
                                "exporter.tcc":
                                    """
@@ -849,7 +862,7 @@ void Exporter<T>::impl_2() {}
                 """,
                                "exporter.cpp":
                                    """
-#include "exporter.hpp"                
+#include "exporter.hpp"
 #include "exporter.tcc"
 
 template class Exporter<int>;

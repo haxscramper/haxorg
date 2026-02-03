@@ -1,20 +1,28 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Tuple
+import glom
 import matplotlib.figure as matplotlib_figure
 import matplotlib.pyplot as plt
 import pandas as pd
-import py_exporters.export_sqlite as sql
-from beartype import beartype
-from beartype.typing import Any, List, Tuple
-from py_cli import haxorg_cli, haxorg_opts
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 from py_cli.haxorg_cli import *
+import py_exporters.export_sqlite as sql
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
-from sqlalchemy import Engine, create_engine, literal, select, union_all
+from sqlalchemy import create_engine
+from sqlalchemy import Engine
+from sqlalchemy import literal
+from sqlalchemy import select
+from sqlalchemy import union_all
 from sqlalchemy.orm import sessionmaker
-import glom
 
 CAT = "example.activity_analysis"
 

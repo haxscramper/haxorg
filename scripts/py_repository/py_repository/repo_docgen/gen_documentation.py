@@ -2,34 +2,45 @@
 
 import concurrent.futures
 from dataclasses import dataclass
+import functools
+import multiprocessing
 from pathlib import Path
+import re
+import sys
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Type
+from beartype.typing import TypeVar
+from dominate import document
 import dominate.tags as tags
 import dominate.util as util
+from py_ci.util_scripting import get_threading_count
+import py_repository.code_analysis.gen_coverage_cxx as cov_docxx
+import py_repository.code_analysis.gen_coverage_python as cov_docpy
 import py_repository.repo_docgen.gen_documentation_cxx as cxx
 import py_repository.repo_docgen.gen_documentation_data as docdata
 import py_repository.repo_docgen.gen_documentation_python as py
 import py_repository.repo_docgen.gen_documentation_utils as docutils
-import py_repository.code_analysis.gen_coverage_python as cov_docpy
-import py_repository.code_analysis.gen_coverage_cxx as cov_docxx
-from sqlalchemy.orm import Session
-import rich_click as click
-from beartype import beartype
-from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Any)
-from dominate import document
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import (BaseModel, apply_options, get_cli_model,
-                                                 options_from_model)
-from pydantic import BaseModel, Field, ConfigDict
-from py_scriptutils.tracer import GlobExportJson, GlobCompleteEvent
+from py_scriptutils.toml_config_profiler import apply_options
+from py_scriptutils.toml_config_profiler import BaseModel
+from py_scriptutils.toml_config_profiler import get_cli_model
+from py_scriptutils.toml_config_profiler import options_from_model
 import py_scriptutils.tracer
-import re
-import concurrent.futures
-import functools
-import multiprocessing
-import sys
-from py_ci.util_scripting import get_threading_count
+from py_scriptutils.tracer import GlobCompleteEvent
+from py_scriptutils.tracer import GlobExportJson
+from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
+import rich_click as click
+from sqlalchemy.orm import Session
 
 T = TypeVar("T")
 
@@ -322,7 +333,9 @@ def generate_html_for_directory(
 
     aux(directory, html_out_path)
 
-    assert 0 < len(target_code_files), f"No target files detected for HTML coverage generation. Filtered on whitelist:{opts.coverage_file_whitelist} blacklist:{opts.coverage_file_blacklist}"
+    assert 0 < len(
+        target_code_files
+    ), f"No target files detected for HTML coverage generation. Filtered on whitelist:{opts.coverage_file_whitelist} blacklist:{opts.coverage_file_blacklist}"
 
     with concurrent.futures.ProcessPoolExecutor(
             max_workers=get_threading_count()) as executor:

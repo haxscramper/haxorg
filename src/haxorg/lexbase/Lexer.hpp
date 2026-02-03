@@ -273,12 +273,13 @@ struct LexerCommon {
         if (at(kind)) {
             return true;
         } else if (finished()) {
-            throw UnexpectedEndError(hstd::fmt(
-                "Unexpected end encountered while trying to skip {} "
-                "token "
-                "at index {}",
-                kind,
-                pos.getIndex()));
+            throw UnexpectedEndError(
+                hstd::fmt(
+                    "Unexpected end encountered while trying to skip {} "
+                    "token "
+                    "at index {}",
+                    kind,
+                    pos.getIndex()));
 
         } else {
             throw UnexpectedCharError(

@@ -1,10 +1,22 @@
-from dataclasses import dataclass, field
-from beartype.typing import Callable, List, Any, Dict, Union, Optional, Tuple
-from enum import Enum, auto
-import json
-from jsonpath_ng import jsonpath, DatumInContext, Index, Fields
 import copy
+from dataclasses import dataclass
+from dataclasses import field
+from enum import auto
+from enum import Enum
+import json
+
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Union
+from jsonpath_ng import DatumInContext
+from jsonpath_ng import Fields
+from jsonpath_ng import Index
+from jsonpath_ng import jsonpath
 
 Json = Union[str, int, float, None, Dict, List, Tuple]
 
@@ -90,7 +102,7 @@ def json_diff(
 @beartype
 def get_subset_diff(main_set: Json, expected_subset: Json) -> List[DiffItem]:
     """
-    Get list of elements removed from expected subset of changed in expected subset. 
+    Get list of elements removed from expected subset of changed in expected subset.
     """
 
     # If some element from expect *sub*set was added, it is an expected behavior. All other operations

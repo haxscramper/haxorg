@@ -1,19 +1,29 @@
 #!/usr/bin/env python
 
-from typing import Any, Dict, List, Optional, Union
-from enum import Enum
-from pydantic import BaseModel, Field, model_validator, model_serializer, field_validator, field_serializer, ValidationError
 from dataclasses import dataclass
-from beartype.typing import List, Tuple, Optional
-from beartype import beartype
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
-from matplotlib.path import Path as MPath
-import numpy as np
-from plumbum import local
+from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any, Dict, List, Optional, Union
+
+from beartype import beartype
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from matplotlib.patches import FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch
+import matplotlib.patches as patches
+from matplotlib.path import Path as MPath
+import matplotlib.pyplot as plt
+import numpy as np
+from plumbum import local
+from pydantic import BaseModel
+from pydantic import Field
+from pydantic import field_serializer
+from pydantic import field_validator
+from pydantic import model_serializer
+from pydantic import model_validator
+from pydantic import ValidationError
 
 
 @beartype
@@ -194,6 +204,7 @@ class FixedAlignment(str, Enum):
     LEFTDOWN = "LEFTDOWN"
     RIGHTDOWN = "RIGHTDOWN"
     BALANCED = "BALANCED"
+
 
 class PortProperties(BaseModel, extra="forbid"):
     port: Optional[Dict[str, Any]] = None
@@ -875,6 +886,7 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Gr
 
     def restore_extra(obj: Any) -> None:
         if hasattr(obj, "id"):
+
             def transfer_property(name: str) -> None:
                 if hasattr(obj, name):
                     obj_id = str(obj.id)
@@ -942,7 +954,8 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Gr
     return graph
 
 
-from py_scriptutils.script_logging import to_debug_json, pprint_to_file
+from py_scriptutils.script_logging import pprint_to_file
+from py_scriptutils.script_logging import to_debug_json
 
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:

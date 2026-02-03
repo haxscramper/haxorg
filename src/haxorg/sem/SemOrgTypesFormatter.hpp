@@ -36,4 +36,3 @@ struct std::formatter<org::sem::OrgJson> : std::formatter<std::string> {
         return hstd::fmt_ctx(p.dump(0), ctx);
     }
 };
-

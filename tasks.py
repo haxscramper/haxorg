@@ -5,7 +5,6 @@ graphviz_logger.setLevel(logging.WARNING)
 import graphviz
 
 
-
 def custom_traceback_handler(exc_type, exc_value, exc_traceback) -> None:
     """
     Custom traceback handler that filters and prints stack traces
@@ -27,10 +26,6 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback) -> None:
 sys.excepthook = custom_traceback_handler
 
 
-
-
-
-
 def get_py_env(ctx: Context) -> Dict[str, str]:
     if get_config(ctx).instrument.asan:
         asan_lib = get_llvm_root(
@@ -45,11 +40,6 @@ def get_py_env(ctx: Context) -> Dict[str, str]:
 
     else:
         return {}
-
-
-
-
-
 
 
 @beartype
@@ -90,17 +80,6 @@ def generate_org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot") -> N
         "-o",
         file.with_suffix(".png"),
     ])
-
-
-
-
-
-
-
-
-
-
-
 
 
 def get_poetry_lldb(test: str) -> list[str]:
@@ -159,6 +138,3 @@ def get_poetry_import_paths(ctx: Context) -> List[Path]:
             capture=True,
         )[1].split("\n") if 0 < len(it.strip())
     ]
-
-
-

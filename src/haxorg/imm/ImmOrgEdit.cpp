@@ -188,8 +188,9 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             if (!reparentedSubnodes.empty()) {
 
                 auto parent            = tree.getParent().value();
-                auto newParentSubnodes = edits.newSubnodes(Vec<ImmId>{
-                    parent->subnodes.begin(), parent->subnodes.end()});
+                auto newParentSubnodes = edits.newSubnodes(
+                    Vec<ImmId>{
+                        parent->subnodes.begin(), parent->subnodes.end()});
                 AST_EDIT_MSG(fmt("Tree {} parent {}", tree, parent));
 
                 reparentedSubnodes = edits.newSubnodes(reparentedSubnodes);
@@ -456,9 +457,10 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
         if (isMatch && condition->isTarget) {
             ctx.sel->message(
                 fmt("node is matched and marked as target\n{}",
-                    node.treeRepr(org::imm::ImmAdapter::TreeReprConf{
-                                      .withAuxFields = true,
-                                  })
+                    node.treeRepr(
+                            org::imm::ImmAdapter::TreeReprConf{
+                                .withAuxFields = true,
+                            })
                         .toString(false)));
             ctx.addMatch(node);
         }
@@ -496,10 +498,11 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
 Vec<Str> org::imm::flatWords(ImmAdapter const& node) {
     Vec<Str> result;
     if (auto it = node->dyn_cast<org::imm::ImmLeaf>(); it != nullptr) {
-        if (it->is(SemSet{
-                OrgSemKind::RawText,
-                OrgSemKind::Word,
-                OrgSemKind::BigIdent})) {
+        if (it->is(
+                SemSet{
+                    OrgSemKind::RawText,
+                    OrgSemKind::Word,
+                    OrgSemKind::BigIdent})) {
             result.push_back(it->text);
         }
     } else {
@@ -514,33 +517,34 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     const Vec<Str>&      title,
     bool                 isTarget,
     Opt<OrgSelectorLink> link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [title,
-                  this](ImmAdapter const& node) -> OrgSelectorResult {
-            if (auto tree = node.asOpt<imm::ImmSubtree>(); tree) {
-                Vec<Str> plaintext = flatWords(tree.value().at(
-                    imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
-                        &imm::ImmSubtree::title)));
-                message(
-                    fmt("{} == {} -> {}",
-                        plaintext,
-                        title,
-                        plaintext == title));
+    path.push_back(
+        OrgSelectorCondition{
+            .check = [title,
+                      this](ImmAdapter const& node) -> OrgSelectorResult {
+                if (auto tree = node.asOpt<imm::ImmSubtree>(); tree) {
+                    Vec<Str> plaintext = flatWords(tree.value().at(
+                        imm::ImmReflFieldId::FromTypeField<
+                            imm::ImmSubtree>(&imm::ImmSubtree::title)));
+                    message(
+                        fmt("{} == {} -> {}",
+                            plaintext,
+                            title,
+                            plaintext == title));
 
-                return OrgSelectorResult{
-                    .isMatching = title == plaintext,
-                };
+                    return OrgSelectorResult{
+                        .isMatching = title == plaintext,
+                    };
 
-            } else {
-                return OrgSelectorResult{
-                    .isMatching = false,
-                };
-            }
-        },
-        .debug    = fmt("HasSubtreePlaintextTitle:{}", title),
-        .link     = link,
-        .isTarget = isTarget,
-    });
+                } else {
+                    return OrgSelectorResult{
+                        .isMatching = false,
+                    };
+                }
+            },
+            .debug    = fmt("HasSubtreePlaintextTitle:{}", title),
+            .link     = link,
+            .isTarget = isTarget,
+        });
 }
 
 void OrgDocumentSelector::searchSubtreeId(
@@ -548,58 +552,63 @@ void OrgDocumentSelector::searchSubtreeId(
     bool                 isTarget,
     Opt<int>             maxLevel,
     Opt<OrgSelectorLink> link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [id,
-                  maxLevel](ImmAdapter const& node) -> OrgSelectorResult {
-            if (node->is(OrgSemKind::Subtree)) {
-                auto const& tree = node.as<imm::ImmSubtree>();
-                if (maxLevel) {
-                    return OrgSelectorResult{
-                        .isMatching = tree->treeId == id,
-                    };
+    path.push_back(
+        OrgSelectorCondition{
+            .check = [id, maxLevel](
+                         ImmAdapter const& node) -> OrgSelectorResult {
+                if (node->is(OrgSemKind::Subtree)) {
+                    auto const& tree = node.as<imm::ImmSubtree>();
+                    if (maxLevel) {
+                        return OrgSelectorResult{
+                            .isMatching = tree->treeId == id,
+                        };
+                    } else {
+                        return OrgSelectorResult{
+                            .isMatching = tree->treeId == id
+                                       && (tree->level
+                                           <= maxLevel.value()),
+                            .tryNestedNodes = tree->level
+                                            < maxLevel.value(),
+                        };
+                    }
+
+
                 } else {
-                    return OrgSelectorResult{
-                        .isMatching = tree->treeId == id
-                                   && (tree->level <= maxLevel.value()),
-                        .tryNestedNodes = tree->level < maxLevel.value(),
-                    };
+                    return OrgSelectorResult{.isMatching = false};
                 }
-
-
-            } else {
-                return OrgSelectorResult{.isMatching = false};
-            }
-        },
-        .debug    = fmt("HasSubtreeId:{}", id),
-        .link     = link,
-        .isTarget = isTarget,
-    });
+            },
+            .debug    = fmt("HasSubtreeId:{}", id),
+            .link     = link,
+            .isTarget = isTarget,
+        });
 }
 
 void OrgDocumentSelector::searchAnyKind(
     IntSet<OrgSemKind> const& kinds,
     bool                      isTarget,
     Opt<OrgSelectorLink>      link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [kinds](ImmAdapter const& node) -> OrgSelectorResult {
-            return OrgSelectorResult{
-                .isMatching = kinds.contains(node->getKind()),
-            };
-        },
-        .debug    = fmt("HasKind:{}", kinds),
-        .link     = link,
-        .isTarget = isTarget,
-    });
+    path.push_back(
+        OrgSelectorCondition{
+            .check = [kinds](ImmAdapter const& node) -> OrgSelectorResult {
+                return OrgSelectorResult{
+                    .isMatching = kinds.contains(node->getKind()),
+                };
+            },
+            .debug    = fmt("HasKind:{}", kinds),
+            .link     = link,
+            .isTarget = isTarget,
+        });
 }
 
 void OrgDocumentSelector::searchPredicate(
     const OrgSelectorCondition::Predicate& predicate,
     bool                                   isTarget,
     Opt<OrgSelectorLink>                   link) {
-    path.push_back(OrgSelectorCondition{
-        .check    = predicate,
-        .debug    = "Predicate",
-        .link     = link,
-        .isTarget = isTarget,
-    });
+    path.push_back(
+        OrgSelectorCondition{
+            .check    = predicate,
+            .debug    = "Predicate",
+            .link     = link,
+            .isTarget = isTarget,
+        });
 }

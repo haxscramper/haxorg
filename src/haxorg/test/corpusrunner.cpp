@@ -793,7 +793,7 @@ CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
 
         auto reformatFail = hstd::fmt(
             R"(
-            
+
 source:
 
 {0}
@@ -829,7 +829,7 @@ fail:
 {0}
 {6}
 {0}
-            
+
 )",
             split,          // 0
             source,         // 1

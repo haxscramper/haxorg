@@ -584,11 +584,13 @@ struct AstSpec {
 
         auto diff = all - visited;
         if (!diff.empty()) {
-            throw FieldAccessError(std::format(
-                "Indices missing from the field description {} are not "
-                "covered in spec for node {}",
-                diff,
-                kind));
+            throw FieldAccessError(
+                std::format(
+                    "Indices missing from the field description {} are "
+                    "not "
+                    "covered in spec for node {}",
+                    diff,
+                    kind));
         }
 
         return result;
@@ -713,13 +715,14 @@ struct AstSpec {
         hstd::CR<Name>              name,
         hstd::Opt<hstd::Slice<int>> slice,
         hstd::CR<AstRange<Name>>    range) const {
-        return FieldAccessError::init(std::format(
-            "Range {} for node kind {} was resolved into slice {} "
-            "(required ast range is {})",
-            hstd::fmt1(name),
-            hstd::fmt1(kind),
-            hstd::fmt1(slice),
-            hstd::fmt1(range)));
+        return FieldAccessError::init(
+            std::format(
+                "Range {} for node kind {} was resolved into slice {} "
+                "(required ast range is {})",
+                hstd::fmt1(name),
+                hstd::fmt1(kind),
+                hstd::fmt1(slice),
+                hstd::fmt1(range)));
     }
 
     FieldAccessError makeMissingPositional(Kind kind, hstd::CR<Name> name)

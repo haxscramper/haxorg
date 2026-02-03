@@ -71,13 +71,14 @@ void OperationsTracer::message(
     int                line,
     const char*        file) const {
     if (TraceState) {
-        message(OperationsMsg{
-            .level    = activeLevel,
-            .function = function,
-            .line     = line,
-            .msg      = value,
-            .file     = file,
-        });
+        message(
+            OperationsMsg{
+                .level    = activeLevel,
+                .function = function,
+                .line     = line,
+                .msg      = value,
+                .file     = file,
+            });
     }
 }
 

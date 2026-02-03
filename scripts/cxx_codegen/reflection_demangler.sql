@@ -1,11 +1,11 @@
 CREATE TABLE "BinarySymbol" (
-  "Id" INTEGER NOT NULL, 
+  "Id" INTEGER NOT NULL,
   "Name" VARCHAR NOT NULL,
   "Demangled" VARCHAR NOT NULL,
-  "DemangledHeadId" INTEGER NOT NULL, 
+  "DemangledHeadId" INTEGER NOT NULL,
   "Size" INTEGER NOT NULL,
   "Address" INTEGER NOT NULL,
-  "Section" INTEGER NOT NULL, 
+  "Section" INTEGER NOT NULL,
   "File" VARCHAR,
   "Line" INTEGER,
   "Column" INTEGER,
@@ -17,7 +17,7 @@ CREATE TABLE "BinarySymbol" (
 ;
 
 CREATE TABLE "DemangledHead" (
-  "Id" INTEGER NOT NULL, 
+  "Id" INTEGER NOT NULL,
   "Kind" INTEGER NOT NULL,
   "Fields" JSON,
   PRIMARY KEY ("Id")
@@ -34,7 +34,7 @@ CREATE TABLE "DemangledNested" (
 ;
 
 CREATE TABLE "BinarySection" (
-  "Id" INTEGER NOT NULL, 
+  "Id" INTEGER NOT NULL,
   "Name" VARCHAR NOT NULL,
   PRIMARY KEY ("Id")
 )

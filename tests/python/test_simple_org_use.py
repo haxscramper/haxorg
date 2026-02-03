@@ -1,27 +1,30 @@
 #!/usr/bin/env python
 
-from beartype.typing import *
-from py_exporters.export_tex import ExporterLatex
-
-import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-from py_textlayout.py_textlayout_wrap import TextOptions, BlockId
-from py_scriptutils.script_logging import log
-from py_scriptutils.files import get_haxorg_repo_root_path
-import yaml
 from pathlib import Path
-from pydantic import BaseModel, Field
-from dominate import tags, util
-import dominate
-from beartype import beartype
-from beartype.typing import Any, List
-from py_scriptutils.rich_utils import render_debug
-from ansi2html import Ansi2HTMLConverter
 
+from ansi2html import Ansi2HTMLConverter
+from beartype import beartype
+from beartype.typing import *
+from beartype.typing import Any
+from beartype.typing import List
+import dominate
+from dominate import tags
+from dominate import util
+from py_exporters.export_tex import ExporterLatex
+from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.files import get_haxorg_repo_root_path
+from py_scriptutils.rich_utils import render_debug
+from py_scriptutils.script_logging import log
+from py_textlayout.py_textlayout_wrap import BlockId
+from py_textlayout.py_textlayout_wrap import TextOptions
+from pydantic import BaseModel
+from pydantic import Field
 import pygments
 from pygments import highlight
-from pygments.lexers import YamlLexer
 from pygments.formatters import HtmlFormatter
+from pygments.lexers import YamlLexer
+import yaml
 
 osk: Type = org.OrgSemKind
 CAT = "test_simple_org_use.py"
@@ -139,7 +142,9 @@ def test_unexpected_field_passed() -> None:
 def test_sem_parser_expected() -> None:
     corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
     corpus_files = corpus_root.rglob("*.yaml")
-    corpus_data = [(CorpusFile.model_validate(load_yaml(file)), file) for file in corpus_files]
+    corpus_data = [
+        (CorpusFile.model_validate(load_yaml(file)), file) for file in corpus_files
+    ]
 
     table = tags.table(**borders)
     row = tags.tr()

@@ -193,11 +193,12 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
 
     std::vector<EnumFieldDesc<E>> result;
     for (int i = 0; i < D.size(); ++i) {
-        result.push_back(EnumFieldDesc<E>{
-            .index = i,
-            .value = D[i],
-            .name  = enum_serde<E>::to_string(D[i]),
-        });
+        result.push_back(
+            EnumFieldDesc<E>{
+                .index = i,
+                .value = D[i],
+                .name  = enum_serde<E>::to_string(D[i]),
+            });
     }
 
     return result;
@@ -342,7 +343,7 @@ struct __DescFieldTypeHelper<FieldType StructType::*> {
 };
 
 template <typename StructType, typename FieldType>
-struct __DescFieldTypeHelper<FieldType StructType::*const> {
+struct __DescFieldTypeHelper<FieldType StructType::* const> {
     using Type = std::remove_cvref_t<FieldType>;
 };
 
@@ -476,7 +477,7 @@ struct struct_field_types {
 };
 
 template <typename T1, typename F1, typename T2, typename F2>
-constexpr bool compare_field_pointers_eq(F1 T1::*ptr1, F2 T2::*ptr2) {
+constexpr bool compare_field_pointers_eq(F1 T1::* ptr1, F2 T2::* ptr2) {
     if constexpr (std::is_same_v<T1, T2> && std::is_same_v<F1, F2>) {
         return ptr1 == ptr2;
     } else {
@@ -486,7 +487,7 @@ constexpr bool compare_field_pointers_eq(F1 T1::*ptr1, F2 T2::*ptr2) {
 
 
 template <typename T, typename F>
-int get_own_field_index_by_ptr(F T::*fieldPtr) {
+int get_own_field_index_by_ptr(F T::* fieldPtr) {
     if constexpr (boost::describe::has_describe_members<T>::value) {
         using own_members = boost::describe::
             describe_members<T, ::boost::describe::mod_any_access>;
@@ -521,7 +522,7 @@ int get_own_field_index_by_ptr(F T::*fieldPtr) {
 
 // Replace the existing get_total_field_index_by_ptr function with:
 template <typename T, typename F>
-int get_total_field_index_by_ptr(F T::*fieldPtr) {
+int get_total_field_index_by_ptr(F T::* fieldPtr) {
     if constexpr (boost::describe::has_describe_members<T>::value) {
         using all_members = boost::describe::describe_members<
             T,

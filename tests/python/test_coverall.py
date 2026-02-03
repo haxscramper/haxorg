@@ -1,38 +1,39 @@
-import py_haxorg.pyhaxorg_wrap as org
-from dataclasses import dataclass, replace, field
+from contextlib import contextmanager
+import copy
 import dataclasses
-from beartype import beartype
-from beartype.typing import (
-    List,
-    Optional,
-    Union,
-    Iterable,
-    Callable,
-    Any,
-    Tuple,
-    Mapping,
-    Set,
-    Generator,
-    Dict,
-)
-
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-from rich.tree import Tree
-from py_scriptutils.rich_utils import render_rich
-from py_scriptutils.algorithm import validate_unique
-from rich.repr import rich_repr
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
+import functools
+import inspect
 from pathlib import Path
 import re
-import functools
-import copy
-import inspect
-import types
-from coverage import Coverage
-import pytest
-from contextlib import contextmanager
-from plumbum import local, CommandNotFound
 from tempfile import gettempdir
+import types
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import Generator
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Mapping
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Tuple
+from beartype.typing import Union
+from coverage import Coverage
+from plumbum import CommandNotFound
+from plumbum import local
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.algorithm import validate_unique
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.rich_utils import render_rich
+from py_scriptutils.script_logging import log
+import pytest
+from rich.repr import rich_repr
+from rich.tree import Tree
 
 CAT = __name__
 
@@ -468,8 +469,8 @@ def valueFnBoolOrText(func: Callable[[Any], Union[Tree, bool]]) -> ValuePredicat
 @beartype
 def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateFunc]:
     """
-    Return field predicate that check a field has expected `bool()` value. This is 
-    the most trivial check to validate if the field was filled in the document or not 
+    Return field predicate that check a field has expected `bool()` value. This is
+    the most trivial check to validate if the field was filled in the document or not
     (empty string vs non-empty string, option with value vs without one etc)
     """
 
@@ -487,9 +488,9 @@ def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateF
 @beartype
 def boolableField2(field_name: str) -> List[Tuple[str, ValuePredicateFunc]]:
     """
-    Get a list of two checks for a given field that would require it to both match and fail, 
-    meaning there should be at least two nodes in the document, and these nodes should 
-    have different values for the specified field. 
+    Get a list of two checks for a given field that would require it to both match and fail,
+    meaning there should be at least two nodes in the document, and these nodes should
+    have different values for the specified field.
     """
     return [
         boolableField(field_name, True),
@@ -503,8 +504,8 @@ def nodeFnBoolOrText(
                                         bool]]) -> Callable[[org.Org], NodeCheckResult]:
     """
     Get callable for checking the node property and convert it to the function returning
-    a node check result. The input callable cal return a `True` value for successful 
-    match, and `Tree` type for a failure description. 
+    a node check result. The input callable cal return a `True` value for successful
+    match, and `Tree` type for a failure description.
     """
 
     def impl(func: Callable, value: bool | Tree) -> NodeCheckResult:
@@ -531,7 +532,7 @@ def get_regex_field_alternatives(
         field: str, regex_with_id: List[Tuple[str, str]]) -> FieldAlternatives:
     """
     Get a field alternative for checking that the document contains at least
-    one node with a field matching provided regex. 
+    one node with a field matching provided regex.
     """
     return altN(*(get_regex_field_check(field, rx, id) for rx, id in regex_with_id))
 
@@ -564,7 +565,7 @@ def altFieldsCheck1(
                                    ValueCheckResult]) -> Mapping[str, FieldAlternatives]:
     """
     Helper function create a field alternatives mapping from a single field name
-    and callable function. 
+    and callable function.
     """
     return {
         name:
@@ -582,7 +583,7 @@ def altFieldsCheckN(
         name: str,
         checks: List[Tuple[str, ValuePredicateFunc]]) -> Mapping[str, FieldAlternatives]:
     """
-    Create field alternative mapping for a single field and a list of value predicate checks. 
+    Create field alternative mapping for a single field and a list of value predicate checks.
     """
     validate_unique(checks, lambda it: it[0])
     return {
@@ -620,8 +621,8 @@ def clsField1Check(predicate_name: str, field_name: str,
 @beartype
 def get_subtree_property_spec() -> List[ClassPrediate]:
     """
-    Get list of predicates to check that every possible subtree property was provided in 
-    the input document. 
+    Get list of predicates to check that every possible subtree property was provided in
+    the input document.
     """
 
     PK = org.NamedPropertyKind
@@ -668,8 +669,8 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
 @beartype
 def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
     """
-    Get class predicate list to check if every single subtree log type 
-    was provided in the input document. 
+    Get class predicate list to check if every single subtree log type
+    was provided in the input document.
     """
 
     @beartype
@@ -978,8 +979,9 @@ def generate_cov_report(cov: Coverage, target_file: Path, output_dir: str) -> Pa
     return output_path / "index.html"
 
 
-from coverage.report_core import get_analysis_to_report
 import ast
+
+from coverage.report_core import get_analysis_to_report
 
 
 @beartype
@@ -1095,8 +1097,8 @@ org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
 
 def test_total_representation() -> None:
     """
-    Ensure that the test file matches all checks specified in the specification. This test ensures 
-    that the file in question has the most complete collection of nodes possible. 
+    Ensure that the test file matches all checks specified in the specification. This test ensures
+    that the file in question has the most complete collection of nodes possible.
     """
 
     file = org_corpus_dir.joinpath("py_validated_all.org")
@@ -1297,7 +1299,8 @@ def get_test_node_from_file() -> org.Org:
 
 def test_run_typst_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
-    from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
+    from py_exporters.export_typst import ExporterTypst
+    from py_exporters.export_typst import refresh_typst_export_package
 
     # Path("total_repr.txt").write_text(org.treeRepr(node, colored=False))
 

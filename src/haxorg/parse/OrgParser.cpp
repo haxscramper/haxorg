@@ -253,11 +253,12 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     auto __trace   = trace(lex);
     auto attrGuard = start(onk::AttrValue);
 
-    if (lex.at(IntSet<OrgTokenKind>{
-            otk::CmdColonIdent,
-            otk::CmdRawArg,
-            otk::ParBegin,
-        })) {
+    if (lex.at(
+            IntSet<OrgTokenKind>{
+                otk::CmdColonIdent,
+                otk::CmdRawArg,
+                otk::ParBegin,
+            })) {
         print("Attribute value was lexed with explicit argument tokens");
         if (lex.at(otk::CmdColonIdent)) {
             // `:ident`
@@ -634,7 +635,10 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     textFold(lex);
     int treeEnd = treeDepth();
     print(
-        hstd::fmt("Trace levels after text fold start:{} end:{}", treeStart, treeEnd));
+        hstd::fmt(
+            "Trace levels after text fold start:{} end:{}",
+            treeStart,
+            treeEnd));
 
     if (treeStart != treeEnd) {
         auto msg = fmt(
@@ -891,16 +895,18 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             otk::ActiveDynamicTimeContent,
         }));
 
-    bool active = lex.at(OrgTokSet{
-        otk::AngleBegin,
-        otk::ActiveDynamicTimeContent,
-    });
+    bool active = lex.at(
+        OrgTokSet{
+            otk::AngleBegin,
+            otk::ActiveDynamicTimeContent,
+        });
 
     ParseResult result = ParseOk{};
 
-    if (lex.at(OrgTokSet{
-            otk::InactiveDynamicTimeContent,
-            otk::ActiveDynamicTimeContent})) {
+    if (lex.at(
+            OrgTokSet{
+                otk::InactiveDynamicTimeContent,
+                otk::ActiveDynamicTimeContent})) {
         std::unique_ptr<NodeGuard>
             timeGuard = active ? start(onk::DynamicActiveTime)
                                : start(onk::DynamicInactiveTime);

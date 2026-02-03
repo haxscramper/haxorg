@@ -1,21 +1,26 @@
-from py_scriptutils.sqlalchemy_utils import (
-    ForeignId,
-    IdColumn,
-    IntColumn,
-    StrColumn,
-    BoolColumn,
-    open_sqlite_session,
-)
-from sqlalchemy import Column, LargeBinary
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Type
+import coverage.numbits
+from py_scriptutils.script_logging import log
+from py_scriptutils.sqlalchemy_utils import BoolColumn
+from py_scriptutils.sqlalchemy_utils import ForeignId
+from py_scriptutils.sqlalchemy_utils import IdColumn
+from py_scriptutils.sqlalchemy_utils import IntColumn
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from py_scriptutils.sqlalchemy_utils import StrColumn
+from pydantic import BaseModel
+from pydantic import Field
+from sqlalchemy import Column
+from sqlalchemy import LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
-from pathlib import Path
-from beartype import beartype
-from pydantic import BaseModel, Field
-from beartype.typing import List, Dict, Optional, Type, Any
-from py_scriptutils.script_logging import log
-import coverage.numbits
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -110,7 +115,7 @@ def parse_test_name(text: str) -> Optional[TestName]:
                     subname=step,
                     class_name=Class,
                 )
-            
+
             case _:
                 raise ValueError(text)
     return None
@@ -141,7 +146,8 @@ def get_coverage(session: Session, path: Path) -> Dict[int, LineCoverage]:
                 ).all():
             test_name = parse_test_name(context.context)
             if test_name and test_name.subname == "run":
-                numbits_bytes = row.numbits if isinstance(row.numbits, bytes) else bytes(row.numbits)
+                numbits_bytes = row.numbits if isinstance(row.numbits, bytes) else bytes(
+                    row.numbits)
                 line_numbers = coverage.numbits.numbits_to_nums(numbits_bytes)
                 for line in line_numbers:
                     result.setdefault(line - 1,

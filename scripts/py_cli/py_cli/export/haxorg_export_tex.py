@@ -1,14 +1,17 @@
 import itertools
 from pathlib import Path
 
-import plumbum
-import py_haxorg.pyhaxorg_wrap as org
-import rich_click as click
 from beartype import beartype
-from beartype.typing import Any, List, Optional
-from py_cli import haxorg_cli, haxorg_opts
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Optional
+import plumbum
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 from py_exporters.export_utils.texoutparse import LatexLogParser
+import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
+import rich_click as click
 
 CAT = "haxorg.export.tex"
 
@@ -39,7 +42,8 @@ def run_lualatex(filename: Path) -> None:
 
 
 from py_exporters.export_tex import ExporterLatex
-from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
+from py_textlayout.py_textlayout_wrap import BlockId
+from py_textlayout.py_textlayout_wrap import TextOptions
 
 
 class DerivedLatexExporter(ExporterLatex):
@@ -68,7 +72,7 @@ class DerivedLatexExporter(ExporterLatex):
   \end{center}}
 
 \newcommand{\quot}[1]{\textcolor{brown}{#1}}
-\newcommand{\orgLocation}[1]{\fbox{\textbf{#1}}}                        
+\newcommand{\orgLocation}[1]{\fbox{\textbf{#1}}}
         """)
         ]
 

@@ -256,13 +256,15 @@ Pair<int, int> getSpan(
         && !(
             (0 <= startPos && startPos < size)
             && (0 <= endPos && endPos < size))) {
-        throw hstd::range_error::init(std::format(
-            "Container index is out of range: real span range is {}..{} "
-            "computed from {}, but full extent length is only {}",
-            startPos,
-            endPos,
-            s,
-            size));
+        throw hstd::range_error::init(
+            std::format(
+                "Container index is out of range: real span range is "
+                "{}..{} "
+                "computed from {}, but full extent length is only {}",
+                startPos,
+                endPos,
+                s,
+                size));
     }
 
     return {startPos, endPos};

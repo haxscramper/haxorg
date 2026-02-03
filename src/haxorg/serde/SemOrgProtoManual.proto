@@ -10,7 +10,7 @@ enum Alignment {
   SECOND = 5;
 }
 
-message hstd {  
+message hstd {
   message UserTime {
     int64 time = 1;
     optional string zone = 2;
@@ -36,4 +36,3 @@ message org {
 message OrgJson {
   string raw = 1;
 }
-

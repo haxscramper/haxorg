@@ -582,8 +582,8 @@ class Graphviz {
 
       public:
         static const int graphvizKind = AGRAPH;
-        Node              defaultNode;
-        Edge              defaultEdge;
+        Node             defaultNode;
+        Edge             defaultEdge;
 
         Graph(Str const& name, Agdesc_t desc = Agdirected);
         Graph(fs::path const& file);

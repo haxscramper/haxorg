@@ -1,5 +1,5 @@
-from py_scriptutils.files import get_haxorg_repo_root_path
 from beartype.typing import List
+from py_scriptutils.files import get_haxorg_repo_root_path
 
 
 def get_lldb_params() -> List[str]:

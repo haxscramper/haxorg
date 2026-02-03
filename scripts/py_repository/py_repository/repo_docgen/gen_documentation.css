@@ -57,7 +57,7 @@ html {
 }
 
 .segment-cov-executed {
-  background-color: rgba(0, 255, 0, 0.3); 
+  background-color: rgba(0, 255, 0, 0.3);
   cursor: pointer;
 }
 
@@ -120,7 +120,7 @@ html {
 }
 
 .docs-entry-DocCxxRecord .class-name {
-  font-size: 16px; 
+  font-size: 16px;
   font-weight: bold;
 }
 
@@ -183,10 +183,10 @@ html {
   padding-bottom: 10px;
 }
 
-/* 
+/*
 Generate using default pygmentize command and then remove unnecessary highlighting for code-line-text etc. manually
 
-`pygmentize -S default -f html -a .code-line-text > default.css` 
+`pygmentize -S default -f html -a .code-line-text > default.css`
 
 */
 

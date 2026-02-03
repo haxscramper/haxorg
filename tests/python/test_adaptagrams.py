@@ -1,8 +1,13 @@
+from dataclasses import dataclass
+from dataclasses import field
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
 import pytest
 
-from dataclasses import dataclass, field
-from beartype import beartype
-from beartype.typing import List, Optional, Dict, Any
 
 @pytest.mark.test_release
 def test_ir_align_two() -> None:

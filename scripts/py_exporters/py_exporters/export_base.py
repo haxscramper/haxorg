@@ -1,13 +1,18 @@
-import py_haxorg.pyhaxorg_wrap as org
-from py_textlayout.py_textlayout_wrap import *
-import re
-from py_scriptutils.script_logging import log
-import inspect
-from beartype.typing import Set, Callable, Any, List, Generator
 import contextlib
 import functools
-from py_scriptutils import algorithm
+import inspect
+import re
+
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Generator
+from beartype.typing import List
+from beartype.typing import Set
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils import algorithm
+from py_scriptutils.script_logging import log
+from py_textlayout.py_textlayout_wrap import *
 
 
 def with_export_context(func: Callable) -> Callable:

@@ -553,5 +553,3 @@
   draw_node_nested_edges(node)
   draw_node_ports(node)
 }
-
-

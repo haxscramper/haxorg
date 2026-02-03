@@ -380,10 +380,11 @@ class SyntaxTree {
         Vec<PathElement> result;
 
         for (int i = 1; i < parents.size(); ++i) {
-            result.push_back(PathElement{
-                .under    = parents.at(i),
-                .position = findPositionInParent(parents[i - 1]),
-            });
+            result.push_back(
+                PathElement{
+                    .under    = parents.at(i),
+                    .position = findPositionInParent(parents[i - 1]),
+                });
         }
 
         result.push_back(PathElement{.under = NodeIdx(), .position = -1});
@@ -709,7 +710,7 @@ struct SubNodeIdx {
     int Id = 0;
     explicit SubNodeIdx(int Id) : Id(Id) {}
     explicit SubNodeIdx() = default;
-    operator int() const { return Id; }
+                operator int() const { return Id; }
     SubNodeIdx& operator++() { return ++Id, *this; }
     SubNodeIdx& operator--() { return --Id, *this; }
     SubNodeIdx  operator+(int Other) const {

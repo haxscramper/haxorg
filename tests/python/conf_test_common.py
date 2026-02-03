@@ -1,8 +1,11 @@
-from py_repository.code_analysis.gen_coverage_cxx import ProfdataCookie, ProfdataFullProfile
-from beartype import beartype
 from pathlib import Path
-from beartype.typing import List, Optional
+
+from beartype import beartype
+from beartype.typing import List
+from beartype.typing import Optional
 import plumbum
+from py_repository.code_analysis.gen_coverage_cxx import ProfdataCookie
+from py_repository.code_analysis.gen_coverage_cxx import ProfdataFullProfile
 from py_scriptutils.script_logging import log
 import pytest
 
@@ -24,14 +27,12 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
 def _get_cookie_list() -> List[ProfdataCookie]:
     """Get or create the cookie list from pytest's shared state"""
     if not hasattr(pytest, '_haxorg_cookie_list'):
-        pytest._haxorg_cookie_list = [] # type: ignore
-    return pytest._haxorg_cookie_list # type: ignore
+        pytest._haxorg_cookie_list = []  # type: ignore
+    return pytest._haxorg_cookie_list  # type: ignore
 
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    log(CAT).info(
-        f"Summarizing full count of summaries is {len(_get_cookie_list())}"
-    )
+    log(CAT).info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
     return ProfdataFullProfile(runs=_get_cookie_list())
 
 

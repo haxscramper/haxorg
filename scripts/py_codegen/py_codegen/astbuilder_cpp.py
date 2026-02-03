@@ -1,17 +1,29 @@
 from copy import copy
-from dataclasses import dataclass, field, replace
-from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any, Iterable, Callable
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 from enum import Enum
-from beartype import beartype
 import inspect
-import os
-import py_codegen.astbuilder_base as base
-from typing import TYPE_CHECKING
-from pydantic import BaseModel, Field
 import itertools
+import os
+from typing import TYPE_CHECKING
 
-from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import NewType
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Union
 from py_codegen.astbuilder_base import pascal_case
+import py_codegen.astbuilder_base as base
+from py_textlayout.py_textlayout_wrap import BlockId
+from py_textlayout.py_textlayout_wrap import TextLayout
+from pydantic import BaseModel
+from pydantic import Field
 
 DEBUG_TYPE_ORIGIN = False
 
@@ -995,13 +1007,13 @@ class ASTBuilder(base.AstbuilderBase):
         Return inline comment with runtime call stack informat in format 'file:line'.
 
         `/* test_codegen.py:200 */` -- this would allow to quickly add debugging information
-        with detauls where each element was generated. 
-        
+        with detauls where each element was generated.
+
         Parameters:
         - frames: int or tuple. Number of frames to unwind, or a tuple specifying the range.
         - body: Block id that will be wrapped in a stack [comment, body] if present
         - enabled: do nothing if false, allows for simpler dry-run operations. If body is
-          present, will return it, otherwise empty block node. 
+          present, will return it, otherwise empty block node.
         """
 
         if enabled:

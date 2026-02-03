@@ -1,19 +1,31 @@
-from pydantic import BaseModel, Field
-from beartype import beartype
-from beartype.typing import Tuple, Dict, Optional, List, Union, Callable, Any, Sequence, TypeVar
+from dataclasses import dataclass
+from dataclasses import field
+from functools import wraps
+import itertools
 from pathlib import Path
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Sequence
+from beartype.typing import Tuple
+from beartype.typing import TypeVar
+from beartype.typing import Union
 import dominate.tags as tags
 import dominate.util as util
-from pygments import lex
-from pygments.token import Token, _TokenType
-from py_repository.repo_docgen.gen_documentation_utils import abbreviate_token_name
-from dataclasses import dataclass, field
-import py_haxorg.pyhaxorg_wrap as org
 from py_exporters.export_html import ExporterHtml
-import itertools
-from py_scriptutils.script_logging import log
-from functools import wraps
+import py_haxorg.pyhaxorg_wrap as org
+from py_repository.repo_docgen.gen_documentation_utils import abbreviate_token_name
 from py_scriptutils.rich_utils import render_rich
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel
+from pydantic import Field
+from pygments import lex
+from pygments.token import _TokenType
+from pygments.token import Token
 
 CAT = "docgen"
 

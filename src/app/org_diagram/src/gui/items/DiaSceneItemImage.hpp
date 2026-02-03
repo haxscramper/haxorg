@@ -92,10 +92,11 @@ struct DiaSceneItemImage : public DiaSceneItemVisual {
                     "",
                     "Images (*.png *.jpg *.jpeg *.bmp)");
                 if (!fileName.isEmpty()) {
-                    setImage(QPixmap{fileName}.scaled(
-                        static_cast<int>(bounds.width()),
-                        static_cast<int>(bounds.height()),
-                        Qt::KeepAspectRatio));
+                    setImage(
+                        QPixmap{fileName}.scaled(
+                            static_cast<int>(bounds.width()),
+                            static_cast<int>(bounds.height()),
+                            Qt::KeepAspectRatio));
                 }
             });
 

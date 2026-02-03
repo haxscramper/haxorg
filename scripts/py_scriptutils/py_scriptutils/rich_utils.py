@@ -1,7 +1,7 @@
-from rich.console import Console
-from rich.pretty import pprint
 from beartype import beartype
 from beartype.typing import Any
+from rich.console import Console
+from rich.pretty import pprint
 
 
 @beartype

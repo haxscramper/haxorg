@@ -1,26 +1,31 @@
+from copy import copy
+from copy import deepcopy
+from dataclasses import dataclass
+from dataclasses import field
 import itertools
-from copy import deepcopy, copy
-from dataclasses import dataclass, field
 from pathlib import Path
 from pprint import pformat
 
+from beartype import beartype
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import TypeAlias
+from beartype.typing import Union
 import graphviz as gv
 import igraph as ig
-from beartype import beartype
-from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
-from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
-
-from py_codegen.gen_tu_cpp import (
-    GenTuEnum,
-    GenTuFunction,
-    GenTuStruct,
-    GenTuTypedef,
-    QualType,
-    QualTypeKind,
-    GenTuUnion,
-)
+from py_codegen.gen_tu_cpp import GenTuEnum
+from py_codegen.gen_tu_cpp import GenTuFunction
+from py_codegen.gen_tu_cpp import GenTuStruct
+from py_codegen.gen_tu_cpp import GenTuTypedef
+from py_codegen.gen_tu_cpp import GenTuUnion
+from py_codegen.gen_tu_cpp import QualType
+from py_codegen.gen_tu_cpp import QualTypeKind
 from py_codegen.refl_read import ConvTu
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel
+from pydantic import Field
 
 
 @beartype
@@ -42,10 +47,11 @@ def get_declared_types_rec(
             add(decl.name)
 
             for _nested in decl.nested:
-                result.extend(get_declared_types_rec(
-                    _nested, # type: ignore
-                    expanded_use=expanded_use,
-                ))
+                result.extend(
+                    get_declared_types_rec(
+                        _nested,  # type: ignore
+                        expanded_use=expanded_use,
+                    ))
 
         case GenTuTypedef():
             add(decl.name)
@@ -134,21 +140,22 @@ def hash_qual_type(
     parts: List[str | int] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
-                assert t.func
-                if t.func.ReturnTy:
-                    parts.append(hash_qual_type(
+            assert t.func
+            if t.func.ReturnTy:
+                parts.append(
+                    hash_qual_type(
                         t.func.ReturnTy,
                         with_namespace=with_namespace,
                     ))
 
-                else:
-                    parts.append(0)
+            else:
+                parts.append(0)
 
-                for T in t.func.Args:
-                    parts.append(hash_qual_type(
-                        T,
-                        with_namespace=with_namespace,
-                    ))
+            for T in t.func.Args:
+                parts.append(hash_qual_type(
+                    T,
+                    with_namespace=with_namespace,
+                ))
 
         case QualTypeKind.Array:
             pass
@@ -216,19 +223,19 @@ class TuWrap:
 @dataclass
 class GenGraph:
     """
-    Graph structure constructed from the translation unit modules. Collection 
+    Graph structure constructed from the translation unit modules. Collection
     of translation units is added to the generation graph, rearranged to resolve
     internal links (mainly mutually recursive type usages) and a new list of subgraphs
-    can then be converted to target language definitions. 
+    can then be converted to target language definitions.
     """
 
     @beartype
     @dataclass
     class Sub:
         """
-        Single sugbraph containing an unordered series of definitions. At the 
+        Single sugbraph containing an unordered series of definitions. At the
         start each translation unit gets its own subgraph, later on the subgraphs
-        might be merged together if mutually recursive file imports are detected. 
+        might be merged together if mutually recursive file imports are detected.
         """
         ## Name of the original translatuion unit
         name: str
@@ -250,7 +257,7 @@ class GenGraph:
     def get_sub(self, _id: int) -> Optional[Sub]:
         """
         Find which subgraph definition belongs to. If No definition is found, return
-        empty subgraph. 
+        empty subgraph.
         """
         matching: List[GenGraph.Sub] = []
         for sub in self.subgraphs:
@@ -258,7 +265,7 @@ class GenGraph:
                 matching.append(sub)
 
         assert len(matching) <= 1, [
-            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}" # type: ignore
+            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}"  # type: ignore
             for m in matching
         ]
         if len(matching) == 1:
@@ -323,7 +330,7 @@ class GenGraph:
     def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
         """
         Get list of types used in the declaration -- field types, arguments, return
-        types, structure bases etc. 
+        types, structure bases etc.
         """
         return get_used_types_rec(decl)
 
@@ -345,11 +352,11 @@ class GenGraph:
 
     def add_entry(self, entry: GenTuUnion, sub: Sub) -> int:
         """
-        Register new entry in the graph or update existing registration. 
+        Register new entry in the graph or update existing registration.
 
         If the entry has already been added in a simpler form (formward declared in a different
         translation unit), then old declaration is removed and added the `sub` subgraph. If new
-        declaration itself is a forward declaration then no entry addition will happen. 
+        declaration itself is a forward declaration then no entry addition will happen.
 
         If this is a completely new declaration/definition then new vertex will be added to the graph
         and a full deep copy of the entry will be stored into the `id_to_entry` field for
@@ -430,7 +437,7 @@ class GenGraph:
 
     def add_function(self, func: GenTuFunction, sub: Sub) -> None:
         _id = self.add_entry(func, sub)
-        merge: GenTuFunction = self.id_to_entry[_id] # type: ignore
+        merge: GenTuFunction = self.id_to_entry[_id]  # type: ignore
         self.merge_functions(merge, func)
 
         self.graph.vs[_id]["label"] = func.format()
@@ -458,9 +465,9 @@ class GenGraph:
         from every node that uses some type -- functions, structures etc.
 
         Note: This method must be called after the graph is fully constructed, otherwise some
-        dependencies might be missing becase target types could not be found. Additionally, 
+        dependencies might be missing becase target types could not be found. Additionally,
         the method links together declarations from the same subgraph, so it must be called
-        before the connected file grouping. 
+        before the connected file grouping.
         """
         for _id, decl in self.id_to_entry.items():
             for used_type in self.get_used_type(decl):

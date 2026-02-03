@@ -146,21 +146,24 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
             org::imm::ImmUniqId ImmSrcId = srcStore->getUniq(SrcId);
             if (ImmDstId.id == ImmSrcId.id) {
                 if (WithKeeps) {
-                    result.push_back(AstEdit{
-                        .data = AstEdit::Keep{.id = ImmDstId},
-                    });
+                    result.push_back(
+                        AstEdit{
+                            .data = AstEdit::Keep{.id = ImmDstId},
+                        });
                 }
             } else {
-                result.push_back(AstEdit{
-                    .data = AstEdit::
-                        Replace{.src = ImmSrcId, .dst = ImmDstId},
-                });
+                result.push_back(
+                    AstEdit{
+                        .data = AstEdit::
+                            Replace{.src = ImmSrcId, .dst = ImmDstId},
+                    });
             }
         } else {
             org::imm::ImmUniqId ImmDstId = dstStore->getUniq(DstId);
-            result.push_back(AstEdit{
-                .data = AstEdit::Insert{.id = ImmDstId},
-            });
+            result.push_back(
+                AstEdit{
+                    .data = AstEdit::Insert{.id = ImmDstId},
+                });
         }
     }
 
@@ -169,9 +172,10 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
         NodeIdx       Dst   = diff->getMapped(*dstSyntax, Src);
         if (!Dst.isValid()) {
             org::imm::ImmUniqId ImmSrcId = srcStore->getUniq(SrcId);
-            result.push_back(AstEdit{
-                .data = AstEdit::Delete{.id = ImmSrcId},
-            });
+            result.push_back(
+                AstEdit{
+                    .data = AstEdit::Delete{.id = ImmSrcId},
+                });
         }
     }
 

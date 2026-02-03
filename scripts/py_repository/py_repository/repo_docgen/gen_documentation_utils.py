@@ -1,10 +1,13 @@
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from beartype import beartype
-from py_scriptutils.rich_utils import render_rich
-from beartype.typing import Union, Optional, List
-from dataclasses import dataclass, field
-from pygments.token import _TokenType
+from dataclasses import dataclass
+from dataclasses import field
 
+from beartype import beartype
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Union
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.rich_utils import render_rich
+from pygments.token import _TokenType
 
 
 @beartype
@@ -16,4 +19,3 @@ def abbreviate_token_name(token: str) -> str:
     abbreviation = ''.join(part[0] for part in token_path).lower()
 
     return abbreviation
-

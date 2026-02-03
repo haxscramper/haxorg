@@ -164,8 +164,9 @@ struct std::formatter<org::parse::NodeId<N, K, V, M>>
         FormatContext&                        ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(
-            p.format(std::format(
-                "NodeId<{}>", hstd::demangle(typeid(N).name()))),
+            p.format(
+                std::format(
+                    "NodeId<{}>", hstd::demangle(typeid(N).name()))),
             ctx);
     }
 };

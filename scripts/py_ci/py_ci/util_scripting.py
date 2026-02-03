@@ -1,11 +1,11 @@
-from typing import Union, List, Generator, Tuple, Dict, Any, Optional, Sequence
-import json
-from pathlib import Path
-import logging
-import subprocess
 from contextlib import contextmanager
-import os
 import inspect
+import json
+import logging
+import os
+from pathlib import Path
+import subprocess
+from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
 
 logging.root.setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -71,7 +71,8 @@ def run_cmd(
         logger.info(f"stderr:\n{process.stderr}")
 
         if check and process.returncode != 0:
-            err = RuntimeError(f"Failed to execute command '{cmd_str}'  from {filename}:{lineno}")
+            err = RuntimeError(
+                f"Failed to execute command '{cmd_str}'  from {filename}:{lineno}")
             if process.stdout:
                 err.add_note(f"stdout:\n{process.stdout}")
 

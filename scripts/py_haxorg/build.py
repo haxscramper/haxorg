@@ -2,8 +2,8 @@
 ## @brief  Custom build script for copying shared library files
 
 import os
-import shutil
 from pathlib import Path
+import shutil
 from typing import Any
 
 

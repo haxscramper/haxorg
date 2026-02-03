@@ -1,22 +1,28 @@
 #!/usr/bin/env python
 
-import pandas as pd
-from py_cli import haxorg_cli, haxorg_opts
-from beartype import beartype
-from beartype.typing import Set, Dict, Any, Optional, List
-import enum
-from py_haxorg.pyhaxorg_utils import getFlatTags
-from py_scriptutils.script_logging import log
-import py_haxorg.pyhaxorg_wrap as org
-from dataclasses import dataclass
 from collections import defaultdict
-from py_scriptutils.toml_config_profiler import get_user_provided_params
-from rich.tree import Tree
-from rich.console import Console
+from dataclasses import dataclass
 from difflib import SequenceMatcher
+import enum
+from pathlib import Path
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Set
+import pandas as pd
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+from py_haxorg.pyhaxorg_utils import getFlatTags
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.script_logging import log
+from py_scriptutils.toml_config_profiler import get_user_provided_params
+from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from pathlib import Path
+from rich.tree import Tree
 import rich_click as click
 
 CAT = __name__
@@ -308,6 +314,6 @@ def sort_reposutory_tags(ctx: haxorg_cli.CliRunContext) -> TagCollectionArtifact
 def sort_repository_tags_cli(ctx: click.Context, **kwargs: Any) -> None:
     """
     Collect all the hashtags and subtree tags in the repository and summarize
-    usage frequency, nesting structure etc. into the single report file. 
+    usage frequency, nesting structure etc. into the single report file.
     """
     sort_reposutory_tags(haxorg_cli.get_opts(ctx))

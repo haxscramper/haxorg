@@ -1,12 +1,14 @@
-from sqlalchemy import Engine
-from cxx_repository.orm_model import Base, ViewFullFileSectionLines
-from sqlalchemy.orm import sessionmaker
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from py_scriptutils.tracer import TraceCollector
-import matplotlib.dates as mdates
 from datetime import datetime
+
+from cxx_repository.orm_model import Base
+from cxx_repository.orm_model import ViewFullFileSectionLines
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from py_scriptutils.tracer import TraceCollector
+from sqlalchemy import Engine
+from sqlalchemy.orm import sessionmaker
 
 
 def format_epoch_to_date(epoch: float, date_format: str = '%Y-%m-%d') -> str:
@@ -80,7 +82,7 @@ def run_for(engine: Engine) -> None:
     ax.set_ylabel('Count of Line Time Buckets')
 
     # Format the x-axis as date
-    formatter: mdates.DateFormatter = mdates.DateFormatter('%Y-%m-%d') # type: ignore
+    formatter: mdates.DateFormatter = mdates.DateFormatter('%Y-%m-%d')  # type: ignore
     ax.xaxis.set_major_formatter(formatter)  # Adjust the format as needed
 
     # Rotate x-ticks

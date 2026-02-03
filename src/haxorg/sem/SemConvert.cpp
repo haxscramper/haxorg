@@ -686,10 +686,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
                 default: {
                     diags.push_back(SemErrorItem(
                         a,
-                        MakeInternal(hstd::fmt(
-                            "Unexpected node type in the subtree drawer: "
-                            "{}",
-                            group.getKind()))));
+                        MakeInternal(
+                            hstd::fmt(
+                                "Unexpected node type in the subtree "
+                                "drawer: "
+                                "{}",
+                                group.getKind()))));
                     break;
                 }
             }
@@ -1254,8 +1256,9 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
         auto params = get_text(sub).split(" ");
         for (int i = 0; i < params.size();) {
             if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
-                sym->parameters.push_back(Symbol::Param{
-                    .key = params.at(i), .value = params.at(i + 1)});
+                sym->parameters.push_back(
+                    Symbol::Param{
+                        .key = params.at(i), .value = params.at(i + 1)});
                 i += 2;
             } else {
                 sym->parameters.push_back(
@@ -1749,12 +1752,13 @@ struct expr {
     using type   = sem::Tblfm::Expr;
     sc auto rule //
         = (dsl::peek(dsl::ascii::alpha) >> dsl::p<call>)
-        | (dsl::capture(dsl::token(LEXY_LITERAL_SET(
-            LEXY_LIT("*"),
-            LEXY_LIT("+"),
-            LEXY_LIT("+"),
-            LEXY_LIT("/"),
-            LEXY_LIT("-")))))
+        | (dsl::capture(
+            dsl::token(LEXY_LITERAL_SET(
+                LEXY_LIT("*"),
+                LEXY_LIT("+"),
+                LEXY_LIT("+"),
+                LEXY_LIT("/"),
+                LEXY_LIT("-")))))
         | (dsl::peek(dsl::p<axis_ref> + LEXY_LIT(".."))
            >> dsl::p<axis_range>)
         | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>)
@@ -1806,13 +1810,14 @@ struct assign_flag {
     using type   = sem::Tblfm::Assign::Flag;
     sc auto rule //
         = dsl::lit_c<';'>
-        + dsl::capture(dsl::token(
-            (dsl::peek(dsl::lit_c<'%'>)
-             >> (dsl::lit_c<'%'>                  //
-                 + dsl::while_(dsl::ascii::digit) //
-                 + dsl::lit_c<'.'>                //
-                 + dsl::while_(dsl::ascii::digit) //
-                 + dsl::lit_c<'f'>))));
+        + dsl::capture(
+              dsl::token(
+                  (dsl::peek(dsl::lit_c<'%'>)
+                   >> (dsl::lit_c<'%'>                  //
+                       + dsl::while_(dsl::ascii::digit) //
+                       + dsl::lit_c<'.'>                //
+                       + dsl::while_(dsl::ascii::digit) //
+                       + dsl::lit_c<'f'>))));
 
     sc auto value = lexy::callback<type>(
         [](lexy::string_lexeme<> const& op) {
@@ -2522,9 +2527,9 @@ struct field {
     sc auto rule                                              //
         = dsl::identifier(dsl::ascii::alpha_digit_underscore) //
         + dsl::opt(
-              dsl::peek(dsl::lit_c<'('>)
-              >> dsl::round_bracketed(dsl::identifier(
-                  dsl::ascii::character - dsl::lit_c<')'>))) //
+              dsl::peek(dsl::lit_c<'('>) >> dsl::round_bracketed(
+                  dsl::identifier(
+                      dsl::ascii::character - dsl::lit_c<')'>))) //
         ;
 
     sc auto value = lexy::bind(
@@ -2671,9 +2676,10 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         BlockCodeLine& line = result->lines.emplace_back();
         for (auto const& it : one(a, N::Body)) {
             line.parts.push_back(
-                BlockCodeLine::Part(BlockCodeLine::Part::Raw{
-                    .code = get_text(it),
-                }));
+                BlockCodeLine::Part(
+                    BlockCodeLine::Part::Raw{
+                        .code = get_text(it),
+                    }));
         }
     } else {
         auto __field = field(N::Body, a);
@@ -2683,16 +2689,18 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                 switch (part.kind()) {
                     case onk::CodeText: {
                         line.parts.push_back(
-                            BlockCodeLine::Part(BlockCodeLine::Part::Raw{
-                                .code = get_text(part),
-                            }));
+                            BlockCodeLine::Part(
+                                BlockCodeLine::Part::Raw{
+                                    .code = get_text(part),
+                                }));
                         break;
                     }
                     case onk::CodeTangle: {
-                        line.parts.push_back(BlockCodeLine::Part{
-                            BlockCodeLine::Part::Tangle{
-                                .target = get_text(one(part, N::Name)),
-                            }});
+                        line.parts.push_back(
+                            BlockCodeLine::Part{
+                                BlockCodeLine::Part::Tangle{
+                                    .target = get_text(one(part, N::Name)),
+                                }});
                         break;
                     }
                     default: {

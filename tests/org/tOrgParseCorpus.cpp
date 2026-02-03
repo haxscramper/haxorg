@@ -223,10 +223,10 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
         int start = 0;
         int end   = lines.size() - 1;
 
-        while (start < lines.size()
-               && ranges::all_of(lines.at(start), [](char c) {
-                      return std::isspace(c);
-                  })) {
+        while (
+            start < lines.size()
+            && ranges::all_of(
+                lines.at(start), [](char c) { return std::isspace(c); })) {
             ++start;
         }
 

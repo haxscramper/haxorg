@@ -1,15 +1,31 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
-from sqlalchemy import create_engine, MetaData, Table as SATable, Engine, inspect
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.sql import select, Executable
-from sqlalchemy.types import TypeDecorator
-from rich.table import Table
-from rich.console import Console
-from beartype.typing import Optional, List, Union, Dict, Any
-from beartype import beartype
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Union
 import py_scriptutils.json_utils as ju
+from rich.console import Console
+from rich.table import Table
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import DateTime
+from sqlalchemy import Engine
+from sqlalchemy import ForeignKey
+from sqlalchemy import inspect
+from sqlalchemy import Integer
+from sqlalchemy import MetaData
+from sqlalchemy import String
+from sqlalchemy import Table as SATable
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import Executable
+from sqlalchemy.sql import select
+from sqlalchemy.types import TypeDecorator
 
 
 def IdColumn() -> Column:
@@ -125,10 +141,11 @@ def format_rich_table(
 
     return rich_table
 
+
 @beartype
 def _map_engine_or_session(engine_or_session: Engine | Session) -> Engine:
     if isinstance(engine_or_session, Session):
-        return engine_or_session.get_bind() # type: ignore
+        return engine_or_session.get_bind()  # type: ignore
 
     else:
         return engine_or_session
@@ -147,7 +164,7 @@ def format_rich_query(
     with engine.connect() as connection:
         result = connection.execute(query)
         if not column_labels:
-            column_labels = result.keys() # type: ignore
+            column_labels = result.keys()  # type: ignore
         for label in column_labels:
             rich_table.add_column(label)
         for row in result:
@@ -178,7 +195,6 @@ def format_db_all(
 ) -> str:
 
     engine = _map_engine_or_session(engine_or_session)
-
 
     def st(text: str, wrap: str) -> str:
         if style:
@@ -278,7 +294,6 @@ def dump_db_all(
     excluded_columns: Dict[str, List[str]] = {},
 ) -> ju.Json:
     engine = _map_engine_or_session(engine_or_session)
-    
 
     result = dict()
     for table_name in get_table_names(engine, excluded_tables):

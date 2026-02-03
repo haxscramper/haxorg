@@ -1,14 +1,21 @@
-from dataclasses import dataclass, field
-from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List, TypeAlias, Mapping, Literal, Set
-from beartype import beartype
 from collections import defaultdict
-from py_textlayout.py_textlayout_wrap import *
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
-from py_scriptutils.algorithm import iterate_object_tree, cond
-from pydantic import AliasChoices
 
+from beartype import beartype
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import Mapping
+from beartype.typing import Sequence
+from beartype.typing import Set
+from beartype.typing import TypeAlias
+from py_codegen.astbuilder_cpp import *
+from py_scriptutils.algorithm import cond
+from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log
+from py_textlayout.py_textlayout_wrap import *
+from pydantic import AliasChoices
 
 CAT = __name__
 
@@ -71,7 +78,7 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         alias=AliasChoices("default-constructor", "default_constructor"))
     wrapper_name: Optional[str] = Field(  # type: ignore
         default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
-    wrapper_has_params: bool = Field(  # type: ignore 
+    wrapper_has_params: bool = Field(  # type: ignore
         default=True,
         alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
     unique_name: Optional[str] = Field(  # type: ignore
@@ -358,7 +365,7 @@ class GenTypeMap:
 
     def get_wrapper_type(self, t: QualType) -> Optional[str]:
         struct = self.get_struct_for_qual_name(t)
-        return struct and struct.reflectionParams.wrapper_name # type: ignore
+        return struct and struct.reflectionParams.wrapper_name  # type: ignore
 
     def is_known_type(self, t: QualType) -> bool:
         return t.qual_hash() in self.qual_hash_to_index
@@ -548,10 +555,10 @@ class GenConverter:
             for member in record.fields:
                 params.members.append(
                     RecordField(
-                    params=ParmVarParams(
-                        type=member.type if member.type else QualType.ForName("void"),
-                        name=member.name,
-                        isConst=member.isConst,
+                        params=ParmVarParams(
+                            type=member.type if member.type else QualType.ForName("void"),
+                            name=member.name,
+                            isConst=member.isConst,
                             defArg=(self.ast.string(member.value) if isinstance(
                                 member.value, str) else member.value)
                             if member.value else None,
@@ -881,7 +888,8 @@ def get_type_base_fields(
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(base_sym.name) # type: ignore
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(
+            base_sym.name)  # type: ignore
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -898,7 +906,8 @@ def get_base_list(
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(typ.name) # type: ignore
+        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(
+            typ.name)  # type: ignore
         if base:
             for it in base.bases:
                 result.extend(aux(it))
@@ -1144,7 +1153,7 @@ def collect_type_specializations(entries: List[GenTuUnion],
                         rec_type(P)
 
             if base_map.is_typedef(value):
-                rec_type(base_map.get_underlying_type(value)) # type: ignore
+                rec_type(base_map.get_underlying_type(value))  # type: ignore
 
             else:
                 rec_type(value)

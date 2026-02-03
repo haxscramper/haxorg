@@ -81,8 +81,8 @@ struct map_graph_buffered_iterator {
 };
 
 namespace o_dtl {
-    using edge_buffer = map_graph_buffered_iterator<::org::graph::MapEdge>;
-    using node_buffer = map_graph_buffered_iterator<::org::graph::MapNode>;
+using edge_buffer = map_graph_buffered_iterator<::org::graph::MapEdge>;
+using node_buffer = map_graph_buffered_iterator<::org::graph::MapNode>;
 } // namespace o_dtl
 
 struct map_graph_edges_iterator {

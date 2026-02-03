@@ -145,10 +145,12 @@ TEST_F(
             testing::Field(&p::function_info::name, "test_scope")))
         .Times(0);
 
-    tracker->notify_function_start(p::function_info(
-        "test_function", {}, p::callsite::this_callsite()));
-    tracker->notify_function_end(p::function_info(
-        "test_function", {}, p::callsite::this_callsite()));
+    tracker->notify_function_start(
+        p::function_info(
+            "test_function", {}, p::callsite::this_callsite()));
+    tracker->notify_function_end(
+        p::function_info(
+            "test_function", {}, p::callsite::this_callsite()));
 }
 
 TEST_F(log_graph_tracker_test, function_tracking_when_started) {
@@ -165,10 +167,12 @@ TEST_F(log_graph_tracker_test, function_tracking_when_started) {
         .Times(1);
 
     tracker->start_tracing();
-    tracker->notify_function_start(p::function_info(
-        "test_function", {}, p::callsite::this_callsite()));
-    tracker->notify_function_end(p::function_info(
-        "test_function", {}, p::callsite::this_callsite()));
+    tracker->notify_function_start(
+        p::function_info(
+            "test_function", {}, p::callsite::this_callsite()));
+    tracker->notify_function_end(
+        p::function_info(
+            "test_function", {}, p::callsite::this_callsite()));
 }
 
 
@@ -236,10 +240,12 @@ TEST_F(LogGraphTracker, named_jump_tracking) {
         p::named_jump_info("condition met", p::callsite::this_callsite()));
     processor->track_function_start(
         p::function_info("main", {}, p::callsite::this_callsite()));
-    processor->track_function_start(p::function_info(
-        "conditional_function", {}, p::callsite::this_callsite()));
-    processor->track_function_end(p::function_info(
-        "conditional_function", {}, p::callsite::this_callsite()));
+    processor->track_function_start(
+        p::function_info(
+            "conditional_function", {}, p::callsite::this_callsite()));
+    processor->track_function_end(
+        p::function_info(
+            "conditional_function", {}, p::callsite::this_callsite()));
     processor->track_function_end(
         p::function_info("main", {}, p::callsite::this_callsite()));
 
@@ -247,14 +253,18 @@ TEST_F(LogGraphTracker, named_jump_tracking) {
 }
 
 TEST_F(LogGraphTracker, recursive_calls) {
-    processor->track_function_start(p::function_info(
-        "recursive_func", {}, p::callsite::this_callsite()));
-    processor->track_function_start(p::function_info(
-        "recursive_func", {}, p::callsite::this_callsite()));
-    processor->track_function_end(p::function_info(
-        "recursive_func", {}, p::callsite::this_callsite()));
-    processor->track_function_end(p::function_info(
-        "recursive_func", {}, p::callsite::this_callsite()));
+    processor->track_function_start(
+        p::function_info(
+            "recursive_func", {}, p::callsite::this_callsite()));
+    processor->track_function_start(
+        p::function_info(
+            "recursive_func", {}, p::callsite::this_callsite()));
+    processor->track_function_end(
+        p::function_info(
+            "recursive_func", {}, p::callsite::this_callsite()));
+    processor->track_function_end(
+        p::function_info(
+            "recursive_func", {}, p::callsite::this_callsite()));
 
     finalize_files();
 }

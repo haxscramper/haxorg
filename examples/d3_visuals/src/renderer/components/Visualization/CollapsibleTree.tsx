@@ -15,7 +15,7 @@ export function CollapsibleTree() {
     if (!containerRef.current) return;
 
     const config = new CollapsibleTreeVisualizationConfig();
-    config.path = "/home/haxscramper/tmp/org_trivial.org"; 
+    config.path = "/home/haxscramper/tmp/org_trivial.org";
     d3.select(containerRef.current).selectAll('svg').remove();
     vizRef.current = new CollapsibleTreeVisualization(containerRef.current.id, config);
     vizRef.current.render_tree_repr();

@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
-import pandas as pd
-from py_cli import haxorg_cli, haxorg_opts
+from dataclasses import dataclass
+from dataclasses import field
+
 from beartype import beartype
-from beartype.typing import List, Tuple, Any
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Tuple
+import pandas as pd
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 import py_haxorg.pyhaxorg_wrap as org
-from dataclasses import dataclass, field
 from py_scriptutils.script_logging import log
 import rich_click as click
 
@@ -130,7 +135,8 @@ def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
             ) for entry in radio_entries
         ])
 
-        ctx.opts.generate.codex_tracking.outfile.write_text(_format_dataframe_for_file(df))
+        ctx.opts.generate.codex_tracking.outfile.write_text(
+            _format_dataframe_for_file(df))
 
     else:
         ctx.opts.generate.codex_tracking.outfile.write_text("no codex entries detected")

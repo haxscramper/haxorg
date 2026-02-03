@@ -269,8 +269,9 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
     Callable(Functor&& functor, ArgsTuple args)
         : function_(nullptr)
         , args_(std::move(args))
-        , functor_(std::make_shared<FunctorWrapper<std::decay_t<Functor>>>(
-              std::forward<Functor>(functor))) {}
+        , functor_(
+              std::make_shared<FunctorWrapper<std::decay_t<Functor>>>(
+                  std::forward<Functor>(functor))) {}
 
     // Constructor for type constructors
     template <

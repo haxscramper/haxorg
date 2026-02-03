@@ -416,11 +416,12 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         // Unresolved radio link already contains all the information for
         // creating edge. This only happens when the node itself has not
         // been added to the graph.
-        result.push_back(MapLinkResolveResult{
-            .link   = link,
-            .target = MapNode{link.getRadio().target},
-            .source = source,
-        });
+        result.push_back(
+            MapLinkResolveResult{
+                .link   = link,
+                .target = MapNode{link.getRadio().target},
+                .source = source,
+            });
     } else {
         GRAPH_MSG(fmt("footnotes {}", s->ast->currentTrack->footnotes));
         GRAPH_MSG(fmt("subtrees {}", s->ast->currentTrack->subtrees));
@@ -434,11 +435,12 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 target);
 
             for (auto const& full : adapters) {
-                result.push_back(MapLinkResolveResult{
-                    .link   = link,
-                    .target = MapNode{full.uniq()},
-                    .source = source,
-                });
+                result.push_back(
+                    MapLinkResolveResult{
+                        .link   = link,
+                        .target = MapNode{full.uniq()},
+                        .source = source,
+                    });
             }
         };
 
@@ -558,10 +560,11 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                         "graph node. ",
                         node.id,
                         radio));
-                result.resolved.push_back(MapLinkResolveResult{
-                    .source = MapNode{node.id},
-                    .target = MapNode{radio.uniq()},
-                });
+                result.resolved.push_back(
+                    MapLinkResolveResult{
+                        .source = MapNode{node.id},
+                        .target = MapNode{radio.uniq()},
+                    });
             } else {
                 GRAPH_MSG(
                     fmt("Radio target {} from node {} is not "

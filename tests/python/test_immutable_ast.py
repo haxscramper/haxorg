@@ -1,9 +1,11 @@
+from pathlib import Path
+
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from pathlib import Path
 from py_scriptutils.script_logging import log
 
 CAT = __name__
+
 
 def test_immutable_ast_conversion() -> None:
     parse = org.ParseContext()
@@ -18,7 +20,8 @@ def test_immutable_ast_conversion() -> None:
 
 def test_immutable_ast_mind_map() -> None:
     parse = org.ParseContext()
-    node = parse.parseString("""Paragraph [[id:subtree-id]]
+    node = parse.parseString(
+        """Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
@@ -89,7 +92,7 @@ def test_mind_map_from_directory() -> None:
     file2 = subdir1_spec.getFsSubnode("subdir_file2.org")
 
     assert file1
-    assert file2 
+    assert file2
 
     assert file1.getKind() == org.OrgSemKind.File
     assert file2.getKind() == org.OrgSemKind.File

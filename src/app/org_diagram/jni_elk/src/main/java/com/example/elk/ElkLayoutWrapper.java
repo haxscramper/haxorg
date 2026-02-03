@@ -8,7 +8,7 @@ import org.eclipse.elk.graph.ElkNode;
 import org.eclipse.elk.graph.json.ElkGraphJson;
 
 public class ElkLayoutWrapper {
-    
+
     public static String performLayout(String inputJson) {
         JsonObject jsonGraph = JsonParser.parseString(inputJson).getAsJsonObject();
         ElkNode elkGraph = ElkGraphJson.forGraph(jsonGraph).toElk();

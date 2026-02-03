@@ -172,8 +172,12 @@ ParseSpec::ParseSpec(
 
         if (!fs::is_regular_file(full)) {
             throw SpecValidationError(
-                hstd::fmt("'file' field must store a relative path, but '{}' does "
-                "not exist (test root '{}')", fs::absolute(full), testRoot));
+                hstd::fmt(
+                    "'file' field must store a relative path, but '{}' "
+                    "does "
+                    "not exist (test root '{}')",
+                    fs::absolute(full),
+                    testRoot));
         }
 
         this->source = readFile(full);

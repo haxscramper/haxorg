@@ -165,15 +165,14 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 /// \brief Declare boilerplate type hasing using list of fields
 #define MAKE_HASHABLE(__type, __varname, ...)                             \
     namespace std {                                                       \
-        template <>                                                       \
-        struct hash<__type> {                                             \
-            auto operator()(const __type& __varname) const                \
-                -> std::size_t {                                          \
-                std::size_t ret = 0;                                      \
-                hash_combine(ret, __VA_ARGS__);                           \
-                return ret;                                               \
-            }                                                             \
-        };                                                                \
+    template <>                                                           \
+    struct hash<__type> {                                                 \
+        auto operator()(const __type& __varname) const -> std::size_t {   \
+            std::size_t ret = 0;                                          \
+            hash_combine(ret, __VA_ARGS__);                               \
+            return ret;                                                   \
+        }                                                                 \
+    };                                                                    \
     }
 
 // Add hashing declarations for the author and line data - they will be

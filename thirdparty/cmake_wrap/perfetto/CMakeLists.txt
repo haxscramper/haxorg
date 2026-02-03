@@ -8,7 +8,7 @@ set(DEPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
 
 # Include directories
-target_include_directories(perfetto PUBLIC 
+target_include_directories(perfetto PUBLIC
     "$<BUILD_INTERFACE:${DEPS_DIR}/perfetto/sdk>"
     "$<INSTALL_INTERFACE:include>"
 )
