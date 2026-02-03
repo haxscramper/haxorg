@@ -32,16 +32,6 @@ set(CMAKE_LINKER "ld.lld")
 # code to compile, link and execute correctly. Note that runtime execution will use these library
 # paths as well
 
-# Directory with clang-related runtime libraries such as asan that are shipped with LLVM
-set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/18/lib/x86_64-unknown-linux-gnu")
-# Declare variable for the asan library path, it is used in target setups, this is not some specific
-# variable that is implicitly consumed, just declared it here
-set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
-set(PACKAGED_STD_VERSION "14")
-
-message(STATUS "[DBG] LLVM_STD_INCLUDE = ${LLVM_STD_INCLUDE}")
-message(STATUS "[DBG] LLVM_GNU_CLANG_DIR = ${LLVM_GNU_CLANG_DIR}")
-
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
@@ -73,7 +63,6 @@ option(ORG_BUILD_USE_GOLD_WRAPPER "Link profilng" OFF)
 option(ORG_BUILD_TESTS "" ON)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
-option(ORG_DEPS_USE_PYTHON_VERSION "" "3.13")
 option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
 option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
 option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
@@ -148,14 +137,7 @@ else()
 endif()
 
 if(NOT ${ORG_EMCC_BUILD})
-  if(${ORG_DEPS_USE_PYTHON_VERSION})
-    set(PYBIND11_PYTHON_VERSION ${ORG_DEPS_USE_PYTHON_VERSION})
-    set(PYTHON_VERSION ${ORG_DEPS_USE_PYTHON_VERSION})
-  else()
-    set(PYBIND11_PYTHON_VERSION 3.13)
-    set(PYTHON_VERSION 3.13)
-  endif()
-  message(STATUS "XXXX PYBIND11_PYTHON_VERSION = ${PYBIND11_PYTHON_VERSION} ")
+  find_package(Python COMPONENTS Interpreter Development REQUIRED)
   find_package(pybind11 CONFIG REQUIRED)
 endif()
 
@@ -197,9 +179,6 @@ endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(BoostDescribe CONFIG REQUIRED)
   find_package(BoostPreprocessor CONFIG REQUIRED)
-endif()
-if(NOT ${ORG_EMCC_BUILD})
-  find_package(Python 3.13 COMPONENTS Interpreter Development REQUIRED)
 endif()
 if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
   find_package(Adaptagrams CONFIG REQUIRED)

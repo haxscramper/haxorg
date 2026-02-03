@@ -9,8 +9,8 @@ CAT = __name__
 
 
 @beartype
-def get_tmpdir(*name: str) -> str:
-    return str(Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name))
+def get_tmpdir(*name: str) -> Path:
+    return Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name)
 
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
@@ -58,7 +58,7 @@ class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):
-    out_dir: str = get_tmpdir("docs_out")
+    out_dir: Path = get_tmpdir("docs_out")
 
 
 class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):

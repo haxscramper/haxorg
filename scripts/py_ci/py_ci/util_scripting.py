@@ -7,8 +7,9 @@ from contextlib import contextmanager
 import os
 import inspect
 
-logging.root.setLevel(logging.NOTSET)
+logging.root.setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def get_threading_count() -> int:
@@ -51,8 +52,8 @@ def run_cmd(
     env: Dict[str, str] | None = None,
     cwd: Optional[str] = None,
     check: bool = True,
-) -> None:
-    """Run a subprocess command with logging."""
+) -> (int, str, str):
+    """Run a subprocess command with logging. Return tuple: (code, stdout, stderr)"""
     cmd_str = " ".join(str(arg) for arg in cmd)
     filename, lineno = get_caller_info()
     logger.info("~" * 120)
@@ -81,6 +82,8 @@ def run_cmd(
                 err.add_note(f"cwd:{cwd}")
 
             raise err
+
+        return (process.returncode, process.stdout, process.stderr)
 
     except Exception as e:
         e.add_note(f"Failed to execute from {filename}:{lineno}")

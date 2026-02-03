@@ -84,7 +84,7 @@ def build_haxorg(ctx: TaskContext) -> None:
     log(CAT).info(f"Using dependency dir {get_deps_install_dir(ctx)}")
     log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
     build_dir = get_component_build_dir(ctx, "haxorg")
-
+    
     targets = cond(0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target,
                    ["all"])
 
@@ -97,7 +97,7 @@ def build_haxorg(ctx: TaskContext) -> None:
     )
 
     if "all" in targets or "pyhaxorg" in targets:
-        run_command(ctx, "poetry", ["install", "--no-root", "--only", "haxorg"])
+        run_command(ctx, "uv", ["sync", "--package", "py_haxorg"])
 
 
 @haxorg_task()

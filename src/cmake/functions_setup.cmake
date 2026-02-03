@@ -114,15 +114,10 @@ function(set_target_flags_impl)
         add_target_property(${ARG_TARGET} LINK_OPTIONS
                             "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
         add_target_property(${ARG_TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
-        add_target_property(${ARG_TARGET} LINK_OPTIONS "-L${LLVM_GNU_CLANG_DIR}")
-        add_target_property(${ARG_TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_ASAN_LIBRARY}")
         target_link_libraries(${ARG_TARGET} PRIVATE ${ASAN_LIBRARY})
       endif()
     endif()
 
-    # Specify runtime search paths for the libraries so created binaries did not have to depend on
-    # the LD_PRELOAD_PATH being set up correctly.
-    add_target_property(${ARG_TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_GNU_CLANG_DIR}")
 
     if(${ORG_USE_XRAY})
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")

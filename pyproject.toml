@@ -1,79 +1,100 @@
-[tool.poetry]
+[project]
 name = "testtest"
 version = "0.1.0"
 description = ""
-authors = ["haxscramper <haxscramper@gmail.com>"]
-readme = "README.org"
+readme = { file = "README.org", content-type = "text/plain" }
+authors = [{ name = "haxscramper", email = "haxscramper@gmail.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "beartype>=0.22.0,<0.23.0",
+  "rich>=13.5.3,<14.0.0",
+  "betterproto[compiler]>=1.2.5,<2.0.0",
+  "pytest>=8.2.2,<9.0.0",
+  "click>=8.1.7,<9.0.0",
+  "rich-click>=1.6.1,<2.0.0",
+  "toml>=0.10.2,<0.11.0",
+  "click-config-file>=0.6.0,<0.7.0",
+  "plumbum>=1.8.2,<2.0.0",
+  "pydantic>=2.4.2,<3.0.0",
+  "dominate>=2.8.0,<3.0.0",
+  "pyyaml>=6.0.1,<7.0.0",
+  "types-toml>=0.10.8.7,<0.11.0.0",
+  "igraph>=0.11.2,<0.12.0",
+  "graphviz>=0.20.1,<0.21.0",
+  "deal>=4.24.3,<5.0.0",
+  "pandas>=2.1.3,<3.0.0",
+  "more-itertools>=10.1.0,<11.0.0",
+  "sqlalchemy>=2.0.24,<3.0.0",
+  "hypothesis>=6.92.2,<7.0.0",
+  "matplotlib>=3.8.2,<4.0.0",
+  "compdb>=0.2.0,<0.3.0",
+  "pytest-cov>=4.1.0,<5.0.0",
+  "flask>=3.0.2,<4.0.0",
+  "flask-cors>=4.0.0,<5.0.0",
+  "jsonpath-ng>=1.6.1,<2.0.0",
+  "pygments>=2.17.2,<3.0.0",
+  "asteval>=0.9.33,<0.10.0",
+  "mypy>=1.11.0,<2.0.0",
+  "ansi2html>=1.9.2,<2.0.0",
+  "psutil>=6.1.1,<7.0.0",
+  "pyqt6>=6.9.1,<7.0.0",
+  "fuzzywuzzy>=0.18.0,<0.19.0",
+  "python-levenshtein>=0.27.1,<0.28.0",
+  "seaborn>=0.13.2,<0.14.0",
+  "setuptools>=80.9.0,<81.0.0",
+  "build>=1.2.2.post1,<2.0.0",
+  "shapely>=2.1.2,<3.0.0",
+  "scikit-learn>=1.7.2,<2.0.0",
+  "glom>=24.11.0,<25.0.0",
+  "docker>=7.1.0,<8.0.0",
+  "plotly>=6.5.0,<7.0.0",
+  "commentjson>=0.9.0,<0.10.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10.0 <3.14"
-beartype = "^0.22.0"
-rich = "^13.5.3"
-betterproto = {extras = ["compiler"], version = "^1.2.5"}
-pytest = "^8.2.2"
-click = "^8.1.7"
-rich-click = "^1.6.1"
-toml = "^0.10.2"
-click-config-file = "^0.6.0"
-plumbum = "^1.8.2"
-pydantic = "^2.4.2"
-dominate = "^2.8.0"
-pyyaml = "^6.0.1"
-types-toml = "^0.10.8.7"
-igraph = "^0.11.2"
-graphviz = "^0.20.1"
-deal = "^4.24.3"
-pandas = "^2.1.3"
-more-itertools = "^10.1.0"
-sqlalchemy = "^2.0.24"
-hypothesis = "^6.92.2"
-matplotlib = "^3.8.2"
-compdb = "^0.2.0"
-pytest-cov = "^4.1.0"
-flask = "^3.0.2"
-flask-cors = "^4.0.0"
-jsonpath-ng = "^1.6.1"
-pygments = "^2.17.2"
-asteval = "^0.9.33"
-mypy = "^1.11.0"
-ansi2html = "^1.9.2"
-psutil = "^6.1.1" 
-pyqt6 = "^6.9.1"
-fuzzywuzzy = "^0.18.0"
-python-levenshtein = "^0.27.1"
-seaborn = "^0.13.2"
-setuptools = "^80.9.0"
-build = "^1.2.2.post1"
-shapely = "^2.1.2"
-scikit-learn = "^1.7.2"
-glom = "^24.11.0"
-docker = "^7.1.0"
-plotly = "^6.5.0"
-commentjson = "^0.9.0"
+[dependency-groups]
+local = [
+  "py_ci",
+  "py_textlayout",
+  "py_exporters",
+  "py_scriptutils",
+  "py_codegen",
+  "py_cli",
+  "py_repository",
+  "py_wrappers",
+  "cxx_repository",
+  "py_haxorg",
+]
 
-[tool.poetry.group.local.dependencies]
-py_haxorg_gui = {path = "./scripts/py_haxorg_gui", develop = true}
-py_ci = {path = "./scripts/py_ci", develop = true}
-py_textlayout = {path = "./scripts/py_textlayout", develop=true}
-py_exporters = {path = "./scripts/py_exporters", develop=true}
-py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
-py_codegen = {path = "./scripts/py_codegen", develop=true}
-py_cli = {path = "./scripts/py_cli", develop=true}
-py_repository = {path = "./scripts/py_repository", develop=true}
-py_wrappers = {path = "./scripts/py_wrappers", develop=true}
-cxx_repository = {path = "./scripts/cxx_repository", develop=true}
+[tool.uv.workspace]
+members = [
+    "scripts/py_haxorg",
+    "scripts/py_ci",
+    "scripts/py_textlayout",
+    "scripts/py_exporters",
+    "scripts/py_scriptutils",
+    "scripts/py_codegen",
+    "scripts/py_cli",
+    "scripts/py_repository",
+    "scripts/py_wrappers",
+    "scripts/cxx_repository",
+]
 
-[tool.poetry.group.haxorg.dependencies]
-py_haxorg = {path = "./scripts/py_haxorg", develop=true}
+[tool.uv.sources]
+py_ci           = { workspace = true }
+py_textlayout   = { workspace = true }
+py_exporters    = { workspace = true }
+py_scriptutils  = { workspace = true }
+py_codegen      = { workspace = true }
+py_cli          = { workspace = true }
+py_repository   = { workspace = true }
+py_wrappers     = { workspace = true }
+cxx_repository  = { workspace = true }
+py_haxorg       = { workspace = true }
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
 # on what to do instead, and I don't have time to deal with this bullshit, so fixing to whatever version 
 # I have installed at the moment. 
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 log_cli_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"

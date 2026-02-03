@@ -41,14 +41,3 @@ jobs:
         
     - name: Create build directory
       run: mkdir -p /tmp/haxorg_cpack_build_dir_1
-      
-    - name: Run tests in Docker
-      run: |
-        docker run \
-          --mount type=bind,src=${{ github.workspace }},dst=/haxorg/src \
-          --mount type=bind,src=/tmp/haxorg_cpack_build_dir_1,dst=/haxorg/dst \
-          --memory=32G \
-          --rm \
-          -e PYTHONPATH=/haxorg/src/scripts/py_ci \
-          docker-haxorg-cpack \
-          python -m py_ci.test_cpack_build

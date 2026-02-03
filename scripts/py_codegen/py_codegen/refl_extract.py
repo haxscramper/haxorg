@@ -199,7 +199,7 @@ def get_compile_commands(conf: TuOptions) -> Path:
 
         if not source.joinpath(comp).exists():
             lg.info(f"'{source.joinpath(comp)}' does not exist, using compdb to generate")
-            compdb = local["poetry"]
+            compdb = local["uv"]
             _, stdout, _ = compdb.run(
                 ["run", "compdb", "-p",
                  str(conf.build_root), "list"])

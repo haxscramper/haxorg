@@ -446,7 +446,7 @@ def gen_include_graph(
 ) -> None:
     header_compdb_content = run_command(
         ctx,
-        "poetry",
+        "uv",
         [
             "run",
             "compdb",
