@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import lldb # type: ignore
-import re
 import os
+import re
 from typing import Any
+
+import lldb  # type: ignore
 
 
 def simplify_name(name: str) -> str:
@@ -60,14 +61,13 @@ def align_on_sides(debugger: lldb.SBDebugger, text1: str, text2: str) -> str:
 
 
 def format_frame(frame: Any, unused: Any, **kwargs: Any) -> str:
+
     def fmt_color(value: int) -> str:
         if "no_color" in kwargs:
             return ""
 
         else:
             return f"\033[{value}m"
-
-
 
     start = f"{fmt_color(35)}{frame.idx:>2}{fmt_color(0)}: {simplify_name(frame.name)}"
     # 'A read only property that returns the 1 based line number for this
@@ -95,12 +95,14 @@ def should_skip_frame(frame: Any) -> bool:
           "invoke.h" in frame.line_entry.file.basename)),
     ])
 
+
 USE_NATIVE_TRACE = False
 DROP_NOISY_FRAMES = False
 USE_TRACE_FILE = "/tmp/stacktrace.txt"
 USE_STDOUT = False
 
 out_file = None
+
 
 def skip_backtrace(debugger: Any, command: Any, result: Any, internal_dict: Any) -> None:
     thread = debugger.GetSelectedTarget().GetProcess().GetSelectedThread()
@@ -114,7 +116,7 @@ def skip_backtrace(debugger: Any, command: Any, result: Any, internal_dict: Any)
     for frame in frames:
         filtered_frames.append(frame)
 
-    filtered_frames = reversed(filtered_frames) # type: ignore
+    filtered_frames = reversed(filtered_frames)  # type: ignore
 
     for index, frame in enumerate(filtered_frames):
         if USE_NATIVE_TRACE:
@@ -128,8 +130,6 @@ def skip_backtrace(debugger: Any, command: Any, result: Any, internal_dict: Any)
                     print(format_frame(frame, None, no_color=True), file=out_file)
 
                 print(format_frame(frame, None))
-
-
 
 
 def stop_handler(frame: Any, bp_loc: Any, dict: Any) -> bool:

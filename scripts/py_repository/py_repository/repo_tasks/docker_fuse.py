@@ -1,15 +1,15 @@
+from hashlib import sha256
 import json
 import os
+from pathlib import Path
 import shutil
 import subprocess
 import time
-from hashlib import sha256
-from pathlib import Path
 from typing import Any, Dict, List, Union
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.workflow_utils import TaskContext
 
 import docker.types
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.workflow_utils import TaskContext
 
 _MANIFEST_NAME = ".fuse_overlayfs_manifest.json"
 _MANIFEST_VERSION = 1
@@ -18,6 +18,7 @@ _MANIFEST_VERSION = 1
 # - Ensure `fuse-overlayfs` is installed.
 # - If `allow_other=True`, `/etc/fuse.conf` must contain `user_allow_other` (uncommented), otherwise mounting will fail.
 # - `squash_to_user=True` forces new/modified files in the COW layer to be owned by your host user (prevents root-owned artifacts).
+
 
 def _is_mountpoint(p: Path) -> bool:
     # st_dev differs from parent for mountpoints

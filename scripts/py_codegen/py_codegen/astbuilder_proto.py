@@ -1,21 +1,21 @@
-import py_codegen.gen_tu_cpp as tu
-import py_codegen.astbuilder_cpp as cpp
-from py_textlayout.py_textlayout_wrap import TextOptions, TextLayout, BlockId
-
-from beartype.typing import (
-    List,
-    Iterable,
-    Generator,
-    Dict,
-    Tuple,
-    Optional,
-    Sequence,
-    Any,
-)
+import itertools
 
 from beartype import beartype
-import itertools
-from py_scriptutils.algorithm import drop_none, iterate_object_tree
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import Generator
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Sequence
+from beartype.typing import Tuple
+import py_codegen.astbuilder_cpp as cpp
+import py_codegen.gen_tu_cpp as tu
+from py_scriptutils.algorithm import drop_none
+from py_scriptutils.algorithm import iterate_object_tree
+from py_textlayout.py_textlayout_wrap import BlockId
+from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextOptions
 
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"
@@ -292,7 +292,7 @@ class ProtoBuilder():
                     return tu.QualType.ForName("_".join(
                         typ.withoutSpace("sem").withoutSpace(
                             "org").flatQualName())).withExtraSpace("orgproto")
-                            
+
                 # FIXME Undocumented hardcoded list of types, easily breaking
                 # when adding new data shared between cxx and protobuf type
                 # definitions.

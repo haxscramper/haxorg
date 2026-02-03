@@ -1,8 +1,10 @@
-from py_exporters.export_html import ExporterHtml
-from py_cli import haxorg_cli, haxorg_opts
-from beartype.typing import Any, Optional
-import rich_click as click
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Optional
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+from py_exporters.export_html import ExporterHtml
+import rich_click as click
 
 CAT = "haxorg.export.html"
 
@@ -19,7 +21,6 @@ def export_html(ctx: haxorg_cli.CliRunContext) -> None:
         exp = ExporterHtml()
         document = exp.evalDocument(node)
         ctx.opts.export.html.outfile.write_text(str(document))
-
 
 
 @click.command("html")

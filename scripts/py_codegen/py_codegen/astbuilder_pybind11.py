@@ -1,23 +1,24 @@
-from py_codegen.gen_tu_cpp import *
-from beartype import beartype
-from dataclasses import dataclass, field, replace
-from beartype.typing import List, Optional, NewType, Set
-from py_scriptutils.algorithm import maybe_splice
-
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
+import itertools
 from typing import TYPE_CHECKING
 
-from py_codegen.gen_tu_cpp import (
-    GenTuFunction,
-    GenTuIdent,
-    GenTuDoc,
-    QualType,
-    QualTypeKind,
-)
+from beartype import beartype
+from beartype.typing import List
+from beartype.typing import NewType
+from beartype.typing import Optional
+from beartype.typing import Set
 import py_codegen.astbuilder_py as pya
-import itertools
-from rich.pretty import pprint
-
+from py_codegen.gen_tu_cpp import *
+from py_codegen.gen_tu_cpp import GenTuDoc
+from py_codegen.gen_tu_cpp import GenTuFunction
+from py_codegen.gen_tu_cpp import GenTuIdent
+from py_codegen.gen_tu_cpp import QualType
+from py_codegen.gen_tu_cpp import QualTypeKind
+from py_scriptutils.algorithm import maybe_splice
 from py_scriptutils.script_logging import pprint_to_file
+from rich.pretty import pprint
 
 
 @beartype
@@ -619,10 +620,10 @@ class Py11Class:
     def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]) -> None:
         # FIXME Undocumented logic affecting the code generation
         # features -- the type can be marked as a reflection target
-        # in the source code, but the default init is not generated 
-        # here -- provide 'else' fallback, and/or diagnostics for 
+        # in the source code, but the default init is not generated
+        # here -- provide 'else' fallback, and/or diagnostics for
         # missing reflection description.
-        if self.Struct.IsDescribedRecord: 
+        if self.Struct.IsDescribedRecord:
             body_impl = []
 
             if self.Struct.reflectionParams.backend.python.holder_type == "shared":

@@ -22,8 +22,9 @@ void dia::layout::elk::validate(const Graph& graph) {
             if (node.ports) {
                 for (const auto& port : *node.ports) {
                     if (port_ids.contains(port.id)) {
-                        throw std::runtime_error(std::format(
-                            "Duplicate port id: '{}'", node.id));
+                        throw std::runtime_error(
+                            std::format(
+                                "Duplicate port id: '{}'", node.id));
                     }
                     port_ids.insert(port.id);
                 }
@@ -63,45 +64,52 @@ void dia::layout::elk::validate(const Graph& graph) {
 
                 if (edge.source && !node_ids.contains(*edge.source)
                     && !port_ids.contains(*edge.source)) {
-                    throw std::runtime_error(std::format(
-                        "Edge '{}' references unknown source: '{}'",
-                        edge.id,
-                        *edge.source));
+                    throw std::runtime_error(
+                        std::format(
+                            "Edge '{}' references unknown source: '{}'",
+                            edge.id,
+                            *edge.source));
                 }
 
                 if (edge.target && !node_ids.contains(*edge.target)
                     && !port_ids.contains(*edge.target)) {
-                    throw std::runtime_error(std::format(
-                        "Edge '{}' references unknown target: '{}'",
-                        edge.id,
-                        *edge.target));
+                    throw std::runtime_error(
+                        std::format(
+                            "Edge '{}' references unknown target: '{}'",
+                            edge.id,
+                            *edge.target));
                 }
 
                 if (edge.sourcePort
                     && !port_ids.contains(*edge.sourcePort)) {
-                    throw std::runtime_error(std::format(
-                        "Edge '{}' references unknown source port: '{}'",
-                        edge.id,
-                        *edge.sourcePort));
+                    throw std::runtime_error(
+                        std::format(
+                            "Edge '{}' references unknown source port: "
+                            "'{}'",
+                            edge.id,
+                            *edge.sourcePort));
                 }
 
                 if (edge.targetPort
                     && !port_ids.contains(*edge.targetPort)) {
-                    throw std::runtime_error(std::format(
-                        "Edge '{}' references unknown target port: '{}'",
-                        edge.id,
-                        *edge.targetPort));
+                    throw std::runtime_error(
+                        std::format(
+                            "Edge '{}' references unknown target port: "
+                            "'{}'",
+                            edge.id,
+                            *edge.targetPort));
                 }
 
                 if (edge.sources) {
                     for (const auto& source : *edge.sources) {
                         if (!node_ids.contains(source)
                             && !port_ids.contains(source)) {
-                            throw std::runtime_error(std::format(
-                                "Edge '{}' references unknown source: "
-                                "'{}'",
-                                edge.id,
-                                source));
+                            throw std::runtime_error(
+                                std::format(
+                                    "Edge '{}' references unknown source: "
+                                    "'{}'",
+                                    edge.id,
+                                    source));
                         }
                     }
                 }
@@ -110,11 +118,12 @@ void dia::layout::elk::validate(const Graph& graph) {
                     for (const auto& target : *edge.targets) {
                         if (!node_ids.contains(target)
                             && !port_ids.contains(target)) {
-                            throw std::runtime_error(std::format(
-                                "Edge '{}' references unknown target: "
-                                "'{}'",
-                                edge.id,
-                                target));
+                            throw std::runtime_error(
+                                std::format(
+                                    "Edge '{}' references unknown target: "
+                                    "'{}'",
+                                    edge.id,
+                                    target));
                         }
                     }
                 }

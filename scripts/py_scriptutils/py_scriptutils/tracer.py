@@ -1,15 +1,19 @@
-from dataclasses import dataclass
-from beartype.typing import Dict, Optional, List, Any, Iterator
-from beartype import beartype
-import time
-from enum import Enum
-import os
 from contextlib import contextmanager
+from dataclasses import dataclass
+from enum import Enum
+import inspect
 import json
+import os
 from pathlib import Path
 import threading
+import time
 
-import inspect
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import Iterator
+from beartype.typing import List
+from beartype.typing import Optional
 
 
 class EventType(str, Enum):

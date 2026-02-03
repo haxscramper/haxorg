@@ -4,4 +4,3 @@ export const log = new Logger({
   name: 'websocket_typed',
   type: 'pretty',
 });
-

@@ -1,11 +1,13 @@
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
 from pathlib import Path
+
 from beartype.typing import List
 from py_haxorg.babel import evalCode
+import py_haxorg.pyhaxorg_wrap as org
+from py_scriptutils.script_logging import log
 import pytest
 
 CAT = __name__
+
 
 def test_trivial_code_eval() -> None:
     parse = org.ParseContext()
@@ -15,9 +17,10 @@ content
 
     conf = org.PyCodeEvalParameters()
     buf: List[org.OrgCodeEvalInput] = []
+
     def eval_block(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
         result = org.VecOfOrgCodeEvalOutputVec()
-        item  = org.OrgCodeEvalOutput()
+        item = org.OrgCodeEvalOutput()
         item.stdoutText = "*bold*"
         result.append(item)
         buf.append(input)
@@ -45,10 +48,12 @@ content
     w: org.Word = res.node.at(0).at(0).at(0)
     assert w.text == "bold"
 
+
 @pytest.mark.skip()
 def test_babel_eval_trivial() -> None:
     parse = org.ParseContext()
-    node = parse.parseString("""#+begin_src plantuml
+    node = parse.parseString(
+        """#+begin_src plantuml
 @startuml
 Alice -> Bob: Authentication Request
 Bob --> Alice: Authentication Response

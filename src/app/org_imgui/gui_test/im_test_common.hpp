@@ -8,7 +8,7 @@
 #include <org_imgui/gui_lib/imgui_utils.hpp>
 #include <hstd/ext/logger.hpp>
 
-#define IM_TEST_LOG()                                                \
+#define IM_TEST_LOG()                                                     \
     ::hstd::log::log_builder{}                                            \
         .set_callsite()                                                   \
         .severity(hstd::log::l_info)                                      \

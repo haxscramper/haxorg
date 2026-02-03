@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Formatter.hpp>

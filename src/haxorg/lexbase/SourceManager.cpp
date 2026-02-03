@@ -31,10 +31,12 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
     if (auto id = path_ids.get_right(path); id.has_value()) {
         return id.value();
     } else {
-        auto result = store.add(SourceFile{.path = path, .content = content});
+        auto result = store.add(
+            SourceFile{.path = path, .content = content});
         LOGIC_ASSERTION_CHECK_FMT(
             !path_ids.get_left(result).has_value(),
-            "ID has already been used, store created duplicate ID {} for path "
+            "ID has already been used, store created duplicate ID {} for "
+            "path "
             "{}",
             result,
             path);
@@ -42,7 +44,6 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
         path_ids.add_unique(path, result);
         return result;
     }
-
 }
 
 org::parse::SourceFileId org::parse::SourceManager::getId(

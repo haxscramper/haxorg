@@ -15,17 +15,16 @@ void dumpReport(StrCache& src, Report const& rep) {
     for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
              pair1(true, true), pair1(true, false), pair1(false, false))) {
         std::string formatted;
-        HSLOG_DEPTH_SCOPE_ANON();
-        HSLOG_DEBUG("Report group for colors:{}", debug);
-        auto tmp = rep;
+        auto        tmp = rep;
 
         tmp.config.with_debug_writes(debug);
 
         writeFile(
-            getDebugFile(hstd::fmt(
-                "errors_{}.{}",
-                debug ? "debug" : "direct",
-                color ? "ansi" : "txt")),
+            getDebugFile(
+                hstd::fmt(
+                    "errors_{}.{}",
+                    debug ? "debug" : "direct",
+                    color ? "ansi" : "txt")),
             tmp.to_string(src, color));
     }
 }
@@ -49,25 +48,30 @@ def six =
 
     auto report //
         = Report(ReportKind::Error, a_id, 10)
-              .with_config(Config{} //
-                               .with_compact(true)
-                               .with_char_set(Config::unicode()))
+              .with_config(
+                  Config{} //
+                      .with_compact(true)
+                      .with_char_set(Config::unicode()))
               .with_message("Incompatible types"_ss)
-              .with_label(Label{1}
-                              .with_span(a_id, slice(0, 1))
-                              .with_color(ColStyle{}.red()))
-              .with_label(Label{2}
-                              .with_span(a_id, slice(2, 3))
-                              .with_color(ColStyle{}.red())
-                              .with_message("`b` for banana"_ss)
-                              .with_order(1))
-              .with_label(Label{3}
-                              .with_span(a_id, slice(4, 5))
-                              .with_color(ColStyle{}.green()))
-              .with_label(Label{4}
-                              .with_span(a_id, slice(7, 9))
-                              .with_color(ColStyle{}.cyan())
-                              .with_message("`e` for emerald"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(a_id, slice(0, 1))
+                      .with_color(ColStyle{}.red()))
+              .with_label(
+                  Label{2}
+                      .with_span(a_id, slice(2, 3))
+                      .with_color(ColStyle{}.red())
+                      .with_message("`b` for banana"_ss)
+                      .with_order(1))
+              .with_label(
+                  Label{3}
+                      .with_span(a_id, slice(4, 5))
+                      .with_color(ColStyle{}.green()))
+              .with_label(
+                  Label{4}
+                      .with_span(a_id, slice(7, 9))
+                      .with_color(ColStyle{}.cyan())
+                      .with_message("`e` for emerald"_ss))
               .with_note(
                   "Outputs of {} expressions must coerce to the same type"_ss);
 
@@ -208,9 +212,10 @@ TEST(PrintError, StringBuilder1) {
     auto report = Report(ReportKind::Error, id, 12);
 
     for (auto const& label : labels) { report.with_label(label); }
-    report.with_config(Config{} //
-                           .with_char_set(Config::ascii())
-                       // .with_debug_writes(true)
+    report.with_config(
+        Config{} //
+            .with_char_set(Config::ascii())
+        // .with_debug_writes(true)
     );
 
 
@@ -433,8 +438,9 @@ def six =
               .with_label(
                   Label{2}
                       .with_span(a_id, slice(31, 31))
-                      .with_message(fmt("Multiple line label\nwith at "
-                                        "least\nthree separate lines"))
+                      .with_message(
+                          fmt("Multiple line label\nwith at "
+                              "least\nthree separate lines"))
                       .with_color(b))
               .with_label(
                   Label{3}
@@ -497,10 +503,12 @@ TEST(PrintError, MultipleFiles) {
                               .with_color(a))
               .with_note(
                   natColorized
-                  + ColText(" is a number and can only be added "
-                            "to other numbers"))
-              .with_note(ColText{"Multiline notes test\nsomething otherh "
-                                 "whatever\nother things"});
+                  + ColText(
+                      " is a number and can only be added "
+                      "to other numbers"))
+              .with_note(
+                  ColText{"Multiline notes test\nsomething otherh "
+                          "whatever\nother things"});
 
 
     report.with_config(Config{}.with_debug_report_info(true));
@@ -578,11 +586,12 @@ def multiline :: Str = match Some 5 in {
               .with_label(label(slice(85, 110)))
               .with_label(label(slice(84, 114)))
               .with_label(label(slice(89, 113)))
-              .with_config(Config()
-                               .with_cross_gap(false)
-                               .with_compact(true)
-                               .with_underlines(true)
-                               .with_tab_width(4));
+              .with_config(
+                  Config()
+                      .with_cross_gap(false)
+                      .with_compact(true)
+                      .with_underlines(true)
+                      .with_tab_width(4));
 
     dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
@@ -617,11 +626,12 @@ def multiline :: Str = match Some 5 in {
               .with_code("3")
               .with_message(("Incompatible types"_qs))
               .with_label(label(slice(108, 124)))
-              .with_config(Config()
-                               .with_cross_gap(false)
-                               .with_compact(true)
-                               .with_underlines(true)
-                               .with_tab_width(4));
+              .with_config(
+                  Config()
+                      .with_cross_gap(false)
+                      .with_compact(true)
+                      .with_underlines(true)
+                      .with_tab_width(4));
 
     // report.config.with_debug_writes(true);
 
@@ -654,8 +664,9 @@ TEST(PrintError, OneMessageWrite) {
     auto report //
         = Report(ReportKind::Error, id, 13)
               .with_message("can't compare apples with oranges"_qs)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     GTEST_ASSERT_EQ(
         remove_trailing(report.to_string(sources, false)),
@@ -673,14 +684,17 @@ TEST(PrintError, TwoLabelsWithoutMessageWrite) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -709,14 +723,17 @@ TEST(PrintError, TwoLabelsWithMessages) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -744,14 +761,17 @@ TEST(PrintError, MultiByteChars) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an äpplë"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an äpplë"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an örängë"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -779,14 +799,17 @@ TEST(PrintError, ByteLabel) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 6))
-                              .with_message("This is an äpplë"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 6))
+                      .with_message("This is an äpplë"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an örängë"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -814,14 +837,17 @@ TEST(PrintError, ByteColumn) {
     auto report //
         = Report(ReportKind::Error, id, 11)
               .with_message("can't compare äpplës with örängës"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 6))
-                              .with_message("This is an äpplë"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 6))
+                      .with_message("This is an äpplë"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an örängë"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -856,8 +882,9 @@ TEST(PrintError, LabelAtEndOfLongLine) {
                       .with_span(
                           id, slice(code.size() - 5, code.size() - 1))
                       .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -883,11 +910,13 @@ TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(8, 9))
-                              .with_message("Unexpected end of file"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(8, 9))
+                      .with_message("Unexpected end of file"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -913,11 +942,13 @@ TEST(PrintError, EmptyInput) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 0))
-                              .with_message("No more fruit!"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 0))
+                      .with_message("No more fruit!"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -943,12 +974,14 @@ TEST(PrintError, EmptyInputHelp) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 0))
-                              .with_message("No more fruit!"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 0))
+                      .with_message("No more fruit!"_ss))
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -977,12 +1010,14 @@ TEST(PrintError, EmptyInputNote) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 0))
-                              .with_message("No more fruit!"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 0))
+                      .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1010,13 +1045,15 @@ TEST(PrintError, EmptyInputHelpNote) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 0))
-                              .with_message("No more fruit!"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 0))
+                      .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1049,8 +1086,9 @@ TEST(PrintError, MultilineLabel) {
                   Label{1}
                       .with_span(id, slice1<int>(0, code.size() - 1))
                       .with_message("illegal comparison"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1082,11 +1120,13 @@ TEST(PrintError, PartiallyOverlappingLabels) {
                   Label{1}
                       .with_span(id, slice1<int>(0, code.length() - 1))
                       .with_message("URL"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice1<int>(0, colon_pos - 1))
-                              .with_message("scheme"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice1<int>(0, colon_pos - 1))
+                      .with_message("scheme"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)),
@@ -1113,32 +1153,37 @@ TEST(PrintError, MultipleLabelsSameSpan) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(0, 4))
                       .with_message(
                           "Have I mentioned that this is an apple?"_ss))
-              .with_label(Label{3}
-                              .with_span(id, slice(0, 4))
-                              .with_message(
-                                  "No really, have I mentioned that?"_ss))
-              .with_label(Label{4}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
+              .with_label(
+                  Label{3}
+                      .with_span(id, slice(0, 4))
+                      .with_message(
+                          "No really, have I mentioned that?"_ss))
+              .with_label(
+                  Label{4}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
               .with_label(
                   Label{5}
                       .with_span(id, slice(9, 14))
                       .with_message(
                           "Have I mentioned that this is an orange?"_ss))
-              .with_label(Label{6}
-                              .with_span(id, slice(9, 14))
-                              .with_message(
-                                  "No really, have I mentioned that?"_ss))
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_label(
+                  Label{6}
+                      .with_span(id, slice(9, 14))
+                      .with_message(
+                          "No really, have I mentioned that?"_ss))
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1174,15 +1219,18 @@ TEST(PrintError, Note) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1212,15 +1260,18 @@ TEST(PrintError, Help) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1250,16 +1301,19 @@ TEST(PrintError, HelpAndNote) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
-              .with_label(Label{1}
-                              .with_span(id, slice(0, 4))
-                              .with_message("This is an apple"_ss))
-              .with_label(Label{2}
-                              .with_span(id, slice(9, 14))
-                              .with_message("This is an orange"_ss))
+              .with_label(
+                  Label{1}
+                      .with_span(id, slice(0, 4))
+                      .with_message("This is an apple"_ss))
+              .with_label(
+                  Label{2}
+                      .with_span(id, slice(9, 14))
+                      .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1296,8 +1350,9 @@ TEST(PrintError, SingleNoteSingleLine) {
                       .with_span(id, slice(0, 14))
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1331,8 +1386,9 @@ TEST(PrintError, MultiNotesSingleLines) {
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
               .with_note("Yeah, really, please stop."_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1369,8 +1425,9 @@ TEST(PrintError, MultiNotesMultiLines) {
               .with_note("No need to try, they can't be compared."_ss)
               .with_note(
                   "Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1408,8 +1465,9 @@ TEST(PrintError, MultiHelpsMultiLines) {
               .with_help("No need to try, they can't be compared."_ss)
               .with_help(
                   "Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(Config().with_color(false).with_char_set(
-                  Config::ascii()));
+              .with_config(
+                  Config().with_color(false).with_char_set(
+                      Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(

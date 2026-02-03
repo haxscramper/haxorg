@@ -39,5 +39,3 @@ Opt<Res> opt_map(CR<Opt<T>> opt, CR<F> cb) {
 }
 
 } // namespace hstd
-
-

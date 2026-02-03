@@ -1,29 +1,36 @@
-from beartype.typing import List, Any, TypeVar, Iterable, Callable, Optional
-import itertools
-from beartype import beartype
-from itertools import dropwhile, takewhile
-import more_itertools as mit
 from collections import defaultdict
+import itertools
+from itertools import dropwhile
+from itertools import takewhile
 import re
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import TypeVar
+import more_itertools as mit
 
 T = TypeVar('T')
 
 
 def cond(expr: Any, ifTrue: Any = None, ifFalse: Any = None) -> Any:
     """
-    Alternative for inline if expression for simpler syntax and better formatting. Also supports 
+    Alternative for inline if expression for simpler syntax and better formatting. Also supports
     multiple conditions, similar to the `cond` and `pcond` macro from lisp. Note: will evaluate
     all arguments irrespective of the truth value, so use it only in case where compute cost is
-    small and there are no side effects. 
+    small and there are no side effects.
 
-    If the `expr` is not a list or a tuple other type -- based on the value of `expr`, return the `ifTrue` or `ifFalse. 
+    If the `expr` is not a list or a tuple other type -- based on the value of `expr`, return the `ifTrue` or `ifFalse.
 
     ```
     value = cond(expr, "true", "false")
     ```
 
     If the `expr` is a list is a list or a tuple return the first item where the expression is true. If no elements
-    have true values, will return `None`. To get a default branch, use `True` as an expression. 
+    have true values, will return `None`. To get a default branch, use `True` as an expression.
 
     ```
     value = cond([
@@ -49,10 +56,10 @@ def cond(expr: Any, ifTrue: Any = None, ifFalse: Any = None) -> Any:
 
 def maybe_splice(expr: Any, item: T) -> List[T]:
     """
-    Return `[item]` if the expression evaluates to true, otherwise return an empty list. 
-    
+    Return `[item]` if the expression evaluates to true, otherwise return an empty list.
+
     Use this for splicing optional values into the list `[it1, *maybe_splice(cond, it2)]` --
-    depending on the `cond` value, the resulting list might have one or two elements. 
+    depending on the `cond` value, the resulting list might have one or two elements.
     """
     if expr:
         return [item]
@@ -97,17 +104,17 @@ def iterate_object_tree(
 ) -> None:
     """
     Recursively iterate the data tree, irrespective of the types -- treat the whole object
-    as an untyped dict/etc. 
+    as an untyped dict/etc.
 
-    :param context: Starting list of the scopes to be used in the iteration. The value is 
+    :param context: Starting list of the scopes to be used in the iteration. The value is
       going to be mutated during the iterationg -- using .append() and .pop()
 
-    :param pre_visit: Callback invoked before appending the new tree to the stack, use 
+    :param pre_visit: Callback invoked before appending the new tree to the stack, use
       for pre-order DFS traversal of the data. One-argument function.
 
     :param post_visit: Callback for post-order DFS traversal.
 
-    To use iteration context in the callback functions, define the mutable variable and 
+    To use iteration context in the callback functions, define the mutable variable and
     read it in the callbacks.
     """
 
@@ -126,7 +133,9 @@ def iterate_object_tree(
 
             value_format = value_format.replace("\n", "\\n")
 
-            print(f"{prefix} {type(tree)} {item_visit_format(tree, context)} {value_format}")
+            print(
+                f"{prefix} {type(tree)} {item_visit_format(tree, context)} {value_format}"
+            )
 
         if id(tree) in recursion_guard:
             return

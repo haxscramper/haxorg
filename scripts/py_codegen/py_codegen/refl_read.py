@@ -1,12 +1,11 @@
 from copy import copy
-
-import py_codegen.proto_lib.reflection_defs as pb
+import json
+from pathlib import Path
 import re
 
 from beartype import beartype
 from py_codegen.gen_tu_cpp import *
-from pathlib import Path
-import json
+import py_codegen.proto_lib.reflection_defs as pb
 
 
 @beartype
@@ -309,7 +308,7 @@ class ConvTu:
 def open_proto_file(path: Path) -> pb.TU:
     unit = pb.TU()
     assert path.exists(), f"Reflection file {path} does not exist"
- 
+
     with open(path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 

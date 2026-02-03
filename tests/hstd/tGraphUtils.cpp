@@ -469,19 +469,21 @@ TEST(GraphUtils, LibcolaIr1) {
     ir.rectangles.push_back(GraphSize(5, 5));
 
 
-    ir.nodeConstraints.push_back(C{C::Align{
-        .nodes
-        = {GraphNodeConstraint::Align::Spec{.node = 0},
-           GraphNodeConstraint::Align::Spec{.node = 1}},
-        .dimension = GraphDimension::XDIM,
-    }});
+    ir.nodeConstraints.push_back(
+        C{C::Align{
+            .nodes
+            = {GraphNodeConstraint::Align::Spec{.node = 0},
+               GraphNodeConstraint::Align::Spec{.node = 1}},
+            .dimension = GraphDimension::XDIM,
+        }});
 
-    ir.nodeConstraints.push_back(C{C::Align{
-        .nodes
-        = {GraphNodeConstraint::Align::Spec{.node = 1},
-           GraphNodeConstraint::Align::Spec{.node = 3}},
-        .dimension = GraphDimension::YDIM,
-    }});
+    ir.nodeConstraints.push_back(
+        C{C::Align{
+            .nodes
+            = {GraphNodeConstraint::Align::Spec{.node = 1},
+               GraphNodeConstraint::Align::Spec{.node = 3}},
+            .dimension = GraphDimension::YDIM,
+        }});
 
     auto lyt = ir.doColaLayout();
     lyt.writeSvg("/tmp/testLibcolaIr1.svg");

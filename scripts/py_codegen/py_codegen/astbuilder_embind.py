@@ -1,10 +1,12 @@
-from py_codegen.gen_tu_cpp import *
-from beartype import beartype
-from dataclasses import dataclass, field
-from beartype.typing import Union
-import py_codegen.astbuilder_cpp as cpp
 from collections import defaultdict
+from dataclasses import dataclass
+from dataclasses import field
+
+from beartype import beartype
+from beartype.typing import Union
 from py_codegen.astbuilder_base import pascal_case
+import py_codegen.astbuilder_cpp as cpp
+from py_codegen.gen_tu_cpp import *
 
 
 @beartype
@@ -42,8 +44,9 @@ def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
 
     if flat == ["std", "shared_ptr"] and 1 == len(
             Typ.Parameters) and base_map.is_known_type(
-                par0) and base_map.get_one_type_for_qual_name( # type: ignore
-                    par0).reflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
+                par0) and base_map.get_one_type_for_qual_name(  # type: ignore
+                    par0
+                ).reflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
         assert par0
         return ts_type(par0, base_map=base_map)
 
@@ -117,7 +120,8 @@ class WasmField():
             ast.line([
                 ast.string(self.Field.name),
                 ast.string(": "),
-                ast.Type(ts_type(self.Field.type, base_map)) if self.Field.type else ast.string("any"), 
+                ast.Type(ts_type(self.Field.type, base_map))
+                if self.Field.type else ast.string("any"),
             ])
         ]
 
@@ -247,6 +251,7 @@ class WasmFunction():
             Stmt=True,
         )
 
+
 @beartype
 class WasmEnum():
     Enum: GenTuEnum
@@ -308,7 +313,7 @@ class WasmMethod(WasmFunction):
         super().__init__(Func)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId: # type: ignore
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:  # type: ignore
         b = ast.b
 
         Args: List[GenTuIdent] = []
@@ -524,14 +529,17 @@ class WasmModule():
                         Stmt=True,
                     )))
 
-    def add_decl(self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction | GenTuStruct) -> None:
+    def add_decl(
+        self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction |
+        GenTuStruct
+    ) -> None:
         match item:
             case GenTuStruct():
                 self.items.append(WasmClass(item))
 
                 for nested in item.nested:
                     if not isinstance(nested, GenTuPass):
-                        self.add_decl(nested) # type: ignore
+                        self.add_decl(nested)  # type: ignore
 
             case GenTuEnum():
                 self.items.append(WasmEnum(item))
@@ -567,7 +575,9 @@ class WasmModule():
                 ast.string(f"export interface {self.name}_module_auto"),
                 iface,
             ),
-            ast.string(f"type {self.name}_module = {self.name}_module_auto & haxorg_wasm.{self.name}_manual; "),
+            ast.string(
+                f"type {self.name}_module = {self.name}_module_auto & haxorg_wasm.{self.name}_manual; "
+            ),
             *body,
         ])
 

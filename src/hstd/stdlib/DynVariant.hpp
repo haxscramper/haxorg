@@ -146,17 +146,15 @@ dyn_variant<Tag> from_index_impl(
     using variant_type = dyn_variant<Tag>;
     using func_type    = variant_type (*)(Factory&&);
 
-    static constexpr auto make_func = []<int I>(
-                                          std::integral_constant<int, I>) {
-        return +[](Factory&& f) -> variant_type {
-            using type = detail::variant::
-                type_at_index_t<I, typename Tag::types>;
-            return variant_type {
-                std::make_shared<type>(
-                    std::forward<Factory>(f).template operator()<type>())
+    static constexpr auto make_func =
+        []<int I>(std::integral_constant<int, I>) {
+            return +[](Factory&& f) -> variant_type {
+                using type = detail::variant::
+                    type_at_index_t<I, typename Tag::types>;
+                return variant_type{std::make_shared<type>(
+                    std::forward<Factory>(f).template operator()<type>())};
             };
         };
-    };
 
     static constexpr func_type table[] = {
         make_func(std::integral_constant<int, Is>{})...};

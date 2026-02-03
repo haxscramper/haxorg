@@ -1,7 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from typing import Type, TYPE_CHECKING
+
+from py_scriptutils.sqlalchemy_utils import ForeignId
+from py_scriptutils.sqlalchemy_utils import IdColumn
+from py_scriptutils.sqlalchemy_utils import IntColumn
+from py_scriptutils.sqlalchemy_utils import StrColumn
+from sqlalchemy import Column
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
 from sqlalchemy.orm import declarative_base
-from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn
-from typing import TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
     from sqlalchemy.orm.decl_api import DeclarativeMeta

@@ -1,6 +1,7 @@
-import rich_click as click
 from beartype.typing import Any
-from py_cli import haxorg_cli, haxorg_opts
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+import rich_click as click
 
 
 @click.group()
@@ -11,12 +12,12 @@ def export(ctx: click.Context, **kwargs: Any) -> None:
     pass
 
 
-from py_cli.export.haxorg_export_tex import export_tex_cli
-from py_cli.export.haxorg_export_ultraplain import export_ultraplain_cli
-from py_cli.export.haxorg_export_sqlite import export_sqlite_cli
 from py_cli.export.haxorg_export_html import export_html_cli
 from py_cli.export.haxorg_export_pandoc import export_pandoc_cli
+from py_cli.export.haxorg_export_sqlite import export_sqlite_cli
+from py_cli.export.haxorg_export_tex import export_tex_cli
 from py_cli.export.haxorg_export_typst import export_typst_cli
+from py_cli.export.haxorg_export_ultraplain import export_ultraplain_cli
 
 export.add_command(export_tex_cli)
 export.add_command(export_ultraplain_cli)

@@ -1,10 +1,11 @@
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
-
-import pytest
-from py_codegen.gen_tu_cpp import ReferenceKind
-import py_codegen.astbuilder_pybind11 as py11
-import py_codegen.astbuilder_cpp as cpp
 from pathlib import Path
+
+import py_codegen.astbuilder_cpp as cpp
+import py_codegen.astbuilder_pybind11 as py11
+from py_codegen.gen_tu_cpp import ReferenceKind
+from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextOptions
+import pytest
 
 
 @pytest.mark.test_release
@@ -57,7 +58,7 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
         "struct S { void enable_file_trace(int const&); };",
         stable_test_dir=stable_test_dir,
     )
-    
+
     assert len(struct.methods) == 1
     func = struct.methods[0]
     assert func.name == "enable_file_trace"

@@ -44,7 +44,7 @@ DiaNodeTreeModel::DiaNodeTreeModel(const DiaAdapter& root, QObject* parent)
 }
 
 void DiaNodeTreeModel::setNewRoot(
-    const DiaAdapter&           root,
+    const DiaAdapter&         root,
     const hstd::Vec<DiaEdit>& edits) {}
 
 hstd::ColText DiaNodeTreeModel::format() {

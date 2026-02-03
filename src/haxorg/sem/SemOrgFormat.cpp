@@ -106,13 +106,14 @@ void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
 
 auto Formatter::toString(SemId<RadioTarget> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(Vec<Res>::Splice(
-        str("<<<"),
-        rv::transform(
-            id->words | rv::intersperse(" ") | rv::join,
-            [&](CR<Str> word) { return this->str(word.toBase()); })
-            | rs::to<Vec>(),
-        str(">>>")));
+    return b.line(
+        Vec<Res>::Splice(
+            str("<<<"),
+            rv::transform(
+                id->words | rv::intersperse(" ") | rv::join,
+                [&](CR<Str> word) { return this->str(word.toBase()); })
+                | rs::to<Vec>(),
+            str(">>>")));
 }
 
 auto Formatter::toString(SemId<TextTarget> id, CR<Context> ctx) -> Res {
@@ -137,11 +138,12 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (parameters.empty()) {
         return str(Str("{{{") + id->name + Str("}}}"));
     } else {
-        return b.line(Vec<Res>::Splice(
-            str(Str("{{{") + id->name + Str("(")),
-            b.join(parameters, str(", ")),
-            str(")}}}") //
-            ));
+        return b.line(
+            Vec<Res>::Splice(
+                str(Str("{{{") + id->name + Str("(")),
+                b.join(parameters, str(", ")),
+                str(")}}}") //
+                ));
     }
 }
 
@@ -1044,8 +1046,11 @@ auto Formatter::toString(sem::SubtreeCompletion const& id, CR<Context> ctx)
 
 auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_center"), toSubnodes(id, ctx), str("#+end_center")));
+    return b.stack(
+        Vec<Res>::Splice(
+            str("#+begin_center"),
+            toSubnodes(id, ctx),
+            str("#+end_center")));
 }
 
 auto Formatter::toString(SemId<Bold> id, CR<Context> ctx) -> Res {
@@ -1683,26 +1688,31 @@ auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
-        b.stack(Vec<Res>::Splice(
-            b.line({str("#+begin_quote "), toString(id->attrs, ctx)}),
-            toSubnodes(id, ctx),
-            str("#+end_quote"))),
+        b.stack(
+            Vec<Res>::Splice(
+                b.line({str("#+begin_quote "), toString(id->attrs, ctx)}),
+                toSubnodes(id, ctx),
+                str("#+end_quote"))),
         id.as<sem::Stmt>(),
         ctx);
 }
 
 auto Formatter::toString(SemId<BlockComment> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_comment"),
-        toSubnodes(id, ctx),
-        str("#+end_comment")));
+    return b.stack(
+        Vec<Res>::Splice(
+            str("#+begin_comment"),
+            toSubnodes(id, ctx),
+            str("#+end_comment")));
 }
 
 auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_verse"), toSubnodes(id, ctx), str("#+end_verse")));
+    return b.stack(
+        Vec<Res>::Splice(
+            str("#+begin_verse"),
+            toSubnodes(id, ctx),
+            str("#+end_verse")));
 }
 
 
@@ -1768,27 +1778,30 @@ auto Formatter::toString(SemId<CmdExport> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_example"),
-        toSubnodes(id, ctx),
-        str("#+end_example")));
+    return b.stack(
+        Vec<Res>::Splice(
+            str("#+begin_example"),
+            toSubnodes(id, ctx),
+            str("#+end_example")));
 }
 
 auto Formatter::toString(SemId<BlockDynamicFallback> id, CR<Context> ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        str("#+begin_" + id->name),
-        toSubnodes(id, ctx),
-        str("#+end_" + id->name)));
+    return b.stack(
+        Vec<Res>::Splice(
+            str("#+begin_" + id->name),
+            toSubnodes(id, ctx),
+            str("#+end_" + id->name)));
 }
 
 auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.stack(Vec<Res>::Splice(
-        id->subnodes | rv::transform([&](OrgArg sub) {
-            return b.line({str(": "), toString(sub, ctx)});
-        })));
+    return b.stack(
+        Vec<Res>::Splice(id->subnodes | rv::transform([&](OrgArg sub) {
+                             return b.line(
+                                 {str(": "), toString(sub, ctx)});
+                         })));
 }
 
 

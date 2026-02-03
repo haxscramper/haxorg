@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/Yaml.hpp>

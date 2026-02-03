@@ -437,21 +437,23 @@ hstd::FormattedDiff::FormattedDiff(
             unchanged = 0;
         }
         // Start new entry on the old line
-        oldText.push_back(BufItem{
-            .originalIndex = lhs.item,
-            // Only case where lhs can have unchanged lines is for
-            // unified diff+filler
-            .changed = conf.unified() && lhs.kind != sek::None,
-            .kind    = lhs.kind});
+        oldText.push_back(
+            BufItem{
+                .originalIndex = lhs.item,
+                // Only case where lhs can have unchanged lines is for
+                // unified diff+filler
+                .changed = conf.unified() && lhs.kind != sek::None,
+                .kind    = lhs.kind});
 
         // New entry on the new line
-        newText.push_back(BufItem{
-            .originalIndex = rhs.item,
-            // Only newly inserted lines need to be formatted for the
-            // unified diff, everything else is displayed on the
-            // 'original' version.
-            .changed = conf.unified() && rhs.kind == sek::Insert,
-            .kind    = rhs.kind});
+        newText.push_back(
+            BufItem{
+                .originalIndex = rhs.item,
+                // Only newly inserted lines need to be formatted for the
+                // unified diff, everything else is displayed on the
+                // 'original' version.
+                .changed = conf.unified() && rhs.kind == sek::Insert,
+                .kind    = rhs.kind});
     }
 
     *this = FormattedDiff(oldText, newText, conf);
@@ -529,30 +531,34 @@ hstd::FormattedDiff::FormattedDiff(
              oldIt != oldText.end();
              ++oldIt, ++newIt) {
             if (conf.sideBySide) {
-                unified().lhs.push_back(FormattedDiff::DiffLine{
-                    .originalIndex = oldIt->originalIndex,
-                    .isLhs         = true,
-                    .prefix        = oldIt->kind,
-                    .lineIndex     = oldIt->lineIndex});
+                unified().lhs.push_back(
+                    FormattedDiff::DiffLine{
+                        .originalIndex = oldIt->originalIndex,
+                        .isLhs         = true,
+                        .prefix        = oldIt->kind,
+                        .lineIndex     = oldIt->lineIndex});
 
-                unified().rhs.push_back(FormattedDiff::DiffLine{
-                    .originalIndex = newIt->originalIndex,
-                    .isLhs         = false,
-                    .prefix        = newIt->kind,
-                    .lineIndex     = newIt->lineIndex});
-            } else {
-                unified().lhs.push_back(FormattedDiff::DiffLine{
-                    .originalIndex = oldIt->originalIndex,
-                    .isLhs         = true,
-                    .prefix        = oldIt->kind,
-                    .lineIndex     = oldIt->lineIndex});
-
-                if (newIt->changed) {
-                    unified().rhs.push_back(FormattedDiff::DiffLine{
+                unified().rhs.push_back(
+                    FormattedDiff::DiffLine{
                         .originalIndex = newIt->originalIndex,
                         .isLhs         = false,
                         .prefix        = newIt->kind,
                         .lineIndex     = newIt->lineIndex});
+            } else {
+                unified().lhs.push_back(
+                    FormattedDiff::DiffLine{
+                        .originalIndex = oldIt->originalIndex,
+                        .isLhs         = true,
+                        .prefix        = oldIt->kind,
+                        .lineIndex     = oldIt->lineIndex});
+
+                if (newIt->changed) {
+                    unified().rhs.push_back(
+                        FormattedDiff::DiffLine{
+                            .originalIndex = newIt->originalIndex,
+                            .isLhs         = false,
+                            .prefix        = newIt->kind,
+                            .lineIndex     = newIt->lineIndex});
                 }
             }
         }
@@ -762,12 +768,13 @@ struct fuzzy_result {
 
 #define LG(__msg)                                                         \
     if (m.TraceState) {                                                   \
-        m.message(OperationsMsg{                                          \
-            .line     = __LINE__,                                         \
-            .function = __func__,                                         \
-            .msg      = indent(__msg, recursionCount),                    \
-            .file     = __FILE__,                                         \
-        });                                                               \
+        m.message(                                                        \
+            OperationsMsg{                                                \
+                .line     = __LINE__,                                     \
+                .function = __func__,                                     \
+                .msg      = indent(__msg, recursionCount),                \
+                .file     = __FILE__,                                     \
+            });                                                           \
     }
 
 fuzzy_result fuzzy_match_recursive(

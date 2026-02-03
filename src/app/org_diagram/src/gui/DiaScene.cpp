@@ -128,7 +128,7 @@ void DiaScene::applyPartialEditStep(
 
     if (edit.hasSrc()) {
         hstd::Opt<DiaSceneItem*> item = getItemForId(edit.getSrc().id);
-        HSLOG_DEBUG(
+        HSLOG_TRACE(
             "SRC:{} {}",
             edit.getSrc().getSelfPathFromRoot(),
             item.has_value()
@@ -138,7 +138,7 @@ void DiaScene::applyPartialEditStep(
 
     if (edit.hasDst()) {
         hstd::Opt<DiaSceneItem*> item = getItemForId(edit.getDst().id);
-        HSLOG_DEBUG(
+        HSLOG_TRACE(
             "DST:{} {}",
             edit.getDst().getSelfPathFromRoot(),
             item.has_value()

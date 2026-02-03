@@ -1,4 +1,4 @@
-FROM fedora:latest 
+FROM fedora:latest
 
 RUN dnf install -y python3 python3-devel python3-pip curl wget git
 

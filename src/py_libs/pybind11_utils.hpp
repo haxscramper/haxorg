@@ -29,7 +29,7 @@ struct PyTypeRegistryGuard {
         auto const& registered_types = pybind11::detail::get_internals()
                                            .registered_types_py;
         for (auto& item : registered_types) {
-            auto type = hstd::Str((((PyTypeObject*)item.first)->tp_name));
+            auto type  = hstd::Str((((PyTypeObject*)item.first)->tp_name));
             auto split = type.split(".");
             if (split.size() == 2) {
                 py_cxx_map.incl(split.at(1));
@@ -343,10 +343,11 @@ py::object py_getattr_impl(R const& obj, std::string const& attr) {
         if (result.has_value()) {
             return result.value();
         } else {
-            throw py::attribute_error(hstd::fmt(
-                "No attribute '{}' found for type {}",
-                attr,
-                typeid(obj).name()));
+            throw py::attribute_error(
+                hstd::fmt(
+                    "No attribute '{}' found for type {}",
+                    attr,
+                    typeid(obj).name()));
         }
     }
 }
@@ -363,10 +364,11 @@ void py_setattr_impl(R& obj, std::string const& attr, py::object value) {
     });
 
     if (!found_target) {
-        throw py::attribute_error(hstd::fmt(
-            "No attribute '{}' found for type {}",
-            attr,
-            typeid(obj).name()));
+        throw py::attribute_error(
+            hstd::fmt(
+                "No attribute '{}' found for type {}",
+                attr,
+                typeid(obj).name()));
     }
 }
 

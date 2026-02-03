@@ -77,8 +77,8 @@ struct remove_smart_pointer<std::weak_ptr<T>> {
 
 template <class T, class D, class U>
     requires(requires(std::unique_ptr<U, D>::pointer p) {
-                dynamic_cast<std::unique_ptr<T, D>::pointer>(p);
-            })
+        dynamic_cast<std::unique_ptr<T, D>::pointer>(p);
+    })
 constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
     -> std::unique_ptr<T, D> {
     static_assert(
@@ -101,4 +101,3 @@ constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
 } // namespace hstd
 
 extern template class std::unique_ptr<char, void (*)(void*)>;
-

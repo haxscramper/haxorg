@@ -4,13 +4,12 @@ import ast
 import copy
 import logging
 import os
+from pathlib import Path
 import subprocess
+import sys
 import time
 import warnings
-import sys
-from pathlib import Path
 
-import pytest
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 from _pytest.main import Session
@@ -19,14 +18,19 @@ from _pytest.python import Module
 from _pytest.runner import CallInfo
 from asteval import Interpreter
 from beartype import beartype
-from beartype.typing import Any, Generator, List, Optional
-from plumbum import local
-from py_scriptutils.repo_files import get_haxorg_build_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
-from py_scriptutils.tracer import TraceCollector
-
+from beartype.typing import Any
+from beartype.typing import Generator
+from beartype.typing import List
+from beartype.typing import Optional
 from conf_gtest import GTestFile  # type: ignore
 from conf_test_common import summarize_cookies  # type: ignore
+from plumbum import local
+from py_scriptutils.repo_files import get_haxorg_build_path
+from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import pprint_to_file
+from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.tracer import TraceCollector
+import pytest
 
 CAT = "conftest"
 
@@ -243,8 +247,8 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
             def has_params(mark: pytest.Mark, *args: list, **kwargs: dict) -> bool:
                 """
-                Check if a specified marker has all parameters listed in the `args` and `kwargs`. 
-                It might have more parameters, these will be ignored. 
+                Check if a specified marker has all parameters listed in the `args` and `kwargs`.
+                It might have more parameters, these will be ignored.
                 """
                 dbg(f"    > has_params {mark.name}({mark.args}, {mark.kwargs})")
                 if len(mark.args) < len(args):
@@ -282,7 +286,7 @@ def pytest_collection_modifyitems(config: pytest.Config,
             class HasMarker():
                 """
                 Implementation function wrapper to hold the copy of `name` context
-                from the for loop. 
+                from the for loop.
                 """
 
                 def __init__(self, name: str) -> None:
@@ -298,7 +302,7 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 """
                 Limit the number of filtered tests to N max. All calls after N calls to this function
                 will return `False`, so it is best put as `cond() and cond() and test_first_n()` as
-                it would clamp down on the number of otherwise accepted elements. 
+                it would clamp down on the number of otherwise accepted elements.
                 """
                 nonlocal test_limit_counter
                 result = test_limit_counter < max_count

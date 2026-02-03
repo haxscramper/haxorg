@@ -262,7 +262,7 @@ example
 #+end_export
 
 #+caption: Custom block caption
-#+begin_beat 
+#+begin_beat
 Custom block content
 #+end_beat
 
@@ -303,7 +303,7 @@ example
 
 #+attr_list: :attached subtree :list-format Table1D2Col
 - =item 1= :: Content 1
-  - Table with nested content 
+  - Table with nested content
   - Instead of this ASCII art abomination
 - =item 2= :: Content 2
 - =item 3= :: Content 3
@@ -320,7 +320,7 @@ example
 - thread
   - ~std::thread~
   - something
-  - Most fundamental 
+  - Most fundamental
 - tmp
   - less columns
 
@@ -467,14 +467,14 @@ for (size_t i = 0; i < worker_count; ++i) {
 ********* subtree 9
 ********** subtree 10
 
-* Tables 
+* Tables
 
 #+begin_table
 | col1 | col2 | col3 |
-#+row: :color red 
-| column1 
-| column2 
-| column3 
+#+row: :color red
+| column1
+| column2
+| column3
 
 #+row:
 #+cell:

@@ -1,10 +1,8 @@
 import itertools
 from pathlib import Path
-
-from more_itertools import first_true
-import pytest
 from tempfile import gettempdir
 
+from more_itertools import first_true
 import pytest
 
 
@@ -193,7 +191,7 @@ def test_nim_record_with_compile(stable_test_dir: Path) -> None:
             "file.hpp":
                 """
         #include <cstdio>
-        
+
         struct Test {
             int field = 12;
             int run_method() { puts("-- default constructor"); return 24; }
@@ -231,6 +229,7 @@ echo "method field", value.run_method()
             'value field 0', '-- default constructor', 'method field24'
         ]
 
+
 @pytest.mark.test_release
 def test_annotated_declaration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
@@ -240,7 +239,7 @@ struct NotAnnotatedStruct {};
 struct [[refl]] AnnotatedStruct {};
 
 void function_no_annotation();
-[[refl]] void function_with_annotation(); 
+[[refl]] void function_with_annotation();
 
 struct [[refl]] PartiallyAnnotatedFields {
     [[refl]] int field1;
@@ -268,10 +267,12 @@ struct [[refl]] PartiallyAnnotatedFields {
     assert len(tu.functions) == 1
     assert tu.functions[0].name == "function_with_annotation"
 
+
 @pytest.mark.test_release
 def test_type_cross_dependency(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
     import py_codegen.wrapper_gen_nim as gen_nim
+
+    import tests.python.refl.refl_test_driver as refl_test_driver
 
     code_dir = stable_test_dir
     value = refl_test_driver.run_provider(

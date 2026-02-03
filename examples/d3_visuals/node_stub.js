@@ -7,7 +7,7 @@ export default {
     }
     // Add stub methods
   },
-  
+
   parseFile: (path, params) => {
     console.warn("Using stub implementation for Deno");
     // Return a minimal implementation
@@ -16,6 +16,6 @@ export default {
       // Other methods
     };
   },
-  
+
   // Add other exported functions and classes
 };

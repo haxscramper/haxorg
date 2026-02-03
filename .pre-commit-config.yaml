@@ -1,0 +1,47 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        exclude: ^\.clang-format$
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        entry: uv run --dev isort
+        language: system
+        types: [python]
+  - repo: local
+    hooks:
+      - id: yapf
+        name: yapf
+        entry: uv run --dev yapf -i
+        language: system
+        types: [python]
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        entry: clang-format -i
+        language: system
+        types_or: [c, c++, cuda]
+  - repo: local
+    hooks:
+      - id: check-repo-tasks
+        name: check-repo-tasks
+        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_repo_task_config.py
+        language: system
+        files: ^scripts/py_repository/py_repository/repo_tasks/.*\.json$
+  - repo: local
+    hooks:
+      - id: find-debug-calls
+        name: Find debug calls
+        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_cxx_code.py
+        language: system
+        types: [c++]

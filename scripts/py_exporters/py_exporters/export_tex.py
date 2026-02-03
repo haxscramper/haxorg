@@ -1,13 +1,15 @@
-import py_haxorg.pyhaxorg_wrap as org
-from py_textlayout.py_textlayout_wrap import TextLayout, BlockId
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-
-from beartype.typing import List, Optional, Any
 from enum import Enum
 
+from beartype.typing import Any
+from beartype.typing import List
+from beartype.typing import Optional
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import formatDateTime
+from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
+import py_haxorg.pyhaxorg_wrap as org
+from py_textlayout.py_textlayout_wrap import BlockId
+from py_textlayout.py_textlayout_wrap import TextLayout
 
 
 class TexCommand(Enum):

@@ -311,11 +311,12 @@ Solution::Ptr hPlusSolution(
             s1->curSpan() + s2->curSpan(),
             iCur,
             gCur,
-            Layout::shared(Vec<LayoutElement::Ptr>{
-                LayoutElement::shared(
-                    LayoutElement::LayoutPrint({s1->curLayout()})),
-                LayoutElement::shared(
-                    LayoutElement::LayoutPrint({s2->curLayout()}))}));
+            Layout::shared(
+                Vec<LayoutElement::Ptr>{
+                    LayoutElement::shared(
+                        LayoutElement::LayoutPrint({s1->curLayout()})),
+                    LayoutElement::shared(
+                        LayoutElement::LayoutPrint({s2->curLayout()}))}));
 
         // Move to the knot closest to the margin of the corresponding
         // component.
@@ -400,9 +401,10 @@ Opt<Solution::Ptr> doOptTextLayout(
     Opt<Solution::Ptr> result;
     int                span = store.at(self).getText().text.len;
 
-    Layout::Ptr layout = Layout::shared(Vec<LayoutElement::Ptr>{
-        LayoutElement::shared(LayoutElement::String{
-            .text = store.at(self).getText().text})});
+    Layout::Ptr layout = Layout::shared(
+        Vec<LayoutElement::Ptr>{LayoutElement::shared(
+            LayoutElement::String{
+                .text = store.at(self).getText().text})});
 
     // The costs associated with the layout of this block may require 1, 2
     // or 3 knots, depending on how the length of the text compares with
@@ -556,12 +558,13 @@ Opt<Solution::Ptr> doOptStackLayout(
     if (soln->layouts.size() == 0) { return rest; }
 
     // Add the cost of the line breaks between the elements.
-    return Opt<Solution::Ptr>(soln->plusConst(static_cast<float>(
-        opts.linebreakCost * store.at(self).breakMult
-        * std::max(
-            static_cast<int>(
-                store.at(self).getStack().elements.size() - 1),
-            0))));
+    return Opt<Solution::Ptr>(soln->plusConst(
+        static_cast<float>(
+            opts.linebreakCost * store.at(self).breakMult
+            * std::max(
+                static_cast<int>(
+                    store.at(self).getStack().elements.size() - 1),
+                0))));
 }
 
 Opt<Solution::Ptr> doOptWrapLayout(
@@ -639,9 +642,10 @@ Opt<Solution::Ptr> doOptWrapLayout(
             // of the line break we've introduced, and a small penalty
             // (Options.cpack) to favor (ceteris paribus) layouts with
             // elements packed into earlier lines.
-            solutionsI.push_back(fullSoln->plusConst(static_cast<float>(
-                opts.linebreakCost * store.at(self).breakMult
-                + opts.cpack * (store.at(self).size() - j))));
+            solutionsI.push_back(fullSoln->plusConst(
+                static_cast<float>(
+                    opts.linebreakCost * store.at(self).breakMult
+                    + opts.cpack * (store.at(self).size() - j))));
             // If the element at the end of the line mandates a following
             // line break, we're done.
             if (lastBreaking) {
@@ -782,8 +786,9 @@ generator<Event> layout::formatEvents(
 
                     if (elem->getKind() == lek::NewlineSpace
                         && elem->getNewlineSpace().spaceNum != 0) {
-                        co_yield Event(Event::Spaces{
-                            elem->getNewlineSpace().spaceNum});
+                        co_yield Event(
+                            Event::Spaces{
+                                elem->getNewlineSpace().spaceNum});
                         buf.hPos += elem->getNewlineSpace().spaceNum;
                     }
                     break;
@@ -927,10 +932,11 @@ BlockId BlockStore::wrap(
     CR<Vec<BlockId>> elems,
     LytStr           sep,
     int              breakMult) {
-    auto res = store.add(Block(Block::Wrap{
-        .wrapElements = elems,
-        .sep          = sep,
-    }));
+    auto res = store.add(Block(
+        Block::Wrap{
+            .wrapElements = elems,
+            .sep          = sep,
+        }));
 
     at(res).isBreaking = false;
     at(res).breakMult  = breakMult;

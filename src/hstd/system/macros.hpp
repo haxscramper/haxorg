@@ -186,10 +186,11 @@
     __VisitorResultType,                                                  \
     __VisitorMethodName)                                                  \
                                                                           \
-    BOOST_PP_EXPAND(BOOST_PP_TUPLE_REM() BOOST_PP_IF(                     \
-        IS_EMPTY_TUPLE(__VisitorTemplateArgs),                            \
-        (),                                                               \
-        (template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)))         \
+    BOOST_PP_EXPAND(                                                      \
+        BOOST_PP_TUPLE_REM() BOOST_PP_IF(                                 \
+            IS_EMPTY_TUPLE(__VisitorTemplateArgs),                        \
+            (),                                                           \
+            (template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)))     \
     BOOST_PP_TUPLE_REM()                                                  \
     __VisitorResultType __VisitorTypename<                                \
         BOOST_PP_TUPLE_REM() __VisitorTypeSpecification>::                \
@@ -199,11 +200,12 @@
 
 /// ```
 /// #define IMM_TREE_REPR_IMPL(__TemplateArgs, __VisitorTypeSpecification)   \
-///    DEFINE_VISITOR_BASE_ALL(                                              \
-///        /*Typename=*/ImmTreeReprVisitor,                                  \
-///        /*TemplateArgs=*/__TemplateArgs,                                  \
-///        /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),   \
-///        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
+///    DEFINE_VISITOR_BASE_ALL( \
+///        /*Typename=*/ImmTreeReprVisitor, \
+///        /*TemplateArgs=*/__TemplateArgs, \
+///        /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),
+///        \
+///        /*TypeSpecification=*/__VisitorTypeSpecification, \
 ///        /*ResultType=*/(void))
 /// ```
 

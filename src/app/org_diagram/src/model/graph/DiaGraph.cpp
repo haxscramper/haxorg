@@ -19,7 +19,7 @@ hstd::Vec<org::graph::EdgeID> DiaHierarchyEdgeCollection::addAllOutgoing(
         trackEdge(res_id);
         res.push_back(res_id);
     }
-    HSLOG_DEBUG("get outgoing {}", res);
+    HSLOG_TRACE("get outgoing {}", res);
     return res;
 }
 
@@ -132,7 +132,7 @@ json DiaGraphVertex::getSerialNonRecursive(
         if (ad.getKind() == DiaNodeKind::Item) {
             auto geometry = ad->as<DiaNodeItem>()->getGeometry();
             if (geometry) {
-                HSLOG_DEBUG(
+                HSLOG_TRACE(
                     "Get node item {} geometry {}",
                     subtree.value()->treeId,
                     geometry);
@@ -201,7 +201,7 @@ void DiaSubtreeIdTracker::trackVertex(const org::graph::VertexID& vertex) {
     auto ad = graph->getAdapter(vertex);
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree && subtree.value()->treeId->has_value()) {
-        HSLOG_DEBUG(
+        HSLOG_TRACE(
             "Tracking {} with ID '{}'",
             vertex,
             subtree.value()->treeId->value());
@@ -223,7 +223,7 @@ hstd::Vec<org::graph::VertexID> DiaSubtreeIdTracker::getVertices(
     const org::graph::IProperty& prop) {
     auto id_prop = dynamic_cast<DiaSubtreeIdProperty const*>(&prop);
     hstd::Vec<org::graph::VertexID> res;
-    HSLOG_DEBUG("Getting vertices for property ID: {}", id_prop->getId());
+    HSLOG_TRACE("Getting vertices for property ID: {}", id_prop->getId());
     if (id_prop != nullptr && map.contains(id_prop->getId())) {
         res.push_back(map.at(id_prop->getId()));
     }

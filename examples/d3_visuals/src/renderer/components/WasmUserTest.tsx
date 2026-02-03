@@ -5,7 +5,7 @@ import { initWasmModule } from '../wasm_client';
 export const WasmUserTest: React.FC = () => {
   const [isWasmReady, setIsWasmReady] = useState(!!window.haxorgWasm);
   const [result, setResult] = useState<number | null>(null);
-  
+
   useEffect(() => {
     if (!isWasmReady) {
       initWasmModule()
@@ -13,19 +13,19 @@ export const WasmUserTest: React.FC = () => {
         .catch(err => console.error('Failed to load WASM in component:', err));
     }
   }, [isWasmReady]);
-  
+
   const handleCalculate = () => {
     if (!window.haxorgWasm) {
       console.error('WASM not ready');
       return;
     }
-    
+
     console.log("Parse string")
     // Direct synchronous call
     const node = window.haxorgWasm.parseString("text");
     setResult(1231);
   };
-  
+
   return (
     <div>
       <h2>WASM Test Component</h2>

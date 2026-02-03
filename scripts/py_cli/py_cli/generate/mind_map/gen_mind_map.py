@@ -4,15 +4,21 @@ import logging
 from pathlib import Path
 
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Optional
 import igraph as ig
 import plumbum
-import rich_click as click
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
-from py_cli.generate.mind_map import (elk_converter, elk_schema, haxorg_mind_map,
-                                      typst_schema)
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+from py_cli.generate.mind_map import elk_converter
+from py_cli.generate.mind_map import elk_schema
+from py_cli.generate.mind_map import haxorg_mind_map
+from py_cli.generate.mind_map import typst_schema
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import pprint_to_file
+from py_scriptutils.script_logging import to_debug_json
+import rich_click as click
 
 CAT = __name__
 

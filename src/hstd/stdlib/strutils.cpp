@@ -1397,74 +1397,95 @@ void hstd::validate_utf8(const std::string& str) {
         } else if (bytes[i] >= 0xC2 && bytes[i] <= 0xDF) {
             // 2-byte sequence
             if (i + 1 >= len) {
-                throw logic_assertion_error::init(std::format(
-                    "Incomplete 2-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Incomplete 2-byte UTF-8 sequence at position {}",
+                        i));
             }
             if ((bytes[i + 1] & 0xC0) != 0x80) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 2-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 2-byte UTF-8 sequence at position {}",
+                        i));
             }
             i += 1;
         } else if (bytes[i] >= 0xE0 && bytes[i] <= 0xEF) {
             // 3-byte sequence
             if (i + 2 >= len) {
-                throw logic_assertion_error::init(std::format(
-                    "Incomplete 3-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Incomplete 3-byte UTF-8 sequence at position {}",
+                        i));
             }
             if ((bytes[i + 1] & 0xC0) != 0x80
                 || (bytes[i + 2] & 0xC0) != 0x80) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 3-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 3-byte UTF-8 sequence at position {}",
+                        i));
             }
 
             // Special case for UTF-8 surrogate values
             if (bytes[i] == 0xE0 && (bytes[i + 1] < 0xA0)) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 3-byte UTF-8 sequence (overlong encoding) at "
-                    "position {}",
-                    i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 3-byte UTF-8 sequence (overlong "
+                        "encoding) at "
+                        "position {}",
+                        i));
             }
             if (bytes[i] == 0xED && (bytes[i + 1] > 0x9F)) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 3-byte UTF-8 sequence (surrogate pair) at "
-                    "position {}",
-                    i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 3-byte UTF-8 sequence (surrogate pair) "
+                        "at "
+                        "position {}",
+                        i));
             }
 
             i += 2;
         } else if (bytes[i] >= 0xF0 && bytes[i] <= 0xF4) {
             // 4-byte sequence
             if (i + 3 >= len) {
-                throw logic_assertion_error::init(std::format(
-                    "Incomplete 4-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Incomplete 4-byte UTF-8 sequence at position {}",
+                        i));
             }
             if ((bytes[i + 1] & 0xC0) != 0x80
                 || (bytes[i + 2] & 0xC0) != 0x80
                 || (bytes[i + 3] & 0xC0) != 0x80) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 4-byte UTF-8 sequence at position {}", i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 4-byte UTF-8 sequence at position {}",
+                        i));
             }
 
             // Check for valid range
             if (bytes[i] == 0xF0 && (bytes[i + 1] < 0x90)) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 4-byte UTF-8 sequence (overlong encoding) at "
-                    "position {}",
-                    i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 4-byte UTF-8 sequence (overlong "
+                        "encoding) at "
+                        "position {}",
+                        i));
             }
             if (bytes[i] == 0xF4 && (bytes[i + 1] > 0x8F)) {
-                throw logic_assertion_error::init(std::format(
-                    "Invalid 4-byte UTF-8 sequence (out of Unicode range) "
-                    "at position {}",
-                    i));
+                throw logic_assertion_error::init(
+                    std::format(
+                        "Invalid 4-byte UTF-8 sequence (out of Unicode "
+                        "range) "
+                        "at position {}",
+                        i));
             }
 
             i += 3;
         } else {
-            throw logic_assertion_error::init(std::format(
-                "Invalid UTF-8 leading byte 0x{:02X} at position {}",
-                bytes[i],
-                i));
+            throw logic_assertion_error::init(
+                std::format(
+                    "Invalid UTF-8 leading byte 0x{:02X} at position {}",
+                    bytes[i],
+                    i));
         }
     }
 }

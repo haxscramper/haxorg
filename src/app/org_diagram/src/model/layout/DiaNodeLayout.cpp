@@ -75,7 +75,7 @@ DiaLayout DiaLayout::FromDiagram(const DiaAdapter& a) {
 
             result = node;
         } else {
-            HSLOG_DEBUG("aux tree {}", pred.assume_error());
+            HSLOG_WARNING("aux tree {}", pred.assume_error());
         }
 
         for (auto const& sub : rec.sub(true)) {

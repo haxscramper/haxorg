@@ -60,11 +60,11 @@ export class CollapsibleTreeVisualization {
       };
 
       if (node.is(osk().Subtree)) {
-        var x = window.module.cast_to_Subtree(node); 
+        var x = window.module.cast_to_Subtree(node);
         result.name = x.getCleanTitle().toString();
         x.delete();
       } else if (node.is(osk().Document)) {
-        // result.name = window.module.cast_to_Document(node).getCleanTitle().toString(); 
+        // result.name = window.module.cast_to_Document(node).getCleanTitle().toString();
       }
 
       for (var sub of node.subnodes.toArray()) {
@@ -91,7 +91,7 @@ export class CollapsibleTreeVisualization {
       if (hierarchy) {
         this.onLoadAll(hierarchy);
       }
-      node.delete(); 
+      node.delete();
     } else {
       console.log("Failed to construct");
       throw new Error(result.error);

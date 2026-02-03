@@ -9,10 +9,11 @@ struct JsonSerde<UnorderedMap<K, V>> {
     static json to_json(UnorderedMap<K, V> const& it) {
         auto result = json::array();
         for (auto const& [key, val] : it) {
-            result.push_back(json::object({
-                {"key", JsonSerde<K>::to_json(key)},
-                {"value", JsonSerde<V>::to_json(val)},
-            }));
+            result.push_back(
+                json::object({
+                    {"key", JsonSerde<K>::to_json(key)},
+                    {"value", JsonSerde<V>::to_json(val)},
+                }));
         }
 
         return result;

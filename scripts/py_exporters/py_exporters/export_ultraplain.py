@@ -1,14 +1,14 @@
+from beartype import beartype
 from py_exporters.export_base import ExporterBase
+from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
 from py_textlayout.py_textlayout_wrap import *
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-from beartype import beartype
 
 
 @beartype
 class ExporterUltraplain(ExporterBase):
 
-    def __init__(self) -> None: # type: ignore
+    def __init__(self) -> None:  # type: ignore
         super().__init__(self)
         self.result = ""
 
@@ -29,6 +29,6 @@ class ExporterUltraplain(ExporterBase):
 
     @staticmethod
     def getStr(node: org.Org) -> str:
-        exp = ExporterUltraplain() # type: ignore
+        exp = ExporterUltraplain()  # type: ignore
         exp.exp.evalTop(node)
         return exp.result

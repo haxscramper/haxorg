@@ -972,10 +972,11 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
             it->span.last  = std::max(it->span.last, label.span.end());
             it->labels.push_back(label_info);
         } else {
-            groups.push_back(SourceGroup{
-                .src_id = label.span.source(),
-                .span   = slice(label.span.start(), label.span.end()),
-                .labels = {label_info}});
+            groups.push_back(
+                SourceGroup{
+                    .src_id = label.span.source(),
+                    .span   = slice(label.span.start(), label.span.end()),
+                    .labels = {label_info}});
         }
     }
     return groups;

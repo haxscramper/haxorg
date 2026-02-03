@@ -3,10 +3,12 @@
 ## @file   setup.py
 ## @brief  Setuptools for installable python package
 
-from setuptools import setup, find_packages
-import sys
-from pathlib import Path
 import os
+from pathlib import Path
+import sys
+
+from setuptools import find_packages
+from setuptools import setup
 
 # Import and run the build script
 sys.path.insert(0, str(Path(__file__).parent))
@@ -33,9 +35,7 @@ setup_kwargs = {
     'package_data': package_data,
     'include_package_data': True,
     'python_requires': '>=3.9.0,<3.14',
-    'install_requires': [
-        'beartype>=0.20.0',
-    ],
+    'install_requires': ['beartype>=0.20.0',],
     'zip_safe': False,  # Important for shared libraries
 }
 

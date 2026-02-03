@@ -1,10 +1,15 @@
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NewType
+from dataclasses import dataclass
+from dataclasses import field
+import itertools
+from typing import NewType, TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import List, Optional, Union, overload
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
-import itertools
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import overload
+from beartype.typing import Union
+from py_textlayout.py_textlayout_wrap import TextLayout
+from py_textlayout.py_textlayout_wrap import TextOptions
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId

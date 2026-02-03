@@ -22,4 +22,4 @@ struct JsonSerde<std::optional<T>> {
         }
     }
 };
-}
+} // namespace hstd

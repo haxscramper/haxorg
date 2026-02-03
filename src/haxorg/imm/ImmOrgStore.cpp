@@ -423,10 +423,11 @@ ImmId recurseUpdateSubnodes(
                     node,
                     updateTarget));
 
-            result->replaced.set(ImmAstReplace{
-                .original = node.uniq(),
-                .replaced = updateTarget.uniq(),
-            });
+            result->replaced.set(
+                ImmAstReplace{
+                    .original = node.uniq(),
+                    .replaced = updateTarget.uniq(),
+                });
 
             return updateTarget.id;
         } else {

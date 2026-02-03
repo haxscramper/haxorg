@@ -1,18 +1,36 @@
-from pathlib import Path
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Tuple, Type, Callable
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import ensure_existing_dir, get_build_root, get_script_root
-from py_repository.repo_tasks.workflow_utils import TaskContext
-
-from sqlalchemy import create_engine, Column, select, Select
-from sqlalchemy.schema import CreateTable
-from sqlalchemy.orm import declarative_base, Session
-from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, BoolColumn, open_sqlite_session
-from sqlalchemy.types import JSON
+from dataclasses import dataclass
+from dataclasses import field
 import json
+from pathlib import Path
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Type
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.common import ensure_existing_dir
+from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.common import get_script_root
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
-from dataclasses import dataclass, field
+from py_scriptutils.sqlalchemy_utils import BoolColumn
+from py_scriptutils.sqlalchemy_utils import ForeignId
+from py_scriptutils.sqlalchemy_utils import IdColumn
+from py_scriptutils.sqlalchemy_utils import IntColumn
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from py_scriptutils.sqlalchemy_utils import StrColumn
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import Select
+from sqlalchemy import select
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import Session
+from sqlalchemy.schema import CreateTable
+from sqlalchemy.types import JSON
 
 CAT = __name__
 
@@ -566,8 +584,8 @@ def _create_treemap_html(treemap_data: list["TreemapItem"], output_path: Path) -
 
 @beartype
 def _create_tree_report(tree: dict[str, TreeNode], output_path: Path) -> None:
-    from rich.tree import Tree
     from rich.console import Console
+    from rich.tree import Tree
 
     console = Console(record=True,
                       width=120,

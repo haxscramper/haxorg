@@ -1,8 +1,10 @@
-from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Any
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
-from py_ci.util_scripting import cmake_opt
 import shlex
+from typing import Any, Callable, List, Optional
+
+from py_ci.util_scripting import cmake_opt
 
 
 @dataclass

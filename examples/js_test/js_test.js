@@ -116,7 +116,7 @@ haxorg_wasm().then(
         console.log(`Finished binary write ${binary.length} bytes`)
       }
 
-      // JS cannot correctly save serialized binary for whatever reason, 
+      // JS cannot correctly save serialized binary for whatever reason,
       // I will fix this sometime later
       if (false) {
         var deserialized_context = org.initImmutableAstContext();

@@ -1,7 +1,8 @@
-import pytest
-from pprint import pprint
 from pathlib import Path
+from pprint import pprint
+
 from more_itertools import first_true
+import pytest
 
 
 @pytest.mark.test_release
@@ -31,8 +32,9 @@ def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_nim_enum_conversion(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
     import py_codegen.wrapper_gen_nim as gen_nim
+
+    import tests.python.refl.refl_test_driver as refl_test_driver
     con = refl_test_driver.get_nim_code(
         refl_test_driver.get_enum(
             "enum En { Field1, Field2 };",

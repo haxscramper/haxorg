@@ -189,10 +189,7 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
             llvm::StringRef annotation = annotateAttr->getAnnotation();
             if (annotation.starts_with("refl")) {
                 auto text = annotation.substr(4).trim().str();
-                if (!text.empty()) {
-                    HSLOG_DEBUG("{}", dump(decl));
-                    return text;
-                }
+                if (!text.empty()) { return text; }
             }
         }
     }
@@ -1261,10 +1258,7 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
 
 
 bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
-    HSLOG_DEBUG("Verifying if decl is annotated with reflection");
-    HSLOG_DEPTH_SCOPE_ANON();
     for (c::AnnotateAttr* Attr : Decl->specific_attrs<c::AnnotateAttr>()) {
-        HSLOG_DEBUG("Annotation name {}", Attr->getAnnotation().str());
         if (Attr->getAnnotation() == REFL_NAME) { return true; }
     }
     return false;

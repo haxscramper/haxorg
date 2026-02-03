@@ -95,10 +95,11 @@ struct unexpected_kind_error
 
 #define LOGIC_ASSERTION_CHECK_FMT(expr, message_fmt, ...)                 \
     if (!(expr)) {                                                        \
-        throw ::hstd::logic_assertion_error::init(::hstd::fmt(            \
-            "{}: {}",                                                     \
-            #expr,                                                        \
-            ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));        \
+        throw ::hstd::logic_assertion_error::init(                        \
+            ::hstd::fmt(                                                  \
+                "{}: {}",                                                 \
+                #expr,                                                    \
+                ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));    \
     }
 
 #define LOGIC_ASSERTION_CHECK(expr, __message)                            \

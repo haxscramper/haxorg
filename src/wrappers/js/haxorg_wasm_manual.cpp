@@ -162,7 +162,8 @@ void haxorg_wasm_manual_register() {
         "serializeAstContextToTextUint8",
         +[](std::shared_ptr<org::imm::ImmAstContext> const& store)
             -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
+            return convert_to_uint8_array(
+                org::imm::serializeToText(store));
         });
 
     emscripten::function(
@@ -184,7 +185,8 @@ void haxorg_wasm_manual_register() {
         "serializeAstEpochToTextUint8",
         +[](std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store)
             -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
+            return convert_to_uint8_array(
+                org::imm::serializeToText(store));
         });
 
     emscripten::function(
@@ -206,7 +208,8 @@ void haxorg_wasm_manual_register() {
         "serializeMapGraphToTextUint8",
         +[](std::shared_ptr<org::graph::MapGraph> const& store)
             -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
+            return convert_to_uint8_array(
+                org::imm::serializeToText(store));
         });
 
     emscripten::function(

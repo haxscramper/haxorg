@@ -798,28 +798,29 @@ template <
     typename Func,
     typename... Args>
 void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
-    thisType->visitNodeAdapter(overloaded{
-        [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast)
-            requires std::derived_from<Kind, CastType>
-        {
-            auto dyn = cast.template dyn_cast<CastType>();
-            LOGIC_ASSERTION_CHECK_FMT(
-                dyn != nullptr,
-                "Statement adapter must hold an ID for the value type "
-                "derived from `{}`, but got {}",
-                demangle(typeid(CastType).name()),
-                *thisType);
-            std::invoke(func, cast, std::forward<Args>(args)...);
-        },
-        [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast) {
-            LOGIC_ASSERTION_CHECK_FMT(
-                false,
-                "Statement adapter must hold an ID for the value type "
-                "derived from `{}`, but got {}",
-                demangle(typeid(CastType).name()),
-                *thisType);
-        },
-    });
+    thisType->visitNodeAdapter(
+        overloaded{
+            [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast)
+                requires std::derived_from<Kind, CastType>
+            {
+                auto dyn = cast.template dyn_cast<CastType>();
+                LOGIC_ASSERTION_CHECK_FMT(
+                    dyn != nullptr,
+                    "Statement adapter must hold an ID for the value type "
+                    "derived from `{}`, but got {}",
+                    demangle(typeid(CastType).name()),
+                    *thisType);
+                std::invoke(func, cast, std::forward<Args>(args)...);
+            },
+            [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast) {
+                LOGIC_ASSERTION_CHECK_FMT(
+                    false,
+                    "Statement adapter must hold an ID for the value type "
+                    "derived from `{}`, but got {}",
+                    demangle(typeid(CastType).name()),
+                    *thisType);
+            },
+        });
 }
 
 
@@ -996,8 +997,9 @@ imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText()
     const {
     return pass(
         getThisT<imm::ImmCmdCaption>()->text,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(
-            &imm::ImmCmdCaption::text)));
+        ImmPathStep::Field(
+            imm::ImmReflFieldId::FromTypeField(
+                &imm::ImmCmdCaption::text)));
 }
 
 
@@ -1008,8 +1010,9 @@ Opt<imm::ImmAdapter> imm::ImmAdapterListItemAPI::getHeader() const {
     } else {
         return pass(
             it->header->value(),
-            ImmPathStep::FieldDeref(imm::ImmReflFieldId::FromTypeField(
-                &imm::ImmListItem::header)));
+            ImmPathStep::FieldDeref(
+                imm::ImmReflFieldId::FromTypeField(
+                    &imm::ImmListItem::header)));
     }
 }
 

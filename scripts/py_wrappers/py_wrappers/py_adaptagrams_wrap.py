@@ -1,12 +1,17 @@
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
+import copy
+from numbers import Number
+import os
 import sys
 from typing import TYPE_CHECKING
-import os
+
 from beartype import beartype
-from beartype.typing import Optional, List, Tuple, Dict, Any
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
 from dominate import tags
-from numbers import Number
-import copy
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import py_scriptutils.svg_utils as svg
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
@@ -14,6 +19,7 @@ if str(build_dir) not in sys.path:
     sys.path.append(str(build_dir))
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from py_wrappers.py_adaptagrams import *  # type: ignore
 else:

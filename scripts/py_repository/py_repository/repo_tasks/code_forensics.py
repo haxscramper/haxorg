@@ -1,9 +1,13 @@
-
 import json
+
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_build_root, get_lldb_py_import, get_lldb_source_on_crash, get_script_root
+from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.common import get_lldb_py_import
+from py_repository.repo_tasks.common import get_lldb_source_on_crash
+from py_repository.repo_tasks.common import get_script_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
-from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
+from py_repository.repo_tasks.workflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import TaskContext
 
 
 @haxorg_task(dependencies=[build_haxorg])
@@ -31,4 +35,3 @@ def haxorg_code_forensics(ctx: TaskContext, debug: bool = False) -> None:
         ])
     else:
         run_command(ctx, tool, [json.dumps(config)])
-

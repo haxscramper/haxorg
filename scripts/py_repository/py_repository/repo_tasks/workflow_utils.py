@@ -1,19 +1,28 @@
 from collections import defaultdict
-from graphlib import TopologicalSorter
-import docker.models.containers
-import docker
-from pathlib import Path
-from beartype import beartype
-from beartype.typing import List, Callable, get_type_hints, Dict, Any, Optional, Set
-from functools import wraps
-import inspect
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 from datetime import timedelta
+from functools import wraps
+from graphlib import TopologicalSorter
+import inspect
+from pathlib import Path
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import get_type_hints
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Set
+import docker
+import docker.models.containers
+import igraph as ig
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from dataclasses import dataclass, field, replace
-import igraph as ig
 
 CAT = __name__
 

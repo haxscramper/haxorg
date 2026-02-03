@@ -1,19 +1,28 @@
 from dataclasses import replace
 from enum import Enum
-from pathlib import Path
 import itertools
-import py_scriptutils.algorithm
+from pathlib import Path
 
+from beartype import beartype
+from beartype.typing import Dict
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Tuple
+from beartype.typing import Type
+from beartype.typing import TypeVar
+from beartype.typing import Union
 import dominate.tags as tags
 import dominate.util as util
 import py_repository.code_analysis.gen_coverage_python as cov_docpy
 import py_repository.repo_docgen.gen_documentation_data as docdata
 import py_repository.repo_docgen.gen_documentation_utils as docutils
-from sqlalchemy.orm import Session
-from beartype import beartype
-from beartype.typing import (Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union)
-from pydantic import BaseModel, Field, SerializeAsAny
+import py_scriptutils.algorithm
+from pydantic import BaseModel
+from pydantic import Field
+from pydantic import SerializeAsAny
 from pygments.lexers import PythonLexer
+from sqlalchemy.orm import Session
 
 T = TypeVar("T")
 
@@ -26,11 +35,8 @@ class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):
     TestCoverage: Optional[cov_docpy.LineCoverage] = None
 
 
-
-
 class DocCodePyFile(docdata.DocCodeFile, extra="forbid"):
     Lines: List[DocCodePyLine] = Field(default_factory=list)
-
 
 
 @beartype
@@ -57,10 +63,10 @@ def convert_py_tree(
     )
 
 
-
 @beartype
 def is_empty(line: DocCodePyLine) -> bool:
     return not line.Text.strip()
+
 
 @beartype
 def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
@@ -125,4 +131,3 @@ def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
         Lines=code_file.Lines,
         get_line_spans=get_line_spans,
     )
-

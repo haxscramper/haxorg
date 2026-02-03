@@ -3,38 +3,64 @@
 ## @brief  Parse merged profile data and generate annotated files for CXX coverage
 ##
 ## Coverage generator uses database structure produced in the `profdata_merger.cpp`
-from typing import Type
-from beartype.typing import Optional, Any, List, Tuple, Iterable, Dict, Callable, Iterator, Mapping, Union, Set
-from pydantic import Field, BaseModel
-
-from sqlalchemy import create_engine, Column, select, Select
-from sqlalchemy.schema import CreateTable
-from sqlalchemy.orm import declarative_base, Session
-from py_scriptutils.sqlalchemy_utils import IdColumn, ForeignId, IntColumn, StrColumn, BoolColumn
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from sqlalchemy.types import JSON
-import enum
-from beartype import beartype
-from pathlib import Path
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session, NumericEnum
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log, to_debug_json, pprint_to_file, ExceptionContextNote
-from py_scriptutils.rich_utils import render_rich_pprint
-import py_repository.repo_docgen.gen_documentation_data as docdata
-import dominate.tags as tags
-from pygments import lex
-from pygments.lexers import CppLexer
-from pygments.token import Token, _TokenType, Whitespace
-from py_repository.code_analysis.gen_coverage_cookies import *
 from collections import defaultdict
-from dataclasses import dataclass, field
-from dominate import document
+from dataclasses import dataclass
+from dataclasses import field
+import enum
 import functools
-from py_scriptutils.tracer import GlobCompleteEvent
-import more_itertools
 import itertools
 import json
+from pathlib import Path
+from typing import Type
 import weakref
+
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import Iterable
+from beartype.typing import Iterator
+from beartype.typing import List
+from beartype.typing import Mapping
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Tuple
+from beartype.typing import Union
+from dominate import document
+import dominate.tags as tags
+import more_itertools
+import py_haxorg.pyhaxorg_wrap as org
+from py_repository.code_analysis.gen_coverage_cookies import *
+import py_repository.repo_docgen.gen_documentation_data as docdata
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.rich_utils import render_rich_pprint
+from py_scriptutils.script_logging import ExceptionContextNote
+from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import pprint_to_file
+from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.sqlalchemy_utils import BoolColumn
+from py_scriptutils.sqlalchemy_utils import ForeignId
+from py_scriptutils.sqlalchemy_utils import IdColumn
+from py_scriptutils.sqlalchemy_utils import IntColumn
+from py_scriptutils.sqlalchemy_utils import NumericEnum
+from py_scriptutils.sqlalchemy_utils import open_sqlite_session
+from py_scriptutils.sqlalchemy_utils import StrColumn
+from py_scriptutils.tracer import GlobCompleteEvent
+from pydantic import BaseModel
+from pydantic import Field
+from pygments import lex
+from pygments.lexers import CppLexer
+from pygments.token import _TokenType
+from pygments.token import Token
+from pygments.token import Whitespace
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import Select
+from sqlalchemy import select
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import Session
+from sqlalchemy.schema import CreateTable
+from sqlalchemy.types import JSON
 
 CAT = "coverage"
 
@@ -87,7 +113,7 @@ class CovContext(CoverageSchema):
     @beartype
     def getContextRunLine(self) -> Optional[int]:
         """
-        @brief Where the run is defined? 
+        @brief Where the run is defined?
 
         For google test it is the line in the c++ code, for corpus file it is a yaml file location
         """
@@ -145,8 +171,8 @@ class CovFileRegion(CoverageSchema):
     @brief Coverage information a region in code
 
     - Regions can nest in each other and overlap
-    - Region is not 100% guaranteed to correspond to the physical location in file, IME macros and includes 
-      can sometimes mess things up. 
+    - Region is not 100% guaranteed to correspond to the physical location in file, IME macros and includes
+      can sometimes mess things up.
     """
     __tablename__ = "CovFileRegion"
     Id = IdColumn()
@@ -318,7 +344,7 @@ class CovSegmentFunctionModel(BaseModel, extra="forbid"):
 
 class CovSegmentFunctionGroupModel(BaseModel, extra="forbid"):
     """
-    Grouping of segments under a coverage context. Each function group model stores information 
+    Grouping of segments under a coverage context. Each function group model stores information
     """
     Context: int
     FunctionSegments: List[CovSegmentModel] = Field(
@@ -331,10 +357,10 @@ class CovSegmentFunctionGroupModel(BaseModel, extra="forbid"):
 
 class CovSegmentContextGroupModel(BaseModel, extra="forbid"):
     """
-    Full data on execution of a specific segment in the code. Information on execution is grouped by coverage contexts 
+    Full data on execution of a specific segment in the code. Information on execution is grouped by coverage contexts
     and then by a function. The data model here is poised to answer a question, "for a given segment, who ran it?"
-    and give the answer in form of "here are the contexts (tests) that run this piece of code, and here is a more 
-    detailed breakdown on which specific instantiations of a function were in this run". 
+    and give the answer in form of "here are the contexts (tests) that run this piece of code, and here is a more
+    detailed breakdown on which specific instantiations of a function were in this run".
     """
     Grouped: List[CovSegmentFunctionGroupModel]
 
@@ -430,9 +456,9 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     @beartype
     def getExecutionsForSegment(self, segment_idx: int) -> CovSegmentContextGroup:
         """
-        Get all execution contexts for a segment and return them as grouped data. 
+        Get all execution contexts for a segment and return them as grouped data.
         This function is called for every "leaf" file segment in the annotated file
-        and is the main driver for fetching the contextual information for the cover. 
+        and is the main driver for fetching the contextual information for the cover.
 
         :arg: segment_idx index to the main list of file segments.
         """
@@ -482,7 +508,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     def getExecutionsModelForSegment(self,
                                      segment_idx: int) -> CovSegmentContextGroupModel:
         """
-        Wrapper around `getExecutionsForSegment` that returns coverage model dump directly. 
+        Wrapper around `getExecutionsForSegment` that returns coverage model dump directly.
         """
         with GlobCompleteEvent("Get executions model for segment", "cov"):
             group = self.getExecutionsForSegment(segment_idx=segment_idx)
@@ -529,9 +555,9 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     def getExecutionsModelForAllSegments(self,
                                          segments: Iterable[int]) -> CovFileContextModel:
         """
-        Get pydantic model dump for the code coverage information on all segment indices. 
+        Get pydantic model dump for the code coverage information on all segment indices.
 
-        :arg: segments List of segment indices in the current context to include in 
+        :arg: segments List of segment indices in the current context to include in
           the final model.
         """
         with GlobCompleteEvent("Get execution model for all segments", "cov"):
@@ -680,11 +706,11 @@ def format_sequence_segments(
     get_segment_name: Callable[[int, int], Optional[str]],
 ) -> str:
     """
-    Get debug formatting for all coverage segment groups 
-    @param text full text that sequence segment group indexes into 
+    Get debug formatting for all coverage segment groups
+    @param text full text that sequence segment group indexes into
     @param groups groups to overlay on the result. Can have overlapping segments
     @param get_group_name callback to append optional name for individual group. CB argument is the group index
-    @param get_segment_name callback to append optional name to each segment. CB arguments are group index 
+    @param get_segment_name callback to append optional name to each segment. CB arguments are group index
         and segment index within this group.
     """
     visible_chars = {' ': '␣', '\n': '␤'}
@@ -794,9 +820,9 @@ def get_flat_coverage(
     segments: Select[Tuple[CovFileRegion]],
 ) -> List[GenCovSegmentFlat]:
     """
-    Group all segments returned by the SQL selector. Grouping is done using `(<first position>, <last position>)` 
+    Group all segments returned by the SQL selector. Grouping is done using `(<first position>, <last position>)`
     as a key. List of lines is used to know the exact sizes of a each individual line. First and last positions
-    for each segment go to the `GenCovSegmentFlat.First` and `GenCovSegmentFlat.Last` fields. 
+    for each segment go to the `GenCovSegmentFlat.First` and `GenCovSegmentFlat.Last` fields.
     """
     result = []
 
@@ -948,9 +974,9 @@ def get_annotated_files(
 ) -> AnnotatedFile:
     """
     Apply segment annotations to the text and return an annotated file with full lines
-    and coverage segment indices annotated. This function coverts result of the 
+    and coverage segment indices annotated. This function coverts result of the
     range segmentation and joins it with the underlying string to create segments that
-    main HTML generation will iterate over later. 
+    main HTML generation will iterate over later.
     """
     current_line = 0
     file = AnnotatedFile()
@@ -1016,8 +1042,8 @@ def get_annotated_files_for_session(
 
     :arg: use_highlight Skip token segmentation for a file. Not doing tokenization
       speeds up coverage HTML generation by ~5x times
-    :arg: debug_format_segments Dump content of the segment overlay into the 
-      specified path. 
+    :arg: debug_format_segments Dump content of the segment overlay into the
+      specified path.
     """
     with GlobCompleteEvent("Read file", "cov"):
         file = read_code_file(root_path, abs_path)

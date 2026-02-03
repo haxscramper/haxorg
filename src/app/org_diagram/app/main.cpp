@@ -97,10 +97,6 @@ class CliApplication : public QCoreApplication {
 
     void loadFile(std::string const& path) {
         version_store->addDocument(hstd::readFile(path));
-
-        HSLOG_DEBUG(
-            "Constructed tree:\n{}",
-            version_store->getActiveDiaRoot().format().toString(false));
     }
 
   public slots:

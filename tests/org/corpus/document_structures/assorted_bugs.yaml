@@ -29,7 +29,7 @@ items:
   - name: "Long newline after the command block end"
     tags: ["org_src"]
     source: |
-      #+begin_src 
+      #+begin_src
 
 
 
@@ -109,7 +109,7 @@ items:
         =MFC= X
       - a
         #+begin_quote
-      i <If /> 
+      i <If />
         #+end_quote
 
       **** COMPLETED Das
@@ -119,7 +119,7 @@ items:
     tags: ["org_quote", "org_subtree", "org_markup"]
     source: |
       #+begin_quote
-      i <If /> 
+      i <If />
       #+end_quote
 
       **** COMPLETED Das
@@ -160,7 +160,7 @@ items:
         #+caption:
     debug:
       traceAll: true
-      
+
   - name: "Source block with broken indentation"
     tags: ["org_paragraph", "defcon2"]
     source: |
@@ -187,7 +187,7 @@ items:
 
   - name: "Yes, this is legal, and emacs can even parse this properly"
     tags: ["org_list", "org_src", "org_block", "defcon1"]
-    # Double nested quote does not work though 
+    # Double nested quote does not work though
     source: |
       - Some text
         - safas
@@ -324,7 +324,7 @@ items:
       ****** AAA
 
   - name: "tbflm"
-    debug: 
+    debug:
       doSem: false
 
     source: |
@@ -344,7 +344,7 @@ items:
       [2023-08-02 Wed 13:39:46 +04] -- [2023-08-02 Wed 13:39:46 +04]
 
   - name: "HTTP links"
-    source: 
+    source:
       12
       [[https://github.com][asdfasdf]]
       [[https://github.com][asdfasdf]]
@@ -400,9 +400,9 @@ items:
       ([1][2])
 
   - name: "Invalid deadline annotation"
-    # Missing `:` after the deadline annotations causes the parser to treat 
+    # Missing `:` after the deadline annotations causes the parser to treat
     # property list as a standalone block of text, not attached to the subtree
-    # and fail because of that 
+    # and fail because of that
     source: |
       **** COMPLETED Зачет АПО ЭВМ
           CLOSED: [2022-04-08 Fri 21:45:09] DEADLINE <2022-04-08 Fri 12:40:00>
@@ -466,7 +466,7 @@ items:
     debug:
       traceAll: true
     source: |
-      #+attr_html: border="2" rules="all" frame="border" :width 300px 
+      #+attr_html: border="2" rules="all" frame="border" :width 300px
       | test num | image                   |   |
       |----------+-------------------------+---|
       | test 1   | [[file:sch_1.tmp.png]]  |   |
@@ -487,16 +487,16 @@ items:
       #+end_latex
 
   - name: "Invalid double angle"
-    source: 
+    source:
       << has space
 
   - name: "Double angle missing end"
-    source: 
+    source:
       <<no-end
 
   - name: "Double brace end at the hashtag"
     source: |
-      #fanfiction##[character##[image,description,new]] 
+      #fanfiction##[character##[image,description,new]]
 
   - name: "Call named command"
     source: |
@@ -526,11 +526,11 @@ items:
 
 
   - name: "More list bugs"
-    source: 
-      _ Comment 
-        - From 
-        - I changed 
-      - Disabled 
+    source:
+      _ Comment
+        - From
+        - I changed
+      - Disabled
 
   - name: "Angle"
     source: |
@@ -669,7 +669,7 @@ items:
         Content
 
         - Item
-        - Item2 
+        - Item2
 
       - e2
       - e3
@@ -719,10 +719,10 @@ items:
     source: |
       #+begin_table
       | col1 | col2 | col3 |
-      #+row: :color red 
-      | column1 
-      | column2 
-      | column3 
+      #+row: :color red
+      | column1
+      | column2
+      | column3
 
       #+row:
       #+cell:
@@ -747,7 +747,7 @@ items:
     source: |
       **** COMPLETED COMMENT Laptop organization :ARCHIVE:
       **** COMMENT Laptop organization :ARCHIVE:
-      **** COMMENT 
+      **** COMMENT
       **** :ARCHIVE:
       **** :ARCHIVE:tag1:
       **** COMMENT :ARCHIVE:tag1:
@@ -767,7 +767,7 @@ items:
 
   - name: "Single list item without spacing"
     tags: ["org_list", "defcon1"]
-    debug: 
+    debug:
       doFlatParseCompare: false
     source: |
       - asf
@@ -789,7 +789,7 @@ items:
 
   - name: "Broken tags in the subtree"
     tags: ["org_subtree"]
-    source: | 
+    source: |
       ** Text :broken
 
   - name: "Multiline monospace in paragraph"
@@ -881,8 +881,8 @@ items:
       print(<<hello-function>>())
       #+end_src
 
-  - name: "Latex block" 
-    debug: 
+  - name: "Latex block"
+    debug:
       doLexBase: false
     source: |
       #+begin_latex
@@ -890,19 +890,19 @@ items:
       #+end_latex
 
   - name: "Begin user-defined node for parsed content"
-    debug: 
+    debug:
       doLexBase: false
     source: |
       #+begin: user-block
-      
+
       #+end:
 
   - name: "Begin user-defined node for raw content"
-    debug: 
+    debug:
       doLexBase: false
     source: |
       #+begin_raw: user-block
-      
+
       #+end_raw:
 
   - name: "Nested custom environments"
@@ -919,4 +919,3 @@ items:
   - name: "Link with file path"
     source: |
       - [2025-11-12 Wed 14:29:32 +04] [[https://github.com/N-Coder/syncplan/blob/d2020a04c4b2c13b5900ef5bbe4181fb833ceafe/src/exec/cplan.cpp#L4][syncplan/src/exec/cplan.cpp at d2020a04c4b2c13b5900ef5bbe4181fb833ceafe · N-Coder/syncplan · GitHub]]
-

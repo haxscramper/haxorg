@@ -60,7 +60,7 @@ struct ImmReflFieldId {
     }
 
     template <typename T, typename F>
-    static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
+    static ImmReflFieldId FromTypeField(F T::* fieldPtr) {
         return ImmReflFieldId::FromIdParts(
             typeid(T), hstd::get_total_field_index_by_ptr(fieldPtr));
     }
@@ -304,10 +304,11 @@ struct [[refl]] ImmId : ImmIdBase {
     ImmIdT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
             if (T::staticKind != getKind()) {
-                throw std::logic_error(hstd::fmt(
-                    "Kind for type T '{}' != ID kind '{}'",
-                    T::staticKind,
-                    getKind()));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Kind for type T '{}' != ID kind '{}'",
+                        T::staticKind,
+                        getKind()));
             }
         }
 
@@ -349,9 +350,9 @@ struct ImmIdT : public ImmId {
 };
 
 struct [[refl]] ImmOrg {
-    hstd::ext::ImmVec<ImmId>       subnodes;
+    hstd::ext::ImmVec<ImmId>         subnodes;
     hstd::Opt<org::parse::SourceLoc> loc             = std::nullopt;
-    virtual OrgSemKind             getKind() const = 0;
+    virtual OrgSemKind               getKind() const = 0;
 
     ImmId at(int pos) const { return subnodes.at(pos); }
     auto  begin() const { return subnodes.begin(); }
@@ -377,13 +378,15 @@ struct [[refl]] ImmOrg {
         auto res = dyn_cast<T>();
         if (res == nullptr) {
             if constexpr (std::is_abstract_v<T>) {
-                throw std::logic_error(hstd::fmt(
-                    "Cannot cast node of kind {}", this->getKind()));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Cannot cast node of kind {}", this->getKind()));
             } else {
-                throw std::logic_error(hstd::fmt(
-                    "Cannot cast node of kind {} to kind {}",
-                    this->getKind(),
-                    T::staticKind));
+                throw std::logic_error(
+                    hstd::fmt(
+                        "Cannot cast node of kind {} to kind {}",
+                        this->getKind(),
+                        T::staticKind));
             }
         }
         return res;

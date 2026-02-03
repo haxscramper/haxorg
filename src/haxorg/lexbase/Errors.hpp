@@ -15,7 +15,7 @@ struct ParseError : public std::runtime_error {
 
     explicit ParseError(
         const std::string& message,
-        SourceLoc            _loc = SourceLoc{})
+        SourceLoc          _loc = SourceLoc{})
         : std::runtime_error(message), loc(_loc) {}
 
     explicit ParseError(const std::string& message, int _loc)
@@ -26,7 +26,7 @@ struct ParseError : public std::runtime_error {
 struct LexerError : public ParseError {
     explicit LexerError(
         const std::string& message,
-        SourceLoc            _loc = SourceLoc{})
+        SourceLoc          _loc = SourceLoc{})
         : ParseError(message, _loc) {}
 
     explicit LexerError(const std::string& message, int _loc)
@@ -37,7 +37,7 @@ struct LexerError : public ParseError {
 struct UnexpectedCharError : public LexerError {
     explicit UnexpectedCharError(
         const std::string& message,
-        SourceLoc            _loc = SourceLoc{})
+        SourceLoc          _loc = SourceLoc{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedCharError(const std::string& message, int pos)
@@ -49,7 +49,7 @@ struct UnexpectedCharError : public LexerError {
 struct UnexpectedEndError : public LexerError {
     explicit UnexpectedEndError(
         const std::string& message,
-        SourceLoc            _loc = SourceLoc{})
+        SourceLoc          _loc = SourceLoc{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedEndError(const std::string& message, int pos)
@@ -66,7 +66,8 @@ struct MalformedTokenError : public LexerError {};
 
 template <>
 struct std::hash<org::parse::SourceLoc> {
-    std::size_t operator()(org::parse::SourceLoc const& it) const noexcept {
+    std::size_t operator()(
+        org::parse::SourceLoc const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.line);
         hstd::hax_hash_combine(result, it.column);

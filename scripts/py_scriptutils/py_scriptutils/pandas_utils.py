@@ -1,11 +1,14 @@
-import pandas as pd
-from rich.table import Table
-from beartype.typing import List, Dict, Union, Any
-import rich.box
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Union
+import pandas as pd
 import py_scriptutils.json_utils as ju
 from py_scriptutils.rich_utils import render_rich
 from py_scriptutils.script_logging import to_debug_json
+import rich.box
+from rich.table import Table
 
 
 @beartype

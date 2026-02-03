@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import sys
-import subprocess
-import time
-import os
-import logging
-from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+import logging
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")

@@ -1,15 +1,20 @@
 from pathlib import Path
 
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
 import more_itertools
 import pandas as pd
-import py_haxorg.pyhaxorg_wrap as org
-import pytest
-from beartype.typing import Any, Dict, List
-from plumbum import CommandNotFound, local
-from py_cli import haxorg_cli, haxorg_opts
+from plumbum import CommandNotFound
+from plumbum import local
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
 from py_exporters import export_sqlite
+import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
+from py_scriptutils.sqlalchemy_utils import format_db_all
+from py_scriptutils.sqlalchemy_utils import open_sqlite
+import pytest
 from sqlalchemy.orm import sessionmaker
 
 CAT = __name__
@@ -265,7 +270,7 @@ def test_node_clouds(stable_test_dir: Path) -> None:
 
     org_file.write_text("""
 Word1 Word1 Word1
-#tag1 #tag1 #tag1##sub1 #tag1##sub2 #tag1##[sub1,sub2]                            
+#tag1 #tag1 #tag1##sub1 #tag1##sub2 #tag1##[sub1,sub2]
 
 """)
 
@@ -348,7 +353,7 @@ Sentence with Character name should trigger radio target detection
     codex_file.write_text("""
 * Subtree
   :properties:
-  :radio_id: ABBR 
+  :radio_id: ABBR
   :end:
 
 * Character description
@@ -488,8 +493,11 @@ def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_tag_sorting(stable_test_dir: Path) -> None:
-    from py_cli.generate.sort_repository_tags import sort_reposutory_tags, TagDuplicate, DuplicateType
     import functools
+
+    from py_cli.generate.sort_repository_tags import DuplicateType
+    from py_cli.generate.sort_repository_tags import sort_reposutory_tags
+    from py_cli.generate.sort_repository_tags import TagDuplicate
 
     tag_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/cli/tag_collection")
 

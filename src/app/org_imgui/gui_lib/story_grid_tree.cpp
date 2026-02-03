@@ -23,10 +23,11 @@ void TreeGridCell::render(
         auto  res = val.value.render(hstd::fmt("cell_{}_{}", id, im_tag));
 
         if (res) {
-            ctx.action(GridAction::EditCell{
-                .edit = res.value(),
-                .id   = id,
-            });
+            ctx.action(
+                GridAction::EditCell{
+                    .edit = res.value(),
+                    .id   = id,
+                });
         }
     }
 
@@ -205,11 +206,12 @@ void TreeGridRow::render(
             1.0f);
         if (ImGui::IsMouseClicked(0)) {
             isOpen = !isOpen;
-            ctx.action(GridAction::RowFolding{
-                .isOpen  = isOpen,
-                .flatIdx = flatIdx,
-                .id      = id,
-            });
+            ctx.action(
+                GridAction::RowFolding{
+                    .isOpen  = isOpen,
+                    .flatIdx = flatIdx,
+                    .id      = id,
+                });
         }
     }
 

@@ -1,7 +1,10 @@
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import sys
-from beartype.typing import Union, List, Iterable
+
 from beartype import beartype
+from beartype.typing import Iterable
+from beartype.typing import List
+from beartype.typing import Union
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ci_log
 
 build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
@@ -12,15 +15,17 @@ if str(build_dir) not in sys.path:
 #     ci_log().info(p)
 
 from typing import TYPE_CHECKING
+
 from beartype.typing import NewType
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import TextOptions, BlockId
+    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout import TextOptions
     import py_textlayout.py_textlayout as lyt
 
 else:
-    import py_textlayout_cpp as lyt
     from py_textlayout_cpp import TextOptions
+    import py_textlayout_cpp as lyt
     BlockId = NewType('BlockId', int)
 
 

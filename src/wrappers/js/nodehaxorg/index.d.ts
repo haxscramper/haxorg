@@ -3,7 +3,7 @@ declare module "nodehaxorg" {
     constructor();
     // Add methods and properties here
   }
-  
+
   export function parseFile(path: string, params: OrgParseParametersJs): OrgNode;
 
   export class OrgNode {

@@ -1,6 +1,6 @@
 import os
-import sys
 from pathlib import Path
+import sys
 from typing import TYPE_CHECKING
 
 from beartype import beartype

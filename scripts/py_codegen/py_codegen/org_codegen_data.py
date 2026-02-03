@@ -1,8 +1,10 @@
-from dataclasses import field, dataclass, replace
 from copy import deepcopy
-from beartype.typing import *
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 from enum import Enum
 
+from beartype.typing import *
 # Now you should be able to import your C++ library
 from py_codegen.astbuilder_cpp import *
 from py_codegen.gen_tu_cpp import *

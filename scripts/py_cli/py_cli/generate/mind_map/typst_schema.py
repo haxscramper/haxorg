@@ -1,6 +1,11 @@
-from beartype.typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
 from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Optional
+from beartype.typing import Union
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class TypstNode(BaseModel):
@@ -20,8 +25,7 @@ class Text(TypstNode):
 class Command(TypstNode):
     """Typst command (prefixed with #)"""
     name: str
-    args: Optional[List[Union['Expression',
-                              'NamedArg']]] = Field(default_factory=list)
+    args: Optional[List[Union['Expression', 'NamedArg']]] = Field(default_factory=list)
     content: Optional[List['TypstNode']] = None
 
 
@@ -158,8 +162,7 @@ class TypstGenerator:
         # Add content blocks if present
         if node.content:
             for content_node in node.content:
-                content_str = self._generate_content_block(
-                    content_node, indent)
+                content_str = self._generate_content_block(content_node, indent)
                 result += content_str
 
         return result
@@ -226,8 +229,7 @@ class TypstGenerator:
 
         elif isinstance(value, list):
             return "(" + ", ".join(
-                self._generate_literal(it)
-                for it in value) + ("," if value else "") + ")"
+                self._generate_literal(it) for it in value) + ("," if value else "") + ")"
 
         else:
             return str(value)
@@ -247,12 +249,10 @@ class TypstGenerator:
             return "[]"
 
         # Check if content is simple enough for single line
-        is_simple = len(node.body) == 1 and isinstance(node.body[0],
-                                                       (Text, Command))
+        is_simple = len(node.body) == 1 and isinstance(node.body[0], (Text, Command))
 
         if is_simple:
-            content = "".join(
-                self.generate(child, 0).strip() for child in node.body)
+            content = "".join(self.generate(child, 0).strip() for child in node.body)
             return f"[{content}]"
         else:
             # Multi-line content
@@ -314,8 +314,7 @@ class TypstGenerator:
 
     def _generate_default(self, node: TypstNode, indent: int) -> str:
         """Default generator for unknown node types"""
-        return self._indent(
-            indent) + f"// Unknown node type: {type(node).__name__}"
+        return self._indent(indent) + f"// Unknown node type: {type(node).__name__}"
 
 
 def generate_typst(document: Union[Document, TypstNode]) -> str:
@@ -343,8 +342,7 @@ if __name__ == "__main__":
                 args=[Literal(value="My Document")],
                 content=[Content(body=[Text(content="Introduction")])]),
         Text(content="This is a paragraph with "),
-        Command(name="strong",
-                content=[Content(body=[Text(content="bold text")])]),
+        Command(name="strong", content=[Content(body=[Text(content="bold text")])]),
         Text(content="."),
     ])
 

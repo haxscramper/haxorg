@@ -156,8 +156,9 @@ hstd::ColText printModelTree(
         q_register_metatypes();                                           \
         QTEST_QAPP_SETUP(QApplication);                                   \
         Test_Class tc;                                                    \
-        hstd::log::push_sink(hstd::log::init_file_sink(                   \
-            getDebugFile(&tc, "main.log").native()));                     \
+        hstd::log::push_sink(                                             \
+            hstd::log::init_file_sink(                                    \
+                getDebugFile(&tc, "main.log").native()));                 \
         TESTLIB_SELFCOVERAGE_START(#Test_Class)                           \
         QTEST_SET_MAIN_SOURCE_PATH;                                       \
         return QTest ::qExec(&tc, argc, argv);                            \
@@ -256,7 +257,7 @@ void q_register_metatypes();
 
 
 template <typename T, typename Field>
-auto get_optional_field(const std::optional<T>& opt, Field T::*field_ptr)
+auto get_optional_field(const std::optional<T>& opt, Field T::* field_ptr)
     -> std::conditional_t<
         std::is_same_v<Field, std::optional<typename Field::value_type>>,
         std::optional<typename Field::value_type>,

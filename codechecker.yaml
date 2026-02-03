@@ -7,4 +7,3 @@ analyzer:
   # - --verbose=debug
   # - --ctu-all
   - --jobs=4
-

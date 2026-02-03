@@ -487,10 +487,9 @@ struct StoryGridGraph {
             }
 
             template <typename Self>
-            auto pairs(this Self&& self)
-                -> hstd::generator<hstd::Pair<
-                    StoryNodeId,
-                    transfer_this_const_t<StoryNode*, Self>>> {
+            auto pairs(this Self&& self) -> hstd::generator<hstd::Pair<
+                StoryNodeId,
+                transfer_this_const_t<StoryNode*, Self>>> {
                 const int size = self.nodes.size();
                 for (int i = 0; i < size; ++i) {
                     auto id = StoryNodeId::FromIndex(i);
@@ -862,8 +861,9 @@ struct StoryGridGraph {
             StoryGridConfig const& conf) {
             hstd::Vec<int> offset //
                 = block.ir.lanes  //
-                | hstd::rv::transform(hstd::get_field_get(
-                    &LaneBlockStack::scrollOffset)) //
+                | hstd::rv::transform(
+                      hstd::get_field_get(
+                          &LaneBlockStack::scrollOffset)) //
                 | hstd::rs::to<hstd::Vec>();
 
             block = BlockGraphStore::init(sem, flat, ctx, conf);

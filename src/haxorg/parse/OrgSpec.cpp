@@ -297,8 +297,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             onk::ListItem,
             OrgPattern({
                 Field(Range(0, N::Bullet)
-                          .doc("list prefix - either dash/plus/star (for "
-                               "unordered lists), or `<idx>.`/`<name>.`")),
+                          .doc(
+                              "list prefix - either dash/plus/star (for "
+                              "unordered lists), or `<idx>.`/`<name>.`")),
                 Field(Range(1, N::Counter)),
 
                 Field(
@@ -309,9 +310,10 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({onk::Paragraph, onk::Empty})),
                 Field(
                     Range(4, N::Body)
-                        .doc("Additional list items - more sublists, "
-                             "extended N::Body (with code blocks, extra "
-                             "parargaphs etc.)"),
+                        .doc(
+                            "Additional list items - more sublists, "
+                            "extended N::Body (with code blocks, extra "
+                            "parargaphs etc.)"),
                     OrgPattern({onk::StmtList, onk::Empty})),
             })},
         SpecPair{
@@ -333,15 +335,17 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 Field(
                     Range(0, N::Args)
-                        .doc("N::Optional arguments for row - can be "
-                             "specified using N::`#+row`. For pipe "
-                             "formatting this is not supported, N::So "
-                             "arguments would be an empty node."),
+                        .doc(
+                            "N::Optional arguments for row - can be "
+                            "specified using N::`#+row`. For pipe "
+                            "formatting this is not supported, N::So "
+                            "arguments would be an empty node."),
                     OrgPattern({onk::Attrs, onk::Empty})),
                 Field(
                     Range(1, N::Text)
-                        .doc("N::It is possible to put text on the* row* "
-                             "level."),
+                        .doc(
+                            "N::It is possible to put text on the* row* "
+                            "level."),
                     OrgPattern({onk::Paragraph, onk::Empty})),
                 Field(
                     Range(2, N::Body),

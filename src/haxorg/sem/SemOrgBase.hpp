@@ -345,7 +345,6 @@ struct [[refl(R"({
     __IMPL(BigIdent)
 
 
-
 template <>
 struct std::hash<org::sem::OrgJson> {
     std::size_t operator()(org::sem::OrgJson const& it) const;

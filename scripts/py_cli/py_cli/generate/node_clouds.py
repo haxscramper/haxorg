@@ -2,13 +2,15 @@
 
 from collections import defaultdict
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Optional
 import pandas as pd
+from py_cli import haxorg_cli
+from py_cli import haxorg_opts
+from py_haxorg.pyhaxorg_utils import getFlatTags
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
-from beartype import beartype
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
-from py_haxorg.pyhaxorg_utils import getFlatTags
 
 CAT = __name__
 

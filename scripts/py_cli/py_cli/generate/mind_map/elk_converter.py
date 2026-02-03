@@ -1,31 +1,31 @@
 #!/usr/bin/env python
 
-import pickle
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from enum import Enum
 from numbers import Number
 from pathlib import Path
+import pickle
 
+from beartype import beartype
+from beartype.typing import Any
+from beartype.typing import Callable
+from beartype.typing import Dict
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import Optional
+from beartype.typing import Set
+from beartype.typing import Tuple
+from beartype.typing import Union
 import igraph as ig
 import numpy as np
-import py_cli.generate.mind_map.typst_schema as typ
-from py_cli.generate.mind_map import elk_schema
-from beartype import beartype
-from beartype.typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-)
 from PIL import Image
+from py_cli.generate.mind_map import elk_schema
+import py_cli.generate.mind_map.typst_schema as typ
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 from sklearn.cluster import KMeans
 
@@ -189,12 +189,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple
 
-import matplotlib.font_manager as fm
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 from beartype import beartype
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
+import matplotlib.font_manager as fm
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 
 _font_cache: Any = {}
 

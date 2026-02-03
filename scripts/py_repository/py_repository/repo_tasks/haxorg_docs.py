@@ -1,11 +1,16 @@
-from beartype.typing import Optional, List
-
-from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import check_path_exists, get_build_root, get_list_cli_pass, get_script_root
-from py_scriptutils.script_logging import log
 from pathlib import Path
+
+from beartype.typing import List
+from beartype.typing import Optional
+from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.common import check_path_exists
+from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.common import get_list_cli_pass
+from py_repository.repo_tasks.common import get_script_root
+from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
+from py_repository.repo_tasks.workflow_utils import haxorg_task
+from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -38,10 +43,8 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
     else:
         out_dir_path = Path(ctx.config.custom_docs_conf.out_dir)
     out_dir_path.mkdir(parents=True, exist_ok=True)
-    from py_repository.repo_docgen.gen_documentation import (
-        generate_documentation,
-        DocGenerationOptions,
-    )
+    from py_repository.repo_docgen.gen_documentation import DocGenerationOptions
+    from py_repository.repo_docgen.gen_documentation import generate_documentation
 
     assert check_path_exists(ctx, Path(
         get_cxx_profdata_params(ctx).output)), get_cxx_profdata_params(ctx).output

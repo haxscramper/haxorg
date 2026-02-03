@@ -14,11 +14,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class ElkLayoutCli {
-    
+
     public static void main(String[] args) {
         String inputFile = null;
         String outputFile = null;
-        
+
         // Parse command line arguments
         for (String arg : args) {
             if (arg.startsWith("--input=")) {
@@ -30,14 +30,14 @@ public class ElkLayoutCli {
                 System.exit(0);
             }
         }
-        
+
         // Validate arguments
         if (inputFile == null || outputFile == null) {
             System.err.println("Error: Both --input and --output parameters are required.");
             printUsage();
             System.exit(1);
         }
-        
+
         try {
             performLayout(inputFile, outputFile);
             System.out.println("Layout completed successfully.");
@@ -49,16 +49,16 @@ public class ElkLayoutCli {
             System.exit(1);
         }
     }
-    
+
     private static void performLayout(String inputFilePath, String outputFilePath) throws IOException {
         // Read input JSON file
         Path inputPath = Paths.get(inputFilePath);
         if (!Files.exists(inputPath)) {
             throw new IOException("Input file does not exist: " + inputFilePath);
         }
-        
+
         String inputJson = Files.readString(inputPath);
-        
+
         // Parse and process the graph
         JsonObject jsonGraph;
         try {
@@ -66,34 +66,34 @@ public class ElkLayoutCli {
         } catch (Exception e) {
             throw new IOException("Invalid JSON in input file: " + e.getMessage(), e);
         }
-        
+
         // Convert to ELK graph and perform layout
         ElkNode elkGraph = ElkGraphJson.forGraph(jsonGraph).toElk();
         RecursiveGraphLayoutEngine layoutEngine = new RecursiveGraphLayoutEngine();
         BasicProgressMonitor monitor = new BasicProgressMonitor();
-        
+
         layoutEngine.layout(elkGraph, monitor);
-        
+
         // Convert back to JSON
         String outputJson = ElkGraphJson.forGraph(elkGraph)
             .prettyPrint(true)
             .toJson();
-        
+
         // Write output JSON file
         Path outputPath = Paths.get(outputFilePath);
-        
+
         // Create parent directories if they don't exist
         Path parentDir = outputPath.getParent();
         if (parentDir != null && !Files.exists(parentDir)) {
             Files.createDirectories(parentDir);
         }
-        
-        Files.writeString(outputPath, outputJson, 
-            StandardOpenOption.CREATE, 
-            StandardOpenOption.WRITE, 
+
+        Files.writeString(outputPath, outputJson,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
             StandardOpenOption.TRUNCATE_EXISTING);
     }
-    
+
     private static void printUsage() {
         System.out.println("ELK Graph Layout CLI");
         System.out.println();

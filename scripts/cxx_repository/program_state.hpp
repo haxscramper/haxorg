@@ -150,7 +150,8 @@ struct walker_state {
     /// Add preiod mapping of the commit to the walker. All information
     /// about line's *origin period* in further analysis will be based on
     /// the data provided to to this functino.
-    void add_full_commit(git_oid const& oid ///< git ID of the commit
+    void add_full_commit(
+        git_oid const& oid ///< git ID of the commit
     ) {
         rev_index.insert({oid, full_commits.size()});
         full_commits.push_back(oid);

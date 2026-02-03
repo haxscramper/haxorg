@@ -32,13 +32,13 @@ jar {
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveFileName = 'elk-wrapper.jar'
-    
+
     // Exclude signature files
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
     exclude 'META-INF/MANIFEST.MF'
-    
+
     manifest {
         attributes(
             'Implementation-Title': 'ELK JNI Wrapper',

@@ -5,11 +5,12 @@
 
 
 template <>
-struct std::formatter<org::parse::SourceLoc> : std::formatter<std::string> {
+struct std::formatter<org::parse::SourceLoc>
+    : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         const org::parse::SourceLoc& p,
-        FormatContext&             ctx) const {
+        FormatContext&               ctx) const {
         hstd::fmt_ctx(p.line, ctx);
         hstd::fmt_ctx(":", ctx);
         hstd::fmt_ctx(p.column, ctx);

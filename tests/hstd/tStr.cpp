@@ -100,7 +100,6 @@ TEST(StringOperationsTest, UnicodeLength) {
 }
 
 
-
 #define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                \
     try {                                                                 \
         stmt;                                                             \
@@ -112,7 +111,6 @@ TEST(StringOperationsTest, UnicodeLength) {
         FAIL() << "Expected " << #etype << " with message \""             \
                << whatstring << "\"";                                     \
     }
-
 
 
 TEST(Strutils, Mappings) {

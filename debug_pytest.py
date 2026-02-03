@@ -1,6 +1,8 @@
-from py_scriptutils import configure_asan
 import linecache
 import sys
+
+from py_scriptutils import configure_asan
+
 
 def trace_lines(frame, event, arg) -> None:
     if event == 'call' and frame.f_code.co_name == '__import__':
@@ -12,7 +14,6 @@ def trace_lines(frame, event, arg) -> None:
         print(f"{event} {filename}:{lineno}: {line.rstrip()}")
 
     return trace_lines
-
 
 
 import pytest

@@ -201,31 +201,35 @@ void line_edit_action(
     Vec<Action>&         delete_actions,
     Vec<Action>&         add_actions,
     ir::CommitId         id_commit) {
-    ir::StringId string_id = state->content->add(String{strip(
-        Str{line->content, static_cast<int>(line->content_len)},
-        {},
-        {'\n'})});
+    ir::StringId string_id = state->content->add(
+        String{strip(
+            Str{line->content, static_cast<int>(line->content_len)},
+            {},
+            {'\n'})});
 
     switch (line->origin) {
         case GIT_DIFF_LINE_ADDITION: {
-            ir::LineId line_id = state->content->add(LineData{
-                .content = string_id,
-                .commit  = id_commit,
-            });
+            ir::LineId line_id = state->content->add(
+                LineData{
+                    .content = string_id,
+                    .commit  = id_commit,
+                });
 
 
-            add_actions.push_back(AddAction{
-                .added = line->new_lineno - 1,
-                .id    = line_id,
-            });
+            add_actions.push_back(
+                AddAction{
+                    .added = line->new_lineno - 1,
+                    .id    = line_id,
+                });
             break;
         }
 
         case GIT_DIFF_LINE_DELETION: {
-            delete_actions.push_back(RemoveAction{
-                .removed = line->old_lineno - 1,
-                .id      = string_id,
-            });
+            delete_actions.push_back(
+                RemoveAction{
+                    .removed = line->old_lineno - 1,
+                    .id      = string_id,
+                });
             break;
         }
     }
@@ -448,12 +452,13 @@ struct ChangeIterationState {
         tracks.erase(rename.prev_path);
         tracks.insert({rename.this_path, prev_track});
 
-        state->at(commit_id).actions.push_back(ir::Commit::Action{
-            .kind     = ir::Commit::ActionKind::Rename,
-            .old_path = rename.prev_path,
-            .new_path = rename.this_path,
-            .track    = prev_track,
-        });
+        state->at(commit_id).actions.push_back(
+            ir::Commit::Action{
+                .kind     = ir::Commit::ActionKind::Rename,
+                .old_path = rename.prev_path,
+                .new_path = rename.this_path,
+                .track    = prev_track,
+            });
 
         if (state->should_debug()
             && (state->should_debug_file(rename.this_path)
@@ -472,24 +477,26 @@ struct ChangeIterationState {
         // FIXME main repository has commit that deletes already deleted
         // path
         if (tracks.contains(del.path)) {
-            state->at(commit_id).actions.push_back(ir::Commit::Action{
-                .kind  = ir::Commit::ActionKind::Delete,
-                .file  = del.path,
-                .track = tracks.at(del.path),
-            });
+            state->at(commit_id).actions.push_back(
+                ir::Commit::Action{
+                    .kind  = ir::Commit::ActionKind::Delete,
+                    .file  = del.path,
+                    .track = tracks.at(del.path),
+                });
 
             tracks.erase(del.path);
         }
     }
 
     void apply(ir::CommitId commit_id, CR<FileModifyAction> del) {
-        state->at(commit_id).actions.push_back(ir::Commit::Action{
-            .kind    = ir::Commit::ActionKind::Modify,
-            .file    = del.path,
-            .track   = tracks.at(del.path),
-            .removed = del.removed,
-            .added   = del.added,
-        });
+        state->at(commit_id).actions.push_back(
+            ir::Commit::Action{
+                .kind    = ir::Commit::ActionKind::Modify,
+                .file    = del.path,
+                .track   = tracks.at(del.path),
+                .removed = del.removed,
+                .added   = del.added,
+            });
     }
 
     std::string format_section_lines(ir::FileTrackSectionId section_id) {
@@ -611,11 +618,12 @@ struct ChangeIterationState {
 
         ir::FileTrack& tmp_track = state->at(track);
 
-        auto section_id = state->content->add(FileTrackSection{
-            .commit_id = commit_id,
-            .path      = name.getPath(),
-            .track     = track,
-        });
+        auto section_id = state->content->add(
+            FileTrackSection{
+                .commit_id = commit_id,
+                .path      = name.getPath(),
+                .track     = track,
+            });
 
         ir::FileTrackSection& section = state->at(section_id);
 
@@ -935,14 +943,17 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
     auto signature = const_cast<git_signature*>(
         git::commit_author(commit.get()));
 
-    return state->content->add(Commit{
-        .author   = state->content->add(Author{
-              .name = Str{signature->name}, .email = Str{signature->email}}),
-        .time     = git::commit_time(commit.get()),
-        .timezone = git::commit_time_offset(commit.get()),
-        .hash     = hash,
-        .message  = Str{git_commit_message(commit.get())},
-    });
+    return state->content->add(
+        Commit{
+            .author = state->content->add(
+                Author{
+                    .name  = Str{signature->name},
+                    .email = Str{signature->email}}),
+            .time     = git::commit_time(commit.get()),
+            .timezone = git::commit_time_offset(commit.get()),
+            .hash     = hash,
+            .message  = Str{git_commit_message(commit.get())},
+        });
 }
 
 

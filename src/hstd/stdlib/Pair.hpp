@@ -45,7 +45,6 @@ struct std::hash<hstd::Pair<A, B>> {
 };
 
 
-
 namespace std {
 template <typename A, typename B>
 bool operator==(std::pair<A, B> const& lhs, std::pair<A, B> const& rhs) {

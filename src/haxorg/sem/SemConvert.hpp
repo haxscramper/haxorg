@@ -13,11 +13,11 @@ struct OrgConverter : public hstd::OperationsTracer {
   public:
     struct Errors {
         struct Base : std::exception {
-            hstd::Opt<parse::SourceLoc>    loc;
+            hstd::Opt<parse::SourceLoc>  loc;
             hstd::Opt<parse::OrgAdapter> adapter;
             hstd::Opt<Org*>              node;
             Base(
-                hstd::Opt<parse::SourceLoc>    loc     = std::nullopt,
+                hstd::Opt<parse::SourceLoc>  loc     = std::nullopt,
                 hstd::Opt<parse::OrgAdapter> adapter = std::nullopt,
                 hstd::Opt<Org*>              node    = std::nullopt)
                 : loc(loc), adapter(adapter), node(node) {}

@@ -50,7 +50,7 @@ bool iequals(const std::string& a, const std::string& b);
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);
 std::string escape_literal(std::string_view const& in);
-void validate_utf8(const std::string& str);
+void        validate_utf8(const std::string& str);
 
 
 void replace_all(

@@ -1,9 +1,14 @@
-from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Generator, Literal
 from contextlib import contextmanager
-import tempfile
 from pathlib import Path
+import tempfile
+
 from beartype import beartype
+from beartype.typing import Generator
+from beartype.typing import List
+from beartype.typing import Literal
+from beartype.typing import Optional
+from pydantic import BaseModel
+from pydantic import Field
 
 CAT = __name__
 
@@ -115,7 +120,7 @@ class HaxorgBinarySizeReportConfig(BaseModel, extra="forbid"):
 class HaxorgCoverageRunPattern(BaseModel, extra="forbid"):
     """
     Group of regular expression patterns to match against the test binary,
-    class or name. 
+    class or name.
     """
     binary_pattern: Optional[str] = Field(
         default=None,
@@ -132,17 +137,17 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
     """
 
     Whitelist and blacklist patterns to check which coverage
-    runsand files should be included in the final coverage database. 
-    To be accepted, file/entry must be explicitly allowed by the 
-    whitelist first, and then not filtered out by any of the 
-    blacklist. 
+    runsand files should be included in the final coverage database.
+    To be accepted, file/entry must be explicitly allowed by the
+    whitelist first, and then not filtered out by any of the
+    blacklist.
 
     The `profdata_merge_*` field pair controls which source files are
     integrated into the coverage database. The `coverage_run_*` field pair
-    determines which specific individual runs should be included in the coverage. 
+    determines which specific individual runs should be included in the coverage.
 
-    Filtering is first done on the per-run basis, then the coverage of the 
-    specific source files is filtered out by the `reflection_tool`. 
+    Filtering is first done on the per-run basis, then the coverage of the
+    specific source files is filtered out by the `reflection_tool`.
     """
 
     coverage_run_whitelist: List[HaxorgCoverageRunPattern] = Field(
