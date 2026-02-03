@@ -11,6 +11,7 @@ jobs:
     steps:
       - run: pacman -Syu --noconfirm clang python-pip git
       - uses: actions/checkout@v4
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: astral-sh/setup-uv@v4
       - run: clang-format --version
       - run: uv sync --dev
