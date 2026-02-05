@@ -1,7 +1,16 @@
 import itertools
 
 from beartype import beartype
-from beartype.typing import Any, Dict, Generator, Iterable, List, Optional, Sequence, Tuple
+from beartype.typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.gen_tu_cpp as tu
 from py_scriptutils.algorithm import drop_none, iterate_object_tree

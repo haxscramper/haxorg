@@ -10,7 +10,19 @@ from tempfile import gettempdir
 import types
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 from coverage import Coverage
 from plumbum import CommandNotFound, local
 import py_haxorg.pyhaxorg_wrap as org

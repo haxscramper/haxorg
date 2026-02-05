@@ -11,7 +11,19 @@ import time
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any, cast, Dict, List, Literal, NewType, Optional, Set, Tuple, TypeAlias, Union
+from beartype.typing import (
+    Any,
+    cast,
+    Dict,
+    List,
+    Literal,
+    NewType,
+    Optional,
+    Set,
+    Tuple,
+    TypeAlias,
+    Union,
+)
 from plumbum import local
 from py_codegen.gen_tu_cpp import QualType
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file

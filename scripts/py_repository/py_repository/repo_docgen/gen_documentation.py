@@ -22,7 +22,12 @@ import py_repository.repo_docgen.gen_documentation_python as py
 import py_repository.repo_docgen.gen_documentation_utils as docutils
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import apply_options, BaseModel, get_cli_model, options_from_model
+from py_scriptutils.toml_config_profiler import (
+    apply_options,
+    BaseModel,
+    get_cli_model,
+    options_from_model,
+)
 import py_scriptutils.tracer
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 from pydantic import BaseModel, ConfigDict, Field

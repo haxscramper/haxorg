@@ -4,7 +4,17 @@ import itertools
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 import dominate.tags as tags
 import dominate.util as util
 from py_exporters.export_html import ExporterHtml

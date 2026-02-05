@@ -5,10 +5,21 @@ from pathlib import Path
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Optional, Tuple, Type
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import ensure_existing_dir, get_build_root, get_script_root
+from py_repository.repo_tasks.common import (
+    ensure_existing_dir,
+    get_build_root,
+    get_script_root,
+)
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
-from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, open_sqlite_session, StrColumn
+from py_scriptutils.sqlalchemy_utils import (
+    BoolColumn,
+    ForeignId,
+    IdColumn,
+    IntColumn,
+    open_sqlite_session,
+    StrColumn,
+)
 from sqlalchemy import Column, create_engine, Select, select
 from sqlalchemy.orm import declarative_base, Session
 from sqlalchemy.schema import CreateTable

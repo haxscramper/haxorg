@@ -13,7 +13,14 @@ def generate(ctx: click.Context, **kwargs: Any) -> None:
     """Generate/analyze input org-mode document"""
 
 
-from py_cli.generate import codex_tracking, node_clouds, sort_repository_tags, story_grid, subtree_clocking, todo_collector
+from py_cli.generate import (
+    codex_tracking,
+    node_clouds,
+    sort_repository_tags,
+    story_grid,
+    subtree_clocking,
+    todo_collector,
+)
 from py_cli.generate.mind_map import gen_mind_map
 
 generate.add_command(node_clouds.node_cloud_cli)

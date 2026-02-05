@@ -1,7 +1,12 @@
 import itertools
 
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import ensure_existing_dir, get_script_root, get_workflow_out, get_workflow_tmp
+from py_repository.repo_tasks.common import (
+    ensure_existing_dir,
+    get_script_root,
+    get_workflow_out,
+    get_workflow_tmp,
+)
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 

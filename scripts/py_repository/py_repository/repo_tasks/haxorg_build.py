@@ -5,9 +5,23 @@ from typing import Generator
 from beartype import beartype
 from beartype.typing import Any, Iterable, List
 from py_ci.util_scripting import cmake_opt, get_j_cap
-from py_repository.repo_tasks.command_execution import run_cmake_build, run_cmake_configure, run_command
-from py_repository.repo_tasks.common import get_build_root, get_component_build_dir, get_script_root
-from py_repository.repo_tasks.haxorg_base import base_environment, generate_develop_deps_install_paths, get_cmake_defines, get_deps_install_dir, symlink_build
+from py_repository.repo_tasks.command_execution import (
+    run_cmake_build,
+    run_cmake_configure,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    get_build_root,
+    get_component_build_dir,
+    get_script_root,
+)
+from py_repository.repo_tasks.haxorg_base import (
+    base_environment,
+    generate_develop_deps_install_paths,
+    get_cmake_defines,
+    get_deps_install_dir,
+    symlink_build,
+)
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils import os_utils
 from py_scriptutils.algorithm import cond

@@ -1,7 +1,12 @@
 import json
 
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_build_root, get_lldb_py_import, get_lldb_source_on_crash, get_script_root
+from py_repository.repo_tasks.common import (
+    get_build_root,
+    get_lldb_py_import,
+    get_lldb_source_on_crash,
+    get_script_root,
+)
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 

@@ -5,7 +5,14 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Type
 import coverage.numbits
 from py_scriptutils.script_logging import log
-from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, open_sqlite_session, StrColumn
+from py_scriptutils.sqlalchemy_utils import (
+    BoolColumn,
+    ForeignId,
+    IdColumn,
+    IntColumn,
+    open_sqlite_session,
+    StrColumn,
+)
 from pydantic import BaseModel, Field
 from sqlalchemy import Column, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base

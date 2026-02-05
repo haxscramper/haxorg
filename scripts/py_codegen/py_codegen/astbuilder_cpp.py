@@ -7,7 +7,17 @@ import os
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, Iterable, List, NewType, Optional, Tuple, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    NewType,
+    Optional,
+    Tuple,
+    Union,
+)
 from py_codegen.astbuilder_base import pascal_case
 import py_codegen.astbuilder_base as base
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout

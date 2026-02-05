@@ -14,7 +14,19 @@ from typing import Type
 import weakref
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, Iterable, Iterator, List, Mapping, Optional, Set, Tuple, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 from dominate import document
 import dominate.tags as tags
 import more_itertools
@@ -23,8 +35,21 @@ from py_repository.code_analysis.gen_coverage_cookies import *
 import py_repository.repo_docgen.gen_documentation_data as docdata
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich_pprint
-from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file, to_debug_json
-from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, NumericEnum, open_sqlite_session, StrColumn
+from py_scriptutils.script_logging import (
+    ExceptionContextNote,
+    log,
+    pprint_to_file,
+    to_debug_json,
+)
+from py_scriptutils.sqlalchemy_utils import (
+    BoolColumn,
+    ForeignId,
+    IdColumn,
+    IntColumn,
+    NumericEnum,
+    open_sqlite_session,
+    StrColumn,
+)
 from py_scriptutils.tracer import GlobCompleteEvent
 from pydantic import BaseModel, Field
 from pygments import lex

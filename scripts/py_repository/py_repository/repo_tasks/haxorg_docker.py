@@ -12,14 +12,37 @@ import docker.errors
 import docker.models.containers
 import docker.types
 from py_ci.util_scripting import get_docker_cap_flags
-from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes, get_cmd_debug_file, get_python_binary, run_command
-from py_repository.repo_tasks.common import docker_user, ensure_clean_file, ensure_existing_dir, get_build_root, get_script_root
+from py_repository.repo_tasks.command_execution import (
+    clone_repo_with_uncommitted_changes,
+    get_cmd_debug_file,
+    get_python_binary,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    docker_user,
+    ensure_clean_file,
+    ensure_existing_dir,
+    get_build_root,
+    get_script_root,
+)
 from py_repository.repo_tasks.config import get_tmpdir, HaxorgLogLevel
 from py_repository.repo_tasks.deps_build import build_develop_deps
-from py_repository.repo_tasks.docker_fuse import cleanup_overlay_mount_points, create_overlay_mount_points
-from py_repository.repo_tasks.examples_build import build_examples, run_examples, run_js_test_example
+from py_repository.repo_tasks.docker_fuse import (
+    cleanup_overlay_mount_points,
+    create_overlay_mount_points,
+)
+from py_repository.repo_tasks.examples_build import (
+    build_examples,
+    run_examples,
+    run_js_test_example,
+)
 from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
-from py_repository.repo_tasks.haxorg_codegen import generate_binary_size_report, generate_haxorg_sources, generate_include_graph, generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_codegen import (
+    generate_binary_size_report,
+    generate_haxorg_sources,
+    generate_include_graph,
+    generate_python_protobuf_files,
+)
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests

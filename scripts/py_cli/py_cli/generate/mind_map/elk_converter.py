@@ -7,7 +7,17 @@ from pathlib import Path
 import pickle
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Set, Tuple, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 import igraph as ig
 import numpy as np
 from PIL import Image

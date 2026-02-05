@@ -14,8 +14,23 @@ from types import TracebackType
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Set, Type
 from cxx_repository import burndown
-from hypothesis import assume, given, note, Phase, seed, settings, strategies as st, Verbosity
-from hypothesis.stateful import Bundle, precondition, rule, RuleBasedStateMachine, run_state_machine_as_test
+from hypothesis import (
+    assume,
+    given,
+    note,
+    Phase,
+    seed,
+    settings,
+    strategies as st,
+    Verbosity,
+)
+from hypothesis.stateful import (
+    Bundle,
+    precondition,
+    rule,
+    RuleBasedStateMachine,
+    run_state_machine_as_test,
+)
 import pandas as pd
 import plumbum
 import plumbum.commands.base

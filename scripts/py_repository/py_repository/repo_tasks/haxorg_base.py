@@ -3,10 +3,22 @@ import sys
 
 from beartype import beartype
 from beartype.typing import List, Optional
-from py_ci.data_build import get_deps_install_config, get_emscripten_cmake_flags, get_external_deps_list
+from py_ci.data_build import (
+    get_deps_install_config,
+    get_emscripten_cmake_flags,
+    get_external_deps_list,
+)
 from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.command_execution import get_python_binary, run_command
-from py_repository.repo_tasks.common import check_path_exists, create_symlink, ctx_write_text, ensure_existing_dir, get_build_root, get_component_build_dir, get_script_root
+from py_repository.repo_tasks.common import (
+    check_path_exists,
+    create_symlink,
+    ctx_write_text,
+    ensure_existing_dir,
+    get_build_root,
+    get_component_build_dir,
+    get_script_root,
+)
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log

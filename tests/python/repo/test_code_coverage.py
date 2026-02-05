@@ -17,7 +17,14 @@ from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich, render_rich_pprint
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
-from py_scriptutils.sqlalchemy_utils import dump_db_all, dump_flat_table, format_db_all, format_rich_query, open_sqlite_session, Session
+from py_scriptutils.sqlalchemy_utils import (
+    dump_db_all,
+    dump_flat_table,
+    format_db_all,
+    format_rich_query,
+    open_sqlite_session,
+    Session,
+)
 import pytest
 import rich.box
 from sqlalchemy import select

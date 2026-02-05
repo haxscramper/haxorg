@@ -490,7 +490,11 @@ def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
 def test_tag_sorting(stable_test_dir: Path) -> None:
     import functools
 
-    from py_cli.generate.sort_repository_tags import DuplicateType, sort_reposutory_tags, TagDuplicate
+    from py_cli.generate.sort_repository_tags import (
+        DuplicateType,
+        sort_reposutory_tags,
+        TagDuplicate,
+    )
 
     tag_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/cli/tag_collection")
 

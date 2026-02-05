@@ -2,11 +2,26 @@ import itertools
 from pathlib import Path
 
 import py_repository.code_analysis.gen_coverage_cookies as cov
-from py_repository.repo_tasks.command_execution import get_python_binary, run_command, run_command_with_json_args
-from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root, get_workflow_out
+from py_repository.repo_tasks.command_execution import (
+    get_python_binary,
+    run_command,
+    run_command_with_json_args,
+)
+from py_repository.repo_tasks.common import (
+    check_is_file,
+    ensure_existing_dir,
+    get_build_root,
+    get_log_dir,
+    get_script_root,
+    get_workflow_out,
+)
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg, build_targets, configure_cmake_haxorg
+from py_repository.repo_tasks.haxorg_build import (
+    build_haxorg,
+    build_targets,
+    configure_cmake_haxorg,
+)
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 

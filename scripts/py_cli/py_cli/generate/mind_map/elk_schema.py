@@ -14,7 +14,15 @@ from matplotlib.path import Path as MPath
 import matplotlib.pyplot as plt
 import numpy as np
 from plumbum import local
-from pydantic import BaseModel, Field, field_serializer, field_validator, model_serializer, model_validator, ValidationError
+from pydantic import (
+    BaseModel,
+    Field,
+    field_serializer,
+    field_validator,
+    model_serializer,
+    model_validator,
+    ValidationError,
+)
 
 
 @beartype

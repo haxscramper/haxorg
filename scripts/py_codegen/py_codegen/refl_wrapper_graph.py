@@ -8,7 +8,15 @@ from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 import graphviz as gv
 import igraph as ig
-from py_codegen.gen_tu_cpp import GenTuEnum, GenTuFunction, GenTuStruct, GenTuTypedef, GenTuUnion, QualType, QualTypeKind
+from py_codegen.gen_tu_cpp import (
+    GenTuEnum,
+    GenTuFunction,
+    GenTuStruct,
+    GenTuTypedef,
+    GenTuUnion,
+    QualType,
+    QualTypeKind,
+)
 from py_codegen.refl_read import ConvTu
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field

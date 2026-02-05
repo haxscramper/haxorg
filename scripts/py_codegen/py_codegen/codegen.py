@@ -10,7 +10,19 @@ import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
-from py_codegen.astbuilder_pybind11 import flat_scope, id_self, Py11BindPass, Py11Class, Py11Enum, Py11Field, Py11Function, Py11Method, Py11Module, Py11TypedefPass, py_type
+from py_codegen.astbuilder_pybind11 import (
+    flat_scope,
+    id_self,
+    Py11BindPass,
+    Py11Class,
+    Py11Enum,
+    Py11Field,
+    Py11Function,
+    Py11Method,
+    Py11Module,
+    Py11TypedefPass,
+    py_type,
+)
 from py_codegen.org_codegen_data import *
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.algorithm import cond
@@ -1341,7 +1353,11 @@ def gen_description_files(
                 log(CAT).info(f"[red]Wrote[/red] to {define.path}")
 
 
-from py_scriptutils.toml_config_profiler import apply_options, get_context, options_from_model
+from py_scriptutils.toml_config_profiler import (
+    apply_options,
+    get_context,
+    options_from_model,
+)
 import rich_click as click
 
 

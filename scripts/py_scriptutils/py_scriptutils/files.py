@@ -11,7 +11,21 @@ import traceback
 from types import GeneratorType
 
 from beartype import beartype
-from beartype.typing import Any, Callable, cast, Dict, Generator, Iterable, List, Optional, Sequence, Type, TypeAlias, TypeVar, Union
+from beartype.typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeAlias,
+    TypeVar,
+    Union,
+)
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import to_debug_json
 

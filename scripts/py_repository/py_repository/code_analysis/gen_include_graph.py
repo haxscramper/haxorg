@@ -15,10 +15,23 @@ from py_codegen.astbuilder_cpp import QualType, QualTypeKind
 from py_codegen.gen_tu_cpp import GenTuInclude
 import py_codegen.proto_lib.reflection_defs as pb
 from py_codegen.refl_read import conv_proto_file, ConvTu
-from py_codegen.refl_wrapper_graph import get_declared_types_rec, get_used_types_rec, hash_qual_type
+from py_codegen.refl_wrapper_graph import (
+    get_declared_types_rec,
+    get_used_types_rec,
+    hash_qual_type,
+)
 from py_repository.code_analysis import gen_coverage_cookies
-from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
-from py_repository.repo_tasks.common import ctx_write_text, ensure_existing_dir, get_build_root, get_script_root, get_workflow_out
+from py_repository.repo_tasks.command_execution import (
+    run_command,
+    run_command_with_json_args,
+)
+from py_repository.repo_tasks.common import (
+    ctx_write_text,
+    ensure_existing_dir,
+    get_build_root,
+    get_script_root,
+    get_workflow_out,
+)
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field

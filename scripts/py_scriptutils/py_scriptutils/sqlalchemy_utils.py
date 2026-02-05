@@ -6,7 +6,19 @@ from beartype.typing import Any, Dict, List, Optional, Union
 import py_scriptutils.json_utils as ju
 from rich.console import Console
 from rich.table import Table
-from sqlalchemy import Boolean, Column, create_engine, DateTime, Engine, ForeignKey, inspect, Integer, MetaData, String, Table as SATable
+from sqlalchemy import (
+    Boolean,
+    Column,
+    create_engine,
+    DateTime,
+    Engine,
+    ForeignKey,
+    inspect,
+    Integer,
+    MetaData,
+    String,
+    Table as SATable,
+)
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql import Executable, select
 from sqlalchemy.types import TypeDecorator
