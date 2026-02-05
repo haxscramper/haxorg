@@ -45,3 +45,10 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_cxx_code.py
         language: system
         types: [c++]
+  - repo: local
+    hooks:
+      - id: cmake-format
+        name: cmake-format
+        entry: cmake-format -i
+        language: system
+        files: (CMakeLists\.txt|\.cmake)$

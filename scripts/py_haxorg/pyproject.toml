@@ -21,6 +21,7 @@ cmake.source-dir = "../.."
 
 [tool.scikit-build.cmake.define]
 ORG_USE_CONAN_INSTALL = "ON"
+ORG_IS_CONAN_BUILD = "ON"
 CMAKE_BUILD_TYPE = "Release"
 ORG_DEPS_USE_ADAPTAGRAMS = "OFF"
 CMAKE_CXX_COMPILER = "clang"

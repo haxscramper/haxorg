@@ -57,7 +57,8 @@ option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_DEPS_USE_MSGPACK "Include msgpack serialization functionality in the build" ON)
-option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" OFF)
+option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)"
+       OFF)
 option(ORG_BUILD_IS_DEVELOP "Build and configure internal development dependencies" ON)
 option(ORG_BUILD_USE_GOLD_WRAPPER "Link profilng" OFF)
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
@@ -94,38 +95,30 @@ message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 
 if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   add_definitions(-DORG_USE_CONAN_INSTALL=1)
-  if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
+  set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install")
+  set(CONAN_TOOLCHAIN
+      "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake")
+
+  if(NOT EXISTS "${CONAN_TOOLCHAIN}")
     message(STATUS "Running Conan install...")
 
     execute_process(
-      COMMAND conan install ${CMAKE_SOURCE_DIR}
-              --output-folder=${CMAKE_BINARY_DIR}
-              -pr:h=${BASE}/conanprofile.txt
-              --build=missing
-              -s build_type=${CMAKE_BUILD_TYPE}
+      COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
+              -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
       WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
       RESULT_VARIABLE CONAN_RESULT
       OUTPUT_VARIABLE CONAN_STDOUT
-      ERROR_VARIABLE  CONAN_STDERR
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_STRIP_TRAILING_WHITESPACE
-    )
+      ERROR_VARIABLE CONAN_STDERR
+      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
 
     if(NOT CONAN_RESULT EQUAL 0)
-      message(FATAL_ERROR
-        "Conan install failed (exit code: ${CONAN_RESULT})\n"
-        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
-        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
-        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
-        "---- stdout ----\n${CONAN_STDOUT}\n"
-        "---- stderr ----\n${CONAN_STDERR}\n"
-      )
-    else()
-      message(STATUS "Conan install output:\n${CONAN_STDOUT}")
+      message(
+        FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
+                    "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
     endif()
   endif()
 
-  include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
+  include("${CONAN_TOOLCHAIN}")
 elseif(NOT ORG_DEPS_INSTALL_ROOT OR ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
   add_definitions(-DORG_USE_CONAN_INSTALL=0)
   message(STATUS "No dependency path specified, will be using system-provided deps")
@@ -172,7 +165,10 @@ else()
 endif()
 
 if(NOT ${ORG_EMCC_BUILD})
-  find_package(Python COMPONENTS Interpreter Development REQUIRED)
+  find_package(
+    Python
+    COMPONENTS Interpreter Development
+    REQUIRED)
   find_package(pybind11 CONFIG REQUIRED)
 endif()
 
@@ -196,7 +192,7 @@ if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
   find_package(SQLiteCpp CONFIG REQUIRED)
 endif()
 
-if (NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_EMCC_BUILD})
   find_package(absl CONFIG REQUIRED)
 endif()
 
@@ -209,7 +205,6 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(boost_mp11 CONFIG REQUIRED)
 endif()
 find_package(nlohmann_json CONFIG REQUIRED)
-
 
 find_package(lexy CONFIG REQUIRED)
 if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
