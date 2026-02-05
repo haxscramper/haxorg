@@ -1,11 +1,9 @@
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Optional
+from beartype.typing import Any, Optional
 import glom
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
+from py_cli import haxorg_cli, haxorg_opts
 from py_scriptutils.script_logging import log
 import rich_click as click
 

@@ -2,23 +2,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Type
+from beartype.typing import Any, Dict, List, Optional, Type
 import coverage.numbits
 from py_scriptutils.script_logging import log
-from py_scriptutils.sqlalchemy_utils import BoolColumn
-from py_scriptutils.sqlalchemy_utils import ForeignId
-from py_scriptutils.sqlalchemy_utils import IdColumn
-from py_scriptutils.sqlalchemy_utils import IntColumn
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session
-from py_scriptutils.sqlalchemy_utils import StrColumn
-from pydantic import BaseModel
-from pydantic import Field
-from sqlalchemy import Column
-from sqlalchemy import LargeBinary
+from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, open_sqlite_session, StrColumn
+from pydantic import BaseModel, Field
+from sqlalchemy import Column, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 

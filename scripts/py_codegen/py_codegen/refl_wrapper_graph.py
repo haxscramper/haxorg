@@ -1,31 +1,17 @@
-from copy import copy
-from copy import deepcopy
-from dataclasses import dataclass
-from dataclasses import field
+from copy import copy, deepcopy
+from dataclasses import dataclass, field
 import itertools
 from pathlib import Path
 from pprint import pformat
 
 from beartype import beartype
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Set
-from beartype.typing import TypeAlias
-from beartype.typing import Union
+from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 import graphviz as gv
 import igraph as ig
-from py_codegen.gen_tu_cpp import GenTuEnum
-from py_codegen.gen_tu_cpp import GenTuFunction
-from py_codegen.gen_tu_cpp import GenTuStruct
-from py_codegen.gen_tu_cpp import GenTuTypedef
-from py_codegen.gen_tu_cpp import GenTuUnion
-from py_codegen.gen_tu_cpp import QualType
-from py_codegen.gen_tu_cpp import QualTypeKind
+from py_codegen.gen_tu_cpp import GenTuEnum, GenTuFunction, GenTuStruct, GenTuTypedef, GenTuUnion, QualType, QualTypeKind
 from py_codegen.refl_read import ConvTu
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
 @beartype

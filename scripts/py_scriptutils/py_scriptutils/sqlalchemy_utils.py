@@ -2,29 +2,13 @@ from datetime import datetime
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Union
+from beartype.typing import Any, Dict, List, Optional, Union
 import py_scriptutils.json_utils as ju
 from rich.console import Console
 from rich.table import Table
-from sqlalchemy import Boolean
-from sqlalchemy import Column
-from sqlalchemy import create_engine
-from sqlalchemy import DateTime
-from sqlalchemy import Engine
-from sqlalchemy import ForeignKey
-from sqlalchemy import inspect
-from sqlalchemy import Integer
-from sqlalchemy import MetaData
-from sqlalchemy import String
-from sqlalchemy import Table as SATable
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import Executable
-from sqlalchemy.sql import select
+from sqlalchemy import Boolean, Column, create_engine, DateTime, Engine, ForeignKey, inspect, Integer, MetaData, String, Table as SATable
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.sql import Executable, select
 from sqlalchemy.types import TypeDecorator
 
 

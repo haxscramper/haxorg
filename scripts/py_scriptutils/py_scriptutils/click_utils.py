@@ -1,8 +1,6 @@
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import List
-from click.testing import CliRunner
-from click.testing import Result
+from beartype.typing import Any, List
+from click.testing import CliRunner, Result
 
 
 def check_cli(result: Result) -> None:

@@ -2,24 +2,13 @@ from pathlib import Path
 import sys
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
-from py_ci.data_build import get_deps_install_config
-from py_ci.data_build import get_emscripten_cmake_flags
-from py_ci.data_build import get_external_deps_list
+from beartype.typing import List, Optional
+from py_ci.data_build import get_deps_install_config, get_emscripten_cmake_flags, get_external_deps_list
 from py_ci.util_scripting import cmake_opt
-from py_repository.repo_tasks.command_execution import get_python_binary
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import check_path_exists
-from py_repository.repo_tasks.common import create_symlink
-from py_repository.repo_tasks.common import ctx_write_text
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_component_build_dir
-from py_repository.repo_tasks.common import get_script_root
+from py_repository.repo_tasks.command_execution import get_python_binary, run_command
+from py_repository.repo_tasks.common import check_path_exists, create_symlink, ctx_write_text, ensure_existing_dir, get_build_root, get_component_build_dir, get_script_root
 from py_repository.repo_tasks.config import HaxorgConfig
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__

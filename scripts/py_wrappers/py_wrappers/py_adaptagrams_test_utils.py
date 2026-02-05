@@ -1,8 +1,7 @@
 from pathlib import Path
 from pprint import pformat
 
-from beartype.typing import Any
-from beartype.typing import Dict
+from beartype.typing import Any, Dict
 from py_scriptutils.script_logging import to_debug_json
 from py_wrappers.py_adaptagrams_wrap import *
 import py_wrappers.py_adaptagrams_wrap as wrap

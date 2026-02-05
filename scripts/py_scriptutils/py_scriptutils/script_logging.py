@@ -6,11 +6,7 @@ import sys
 import traceback
 from types import MethodType
 
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Literal
-from beartype.typing import Optional
-from beartype.typing import Set
+from beartype.typing import Any, Callable, Literal, Optional, Set
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text

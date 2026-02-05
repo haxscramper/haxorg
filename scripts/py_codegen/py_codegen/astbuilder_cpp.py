@@ -1,7 +1,5 @@
 from copy import copy
-from dataclasses import dataclass
-from dataclasses import field
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from enum import Enum
 import inspect
 import itertools
@@ -9,21 +7,11 @@ import os
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import NewType
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from beartype.typing import Union
+from beartype.typing import Any, Callable, Dict, Iterable, List, NewType, Optional, Tuple, Union
 from py_codegen.astbuilder_base import pascal_case
 import py_codegen.astbuilder_base as base
-from py_textlayout.py_textlayout_wrap import BlockId
-from py_textlayout.py_textlayout_wrap import TextLayout
-from pydantic import BaseModel
-from pydantic import Field
+from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
+from pydantic import BaseModel, Field
 
 DEBUG_TYPE_ORIGIN = False
 

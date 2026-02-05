@@ -3,16 +3,11 @@
 Parser for LaTeX log files.
 """
 from collections import deque
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 import re
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
+from beartype.typing import Any, Iterable, List, Optional, Tuple
 
 CAT = __name__
 

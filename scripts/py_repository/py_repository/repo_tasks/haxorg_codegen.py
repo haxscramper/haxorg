@@ -2,23 +2,12 @@ import itertools
 from pathlib import Path
 
 import py_repository.code_analysis.gen_coverage_cookies as cov
-from py_repository.repo_tasks.command_execution import get_python_binary
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.command_execution import run_command_with_json_args
-from py_repository.repo_tasks.common import check_is_file
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_log_dir
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.common import get_workflow_out
+from py_repository.repo_tasks.command_execution import get_python_binary, run_command, run_command_with_json_args
+from py_repository.repo_tasks.common import check_is_file, ensure_existing_dir, get_build_root, get_log_dir, get_script_root, get_workflow_out
 from py_repository.repo_tasks.config import HaxorgLogLevel
-from py_repository.repo_tasks.haxorg_base import get_deps_install_dir
-from py_repository.repo_tasks.haxorg_base import symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg
-from py_repository.repo_tasks.haxorg_build import build_targets
-from py_repository.repo_tasks.haxorg_build import configure_cmake_haxorg
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
+from py_repository.repo_tasks.haxorg_build import build_haxorg, build_targets, configure_cmake_haxorg
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -28,7 +17,7 @@ CAT = __name__
 def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
-    python_path = str(get_python_binary(ctx)).replace("/bin/python")
+    python_path = str(get_python_binary(ctx)).replace("/bin/python", "")
     log(CAT).info(f"Using protoc plugin path '{python_path}'")
     protoc_plugin = Path(python_path).joinpath("bin/protoc-gen-python_betterproto")
 

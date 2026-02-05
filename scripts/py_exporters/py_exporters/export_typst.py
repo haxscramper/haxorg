@@ -1,19 +1,13 @@
 from enum import Enum
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
+from beartype.typing import Any, Dict, List
 import py_codegen.astbuilder_typst as typ
-from py_exporters.export_base import ExporterBase
-from py_exporters.export_base import with_export_context
-from py_haxorg.pyhaxorg_utils import formatDateTime
-from py_haxorg.pyhaxorg_utils import formatHashTag
-from py_haxorg.pyhaxorg_utils import getFlatTags
+from py_exporters.export_base import ExporterBase, with_export_context
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils import algorithm
-from py_scriptutils import toml_config_profiler
+from py_scriptutils import algorithm, toml_config_profiler
 from py_scriptutils.script_logging import log
 from py_textlayout.py_textlayout_wrap import BlockId
 import toml
@@ -24,8 +18,7 @@ from pathlib import Path
 import shutil
 
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 import toml
 
 this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_exporters/py_exporters")

@@ -5,11 +5,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
+from beartype.typing import Any, Dict, List, Optional, Tuple
 from dominate import tags
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import py_scriptutils.svg_utils as svg

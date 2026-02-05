@@ -1,18 +1,11 @@
 from collections import defaultdict
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Mapping
-from beartype.typing import Sequence
-from beartype.typing import Set
-from beartype.typing import TypeAlias
+from beartype.typing import List, Literal, Mapping, Sequence, Set, TypeAlias
 from py_codegen.astbuilder_cpp import *
-from py_scriptutils.algorithm import cond
-from py_scriptutils.algorithm import iterate_object_tree
+from py_scriptutils.algorithm import cond, iterate_object_tree
 from py_scriptutils.script_logging import log
 from py_textlayout.py_textlayout_wrap import *
 from pydantic import AliasChoices

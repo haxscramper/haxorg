@@ -1,6 +1,5 @@
 from beartype.typing import Any
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
+from py_cli import haxorg_cli, haxorg_opts
 import rich_click as click
 
 

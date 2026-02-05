@@ -5,8 +5,7 @@ project(DescribeWrapper)
 set(BOOST_DESCRIBE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../describe")
 
 # Add the subdirectory containing the boost_describe CMakeLists.txt
-add_subdirectory("${BOOST_DESCRIBE_DIR}"
-                 "${CMAKE_CURRENT_BINARY_DIR}/boost_describe")
+add_subdirectory("${BOOST_DESCRIBE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/boost_describe")
 
 # Include helper for creating package configurations
 include(CMakePackageConfigHelpers)

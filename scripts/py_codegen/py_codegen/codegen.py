@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 from copy import deepcopy
-from dataclasses import dataclass
-from dataclasses import field
-from dataclasses import replace
-from graphlib import CycleError
-from graphlib import TopologicalSorter
+from dataclasses import dataclass, field, replace
+from graphlib import CycleError, TopologicalSorter
 import itertools
 from typing import *
 
@@ -13,28 +10,13 @@ import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
-from py_codegen.astbuilder_pybind11 import flat_scope
-from py_codegen.astbuilder_pybind11 import id_self
-from py_codegen.astbuilder_pybind11 import Py11BindPass
-from py_codegen.astbuilder_pybind11 import Py11Class
-from py_codegen.astbuilder_pybind11 import Py11Enum
-from py_codegen.astbuilder_pybind11 import Py11Field
-from py_codegen.astbuilder_pybind11 import Py11Function
-from py_codegen.astbuilder_pybind11 import Py11Method
-from py_codegen.astbuilder_pybind11 import Py11Module
-from py_codegen.astbuilder_pybind11 import Py11TypedefPass
-from py_codegen.astbuilder_pybind11 import py_type
+from py_codegen.astbuilder_pybind11 import flat_scope, id_self, Py11BindPass, Py11Class, Py11Enum, Py11Field, Py11Function, Py11Method, Py11Module, Py11TypedefPass, py_type
 from py_codegen.org_codegen_data import *
-from py_codegen.refl_read import conv_proto_file
-from py_codegen.refl_read import ConvTu
-from py_codegen.refl_read import open_proto_file
+from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import ExceptionContextNote
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import pprint_to_file
-from py_textlayout.py_textlayout_wrap import TextLayout
-from py_textlayout.py_textlayout_wrap import TextOptions
+from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 import yaml
 
 CAT = "codegen"
@@ -294,8 +276,7 @@ def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
     return [struct for struct in expanded if not struct.IsAbstract]
 
 
-from copy import copy
-from copy import deepcopy
+from copy import copy, deepcopy
 
 
 @beartype
@@ -1360,9 +1341,7 @@ def gen_description_files(
                 log(CAT).info(f"[red]Wrote[/red] to {define.path}")
 
 
-from py_scriptutils.toml_config_profiler import apply_options
-from py_scriptutils.toml_config_profiler import get_context
-from py_scriptutils.toml_config_profiler import options_from_model
+from py_scriptutils.toml_config_profiler import apply_options, get_context, options_from_model
 import rich_click as click
 
 

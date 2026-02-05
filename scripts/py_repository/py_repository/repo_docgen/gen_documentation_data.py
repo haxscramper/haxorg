@@ -1,19 +1,10 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from functools import wraps
 import itertools
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Sequence
-from beartype.typing import Tuple
-from beartype.typing import TypeVar
-from beartype.typing import Union
+from beartype.typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 import dominate.tags as tags
 import dominate.util as util
 from py_exporters.export_html import ExporterHtml
@@ -21,11 +12,9 @@ import py_haxorg.pyhaxorg_wrap as org
 from py_repository.repo_docgen.gen_documentation_utils import abbreviate_token_name
 from py_scriptutils.rich_utils import render_rich
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pygments import lex
-from pygments.token import _TokenType
-from pygments.token import Token
+from pygments.token import _TokenType, Token
 
 CAT = "docgen"
 

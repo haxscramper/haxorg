@@ -5,21 +5,17 @@ from pathlib import Path
 from ansi2html import Ansi2HTMLConverter
 from beartype import beartype
 from beartype.typing import *
-from beartype.typing import Any
-from beartype.typing import List
+from beartype.typing import Any, List
 import dominate
-from dominate import tags
-from dominate import util
+from dominate import tags, util
 from py_exporters.export_tex import ExporterLatex
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_debug
 from py_scriptutils.script_logging import log
-from py_textlayout.py_textlayout_wrap import BlockId
-from py_textlayout.py_textlayout_wrap import TextOptions
-from pydantic import BaseModel
-from pydantic import Field
+from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
+from pydantic import BaseModel, Field
 import pygments
 from pygments import highlight
 from pygments.formatters import HtmlFormatter

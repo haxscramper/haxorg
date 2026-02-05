@@ -1,20 +1,14 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from numbers import Number
 from pathlib import Path
 from typing import NewType, TYPE_CHECKING, TypeAlias
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import Any, Dict, List, Optional
 import py_codegen.astbuilder_base as base
-from py_scriptutils.algorithm import cond
-from py_scriptutils.algorithm import maybe_splice
+from py_scriptutils.algorithm import cond, maybe_splice
 from py_textlayout.py_textlayout_wrap import TextLayout
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 import toml
 
 if TYPE_CHECKING:

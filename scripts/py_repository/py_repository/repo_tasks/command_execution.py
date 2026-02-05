@@ -6,16 +6,7 @@ import shutil
 import subprocess
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
-from beartype.typing import Sequence
-from beartype.typing import TypedDict
-from beartype.typing import Union
-from beartype.typing import Unpack
+from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Sequence, TypedDict, Union, Unpack
 import docker
 import docker.models.containers
 import plumbum
@@ -375,9 +366,7 @@ def run_cmake_configure(
     args: List[str],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
-    from py_repository.repo_tasks.common import check_path_exists
-    from py_repository.repo_tasks.common import ctx_read_text
-    from py_repository.repo_tasks.common import ctx_remove_file
+    from py_repository.repo_tasks.common import check_path_exists, ctx_read_text, ctx_remove_file
     cache = build_dir.joinpath("CMakeCache.txt")
     if check_path_exists(ctx, cache):
         old_generator_line = [

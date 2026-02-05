@@ -9,14 +9,7 @@ import re
 import sys
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from beartype.typing import Type
-from beartype.typing import TypeVar
+from beartype.typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar
 from dominate import document
 import dominate.tags as tags
 import dominate.util as util
@@ -29,16 +22,10 @@ import py_repository.repo_docgen.gen_documentation_python as py
 import py_repository.repo_docgen.gen_documentation_utils as docutils
 from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import apply_options
-from py_scriptutils.toml_config_profiler import BaseModel
-from py_scriptutils.toml_config_profiler import get_cli_model
-from py_scriptutils.toml_config_profiler import options_from_model
+from py_scriptutils.toml_config_profiler import apply_options, BaseModel, get_cli_model, options_from_model
 import py_scriptutils.tracer
-from py_scriptutils.tracer import GlobCompleteEvent
-from py_scriptutils.tracer import GlobExportJson
-from pydantic import BaseModel
-from pydantic import ConfigDict
-from pydantic import Field
+from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
+from pydantic import BaseModel, ConfigDict, Field
 import rich_click as click
 from sqlalchemy.orm import Session
 

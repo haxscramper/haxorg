@@ -1,9 +1,7 @@
 import sys
 
 from beartype import beartype
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Union
+from beartype.typing import Iterable, List, Union
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ci_log
 
@@ -19,8 +17,7 @@ from typing import TYPE_CHECKING
 from beartype.typing import NewType
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
-    from py_textlayout.py_textlayout import TextOptions
+    from py_textlayout.py_textlayout import BlockId, TextOptions
     import py_textlayout.py_textlayout as lyt
 
 else:

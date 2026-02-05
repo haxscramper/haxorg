@@ -4,11 +4,7 @@ import inspect
 import re
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Generator
-from beartype.typing import List
-from beartype.typing import Set
+from beartype.typing import Any, Callable, Generator, List, Set
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm
 from py_scriptutils.script_logging import log

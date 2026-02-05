@@ -1,17 +1,12 @@
 from dataclasses import dataclass
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
+from beartype.typing import Any, Callable, List, Literal, Optional
 import dominate
 import dominate.tags as tags
 from dominate.util import text
 from py_exporters.export_base import ExporterBase
-from py_haxorg.pyhaxorg_utils import formatDateTime
-from py_haxorg.pyhaxorg_utils import formatHashTag
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 

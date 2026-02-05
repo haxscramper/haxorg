@@ -118,7 +118,6 @@ function(set_target_flags_impl)
       endif()
     endif()
 
-
     if(${ORG_USE_XRAY})
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")
       add_target_property(${ARG_TARGET} LINK_OPTIONS "-fxray-instrument")

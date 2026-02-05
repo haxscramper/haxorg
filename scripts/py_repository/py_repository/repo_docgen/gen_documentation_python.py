@@ -4,23 +4,14 @@ import itertools
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from beartype.typing import Type
-from beartype.typing import TypeVar
-from beartype.typing import Union
+from beartype.typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 import dominate.tags as tags
 import dominate.util as util
 import py_repository.code_analysis.gen_coverage_python as cov_docpy
 import py_repository.repo_docgen.gen_documentation_data as docdata
 import py_repository.repo_docgen.gen_documentation_utils as docutils
 import py_scriptutils.algorithm
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import SerializeAsAny
+from pydantic import BaseModel, Field, SerializeAsAny
 from pygments.lexers import PythonLexer
 from sqlalchemy.orm import Session
 

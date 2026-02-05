@@ -178,6 +178,12 @@ endif()
 
 find_package(range-v3 CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
+if(NOT TARGET immer::immer)
+  if(TARGET immer AND NOT TARGET immer::immer)
+    add_library(immer::immer ALIAS immer)
+  endif()
+endif()
+
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 

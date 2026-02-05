@@ -1,15 +1,10 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 import itertools
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Set
+from beartype.typing import Any, List, Optional, Set
 from py_exporters.export_base import ExporterBase
-from py_haxorg.pyhaxorg_utils import formatDateTime
-from py_haxorg.pyhaxorg_utils import formatHashTag
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.json_utils import Json
 

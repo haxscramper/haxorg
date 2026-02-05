@@ -8,11 +8,7 @@ import tempfile
 import typing
 
 from beartype import beartype
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import Callable, Dict, Iterable, List, Optional
 import docker.models.containers
 from plumbum import local
 import psutil
@@ -21,8 +17,7 @@ from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_scriptutils.tracer import GlobCompleteEvent
-from py_scriptutils.tracer import GlobExportJson
+from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 
 CAT = __name__
 

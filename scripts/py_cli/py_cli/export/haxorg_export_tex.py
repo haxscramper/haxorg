@@ -2,12 +2,9 @@ import itertools
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import Any, List, Optional
 import plumbum
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
+from py_cli import haxorg_cli, haxorg_opts
 from py_exporters.export_utils.texoutparse import LatexLogParser
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
@@ -42,8 +39,7 @@ def run_lualatex(filename: Path) -> None:
 
 
 from py_exporters.export_tex import ExporterLatex
-from py_textlayout.py_textlayout_wrap import BlockId
-from py_textlayout.py_textlayout_wrap import TextOptions
+from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 
 
 class DerivedLatexExporter(ExporterLatex):

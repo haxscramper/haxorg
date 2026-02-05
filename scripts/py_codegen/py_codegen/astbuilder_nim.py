@@ -1,14 +1,11 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from enum import Enum
 import itertools
 import re
 from typing import NewType, TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Union
+from beartype.typing import List, Optional, Union
 import py_codegen.astbuilder_base as base
 from py_textlayout.py_textlayout_wrap import TextLayout
 

@@ -1,6 +1,5 @@
 from collections import defaultdict
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Union

@@ -1,42 +1,26 @@
 from copy import deepcopy
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from hashlib import md5
 import io
 import json
 import os.path
 from pathlib import Path
-from pprint import pformat
-from pprint import pprint
+from pprint import pformat, pprint
 import sys
 import time
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import cast
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import NewType
-from beartype.typing import Optional
-from beartype.typing import Set
-from beartype.typing import Tuple
-from beartype.typing import TypeAlias
-from beartype.typing import Union
+from beartype.typing import Any, cast, Dict, List, Literal, NewType, Optional, Set, Tuple, TypeAlias, Union
 from plumbum import local
 from py_codegen.gen_tu_cpp import QualType
-from py_codegen.refl_read import conv_proto_file
-from py_codegen.refl_read import ConvTu
-from py_codegen.refl_read import open_proto_file
-from py_codegen.refl_wrapper_graph import GenGraph
-from py_codegen.refl_wrapper_graph import TuWrap
+from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
+from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
 import py_codegen.wrapper_gen_nim as gen_nim
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout_wrap import BlockId

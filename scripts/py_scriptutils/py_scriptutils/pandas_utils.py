@@ -1,8 +1,5 @@
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Union
+from beartype.typing import Any, Dict, List, Union
 import pandas as pd
 import py_scriptutils.json_utils as ju
 from py_scriptutils.rich_utils import render_rich

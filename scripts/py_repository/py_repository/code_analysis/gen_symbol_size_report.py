@@ -1,34 +1,16 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 import json
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from beartype.typing import Type
+from beartype.typing import Any, Callable, Dict, List, Optional, Tuple, Type
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_script_root
+from py_repository.repo_tasks.common import ensure_existing_dir, get_build_root, get_script_root
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
-from py_scriptutils.sqlalchemy_utils import BoolColumn
-from py_scriptutils.sqlalchemy_utils import ForeignId
-from py_scriptutils.sqlalchemy_utils import IdColumn
-from py_scriptutils.sqlalchemy_utils import IntColumn
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session
-from py_scriptutils.sqlalchemy_utils import StrColumn
-from sqlalchemy import Column
-from sqlalchemy import create_engine
-from sqlalchemy import Select
-from sqlalchemy import select
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import Session
+from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, open_sqlite_session, StrColumn
+from sqlalchemy import Column, create_engine, Select, select
+from sqlalchemy.orm import declarative_base, Session
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.types import JSON
 

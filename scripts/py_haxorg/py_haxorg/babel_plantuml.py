@@ -2,8 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from beartype.typing import Optional
-from plumbum import CommandNotFound
-from plumbum import local
+from plumbum import CommandNotFound, local
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 

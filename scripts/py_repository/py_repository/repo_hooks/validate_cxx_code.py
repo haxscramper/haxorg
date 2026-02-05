@@ -3,8 +3,7 @@
 from pathlib import Path
 import sys
 
-from tree_sitter import Language
-from tree_sitter import Parser
+from tree_sitter import Language, Parser
 import tree_sitter_cpp as tscpp
 
 CPP_LANGUAGE = Language(tscpp.language())

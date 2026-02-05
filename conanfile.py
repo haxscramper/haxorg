@@ -1,8 +1,5 @@
 from conan import ConanFile
-from conan.tools.cmake import CMake
-from conan.tools.cmake import cmake_layout
-from conan.tools.cmake import CMakeDeps
-from conan.tools.cmake import CMakeToolchain
+from conan.tools.cmake import CMake, cmake_layout, CMakeDeps, CMakeToolchain
 
 
 class HaxorgConan(ConanFile):

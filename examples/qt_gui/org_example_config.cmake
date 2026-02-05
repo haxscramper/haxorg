@@ -1,4 +1,3 @@
-
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../..")
 set(DEPS_INSTALL "${REPO_ROOT}/build/deps_bin/install")

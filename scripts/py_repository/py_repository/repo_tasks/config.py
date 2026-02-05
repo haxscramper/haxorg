@@ -3,12 +3,8 @@ from pathlib import Path
 import tempfile
 
 from beartype import beartype
-from beartype.typing import Generator
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
-from pydantic import BaseModel
-from pydantic import Field
+from beartype.typing import Generator, List, Literal, Optional
+from pydantic import BaseModel, Field
 
 CAT = __name__
 

@@ -1,43 +1,27 @@
 from collections import defaultdict
-from concurrent.futures import as_completed
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from dataclasses import field
+from concurrent.futures import as_completed, ThreadPoolExecutor
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
+from beartype.typing import Any, Dict, List, Optional, Tuple
 import dominate
 import dominate.tags
 import dominate.util
 import graphviz
 import igraph
 from py_ci.data_build import get_deps_install_config
-from py_codegen.astbuilder_cpp import QualType
-from py_codegen.astbuilder_cpp import QualTypeKind
+from py_codegen.astbuilder_cpp import QualType, QualTypeKind
 from py_codegen.gen_tu_cpp import GenTuInclude
 import py_codegen.proto_lib.reflection_defs as pb
-from py_codegen.refl_read import conv_proto_file
-from py_codegen.refl_read import ConvTu
-from py_codegen.refl_wrapper_graph import get_declared_types_rec
-from py_codegen.refl_wrapper_graph import get_used_types_rec
-from py_codegen.refl_wrapper_graph import hash_qual_type
+from py_codegen.refl_read import conv_proto_file, ConvTu
+from py_codegen.refl_wrapper_graph import get_declared_types_rec, get_used_types_rec, hash_qual_type
 from py_repository.code_analysis import gen_coverage_cookies
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.command_execution import run_command_with_json_args
-from py_repository.repo_tasks.common import ctx_write_text
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.common import get_workflow_out
+from py_repository.repo_tasks.command_execution import run_command, run_command_with_json_args
+from py_repository.repo_tasks.common import ctx_write_text, ensure_existing_dir, get_build_root, get_script_root, get_workflow_out
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 CAT = __name__
 

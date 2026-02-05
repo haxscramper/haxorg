@@ -4,8 +4,7 @@
 ##
 ## Coverage generator uses database structure produced in the `profdata_merger.cpp`
 from collections import defaultdict
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 import enum
 import functools
 import itertools
@@ -15,17 +14,7 @@ from typing import Type
 import weakref
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import Iterator
-from beartype.typing import List
-from beartype.typing import Mapping
-from beartype.typing import Optional
-from beartype.typing import Set
-from beartype.typing import Tuple
-from beartype.typing import Union
+from beartype.typing import Any, Callable, Dict, Iterable, Iterator, List, Mapping, Optional, Set, Tuple, Union
 from dominate import document
 import dominate.tags as tags
 import more_itertools
@@ -34,31 +23,15 @@ from py_repository.code_analysis.gen_coverage_cookies import *
 import py_repository.repo_docgen.gen_documentation_data as docdata
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich_pprint
-from py_scriptutils.script_logging import ExceptionContextNote
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import pprint_to_file
-from py_scriptutils.script_logging import to_debug_json
-from py_scriptutils.sqlalchemy_utils import BoolColumn
-from py_scriptutils.sqlalchemy_utils import ForeignId
-from py_scriptutils.sqlalchemy_utils import IdColumn
-from py_scriptutils.sqlalchemy_utils import IntColumn
-from py_scriptutils.sqlalchemy_utils import NumericEnum
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session
-from py_scriptutils.sqlalchemy_utils import StrColumn
+from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file, to_debug_json
+from py_scriptutils.sqlalchemy_utils import BoolColumn, ForeignId, IdColumn, IntColumn, NumericEnum, open_sqlite_session, StrColumn
 from py_scriptutils.tracer import GlobCompleteEvent
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 from pygments import lex
 from pygments.lexers import CppLexer
-from pygments.token import _TokenType
-from pygments.token import Token
-from pygments.token import Whitespace
-from sqlalchemy import Column
-from sqlalchemy import create_engine
-from sqlalchemy import Select
-from sqlalchemy import select
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import Session
+from pygments.token import _TokenType, Token, Whitespace
+from sqlalchemy import Column, create_engine, Select, select
+from sqlalchemy.orm import declarative_base, Session
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.types import JSON
 

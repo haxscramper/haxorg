@@ -7,8 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from setuptools import find_packages
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # Import and run the build script
 sys.path.insert(0, str(Path(__file__).parent))

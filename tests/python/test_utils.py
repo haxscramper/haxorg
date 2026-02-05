@@ -1,8 +1,5 @@
-from beartype.typing import Any
-from beartype.typing import List
-from jsonpath_ng import Fields
-from jsonpath_ng import Index
-from jsonpath_ng import Root
+from beartype.typing import Any, List
+from jsonpath_ng import Fields, Index, Root
 import py_scriptutils.json_utils as ju
 
 

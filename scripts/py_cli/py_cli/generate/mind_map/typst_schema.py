@@ -1,11 +1,6 @@
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Union
-from pydantic import BaseModel
-from pydantic import Field
+from beartype.typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel, Field
 
 
 class TypstNode(BaseModel):

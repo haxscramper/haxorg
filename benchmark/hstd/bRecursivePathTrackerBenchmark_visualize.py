@@ -6,11 +6,7 @@ import logging
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Union
+from beartype.typing import Any, Dict, List, Optional, Union
 import matplotlib.axes as plt_axes
 import matplotlib.pyplot as plt
 import numpy as np

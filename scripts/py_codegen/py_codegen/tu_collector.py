@@ -3,24 +3,12 @@
 import json
 from pathlib import Path
 
-from beartype.typing import Any
-from beartype.typing import cast
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from py_codegen.refl_extract import CompileCommand
-from py_codegen.refl_extract import expand_input
-from py_codegen.refl_extract import GenGraph
-from py_codegen.refl_extract import PathMapping
-from py_codegen.refl_extract import read_compile_cmmands
-from py_codegen.refl_extract import run_collector_for_path
-from py_codegen.refl_extract import TuOptions
-from py_codegen.refl_extract import TuWrap
+from beartype.typing import Any, cast, Dict, List, Optional
+from py_codegen.refl_extract import CompileCommand, expand_input, GenGraph, PathMapping, read_compile_cmmands, run_collector_for_path, TuOptions, TuWrap
 import py_codegen.wrapper_gen_nim as gen_nim
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
-from py_scriptutils.tracer import GlobExportJson
-from py_scriptutils.tracer import TraceCollector
+from py_scriptutils.tracer import GlobExportJson, TraceCollector
 import rich_click as click
 
 CONFIG_FILE_NAME = "tu_collector.toml"

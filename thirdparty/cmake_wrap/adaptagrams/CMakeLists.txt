@@ -12,9 +12,8 @@ function(add_cola_library cola_name)
   file(GLOB _SOURCES "${COLA_DIR}/lib${cola_name}/*.cpp")
   add_library(${cola_name} STATIC ${_HEADERS} ${_SOURCES})
   target_compile_options(${cola_name} PRIVATE -w)
-  target_include_directories(
-    ${cola_name} PUBLIC "$<BUILD_INTERFACE:${COLA_DIR}>"
-                        "$<INSTALL_INTERFACE:include>")
+  target_include_directories(${cola_name} PUBLIC "$<BUILD_INTERFACE:${COLA_DIR}>"
+                                                 "$<INSTALL_INTERFACE:include>")
 
   install(
     DIRECTORY "${COLA_DIR}/lib${cola_name}"
@@ -40,8 +39,7 @@ include(CMakePackageConfigHelpers)
 
 # Generate the config file that includes the exported targets
 configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
+  ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
   INSTALL_DESTINATION lib/cmake/Adaptagrams)
 
 # Install the library

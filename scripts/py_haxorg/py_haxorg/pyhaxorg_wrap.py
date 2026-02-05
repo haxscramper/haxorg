@@ -5,14 +5,6 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
-try:
-    from py_scriptutils.repo_files import get_haxorg_repo_root_path
-    build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
-    if str(build_dir) not in sys.path:
-        sys.path.append(str(build_dir))
-except ImportError:
-    pass
-
 package_dir = Path(__file__).parent
 
 if str(package_dir) not in sys.path:

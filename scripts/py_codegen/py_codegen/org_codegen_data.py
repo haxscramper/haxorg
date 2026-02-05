@@ -1,7 +1,5 @@
 from copy import deepcopy
-from dataclasses import dataclass
-from dataclasses import field
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from enum import Enum
 
 from beartype.typing import *
