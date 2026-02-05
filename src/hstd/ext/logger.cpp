@@ -29,7 +29,7 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
-#    include <cpptrace.hpp>
+#    include <cpptrace/cpptrace.hpp>
 #    include <hstd/stdlib/JsonUse.hpp>
 
 

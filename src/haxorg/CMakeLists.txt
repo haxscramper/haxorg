@@ -13,6 +13,19 @@ if(NOT ${ORG_EMCC_BUILD})
 endif()
 
 if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
+  execute_process(
+      COMMAND which protoc
+      OUTPUT_VARIABLE PROTOC_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
+
+  execute_process(
+      COMMAND protoc --version
+      OUTPUT_VARIABLE PROTOC_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
 
   protobuf_generate(
     LANGUAGE
@@ -39,7 +52,11 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
-                                    foonathan::lexy immer msgpack-cxx)
+                                    foonathan::lexy immer::immer )
+
+                                  if(${ORG_DEPS_USE_MSGPACK})
+      target_link_libraries(haxorg PUBLIC msgpack-cxx)
+                                  endif()
 
 if(NOT ${ORG_EMCC_BUILD})
   target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})

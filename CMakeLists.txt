@@ -49,7 +49,7 @@ option(ORG_USE_PYTHON_BINDINGS "Enable build of the python bindings" ON)
 # Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
 # changes in the main environment. Sometimes it does not build or does not rebuild things. By
 # default this option forces the dependency to be configured for all builds.
-option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
+option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" OFF)
 option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
 option(ORG_USE_QT "Enable Qt-related features and API" OFF)
 option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
@@ -57,16 +57,18 @@ option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_DEPS_USE_MSGPACK "Include msgpack serialization functionality in the build" ON)
-option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" ON)
-option(ORG_BUILD_IS_DEVELOP "Don't build and configure internal development dependencies" ON)
+option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)" OFF)
+option(ORG_BUILD_IS_DEVELOP "Build and configure internal development dependencies" ON)
 option(ORG_BUILD_USE_GOLD_WRAPPER "Link profilng" OFF)
-option(ORG_BUILD_TESTS "" ON)
+option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
-option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" ON)
+option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
 option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
 option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
 option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
 option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
+option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
+option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
 
 if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
   message(
@@ -90,14 +92,47 @@ endif()
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 
-if(ORG_DEPS_INSTALL_ROOT STREQUAL "")
-  message(
-    FATAL_ERROR
-      "ORG_DEPS_INSTALL_ROOT is set to '${ORG_DEPS_INSTALL_ROOT}' -- this option must be configured explicitly for build."
-  )
-endif()
+if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
+  add_definitions(-DORG_USE_CONAN_INSTALL=1)
+  if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
+    message(STATUS "Running Conan install...")
 
-include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
+    execute_process(
+      COMMAND conan install ${CMAKE_SOURCE_DIR}
+              --output-folder=${CMAKE_BINARY_DIR}
+              -pr:h=${BASE}/conanprofile.txt
+              --build=missing
+              -s build_type=${CMAKE_BUILD_TYPE}
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      RESULT_VARIABLE CONAN_RESULT
+      OUTPUT_VARIABLE CONAN_STDOUT
+      ERROR_VARIABLE  CONAN_STDERR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_STRIP_TRAILING_WHITESPACE
+    )
+
+    if(NOT CONAN_RESULT EQUAL 0)
+      message(FATAL_ERROR
+        "Conan install failed (exit code: ${CONAN_RESULT})\n"
+        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
+        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
+        "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}\n"
+        "---- stdout ----\n${CONAN_STDOUT}\n"
+        "---- stderr ----\n${CONAN_STDERR}\n"
+      )
+    else()
+      message(STATUS "Conan install output:\n${CONAN_STDOUT}")
+    endif()
+  endif()
+
+  include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
+elseif(NOT ORG_DEPS_INSTALL_ROOT OR ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
+  add_definitions(-DORG_USE_CONAN_INSTALL=0)
+  message(STATUS "No dependency path specified, will be using system-provided deps")
+else()
+  add_definitions(-DORG_USE_CONAN_INSTALL=0)
+  include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
+endif()
 
 message(STATUS "lexy_DIR = ${lexy_DIR}")
 
@@ -149,17 +184,23 @@ find_package(range-v3 CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+
 if(${ORG_DEPS_USE_MSGPACK})
   add_definitions(-DORG_DEPS_USE_MSGPACK=1)
   find_package(msgpack-cxx CONFIG REQUIRED)
 else()
   add_definitions(-DORG_DEPS_USE_MSGPACK=0)
 endif()
+
 if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
   find_package(SQLiteCpp CONFIG REQUIRED)
 endif()
-if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
+
+if (NOT ${ORG_EMCC_BUILD})
   find_package(absl CONFIG REQUIRED)
+endif()
+
+if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   find_package(GTest CONFIG REQUIRED)
   find_package(benchmark CONFIG REQUIRED)
 endif()
@@ -168,9 +209,7 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(boost_mp11 CONFIG REQUIRED)
 endif()
 find_package(nlohmann_json CONFIG REQUIRED)
-if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
-  find_package(protobuf CONFIG REQUIRED)
-endif()
+
 
 find_package(lexy CONFIG REQUIRED)
 if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
@@ -197,12 +236,16 @@ else()
   add_definitions(-DORG_EMCC_BUILD=0)
 endif()
 
-if(${ORG_DEPS_USE_PROTOBUF})
+if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
+  find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_DEPS_USE_PROTOBUF=1)
-  include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
+  if(NOT ${ORG_IS_CONAN_BUILD})
+    include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
+  endif()
 else()
   add_definitions(-DORG_DEPS_USE_PROTOBUF=0)
 endif()
+
 message(STATUS "Python_LIBRARIES = ${Python_LIBRARIES}")
 
 set(JSON_BuildTests

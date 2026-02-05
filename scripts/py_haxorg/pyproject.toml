@@ -10,5 +10,24 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["scikit-build-core>=0.5", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[tool.uv.extra-build-dependencies]
+py-haxorg = ["scikit_build_core", "conan"]
+
+[tool.scikit-build]
+cmake.source-dir = "../.."
+
+[tool.scikit-build.cmake.define]
+ORG_USE_CONAN_INSTALL = "ON"
+CMAKE_BUILD_TYPE = "Release"
+ORG_DEPS_USE_ADAPTAGRAMS = "OFF"
+CMAKE_CXX_COMPILER = "clang"
+ORG_DEPS_USE_PROTOBUF = "OFF"
+ORG_DEPS_USE_MSGPACK = "OFF"
+ORG_BUILD_IS_DEVELOP = "OFF"
+ORG_FORCE_ADAPTAGRAMS_BUILD = "OFF"
+ORG_USE_PYTHON_BINDINGS = "ON"
+ORG_BUILD_USE_NAPI_WRAPPER = "OFF"
+ORG_BUILD_TESTS = "OFF"

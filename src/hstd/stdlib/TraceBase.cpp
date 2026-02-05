@@ -6,7 +6,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 
 #if !ORG_EMCC_BUILD
-#    include <cpptrace.hpp>
+#    include <cpptrace/cpptrace.hpp>
 #endif
 
 using namespace hstd;

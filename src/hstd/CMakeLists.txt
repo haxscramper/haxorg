@@ -66,13 +66,13 @@ if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
   glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
   target_sources(tests_hstd PRIVATE "${BASE}/tests/common.cpp")
   target_link_libraries(tests_hstd PUBLIC GTest::gtest GTest::gmock hstd absl::flags
-                                          absl::flags_parse immer)
+                                          absl::flags_parse immer::immer)
 
   add_test(NAME hstd_tests COMMAND tests_hstd)
 
   haxorg_add_executable(benchmark_hstd)
   glob_add_sources2(TARGET benchmark_hstd LS_REGEX "${BASE}/benchmark/hstd/.*" SEARCH_BASE
                     "${BASE}")
-  target_link_libraries(benchmark_hstd PUBLIC benchmark::benchmark hstd immer)
+  target_link_libraries(benchmark_hstd PUBLIC benchmark::benchmark hstd immer::immer)
   add_test(NAME hstd_benchmark COMMAND benchmark_hstd)
 endif()

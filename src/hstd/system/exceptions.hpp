@@ -6,7 +6,7 @@
 #include <string>
 #include <hstd/system/aux_utils.hpp>
 #if !ORG_EMCC_BUILD
-#    include <cpptrace.hpp>
+#    include <cpptrace/cpptrace.hpp>
 #endif
 
 namespace hstd {
