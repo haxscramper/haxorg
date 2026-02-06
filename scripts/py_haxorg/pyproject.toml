@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["scikit-build-core>=0.5", "pybind11"]
+requires = ["scikit-build-core>=0.5", "pybind11", "conan"]
 build-backend = "scikit_build_core.build"
 
 [tool.uv.extra-build-dependencies]
