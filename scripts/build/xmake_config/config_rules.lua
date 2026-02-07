@@ -1,6 +1,10 @@
+includes("config_utils.lua")
+local get_project_dir = get_project_dir
+
 -- Define a rule that encapsulates all the flag logic
 rule("haxorg.flags", function()
   on_config(function(target)
+    local PROJECTDIR = get_project_dir()
     local force_no_asan = target:extraconf("rules", "haxorg.flags",
                                            "force_no_asan") or false
 
@@ -62,7 +66,6 @@ rule("haxorg.flags", function()
       -- xray path handled below
     elseif get_config("org_build_is_develop") then
       if get_config("org_build_use_gold_wrapper") then
-        local base = get_config("base") or os.projectdir()
         local gold_dir = path.join(PROJECTDIR, "scripts/py_ci/py_ci")
         target:add("cxflags", "-fuse-ld=gold_wrap", "-B", gold_dir)
         target:add("ldflags", "-fuse-ld=gold_wrap", "-B", gold_dir)
@@ -89,7 +92,6 @@ rule("haxorg.flags", function()
 
       -- Sanitizers
       if get_config("org_use_sanitizer") and not force_no_asan then
-        local base = get_config("base") or os.projectdir()
         target:add("cxflags", "-fsanitize=undefined,address", "-shared-libasan",
                    "-fsanitize-ignorelist=" ..
                        path.join(PROJECTDIR, "ignorelist.txt"))
@@ -103,7 +105,6 @@ rule("haxorg.flags", function()
 
       -- XRay
       if get_config("org_use_xray") then
-        local base = get_config("base") or os.projectdir()
         target:add("cxflags", "-fxray-instrument",
                    "-fxray-instruction-threshold=50", "-fxray-attr-list=" ..
                        path.join(PROJECTDIR,
@@ -134,7 +135,6 @@ rule("haxorg.flags", function()
 
       -- Profile use
       if get_config("profile_use") then
-        local base = get_config("base") or os.projectdir()
         target:add("cxflags", "-fprofile-use=" ..
                        path.join(PROJECTDIR, "haxorg-compile.profdata"))
       end
@@ -156,15 +156,13 @@ end)
 -- Rule for common files (sources, includes, standard)
 rule("haxorg.common_files", function()
   on_config(function(target)
-    local base = get_config("base") or os.projectdir()
+    local PROJECTDIR = get_project_dir()
     local autogen_build_dir = get_config("autogen_build_dir") or
                                   path.join(get_config("builddir"), "autogen")
 
     target:set("languages", "c++23")
     target:add("includedirs", path.join(PROJECTDIR, "src"))
     target:add("includedirs", autogen_build_dir)
-
-    -- SRC_FILES and HEADER_FILES would be added per-target via add_files
   end)
 end)
 

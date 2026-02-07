@@ -9,6 +9,7 @@ add_rules("mode.debug", "mode.release")
 add_cxflags("-Wno-unknown-attributes")
 -- set_config("ld", "ld.lld")
 set_config("cxxflags", "-fPIC")
+set_toolchains("clang")
 
 -- Options
 option("org_instrument_trace",
@@ -129,10 +130,8 @@ add_requires("conan::nlohmann_json [>=3.12.0 <4]", {
   configs = {settings = {"compiler.cppstd=23"}}
 })
 
-add_requires("conan::foonathan-lexy [>=2025.05.0 <2026]", {
-  alias = "foonathan-lexy",
-  configs = {settings = {"compiler.cppstd=23"}}
-})
+add_requires("conan::foonathan-lexy [>=2025.05.0 <2026]",
+             {alias = "lexy", configs = {settings = {"compiler.cppstd=23"}}})
 
 add_requires("conan::boost [>=1.90.0 <2]", {
   alias = "boost",
@@ -149,7 +148,7 @@ add_requires("cpptrace >=1.0.4 <2", {
 })
 
 if not has_config("org_emcc_build") then
-  add_requires("python 3.x", {system = true})
+  add_requires("python 3.13.*", {configs = {shared = true}})
   add_requires("conan::pybind11 [>=3.0.1 <4]", {
     alias = "pybind11",
     configs = {settings = {"compiler.cppstd=23"}}

@@ -1,7 +1,9 @@
+includes("config_utils.lua")
+
 target("hstd", function()
   set_kind("static")
   add_rules("haxorg.common_files", "haxorg.flags")
-  local PROJECTDIR = path.absolute(path.join(os.scriptdir(), "../../.."))
+  local PROJECTDIR = get_project_dir()
 
   -- Sources
   add_files(path.join(PROJECTDIR, "src/hstd/stdlib/**.cpp"))
