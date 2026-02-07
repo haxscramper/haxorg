@@ -1,5 +1,7 @@
 includes("config_utils.lua")
 
+local get_autogen_dir = get_autogen_dir
+
 target("haxorg", function()
   set_kind("static")
   local PROJECTDIR = get_project_dir()
@@ -11,6 +13,7 @@ target("haxorg", function()
   add_packages("protobuf-cpp", {public = true})
   add_packages("msgpack-cxx", {public = true})
   add_includedirs("$(builddir)", {public = true})
+  add_rules("haxorg.common_files", "haxorg.flags")
 
   on_load(function(target)
     local builddir = target:targetdir()
@@ -33,10 +36,9 @@ target("haxorg", function()
       path.join(PROJECTDIR, "src/haxorg/serde/SemOrgProtoManual.proto")
     }
     os.execv("protoc", {
-      "--proto_path=" .. proto_import, "--cpp_out=" .. builddir,
+      "--proto_path=" .. proto_import, "--cpp_out=" .. get_autogen_dir(),
       table.unpack(protos)
     })
-    target:add("includedirs", builddir)
   end)
 end)
 
@@ -50,6 +52,7 @@ target("tests_org", function()
   add_packages("gtest", "abseil")
   add_includedirs(path.join(PROJECTDIR, "thirdparty/immer"),
                   path.join(PROJECTDIR, "thirdparty/lager"))
+  add_rules("haxorg.common_files", "haxorg.flags")
   after_build(function(target)
     os.ln(path.absolute("$(builddir)"), path.join(PROJECTDIR, "build/haxorg"))
   end)
@@ -60,4 +63,5 @@ target("specrunner_org", function()
   local PROJECTDIR = get_project_dir()
   add_files(path.join(PROJECTDIR, "tests/specrunner/**.cpp"))
   add_deps("haxorg")
+  add_rules("haxorg.common_files", "haxorg.flags")
 end)

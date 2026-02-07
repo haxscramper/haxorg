@@ -8,7 +8,7 @@ target("py_textlayout_cpp", function()
   add_includedirs(path.join(PROJECTDIR, "src/py_libs"), {public = true})
   add_deps("hstd")
   add_packages("pybind11", "python", "abseil")
-  add_rules("python.library")
+  add_rules("python.module")
   add_rules("haxorg.common_files", "haxorg.flags")
 end)
 
@@ -21,15 +21,17 @@ target("pyhaxorg", function()
                       "src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"),
             path.join(PROJECTDIR,
                       "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp"))
+
   add_headerfiles(path.join(PROJECTDIR, "src/py_libs/py_type_casters.hpp"),
                   path.join("src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp"))
+
   set_filename("pyhaxorg.so")
   add_includedirs(BASE, path.join(PROJECTDIR, "src/py_libs"), {public = true})
   add_deps("hstd", "haxorg")
-  add_packages("pybind11", "python3")
+  add_packages("pybind11", "python")
   add_cxxflags("-shared-libasan")
-  add_rules("python.library")
-  add_rules("haxorg.common_files", "haxorg.flags")
+  add_rules("python.module")
+  add_rules("haxorg.common_files", "haxorg.flags", "haxorg.clang_lld_thinlto")
 
 end)
 
@@ -42,6 +44,7 @@ target("pyhaxorg_test_main", function()
   add_includedirs(path.join(PROJECTDIR, "src/py_libs"),
                   path.join(DEPS_DIR, "pybind11/include"), {public = true})
   add_deps("hstd", "haxorg")
-  add_packages("python3")
+  add_packages("python")
   add_cxxflags("-shared-libasan")
+  add_rules("haxorg.common_files", "haxorg.flags")
 end)

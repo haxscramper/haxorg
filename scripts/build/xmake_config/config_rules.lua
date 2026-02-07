@@ -1,5 +1,21 @@
 includes("config_utils.lua")
 local get_project_dir = get_project_dir
+local get_autogen_dir = get_autogen_dir
+
+rule("haxorg.clang_lld_thinlto")
+on_load(function(target)
+  -- ThinLTO: must be on both compile and link lines
+  target:add("cxflags", "-flto=thin", {force = true})
+  target:add("cxxflags", "-flto=thin", {force = true})
+
+  -- final link for shared libs (.so): use shflags
+  target:add("shflags", "-fuse-ld=lld", "-Wl,--threads",
+             "-Wl,--thinlto-jobs=all", "-flto=thin", {force = true})
+
+  -- final link for binaries: use ldflags
+  target:add("ldflags", "-fuse-ld=lld", "-Wl,--threads",
+             "-Wl,--thinlto-jobs=all", "-flto=thin", {force = true})
+end)
 
 -- Define a rule that encapsulates all the flag logic
 rule("haxorg.flags", function()
@@ -157,12 +173,11 @@ end)
 rule("haxorg.common_files", function()
   on_config(function(target)
     local PROJECTDIR = get_project_dir()
-    local autogen_build_dir = get_config("autogen_build_dir") or
-                                  path.join(get_config("builddir"), "autogen")
-
     target:set("languages", "c++23")
     target:add("includedirs", path.join(PROJECTDIR, "src"))
-    target:add("includedirs", autogen_build_dir)
+    local autogen = get_autogen_dir()
+    target:add("includedirs", autogen)
+    if not os.isdir(autogen) then os.mkdir(autogen) end
   end)
 end)
 
