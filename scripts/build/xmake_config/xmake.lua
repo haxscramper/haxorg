@@ -138,7 +138,7 @@ add_requires("conan::boost [>=1.90.0 <2]", {
   configs = {
     settings = {"compiler.cppstd=23"},
     settings_build = {"compiler.cppstd=23"},
-    options = "boost/*:without_cobalt = True"
+    options = {"boost/*:without_log = False", "boost/*:without_cobalt = True"}
   }
 })
 
@@ -183,11 +183,6 @@ end
 if has_config("org_deps_use_adaptagrams") and not has_config("org_emcc_build") then
   -- adaptagrams may need a custom package definition
   add_requires("adaptagrams")
-end
-
-if has_config("org_deps_use_packaged_boost") then
-  add_requires("boost",
-               {configs = {mp11 = true, describe = true, preprocessor = true}})
 end
 
 -- Global defines based on options
