@@ -1,0 +1,6 @@
+column_limit: 80
+indent_width: 2
+use_tab: false
+break_before_functioncall_rp: true
+single_quote_to_double_quote: true
+chop_down_parameter: true

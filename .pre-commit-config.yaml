@@ -52,3 +52,10 @@ repos:
         entry: cmake-format -i
         language: system
         files: (CMakeLists\.txt|\.cmake)$
+  - repo: local
+    hooks:
+      - id: lua-format
+        name: lua-format
+        entry: lua-format --config=scripts/build/xmake_config/.lua-format -i
+        language: system
+        files: '\.lua$'
