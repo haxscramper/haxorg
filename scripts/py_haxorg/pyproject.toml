@@ -18,8 +18,11 @@ py-haxorg = ["scikit_build_core", "conan"]
 
 [tool.scikit-build]
 cmake.source-dir = "../.."
+cmake.args = ["-G", "Unix Makefiles"]
+build.tool-args = ["-j32"]
 
 [tool.scikit-build.cmake.define]
+CMAKE_MAKE_PROGRAM = "/usr/bin/make"
 ORG_USE_CONAN_INSTALL = "ON"
 ORG_IS_CONAN_BUILD = "ON"
 CMAKE_BUILD_TYPE = "Release"

@@ -33,7 +33,8 @@ if(${ORG_USE_PYTHON_BINDINGS})
 
   set_target_properties(pyhaxorg PROPERTIES OUTPUT_NAME "pyhaxorg" SUFFIX ".so")
 
-  target_include_directories(pyhaxorg PUBLIC "${BASE}" "${BASE}/src/py_libs" ${Python_INCLUDE_DIRS})
+  target_include_directories(pyhaxorg PRIVATE "${BASE}" "${BASE}/src/py_libs"
+                                              ${Python_INCLUDE_DIRS})
 
   target_link_libraries(pyhaxorg PRIVATE hstd ${Python_LIBRARIES} haxorg)
 

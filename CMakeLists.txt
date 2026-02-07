@@ -272,12 +272,6 @@ if(${ORG_BUILD_USE_NAPI_WRAPPER})
   add_subdirectory(src/wrappers/js)
 endif()
 
-if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
-else()
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd)
-endif()
-
 if(${ORG_USE_QT})
   add_subdirectory(src/app/org_viewer)
   add_subdirectory(src/app/org_diagram)
@@ -287,6 +281,14 @@ if(${ORG_USE_IMGUI})
   add_subdirectory(src/app/org_imgui)
 endif()
 
+# Build the list of "CMake package" targets (no pyhaxorg here)
+if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
+  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
+else()
+  set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+endif()
+
+# Install normal libs into lib/, export them, etc.
 install(
   TARGETS ${ORG_INSTALL_TARGET_LIST}
   EXPORT HaxorgTargets
@@ -295,6 +297,11 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES
   DESTINATION include)
+
+# Install the Python extension into the *platlib root* (site-packages/)
+if(${ORG_USE_PYTHON_BINDINGS} AND NOT ${ORG_EMCC_BUILD})
+  install(TARGETS pyhaxorg LIBRARY DESTINATION ".")
+endif()
 
 install(
   DIRECTORY src/
