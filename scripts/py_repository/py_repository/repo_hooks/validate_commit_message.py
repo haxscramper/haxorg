@@ -1,21 +1,4 @@
 #!/usr/bin/env python
-"""
-commit-msg hook: validate commit message format.
-
-Rules:
-- Subject must start with an allowed prefix (optionally with "(scope)") and ":".
-  Example:  py(parser): fix tokenization
-            cxx: speed up lexer
-- Subject length <= 50 chars
-- Commit must have a body (non-empty text after a blank line)
-- Body lines length <= 75 chars
-  - EXCEPTION: lines inside Markdown triple-backtick code fences (``` ... ```)
-    are ignored and may be any length.
-
-If subject formatting is wrong, prints allowed prefixes with descriptions.
-"""
-
-from __future__ import annotations
 
 import logging
 from pathlib import Path
@@ -29,7 +12,18 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 
-PREFIXES: dict[str, str] = {
+TYPES: dict[str, str] = {
+    "feat": "New feature for the user, not a new feature for build script",
+    "fix": "Bug fix for the user, not a fix to a build script",
+    "docs": "Changes to the documentation",
+    "style": "Formatting, missing semi colons, etc; no production code change",
+    "refactor": "Refactoring production code, e.g. renaming a variable",
+    "test": "Adding missing tests, refactoring tests; no production code change",
+    "chore": "Updating grunt tasks etc; no production code change",
+    "wip": "Intermediate commit",
+}
+
+SCOPES: dict[str, str] = {
     "build": "Build system changes (CMake, tasks, dependencies)",
     "ci": "Continuous integration, Docker, packaging",
     "cli": "Command-line interface and entry points",
@@ -50,7 +44,6 @@ PREFIXES: dict[str, str] = {
     "org": "Org-mode parser/AST core",
     "parse": "Parsing pipeline (lexer → parser → sem)",
     "py": "Python bindings, scripts, tests",
-    "refactor": "Refactoring commits",
     "refl": "Reflection system (code generation)",
     "repo": "Repository-level configuration, workflow script",
     "report": "Reporting outputs (coverage, docs)",
@@ -58,15 +51,16 @@ PREFIXES: dict[str, str] = {
     "test": "Test suites, corpus, CI tests",
 }
 
-_ALLOWED_PREFIXES_CASEFOLD = {k.casefold(): k for k in PREFIXES.keys()}
+_ALLOWED_TYPES_CASEFOLD = {k.casefold(): k for k in TYPES.keys()}
+_ALLOWED_SCOPES_CASEFOLD = {k.casefold(): k for k in SCOPES.keys()}
 
 SUBJECT_MAX = 50
 BODY_LINE_MAX = 75
 
 SUBJECT_RE = re.compile(
     r"""^
-        (?P<prefix>[A-Za-z][A-Za-z0-9_-]*)
-        (?:\([^)]+\))?
+        (?P<type>[A-Za-z][A-Za-z0-9_-]*)
+        (?:\((?P<scope>[^)]+)\))?
         :
         \s+
         \S.*$
@@ -79,7 +73,8 @@ def save_failed_message(msg_path: Path) -> Path:
     bak = msg_path.with_name(msg_path.name + ".failed")
     bak.write_text(msg_path.read_text(encoding="utf-8", errors="replace"),
                    encoding="utf-8")
-    log.warning(f"saved your commit message to: {bak}")
+    log.info(f"saved your commit message to: {bak}")
+    log.info("Continue editing with `git commit --edit -F .git/COMMIT_EDITMSG.failed`")
     return bak
 
 
@@ -87,16 +82,23 @@ def strip_comments(lines: list[str]) -> list[str]:
     return [ln.rstrip("\n") for ln in lines if not ln.lstrip().startswith("#")]
 
 
-def print_prefix_table() -> None:
+def print_type_table() -> None:
     log.info("")
-    log.info("Allowed prefixes:")
-    width = max(len(k) for k in PREFIXES)
-    for k in sorted(PREFIXES.keys(), key=lambda s: (s.casefold(), s)):
-        log.info(f"  {k.ljust(width)}  {PREFIXES[k]}")
+    log.info("Allowed types:")
+    width = max(len(k) for k in TYPES)
+    for k in sorted(TYPES.keys(), key=lambda s: (s.casefold(), s)):
+        log.info(f"  {k.ljust(width)}  {TYPES[k]}")
+
+
+def print_scope_table() -> None:
+    log.info("")
+    log.info("Allowed scopes (optional):")
+    width = max(len(k) for k in SCOPES)
+    for k in sorted(SCOPES.keys(), key=lambda s: (s.casefold(), s)):
+        log.info(f"  {k.ljust(width)}  {SCOPES[k]}")
 
 
 def is_fence_line(line: str) -> bool:
-    # Markdown triple-backtick fence, optionally indented and with a language tag.
     return line.lstrip().startswith("```")
 
 
@@ -132,20 +134,31 @@ def main() -> int:
 
     m = SUBJECT_RE.match(subject)
     if not m:
-        log.error("error: subject must match: <prefix>(<scope>): <summary>")
-        log.error("example: py(parser): fix tokenization")
+        log.error("error: subject must match: <type>(<scope>): <summary>")
+        log.error("example: feat(py): add new parser API")
         log.error(f"subject: {subject}")
-        print_prefix_table()
+        print_type_table()
+        print_scope_table()
         save_failed_message(msg_path)
         return 1
 
-    prefix = m.group("prefix").casefold()
-    if prefix not in _ALLOWED_PREFIXES_CASEFOLD:
-        log.error(f"error: invalid prefix '{m.group('prefix')}'")
-        log.error("expected one of the allowed prefixes below.")
-        print_prefix_table()
+    commit_type = m.group("type").casefold()
+    if commit_type not in _ALLOWED_TYPES_CASEFOLD:
+        log.error(f"error: invalid type '{m.group('type')}'")
+        log.error("expected one of the allowed types below.")
+        print_type_table()
         save_failed_message(msg_path)
         return 1
+
+    scope = m.group("scope")
+    if scope is not None:
+        scope_cf = scope.casefold()
+        if scope_cf not in _ALLOWED_SCOPES_CASEFOLD:
+            log.error(f"error: invalid scope '{scope}'")
+            log.error("expected one of the allowed scopes below.")
+            print_scope_table()
+            save_failed_message(msg_path)
+            return 1
 
     # Body requirement: must have blank line after subject, then non-empty body text.
     rest = lines[subject_idx + 1:]
