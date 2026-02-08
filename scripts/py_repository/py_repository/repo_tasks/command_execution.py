@@ -465,6 +465,40 @@ def get_python_binary(ctx: TaskContext) -> Path:
     return python_stdout
 
 
+@beartype
+def get_python_develop_env_File(ctx: TaskContext) -> Path:
+    import sysconfig
+    sysconfig.get_config_var('EXT_SUFFIX').lstrip('.')
+
+    from py_repository.repo_tasks.common import ctx_write_text, get_build_root
+    build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
+    env_file = build_dir.joinpath("dev_env")
+    ctx_write_text(
+        ctx, env_file, f"""
+export PYTHONPATH={build_dir}
+export LD_LIBRARY_PATH={build_dir}
+    """)
+    log(CAT).info(f"Adding build directory to python path {build_dir}")
+
+    return env_file
+
+
+@beartype
+def get_uv_develop_sync_flags(ctx: TaskContext) -> List[str]:
+    result = []
+    if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+        result.append("--verbose")
+
+    result.append("-C")
+    result.append("HAXORG_PY_SOURCE_DISTRIBUTION=1")
+    result.append(f"--env-file={get_python_develop_env_File(ctx)}")
+
+    for package in ["py_haxorg"]:
+        result.extend(["--reinstall-package", package])
+
+    return result
+
+
 def clone_repo_with_uncommitted_changes(
     ctx: TaskContext,
     src_repo: Path,

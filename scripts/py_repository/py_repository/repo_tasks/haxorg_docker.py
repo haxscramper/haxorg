@@ -16,6 +16,7 @@ from py_repository.repo_tasks.command_execution import (
     clone_repo_with_uncommitted_changes,
     get_cmd_debug_file,
     get_python_binary,
+    get_uv_develop_sync_flags,
     run_command,
 )
 from py_repository.repo_tasks.common import (
@@ -199,7 +200,7 @@ def run_docker_develop_test(
     dctx.config.emscripten.toolchain = "/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
     container_path = get_container_var(container, "PATH")
-    run_command(dctx, "uv", ["sync", "--all-groups"])
+    run_command(dctx, "uv", ["sync", "--all-groups", *get_uv_develop_sync_flags(dctx)])
     run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])
     run_command(dctx, "git", ["config", "--global", "user.email", "you@example.com"])
     run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])

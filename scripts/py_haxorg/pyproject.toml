@@ -14,10 +14,10 @@ backend-path = ["."]
 
 # Setuptools configuration (used when SKIP_CXX_BUILD=1)
 [tool.setuptools]
-package-dir = { "" = "src" }
+package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 
 # scikit-build-core configuration (used for full builds)
 [tool.scikit-build]

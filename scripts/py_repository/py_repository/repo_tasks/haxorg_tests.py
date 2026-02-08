@@ -2,7 +2,10 @@ import os
 from pathlib import Path
 
 from beartype.typing import List
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_sync_flags,
+    run_command,
+)
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
@@ -11,23 +14,6 @@ from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
-
-
-def setup_python_dev_links(ctx: TaskContext) -> Path:
-    import sysconfig
-    sysconfig.get_config_var('EXT_SUFFIX').lstrip('.')
-
-    from py_repository.repo_tasks.common import ctx_write_text, get_build_root
-    build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
-    env_file = build_dir.joinpath("dev_env")
-    ctx_write_text(
-        ctx, env_file, f"""
-export PYTHONPATH={build_dir}
-export LD_LIBRARY_PATH={build_dir}
-    """)
-    log(CAT).info(f"Adding build directory to python path {build_dir}")
-
-    return env_file
 
 
 @haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
@@ -39,7 +25,6 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
 
     args = arg
     env = dict()
-    env_file = setup_python_dev_links(ctx)
 
     if ctx.config.py_test_conf.extra_pytest_args:
         args.extend(ctx.config.py_test_conf.extra_pytest_args)
@@ -53,17 +38,13 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         env["NO_COLOR"] = "1"
         args.append("--color=no")
 
-    env["SKIP_CXX_BUILD"] = "1"
-
     run_command(
         ctx,
         "uv",
         [
             "run",
             "--all-groups",
-            f"--env-file={env_file}",
-            "--no-build-isolation",
-            "--verbose",
+            *get_uv_develop_sync_flags(ctx),
             "python",
             "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
         ],
@@ -76,13 +57,11 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         [
             "run",
             "--all-groups",
-            "--no-build-isolation",
-            "--verbose",
+            *get_uv_develop_sync_flags(ctx),
             "pytest",
             "-vv",
             "-ra",
             "-s",
-            f"--env-file={env_file}",
             "--log-cli-level=DEBUG",
             "--tb=short",
             "--cov=scripts",
@@ -121,6 +100,7 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
         "uv",
         [
             "run",
+            *get_uv_develop_sync_flags(ctx),
             script,
             *arg,
         ],
