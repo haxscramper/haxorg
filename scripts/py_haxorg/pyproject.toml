@@ -8,13 +8,13 @@ requires-python = ">=3.10,<3.14"
 dependencies = ["beartype>=0.22.0"]
 
 [build-system]
-requires = ["setuptools>=45", "scikit-build-core>=0.5", "pybind11", "conan"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "_build_backend"
 backend-path = ["."]
 
 # Setuptools configuration (used when SKIP_CXX_BUILD=1)
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
