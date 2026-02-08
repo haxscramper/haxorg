@@ -2,20 +2,24 @@
 name = "py_haxorg"
 version = "0.1.0"
 description = ""
-authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]
-readme = {file = "README.org", content-type = "text/plain"}
+authors = [{ name = "haxscramper", email = "haxscramper@gmail.com" }]
+readme = { file = "README.org", content-type = "text/plain" }
 requires-python = ">=3.10,<3.14"
-dependencies = [
-    "beartype>=0.22.0",
-]
+dependencies = ["beartype>=0.22.0"]
 
 [build-system]
-requires = ["scikit-build-core>=0.5", "pybind11", "conan"]
-build-backend = "scikit_build_core.build"
+requires = ["setuptools>=45", "scikit-build-core>=0.5", "pybind11", "conan"]
+build-backend = "_build_backend"
+backend-path = ["."]
 
-[tool.uv.extra-build-dependencies]
-py-haxorg = ["scikit_build_core", "conan"]
+# Setuptools configuration (used when SKIP_CXX_BUILD=1)
+[tool.setuptools]
+package-dir = {"" = "src"}
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# scikit-build-core configuration (used for full builds)
 [tool.scikit-build]
 cmake.source-dir = "../.."
 

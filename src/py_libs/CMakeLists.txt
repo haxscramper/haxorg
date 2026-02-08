@@ -7,8 +7,8 @@ if(${ORG_USE_PYTHON_BINDINGS})
 
   set_target_properties(py_textlayout_cpp PROPERTIES OUTPUT_NAME "py_textlayout_cpp" SUFFIX ".so")
 
-  target_include_directories(py_textlayout_cpp PUBLIC "${BASE}" "${BASE}/src/py_libs"
-                                                      ${Python_INCLUDE_DIRS})
+  target_include_directories(py_textlayout_cpp PRIVATE "${BASE}" "${BASE}/src/py_libs"
+                                                       ${Python_INCLUDE_DIRS})
 
   target_link_libraries(py_textlayout_cpp PRIVATE hstd ${Python_LIBRARIES} absl::base absl::log
                                                   absl::flags)

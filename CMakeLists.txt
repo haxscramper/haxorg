@@ -300,7 +300,7 @@ install(
 
 # Install the Python extension into the *platlib root* (site-packages/)
 if(${ORG_USE_PYTHON_BINDINGS} AND NOT ${ORG_EMCC_BUILD})
-  install(TARGETS pyhaxorg LIBRARY DESTINATION ".")
+  install(TARGETS pyhaxorg py_textlayout_cpp LIBRARY DESTINATION ".")
 endif()
 
 install(

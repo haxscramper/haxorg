@@ -1,3 +1,4 @@
+import importlib.util
 import os
 from pathlib import Path
 import sys
@@ -5,10 +6,14 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
-package_dir = Path(__file__).parent
+s = importlib.util.find_spec("pyhaxorg")
+print(f"SPEC: {s.origin if s else None}")
 
-if str(package_dir) not in sys.path:
-    sys.path.append(str(package_dir))
+LD_LIBRARY_PATH = os.getenv("LD_LIBRARY_PATH")
+print(f"LD_LIBRARY_PATH={LD_LIBRARY_PATH}")
+
+for p in sys.path:
+    print(f"PATH: {p}")
 
 from typing import TYPE_CHECKING
 

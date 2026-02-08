@@ -104,8 +104,8 @@ def build_haxorg(ctx: TaskContext) -> None:
         targets=targets,
     )
 
-    if "all" in targets or "pyhaxorg" in targets:
-        run_command(ctx, "uv", ["sync", "--package", "py_haxorg"])
+    # if "all" in targets or "pyhaxorg" in targets:
+    #     run_command(ctx, "uv", ["sync", "--package", "py_haxorg"])
 
 
 @haxorg_task()
