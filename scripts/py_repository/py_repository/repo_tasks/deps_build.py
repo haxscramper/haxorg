@@ -183,32 +183,32 @@ def build_release_deps(
 
         install_dir = get_build_root(ctx).joinpath("deps_install")
 
-        run_command(ctx, "cmake", [
-            "-B",
-            str(src_build),
-            "-S",
-            str(src_root),
-            "-G",
-            ctx.config.build_conf.cmake_generator,
-            *cond(
-                deps_install_dir,
-                [cmake_opt("ORG_DEPS_INSTALL_ROOT", deps_install_dir)],
-                [],
-            ),
-            cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
-            cmake_opt("ORG_BUILD_IS_DEVELOP", False),
-            cmake_opt("ORG_BUILD_TESTS", True),
-            cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
-            cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
-            cmake_opt("CMAKE_C_COMPILER", "clang"),
-            cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False),
-            cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", False),
-            cmake_opt("CMAKE_PREFIX_PATH", [
-                install_dir.joinpath("lexy/lib/cmake/lexy"),
-                install_dir.joinpath("abseil/lib/cmake/absl"),
-                install_dir.joinpath("abseil/lib64/cmake/absl"),
-            ]),
-        ])
+        run_cmake_configure(
+            ctx,
+            build_dir=src_build,
+            script_root=src_root,
+            generator=ctx.config.build_conf.cmake_generator,
+            args=[
+                *cond(
+                    deps_install_dir,
+                    [cmake_opt("ORG_DEPS_INSTALL_ROOT", deps_install_dir)],
+                    [],
+                ),
+                cmake_opt("ORG_DEPS_USE_PROTOBUF", False),
+                cmake_opt("ORG_BUILD_IS_DEVELOP", False),
+                cmake_opt("ORG_BUILD_TESTS", True),
+                cmake_opt("ORG_BUILD_ASSUME_CLANG", False),
+                cmake_opt("CMAKE_CXX_COMPILER", "clang++"),
+                cmake_opt("CMAKE_C_COMPILER", "clang"),
+                cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", False),
+                cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", False),
+                cmake_opt("CMAKE_PREFIX_PATH", [
+                    install_dir.joinpath("lexy/lib/cmake/lexy"),
+                    install_dir.joinpath("abseil/lib/cmake/absl"),
+                    install_dir.joinpath("abseil/lib64/cmake/absl"),
+                ]),
+            ],
+        )
 
         log(CAT).info("Completed cpack build configuration")
 

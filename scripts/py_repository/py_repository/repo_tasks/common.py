@@ -169,19 +169,27 @@ def ctx_read_text(ctx: TaskContext, path: Path) -> str:
 
 
 @beartype
-def ctx_remove_file(ctx: TaskContext, path: Path) -> None:
+def ctx_remove_path(ctx: TaskContext, path: Path) -> None:
+    """
+    Remove specified path from the local filesystem or the currently active
+    docker container. The function will remove both files and directories.
+    """
     if ctx.docker_container is not None:
         exit_code, output = ctx.docker_container.exec_run(
-            cmd=["rm", str(path)],
+            cmd=["rm", "-r", str(path)],
             demux=True,
         )
         if exit_code != 0:
             _, stderr = output
             raise RuntimeError(
-                f"Failed to remove file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+                f"Failed to remove path {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
             )
     else:
-        path.unlink()
+        import shutil
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
 
 
 @beartype

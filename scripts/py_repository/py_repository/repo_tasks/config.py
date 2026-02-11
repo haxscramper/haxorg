@@ -44,6 +44,10 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgBuildConfig(BaseModel, extra="forbid"):
+    """
+    Shared build configuration parameters used for the haxorg project
+    and all compiled dependencies: compiler, generator etc.
+    """
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
     use_protobuf: bool = True
@@ -51,6 +55,7 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
+    use_adaptagrams: bool = True  # Build the project with adaptagrams support
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):

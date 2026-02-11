@@ -3,6 +3,7 @@ from pathlib import Path
 
 from beartype.typing import List
 from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
     get_uv_develop_sync_flags,
     run_command,
 )
@@ -45,6 +46,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
             "run",
             "--all-groups",
             *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             "python",
             "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
         ],
@@ -58,6 +60,7 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
             "run",
             "--all-groups",
             *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             "pytest",
             "-vv",
             "-ra",
@@ -101,6 +104,7 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
         [
             "run",
             *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             script,
             *arg,
         ],

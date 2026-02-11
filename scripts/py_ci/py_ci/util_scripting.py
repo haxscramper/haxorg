@@ -209,9 +209,11 @@ def parse_haxorg_env() -> Dict[str, Any]:
     return result
 
 
-def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path, None, List, int]) -> str:
+    """Convert a Python value to a CMake `-D` option string: `-D<name>=<value>`
+    """
     result = "-D" + name + "="
-    if isinstance(value, (str, Path)):
+    if isinstance(value, (str, Path, int)):
         result += str(value)
 
     elif isinstance(value, bool):

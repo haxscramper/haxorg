@@ -369,6 +369,33 @@ def run_command_with_json_args(
 
 
 @beartype
+def get_cmake_generator(ctx: TaskContext, build_dir: Path) -> Optional[str]:
+    """
+    Get generator name from a cache file for an already configured cmake project.
+    If there is no cache, will return None.
+    """
+    from py_repository.repo_tasks.common import check_path_exists, ctx_read_text
+    cache = build_dir.joinpath("CMakeCache.txt")
+    log(CAT).debug(f"Get cmake generator for file {cache} in build dir {build_dir}")
+    if check_path_exists(ctx, cache):
+        old_generator_line = [
+            line for line in ctx_read_text(ctx, cache).splitlines()
+            if "CMAKE_GENERATOR:INTERNAL=" in line
+        ][0]
+
+        log(CAT).debug(f"Old generator line is {old_generator_line.strip()}")
+        match = re.match("^CMAKE_GENERATOR:INTERNAL=(.*?)$", old_generator_line)
+        assert match
+        generator = match.group(1)
+        log(CAT).info(f"Old generator found: '{generator}'")
+        return generator
+
+    else:
+        log(CAT).warning("Cmake cache file does not exist, no generator found")
+        return None
+
+
+@beartype
 def run_cmake_configure(
     ctx: TaskContext,
     build_dir: Path,
@@ -377,27 +404,26 @@ def run_cmake_configure(
     args: List[str],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
-    from py_repository.repo_tasks.common import (
-        check_path_exists,
-        ctx_read_text,
-        ctx_remove_file,
-    )
-    cache = build_dir.joinpath("CMakeCache.txt")
-    if check_path_exists(ctx, cache):
-        old_generator_line = [
-            line for line in ctx_read_text(ctx, cache).splitlines()
-            if "CMAKE_GENERATOR:INTERNAL=" in line
-        ][0]
+    """
+    Configure cmake for the future build.
 
-        match = re.match("^CMAKE_GENERATOR:INTERNAL=(.*?)$", old_generator_line)
-        assert match
-        old_generator = match.group(1)
-        if old_generator != generator:
-            log(CAT).info(
-                f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
-                f"Removing cache file {cache}")
+    Note: if the generator has changed between the configurations, the
+    function will also remove the build directory to allow for the new
+    configuration to take place.
+    """
+    from py_repository.repo_tasks.common import ctx_remove_path
 
-            ctx_remove_file(ctx, cache)
+    old_generator = get_cmake_generator(ctx, build_dir)
+    if old_generator != generator and old_generator is not None:
+        log(CAT).info(
+            f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
+            f"Removing build directory")
+
+        # Unfortunately cmake is incapable of changing or overwriting the build generator
+        # cleanly, and there is no easy way to determine if the project has anything like
+        # fetch content, that creates its own cmake cache files. So the only way to really
+        # ensure the configuration can be switched, is to remove the whole build directory.
+        ctx_remove_path(ctx, build_dir)
 
     return run_command(
         ctx,
@@ -424,14 +450,22 @@ def run_cmake_build(
     build_tool_args: List[str | Path] = [],
     **kwargs: Unpack[RunCommandKwargs],
 ) -> tuple[int, str, str]:
+    """
+    Run cmake build, optionally append debugging/logging flags
+    to the generator depending on the target and log level.
+    """
 
     build_args: List[str | Path] = build_tool_args[:]
+    if ctx.config.build_conf.cmake_generator == "Unix Makefiles":
+        if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+            build_args.append("--debug=verbose")
 
-    if ctx.config.in_ci:
-        build_args.extend(["-d", "explain"])
+    elif ctx.config.build_conf.cmake_generator == "Ninja":
+        if ctx.config.in_ci:
+            build_args.extend(["-d", "explain"])
 
-    if ctx.config.force_full_build:
-        build_args.extend(["-k0"])
+        if ctx.config.force_full_build:
+            build_args.extend(["-k0"])
 
     if 0 < len(build_args):
         build_args.insert(0, "--")
@@ -467,12 +501,24 @@ def get_python_binary(ctx: TaskContext) -> Path:
 
 @beartype
 def get_python_develop_env_File(ctx: TaskContext) -> Path:
+    """
+    Create a temporary file to overwrite the PYTHONPATH and LD_LIBRARY_PATH
+    for the `uv run`. This is necessary when the py-haxorg package is built
+    with the `HAXORG_PY_SOURCE_DISTRIBUTION=1` enabled -- it is a purely
+    source distribution, so the `pyhaxorg.so` is not present and should be
+    taken from the main build directory.
+    """
     import sysconfig
     sysconfig.get_config_var('EXT_SUFFIX').lstrip('.')
 
-    from py_repository.repo_tasks.common import ctx_write_text, get_build_root
+    from py_repository.repo_tasks.common import (
+        ctx_write_text,
+        ensure_existing_dir,
+        get_build_root,
+    )
     build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
     env_file = build_dir.joinpath("dev_env")
+    ensure_existing_dir(ctx, build_dir)
     ctx_write_text(
         ctx, env_file, f"""
 export PYTHONPATH={build_dir}
@@ -484,14 +530,25 @@ export LD_LIBRARY_PATH={build_dir}
 
 
 @beartype
+def get_uv_develop_env_flags(ctx: TaskContext) -> List[str]:
+    "Get flag for setting environment variables for UV"
+    return [f"--env-file={get_python_develop_env_File(ctx)}"]
+
+
+@beartype
 def get_uv_develop_sync_flags(ctx: TaskContext) -> List[str]:
+    """
+    Get flags for the uv sync commands for the development run.
+    The flags enable source distribution for the py-haxorg package
+    so it will not build it, and force re-install of some of the
+    locally developed packages.
+    """
     result = []
     if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
         result.append("--verbose")
 
     result.append("-C")
     result.append("HAXORG_PY_SOURCE_DISTRIBUTION=1")
-    result.append(f"--env-file={get_python_develop_env_File(ctx)}")
 
     for package in ["py_haxorg"]:
         result.extend(["--reinstall-package", package])

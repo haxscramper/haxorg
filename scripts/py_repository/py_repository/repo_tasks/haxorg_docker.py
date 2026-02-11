@@ -194,6 +194,7 @@ def run_docker_develop_test(
     )
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.config.use_unchanged_tasks = True
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
@@ -201,7 +202,7 @@ def run_docker_develop_test(
 
     container_path = get_container_var(container, "PATH")
     run_command(dctx, "uv", ["sync", "--all-groups", *get_uv_develop_sync_flags(dctx)])
-    run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])
+    run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "*"])
     run_command(dctx, "git", ["config", "--global", "user.email", "you@example.com"])
     run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])
 
@@ -209,12 +210,15 @@ def run_docker_develop_test(
 
 
 @beartype
-def run_docker_release_test_impl(
+def _run_docker_release_test_impl(
     ctx: TaskContext,
     clone_dir_path: Path,
     build_dir_path: Path,
     clone_code: str,
 ) -> None:
+    """
+    Implementation of the docker release test runner
+    """
 
     source_prefix: Optional[Path] = None
     if clone_code == "all":
@@ -277,6 +281,7 @@ def run_docker_release_test_impl(
     )
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.config.use_unchanged_tasks = True
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
@@ -305,6 +310,9 @@ def run_docker_release_test(
     clone_dir: Path = get_tmpdir("docker_release", "clone"),
     clone_code: Literal["none", "comitted", "all"] = "all",
 ) -> None:
+    """
+    Run the release test set in the docker container.
+    """
 
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
@@ -358,9 +366,10 @@ def run_docker_release_test(
 
     @beartype
     def run_with_build_dir(build_dir_path: Path) -> None:
+        "nodoc"
         if clone_dir:
             log(CAT).info("Specified clone directory, using it for docker")
-            run_docker_release_test_impl(
+            _run_docker_release_test_impl(
                 ctx,
                 clone_dir_path=Path(clone_dir),
                 build_dir_path=build_dir_path,
@@ -370,7 +379,7 @@ def run_docker_release_test(
             with TemporaryDirectory() as dir:
                 log(CAT).info(
                     f"No docker clone directory specified, using temporary {dir}")
-                run_docker_release_test_impl(
+                _run_docker_release_test_impl(
                     ctx,
                     clone_dir_path=Path(dir),
                     build_dir_path=build_dir_path,

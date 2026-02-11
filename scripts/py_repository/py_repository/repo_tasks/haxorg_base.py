@@ -8,7 +8,7 @@ from py_ci.data_build import (
     get_emscripten_cmake_flags,
     get_external_deps_list,
 )
-from py_ci.util_scripting import cmake_opt
+from py_ci.util_scripting import cmake_opt, get_threading_count
 from py_repository.repo_tasks.command_execution import get_python_binary, run_command
 from py_repository.repo_tasks.common import (
     check_path_exists,
@@ -102,6 +102,12 @@ def get_toolchain_path(ctx: TaskContext) -> Optional[Path]:
 
 @beartype
 def get_cmake_defines(ctx: TaskContext) -> List[str]:
+    """
+    Get full list of all the `-D` defines used to configure the cmake build
+    for the main haxorg project. Note it will set up the compiler, but won't
+    configure the generator -- this one is passed with `-G` and is configured
+    in the `run_cmake_configure` function.
+    """
     result: List[str] = []
     conf = ctx.config
 
@@ -116,6 +122,7 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(cmake_opt("ORG_USE_MSGPACK", conf.build_conf.use_msgpack))
+    result.append(cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", conf.build_conf.use_adaptagrams))
     result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
     result.append(cmake_opt("ORG_USE_IMGUI", conf.use.imgui))
     # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
@@ -128,6 +135,15 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
     result.append(cmake_opt("Python_EXECUTABLE", get_python_binary(ctx)))
+
+    if conf.build_conf.cmake_generator == "Ninja":
+        # https://github.com/ninja-build/ninja/issues/2029
+        result.append(
+            cmake_opt(
+                "CMAKE_JOB_POOLS",
+                f"comp_jobs={get_threading_count()};link_jobs={get_threading_count()}"))
+        result.append(cmake_opt("CMAKE_JOB_POOL_COMPILE", "comp_jobs"))
+        result.append(cmake_opt("CMAKE_JOB_POOL_LINK", "link_jobs"))
 
     if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))

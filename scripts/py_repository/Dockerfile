@@ -25,6 +25,7 @@ RUN dnf install -y \
   which
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /haxorg
 
 ENV EMSDK=/opt/emsdk
