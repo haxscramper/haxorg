@@ -46,6 +46,7 @@ def docs_python(ctx: TaskContext) -> None:
     import tomllib
 
     root = get_script_root(ctx)
+    template_dir = get_script_root(ctx) / "docs/templates"
     docs_dir = get_build_root(ctx) / "docs" / "python"
     source_dir = docs_dir / "source"
     build_dir = docs_dir / "_build"
@@ -89,31 +90,43 @@ def docs_python(ctx: TaskContext) -> None:
     conf_py = source_dir / "conf.py"
     conf_content = "import os\nimport sys\n"
     for _, pkg_path in packages:
-        conf_content += f'sys.path.insert(0, os.path.abspath({repr(pkg_path)}))\n'
+        conf_content += f"sys.path.insert(0, os.path.abspath({repr(pkg_path)}))\n"
     conf_content += """
-project = 'Python API'
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode']
-html_theme = 'furo'
+project = "Python API"
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx.ext.viewcode", "sphinx.ext.autosummary",]
+html_theme = "furo"
 autodoc_mock_imports = ["lldb", "py_textlayout_cpp"]
+autosummary_generate = True
+
+autodoc_default_options = {
+    "members": True,
+    "show-inheritance": True,
+    "member-order": "bysource",
+    "autosummary": True,
+}
+
+autodoc_typehints = "description"
 """
     conf_py.write_text(conf_content)
 
     # Create index.rst if missing
     index_rst = source_dir / "index.rst"
-    if not index_rst.exists():
-        toc = "\n".join(f"   {name}" for name, _ in packages)
-        index_rst.write_text(f"""\
-Python API Documentation
-========================
+    toc = "\n".join(f"   api/{name}/index" for name, _ in packages)
+    index_rst.write_text(f"""\
+UV workspace packages documentation
+===================================
 
 .. toctree::
-   :maxdepth: 4
+    :maxdepth: 4
 
 {toc}
 """)
 
-    # Generate API documentation for each package
+    api_root = source_dir / "api"
+
     for pkg_name, pkg_path in packages:
+        out_dir = api_root / pkg_name
+
         run_command(
             ctx,
             "uv",
@@ -128,10 +141,15 @@ Python API Documentation
                 "sphinx-apidoc",
                 "-f",
                 "-e",
+                "-M",
                 "-d",
                 "4",
+                "--templatedir",
+                str(template_dir),
+                "--tocfile",
+                "index",
                 "-o",
-                str(source_dir),
+                str(out_dir),
                 pkg_path,
             ],
             stdout_debug=get_build_root(ctx).joinpath(f"sphinx_apidoc_{pkg_name}.log"),
