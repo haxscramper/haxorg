@@ -6,6 +6,7 @@ from beartype import beartype
 from beartype.typing import Optional
 from graphviz import Digraph
 import grimp
+import igraph
 from py_repository.repo_tasks.common import get_script_root
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
@@ -221,29 +222,85 @@ def gen_import_graph(ctx: TaskContext) -> ImportGraph:
 
 
 @beartype
-def import_graph_to_graphviz(graph: ImportGraph) -> Digraph:
+def import_graph_to_igraph(graph: ImportGraph) -> igraph.Graph:
     """
-    Convert ImportGraph to a Graphviz Digraph with package-based clustering.
+    Convert ImportGraph to an igraph Graph with vertex attributes for
+    module name, package membership, and external status.
+    """
+    g = igraph.Graph(directed=True)
 
-    Each package is rendered as a cluster containing its modules. Import edges
-    point from the importing module to the imported module. External dependencies
-    (imports from outside the analyzed packages) are shown as dashed ellipses.
+    # module_name -> package_name (None for external modules)
+    module_packages: dict[str, str | None] = {}
+
+    # First pass: collect internal modules with their package assignments
+    for pkg_name, pkg_data in graph.packages.items():
+        if isinstance(pkg_data, PackageAnalysis):
+            for module in pkg_data.modules:
+                module_packages[module] = pkg_name
+
+    # Second pass: collect import edges and identify external dependencies
+    edges: list[tuple[str, str]] = []
+
+    for pkg_name, pkg_data in graph.packages.items():
+        if isinstance(pkg_data, PackageAnalysis):
+            for module_name, deps in pkg_data.dependencies.items():
+                for imported in deps.internal + deps.workspace:
+                    target = imported.get_name()
+                    edges.append((module_name, target))
+
+                    # External modules are those not in any analyzed package
+                    if target not in module_packages:
+                        module_packages[target] = None
+
+    if not module_packages:
+        return g
+
+    # Create vertices with attributes
+    module_names = list(module_packages.keys())
+    g.add_vertices(len(module_names))
+    g.vs["name"] = module_names
+    g.vs["package"] = [module_packages[m] for m in module_names]
+    g.vs["is_external"] = [module_packages[m] is None for m in module_names]
+
+    # Map names to indices for edge creation
+    name_to_idx = {name: idx for idx, name in enumerate(module_names)}
+
+    # Add edges as vertex indices
+    edge_indices = [(name_to_idx[src], name_to_idx[dst])
+                    for src, dst in edges
+                    if src in name_to_idx and dst in name_to_idx]
+
+    if edge_indices:
+        g.add_edges(edge_indices)
+
+    return g
+
+
+@beartype
+def import_igraph_to_graphviz(g: igraph.Graph) -> Digraph:
+    """
+    Convert igraph Graph to Graphviz Digraph with package-based clustering.
+
+    Analyzes edge directions between packages. If imports between two packages
+    predominantly flow in one direction, edges going the opposite direction
+    (back edges) are colored red.
     """
     dot = Digraph(name="import_graph", engine="dot")
     dot.attr(rankdir="LR", compound="true", fontsize="12")
 
-    # Collect valid analyses and all known modules
-    analyses: dict[str, PackageAnalysis] = {}
-    internal_modules: set[str] = set()
+    # Group vertices: by package for internals, separate list for externals
+    packages: dict[str, list[int]] = {}
+    external_indices: list[int] = []
 
-    for pkg_name, pkg_data in graph.packages.items():
-        if isinstance(pkg_data, PackageAnalysis):
-            analyses[pkg_name] = pkg_data
-            internal_modules.update(pkg_data.modules)
+    for v in g.vs:
+        if v["is_external"]:
+            external_indices.append(v.index)
+        else:
+            pkg = v["package"]
+            packages.setdefault(pkg, []).append(v.index)
 
     # Create clusters for each package
-    for pkg_name, analysis in analyses.items():
-        # Sanitize name for Graphviz ID (cluster names must be valid identifiers)
+    for pkg_name, indices in packages.items():
         cluster_id = f"cluster_{pkg_name.replace('.', '_').replace('-', '_')}"
 
         with dot.subgraph(name=cluster_id) as cluster:
@@ -253,26 +310,68 @@ def import_graph_to_graphviz(graph: ImportGraph) -> Digraph:
                          color="black",
                          fontname="Helvetica")
 
-            for module in analysis.modules:
-                cluster.node(module,
-                             module,
+            for idx in indices:
+                v = g.vs[idx]
+                cluster.node(v["name"],
+                             v["name"],
                              shape="box",
                              style="filled",
                              fillcolor="white")
 
-    # Draw edges for all import relationships
-    for analysis in analyses.values():
-        for module_name, deps in analysis.dependencies.items():
-            for imported in deps.internal + deps.workspace:
-                # Handle external dependencies (not in any analyzed package)
-                if imported.get_name() not in internal_modules:
-                    dot.node(imported.get_name(),
-                             imported.get_name(),
-                             shape="ellipse",
-                             style="dashed,filled",
-                             fillcolor="lightyellow",
-                             fontsize="10")
+    # Add external dependencies as dashed ellipses outside clusters
+    for idx in external_indices:
+        v = g.vs[idx]
+        dot.node(v["name"],
+                 v["name"],
+                 shape="ellipse",
+                 style="dashed,filled",
+                 fillcolor="lightyellow",
+                 fontsize="10")
 
-                dot.edge(module_name, imported.get_name(), arrowsize="0.7")
+    # Analyze edge directions between distinct internal packages
+    edge_counts: dict[tuple[str, str], list[int]] = {}
+
+    for e in g.es:
+        src_pkg = g.vs[e.source]["package"]
+        dst_pkg = g.vs[e.target]["package"]
+
+        # Only consider inter-package edges between internal packages
+        if src_pkg is None or dst_pkg is None or src_pkg == dst_pkg:
+            continue
+
+        key = (src_pkg, dst_pkg)
+        edge_counts.setdefault(key, []).append(e.index)
+
+    # Identify back edges (minority direction between package pairs)
+    back_edges: set[int] = set()
+    processed_pairs: set[frozenset[str]] = set()
+
+    for (src_pkg, dst_pkg), indices in edge_counts.items():
+        pair = frozenset([src_pkg, dst_pkg])
+        if pair in processed_pairs:
+            continue
+        processed_pairs.add(pair)
+
+        reverse_indices = edge_counts.get((dst_pkg, src_pkg), [])
+        if not reverse_indices:
+            continue
+
+        forward_count = len(indices)
+        backward_count = len(reverse_indices)
+
+        if forward_count > backward_count:
+            back_edges.update(reverse_indices)
+        elif backward_count > forward_count:
+            back_edges.update(indices)
+
+    # Draw all edges, coloring back edges red
+    for e in g.es:
+        source = g.vs[e.source]["name"]
+        target = g.vs[e.target]["name"]
+
+        if e.index in back_edges:
+            dot.edge(source, target, arrowsize="0.7", color="red", penwidth="2")
+        else:
+            dot.edge(source, target, arrowsize="0.7")
 
     return dot

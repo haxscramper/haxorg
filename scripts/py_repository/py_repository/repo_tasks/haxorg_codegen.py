@@ -1,6 +1,7 @@
 import itertools
 from pathlib import Path
 
+import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
 from py_repository.repo_tasks.command_execution import (
     get_python_binary,
@@ -183,13 +184,12 @@ def generate_import_graph(ctx: TaskContext) -> None:
     """
     Generate import graph for all sub-projects and modules.
     """
-    from py_repository.code_analysis.gen_import_graph import (
-        gen_import_graph,
-        import_graph_to_graphviz,
-    )
-    import_graph = gen_import_graph(ctx)
+    from py_repository.code_analysis import gen_import_graph
+    import_graph = gen_import_graph.gen_import_graph(ctx)
     tmp = get_tmpdir("haxorg_import")
     ensure_existing_dir(ctx, tmp)
     tmp.joinpath("result.json").write_text(import_graph.model_dump_json(indent=2))
-    gv_graph = import_graph_to_graphviz(import_graph)
+    ig_graph = gen_import_graph.import_graph_to_igraph(import_graph)
+    gv_graph = gen_import_graph.import_igraph_to_graphviz(ig_graph)
     gv_graph.render(tmp.joinpath("result"), format="png", engine="dot")
+    ig_graph.write_graphml(str(tmp.joinpath("result.graphml")))
