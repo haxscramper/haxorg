@@ -123,6 +123,26 @@ def _py_has_following_string_doc(stmt: ast.stmt, next_stmt: Optional[ast.stmt]) 
     return next_line == stmt_end + 1
 
 
+def _py_is_pydantic_documented(stmt: ast.Assign | ast.AnnAssign) -> bool:
+    """Return True if stmt assigns pydantic Field() with non-empty description."""
+    value = stmt.value
+    if not isinstance(value, ast.Call):
+        return False
+
+    func = value.func
+    is_field = ((isinstance(func, ast.Name) and func.id == "Field") or
+                (isinstance(func, ast.Attribute) and func.attr == "Field"))
+    if not is_field:
+        return False
+
+    for kw in value.keywords:
+        if kw.arg == "description":
+            if isinstance(kw.value, ast.Constant):
+                val = kw.value.value
+                return isinstance(val, str) and bool(val.strip())
+    return False
+
+
 def python_entries(path: str, src: str) -> list[Entry]:
     "Recursively collect all documentable entries from python file"
     try:
@@ -183,6 +203,7 @@ def python_entries(path: str, src: str) -> list[Entry]:
                         continue
 
                     documented = (
+                        _py_is_pydantic_documented(stmt) or
                         _py_has_inline_comment(lines,
                                                getattr(stmt, "lineno", 0) or 0) or
                         _py_has_preceding_comment(lines,
@@ -197,6 +218,7 @@ def python_entries(path: str, src: str) -> list[Entry]:
                     if not isinstance(t, ast.Name):
                         continue
                     documented = (
+                        _py_is_pydantic_documented(stmt) or
                         _py_has_inline_comment(lines,
                                                getattr(stmt, "lineno", 0) or 0) or
                         _py_has_preceding_comment(lines,

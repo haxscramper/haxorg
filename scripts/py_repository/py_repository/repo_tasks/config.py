@@ -1,9 +1,8 @@
-from contextlib import contextmanager
 from pathlib import Path
 import tempfile
 
 from beartype import beartype
-from beartype.typing import Generator, List, Literal, Optional
+from beartype.typing import List, Optional
 from pydantic import BaseModel, Field
 
 CAT = __name__
@@ -55,7 +54,10 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
-    use_adaptagrams: bool = True  # Build the project with adaptagrams support
+    use_adaptagrams: bool = Field(
+        default=True, description="Build the project with adaptagrams support")
+    build_tests: bool = Field(default=True,
+                              description="Build tests for hstd/haxorg project")
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):

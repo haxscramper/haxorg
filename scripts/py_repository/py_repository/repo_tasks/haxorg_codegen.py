@@ -11,11 +11,10 @@ from py_repository.repo_tasks.common import (
     check_is_file,
     ensure_existing_dir,
     get_build_root,
-    get_log_dir,
     get_script_root,
     get_workflow_out,
 )
-from py_repository.repo_tasks.config import HaxorgLogLevel
+from py_repository.repo_tasks.config import get_tmpdir, HaxorgLogLevel
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
 from py_repository.repo_tasks.haxorg_build import (
     build_haxorg,
@@ -177,3 +176,20 @@ def generate_include_graph(ctx: TaskContext) -> None:
         compile_commands=compile_commands,
         header_commands=header_commands,
     )
+
+
+@haxorg_task(dependencies=[generate_python_protobuf_files])
+def generate_import_graph(ctx: TaskContext) -> None:
+    """
+    Generate import graph for all sub-projects and modules.
+    """
+    from py_repository.code_analysis.gen_import_graph import (
+        gen_import_graph,
+        import_graph_to_graphviz,
+    )
+    import_graph = gen_import_graph(ctx)
+    tmp = get_tmpdir("haxorg_import")
+    ensure_existing_dir(ctx, tmp)
+    tmp.joinpath("result.json").write_text(import_graph.model_dump_json(indent=2))
+    gv_graph = import_graph_to_graphviz(import_graph)
+    gv_graph.render(tmp.joinpath("result"), format="png", engine="dot")
