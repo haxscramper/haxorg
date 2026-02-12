@@ -1,3 +1,7 @@
+"""
+Base types for all classes building code AST.
+"""
+
 from dataclasses import dataclass, field
 import itertools
 from typing import NewType, TYPE_CHECKING

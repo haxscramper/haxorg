@@ -1,7 +1,11 @@
 from pathlib import Path
 
 from beartype.typing import List, Optional
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    get_uv_develop_sync_flags,
+    run_command,
+)
 from py_repository.repo_tasks.common import (
     check_path_exists,
     get_build_root,
@@ -33,6 +37,130 @@ def docs_doxygen(ctx: TaskContext) -> None:
         # run_mode="bg",
     )
     log(CAT).info("Completed CXX docs build")
+
+
+@haxorg_task()
+def docs_python(ctx: TaskContext) -> None:
+    "Build documentation for the Python workspace using Sphinx"
+    from pathlib import Path
+    import tomllib
+
+    root = get_script_root(ctx)
+    docs_dir = get_build_root(ctx) / "docs" / "python"
+    source_dir = docs_dir / "source"
+    build_dir = docs_dir / "_build"
+
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    source_dir.mkdir(exist_ok=True)
+
+    pyproject = root / "pyproject.toml"
+    if not pyproject.exists():
+        log(CAT).error("pyproject.toml not found")
+        return
+
+    with open(pyproject, "rb") as f:
+        config = tomllib.load(f)
+
+    members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+    if not members:
+        log(CAT).error("No workspace members found")
+        return
+
+    packages = []
+    for pattern in members:
+        for path in root.glob(pattern):
+            if not path.is_dir():
+                continue
+            pkg_toml = path / "pyproject.toml"
+            if not pkg_toml.exists():
+                continue
+            with open(pkg_toml, "rb") as f:
+                pkg_config = tomllib.load(f)
+            name = pkg_config.get("project", {}).get("name")
+            if name:
+                pkg_src = path / "src" if (path / "src").exists() else path
+                packages.append((name.replace("-", "_"), str(pkg_src)))
+
+    if not packages:
+        log(CAT).warning("No packages found to document")
+        return
+
+    # Create minimal Sphinx configuration if missing
+    conf_py = source_dir / "conf.py"
+    conf_content = "import os\nimport sys\n"
+    for _, pkg_path in packages:
+        conf_content += f'sys.path.insert(0, os.path.abspath({repr(pkg_path)}))\n'
+    conf_content += """
+project = 'Python API'
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode']
+html_theme = 'furo'
+autodoc_mock_imports = ["lldb", "py_textlayout_cpp"]
+"""
+    conf_py.write_text(conf_content)
+
+    # Create index.rst if missing
+    index_rst = source_dir / "index.rst"
+    if not index_rst.exists():
+        toc = "\n".join(f"   {name}" for name, _ in packages)
+        index_rst.write_text(f"""\
+Python API Documentation
+========================
+
+.. toctree::
+   :maxdepth: 4
+
+{toc}
+""")
+
+    # Generate API documentation for each package
+    for pkg_name, pkg_path in packages:
+        run_command(
+            ctx,
+            "uv",
+            [
+                "run",
+                *get_uv_develop_sync_flags(ctx),
+                *get_uv_develop_env_flags(ctx),
+                "--with",
+                "sphinx",
+                "--with",
+                "furo",
+                "sphinx-apidoc",
+                "-f",
+                "-e",
+                "-d",
+                "4",
+                "-o",
+                str(source_dir),
+                pkg_path,
+            ],
+            stdout_debug=get_build_root(ctx).joinpath(f"sphinx_apidoc_{pkg_name}.log"),
+            stderr_debug=get_build_root(ctx).joinpath(f"sphinx_apidoc_{pkg_name}.err"),
+        )
+
+    # Build HTML documentation
+    run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            "--with",
+            "sphinx",
+            "--with",
+            "furo",
+            "sphinx-build",
+            "-b",
+            "html",
+            str(source_dir),
+            str(build_dir / "html"),
+        ],
+        stdout_debug=get_build_root(ctx).joinpath("sphinx_build_stdout.log"),
+        stderr_debug=get_build_root(ctx).joinpath("sphinx_build_stderr.log"),
+    )
+
+    log(CAT).info(f"Completed Python docs build at {build_dir / 'html'}")
 
 
 @haxorg_task()

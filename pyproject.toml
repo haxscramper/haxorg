@@ -57,6 +57,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "grimp>=3.14",
+    "sphinx>=8.1.3",
     "tree-sitter>=0.25.2",
     "tree-sitter-cpp>=0.23.4",
 ]
