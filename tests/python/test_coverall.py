@@ -1298,7 +1298,10 @@ def get_test_node_from_file() -> org.Org:
 
 def test_run_typst_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
-    from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
+    from py_haxorg.exporters.export_typst import (
+        ExporterTypst,
+        refresh_typst_export_package,
+    )
 
     # Path("total_repr.txt").write_text(org.treeRepr(node, colored=False))
 
@@ -1348,7 +1351,7 @@ def test_run_typst_exporter(cov: Coverage) -> None:
 
 def test_run_html_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
-    from py_exporters.export_html import ExporterHtml
+    from py_haxorg.exporters.export_html import ExporterHtml
 
     with verify_full_coverage(cov, ExporterHtml, gettempdir()):
         exp = ExporterHtml()
@@ -1365,7 +1368,7 @@ def test_run_html_exporter(cov: Coverage) -> None:
 
 def test_run_pandoc_exporter(cov: Coverage) -> None:
     node = get_test_node_from_text()
-    from py_exporters.export_pandoc import ExporterPandoc
+    from py_haxorg.exporters.export_pandoc import ExporterPandoc
 
     with verify_full_coverage(cov, ExporterPandoc, gettempdir()):
         exp = ExporterPandoc()
@@ -1375,7 +1378,7 @@ def test_run_pandoc_exporter(cov: Coverage) -> None:
 
 
 def test_run_tex_exporter(cov: Optional[Coverage] = None) -> None:
-    from py_exporters.export_tex import ExporterLatex
+    from py_haxorg.exporters.export_tex import ExporterLatex
     with verify_full_coverage(cov, ExporterLatex, gettempdir()):
         ExporterLatex().eval(get_test_node_from_text())
         exp2 = ExporterLatex()

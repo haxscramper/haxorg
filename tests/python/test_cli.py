@@ -5,7 +5,7 @@ import more_itertools
 import pandas as pd
 from plumbum import CommandNotFound, local
 from py_cli import haxorg_cli, haxorg_opts
-from py_exporters import export_sqlite
+from py_haxorg.exporters import export_sqlite
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite

@@ -375,6 +375,18 @@ def should_check_entry(entry: Entry, whole_file: bool,
     "Check if documentable entry intersects with the changed range"
     if whole_file:
         return True
+
+    # Exporter methods have dozens of absolutely identical methods
+    # that are handled by the internal C++ mechanism.
+    elif re.match(r"Exporter\w+\.(eval\w+|visit\w+|newOrg|getStr)", entry.name):
+        return False
+
+    elif re.search(r"__\w+__", entry.name):
+        return False
+
+    elif re.match(r"^test_\w+$", entry.name):
+        return False
+
     return any(entry.line_range.intersects(r) for r in change_ranges)
 
 
@@ -424,7 +436,7 @@ def main(argv: list[str]) -> int:
             if should_check_entry(e, ns.whole_file, change_ranges):
                 scope = "in file" if ns.whole_file else "changed in staged diff"
                 problems.append(f"{e.file}:{e.line_range.start}-{e.line_range.end}: "
-                                f"Undocumented {e.kind} '{e.name}' {scope}")
+                                f"Undocumented {e.kind} '{e.name}' {scope} ")
 
     if problems:
         sys.stderr.write(

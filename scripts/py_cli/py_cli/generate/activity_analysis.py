@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.haxorg_cli import *
-import py_exporters.export_sqlite as sql
+import py_haxorg.exporters.export_sqlite as sql
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 from sqlalchemy import create_engine, Engine, literal, select, union_all

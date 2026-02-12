@@ -63,7 +63,6 @@ dev = [
 local = [
   "py_ci",
   "py_textlayout",
-  "py_exporters",
   "py_scriptutils",
   "py_codegen",
   "py_cli",
@@ -78,7 +77,6 @@ members = [
     "scripts/py_haxorg",
     "scripts/py_ci",
     "scripts/py_textlayout",
-    "scripts/py_exporters",
     "scripts/py_scriptutils",
     "scripts/py_codegen",
     "scripts/py_cli",
@@ -90,7 +88,6 @@ members = [
 [tool.uv.sources]
 py_ci           = { workspace = true }
 py_textlayout   = { workspace = true }
-py_exporters    = { workspace = true }
 py_scriptutils  = { workspace = true }
 py_codegen      = { workspace = true }
 py_cli          = { workspace = true }
@@ -140,7 +137,9 @@ ignore = [
   "F841", # Assigned but never used
   "F522", # UNused format arguments
   "F401", # Imported but not used -- just drives me crazy when I write code
+  "E712", # Allow comparisons to `== False`, they can be more readable/explicit
 ]
+
 
 [tool.yapf]
 based_on_style = "google"

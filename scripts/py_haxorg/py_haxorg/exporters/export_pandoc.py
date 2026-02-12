@@ -3,7 +3,7 @@ import itertools
 
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Set
-from py_exporters.export_base import ExporterBase
+from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.json_utils import Json
@@ -14,31 +14,52 @@ CAT = "export.pandoc"
 @beartype
 @dataclass
 class AttrKv():
-    key: str
-    value: Json
+    """
+    Pandoc attribute key-value mapping
+    """
+    key: str  # nodoc
+    value: Json  # nodoc
 
 
 @beartype
 def Attr(identifier: str, classes: List[str] = [], kvpairs: List[AttrKv] = []) -> Json:
+    """
+    Factory function for attribute node
+    """
     return [identifier, classes, [[it.key, it.value] for it in kvpairs]]
 
 
 @beartype
 @dataclass
 class PandocRes():
+    """
+    Result of the evaluation for a single org-mode node
+    """
     unpacked: List[Json] = field(default_factory=list)
-    debug: str = ""
+    """
+    One or more elements that correspond to the input org-mode node
+    """
+    debug: str = ""  # debugging field to carry information from the exporter
 
     @staticmethod
     def Single(value: Json) -> 'PandocRes':
+        """
+        Create a result from a single pandoc JSON node
+        """
         return PandocRes(unpacked=[value])
 
     @staticmethod
     def Multiple(value: List[Json]) -> 'PandocRes':
+        """
+        Create pandoc result from multiple pandoc JSON nodes
+        """
         return PandocRes(unpacked=value)
 
     @staticmethod
     def Node(kind: str, content: Json, debug: Optional[str] = None) -> 'PandocRes':
+        """
+        Create pandoc result with a single pandoc JSON node
+        """
         if debug:
             return PandocRes.Single({"t": kind, "c": content, "debug": debug})
 
@@ -46,6 +67,9 @@ class PandocRes():
             return PandocRes.Single({"t": kind, "c": content})
 
     def toJson(self) -> List[Json]:
+        """
+        Convert pandoc result to final JSON
+        """
         return [it for it in self.unpacked]
 
 
@@ -55,6 +79,9 @@ NonTopLevel = set([osk.Newline, osk.Space])
 
 @beartype
 class ExporterPandoc(ExporterBase):
+    """
+    Export org-mode document to pandoc JSON
+    """
 
     def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
@@ -63,6 +90,9 @@ class ExporterPandoc(ExporterBase):
         return PandocRes.Node("Str", "TODO " + str(node.getKind()))
 
     def content(self, node: org.Org, skip: Set[org.OrgSemKind] = set()) -> List[Json]:
+        """
+        Eval body of the node and return list of sub-node eval results.
+        """
         result: List[Json] = []
 
         for sub in node:

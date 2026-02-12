@@ -22,17 +22,17 @@ class LogFileMessage:
     the item notation.
     """
 
-    message: str = ""
-    type_: str = ""
-    direction: Optional[str] = None
-    direction_by: Optional[str] = None
-    lines: Optional[Tuple[str, str]] = None
-    package: Optional[str] = None
-    class_: Optional[str] = None
-    component: Optional[str] = None
-    extra: Optional[str] = None
-    context_lines: List[str] = field(default_factory=list)
-    location: Optional[int] = None
+    message: str = ""  # nodoc
+    type_: str = ""  # nodoc
+    direction: Optional[str] = None  # nodoc
+    direction_by: Optional[str] = None  # nodoc
+    lines: Optional[Tuple[str, str]] = None  # nodoc
+    package: Optional[str] = None  # nodoc
+    class_: Optional[str] = None  # nodoc
+    component: Optional[str] = None  # nodoc
+    extra: Optional[str] = None  # nodoc
+    context_lines: List[str] = field(default_factory=list)  # nodoc
+    location: Optional[int] = None  # nodoc
 
 
 class _LineIterWrapper:
@@ -58,6 +58,9 @@ class _LineIterWrapper:
         return self
 
     def get_context(self) -> List[str]:
+        """
+        Get all context lines for the message
+        """
         rv: List[str] = [self.current] if self.current else []
         for _ in range(self.ctx_lines + 1 - len(rv)):
             try:
@@ -81,25 +84,38 @@ class LatexLogParser:
     list.
     """
 
-    error = re.compile(
+    error = re.compile(  # nodoc
         r"^(?:! ((?:La|pdf)TeX|Package|Class)(?: (\w+))? [eE]rror(?: \(([\\]?\w+)\))?: (.*)|! (.*))"
     )
 
-    warning = re.compile(
+    warning = re.compile(  # nodoc
         r"^((?:La|pdf)TeX|Package|Class)(?: (\w+))? [wW]arning(?: \(([\\]?\w+)\))?: (.*)",
     )
 
-    badbox = re.compile(r"^(Over|Under)full "
-                        r"\\([hv])box "
-                        r"\((?:badness (\d+)|(\d+(?:\.\d+)?pt) too \w+)\) (?:"
-                        r"(?:(?:in paragraph|in alignment|detected) "
-                        r"(?:at lines (\d+)--(\d+)|at line (\d+)))"
-                        r"|(?:has occurred while [\\]output is active [\[][\]]))")
+    badbox = re.compile(  # nodoc
+        r"^(Over|Under)full "
+        r"\\([hv])box "
+        r"\((?:badness (\d+)|(\d+(?:\.\d+)?pt) too \w+)\) (?:"
+        r"(?:(?:in paragraph|in alignment|detected) "
+        r"(?:at lines (\d+)--(\d+)|at line (\d+)))"
+        r"|(?:has occurred while [\\]output is active [\[][\]]))")
 
     warnings: List[LogFileMessage] = field(default_factory=list)
+    """
+    Collect warning attempts
+    """
     errors: List[LogFileMessage] = field(default_factory=list)
+    """
+    Collect error messages
+    """
     badboxes: List[LogFileMessage] = field(default_factory=list)
+    """
+    Bad box messages
+    """
     context_lines: int = 2
+    """
+    How much lines should be added for the context mesage
+    """
 
     def __str__(self) -> str:
         return (f"Errors: {len(self.errors)}, "
@@ -107,6 +123,9 @@ class LatexLogParser:
                 f"Badboxes: {len(self.badboxes)}")
 
     def get_context_lines(self) -> List[str]:
+        """
+        Find lines relevant for the error message
+        """
         return self.lines_iterable.get_context()
 
     def process(self, lines: Iterable[str]) -> None:

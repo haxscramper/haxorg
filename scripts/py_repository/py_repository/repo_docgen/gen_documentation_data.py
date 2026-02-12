@@ -17,7 +17,7 @@ from beartype.typing import (
 )
 import dominate.tags as tags
 import dominate.util as util
-from py_exporters.export_html import ExporterHtml
+from py_haxorg.exporters.export_html import ExporterHtml
 import py_haxorg.pyhaxorg_wrap as org
 from py_repository.repo_docgen.gen_documentation_utils import abbreviate_token_name
 from py_scriptutils.rich_utils import render_rich

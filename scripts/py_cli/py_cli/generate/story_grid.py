@@ -15,8 +15,8 @@ import dominate.tags as tags
 from dominate.util import text
 from py_cli import haxorg_cli, haxorg_opts
 import py_codegen.astbuilder_typst as typ
-from py_exporters.export_html import add_html, add_new, ExporterHtml
-from py_exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.exporters.export_html import add_html, add_new, ExporterHtml
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import evalDateTime
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.algorithm import maybe_splice

@@ -1,8 +1,8 @@
 from enum import Enum
 
 from beartype.typing import Any, List, Optional
-from py_exporters.export_base import ExporterBase
-from py_exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.exporters.export_base import ExporterBase
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import formatDateTime
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
@@ -10,19 +10,25 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
 
 class TexCommand(Enum):
-    part = 1
-    chapter = 2
-    section = 3
-    subsection = 4
-    subsubsection = 5
-    paragraph = 6
-    subparagraph = 7
-    textbf = 8
+    """
+    Collection of the latex commands used in the generated tex sources
+    """
+    part = 1  # nodoc
+    chapter = 2  # nodoc
+    section = 3  # nodoc
+    subsection = 4  # nodoc
+    subsubsection = 5  # nodoc
+    paragraph = 6  # nodoc
+    subparagraph = 7  # nodoc
+    textbf = 8  # nodoc
 
 
 # @beartype
 class ExporterLatex(ExporterBase):
-    t: TextLayout
+    """
+    Export org-mode document to latex
+    """
+    t: TextLayout  # nodoc
 
     def __init__(self, CRTP_derived: Any = None) -> None:
         super().__init__(CRTP_derived or self)
@@ -32,6 +38,9 @@ class ExporterLatex(ExporterBase):
         return self.t.text("TODO" + str(node.getKind()))
 
     def string(self, node: str | BlockId) -> BlockId:
+        """
+        Normalize input node by converting it into a block id.
+        """
         if isinstance(node, str):
             return self.t.text(node)
 
@@ -39,6 +48,9 @@ class ExporterLatex(ExporterBase):
             return node
 
     def wrap(self, node: str | BlockId, opens: str, closes: str) -> BlockId:
+        """
+        Wrap input node/content into a line delimited by the open/close braces.
+        """
         return self.t.line([self.string(opens), self.string(node), self.string(closes)])
 
     def command(
@@ -47,12 +59,18 @@ class ExporterLatex(ExporterBase):
         args: List[str | BlockId] = [],
         opts: List[str | BlockId] = [],
     ) -> BlockId:
+        """
+        Generate line block with the latex command call.
+        """
         return self.t.line([
             self.t.text("\\" + name), *[self.wrap(it, "[", "]") for it in opts],
             *[self.wrap(it, "{", "}") for it in args]
         ])
 
     def escape(self, value: str) -> str:
+        """
+        Escape input string for latex writing.
+        """
         res = ""
         for ch in value:
             if ch in {"&", "_", "}", "{", "#", "%"}:
@@ -159,9 +177,15 @@ class ExporterLatex(ExporterBase):
         return self.command("textit", [self.lineSubnodes(node)])
 
     def lineSubnodes(self, node: org.Org) -> BlockId:
+        """
+        Horizontally concat eval results for input subnodes
+        """
         return self.t.line([self.exp.eval(it) for it in node])
 
     def stackSubnodes(self, node: org.Org) -> BlockId:
+        """
+        Vertically stack eval results for input subnodes.
+        """
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
@@ -182,6 +206,9 @@ class ExporterLatex(ExporterBase):
         ])
 
     def getLatexClassOptions(self, node: org.Document) -> List[BlockId]:
+        """
+        Get extra configuration options for the latex export.
+        """
         property: org.NamedProperty = node.getProperty("ExportLatexClassOptions")
         if property:
             values: str = property.getExportLatexClassOptions().options[0]
@@ -191,6 +218,9 @@ class ExporterLatex(ExporterBase):
             return []
 
     def getLatexClass(self, node: org.Document) -> str:
+        """
+        Get name of the latex class for the final document.
+        """
         property: org.NamedProperty = node.getProperty("ExportLatexClass")
         if property:
             return property.getExportLatexClass().latexClass
@@ -199,6 +229,9 @@ class ExporterLatex(ExporterBase):
             return "book"
 
     def getDocumentStart(self, node: org.Document) -> List[BlockId]:
+        """
+        Generate a preabmle for the latex document.
+        """
         res: List[BlockId] = []
 
         res.append(
@@ -244,9 +277,15 @@ class ExporterLatex(ExporterBase):
         return res
 
     def getOrgCommand(self, cmd: TexCommand) -> str:
+        """
+        Get latex command to be used for the final export document
+        """
         return "orgCmd" + str(cmd.name).capitalize()
 
     def getSubtreeCommand(self, node: org.Subtree) -> Optional[TexCommand]:
+        """
+        Get subtree command based on the level and the document latex class.
+        """
         lclass = self.getLatexClass(self.document)
         if lclass == "book":
             match node.level:
@@ -283,6 +322,9 @@ class ExporterLatex(ExporterBase):
                     return TexCommand.textbf
 
     def getRefKind(self, node: org.Org) -> Optional[str]:
+        """
+        Which latex reference kind should be used to refer to the node.
+        """
         match node.getKind():
             case osk.Subtree:
                 cmd = self.getSubtreeCommand(node)

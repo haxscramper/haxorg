@@ -3,7 +3,7 @@ import enum
 
 from beartype import beartype
 from beartype.typing import List, Optional, Type
-from py_exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import (
     evalDateTime,
     formatHashTag,
@@ -26,113 +26,162 @@ Base: Type = declarative_base()
 
 
 class Document(Base):
+    """
+    nodoc
+    """
     __tablename__ = "Document"
-    id = IdColumn()
+    id = IdColumn()  # nodoc
 
 
 class Location(Base):
+    """
+    Source code location information
+    """
     __tablename__ = "Location"
-    id = IdColumn()
-    line = IntColumn()
-    column = IntColumn()
-    file = ForeignId(name="File.id")
+    id = IdColumn()  # nodoc
+    line = IntColumn()  # nodoc
+    column = IntColumn()  # nodoc
+    file = ForeignId(name="File.id")  # nodoc
 
 
 class File(Base):
+    """
+    Parsed org-mode file
+    """
     __tablename__ = "File"
-    id = IdColumn()
-    path = StrColumn()
+    id = IdColumn()  # nodoc
+    path = StrColumn()  # nodoc
 
 
 class Subtree(Base):
+    """
+    All subtrees in the document
+    """
     __tablename__ = "Subtree"
-    id = IdColumn()
-    plaintext_title = StrColumn()
-    level = IntColumn()
-    parent = ForeignId(name="Subtree.id", nullable=True)
-    created = DateTimeColumn(nullable=True)
-    scheduled = DateTimeColumn(nullable=True)
-    deadline = DateTimeColumn(nullable=True)
-    closed = DateTimeColumn(nullable=True)
-    location = ForeignId(name="Location.id", nullable=True)
-    wordcount = IntColumn(nullable=True)
+    id = IdColumn()  # nodoc
+    plaintext_title = StrColumn()  # nodoc
+    level = IntColumn()  # nodoc
+    parent = ForeignId(name="Subtree.id", nullable=True)  # nodoc
+    created = DateTimeColumn(nullable=True)  # nodoc
+    scheduled = DateTimeColumn(nullable=True)  # nodoc
+    deadline = DateTimeColumn(nullable=True)  # nodoc
+    closed = DateTimeColumn(nullable=True)  # nodoc
+    location = ForeignId(name="Location.id", nullable=True)  # nodoc
+    wordcount = IntColumn(nullable=True)  # nodoc
 
 
 class BlockKind(enum.Enum):
-    Paragraph = 1
-    Src = 2
-    Example = 3
-    Quote = 4
+    "Type of the org-mode document block"
+    Paragraph = 1  # nodoc
+    Src = 2  # nodoc
+    Example = 3  # nodoc
+    Quote = 4  # nodoc
 
 
 class Block(Base):
+    """
+    Structural element in the org-mode document
+    """
     __tablename__ = "Block"
-    id = IdColumn()
-    kind = Column(Enum(BlockKind))  # type: ignore[var-annotated]
-    plaintext = StrColumn(nullable=True)
-    timestamp = DateTimeColumn(nullable=True)
-    parent = ForeignId(name="Block.id", nullable=True)
-    wordcount = IntColumn(nullable=True)
-    location = ForeignId(name="Location.id", nullable=True)
+    id = IdColumn()  # nodoc
+    kind = Column(Enum(BlockKind))  # type: ignore[var-annotated], nodoc
+    plaintext = StrColumn(nullable=True)  # nodoc
+    timestamp = DateTimeColumn(nullable=True)  # nodoc
+    parent = ForeignId(name="Block.id", nullable=True)  # nodoc
+    wordcount = IntColumn(nullable=True)  # nodoc
+    location = ForeignId(name="Location.id", nullable=True)  # nodoc
 
 
 class ValueEditOperation(enum.Enum):
-    Added = 1
-    Removed = 2
-    Changed = 3
+    """
+    Type of change recorded recorded in the subtree logbook drawer
+    """
+    Added = 1  # nodoc
+    Removed = 2  # nodoc
+    Changed = 3  # nodoc
 
 
 class PriorityModified(Base):
+    """
+    Subtree priority has been modified
+    """
     __tablename__ = "PriorityModified"
-    id = IdColumn()
-    subtree = ForeignId(name="Subtree.id", nullable=False)
-    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated]
-    old_priority = StrColumn(nullable=True)
-    new_priority = StrColumn(nullable=True)
-    timestamp = DateTimeColumn(nullable=True)
-    description = StrColumn(nullable=True)
+    id = IdColumn()  # nodoc
+    subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
+    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated], nodoc
+    old_priority = StrColumn(nullable=True)  # nodoc
+    new_priority = StrColumn(nullable=True)  # nodoc
+    timestamp = DateTimeColumn(nullable=True)  # nodoc
+    description = StrColumn(nullable=True)  # nodoc
 
 
 class StateModified(Base):
+    """
+    Subtree todo state has been modified
+    """
     __tablename__ = "StateModified"
-    id = IdColumn()
-    subtree = ForeignId(name="Subtree.id", nullable=False)
-    old_state = StrColumn(nullable=True)
-    new_state = StrColumn(nullable=True)
-    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated]
-    timestamp = DateTimeColumn(nullable=True)
-    description = StrColumn(nullable=True)
+    id = IdColumn()  # nodoc
+    subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
+    old_state = StrColumn(nullable=True)  # nodoc
+    new_state = StrColumn(nullable=True)  # nodoc
+    kind = Column(Enum(ValueEditOperation))  # type: ignore[var-annotated], nodoc
+    timestamp = DateTimeColumn(nullable=True)  # nodoc
+    description = StrColumn(nullable=True)  # nodoc
 
 
 class TagModified(Base):
+    """
+    Subtree title tag has been modified
+    """
     __tablename__ = "TagModified"
-    id = IdColumn()
-    subtree = ForeignId(name="Subtree.id", nullable=False)
+    id = IdColumn()  # nodoc
+    subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
     tag = StrColumn()
+    """
+    Single hash tag with possible multi-branch nesting.
+    """
     timestamp = DateTimeColumn(nullable=True)
+    """
+    When the subtree tag was added
+    """
     added = Column(Boolean)
+    """
+    Whether the subtree tag was added or removed
+    """
     description = StrColumn(nullable=True)
+    """
+    Optional description with the tag modified logbook entry
+    """
 
 
 class ClockModified(Base):
+    """
+    Subtree was clocked in or out
+    """
     __tablename__ = "ClockModified"
-    id = IdColumn()
-    subtree = ForeignId(name="Subtree.id")
-    from_ = DateTimeColumn()
-    to = DateTimeColumn(nullable=True)
+    id = IdColumn()  # nodoc
+    subtree = ForeignId(name="Subtree.id")  # nodoc
+    from_ = DateTimeColumn()  # nodoc
+    to = DateTimeColumn(nullable=True)  # nodoc
 
 
 class NoteModified(Base):
+    """
+    Added note to the subtree logbook
+    """
     __tablename__ = "NoteModified"
-    id = IdColumn()
-    subtree = ForeignId(name="Subtree.id")
-    plaintext = StrColumn()
-    timestamp = DateTimeColumn()
+    id = IdColumn()  # nodoc
+    subtree = ForeignId(name="Subtree.id")  # nodoc
+    plaintext = StrColumn()  # nodoc
+    timestamp = DateTimeColumn()  # nodoc
 
 
 class RefileModified(Base):
+    """
+    Subtree was refiled
+    """
     __tablename__ = "RefileModified"
-    id = IdColumn()
+    id = IdColumn()  # nodoc
 
 
 CAT = "haxorg.export.sqlite"
@@ -142,6 +191,9 @@ subtree_count = 0
 
 @beartype
 def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
+    """
+    Recursively register all subtree and block entries from the org-mode document.
+    """
     Base.metadata.bind = engine
     sesion_maker = sessionmaker(bind=engine)
     session = sesion_maker()
@@ -154,6 +206,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
     counter = 0
 
     def get_location(node: org.Org) -> Optional[int]:
+        """
+        Insert new location entry to the DB and return ID for the
+        location.
+        """
         if not node.loc:
             return None
 
@@ -172,6 +228,9 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
 
     @beartype
     def aux_subtree_log(node: org.SubtreeLog, subtree_id: int) -> None:
+        """
+        Process subtree log entry
+        """
         match node.head.getLogKind():
             case org.SubtreeLogHeadKind.Priority:
                 priority: org.SubtreeLogHeadPriority = node.head.getPriority()
@@ -265,11 +324,19 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
 
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None) -> None:
+        """
+        Recurisvely add all nodes to the db.
+        """
         global subtree_count
         match node:
             case org.Subtree():
 
                 def getNestedWordcount(node: org.Org) -> int:
+                    """
+                    Get number of world-like nodes (words, raw text, hashtag)
+                    for the node, stopping recursion at the node with creation
+                    time present.
+                    """
                     if not node or getCreationTime(node) is not None:
                         return 0
 
@@ -289,13 +356,6 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                 count = 0
                 for sub in node:
                     count += getNestedWordcount(sub)
-
-                # log(CAT).info("{} {} {}:{}".format(
-                #     ExporterUltraplain.getStr(node.title),
-                #     count,
-                #     node.loc.line if node.loc else -1,
-                #     node.loc.column if node.loc else -1,
-                # ))
 
                 session.add(
                     Subtree(

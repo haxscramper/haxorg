@@ -5,7 +5,7 @@ from beartype.typing import Any, Callable, List, Literal, Optional
 import dominate
 import dominate.tags as tags
 from dominate.util import text
-from py_exporters.export_base import ExporterBase
+from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
@@ -14,6 +14,9 @@ CAT = "haxorg.export.html"
 
 
 def add_html(html: tags.html_tag | List[tags.html_tag], sub: Any) -> None:
+    """
+    Add HTML sub-tag to the node or list of nodes.
+    """
     if isinstance(sub, list):
         if isinstance(html, list):
             html.append(sub)
@@ -31,11 +34,17 @@ def add_html(html: tags.html_tag | List[tags.html_tag], sub: Any) -> None:
 
 
 def add_new(html: tags.html_tag, sub: Any) -> tags.html_tag:
+    """
+    Wrapper around `add_html` that can be used as an expression.
+    """
     add_html(html, sub)
     return html
 
 
 class ExporterHtml(ExporterBase):
+    """
+    Export org-mode document as an HTML
+    """
 
     def __init__(self,
                  get_break_tag: Optional[Callable[[org.Newline], Any]] = None) -> None:

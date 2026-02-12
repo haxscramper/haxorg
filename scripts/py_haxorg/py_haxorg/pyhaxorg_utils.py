@@ -7,7 +7,7 @@ import shutil
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
-from py_exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import ExceptionContextNote, log

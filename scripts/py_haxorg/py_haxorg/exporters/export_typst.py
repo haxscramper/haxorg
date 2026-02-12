@@ -1,27 +1,23 @@
 from enum import Enum
+from pathlib import Path
+import shutil
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List
 import py_codegen.astbuilder_typst as typ
-from py_exporters.export_base import ExporterBase, with_export_context
+from py_haxorg.exporters.export_base import ExporterBase, with_export_context
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm, toml_config_profiler
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from py_textlayout.py_textlayout_wrap import BlockId
-import toml
-
-CAT = "typst"
-
-from pathlib import Path
-import shutil
-
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pydantic import BaseModel, Field
 import toml
 
-this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_exporters/py_exporters")
+CAT = "typst"
+this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_haxorg/py_haxorg/exporters")
 typst_toml = this_dir.joinpath("export_typst_base.toml")
 typst_typ = this_dir.joinpath("export_typst_base.typ")
 
@@ -30,6 +26,10 @@ assert typst_typ.exists(), typst_typ
 
 
 def refresh_typst_export_package() -> None:
+    """
+    Update user typst configuration to allow for import of the haxorg
+    utility package.
+    """
     config = typ.get_typst_export_package(typst_toml)
     out_path = Path("~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
         version=config.package.version,
@@ -45,35 +45,53 @@ def refresh_typst_export_package() -> None:
 
 
 class ExporterTypstConfigTags(BaseModel):
-    subtree: str = "orgSubtree"
-    list: str = "orgList"
-    listItem: str = "orgListItem"
-    paragraph: str = "orgParagraph"
-    bigIdent: str = "orgBigIdent"
-    placeholder: str = "orgPlaceholder"
-    mention: str = "orgMention"
-    center: str = "orgCenter"
-    quote: str = "orgQuote"
-    example: str = "orgExample"
-    code: str = "orgCode"
-    table: str = "orgTable"
-    table_cell: str = "orgTableCell"
-    dynamic_block: str = "orgDynamicBlock"
+    """
+    Names of the typst functions to use for mapping the org-mode nodes
+    """
+    subtree: str = "orgSubtree"  # nodoc
+    list: str = "orgList"  # nodoc
+    listItem: str = "orgListItem"  # nodoc
+    paragraph: str = "orgParagraph"  # nodoc
+    bigIdent: str = "orgBigIdent"  # nodoc
+    placeholder: str = "orgPlaceholder"  # nodoc
+    mention: str = "orgMention"  # nodoc
+    center: str = "orgCenter"  # nodoc
+    quote: str = "orgQuote"  # nodoc
+    example: str = "orgExample"  # nodoc
+    code: str = "orgCode"  # nodoc
+    table: str = "orgTable"  # nodoc
+    table_cell: str = "orgTableCell"  # nodoc
+    dynamic_block: str = "orgDynamicBlock"  # nodoc
 
 
 class ExporterTypstConfig(BaseModel):
+    """
+    Top-level config for the typst export implementation.
+    """
     tags: ExporterTypstConfigTags = Field(
-        default_factory=lambda: ExporterTypstConfigTags())
+        default_factory=lambda: ExporterTypstConfigTags(),
+        description="Set of tags to use for export",
+    )
 
-    with_standard_baze: bool = True
+    with_standard_base: bool = Field(
+        default=True,
+        description="Import standard document base content from haxorg repo",
+    )
 
 
 # @beartype
 class ExporterTypst(ExporterBase):
-    t: typ.ASTBuilder
-    c: ExporterTypstConfig
+    """
+    Export org-mode document to typst
+    """
+    t: typ.ASTBuilder  # nodoc
+    c: ExporterTypstConfig  # nodoc
 
     def applyExportConfig(self, config: org.BlockExport) -> None:
+        """
+        Update current active config by including the new values from the
+        block export config node.
+        """
         new_config = toml.loads(config.content)
         old_config = self.c.model_dump()
         mix_config = toml_config_profiler.merge_dicts([old_config, new_config])
@@ -88,6 +106,9 @@ class ExporterTypst(ExporterBase):
         return self.t.string("TODO" + str(node.getKind()))
 
     def expr(self, value: Any, isLine: bool = False) -> BlockId:
+        """
+        Convert python value to typst expression node
+        """
         match value:
             case org.Org():
                 return self.t.content(self.exp.eval(value))
@@ -96,6 +117,9 @@ class ExporterTypst(ExporterBase):
                 return self.t.expr(value=value, isLine=isLine)
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
+        """
+        nodoc
+        """
         args = node.getAttrs("export")
         if args and 0 < len(args) and args[0].getBool() == False:
             return self.t.string("")
@@ -104,13 +128,22 @@ class ExporterTypst(ExporterBase):
             return result
 
     def trimSub(self, node: org.Org | List[org.Org]) -> List[org.Org]:
+        """
+        Remove leading/trailing newline/space nodes,
+        """
         return algorithm.trim_both(node,
                                    lambda it: it.getKind() in [osk.Newline, osk.Space])
 
     def lineSubnodes(self, node: org.Org | List[org.Org]) -> BlockId:
+        """
+        Horizontally line content nodes/subnodes
+        """
         return self.t.line([self.exp.eval(it) for it in node])
 
     def stackSubnodes(self, node: org.Org | List[org.Org]) -> BlockId:
+        """
+        Vertically stack content subnodes
+        """
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
@@ -209,6 +242,7 @@ class ExporterTypst(ExporterBase):
     def evalMonospace(self, node: org.Monospace) -> BlockId:
 
         def escape(t: str) -> str:
+            "nodoc"
             res = ""
             for c in t:
                 if c == "`":
@@ -323,7 +357,7 @@ class ExporterTypst(ExporterBase):
         if not self.isInInclude():
             module = typ.get_typst_export_package(typst_toml)
 
-            if self.c.with_standard_baze:
+            if self.c.with_standard_base:
                 self.t.add_at(
                     res,
                     self.t.string("#import \"@local/{name}:{version}\": *".format(
@@ -383,6 +417,9 @@ class ExporterTypst(ExporterBase):
         ])
 
     def getNodeAttrs(self, node: org.Org) -> Dict[str, List[Any]]:
+        """
+        Extract extra attributes added to the node.
+        """
         res: Dict[str, List] = dict()
         arg: org.AttrValue
         for arg in node.getAttrs():

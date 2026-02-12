@@ -12,9 +12,14 @@ from py_textlayout.py_textlayout_wrap import *
 
 
 def with_export_context(func: Callable) -> Callable:
+    """
+    Decorator to automatically add the argument node method to the
+    active exporter context stack.
+    """
 
     @functools.wraps(func)
     def wrapper(self: Any, node: Any) -> Any:
+        "nodoc"
         with self.WithContext(node):
             result = func(self, node)
 
@@ -25,18 +30,37 @@ def with_export_context(func: Callable) -> Callable:
 
 @beartype
 class ExporterBase:
+    """
+    Base class for all the python exporters
+    """
     context: List[org.Org]
+    """
+    Stack of active python nodes that will be automatically populated as the
+    exporter traverses the document.
+    """
 
     def evalTop(self, node: org.Org) -> Any:
+        """
+        Evaluate the input org node fully and return the final result
+        """
         return self.exp.evalTop(node)
 
     def eval(self, node: org.Org) -> Any:
+        """
+        Eval node and return result.
+        """
         return self.exp.eval(node)
 
     def enableFileTrace(self, path: str, colored: bool = False) -> Any:
+        """
+        Write exporter traces to the target file
+        """
         self.exp.enableFileTrace(path, colored)
 
     def printTrace(self, text: str) -> Any:
+        """
+        Add custom trace message to the exporter trace output
+        """
         frame = inspect.currentframe().f_back  # type: ignore
         assert frame
         info = inspect.getframeinfo(frame)
@@ -44,6 +68,9 @@ class ExporterBase:
 
     def getContextOfKind(self,
                          kind: org.OrgSemKind | Set[org.OrgSemKind]) -> List[org.Org]:
+        """
+        Find all parent nodes with the specifid kind in the parent context.
+        """
         if isinstance(kind, set):
             return [it for it in self.context if it.getKind() in kind]
 
@@ -51,13 +78,32 @@ class ExporterBase:
             return [it for it in self.context if it.getKind() == kind]
 
     def isInInclude(self) -> bool:
+        """
+        Check if the exporter has started traversing the include node.
+        The include nodes are retained in the AST, the included documents
+        are added as a sub-node of the include, so it is possible to
+        determine if the current context is in the same file as the original
+        node has started with, or it is operating in an included file.
+        """
         return 0 < len(self.getContextOfKind(org.OrgSemKind.CmdInclude))
 
     def isDefaultAdmonition(self, node: org.Paragraph) -> bool:
+        """
+        Check if the paragraph uses one of the default set of admonitions.
+        """
         return node.hasAdmonition() and 0 < len(
             set(node.getAdmonitions()).intersection(set(self.admonitionNames)))
 
     def getRealSubtreeLevel(self, node: org.Subtree) -> int:
+        """
+        Get the actual subtree level taking into account all the include
+        statements the current parent tree was placed under.
+
+        I the original document has a subtree with level 5 and an include in
+        its body leads to a document with a subtree of level 3, the real level
+        of that second subtree is 8 (DFS iteration will encoutner up to 8
+        subtree nodes if it was to traverse whole document from the root).
+        """
         compound_level = 0
         for group in algorithm.partition_list(
                 self.getContextOfKind(
@@ -71,6 +117,9 @@ class ExporterBase:
 
     @contextlib.contextmanager
     def WithContext(self, node: org.Org) -> Generator[None, Any, Any]:
+        """
+        Context manager for adding and removing parent nodes to the context.
+        """
         self.context.append(node)
         yield
         self.context.pop()
@@ -78,6 +127,9 @@ class ExporterBase:
     def __init__(self, derived: Any) -> None:
         self.exp = org.ExporterPython()
         self.context = []
+        # TODO: Move the admonitions into a common global variable or some
+        # shared config object so the list of annotations could be changed
+        # for the whole project.
         self.admonitionNames = [
             "IMPORTANT",
             "TODO",
@@ -127,6 +179,8 @@ class ExporterBase:
             if hasattr(derived, method_name):
                 setter(getattr(type(derived), method_name))
 
+        # Automatically build the callbacks to be passed to the C++
+        # side of the exporter iterator.
         prefix_to_setter_with_kind = [
             (r"visit(.*)", self.exp.setVisitIdInCb),
             (r"eval(.*)", self.exp.setEvalIdIn),

@@ -8,7 +8,7 @@ from beartype.typing import *
 from beartype.typing import Any, List
 import dominate
 from dominate import tags, util
-from py_exporters.export_tex import ExporterLatex
+from py_haxorg.exporters.export_tex import ExporterLatex
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.files import get_haxorg_repo_root_path

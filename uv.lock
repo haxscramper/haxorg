@@ -13,7 +13,6 @@ members = [
     "py-ci",
     "py-cli",
     "py-codegen",
-    "py-exporters",
     "py-haxorg",
     "py-repository",
     "py-scriptutils",
@@ -1938,11 +1937,6 @@ version = "0.1.0"
 source = { editable = "scripts/py_codegen" }
 
 [[package]]
-name = "py-exporters"
-version = "0.1.0"
-source = { editable = "scripts/py_exporters" }
-
-[[package]]
 name = "py-haxorg"
 version = "0.1.0"
 source = { editable = "scripts/py_haxorg" }
@@ -2846,7 +2840,6 @@ local = [
     { name = "py-ci" },
     { name = "py-cli" },
     { name = "py-codegen" },
-    { name = "py-exporters" },
     { name = "py-haxorg" },
     { name = "py-repository" },
     { name = "py-scriptutils" },
@@ -2915,7 +2908,6 @@ local = [
     { name = "py-ci", editable = "scripts/py_ci" },
     { name = "py-cli", editable = "scripts/py_cli" },
     { name = "py-codegen", editable = "scripts/py_codegen" },
-    { name = "py-exporters", editable = "scripts/py_exporters" },
     { name = "py-haxorg", editable = "scripts/py_haxorg" },
     { name = "py-repository", editable = "scripts/py_repository" },
     { name = "py-scriptutils", editable = "scripts/py_scriptutils" },

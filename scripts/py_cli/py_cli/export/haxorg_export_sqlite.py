@@ -9,6 +9,9 @@ CAT = "haxorg.export.sqlite"
 
 @beartype
 def export_sqlite(ctx: haxorg_cli.CliRunContext) -> None:
+    """
+    Parse the input files and export them into sqlite database
+    """
     assert ctx.opts.export
     assert ctx.opts.export.sqlite
     assert ctx.opts.export.sqlite.infile
@@ -25,7 +28,7 @@ def export_sqlite(ctx: haxorg_cli.CliRunContext) -> None:
                 )):
                     nodes.append((haxorg_cli.parseFile(ctx, file), str(file)))
 
-        from py_exporters.export_sqlite import Base, registerDocument
+        from py_haxorg.exporters.export_sqlite import Base, registerDocument
         from sqlalchemy import create_engine, Engine
         if ctx.opts.export.sqlite.outfile.exists():
             ctx.opts.export.sqlite.outfile.unlink()

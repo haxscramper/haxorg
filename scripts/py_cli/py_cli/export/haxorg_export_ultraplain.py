@@ -10,9 +10,12 @@ import rich_click as click
 
 @beartype
 def export_ultraplain(opts: haxorg_opts.RootOptions) -> None:
+    """
+    Export input document to ultraplain format.
+    """
     assert opts.export
     node = haxorg_cli.parseFile(opts, glom.glom(opts, "export.ultraplain.infile"))
-    from py_exporters.export_ultraplain import ExporterUltraplain
+    from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
     exp = ExporterUltraplain()
     if opts.export:
         exp.exp.enableFileTrace(opts.export.exportTraceFile, False)
