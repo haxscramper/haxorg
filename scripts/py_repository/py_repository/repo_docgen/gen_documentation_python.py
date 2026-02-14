@@ -20,60 +20,6 @@ from pydantic import BaseModel, ConfigDict, Field
 CAT = __name__
 
 
-class SphinxJsonPage(BaseModel, extra="forbid"):
-    """Sphinx JSON builder output schema (`.fjson` files)"""
-
-    body: str = Field(description="HTML body content of the page")
-
-    title: Optional[str] = Field(default=None,
-                                 description="HTML-formatted page title with markup")
-
-    title_string: Optional[str] = Field(
-        default=None,
-        description="Plain text version of the page title without HTML markup")
-
-    toc: Optional[str] = Field(default=None,
-                               description="HTML table of contents for the current page")
-
-    current_page_name: Optional[str] = Field(
-        default=None, description="Name or identifier of the current page")
-
-    next: Optional[Dict[str, str]] = Field(
-        default=None,
-        description=
-        "Dictionary containing 'link' and 'title' keys for the next page in sequence")
-
-    prev: Optional[Dict[str, str]] = Field(
-        default=None,
-        description=
-        "Dictionary containing 'link' and 'title' keys for the previous page in sequence")
-
-    parents: Optional[List[Dict[str, str]]] = Field(
-        default=None,
-        description=
-        "List of parent pages in the documentation hierarchy, each with 'link' and 'title' keys"
-    )
-
-    meta: Optional[Dict[str, Any]] = Field(
-        default=None,
-        description="Metadata dictionary containing arbitrary page-level metadata")
-
-    sourcename: Optional[str] = Field(
-        default=None, description="Original source file name (e.g., 'index.rst')")
-
-    pagename: Optional[str] = Field(
-        default=None,
-        description="Page name/path without extension, used for referencing")
-
-    display_toc: Optional[bool] = Field(
-        default=None,
-        description="Flag indicating whether to display the table of contents")
-
-    toctree: Optional[List[str]] = Field(
-        default=None,
-        description="List of page names/paths included in this page's toctree directive")
-
-
 @beartype
 @dataclass
 class _DocsPythonSetup():
@@ -141,9 +87,23 @@ def _docs_python_setup(ctx: TaskContext) -> _DocsPythonSetup:
         conf_content += f"sys.path.insert(0, os.path.abspath({repr(pkg_path)}))\n"
     conf_content += """
 project = "Python API"
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx.ext.viewcode", "sphinx.ext.autosummary",]
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
+    "py_repository.repo_docgen.gen_structjson_sphinx",
+]
+
 html_theme = "furo"
-autodoc_mock_imports = ["lldb", "py_textlayout_cpp"]
+
+autodoc_mock_imports = [
+    "lldb",
+    "py_textlayout_cpp",
+    "validate_commit_message",
+]
+
 autosummary_generate = True
 
 autodoc_default_options = {
@@ -248,7 +208,7 @@ def _docs_python_build_html(ctx: TaskContext, source_dir: Path, build_dir: Path)
 def _docs_python_build_json(ctx: TaskContext, source_dir: Path,
                             build_dir: Path) -> List[Path]:
     """Build JSON documentation and return list of generated JSON file paths"""
-    json_dir = build_dir / "json"
+    json_dir = build_dir / "structjson"
     json_dir.mkdir(parents=True, exist_ok=True)
 
     run_command(
@@ -262,28 +222,40 @@ def _docs_python_build_json(ctx: TaskContext, source_dir: Path,
             "sphinx",
             "--with",
             "furo",
+            "--with",
+            "pydantic",
             "sphinx-build",
             "-b",
-            "json",
+            "structjson",
             str(source_dir),
             str(json_dir),
         ],
-        stdout_debug=get_build_root(ctx).joinpath("sphinx_json_build_stdout.log"),
-        stderr_debug=get_build_root(ctx).joinpath("sphinx_json_build_stderr.log"),
+        stdout_debug=get_build_root(ctx).joinpath("sphinx_structjson_build_stdout.log"),
+        stderr_debug=get_build_root(ctx).joinpath("sphinx_structjson_build_stderr.log"),
     )
 
-    json_files = sorted(json_dir.rglob("*.fjson"))
+    api_json = json_dir / "api.json"
+    json_files = [api_json] if api_json.exists() else []
 
     if not json_files:
-        log(CAT).warning(f"No .fjson files found in {json_dir}")
+        log(CAT).warning(f"No api.json found in {json_dir}")
     else:
-        log(CAT).info(
-            f"Generated {len(json_files)} JSON documentation files at {json_dir}")
+        log(CAT).info(f"Generated struct JSON documentation at {api_json}")
 
     return json_files
 
 
-def gen_docs(ctx: TaskContext, build_html: bool = True, build_json: bool = False) -> dict:
+@beartype
+@dataclass
+class _GenDocsOut():
+    "Python documentation generation result"
+    html_path: Path
+    "HTML documentation output"
+    json_paths: List[Path]
+    "List of the generated JSON files"
+
+
+def gen_docs(ctx: TaskContext) -> _GenDocsOut:
     "Build documentation for the Python workspace using Sphinx"
     import json
 
@@ -291,21 +263,10 @@ def gen_docs(ctx: TaskContext, build_html: bool = True, build_json: bool = False
     setup = _docs_python_setup(ctx)
     _docs_python_generate_api(ctx, setup)
 
-    if build_html:
-        result["html_path"] = _docs_python_build_html(ctx, setup.source_dir,
-                                                      setup.build_dir)
+    html_path = _docs_python_build_html(ctx, setup.source_dir, setup.build_dir)
+    json_paths = _docs_python_build_json(ctx, setup.source_dir, setup.build_dir)
 
-    if build_json:
-        json_paths = _docs_python_build_json(ctx, setup.source_dir, setup.build_dir)
-        result["json_paths"] = json_paths
-
-        if json_paths:
-            try:
-                first_file = json_paths[0]
-                data = json.loads(first_file.read_text())
-                SphinxJsonPage.model_validate(data)
-                log(CAT).debug(f"JSON schema validation passed for {first_file.name}")
-            except Exception as e:
-                log(CAT).warning(f"JSON schema validation failed: {e}")
-
-    return result
+    return _GenDocsOut(
+        html_path=html_path,
+        json_paths=json_paths,
+    )
