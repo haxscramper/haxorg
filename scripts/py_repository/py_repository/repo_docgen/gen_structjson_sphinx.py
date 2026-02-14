@@ -4,7 +4,9 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import cast, Dict, Iterator, List, Mapping, Optional, Tuple
+from docutils import nodes
 from pydantic import BaseModel, Field
+from sphinx import addnodes
 from sphinx.builders import Builder
 from sphinx.domains.python import ModuleEntry, PythonDomain
 from sphinx.util import logging
@@ -20,6 +22,8 @@ class DomainObject(BaseModel, extra="forbid"):
     docname: str  # nodoc
     anchor: str  # nodoc
     priority: int  # nodoc
+    doc_rendered: Optional[str] = None  # nodoc
+    doc_line: Optional[int] = None  # nodoc
 
 
 class FunctionObject(DomainObject, extra="forbid"):
@@ -155,7 +159,7 @@ class _SphinxObjType(str, enum.Enum):
 
 @beartype
 @dataclass
-class _SphinxPyObject():
+class _SphinxPyDomainObject():
     "Typed representation of the sphinx python domain object"
     full_name: str
     "Fully qualified name."
@@ -178,8 +182,67 @@ class _SphinxPyObject():
     """
 
 
+@dataclass
+class _SphinxDescribedPyObject:
+    "Typed representation of the documented python object"
+    domain: str  # nodoc
+    objtype: _SphinxObjType  # nodoc
+    fullname: str  # often a fully-qualified name
+    display_name: str  # nodoc
+    doc_rendered: str  # nodoc
+    "rendered doc text (from docstring/autodoc, etc.)"
+    doc_source: Optional[str]
+    "rst file path (or None)"
+    doc_line: Optional[int]
+    "line number in rst (or None)"
+
+
 @beartype
-def _mk_function(name: str, full: str, obj: _SphinxPyObject) -> FunctionObject:
+def iter_py_descriptions(doctree: nodes.document) -> Iterator[_SphinxDescribedPyObject]:
+    "Iterate over a flat list of described python objects"
+    for desc in doctree.findall(addnodes.desc):
+        if desc.get("domain") != "py":
+            continue
+
+        objtype = desc.get("objtype", "")
+
+        # One desc node can contain multiple signatures; usually one.
+        sig = next(desc.findall(addnodes.desc_signature), None)
+        if sig is None:
+            continue
+
+        # Sphinx commonly provides these attrs on the signature:
+        # - 'fullname' (most useful when present)
+        # - 'module'
+        fullname = sig.get("fullname")
+        module = sig.get("module")
+
+        if not fullname:
+            # Fallbacks vary by Sphinx version/themes/extensions
+            names = sig.get("names") or []
+            fullname = names[0] if names else sig.astext()
+
+        # Try to build an FQN if Sphinx split module/fullname
+        fqn = fullname
+        if module and fullname and not fullname.startswith(module + "."):
+            fqn = f"{module}.{fullname}"
+
+        content = next(desc.findall(addnodes.desc_content), None)
+        doc_rendered = content.astext().strip() if content is not None else ""
+
+        yield _SphinxDescribedPyObject(
+            domain="py",
+            objtype=_SphinxObjType(objtype),
+            fullname=fqn,
+            display_name=sig.astext(),
+            doc_rendered=doc_rendered,
+            doc_source=getattr(desc, "source", None) or doctree.get("source"),
+            doc_line=getattr(desc, "line", None),
+        )
+
+
+@beartype
+def _mk_function(name: str, full: str, obj: _SphinxPyDomainObject) -> FunctionObject:
     "Create documented python function object"
     return FunctionObject(
         name=name,
@@ -192,7 +255,7 @@ def _mk_function(name: str, full: str, obj: _SphinxPyObject) -> FunctionObject:
 
 
 @beartype
-def _mk_attr(name: str, full: str, obj: _SphinxPyObject) -> AttributeObject:
+def _mk_attr(name: str, full: str, obj: _SphinxPyDomainObject) -> AttributeObject:
     "Create documented python attribute object"
     return AttributeObject(
         name=name,
@@ -205,7 +268,7 @@ def _mk_attr(name: str, full: str, obj: _SphinxPyObject) -> AttributeObject:
 
 
 @beartype
-def _get_or_create_class(class_full: str, class_short: str, obj: _SphinxPyObject,
+def _get_or_create_class(class_full: str, class_short: str, obj: _SphinxPyDomainObject,
                          mod_node: _ModuleAcc) -> ClassObject:
     "Create documented new documented class entry or return existing"
     existing = mod_node.classes.get(class_full)
@@ -229,7 +292,7 @@ def _get_or_create_class(class_full: str, class_short: str, obj: _SphinxPyObject
 def _get_or_create_exception(
     exc_full: str,
     exc_short: str,
-    obj: _SphinxPyObject,
+    obj: _SphinxPyDomainObject,
     mod_node: _ModuleAcc,
 ) -> ClassObject:
     "Create documented exception object or return existing"
@@ -251,9 +314,9 @@ def _get_or_create_exception(
 
 
 @beartype
-def _iterate_py_objects(py: PythonDomain) -> Iterator[_SphinxPyObject]:
+def _iterate_py_objects(py: PythonDomain) -> Iterator[_SphinxPyDomainObject]:
     "Iterate over flat list of the python domain entires"
-    return (_SphinxPyObject(
+    return (_SphinxPyDomainObject(
         full_name,
         dispname,
         _SphinxObjType(objtype),
@@ -272,6 +335,7 @@ class StructJSONBuilder(Builder):
     def init(self) -> None:
         "Initialize builder state and resolve the output directory path."
         self._outdir = Path(self.outdir)
+        self.collected: Dict[str, _SphinxDescribedPyObject] = dict()
 
     def get_outdated_docs(self):
         "Force a full rebuild so the single JSON payload always reflects current state."
@@ -285,9 +349,11 @@ class StructJSONBuilder(Builder):
         "No-op: this builder only emits a single JSON file in `finish()`."
         pass
 
-    def write_doc(self, docname: str, doctree) -> None:
-        "No-op: per-document output is not generated by this builder."
-        pass
+    def write_doc(self, docname: str, doctree: nodes.document) -> None:
+        "Collect individual doctree entries into common list"
+        # rst_path = self.env.doc2path(docname)
+        for d in iter_py_descriptions(doctree):
+            self.collected[d.fullname] = d
 
     def finish(self) -> None:
         "Finalize structured JSON generation"
@@ -327,21 +393,32 @@ class StructJSONBuilder(Builder):
                 # Object not associated with any known module entry; skip.
                 continue
 
+            def update_docs(it: DomainObject):
+                "nodoc"
+                if it.full_name in self.collected:
+                    it.doc_rendered = self.collected[it.full_name].doc_rendered
+                    it.doc_line = self.collected[it.full_name].doc_line
+
             match obj.objtype:
                 case _SphinxObjType._function if len(remainder) == 1:
                     # Functions: pkg.mod.func
                     short = remainder[0]
-                    mod_node.functions[obj.full_name] = _mk_function(
-                        short, obj.full_name, obj)
+                    _function = _mk_function(short, obj.full_name, obj)
+                    update_docs(_function)
+                    mod_node.functions[obj.full_name] = _function
 
                 case _SphinxObjType._class if 1 <= len(remainder):
                     # Classes/exceptions: pkg.mod.Class
                     class_short = remainder[-1]
-                    _get_or_create_class(obj.full_name, class_short, obj, mod_node)
+                    _class = _get_or_create_class(obj.full_name, class_short, obj,
+                                                  mod_node)
+                    update_docs(_class)
 
                 case _SphinxObjType._exception if 1 <= len(remainder):
                     exc_short = remainder[-1]
-                    _get_or_create_exception(obj.full_name, exc_short, obj, mod_node)
+                    _exc = _get_or_create_exception(obj.full_name, exc_short, obj,
+                                                    mod_node)
+                    update_docs(_exc)
 
                 case _SphinxObjType._method if 2 <= len(remainder):
                     # Methods: pkg.mod.Class.method (or deeper: pkg.mod.Outer.Inner.method)
@@ -349,6 +426,7 @@ class StructJSONBuilder(Builder):
                     method_short = remainder[-1]
                     class_full = f"{mod_node.full_name}." + ".".join(class_parts)
                     cls = _get_or_create_class(class_full, class_parts[-1], obj, mod_node)
+                    update_docs(cls)
                     cls.methods.append(_mk_function(method_short, obj.full_name, obj))
 
                 case _SphinxObjType._attribute | _SphinxObjType._data if 1 <= len(
@@ -356,14 +434,17 @@ class StructJSONBuilder(Builder):
                     # Attributes/data: module-level or class-level
                     attr_short = remainder[-1]
                     if len(remainder) == 1:
-                        mod_node.data[obj.full_name] = _mk_attr(
-                            attr_short, obj.full_name, obj)
+                        _attr = _mk_attr(attr_short, obj.full_name, obj)
+                        update_docs(_attr)
+                        mod_node.data[obj.full_name] = _attr
                     else:
                         class_parts = remainder[:-1]
                         class_full = f"{mod_node.full_name}." + ".".join(class_parts)
                         cls = _get_or_create_class(class_full, class_parts[-1], obj,
                                                    mod_node)
-                        cls.attributes.append(_mk_attr(attr_short, obj.full_name, obj))
+                        _attr = _mk_attr(attr_short, obj.full_name, obj)
+                        update_docs(_attr)
+                        cls.attributes.append(_attr)
 
             # Other object kinds can be added later as needed (e.g. property, descriptor, etc.).
 
