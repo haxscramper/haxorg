@@ -1,9 +1,11 @@
 from dataclasses import dataclass, field
 import enum
+import importlib
+import inspect
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import cast, Dict, Iterator, List, Mapping, Optional, Tuple
+from beartype.typing import Any, cast, Dict, Iterator, List, Mapping, Optional, Tuple
 from docutils import nodes
 from pydantic import BaseModel, Field
 from sphinx import addnodes
@@ -24,6 +26,10 @@ class DomainObject(BaseModel, extra="forbid"):
     priority: int  # nodoc
     doc_rendered: Optional[str] = None  # nodoc
     doc_line: Optional[int] = None  # nodoc
+    doc_file: Optional[str] = None  # nodoc
+    entry_source: Optional[str] = None  # nodoc
+    doc_string: Optional[str] = None
+    "Original text for the docstring"
 
 
 class FunctionObject(DomainObject, extra="forbid"):
@@ -191,14 +197,60 @@ class _SphinxDescribedPyObject:
     display_name: str  # nodoc
     doc_rendered: str  # nodoc
     "rendered doc text (from docstring/autodoc, etc.)"
-    doc_source: Optional[str]
-    "rst file path (or None)"
+    entry_source: Optional[str]
+    "Source code of the documentable entry"
+    doc_string: Optional[str]
+    "Original text for the docstring"
     doc_line: Optional[int]
     "line number in rst (or None)"
+    doc_file: Optional[str] = None  # nodoc
 
 
 @beartype
-def iter_py_descriptions(doctree: nodes.document) -> Iterator[_SphinxDescribedPyObject]:
+def _resolve_fqn(fqn: str) -> Any:
+    """
+    Resolve 'pkg.mod.Class.method' -> python object.
+
+    This is simplistic; you may need to handle properties, overloads, etc.
+    """
+    parts = fqn.split(".")
+    if not parts:
+        raise ValueError(f"Empty fqn: {fqn}")
+
+    # Find the longest importable module prefix
+    for i in range(len(parts), 0, -1):
+        modname = ".".join(parts[:i])
+        try:
+            mod = importlib.import_module(modname)
+        except Exception:
+            continue
+
+        obj: Any = mod
+        for attr in parts[i:]:
+            obj = getattr(obj, attr)
+        return obj
+
+    raise ImportError(f"Could not import any module from fqn: {fqn}")
+
+
+@beartype
+def _get_py_location(obj: Any) -> tuple[Optional[str], Optional[int]]:
+    "Attempt to infer the source code location from the imported python item"
+    try:
+        src_file = inspect.getsourcefile(obj) or inspect.getfile(obj)
+    except Exception:
+        src_file = None
+
+    try:
+        _, start_line = inspect.getsourcelines(obj)
+    except Exception:
+        start_line = None
+
+    return src_file, start_line
+
+
+@beartype
+def _iter_py_descriptions(doctree: nodes.document) -> Iterator[_SphinxDescribedPyObject]:
     "Iterate over a flat list of described python objects"
     for desc in doctree.findall(addnodes.desc):
         if desc.get("domain") != "py":
@@ -230,15 +282,29 @@ def iter_py_descriptions(doctree: nodes.document) -> Iterator[_SphinxDescribedPy
         content = next(desc.findall(addnodes.desc_content), None)
         doc_rendered = content.astext().strip() if content is not None else ""
 
-        yield _SphinxDescribedPyObject(
+        try:
+            obj = _resolve_fqn(fqn)
+
+        except Exception:
+            py_file, py_line = None, None
+            obj = None
+
+        else:
+            py_file, py_line = _get_py_location(obj)
+
+        result = _SphinxDescribedPyObject(
             domain="py",
             objtype=_SphinxObjType(objtype),
             fullname=fqn,
             display_name=sig.astext(),
             doc_rendered=doc_rendered,
-            doc_source=getattr(desc, "source", None) or doctree.get("source"),
-            doc_line=getattr(desc, "line", None),
+            doc_string=getattr(obj, "__doc__", None),
+            entry_source=getattr(desc, "source", None) or doctree.get("source"),
+            doc_line=py_line or getattr(desc, "line", None),
+            doc_file=py_file,
         )
+
+        yield result
 
 
 @beartype
@@ -352,7 +418,7 @@ class StructJSONBuilder(Builder):
     def write_doc(self, docname: str, doctree: nodes.document) -> None:
         "Collect individual doctree entries into common list"
         # rst_path = self.env.doc2path(docname)
-        for d in iter_py_descriptions(doctree):
+        for d in _iter_py_descriptions(doctree):
             self.collected[d.fullname] = d
 
     def finish(self) -> None:
@@ -396,8 +462,13 @@ class StructJSONBuilder(Builder):
             def update_docs(it: DomainObject):
                 "nodoc"
                 if it.full_name in self.collected:
-                    it.doc_rendered = self.collected[it.full_name].doc_rendered
-                    it.doc_line = self.collected[it.full_name].doc_line
+                    sph = self.collected[it.full_name]
+                    it.doc_rendered = sph.doc_rendered
+                    it.doc_line = sph.doc_line
+                    it.entry_source = sph.entry_source
+                    it.doc_file = sph.doc_file
+                    if sph.doc_string:
+                        it.doc_string = sph.doc_string.strip()
 
             match obj.objtype:
                 case _SphinxObjType._function if len(remainder) == 1:
