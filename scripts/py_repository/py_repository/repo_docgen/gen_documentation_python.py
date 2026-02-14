@@ -1,124 +1,311 @@
-from dataclasses import replace
-from enum import Enum
-import itertools
+from dataclasses import dataclass
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
-import dominate.tags as tags
-import dominate.util as util
-import py_repository.code_analysis.gen_coverage_python as cov_docpy
-import py_repository.repo_docgen.gen_documentation_data as docdata
-import py_repository.repo_docgen.gen_documentation_utils as docutils
-import py_scriptutils.algorithm
-from pydantic import BaseModel, Field, SerializeAsAny
-from pygments.lexers import PythonLexer
-from sqlalchemy.orm import Session
-
-T = TypeVar("T")
-
-CAT = "docgen"
-
+from beartype.typing import Any, Dict, List, Optional, Tuple
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    get_uv_develop_sync_flags,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    ensure_clean_dir,
+    get_build_root,
+    get_script_root,
+)
+from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
+from pydantic import BaseModel, ConfigDict, Field
+
+CAT = __name__
 
 
-class DocCodePyLine(docdata.DocCodeLine, extra="forbid"):
-    TestCoverage: Optional[cov_docpy.LineCoverage] = None
+class SphinxJsonPage(BaseModel, extra="forbid"):
+    """Sphinx JSON builder output schema (`.fjson` files)"""
 
+    body: str = Field(description="HTML body content of the page")
 
-class DocCodePyFile(docdata.DocCodeFile, extra="forbid"):
-    Lines: List[DocCodePyLine] = Field(default_factory=list)
+    title: Optional[str] = Field(default=None,
+                                 description="HTML-formatted page title with markup")
+
+    title_string: Optional[str] = Field(
+        default=None,
+        description="Plain text version of the page title without HTML markup")
+
+    toc: Optional[str] = Field(default=None,
+                               description="HTML table of contents for the current page")
+
+    current_page_name: Optional[str] = Field(
+        default=None, description="Name or identifier of the current page")
+
+    next: Optional[Dict[str, str]] = Field(
+        default=None,
+        description=
+        "Dictionary containing 'link' and 'title' keys for the next page in sequence")
+
+    prev: Optional[Dict[str, str]] = Field(
+        default=None,
+        description=
+        "Dictionary containing 'link' and 'title' keys for the previous page in sequence")
+
+    parents: Optional[List[Dict[str, str]]] = Field(
+        default=None,
+        description=
+        "List of parent pages in the documentation hierarchy, each with 'link' and 'title' keys"
+    )
+
+    meta: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Metadata dictionary containing arbitrary page-level metadata")
+
+    sourcename: Optional[str] = Field(
+        default=None, description="Original source file name (e.g., 'index.rst')")
+
+    pagename: Optional[str] = Field(
+        default=None,
+        description="Page name/path without extension, used for referencing")
+
+    display_toc: Optional[bool] = Field(
+        default=None,
+        description="Flag indicating whether to display the table of contents")
+
+    toctree: Optional[List[str]] = Field(
+        default=None,
+        description="List of page names/paths included in this page's toctree directive")
 
 
 @beartype
-def convert_py_tree(
-    RootPath: Path,
-    AbsPath: Path,
-    py_coverage_session: Optional[Session],
-) -> DocCodePyFile:
-    if py_coverage_session:
-        line_coverage = cov_docpy.get_coverage(py_coverage_session, AbsPath)
+@dataclass
+class _DocsPythonSetup():
+    "Sphinx documentation setup directories"
+    root: Path
+    "Root path for the source code to index"
+    template_dir: Path
+    "Path to jinja template directory"
+    docs_dir: Path
+    "Root directory for auto-generated `.rst` and HTML files"
+    source_dir: Path
+    "Path to temporary directory to write `.rst` files to"
+    build_dir: Path
+    "Final directory to put the HTML files to"
+    packages: List[Tuple[str, str]]
+    "List of packages found in the repository"
 
-    else:
-        line_coverage = {}
 
-    return DocCodePyFile(
-        RelPath=AbsPath.relative_to(RootPath),
-        Lines=[
-            DocCodePyLine(
-                Text=line,
-                Index=idx,
-                TestCoverage=line_coverage.get(idx, None),
-            ) for idx, line in enumerate(AbsPath.read_text().splitlines())
-        ],
+def _docs_python_setup(ctx: TaskContext) -> _DocsPythonSetup:
+    """Common setup: create directories, conf.py, index.rst and discover packages"""
+    import tomllib
+
+    root = get_script_root(ctx)
+    template_dir = get_script_root(ctx) / "docs/templates"
+    docs_dir = get_build_root(ctx) / "docs" / "python"
+    source_dir = docs_dir / "source"
+    build_dir = docs_dir / "_build"
+
+    ensure_clean_dir(ctx, docs_dir)
+    ensure_clean_dir(ctx, source_dir)
+
+    pyproject = root / "pyproject.toml"
+    if not pyproject.exists():
+        log(CAT).error("pyproject.toml not found")
+        raise FileNotFoundError("pyproject.toml not found")
+
+    config = tomllib.loads(pyproject.read_text())
+
+    members = config.get("tool", {}).get("uv", {}).get("workspace", {}).get("members", [])
+    if not members:
+        log(CAT).error("No workspace members found")
+        raise ValueError("No workspace members found")
+
+    packages = []
+    for pattern in members:
+        for path in root.glob(pattern):
+            if not path.is_dir():
+                continue
+            pkg_toml = path / "pyproject.toml"
+            if not pkg_toml.exists():
+                continue
+            pkg_config = tomllib.loads(pkg_toml.read_text())
+            name = pkg_config.get("project", {}).get("name")
+            if name:
+                pkg_src = path / "src" if (path / "src").exists() else path
+                packages.append((name.replace("-", "_"), str(pkg_src)))
+
+    if not packages:
+        log(CAT).warning("No packages found to document")
+        raise ValueError("No packages found to document")
+
+    conf_py = source_dir / "conf.py"
+    conf_content = "import os\nimport sys\n"
+    for _, pkg_path in packages:
+        conf_content += f"sys.path.insert(0, os.path.abspath({repr(pkg_path)}))\n"
+    conf_content += """
+project = "Python API"
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx.ext.viewcode", "sphinx.ext.autosummary",]
+html_theme = "furo"
+autodoc_mock_imports = ["lldb", "py_textlayout_cpp"]
+autosummary_generate = True
+
+autodoc_default_options = {
+    "members": True,
+    "show-inheritance": True,
+    "member-order": "bysource",
+    "autosummary": True,
+}
+
+autodoc_typehints = "description"
+"""
+    conf_py.write_text(conf_content)
+
+    index_rst = source_dir / "index.rst"
+    toc = "\n".join(f"   api/{name}/index" for name, _ in packages)
+    index_rst.write_text(f"""\
+UV workspace packages documentation
+===================================
+
+.. toctree::
+    :maxdepth: 4
+
+{toc}
+""")
+
+    return _DocsPythonSetup(
+        root=root,
+        template_dir=template_dir,
+        docs_dir=docs_dir,
+        source_dir=source_dir,
+        build_dir=build_dir,
+        packages=packages,
     )
 
 
-@beartype
-def is_empty(line: DocCodePyLine) -> bool:
-    return not line.Text.strip()
+def _docs_python_generate_api(ctx: TaskContext, setup: _DocsPythonSetup) -> None:
+    """Generate API documentation using sphinx-apidoc"""
+    api_root = setup.source_dir / "api"
 
+    for pkg_name, pkg_path in setup.packages:
+        out_dir = api_root / pkg_name
 
-@beartype
-def get_html_code_div(code_file: DocCodePyFile) -> tags.div:
-    unique_coverage_context_spans: List[Tuple[range, cov_docpy.LineCoverage]] = []
-    for key, group in itertools.groupby(
-        (pair for pair in enumerate(code_file.Lines) if not is_empty(pair[1])),
-            lambda it: it[1].TestCoverage and it[1].TestCoverage.CoveredBy,
-    ):
-        Lines = [G[0] for G in group]
-        assert not Lines or (isinstance(Lines, list) and
-                             isinstance(Lines[0], int)), str(Lines)
-        if key:
-            unique_coverage_context_spans.append((range(min(Lines), max(Lines) + 1), key))
-
-    @beartype
-    def get_attr_spans(line: DocCodePyLine) -> List[tags.span]:
-        annotations: List[tags.span] = []
-
-        if not code_file.IsTest and not is_empty(line):
-            if line.TestCoverage:
-                coverage_group = py_scriptutils.algorithm.first_if(
-                    items=unique_coverage_context_spans,
-                    pred=lambda it: line.Index in it[0],
-                )
-                if coverage_group:
-                    span = tags.span(_class="coverage-span py-coverage")
-                    if coverage_group[0][0] == line.Index:
-                        span.attributes["class"] += " coverage-span-names"
-                        table = tags.table()
-                        for test in line.TestCoverage.CoveredBy:
-                            table.add(tags.tr(tags.td(util.text(test.test_name))))
-
-                        span.add(table)
-
-                    else:
-                        span.add(util.text("…"))
-                        span.attributes["class"] += " coverage-span-continuation"
-
-                    annotations.append(span)
-
-        return annotations
-
-    highlight_lexer = PythonLexer()
-
-    @beartype
-    def get_line_spans(line: DocCodePyLine) -> List[tags.span]:
-        num_span, line_span = docdata.get_code_line_span(
-            line=line,
-            highilght_lexer=highlight_lexer,
+        run_command(
+            ctx,
+            "uv",
+            [
+                "run",
+                *get_uv_develop_sync_flags(ctx),
+                *get_uv_develop_env_flags(ctx),
+                "--with",
+                "sphinx",
+                "--with",
+                "furo",
+                "sphinx-apidoc",
+                "-f",
+                "-e",
+                "-M",
+                "-d",
+                "4",
+                "--templatedir",
+                str(setup.template_dir),
+                "--tocfile",
+                "index",
+                "-o",
+                str(out_dir),
+                pkg_path,
+            ],
+            stdout_debug=get_build_root(ctx).joinpath(f"sphinx_apidoc_{pkg_name}.log"),
+            stderr_debug=get_build_root(ctx).joinpath(f"sphinx_apidoc_{pkg_name}.err"),
         )
 
-        if not code_file.IsTest and not is_empty(line):
-            if line.TestCoverage:
-                line_span.attributes["class"] += " cov-visited"
 
-            else:
-                line_span.attributes["class"] += " cov-skipped"
+def _docs_python_build_html(ctx: TaskContext, source_dir: Path, build_dir: Path) -> Path:
+    """Build HTML documentation"""
+    html_dir = build_dir / "html"
 
-        return [num_span, line_span] + get_attr_spans(line)
-
-    return docdata.get_html_code_div_base(
-        Lines=code_file.Lines,
-        get_line_spans=get_line_spans,
+    run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            "--with",
+            "sphinx",
+            "--with",
+            "furo",
+            "sphinx-build",
+            "-b",
+            "html",
+            str(source_dir),
+            str(html_dir),
+        ],
+        stdout_debug=get_build_root(ctx).joinpath("sphinx_build_stdout.log"),
+        stderr_debug=get_build_root(ctx).joinpath("sphinx_build_stderr.log"),
     )
+
+    log(CAT).info(f"Completed Python docs build at {html_dir}")
+    return html_dir
+
+
+def _docs_python_build_json(ctx: TaskContext, source_dir: Path,
+                            build_dir: Path) -> List[Path]:
+    """Build JSON documentation and return list of generated JSON file paths"""
+    json_dir = build_dir / "json"
+    json_dir.mkdir(parents=True, exist_ok=True)
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            "--with",
+            "sphinx",
+            "--with",
+            "furo",
+            "sphinx-build",
+            "-b",
+            "json",
+            str(source_dir),
+            str(json_dir),
+        ],
+        stdout_debug=get_build_root(ctx).joinpath("sphinx_json_build_stdout.log"),
+        stderr_debug=get_build_root(ctx).joinpath("sphinx_json_build_stderr.log"),
+    )
+
+    json_files = sorted(json_dir.rglob("*.fjson"))
+
+    if not json_files:
+        log(CAT).warning(f"No .fjson files found in {json_dir}")
+    else:
+        log(CAT).info(
+            f"Generated {len(json_files)} JSON documentation files at {json_dir}")
+
+    return json_files
+
+
+def gen_docs(ctx: TaskContext, build_html: bool = True, build_json: bool = False) -> dict:
+    "Build documentation for the Python workspace using Sphinx"
+    import json
+
+    result = {}
+    setup = _docs_python_setup(ctx)
+    _docs_python_generate_api(ctx, setup)
+
+    if build_html:
+        result["html_path"] = _docs_python_build_html(ctx, setup.source_dir,
+                                                      setup.build_dir)
+
+    if build_json:
+        json_paths = _docs_python_build_json(ctx, setup.source_dir, setup.build_dir)
+        result["json_paths"] = json_paths
+
+        if json_paths:
+            try:
+                first_file = json_paths[0]
+                data = json.loads(first_file.read_text())
+                SphinxJsonPage.model_validate(data)
+                log(CAT).debug(f"JSON schema validation passed for {first_file.name}")
+            except Exception as e:
+                log(CAT).warning(f"JSON schema validation failed: {e}")
+
+    return result

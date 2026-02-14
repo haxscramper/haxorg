@@ -618,8 +618,8 @@ def test_coverage_annotation_multiple_run_single_segment(stable_test_dir: Path) 
 
     session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath("main.cpp"),
     )
@@ -666,8 +666,8 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
         gettempdir()) / "test_coverage_annotation_multiple_run_multiple_segment.txt"
     db_debug_path.write_text(format_db_all(session, style=False))
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath("main.cpp"),
         debug_format_segments=gettempdir() / "annotated_segments.txt",
@@ -710,7 +710,7 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
 
     debug_path.write_text(
         cov.get_file_annotation_document(
-            session=session,
+            cxx_session=session,
             root_path=dir,
             abs_path=dir.joinpath("main.cpp"),
         ).render())
@@ -733,6 +733,7 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
         ))
 
 
+@beartype
 def run_common(
         cmd: ProfileRunParams,
         dir: Path,
@@ -744,6 +745,7 @@ def run_common(
         path_coverage_mapping_dump: Optional[Path] = Path("mapping_dump"),
         filename: Path = Path("main.cpp"),
 ) -> None:
+    "Shared logic for the custom code documentation generation in tests."
 
     def pass_path(path: Path) -> Path:
         if path.is_absolute():
@@ -765,8 +767,8 @@ def run_common(
     if path_dbdump:
         pass_path(path_dbdump).write_text(format_db_all(session, style=False))
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath(filename),
         debug_format_segments=pass_path(path_format_segments),
@@ -782,7 +784,7 @@ def run_common(
             html_out = html_out_dir.joinpath(code_in)
             pass_path(html_out).write_text(
                 cov.get_file_annotation_document(
-                    session=session,
+                    cxx_session=session,
                     root_path=dir,
                     abs_path=dir.joinpath(code_in),
                 ).render())

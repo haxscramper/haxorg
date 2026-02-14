@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import enum
 import logging
 import os
+from pathlib import Path
 import sys
 import traceback
 from types import MethodType
@@ -124,10 +125,12 @@ def to_debug_json(
     return aux(obj)
 
 
-def pprint_to_file(value: Any, path: str, width: int = 120) -> None:
-    # Built-in python pprint is too broken for regular uses -- output is not
-    # always rendered to the max column limit is the biggest problem and I could
-    # not find any way to print converted translation unit safely.
+def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
+    """
+    Built-in python pprint is too broken for regular uses -- output is not
+    always rendered to the max column limit is the biggest problem and I could
+    not find any way to print converted translation unit safely.
+    """
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
         from py_scriptutils.rich_utils import render_rich_pprint

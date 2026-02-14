@@ -32,7 +32,7 @@ import dominate.tags as tags
 import more_itertools
 import py_haxorg.pyhaxorg_wrap as org
 from py_repository.code_analysis.gen_coverage_cookies import *
-import py_repository.repo_docgen.gen_documentation_data as docdata
+import py_repository.repo_docgen.gen_coverage_data as docdata
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich_pprint
 from py_scriptutils.script_logging import (
@@ -1028,8 +1028,8 @@ def get_annotated_files(
 
 
 @beartype
-def get_annotated_files_for_session(
-    session: Session,
+def get_annotated_file_for_session(
+    cxx_session: Session,
     root_path: Path,
     abs_path: Path,
     debug_format_segments: Optional[Path] = None,
@@ -1047,7 +1047,7 @@ def get_annotated_files_for_session(
         file = read_code_file(root_path, abs_path)
 
     with GlobCompleteEvent("Get coverage for file", "cov"):
-        file_cov = get_coverage_of(session, abs_path)
+        file_cov = get_coverage_of(cxx_session, abs_path)
 
     run_contexts: Dict[int, GenCovSegmentContext] = dict()
     run_functions: Dict[int, CovFunction] = dict()
@@ -1058,7 +1058,7 @@ def get_annotated_files_for_session(
             with GlobCompleteEvent("Get flat coverage", "cov"):
                 # Get all segments applicable for this file and group them into `(First, Last) -> Data`
                 # format
-                coverage_segments = get_flat_coverage(session, file.Lines, file_cov)
+                coverage_segments = get_flat_coverage(cxx_session, file.Lines, file_cov)
 
             with GlobCompleteEvent("Get coverage group", "cov"):
                 # Arrange all coverage segments into the segment tree over the file for later segmentation
@@ -1066,8 +1066,8 @@ def get_annotated_files_for_session(
 
             with GlobCompleteEvent("Find original segments", "cov"):
                 # Find contexts and segments associated with this specific file
-                target_id = get_file_coverage_id(session, abs_path)
-                for (original_seg, context) in session.execute(
+                target_id = get_file_coverage_id(cxx_session, abs_path)
+                for (original_seg, context) in cxx_session.execute(
                         select(CovFileRegion,
                                CovContext).where(CovFileRegion.File == target_id).join(
                                    CovContext,
@@ -1085,7 +1085,7 @@ def get_annotated_files_for_session(
                     )
 
                     if original_seg.Function is not None and original_seg.Function not in run_functions:
-                        executed_in = session.execute(
+                        executed_in = cxx_session.execute(
                             select(CovFunction).where(
                                 CovFunction.Id == original_seg.Function)).fetchall()[0][0]
                         assert isinstance(executed_in,
@@ -1384,12 +1384,16 @@ js_path = get_haxorg_repo_root_path().joinpath(
 
 @beartype
 def get_file_annotation_document(
-    session: Session,
+    cxx_session: Session,
     root_path: Path,
     abs_path: Path,
 ) -> document:
-    file = get_annotated_files_for_session(
-        session=session,
+    """
+    Generate annotated HTML document for a given source file using
+    C++ coveage database.
+    """
+    file = get_annotated_file_for_session(
+        cxx_session=cxx_session,
         root_path=root_path,
         abs_path=abs_path,
     )
