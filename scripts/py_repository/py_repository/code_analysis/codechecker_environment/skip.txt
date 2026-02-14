@@ -1,0 +1,4 @@
+-*/tests/org/t*.cpp
+-*/SemOrgProto.pb.cc
+-*/pyhaxorg.cpp
+-*/thirdparty/*

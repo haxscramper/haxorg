@@ -2,7 +2,6 @@
 Checks:          '-clang-analyzer-core.CallAndMessage'
 WarningsAsErrors: true
 HeaderFilterRegex: ''
-AnalyzeTemporaryDtors: false
 FormatStyle:     google
 CheckOptions:
   - key:             cert-dcl16-c.NewSuffixes
