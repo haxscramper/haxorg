@@ -1,6 +1,6 @@
 #pragma once
 
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
 
 #    define HSLOG_TRACE(__cat, ...)
 #    define HSLOG_DEBUG(__cat, ...)

@@ -1,4 +1,4 @@
-if(${ORG_EMCC_BUILD})
+if(${ORG_BUILD_EMCC})
 
   add_executable(haxorg_wasm haxorg_wasm.cpp node_utils.hpp node_org_include.hpp
                              haxorg_wasm_manual.cpp haxorg_wasm_manual.hpp)

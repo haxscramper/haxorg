@@ -1,6 +1,6 @@
 #include "log_graph_tracker.hpp"
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 
 #    include <graphviz/gvc.h>
 #    include <graphviz/cgraph.h>

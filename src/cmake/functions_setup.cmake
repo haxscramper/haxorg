@@ -1,7 +1,7 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
-  if(${ORG_EMCC_BUILD})
+  if(${ORG_BUILD_EMCC})
     set(EMSCRIPTEN_FLAGS
         "-g4"
         "-gsource-map"
@@ -31,7 +31,7 @@ function(set_target_flags_impl)
     add_target_property(${ARG_TARGET} LINK_FLAGS "${EMSCRIPTEN_FLAGS_STR}")
   endif()
 
-  if(NOT ${ORG_BUILD_IS_DEVELOP})
+  if(NOT ${ORG_BUILD_INTERNAL_TOOLS})
     if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")

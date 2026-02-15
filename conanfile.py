@@ -54,13 +54,14 @@ class HaxorgConan(ConanFile):
         tc = CMakeToolchain(self)
         tc.cache_variables["ORG_USE_PERFETTO"] = self.options.use_perfetto
         tc.cache_variables["ORG_USE_TRACY"] = self.options.use_tracy
-        tc.cache_variables["ORG_USE_PYTHON_BINDINGS"] = self.options.use_python_bindings
-        tc.cache_variables["ORG_DEPS_USE_PROTOBUF"] = self.options.deps_use_protobuf
-        tc.cache_variables["ORG_DEPS_USE_MSGPACK"] = self.options.deps_use_msgpack
+        tc.cache_variables[
+            "ORG_BUILD_PYHAXORG_BINDINGS"] = self.options.use_python_bindings
+        tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.deps_use_protobuf
+        tc.cache_variables["ORG_BUILD_WITH_MSGPACK"] = self.options.deps_use_msgpack
         # tc.cache_variables["CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH"] = False
         tc.cache_variables["CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY"] = False
         tc.cache_variables["ORG_IS_CONAN_BUILD"] = True
-        tc.cache_variables["ORG_BUILD_IS_DEVELOP"] = False
+        tc.cache_variables["ORG_BUILD_INTERNAL_TOOLS"] = False
         # tc.cache_variables["CMAKE_FIND_USE_CMAKE_SYSTEM_PATH"] = False
         tc.generate()
 

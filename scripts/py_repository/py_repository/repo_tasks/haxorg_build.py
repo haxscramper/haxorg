@@ -102,6 +102,7 @@ def build_haxorg(ctx: TaskContext) -> None:
         ctx,
         build_dir=build_dir,
         targets=targets,
+        print_output=ctx.config.build_conf.real_time_output_print,
     )
 
 

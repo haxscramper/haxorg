@@ -54,6 +54,9 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
+    use_warnings: bool = True
+    real_time_output_print: bool = Field(
+        default=False, description="Print the build output in real time")
     use_adaptagrams: bool = Field(
         default=True, description="Build the project with adaptagrams support")
     build_tests: bool = Field(default=True,

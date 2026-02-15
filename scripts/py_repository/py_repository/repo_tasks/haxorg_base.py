@@ -122,7 +122,8 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
     result.append(cmake_opt("ORG_USE_MSGPACK", conf.build_conf.use_msgpack))
-    result.append(cmake_opt("ORG_DEPS_USE_ADAPTAGRAMS", conf.build_conf.use_adaptagrams))
+    result.append(cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS",
+                            conf.build_conf.use_adaptagrams))
     result.append(cmake_opt("ORG_BUILD_TESTS", conf.build_conf.build_tests))
     result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
     result.append(cmake_opt("ORG_USE_IMGUI", conf.use.imgui))
@@ -136,6 +137,7 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
     result.append(cmake_opt("Python_EXECUTABLE", get_python_binary(ctx)))
+    result.append(cmake_opt("ORG_DISABLE_WARNINGS", not conf.build_conf.use_warnings))
 
     if conf.build_conf.cmake_generator == "Ninja":
         # https://github.com/ninja-build/ninja/issues/2029
@@ -148,8 +150,8 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
 
     if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
-        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
-        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+        result.append(cmake_opt("ORG_BUILD_WITH_PROTOBUF", False))
+        result.append(cmake_opt("ORG_BUILD_EMCC", True))
         # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
         # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
 
@@ -157,10 +159,10 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
             result.append(cmake_opt(flag.name, flag.value))
 
     else:
-        result.append(cmake_opt("ORG_EMCC_BUILD", False))
+        result.append(cmake_opt("ORG_BUILD_EMCC", False))
         result.append(cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler))
         result.append(cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler))
-        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", conf.build_conf.use_protobuf))
+        result.append(cmake_opt("ORG_BUILD_WITH_PROTOBUF", conf.build_conf.use_protobuf))
 
     debug = False
     if debug:

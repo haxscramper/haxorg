@@ -5,9 +5,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
-add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
-add_definitions(-DORG_LIB_DEBUG_BUILD=1)
-
 set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
 set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
 message(STATUS "IMGUI_ORG_ROOT = ${IMGUI_ORG_ROOT}")
@@ -65,11 +62,14 @@ target_link_libraries(
          absl::log
          absl::base
          absl::flags
-         adaptagrams
          haxorg
          hstd
          cpptrace::cpptrace
          range-v3::range-v3)
+
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  target_link_libraries(org_imgui_lib PUBLIC adaptagrams)
+endif()
 
 file(GLOB ORG_IMGUI_APP_FILES "${IMGUI_ORG_ROOT}/gui_app/*.?pp")
 add_executable(org_imgui_app ${ORG_IMGUI_APP_FILES})

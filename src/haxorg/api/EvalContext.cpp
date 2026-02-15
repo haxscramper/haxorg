@@ -551,7 +551,7 @@ struct EvalContext {
         }
 
         if (isTraceEnabled()) {
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
             auto graph = org::imm::toGraphviz(history);
             graph.render("/tmp/CodeBlockEvalGraph.png");
 #endif

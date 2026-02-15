@@ -1,6 +1,6 @@
 #include "ImmOrgGraphBoost.hpp"
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 
 #    include <boost/graph/graphml.hpp>
 #    include <boost/graph/graphviz.hpp>

@@ -1186,7 +1186,7 @@ def gen_pyhaxorg_source(
             GenTu(
                 "{base}/serde/SemOrgSerdeDeclarations.hpp",
                 [
-                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
+                    GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
                     GenTuPass("#pragma once"),
                     GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
                     GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
@@ -1200,7 +1200,7 @@ def gen_pyhaxorg_source(
             GenTu(
                 "{base}/serde/SemOrgSerdeDefinitions.cpp",
                 [
-                    GenTuPass("#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD"),
+                    GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
                     GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
                     GenTuPass("#include <haxorg/serde/SemOrgSerdeDeclarations.hpp>"),
                 ] + [

@@ -1,5 +1,5 @@
 /* clang-format off */
-#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
+#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {

@@ -1,5 +1,5 @@
 #pragma once
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <boost/property_map/dynamic_property_map.hpp>
 #    include <haxorg/imm/ImmOrgGraph.hpp>
 

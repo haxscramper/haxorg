@@ -13,7 +13,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 
-#ifdef ORG_DEPS_USE_ADAPTAGRAMS
+#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
 #    pragma warning(push, 0)
 #    include <libavoid/libavoid.h>
 #    include <libdialect/graphs.h>
@@ -92,7 +92,7 @@ struct [[refl]] GraphRect {
 
 /// \brief IR wrapper for the cola layout constraints
 struct [[refl]] GraphNodeConstraint {
-#ifdef ORG_DEPS_USE_ADAPTAGRAMS
+#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
     using Res = SPtr<cola::CompoundConstraint>;
 
     struct [[refl]] Empty {
@@ -475,7 +475,7 @@ struct [[refl]] GraphLayoutIR {
         return doGraphvizLayout(gvc).convert();
     }
 
-#ifdef ORG_DEPS_USE_ADAPTAGRAMS
+#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
     struct HolaResult {
         SPtr<dialect::Graph>                         graph;
         Vec<SPtr<dialect::Node>>                     nodes;

@@ -747,7 +747,7 @@ void MapGraph::addNode(const MapNode& node) {
 }
 
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 Graphviz::Graph MapGraph::toGraphviz(
     imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
@@ -800,7 +800,7 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     const ImmAdapter&  node,
     const MapNodeProp& prop) {

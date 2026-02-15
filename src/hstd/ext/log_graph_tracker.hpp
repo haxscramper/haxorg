@@ -1,6 +1,6 @@
 #pragma once
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 
 #    if ORG_USE_QT
 #        include <QObject>

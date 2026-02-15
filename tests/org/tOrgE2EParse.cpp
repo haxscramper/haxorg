@@ -61,7 +61,7 @@ TEST(TestFiles, OrgCerealSerdeRoundtrip) {
 }
 
 TEST(TestFiles, AllNodeSerdeRoundtrip) {
-#if ORG_DEPS_USE_PROTOBUF
+#if ORG_BUILD_WITH_PROTOBUF
     std::string file
         = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     // std::string file = "/home/haxscramper/tmp/doc1.org";

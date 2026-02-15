@@ -1,4 +1,4 @@
-if(${ORG_USE_PYTHON_BINDINGS})
+if(${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
   pybind11_add_module(py_textlayout_cpp "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp")
 
   set_common_files(py_textlayout_cpp)
@@ -16,7 +16,9 @@ if(${ORG_USE_PYTHON_BINDINGS})
   if(${ORG_USE_SANITIZER})
     target_link_libraries(py_textlayout_cpp PRIVATE ubsan)
   endif()
+endif()
 
+if(${ORG_BUILD_PYHAXORG_BINDINGS})
   # Declare python wrapper module
   pybind11_add_module(
     pyhaxorg

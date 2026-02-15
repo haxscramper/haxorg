@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <hstd/system/aux_utils.hpp>
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <cpptrace/cpptrace.hpp>
 #endif
 
@@ -13,7 +13,7 @@ namespace hstd {
 
 template <
     typename Derived,
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
     typename BaseException = std::exception
 #else
     typename BaseException = cpptrace::lazy_exception
@@ -26,7 +26,7 @@ struct CRTP_hexception
     int         line;
     char const* function;
     char const* file;
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
     cpptrace::stacktrace eager;
 #endif
 
@@ -36,7 +36,7 @@ struct CRTP_hexception
         char const*        function = __builtin_FUNCTION(),
         char const*        file     = __builtin_FILE()) {
         auto result = Derived{};
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
         result.eager = cpptrace::generate_trace();
 #endif
         result.msg      = msg;
@@ -59,7 +59,7 @@ struct CRTP_hexception
         return strdup(result.c_str());
     }
 
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
     virtual const char* what() const noexcept override {
         return get_fmt_message();
     }

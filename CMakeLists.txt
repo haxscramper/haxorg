@@ -36,6 +36,18 @@ list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
+option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
+
+# Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
+# changes in the main environment. Sometimes it does not build or does not rebuild things. By
+# default this option forces the dependency to be configured for all builds.
+option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
+option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
+option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
+option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
+
+option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
+
 option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
 option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
@@ -45,30 +57,26 @@ option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
 option(ORG_USE_SANITIZER "Use sanitizers" ON)
-option(ORG_USE_PYTHON_BINDINGS "Enable build of the python bindings" ON)
-# Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
-# changes in the main environment. Sometimes it does not build or does not rebuild things. By
-# default this option forces the dependency to be configured for all builds.
-option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" OFF)
-option(ORG_EMCC_BUILD "Building for emscripten target" OFF)
 option(ORG_USE_QT "Enable Qt-related features and API" OFF)
 option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
 
-option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
-option(ORG_DEPS_USE_PROTOBUF "Include protobuf functionality in the build" ON)
-option(ORG_DEPS_USE_MSGPACK "Include msgpack serialization functionality in the build" ON)
-option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)"
+# Optional features in the haxorg library
+option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
+option(ORG_BUILD_WITH_MSGPACK "Include msgpack serialization functionality in the build" ON)
+option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)"
        OFF)
-option(ORG_BUILD_IS_DEVELOP "Build and configure internal development dependencies" ON)
+
+# Optional targets for the build
+option(ORG_BUILD_EMCC "Building for emscripten target" OFF)
+option(ORG_BUILD_PYHAXORG_BINDINGS "Build py-haxorg module library" ON)
+option(ORG_BUILD_INTERNAL_TOOLS "The build and configure internal development tools" ON)
+option(ORG_BUILD_TEXT_LAYOUTER_BINDINGS "Build text layouter python module library" ON)
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
-option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
-option(ORG_BUILD_USE_NAPI_WRAPPER "" ON)
-option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
-option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
-option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
+
 option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
+option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
 
 if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
   message(
@@ -79,7 +87,7 @@ endif()
 
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
-if(${ORG_EMCC_BUILD})
+if(${ORG_BUILD_EMCC})
   if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
     message(
       FATAL_ERROR
@@ -128,16 +136,16 @@ endif()
 
 message(STATUS "lexy_DIR = ${lexy_DIR}")
 
-if(${ORG_BUILD_IS_DEVELOP})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   set(ENV{PKG_CONFIG_PATH} "${ORG_DEPS_INSTALL_ROOT}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 endif()
 
 find_package(PkgConfig)
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 endif()
 
-if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 endif()
 
@@ -163,7 +171,7 @@ else()
                INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
 endif()
 
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   find_package(
     Python
     COMPONENTS Interpreter Development
@@ -186,22 +194,22 @@ endif()
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 
-if(${ORG_DEPS_USE_MSGPACK})
-  add_definitions(-DORG_DEPS_USE_MSGPACK=1)
+if(${ORG_BUILD_WITH_MSGPACK})
+  add_definitions(-DORG_BUILD_WITH_MSGPACK=1)
   find_package(msgpack-cxx CONFIG REQUIRED)
 else()
-  add_definitions(-DORG_DEPS_USE_MSGPACK=0)
+  add_definitions(-DORG_BUILD_WITH_MSGPACK=0)
 endif()
 
-if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
   find_package(SQLiteCpp CONFIG REQUIRED)
 endif()
 
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   find_package(absl CONFIG REQUIRED)
 endif()
 
-if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
   find_package(GTest CONFIG REQUIRED)
   find_package(benchmark CONFIG REQUIRED)
 endif()
@@ -212,38 +220,38 @@ endif()
 find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(lexy CONFIG REQUIRED)
-if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_USE_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(BoostDescribe CONFIG REQUIRED)
   find_package(BoostPreprocessor CONFIG REQUIRED)
 endif()
-if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
   find_package(Adaptagrams CONFIG REQUIRED)
 endif()
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   find_package(cpptrace CONFIG REQUIRED)
 endif()
 
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   find_package(Boost REQUIRED COMPONENTS ALL)
 endif()
 
-if(${ORG_EMCC_BUILD})
-  add_definitions(-DORG_EMCC_BUILD=1)
+if(${ORG_BUILD_EMCC})
+  add_definitions(-DORG_BUILD_EMCC=1)
 else()
-  add_definitions(-DORG_EMCC_BUILD=0)
+  add_definitions(-DORG_BUILD_EMCC=0)
 endif()
 
-if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
   find_package(protobuf CONFIG REQUIRED)
-  add_definitions(-DORG_DEPS_USE_PROTOBUF=1)
+  add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
   if(NOT ${ORG_IS_CONAN_BUILD})
     include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
   endif()
 else()
-  add_definitions(-DORG_DEPS_USE_PROTOBUF=0)
+  add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
 endif()
 
 message(STATUS "Python_LIBRARIES = ${Python_LIBRARIES}")
@@ -253,21 +261,21 @@ set(JSON_BuildTests
     CACHE INTERNAL "")
 
 add_subdirectory(src/hstd)
-if(${ORG_DEPS_USE_ADAPTAGRAMS})
-  add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
   add_subdirectory(src/adaptagrams)
 endif()
 add_subdirectory(src/haxorg)
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
   add_subdirectory(src/py_libs)
 endif()
 
-if(${ORG_BUILD_IS_DEVELOP} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
   add_subdirectory(scripts/cxx_repository)
   add_subdirectory(scripts/cxx_codegen)
 endif()
 
-if(${ORG_BUILD_USE_NAPI_WRAPPER})
+if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
 endif()
 
@@ -281,7 +289,7 @@ if(${ORG_USE_IMGUI})
 endif()
 
 # Build the list of "CMake package" targets (no pyhaxorg here)
-if(${ORG_DEPS_USE_ADAPTAGRAMS} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
   set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
 else()
   set(ORG_INSTALL_TARGET_LIST haxorg hstd)
@@ -298,7 +306,7 @@ install(
   DESTINATION include)
 
 # Install the Python extension into the *platlib root* (site-packages/)
-if(${ORG_USE_PYTHON_BINDINGS} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_EMCC})
   install(TARGETS pyhaxorg py_textlayout_cpp LIBRARY DESTINATION ".")
 endif()
 

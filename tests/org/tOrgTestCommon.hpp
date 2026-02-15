@@ -12,7 +12,7 @@
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <haxorg/serde/SemOrgSerde.hpp>
-#if ORG_DEPS_USE_PROTOBUF
+#if ORG_BUILD_WITH_PROTOBUF
 #    include <google/protobuf/util/json_util.h>
 #endif
 #include <haxorg/exporters/ExporterJson.hpp>
