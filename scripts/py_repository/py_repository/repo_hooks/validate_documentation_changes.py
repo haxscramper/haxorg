@@ -384,6 +384,9 @@ def should_check_entry(entry: Entry, whole_file: bool,
     elif re.search(r"__\w+__", entry.name):
         return False
 
+    elif re.search(r"HaxorgConan", entry.name):
+        return False
+
     elif re.match(r"^test_\w+$", entry.name):
         return False
 

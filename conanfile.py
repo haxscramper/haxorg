@@ -5,6 +5,14 @@ from conan.tools.cmake import CMake, cmake_layout, CMakeDeps, CMakeToolchain
 class HaxorgConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
 
+    name = "haxorg"
+    version = "0.1.0"
+    license = "MIT"
+    author = "haxscramper <haxscramper@gmail.com>"
+    url = "https://github.com/haxscramper/haxorg"
+    description = "org-mode parser"
+    exports_sources = "CMakeLists.txt", "src/*", "HaxorgConfig.cmake.in"
+
     options = {
         "use_perfetto": [True, False],
         "use_tracy": [True, False],
@@ -16,7 +24,7 @@ class HaxorgConan(ConanFile):
     default_options = {
         "use_perfetto": False,
         "use_tracy": False,
-        "use_python_bindings": True,
+        "use_python_bindings": False,
         "deps_use_protobuf": True,
         "deps_use_msgpack": True,
     }
