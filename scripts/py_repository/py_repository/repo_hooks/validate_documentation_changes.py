@@ -384,10 +384,13 @@ def should_check_entry(entry: Entry, whole_file: bool,
     elif re.search(r"__\w+__", entry.name):
         return False
 
-    elif re.search(r"HaxorgConan", entry.name):
+    elif re.search(r"conan", entry.name, re.IGNORECASE):
         return False
 
     elif re.match(r"^test_\w+$", entry.name):
+        return False
+
+    elif re.match(r"^main$", entry.name):
         return False
 
     return any(entry.line_range.intersects(r) for r in change_ranges)

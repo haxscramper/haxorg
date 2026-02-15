@@ -51,7 +51,7 @@ endif()
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
                                     foonathan::lexy immer::immer)
 
-if(${ORG_BUILD_WITH_MSGPACK})
+if(${ORG_DEPS_USE_MSGPACK})
   target_link_libraries(haxorg PUBLIC msgpack-cxx)
 endif()
 
@@ -72,7 +72,7 @@ if(${ORG_USE_TRACY} AND NOT ${ORG_BUILD_EMCC})
 endif()
 
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                                         $<INSTALL_INTERFACE:include>)
+                                         $<INSTALL_INTERFACE:src>)
 
 if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
   add_executable(tests_org)

@@ -1,5 +1,8 @@
+import os
+
 from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout, CMakeDeps, CMakeToolchain
+from conan.tools.files import copy
 
 
 class HaxorgConan(ConanFile):
@@ -64,6 +67,8 @@ class HaxorgConan(ConanFile):
         tc.cache_variables["ORG_USE_TRACY"] = self.options.use_tracy
         tc.cache_variables[
             "ORG_BUILD_PYHAXORG_BINDINGS"] = self.options.use_python_bindings
+        tc.cache_variables[
+            "ORG_BUILD_TEXT_LAYOUTER_BINDINGS"] = self.options.use_python_bindings
         tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.deps_use_protobuf
         tc.cache_variables["ORG_BUILD_WITH_MSGPACK"] = self.options.deps_use_msgpack
         # tc.cache_variables["CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH"] = False
@@ -84,3 +89,32 @@ class HaxorgConan(ConanFile):
     def build_requirements(self):
         if self.options.deps_use_protobuf:
             self.tool_requires("protobuf/[>=6.32.1 <7]")
+
+    def package(self):
+        copy(self,
+             "*.hpp",
+             src=os.path.join(self.source_folder, "src"),
+             dst=os.path.join(self.package_folder, "include"))
+        copy(self,
+             "*.h",
+             src=os.path.join(self.source_folder, "src"),
+             dst=os.path.join(self.package_folder, "include"))
+        copy(self,
+             "*.lib",
+             src=self.build_folder,
+             dst=os.path.join(self.package_folder, "lib"),
+             keep_path=False)
+        copy(self,
+             "*.a",
+             src=self.build_folder,
+             dst=os.path.join(self.package_folder, "lib"),
+             keep_path=False)
+        copy(self,
+             "*.so*",
+             src=self.build_folder,
+             dst=os.path.join(self.package_folder, "lib"),
+             keep_path=False)
+
+    def package_info(self):
+        self.cpp_info.includedirs = ["include"]
+        self.cpp_info.libs = ["haxorg", "hstd"]
