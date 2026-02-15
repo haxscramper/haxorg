@@ -60,7 +60,6 @@ option(ORG_DEPS_USE_MSGPACK "Include msgpack serialization functionality in the 
 option(ORG_DEPS_USE_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)"
        OFF)
 option(ORG_BUILD_IS_DEVELOP "Build and configure internal development dependencies" ON)
-option(ORG_BUILD_USE_GOLD_WRAPPER "Link profilng" OFF)
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
