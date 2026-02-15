@@ -16,7 +16,12 @@ if len(sys.argv) > 2 and sys.argv[2] == "commit":
 msg_path = Path(sys.argv[1])
 content = msg_path.read_text() if msg_path.exists() else ""
 
-lines = ["", "", "# <type>(<scope>): <subject>", "#", "# Available types:"]
+# Check if our help block is already present in the message
+marker = "# <type>(<scope>): <subject>"
+if marker in content:
+    sys.exit(0)
+
+lines = ["", "", marker, "#", "# Available types:"]
 for name, desc in TYPES.items():
     lines.append(f"#   {name:<10} {desc}")
 lines.extend(["#", "# Available scopes:"])
