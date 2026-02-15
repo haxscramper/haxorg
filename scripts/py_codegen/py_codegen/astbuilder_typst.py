@@ -1,20 +1,15 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from numbers import Number
 from pathlib import Path
-from typing import NewType, TYPE_CHECKING, TypeAlias
+from typing import TypeAlias
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
 import py_codegen.astbuilder_base as base
+from py_haxorg.layout.wrap import BlockId, TextLayout
 from py_scriptutils.algorithm import cond, maybe_splice
-from py_textlayout.py_textlayout_wrap import TextLayout
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import toml
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
 
 
 class TypstPackageFields(BaseModel):

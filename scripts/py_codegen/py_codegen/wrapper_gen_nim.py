@@ -19,15 +19,10 @@ from py_codegen.gen_tu_cpp import (
     QualTypeKind,
 )
 from py_codegen.refl_wrapper_graph import GenGraph, GenTuUnion
+from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 from py_scriptutils.files import file_relpath
 from py_scriptutils.script_logging import log
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from pydantic import BaseModel, Field
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
 
 
 class WrapRenameRule(BaseModel):

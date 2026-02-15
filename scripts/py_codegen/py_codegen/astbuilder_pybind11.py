@@ -1,21 +1,13 @@
 from dataclasses import dataclass, field, replace
 import itertools
-from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import List, NewType, Optional, Set
+from beartype.typing import List, Optional
 import py_codegen.astbuilder_py as pya
 from py_codegen.gen_tu_cpp import *
-from py_codegen.gen_tu_cpp import (
-    GenTuDoc,
-    GenTuFunction,
-    GenTuIdent,
-    QualType,
-    QualTypeKind,
-)
+from py_codegen.gen_tu_cpp import GenTuDoc, GenTuFunction, GenTuIdent, QualType
+from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import maybe_splice
-from py_scriptutils.script_logging import pprint_to_file
-from rich.pretty import pprint
 
 
 @beartype
@@ -24,13 +16,6 @@ def maybe_list(it: Any) -> Any:
         return [it]
     else:
         return []
-
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-
-else:
-    BlockId = NewType('BlockId', int)
 
 
 @beartype

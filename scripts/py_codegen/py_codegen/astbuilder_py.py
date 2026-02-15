@@ -4,12 +4,7 @@ from typing import NewType, TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import List, Optional
 import py_codegen.astbuilder_base as base
-from py_textlayout.py_textlayout_wrap import TextLayout
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
+from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
 @beartype

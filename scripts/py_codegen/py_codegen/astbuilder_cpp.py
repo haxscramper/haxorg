@@ -20,7 +20,7 @@ from beartype.typing import (
 )
 from py_codegen.astbuilder_base import pascal_case
 import py_codegen.astbuilder_base as base
-from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
+from py_haxorg.layout.wrap import BlockId, TextLayout
 from pydantic import BaseModel, Field
 
 DEBUG_TYPE_ORIGIN = False

@@ -8,12 +8,7 @@ from typing import NewType, TYPE_CHECKING
 
 from beartype import beartype
 from beartype.typing import List, Optional, overload, Union
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
+from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 
 
 def pascal_case(s: str) -> str:

@@ -1,24 +1,14 @@
 import sys
+from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Iterable, List, Union
+from beartype.typing import Iterable, List, NewType, Union
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ci_log
 
-build_dir = get_haxorg_repo_root_path().joinpath("build/haxorg")
-if str(build_dir) not in sys.path:
-    sys.path.append(str(build_dir))
-
-# for p in sys.path:
-#     ci_log().info(p)
-
-from typing import TYPE_CHECKING
-
-from beartype.typing import NewType
-
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId, TextOptions
-    import py_textlayout.py_textlayout as lyt
+    from py_haxorg.layout.types import BlockId, TextOptions
+    import py_haxorg.layout.types as lyt
 
 else:
     from py_textlayout_cpp import TextOptions
@@ -28,11 +18,16 @@ else:
 
 @beartype
 class TextLayout(lyt.TextLayout):
+    """
+    Python wrapper around C++ text layouter class
+    """
 
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
+        "Wrap argument block in a new line surronded by left/right delimiter"
         return self.line([self.text(left), arg, self.text(right)])
 
     def add_if_not_empty(self, arg: BlockId, other: BlockId) -> None:
+        "Add `other` to `arg` if `other` is non-empty and the `arg` is a line/stack entry"
         if (self.isLine(other) or self.isStack(other)) and self.size(other) == 0:
             pass
 
@@ -47,9 +42,11 @@ class TextLayout(lyt.TextLayout):
         isTrailing: bool = False,
         sep: str = ", ",
     ) -> BlockId:
+        "Format values in a comma-separated line"
         items2 = [self.text(Base) if isinstance(Base, str) else Base for Base in items]
         assert isinstance(items2, list)
         return self.join(items2, self.text(sep), isLine, isTrailing)
 
     def wrap_quote(self, text: str) -> BlockId:
+        "Wrap text in quotes and return block"
         return self.text(f"\"{text}\"")

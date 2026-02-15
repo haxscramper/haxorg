@@ -5,7 +5,9 @@ from beartype import beartype
 from beartype.typing import Any, List, Optional
 import plumbum
 from py_cli import haxorg_cli, haxorg_opts
+from py_haxorg.exporters.export_tex import ExporterLatex
 from py_haxorg.exporters.export_utils.texoutparse import LatexLogParser
+from py_haxorg.layout.wrap import BlockId, TextOptions
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 import rich_click as click
@@ -36,10 +38,6 @@ def run_lualatex(filename: Path) -> None:
 
     else:
         log(CAT).info(f"Compilation of {filename} successful!")
-
-
-from py_haxorg.exporters.export_tex import ExporterLatex
-from py_textlayout.py_textlayout_wrap import BlockId, TextOptions
 
 
 class DerivedLatexExporter(ExporterLatex):

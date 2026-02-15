@@ -33,6 +33,7 @@ import more_itertools
 import py_haxorg.pyhaxorg_wrap as org
 from py_repository.code_analysis.gen_coverage_cookies import *
 import py_repository.repo_docgen.gen_coverage_data as docdata
+from py_repository.repo_docgen.gen_coverage_utils import abbreviate_token_name
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich_pprint
 from py_scriptutils.script_logging import (
@@ -1313,6 +1314,7 @@ class FileAnnotationData():
 
 @beartype
 def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
+    "Get formatted HTML for the C++ coverage annotations"
     div = tags.div()
     coverage_indices: Set[int] = set()
 
@@ -1330,7 +1332,7 @@ def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
 
             hspan = tags.span(
                 segment.Text,
-                _class=docdata.abbreviate_token_name(segment.TokenKind),
+                _class=abbreviate_token_name(segment.TokenKind),
             )
 
             if 0 < len(segment.CoverageSegmentIdx):

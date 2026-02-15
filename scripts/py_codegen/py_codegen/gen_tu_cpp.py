@@ -3,17 +3,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List, Literal, Mapping, Sequence, Set, TypeAlias
+from beartype.typing import List, Literal, Sequence, Set, TypeAlias
 from py_codegen.astbuilder_cpp import *
+from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import cond, iterate_object_tree
-from py_scriptutils.script_logging import log
-from py_textlayout.py_textlayout_wrap import *
 from pydantic import AliasChoices
 
 CAT = __name__
-
-if not TYPE_CHECKING:
-    BlockId = NewType('BlockId', int)
 
 
 @beartype

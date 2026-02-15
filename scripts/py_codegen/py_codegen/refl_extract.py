@@ -1,43 +1,20 @@
-from copy import deepcopy
 from dataclasses import dataclass, field
 from hashlib import md5
 import io
 import json
-import os.path
 from pathlib import Path
-from pprint import pformat, pprint
-import sys
 import time
-from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import (
-    Any,
-    cast,
-    Dict,
-    List,
-    Literal,
-    NewType,
-    Optional,
-    Set,
-    Tuple,
-    TypeAlias,
-    Union,
-)
+from beartype.typing import Any, cast, Dict, List, Optional, Tuple
 from plumbum import local
-from py_codegen.gen_tu_cpp import QualType
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
-from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
+from py_codegen.refl_wrapper_graph import TuWrap
 import py_codegen.wrapper_gen_nim as gen_nim
+from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
-import py_scriptutils.toml_config_profiler as conf_provider
 from pydantic import BaseModel, Field
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
 
 
 class TuOptions(BaseModel):

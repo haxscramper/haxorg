@@ -13,8 +13,8 @@ from beartype.typing import (
 )
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.gen_tu_cpp as tu
+from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 from py_scriptutils.algorithm import drop_none, iterate_object_tree
-from py_textlayout.py_textlayout_wrap import BlockId, TextLayout, TextOptions
 
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"

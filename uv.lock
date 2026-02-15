@@ -16,7 +16,6 @@ members = [
     "py-haxorg",
     "py-repository",
     "py-scriptutils",
-    "py-textlayout",
     "py-wrappers",
     "testtest",
 ]
@@ -2016,11 +2015,6 @@ version = "0.1.0"
 source = { editable = "scripts/py_scriptutils" }
 
 [[package]]
-name = "py-textlayout"
-version = "0.1.0"
-source = { editable = "scripts/py_textlayout" }
-
-[[package]]
 name = "py-wrappers"
 version = "0.1.0"
 source = { editable = "scripts/py_wrappers" }
@@ -3063,7 +3057,6 @@ local = [
     { name = "py-haxorg" },
     { name = "py-repository" },
     { name = "py-scriptutils" },
-    { name = "py-textlayout" },
     { name = "py-wrappers" },
 ]
 
@@ -3132,7 +3125,6 @@ local = [
     { name = "py-haxorg", editable = "scripts/py_haxorg" },
     { name = "py-repository", editable = "scripts/py_repository" },
     { name = "py-scriptutils", editable = "scripts/py_scriptutils" },
-    { name = "py-textlayout", editable = "scripts/py_textlayout" },
     { name = "py-wrappers", editable = "scripts/py_wrappers" },
 ]
 

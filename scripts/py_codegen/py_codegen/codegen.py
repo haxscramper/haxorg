@@ -25,10 +25,10 @@ from py_codegen.astbuilder_pybind11 import (
 )
 from py_codegen.org_codegen_data import *
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
+from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file
-from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 import yaml
 
 CAT = "codegen"

@@ -63,7 +63,6 @@ dev = [
 ]
 local = [
   "py_ci",
-  "py_textlayout",
   "py_scriptutils",
   "py_codegen",
   "py_cli",
@@ -77,7 +76,6 @@ local = [
 members = [
   "scripts/py_haxorg",
   "scripts/py_ci",
-  "scripts/py_textlayout",
   "scripts/py_scriptutils",
   "scripts/py_codegen",
   "scripts/py_cli",
@@ -91,7 +89,6 @@ exclude = [
 
 [tool.uv.sources]
 py_ci = { workspace = true }
-py_textlayout = { workspace = true }
 py_scriptutils = { workspace = true }
 py_codegen = { workspace = true }
 py_cli = { workspace = true }

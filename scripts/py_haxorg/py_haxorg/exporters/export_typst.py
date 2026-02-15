@@ -6,13 +6,13 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List
 import py_codegen.astbuilder_typst as typ
 from py_haxorg.exporters.export_base import ExporterBase, with_export_context
+from py_haxorg.layout.wrap import BlockId
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm, toml_config_profiler
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_textlayout.py_textlayout_wrap import BlockId
 from pydantic import BaseModel, Field
 import toml
 
