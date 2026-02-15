@@ -1046,7 +1046,6 @@ EXCLUDE                = deps \
                          examples/d3_visuals/node_modules \
                          build \
                          tests \
-                         _CPack_Packages \
                          examples/imgui_gui/imgui \
                          src/haxorg/exporters/ExporterMethods.tcc \
                          src/haxorg/base_lexer/base_lexer_gen.cpp \

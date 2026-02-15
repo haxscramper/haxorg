@@ -271,7 +271,7 @@ def _run_docker_release_test_impl(
     mounts = create_overlay_mount_points(ctx, mounts=mounts, cow_root=cow_root)
 
     container: docker.models.containers.Container = client.containers.run(
-        ctx.config.CPACK_TEST_IMAGE,
+        ctx.config.HAXORG_DOCKER_RELEASE_IMAGE,
         command="sleep infinity",
         mounts=mounts,
         environment=environment,
@@ -332,13 +332,13 @@ def run_docker_release_test(
             f.write(logs)
 
     try:
-        old_container = client.containers.get(ctx.config.CPACK_TEST_IMAGE)
+        old_container = client.containers.get(ctx.config.HAXORG_DOCKER_RELEASE_IMAGE)
         old_container.remove(force=True)
     except docker.errors.NotFound:
         pass
 
     dockerfile_path = Path(
-        get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"))
+        get_script_root(ctx, "scripts/py_repository/fedora_release.dockerfile"))
     build_context_path = Path(get_script_root(ctx))
 
     def print_build_logs(build_logs: List[Any]) -> None:
@@ -353,7 +353,7 @@ def run_docker_release_test(
         image, build_logs = client.images.build(
             path=str(build_context_path),
             dockerfile=str(dockerfile_path),
-            tag=ctx.config.CPACK_TEST_IMAGE,
+            tag=ctx.config.HAXORG_DOCKER_RELEASE_IMAGE,
             rm=True  # Remove intermediate containers
         )
 

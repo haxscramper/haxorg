@@ -55,8 +55,6 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
 
     pass_flags = [
         *get_cmake_defines(ctx),
-        cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
-        cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),
         cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)),
         *cond(
             ctx.config.python_version,
@@ -133,32 +131,6 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
             # "--component",
             # "haxorg_component"
         ])
-
-
-@haxorg_task(dependencies=[configure_cmake_haxorg])
-def build_release_archive(ctx: TaskContext, force: bool = False) -> None:
-    "Generate source archive"
-
-    pack_res = get_script_root(ctx).joinpath("_CPack_Packages")
-    log(CAT).info(f"Package tmp directory {pack_res}")
-    if pack_res.exists():
-        shutil.rmtree(str(pack_res))
-
-    run_command(
-        ctx,
-        "cpack",
-        [
-            "--debug",
-            # "--verbose",
-            "--config",
-            str(
-                get_component_build_dir(ctx,
-                                        "haxorg").joinpath("CPackSourceConfig.cmake")),
-        ],
-    )
-
-    # else:
-    #     log(CAT).debug(op.explain("cpack code"))
 
 
 @haxorg_task()
