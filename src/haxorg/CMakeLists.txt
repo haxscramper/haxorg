@@ -6,11 +6,6 @@ glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/.*" SEARCH_BASE "${
 set_target_output(haxorg)
 set_target_flags(haxorg)
 
-if(NOT ${ORG_BUILD_EMCC})
-  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
-  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
-endif()
-
 if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
   execute_process(
     COMMAND which protoc
@@ -55,7 +50,9 @@ if(${ORG_DEPS_USE_MSGPACK})
   target_link_libraries(haxorg PUBLIC msgpack-cxx)
 endif()
 
-if(NOT ${ORG_BUILD_EMCC})
+if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
+  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
+  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
   target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
 endif()
 
@@ -63,11 +60,11 @@ if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
-if(${ORG_USE_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC Perfetto::perfetto)
 endif()
 
-if(${ORG_USE_TRACY} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_TRACY} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC Tracy::TracyClient)
 endif()
 

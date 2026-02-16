@@ -14,9 +14,9 @@ set_target_flags(org_viewer)
 set_target_properties(org_viewer PROPERTIES AUTOMOC ON)
 target_link_libraries(org_viewer PRIVATE Qt6::Widgets haxorg hstd)
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(org_viewer PUBLIC Perfetto::perfetto)
-  target_compile_definitions(org_viewer PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(org_viewer PUBLIC ORG_BUILD_WITH_PERFETTO)
 endif()
 
 qt_finalize_executable(org_viewer)

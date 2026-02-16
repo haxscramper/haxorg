@@ -13,7 +13,7 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(reflection_test::reflection_named);
 void enable_full_trace_on_cli() {}
 
 int main(int argc, char** argv) {
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
 

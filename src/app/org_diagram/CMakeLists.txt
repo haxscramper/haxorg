@@ -35,9 +35,9 @@ set_target_properties(
 
 target_link_libraries(org_diagram PRIVATE org_diagram_lib)
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(org_diagram PUBLIC Perfetto::perfetto)
-  target_compile_definitions(org_diagram PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(org_diagram PUBLIC ORG_BUILD_WITH_PERFETTO)
 endif()
 
 qt_finalize_executable(org_diagram)
@@ -62,9 +62,9 @@ function(add_qt_test TEST_FILE_PATH TEST_CLASS)
   add_test(NAME ${TEST_CLASS} COMMAND ${TEST_CLASS})
   set_tests_properties(${TEST_CLASS} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-  if(${ORG_USE_PERFETTO})
+  if(${ORG_BUILD_WITH_PERFETTO})
     target_link_libraries(${TEST_CLASS} PUBLIC Perfetto::perfetto)
-    target_compile_definitions(${TEST_CLASS} PUBLIC ORG_USE_PERFETTO)
+    target_compile_definitions(${TEST_CLASS} PUBLIC ORG_BUILD_WITH_PERFETTO)
   endif()
 
   qt_finalize_executable(${TEST_CLASS})

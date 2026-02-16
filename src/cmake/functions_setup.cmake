@@ -15,7 +15,7 @@ function(set_target_flags_impl)
         "--bind"
         "-sNO_DISABLE_EXCEPTION_CATCHING")
 
-    if(${ORG_USE_PERFETTO})
+    if(${ORG_BUILD_WITH_PERFETTO})
       list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
     endif()
 
@@ -44,6 +44,12 @@ function(set_target_flags_impl)
   if(${ORG_USE_SARIF})
     # Specify output file for the sarif report
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
+  endif()
+
+  if(${ORG_BUILD_WITH_CGRAPH})
+    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=1)
+  else()
+    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=0)
   endif()
 
   if(${ORG_DISABLE_WARNINGS})
@@ -111,12 +117,12 @@ function(set_target_flags_impl)
 
     add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
-    if(${ORG_USE_PERFETTO})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
+    if(${ORG_BUILD_WITH_PERFETTO})
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_PERFETTO)
     endif()
 
-    if(${ORG_USE_TRACY})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_TRACY)
+    if(${ORG_BUILD_WITH_TRACY})
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_TRACY)
     endif()
 
     if(${ORG_USE_XRAY})

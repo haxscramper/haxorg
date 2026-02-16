@@ -1,6 +1,6 @@
 #include "perfetto_aux.hpp"
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 #    include <fstream>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();

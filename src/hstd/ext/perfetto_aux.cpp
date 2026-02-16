@@ -1,6 +1,6 @@
 #include "perfetto_aux.hpp"
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 
 #    include <chrono>
 #    include <condition_variable>

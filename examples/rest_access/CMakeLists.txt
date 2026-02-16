@@ -8,7 +8,7 @@ set(CXX_STANDARD 23)
 set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(DEPS_INSTALL "${REPO_ROOT}/build/deps_install")
 
-option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
 list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
 include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")

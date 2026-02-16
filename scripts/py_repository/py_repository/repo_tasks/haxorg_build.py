@@ -127,7 +127,7 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
             get_component_build_dir(ctx, "haxorg"),
             "--prefix",
             install_dir,
-            # cmake_opt("ORG_USE_PERFETTO", perfetto),
+            # cmake_opt("ORG_BUILD_WITH_PERFETTO", perfetto),
             # "--component",
             # "haxorg_component"
         ])

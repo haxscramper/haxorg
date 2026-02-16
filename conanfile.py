@@ -18,18 +18,22 @@ class HaxorgConan(ConanFile):
 
     options = {
         "use_perfetto": [True, False],
+        "use_adaptagrams": [True, False],
+        "use_cgraph": [True, False],
         "use_tracy": [True, False],
+        "use_protobuf": [True, False],
+        "use_msgpack": [True, False],
         "use_python_bindings": [True, False],
-        "deps_use_protobuf": [True, False],
-        "deps_use_msgpack": [True, False],
     }
 
     default_options = {
         "use_perfetto": False,
         "use_tracy": False,
         "use_python_bindings": False,
-        "deps_use_protobuf": True,
-        "deps_use_msgpack": True,
+        "use_protobuf": True,
+        "use_msgpack": True,
+        "use_adaptagrams": False,
+        "use_cgraph": False,
     }
 
     def requirements(self):
@@ -48,11 +52,14 @@ class HaxorgConan(ConanFile):
 
         if self.options.use_perfetto:
             self.requires("perfetto/[>=52.0 <53]")
+
         if self.options.use_tracy:
             self.requires("tracy/[>=0.13.1 <1]")
-        if self.options.deps_use_protobuf:
+
+        if self.options.use_protobuf:
             self.requires("protobuf/[>=6.32.1 <7]")
-        if self.options.deps_use_msgpack:
+
+        if self.options.use_msgpack:
             self.requires("msgpack-cxx/[>=7.0.0 <8]")
 
     def configure(self):
@@ -63,14 +70,19 @@ class HaxorgConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.cache_variables["ORG_USE_PERFETTO"] = self.options.use_perfetto
-        tc.cache_variables["ORG_USE_TRACY"] = self.options.use_tracy
+        tc.cache_variables["ORG_BUILD_WITH_PERFETTO"] = self.options.use_perfetto
+        tc.cache_variables["ORG_BUILD_WITH_TRACY"] = self.options.use_tracy
+
         tc.cache_variables[
             "ORG_BUILD_PYHAXORG_BINDINGS"] = self.options.use_python_bindings
         tc.cache_variables[
             "ORG_BUILD_TEXT_LAYOUTER_BINDINGS"] = self.options.use_python_bindings
-        tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.deps_use_protobuf
-        tc.cache_variables["ORG_BUILD_WITH_MSGPACK"] = self.options.deps_use_msgpack
+
+        tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.use_protobuf
+        tc.cache_variables["ORG_BUILD_WITH_MSGPACK"] = self.options.use_msgpack
+        tc.cache_variables["ORG_BUILD_WITH_CGRAPH"] = self.options.use_cgraph
+        tc.cache_variables["ORG_BUILD_WITH_ADAPTAGRAMS"] = self.options.use_adaptagrams
+
         # tc.cache_variables["CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH"] = False
         tc.cache_variables["CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY"] = False
         tc.cache_variables["ORG_IS_CONAN_BUILD"] = True
@@ -87,7 +99,7 @@ class HaxorgConan(ConanFile):
         cmake.build()
 
     def build_requirements(self):
-        if self.options.deps_use_protobuf:
+        if self.options.use_protobuf:
             self.tool_requires("protobuf/[>=6.32.1 <7]")
 
     def package(self):

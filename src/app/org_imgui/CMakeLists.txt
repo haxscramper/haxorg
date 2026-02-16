@@ -1,4 +1,4 @@
-option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdparty" OFF)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 
@@ -46,9 +46,9 @@ add_library(org_imgui_lib ${ORG_IMGUI_LIB_FILES})
 set_target_flags(org_imgui_lib)
 set_common_files(org_imgui_lib)
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(org_imgui_lib PUBLIC Perfetto::perfetto)
-  target_compile_definitions(org_imgui_lib PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(org_imgui_lib PUBLIC ORG_BUILD_WITH_PERFETTO)
 endif()
 
 target_include_directories(org_imgui_lib PUBLIC "${BASE}/src/app")

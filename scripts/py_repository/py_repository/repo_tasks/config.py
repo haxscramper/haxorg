@@ -1,3 +1,4 @@
+import enum
 from pathlib import Path
 import tempfile
 
@@ -51,6 +52,7 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     force: bool = False
     use_protobuf: bool = True
     use_msgpack: bool = True
+    use_cgraph: bool = Field(default=True, description="Enable features using cgraph")
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
@@ -196,9 +198,6 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
         default_factory=lambda: [],
         description="Inverse of the `coverage_html_whitelist` -- which files to exclude "
         "from HTML generation.")
-
-
-import enum
 
 
 class HaxorgLogLevel(str, enum.Enum):

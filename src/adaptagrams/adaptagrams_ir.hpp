@@ -449,6 +449,7 @@ struct [[refl]] GraphLayoutIR {
         }
     };
 
+#if ORG_BUILD_WITH_CGRAPH
     /// \brief Backend-specific layout results for graphviz graph
     struct GraphvizResult {
         Graphviz::Graph graph;
@@ -474,6 +475,7 @@ struct [[refl]] GraphLayoutIR {
         Graphviz gvc;
         return doGraphvizLayout(gvc).convert();
     }
+#endif
 
 #ifdef ORG_BUILD_WITH_ADAPTAGRAMS
     struct HolaResult {

@@ -8,7 +8,7 @@
 #    include <hstd/stdlib/Formatter.hpp>
 #    include <hstd/ext/graphviz.hpp>
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 #        include <QMetaObject>
 #        include <QMetaMethod>
 #    endif
@@ -104,6 +104,7 @@ hstd::finally_std log_graph_tracker::track_function(
         [this, info]() { this->notify_function_end(info); }};
 }
 
+#    if ORG_BUILD_WITH_CGRAPH
 void graphviz_processor::track_function_start(const function_info& info) {
     call_stack.push(info.name);
     if (call_stack.size() >= 2) {
@@ -234,6 +235,33 @@ void graphviz_processor::add_edge(
     pending_jump.clear();
 }
 
+void hstd::log::graphviz_processor::track_signal_emit(
+    const signal_emit_info& info) {
+    std::string full_name = std::format("{}", info.name);
+    if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name      = full_name,
+            .is_signal = true,
+        });
+}
+
+void hstd::log::graphviz_processor::track_slot_trigger(
+    const slot_trigger_info& info) {
+    std::string full_name = std::format("{}", info.name);
+    call_stack.push(full_name);
+    nodes.insert_or_assign(
+        full_name,
+        node_info{
+            .name    = full_name,
+            .is_slot = true,
+        });
+}
+
+
+#    endif
+
 void logger_processor::track_function_start(const function_info& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
@@ -298,7 +326,7 @@ void logger_processor::track_named_jump(const named_jump_info& info) {
 }
 
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 std::string hstd::descObjectPtr(QObject* obj) {
     return hstd::fmt(
         "'{}' at 0x{:X}",
@@ -346,29 +374,6 @@ void hstd::log::log_graph_tracker::notify_connect(
     for (auto& processor : processors) { processor->track_connect(info); }
 }
 
-void hstd::log::graphviz_processor::track_signal_emit(
-    const signal_emit_info& info) {
-    std::string full_name = std::format("{}", info.name);
-    if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
-    nodes.insert_or_assign(
-        full_name,
-        node_info{
-            .name      = full_name,
-            .is_signal = true,
-        });
-}
-
-void hstd::log::graphviz_processor::track_slot_trigger(
-    const slot_trigger_info& info) {
-    std::string full_name = std::format("{}", info.name);
-    call_stack.push(full_name);
-    nodes.insert_or_assign(
-        full_name,
-        node_info{
-            .name    = full_name,
-            .is_slot = true,
-        });
-}
 
 void hstd::log::logger_processor::track_signal_emit(
     const signal_emit_info& info) {

@@ -1,7 +1,7 @@
 #pragma once
 
 // clang-format off
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 
 #    include <perfetto/perfetto.h>
 #    include <filesystem>
@@ -37,7 +37,7 @@ std::string StopTracing();
 #    define __perf_trace_end(c, ...)                                      \
         TRACE_EVENT_END(c __VA_OPT__(, ) __VA_ARGS__)
 
-#elif ORG_USE_TRACY
+#elif ORG_BUILD_WITH_TRACY
 
 #    pragma clang diagnostic ignored "-Wmacro-redefined"
 #    define TRACY_ENABLE

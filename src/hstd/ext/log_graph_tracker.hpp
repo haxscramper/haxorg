@@ -2,7 +2,7 @@
 
 #if !ORG_BUILD_EMCC
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 #        include <QObject>
 #    endif
 
@@ -14,13 +14,13 @@
 #    include <hstd/ext/graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 #        include <QDebug>
 #        include <QBuffer>
 #    endif
 
 namespace hstd {
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 std::string descObjectPtr(QObject* obj);
 #    endif
 
@@ -106,7 +106,7 @@ struct log_graph_processor {
             : tracked_info{loc}, name{name}, args{args} {}
     };
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
     struct signal_emit_info : public function_info {
         QObject const* sender;
         BOOST_DESCRIBE_STRUCT(
@@ -172,7 +172,7 @@ struct log_graph_processor {
     };
 
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
     struct qobject_info : public tracked_info {
         QObject const* object;
         BOOST_DESCRIBE_STRUCT(qobject_info, (tracked_info), (object));
@@ -214,7 +214,7 @@ struct log_graph_processor {
     virtual void track_named_text(named_text_info const& info) = 0;
     virtual void track_named_jump(named_jump_info const& info) = 0;
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
     virtual void track_signal_emit(signal_emit_info const& info)   = 0;
     virtual void track_slot_trigger(slot_trigger_info const& info) = 0;
     virtual void track_qobject(qobject_info const& info)           = 0;
@@ -310,7 +310,7 @@ struct log_graph_tracker {
     }
 
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 
     void notify_signal_emit(
         log_graph_processor::signal_emit_info const& info);
@@ -410,7 +410,7 @@ struct log_graph_tracker {
                     this_callsite()));
 
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 
 #        define HSLOG_TRACKED_CONNECT(                                    \
             _tracker, _sender, _signal, _receiver, _slot, ...)            \
@@ -436,6 +436,7 @@ struct log_graph_tracker {
 
 #    endif
 
+#    if ORG_BUILD_WITH_CGRAPH
 struct graphviz_processor : public log_graph_processor {
     struct call_info {
         std::string jump_description{};
@@ -460,12 +461,12 @@ struct graphviz_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override {}
     void track_named_jump(named_jump_info const& info) override;
 
-#    if ORG_USE_QT
+#        if ORG_BUILD_WITH_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override {}
     void track_connect(connect_info const& info) override {}
-#    endif
+#        endif
 
     hstd::ext::Graphviz::Graph get_graphviz();
 
@@ -479,6 +480,7 @@ struct graphviz_processor : public log_graph_processor {
 
     void add_edge(std::string const& from, std::string const& to);
 };
+#    endif
 
 struct logger_processor : public log_graph_processor {
     void track_function_start(function_info const& info) override;
@@ -490,7 +492,7 @@ struct logger_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override;
     void track_named_jump(named_jump_info const& info) override;
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override;
@@ -498,7 +500,7 @@ struct logger_processor : public log_graph_processor {
 #    endif
 };
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 
 struct SignalDebugger : public QObject {
     Q_OBJECT

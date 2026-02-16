@@ -279,7 +279,7 @@ struct [[refl(
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
-#if !ORG_BUILD_EMCC
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;

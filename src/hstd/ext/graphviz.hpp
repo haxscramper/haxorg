@@ -1,49 +1,50 @@
 #pragma once
 
-#include <graphviz/gvc.h>
-#include <graphviz/cgraph.h>
-#include <string>
-#include <stdexcept>
-#include <string>
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+#if ORG_BUILD_WITH_CGRAPH
+#    include <graphviz/gvc.h>
+#    include <graphviz/cgraph.h>
+#    include <string>
+#    include <stdexcept>
+#    include <string>
+#    include <hstd/system/all.hpp>
+#    include <hstd/stdlib/Ptrs.hpp>
+#    include <hstd/stdlib/strutils.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/Variant.hpp>
+#    include <hstd/stdlib/Func.hpp>
+#    include <hstd/system/generator.hpp>
+#    include <hstd/stdlib/Filesystem.hpp>
 
-#define _attr_aligned(Method, key, Type)                                  \
-    void set##Method(                                                     \
-        Type const& value, TextAlign direction = TextAlign::Left) {       \
-        setAttr(#key, value, direction);                                  \
-    }                                                                     \
+#    define _attr_aligned(Method, key, Type)                              \
+        void set##Method(                                                 \
+            Type const& value, TextAlign direction = TextAlign::Left) {   \
+            setAttr(#key, value, direction);                              \
+        }                                                                 \
                                                                           \
-    Opt<Type> get##Method() const {                                       \
-        Opt<Type> value;                                                  \
-        getAttr(#key, value);                                             \
-        return value;                                                     \
-    }
+        Opt<Type> get##Method() const {                                   \
+            Opt<Type> value;                                              \
+            getAttr(#key, value);                                         \
+            return value;                                                 \
+        }
 
-#define _attr(Method, key, Type)                                          \
-    void set##Method(Type const& value) { setAttr(#key, value); }         \
+#    define _attr(Method, key, Type)                                      \
+        void set##Method(Type const& value) { setAttr(#key, value); }     \
                                                                           \
-    Opt<Type> get##Method() const {                                       \
-        Opt<Type> value;                                                  \
-        getAttr(#key, value);                                             \
-        return value;                                                     \
-    }
+        Opt<Type> get##Method() const {                                   \
+            Opt<Type> value;                                              \
+            getAttr(#key, value);                                         \
+            return value;                                                 \
+        }
 
-#define _attrx(Method, key, Type) void set##Method(Type const& value);
+#    define _attrx(Method, key, Type) void set##Method(Type const& value);
 
 
-#define _eattr(Name, key, ...)                                            \
-    DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                               \
-    void set##Name(Name value) {                                          \
-        setAttr(#key, enum_serde<Name>::to_string(value));                \
-    }
+#    define _eattr(Name, key, ...)                                        \
+        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                           \
+        void set##Name(Name value) {                                      \
+            setAttr(#key, enum_serde<Name>::to_string(value));            \
+        }
 
 namespace hstd::ext {
 
@@ -763,3 +764,4 @@ class Graphviz {
 };
 
 } // namespace hstd::ext
+#endif

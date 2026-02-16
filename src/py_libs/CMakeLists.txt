@@ -44,11 +44,11 @@ if(${ORG_BUILD_PYHAXORG_BINDINGS})
     target_link_libraries(pyhaxorg PRIVATE ubsan)
   endif()
 
-  if(${ORG_USE_PERFETTO})
+  if(${ORG_BUILD_WITH_PERFETTO})
     target_link_libraries(pyhaxorg PRIVATE Perfetto::perfetto)
   endif()
 
-  if(${ORG_USE_TRACY})
+  if(${ORG_BUILD_WITH_TRACY})
     target_link_libraries(pyhaxorg PUBLIC Tracy::TracyClient)
   endif()
 

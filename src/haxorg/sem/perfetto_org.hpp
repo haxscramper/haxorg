@@ -2,7 +2,7 @@
 
 #include <hstd/ext/perfetto_aux.hpp>
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 // The set of track event categories that the example is using.
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("lexing").SetDescription("Initial lexing run"),

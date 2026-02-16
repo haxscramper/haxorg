@@ -2,7 +2,7 @@
 
 #include <hstd/ext/perfetto_aux.hpp>
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("gui").SetDescription("Gui"),

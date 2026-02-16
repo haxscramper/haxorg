@@ -54,7 +54,7 @@ struct mock_log_graph_processor : public log_graph_processor {
         (named_jump_info const& info),
         (override));
 
-#if ORG_USE_QT
+#if ORG_BUILD_WITH_QT
     MOCK_METHOD(
         void,
         track_qobject,

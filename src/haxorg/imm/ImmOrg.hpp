@@ -889,7 +889,7 @@ void switch_node_fields(
 }
 
 
-#if !ORG_BUILD_EMCC
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 hstd::ext::Graphviz::Graph toGraphviz(
     hstd::Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const&       conf = ImmAstGraphvizConf{});

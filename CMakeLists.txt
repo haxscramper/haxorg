@@ -15,6 +15,8 @@ set(ABSL_CC_LIB_COPTS "-fPIC")
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 project(haxorg LANGUAGES CXX C)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
 set(BASE "${CMAKE_SOURCE_DIR}")
@@ -48,22 +50,23 @@ option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` fi
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
 
 option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
-option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
-option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
-option(ORG_USE_TRACY "Enable performance profiling using tracy" OFF)
+
+option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
 option(ORG_USE_SANITIZER "Use sanitizers" ON)
-option(ORG_USE_QT "Enable Qt-related features and API" OFF)
-option(ORG_USE_IMGUI "Build imgui apps and API" OFF)
+option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
 
 # Optional features in the haxorg library
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_BUILD_WITH_MSGPACK "Include msgpack serialization functionality in the build" ON)
-option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams-based features (graph layout and utilities)"
-       OFF)
+option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
+option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
+option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
+option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
 
 # Optional targets for the build
 option(ORG_BUILD_EMCC "Building for emscripten target" OFF)
@@ -72,19 +75,53 @@ option(ORG_BUILD_INTERNAL_TOOLS "The build and configure internal development to
 option(ORG_BUILD_TEXT_LAYOUTER_BINDINGS "Build text layouter python module library" ON)
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
+option(ORG_BUILD_IMGUI_GUI "Build imgui apps and API" OFF)
+option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
 
-option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
 option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
 
-if(${ORG_USE_TRACY} AND ${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_WITH_CGRAPH})
+  message(FATAL_ERROR "Adaptagrams features require cgraph to be enabled")
+endif()
+
+if(${ORG_BUILD_QT_GUI} AND NOT ${ORG_BUILD_WITH_QT})
   message(
     FATAL_ERROR
-      "Tracy and perfetto profiling are mutually exclusive. Enable either ORG_USE_TRACY or ORG_USE_PERFETTO but not both"
+      "Build configuration enabled Qt GUI but not QT features, set ORG_BUILD_WITH_QT=ON or ORG_BUILD_QT_GUI=OFF to fix."
   )
 endif()
 
-message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
+if(${ORG_BUILD_TESTS}
+   OR ${ORG_BUILD_QT_GUI}
+   OR ${ORG_BUILD_IMGUI_GUI})
+  if(NOT ${ORG_BUILD_WITH_ADAPTAGRAMS}
+     OR NOT ${ORG_BUILD_WITH_CGRAPH}
+     OR NOT ${ORG_BUILD_WITH_MSGPACK}
+     OR NOT ${ORG_BUILD_WITH_PROTOBUF})
+    message(
+      STATUS "ORG_BUILD_WITH_ADAPTAGRAMS = ${ORG_BUILD_WITH_ADAPTAGRAMS} -- must be ON\n"
+             "-- ORG_BUILD_WITH_CGRAPH = ${ORG_BUILD_WITH_CGRAPH} -- must be ON\n"
+             "-- ORG_BUILD_WITH_MSGPACK = ${ORG_BUILD_WITH_MSGPACK} -- must be ON\n"
+             "-- ORG_BUILD_WITH_PROTOBUF = ${ORG_BUILD_WITH_PROTOBUF} -- must be ON\n"
+             "-- Alternatively, disable test/example compilation:\n"
+             "-- ORG_BUILD_TESTS = ${ORG_BUILD_TESTS} -- must be OFF\n"
+             "-- ORG_BUILD_WITH_QT = ${ORG_BUILD_WITH_QT} -- must be OFF\n"
+             "-- ORG_BUILD_IMGUI_GUI = ${ORG_BUILD_IMGUI_GUI} -- must be OFF\n")
+    message(
+      FATAL_ERROR
+        "Test or example compilation is enabled, but one of the optional build features it not. "
+        "Test suite expects the full set of features to be available. "
+        "See detailed status earlier in the logs. ")
+  endif()
+endif()
+
+if(${ORG_BUILD_WITH_TRACY} AND ${ORG_BUILD_WITH_PERFETTO})
+  message(
+    FATAL_ERROR
+      "Tracy and perfetto profiling are mutually exclusive. Enable either ORG_BUILD_WITH_TRACY or ORG_BUILD_WITH_PERFETTO but not both"
+  )
+endif()
 
 if(${ORG_BUILD_EMCC})
   if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
@@ -98,6 +135,7 @@ endif()
 
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
+message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
 
 if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   add_definitions(-DORG_USE_CONAN_INSTALL=1)
@@ -178,7 +216,7 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(pybind11 CONFIG REQUIRED)
 endif()
 
-if(${ORG_USE_TRACY})
+if(${ORG_BUILD_WITH_TRACY})
   find_package(Tracy CONFIG REQUIRED)
 endif()
 
@@ -219,7 +257,7 @@ endif()
 find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(lexy CONFIG REQUIRED)
-if(${ORG_USE_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
@@ -278,12 +316,12 @@ if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
 endif()
 
-if(${ORG_USE_QT})
+if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
   add_subdirectory(src/app/org_diagram)
 endif()
 
-if(${ORG_USE_IMGUI})
+if(${ORG_BUILD_IMGUI_GUI})
   add_subdirectory(src/app/org_imgui)
 endif()
 

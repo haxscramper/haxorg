@@ -1,7 +1,7 @@
 #pragma once
 
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
 
 #    include <hstd/ext/perfetto_aux.hpp>
 
