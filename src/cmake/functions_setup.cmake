@@ -76,6 +76,7 @@ function(set_target_flags_impl)
   if(${ORG_BUILD_ASSUME_CLANG})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
     add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+    add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
