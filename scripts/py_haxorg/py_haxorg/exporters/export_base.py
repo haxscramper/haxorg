@@ -8,7 +8,6 @@ from beartype.typing import Any, Callable, Generator, List, Set
 from py_haxorg.layout.wrap import *
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm
-from py_scriptutils.script_logging import log
 
 
 def with_export_context(func: Callable) -> Callable:

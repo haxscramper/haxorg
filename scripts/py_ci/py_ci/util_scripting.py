@@ -213,7 +213,7 @@ def cmake_opt(name: str, value: Union[str, bool, Path, None, List, int]) -> str:
     """Convert a Python value to a CMake `-D` option string: `-D<name>=<value>`
     """
     result = "-D" + name + "="
-    if isinstance(value, (str, Path, int)):
+    if isinstance(value, (str, Path)):
         result += str(value)
 
     elif isinstance(value, bool):
@@ -221,6 +221,9 @@ def cmake_opt(name: str, value: Union[str, bool, Path, None, List, int]) -> str:
 
     elif isinstance(value, list):
         result += ";".join([str(it) for it in value])
+
+    elif isinstance(value, int):
+        result += str(value)
 
     elif value is None:
         result += "OFF"

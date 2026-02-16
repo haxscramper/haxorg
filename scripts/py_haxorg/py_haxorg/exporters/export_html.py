@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-from beartype import beartype
 from beartype.typing import Any, Callable, List, Literal, Optional
 import dominate
 import dominate.tags as tags
@@ -8,7 +5,6 @@ from dominate.util import text
 from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
 
 CAT = "haxorg.export.html"
 

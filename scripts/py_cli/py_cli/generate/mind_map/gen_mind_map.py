@@ -147,8 +147,9 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
 def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
+    "Main CLI entry point for mind map generation command"
     log(CAT).info("Starting mind map generation")
-    result = gen_mind_map(haxorg_cli.get_opts(ctx))
+    result = gen_mind_map(haxorg_cli.get_run(ctx))
     log(CAT).info(f"Typst file in {result.final_typst}")
     log(CAT).info(f"Dump of the mind map model {result.mman_initial_path}")
     log(CAT).info(f"MMAP ELK structure {result.mmap_elk_dump}")

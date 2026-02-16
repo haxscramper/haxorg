@@ -1993,10 +1993,14 @@ version = "0.1.0"
 source = { editable = "scripts/py_haxorg" }
 dependencies = [
     { name = "beartype" },
+    { name = "dominate" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "beartype", specifier = ">=0.22.0" }]
+requires-dist = [
+    { name = "beartype", specifier = ">=0.22.0" },
+    { name = "dominate", specifier = ">=2.0.0,<3.0.0" },
+]
 
 [[package]]
 name = "py-repository"
