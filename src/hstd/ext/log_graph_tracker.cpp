@@ -2,8 +2,11 @@
 
 #if !ORG_BUILD_EMCC
 
-#    include <graphviz/gvc.h>
-#    include <graphviz/cgraph.h>
+#    if ORG_BUILD_WITH_CGRAPH
+#        include <graphviz/gvc.h>
+#        include <graphviz/cgraph.h>
+#    endif
+
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
 #    include <hstd/ext/graphviz.hpp>

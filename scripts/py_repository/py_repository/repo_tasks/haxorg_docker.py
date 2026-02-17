@@ -11,7 +11,7 @@ import docker
 import docker.errors
 import docker.models.containers
 import docker.types
-from py_ci.util_scripting import get_docker_cap_flags
+from py_ci.util_scripting import get_docker_cap_flags, get_threading_count
 from py_repository.repo_tasks.command_execution import (
     clone_repo_with_uncommitted_changes,
     get_cmd_debug_file,
@@ -72,8 +72,10 @@ def create_bind_mounts(ctx: TaskContext,
         "nodoc"
         for m in mappings:
             if len(m) == 2:
+                assert m[1].exists()
                 yield m
             else:
+                assert Path(m).exists()
                 yield (m, Path(m))
 
     return [
@@ -268,20 +270,38 @@ def _run_docker_release_test_impl(
     cap_add = ["SYS_PTRACE"]
     client = docker.from_env()
 
+    def verify_mount(verify_context: TaskContext, repo_root: Path):
+        "Debug function to check if directory content was mounted properly"
+        run_command(verify_context, "ls", ["-al"], print_output=True)
+        run_command(verify_context, "ls", ["-l", repo_root], print_output=True)
+        run_command(verify_context,
+                    "ls", ["-l", str(repo_root.joinpath("src"))],
+                    print_output=True)
+        assert ctx_read_text(verify_context, repo_root.joinpath("conanfile.py"))
+        assert ctx_read_text(verify_context, repo_root.joinpath("CMakeLists.txt"))
+        assert ctx_read_text(verify_context,
+                             repo_root.joinpath("src/hstd/CMakeLists.txt"))
+        assert ctx_read_text(verify_context,
+                             repo_root.joinpath("src/hstd/CMakeLists.txt"))
+
+    verify_mount(ctx, get_script_root(ctx))
+
     mounts = create_bind_mounts(
         ctx,
         [
             ("thirdparty", Path(get_script_root(ctx, "thirdparty"))),
-            ("src", source_prefix),
+            ("src", source_prefix.joinpath("src")),
             ("wip", build_dir_path),
             "CMakeLists.txt",
             "conanfile.py",
+            "HaxorgConfig.cmake.in",
+            "tests",
         ],
         container_prefix="/haxorg",
     )
 
     cow_root = get_tmpdir("docker_release_cow")
-    mounts = create_overlay_mount_points(ctx, mounts=mounts, cow_root=cow_root)
+    # mounts = create_overlay_mount_points(ctx, mounts=mounts, cow_root=cow_root)
 
     container: docker.models.containers.Container = client.containers.run(
         ctx.config.HAXORG_DOCKER_RELEASE_IMAGE,
@@ -298,6 +318,7 @@ def _run_docker_release_test_impl(
     dctx.config.use_unchanged_tasks = True
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
+    verify_mount(dctx, Path("/haxorg"))
 
     python_binary = get_python_binary(dctx)
     log(CAT).info(f"Using python binary {python_binary}")
@@ -322,23 +343,14 @@ tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
 tools.cmake.cmaketoolchain:generator=Ninja
 """)
 
-    run_command(dctx, "ls", ["-al"], print_output=True)
-    run_command(dctx, "ls", ["-l", "/haxorg"], print_output=True)
-    run_command(dctx, "ls", ["-l", "/haxorg/src"], print_output=True)
-    content = ctx_read_text(dctx, Path("/haxorg/src/hstd/CMakeLists.txt"))
-    assert content
+    # try:
+    run_command(dctx, "conan", [
+        "create", ".", "-vverbose", "--test-folder=tests/vendor/conan_test_package",
+        "--build=missing", "-c", f"tools.build:jobs={get_threading_count()}"
+    ])
 
-    try:
-        run_command(dctx, "conan", [
-            "create",
-            ".",
-            "-vverbose",
-            "--test-folder=tests/vendor/conan_test_package",
-            "--build=missing",
-        ])
-
-    finally:
-        cleanup_overlay_mount_points(ctx, cow_root=cow_root)
+    # finally:
+    #     cleanup_overlay_mount_points(ctx, cow_root=cow_root)
 
 
 @haxorg_task(dependencies=[])

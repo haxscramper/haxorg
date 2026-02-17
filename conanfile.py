@@ -37,17 +37,21 @@ class HaxorgConan(ConanFile):
     }
 
     def requirements(self):
-        self.requires("cpptrace/[>=1.0.4 <2]")
+        self.requires("cpptrace/[>=1.0.4 <2]",
+                      transitive_headers=True,
+                      transitive_libs=True)
         self.requires("foonathan-lexy/[>=2025.05.0 <2026]")
-        self.requires("cctz/[>=2.4 <3]")
+        self.requires("cctz/[>=2.4 <3]", transitive_headers=True, transitive_libs=True)
         self.requires("zstd/[>=1.5.7 <2]")
         self.requires("pybind11/[>=3.0.1 <4]")
         self.requires("openssl/[>=3.6.1 <4]")
         self.requires("yaml-cpp/[>=0.8.0 <1]")
         self.requires("range-v3/[>=0.12.0 <1]")
-        self.requires("immer/[>=0.8.1 <1]")
-        self.requires("lager/[>=0.1.1 <1]")
-        self.requires("nlohmann_json/[>=3.12.0 <4]")
+        self.requires("immer/[>=0.8.1 <1]", transitive_headers=True, transitive_libs=True)
+        self.requires("lager/[>=0.1.1 <1]", transitive_headers=True, transitive_libs=True)
+        self.requires("nlohmann_json/[>=3.12.0 <4]",
+                      transitive_headers=True,
+                      transitive_libs=True)
         self.requires("boost/[>=1.90.0 <2]", override=True)
 
         if self.options.use_perfetto:
