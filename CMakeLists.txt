@@ -208,7 +208,9 @@ else()
                INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
 endif()
 
-if(NOT ${ORG_BUILD_EMCC})
+if(NOT ${ORG_BUILD_EMCC}
+   AND ${ORG_BUILD_PYHAXORG_BINDINGS}
+   AND ${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
   find_package(
     Python
     COMPONENTS Interpreter Development
