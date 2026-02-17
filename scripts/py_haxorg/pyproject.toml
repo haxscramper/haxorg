@@ -8,6 +8,15 @@ requires-python = ">=3.10,<3.14"
 dependencies = [
   "beartype>=0.22.0",
   "dominate>=2.0.0,<3.0.0",
+  "py_scriptutils",
+  "rich>=13.0.0,<14.0.0",
+  "jsonpath-ng>=1.6.1,<2.0.0",
+  "sqlalchemy>=2.0.0,<3.0.0",
+  "more-itertools>=10.1.0,<11.0.0",
+  "pydantic>=2.4.2,<3.0.0",
+  "toml>=0.10.2,<0.11.0",
+  "rich-click>=1.6.1,<2.0.0",
+  "pyyaml>=6.0.1,<7.0.0",
 ]
 
 [build-system]
@@ -21,6 +30,7 @@ package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["build", "build.*"]
 
 # scikit-build-core configuration (used for full builds)
 [tool.scikit-build]

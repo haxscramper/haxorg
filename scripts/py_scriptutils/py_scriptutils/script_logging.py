@@ -5,8 +5,9 @@ import os
 from pathlib import Path
 import sys
 import traceback
-from types import MethodType
+from typing import Dict
 
+from beartype import beartype
 from beartype.typing import Any, Callable, Literal, Optional, Set
 from rich.console import Console
 from rich.logging import RichHandler
@@ -352,20 +353,6 @@ def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) 
 
     if hasattr(exc_value, "__rich_msg__"):
         console.print(getattr(exc_value, "__rich_msg__"))
-
-
-sys.excepthook = custom_traceback_handler
-
-log("graphviz").setLevel(logging.ERROR)
-log("asyncio").setLevel(logging.ERROR)
-log("matplotlib").setLevel(logging.WARNING)
-
-import logging
-from pathlib import Path
-from typing import Dict
-
-from beartype import beartype
-from rich.text import Text
 
 
 class MultiFileHandler(logging.Handler):

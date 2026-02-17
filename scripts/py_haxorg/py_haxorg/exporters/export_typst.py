@@ -4,7 +4,7 @@ import shutil
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List
-import py_codegen.astbuilder_typst as typ
+import py_haxorg.astbuilder.astbuilder_typst as typ
 from py_haxorg.exporters.export_base import ExporterBase, with_export_context
 from py_haxorg.layout.wrap import BlockId
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags

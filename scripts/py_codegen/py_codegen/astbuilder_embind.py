@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Union
-from py_codegen.astbuilder_base import pascal_case
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.gen_tu_cpp import *
+from py_haxorg.astbuilder.astbuilder_base import pascal_case
 
 
 @beartype

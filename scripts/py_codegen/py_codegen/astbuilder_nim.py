@@ -4,7 +4,7 @@ import re
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-import py_codegen.astbuilder_base as base
+import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
 
 

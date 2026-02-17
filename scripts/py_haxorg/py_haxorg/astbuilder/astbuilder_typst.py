@@ -5,7 +5,7 @@ from typing import TypeAlias
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
-import py_codegen.astbuilder_base as base
+import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
 from py_scriptutils.algorithm import cond, maybe_splice
 from pydantic import BaseModel

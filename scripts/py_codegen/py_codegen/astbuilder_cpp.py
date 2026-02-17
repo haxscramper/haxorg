@@ -18,8 +18,8 @@ from beartype.typing import (
     Tuple,
     Union,
 )
-from py_codegen.astbuilder_base import pascal_case
-import py_codegen.astbuilder_base as base
+from py_haxorg.astbuilder.astbuilder_base import pascal_case
+import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
 from pydantic import BaseModel, Field
 
