@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+import sys
 
 from beartype.typing import Any, Optional
 import commentjson
@@ -22,10 +23,7 @@ from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import (
-    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS,
-    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED,
-    CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME,
-    CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE,
+    get_custom_traceback_handler,
     log,
     setup_multi_file_logging,
 )
@@ -40,8 +38,6 @@ from pydantic import BaseModel, Field
 import rich_click as click
 
 CAT = __name__
-
-logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 
 
 class WorkflowOptions(BaseModel):
@@ -63,8 +59,12 @@ def workflow_options(f: Any) -> Any:
 @workflow_options
 @click.pass_context
 def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
+    "CLI entry point for the workflow script"
     opts = pack_context(ctx, WorkflowOptions, cli_kwargs=get_user_provided_params(ctx))
     setup_multi_file_logging(Path(opts.workflow_log_dir))
+
+    logging.getLogger("plumbum.local").setLevel(logging.WARNING)
+    sys.excepthook = get_custom_traceback_handler(show_args=False,)
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
     config_json = HaxorgConfig().model_dump()

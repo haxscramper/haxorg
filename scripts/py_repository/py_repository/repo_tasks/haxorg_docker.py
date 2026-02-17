@@ -20,6 +20,8 @@ from py_repository.repo_tasks.command_execution import (
     run_command,
 )
 from py_repository.repo_tasks.common import (
+    ctx_read_text,
+    ctx_write_text,
     docker_user,
     ensure_clean_file,
     ensure_existing_dir,
@@ -62,15 +64,24 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 
 
 def create_bind_mounts(ctx: TaskContext,
-                       mappings: List[Tuple[str, Path]],
+                       mappings: List[Tuple[str, Path] | str],
                        container_prefix: str = "/haxorg") -> List[docker.types.Mount]:
     """Create bind mounts from (container_relative_path, host_path) pairs."""
+
+    def get_mappings():
+        "nodoc"
+        for m in mappings:
+            if len(m) == 2:
+                yield m
+            else:
+                yield (m, Path(m))
+
     return [
         docker.types.Mount(
             target=f"{container_prefix}/{name}" if name else container_prefix,
             source=str(host_path.resolve()),
             type="bind",
-            read_only=False) for name, host_path in mappings
+            read_only=False) for name, host_path in get_mappings()
     ]
 
 
@@ -263,6 +274,8 @@ def _run_docker_release_test_impl(
             ("thirdparty", Path(get_script_root(ctx, "thirdparty"))),
             ("src", source_prefix),
             ("wip", build_dir_path),
+            "CMakeLists.txt",
+            "conanfile.py",
         ],
         container_prefix="/haxorg",
     )
@@ -289,15 +302,40 @@ def _run_docker_release_test_impl(
     python_binary = get_python_binary(dctx)
     log(CAT).info(f"Using python binary {python_binary}")
 
-    run_command(dctx, "git", [
-        "config",
-        "--global",
-        "safe.directory",
-        "*",
-    ])
+    run_command(dctx, "git", ["config", "--global", "safe.directory", "*"])
+
+    default_path = Path("/root/.conan2/profiles/default")
+    ensure_existing_dir(dctx, default_path.parent)
+    ctx_write_text(
+        dctx, default_path, """
+[settings]
+arch=x86_64
+build_type=Release
+compiler=clang
+compiler.cppstd=23
+compiler.version=20
+compiler.libcxx=libstdc++11
+os=Linux
+
+[conf]
+tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
+tools.cmake.cmaketoolchain:generator=Ninja
+""")
+
+    run_command(dctx, "ls", ["-al"], print_output=True)
+    run_command(dctx, "ls", ["-l", "/haxorg"], print_output=True)
+    run_command(dctx, "ls", ["-l", "/haxorg/src"], print_output=True)
+    content = ctx_read_text(dctx, Path("/haxorg/src/hstd/CMakeLists.txt"))
+    assert content
 
     try:
-        pass
+        run_command(dctx, "conan", [
+            "create",
+            ".",
+            "-vverbose",
+            "--test-folder=tests/vendor/conan_test_package",
+            "--build=missing",
+        ])
 
     finally:
         cleanup_overlay_mount_points(ctx, cow_root=cow_root)
