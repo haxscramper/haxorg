@@ -328,25 +328,19 @@ def _run_docker_release_test_impl(
     default_path = Path("/root/.conan2/profiles/default")
     ensure_existing_dir(dctx, default_path.parent)
     ctx_write_text(
-        dctx, default_path, """
-[settings]
-arch=x86_64
-build_type=Release
-compiler=clang
-compiler.cppstd=23
-compiler.version=20
-compiler.libcxx=libstdc++11
-os=Linux
-
-[conf]
-tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
-tools.cmake.cmaketoolchain:generator=Ninja
-""")
+        dctx, default_path,
+        get_script_root(ctx).joinpath(
+            "scripts/py_ci/py_ci/conan_default_profile.ini").read_text())
 
     # try:
     run_command(dctx, "conan", [
-        "create", ".", "-vverbose", "--test-folder=tests/vendor/conan_test_package",
-        "--build=missing", "-c", f"tools.build:jobs={get_threading_count()}"
+        "create",
+        ".",
+        "-vverbose",
+        "--test-folder=tests/vendor/conan_test_package",
+        "--build=missing",
+        "-c",
+        f"tools.build:jobs={get_threading_count()}",
     ])
 
     # finally:

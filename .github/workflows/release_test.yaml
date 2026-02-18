@@ -3,20 +3,25 @@ name: Docker release test
 on:
   push:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   docker-test:
-    concurrency:
-      group: release-test-${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
-
     runs-on: ubuntu-latest
+    container: fedora:latest
 
     steps:
+    - run: dnf -y install git python-devel which unzip cmake ninja clang conan python3 python3-devel python3-pip curl wget git
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    - run: git config --global safe.directory "*"
+    - run: mkdir -p ~/.conan2/profiles
+    - run: cp scripts/py_ci/py_ci/conan_default_profile.ini ~/.conan2/profiles/default
+    - run: conan create . -vverbose --test-folder=tests/vendor/conan_test_package --build=missing
+    - run: uv run -C HAXORG_PY_SOURCE_DISTRIBUTION=1 \
+        ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg \
+        --test-package tests/vendor/haxorg_py_test_package
