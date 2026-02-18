@@ -9,7 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-      - run: pacman -Syu --noconfirm clang python-pip git
+      - run: |
+          pacman -Syu --noconfirm clang python-pip git base-devel sudo
+          useradd -m builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+          su - builder -c "git clone https://aur.archlinux.org/cmake-format.git /tmp/cmake-format && cd /tmp/cmake-format && makepkg -si --noconfirm"
       - uses: actions/checkout@v4
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: astral-sh/setup-uv@v4
