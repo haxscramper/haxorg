@@ -1,10 +1,7 @@
 import enum
 
-from beartype.typing import Any
-from beartype.typing import List
-from beartype.typing import Optional
-from pydantic import BaseModel
-from pydantic import Field
+from beartype.typing import Any, List, Optional
+from pydantic import BaseModel, Field
 
 
 class ProfdataCookie(BaseModel, extra="forbid"):

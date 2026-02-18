@@ -12,7 +12,7 @@ struct logic_unhandled_kind_error
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
         auto result = logic_unhandled_kind_error{};
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
         result.eager = cpptrace::generate_trace();
 #endif
         result.msg = "Unexpected kind ";

@@ -36,7 +36,7 @@ dependencies = [
   "asteval>=0.9.33,<0.10.0",
   "mypy>=1.11.0,<2.0.0",
   "ansi2html>=1.9.2,<2.0.0",
-  "psutil>=6.1.1,<7.0.0",
+  "psutil>=6.1.1,<8.0.0",
   "pyqt6>=6.9.1,<7.0.0",
   "fuzzywuzzy>=0.18.0,<0.19.0",
   "python-levenshtein>=0.27.1,<0.28.0",
@@ -56,13 +56,13 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "tree-sitter>=0.25.2",
-    "tree-sitter-cpp>=0.23.4",
+  "grimp>=3.14",
+  "sphinx>=8.1.3",
+  "tree-sitter>=0.25.2",
+  "tree-sitter-cpp>=0.23.4",
 ]
 local = [
   "py_ci",
-  "py_textlayout",
-  "py_exporters",
   "py_scriptutils",
   "py_codegen",
   "py_cli",
@@ -74,32 +74,37 @@ local = [
 
 [tool.uv.workspace]
 members = [
-    "scripts/py_haxorg",
-    "scripts/py_ci",
-    "scripts/py_textlayout",
-    "scripts/py_exporters",
-    "scripts/py_scriptutils",
-    "scripts/py_codegen",
-    "scripts/py_cli",
-    "scripts/py_repository",
-    "scripts/py_wrappers",
-    "scripts/cxx_repository",
+  "scripts/py_haxorg",
+  "scripts/py_ci",
+  "scripts/py_scriptutils",
+  "scripts/py_codegen",
+  "scripts/py_cli",
+  "scripts/py_repository",
+  "scripts/py_wrappers",
+  "scripts/cxx_repository",
+]
+exclude = [
+  "scripts/py_repository/py_repository/code_analysis/codechecker_environment",
 ]
 
 [tool.uv.sources]
-py_ci           = { workspace = true }
-py_textlayout   = { workspace = true }
-py_exporters    = { workspace = true }
-py_scriptutils  = { workspace = true }
-py_codegen      = { workspace = true }
-py_cli          = { workspace = true }
-py_repository   = { workspace = true }
-py_wrappers     = { workspace = true }
-cxx_repository  = { workspace = true }
-py_haxorg       = { workspace = true }
+py_ci = { workspace = true }
+py_scriptutils = { workspace = true }
+py_codegen = { workspace = true }
+py_cli = { workspace = true }
+py_repository = { workspace = true }
+py_wrappers = { workspace = true }
+cxx_repository = { workspace = true }
+py_haxorg = { workspace = true }
 
 [tool.isort]
 profile = "google"
+force_single_line = false
+force_sort_within_sections = true
+combine_as_imports = true
+multi_line_output = 3
+line_length = 90
+include_trailing_comma = true
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
@@ -113,16 +118,16 @@ testpaths = ["tests"]
 addopts = "--color=yes"
 console_output_style = "classic"
 markers = [
-    "unstable: fuzzy tests that can randomly fail in CI",
-    "x11: must be run in x11 environment to work",
-    "bad_asan: code triggers sanitizer error", # External libraries cannot be fixed and trigger errors
-    "test_coverage_annotation_file_cxx: C++ test coverage annotation extraction for a file",
-    "test_gtest_class(name, params): C++ Google test class runner",
-    "test_gtest_function(name, params): C++ Google test individual test instance",
-    "test_gtest_tag(tag): Additional metadata tagging for the google test annotations",
-    "test_gtest: C++ google test wrapped as pytest-runnable",
-    "test_qtest: Qtest wrapped as pytest-runnable",
-    "test_release: Reduced test suite done from the packaged release",
+  "unstable: fuzzy tests that can randomly fail in CI",
+  "x11: must be run in x11 environment to work",
+  "bad_asan: code triggers sanitizer error",                                               # External libraries cannot be fixed and trigger errors
+  "test_coverage_annotation_file_cxx: C++ test coverage annotation extraction for a file",
+  "test_gtest_class(name, params): C++ Google test class runner",
+  "test_gtest_function(name, params): C++ Google test individual test instance",
+  "test_gtest_tag(tag): Additional metadata tagging for the google test annotations",
+  "test_gtest: C++ google test wrapped as pytest-runnable",
+  "test_qtest: Qtest wrapped as pytest-runnable",
+  "test_release: Reduced test suite done from the packaged release",
 ]
 
 [tool.ruff]
@@ -133,7 +138,9 @@ ignore = [
   "F841", # Assigned but never used
   "F522", # UNused format arguments
   "F401", # Imported but not used -- just drives me crazy when I write code
+  "E712", # Allow comparisons to `== False`, they can be more readable/explicit
 ]
+
 
 [tool.yapf]
 based_on_style = "google"

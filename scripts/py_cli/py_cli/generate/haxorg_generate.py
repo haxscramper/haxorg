@@ -1,7 +1,5 @@
-from beartype.typing import Any
-from beartype.typing import Optional
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
+from beartype.typing import Any, Optional
+from py_cli import haxorg_cli, haxorg_opts
 from py_scriptutils.script_logging import log
 import rich_click as click
 
@@ -15,12 +13,14 @@ def generate(ctx: click.Context, **kwargs: Any) -> None:
     """Generate/analyze input org-mode document"""
 
 
-from py_cli.generate import codex_tracking
-from py_cli.generate import node_clouds
-from py_cli.generate import sort_repository_tags
-from py_cli.generate import story_grid
-from py_cli.generate import subtree_clocking
-from py_cli.generate import todo_collector
+from py_cli.generate import (
+    codex_tracking,
+    node_clouds,
+    sort_repository_tags,
+    story_grid,
+    subtree_clocking,
+    todo_collector,
+)
 from py_cli.generate.mind_map import gen_mind_map
 
 generate.add_command(node_clouds.node_cloud_cli)

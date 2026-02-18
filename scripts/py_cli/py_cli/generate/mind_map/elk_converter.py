@@ -1,22 +1,23 @@
 #!/usr/bin/env python
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 from numbers import Number
 from pathlib import Path
 import pickle
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
-from beartype.typing import Set
-from beartype.typing import Tuple
-from beartype.typing import Union
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 import igraph as ig
 import numpy as np
 from PIL import Image
@@ -24,8 +25,7 @@ from py_cli.generate.mind_map import elk_schema
 import py_cli.generate.mind_map.typst_schema as typ
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel
-from shapely.geometry import LineString
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Polygon
 from shapely.ops import unary_union
 from sklearn.cluster import KMeans
 

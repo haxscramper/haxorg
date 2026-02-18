@@ -2,8 +2,7 @@ import copy
 from numbers import Number
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
+from beartype.typing import Any, Dict
 from dominate import tags
 
 

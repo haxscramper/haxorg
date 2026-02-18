@@ -1,13 +1,7 @@
 from typing import Type, TYPE_CHECKING
 
-from py_scriptutils.sqlalchemy_utils import ForeignId
-from py_scriptutils.sqlalchemy_utils import IdColumn
-from py_scriptutils.sqlalchemy_utils import IntColumn
-from py_scriptutils.sqlalchemy_utils import StrColumn
-from sqlalchemy import Column
-from sqlalchemy import ForeignKey
-from sqlalchemy import Integer
-from sqlalchemy import String
+from py_scriptutils.sqlalchemy_utils import ForeignId, IdColumn, IntColumn, StrColumn
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base
 
 if TYPE_CHECKING:

@@ -1,28 +1,14 @@
-import copy
-from functools import wraps
-import inspect
 import os
 from pathlib import Path
 import shutil
-import tempfile
-import typing
 
 from beartype import beartype
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import Iterable, List, Optional
 import docker.models.containers
 from plumbum import local
 import psutil
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import TaskContext
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
-from py_scriptutils.tracer import GlobCompleteEvent
-from py_scriptutils.tracer import GlobExportJson
 
 CAT = __name__
 
@@ -174,19 +160,27 @@ def ctx_read_text(ctx: TaskContext, path: Path) -> str:
 
 
 @beartype
-def ctx_remove_file(ctx: TaskContext, path: Path) -> None:
+def ctx_remove_path(ctx: TaskContext, path: Path) -> None:
+    """
+    Remove specified path from the local filesystem or the currently active
+    docker container. The function will remove both files and directories.
+    """
     if ctx.docker_container is not None:
         exit_code, output = ctx.docker_container.exec_run(
-            cmd=["rm", str(path)],
+            cmd=["rm", "-r", str(path)],
             demux=True,
         )
         if exit_code != 0:
             _, stderr = output
             raise RuntimeError(
-                f"Failed to remove file {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
+                f"Failed to remove path {path}: {stderr.decode('utf-8') if stderr else 'unknown error'}"
             )
     else:
-        path.unlink()
+        import shutil
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
 
 
 @beartype

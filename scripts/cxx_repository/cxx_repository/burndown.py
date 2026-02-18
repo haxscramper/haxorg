@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from cxx_repository.orm_model import Base
-from cxx_repository.orm_model import ViewFullFileSectionLines
+from cxx_repository.orm_model import Base, ViewFullFileSectionLines
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np

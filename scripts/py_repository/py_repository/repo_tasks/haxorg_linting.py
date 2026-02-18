@@ -1,13 +1,16 @@
 import itertools
 
+from py_ci.util_scripting import get_threading_count
 from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.common import get_workflow_out
-from py_repository.repo_tasks.common import get_workflow_tmp
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.common import (
+    ensure_existing_dir,
+    get_script_root,
+    get_workflow_out,
+    get_workflow_tmp,
+)
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
+import requests
 
 CAT = __name__
 
@@ -71,3 +74,129 @@ def run_mypy(ctx: TaskContext) -> None:
         log(CAT).warning(f"Wrote full report to {report_file}")
 
     # assert not had_fails
+
+
+def _is_http_up(url="http://127.0.0.1:8001/", timeout=1.0) -> bool:
+    "Check if codechecker server is running at the default IP"
+    try:
+        r = requests.get(url, timeout=timeout, allow_redirects=True)
+        return r.status_code < 500
+    except requests.RequestException:
+        return False
+
+
+@haxorg_task()
+def run_codechecker_server(ctx: TaskContext):
+    "Run codechecker server for analysis upload"
+    tool_dir = get_script_root(ctx).joinpath(
+        "scripts/py_repository/py_repository/code_analysis/codechecker_environment")
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            "--project",
+            str(tool_dir),
+            "run",
+            "CodeChecker",
+            "server",
+        ],
+        print_output=True,
+    )
+
+
+@haxorg_task()
+def run_codechecker_analysis(ctx: TaskContext):
+    "run codechecker on the whole cxx code"
+    tool_dir = get_script_root(ctx).joinpath(
+        "scripts/py_repository/py_repository/code_analysis/codechecker_environment")
+
+    compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
+    analysis_artifact_outdir = get_script_root(ctx, "build/codechecker_result")
+    analysis_artifact_structured = get_script_root(ctx, "build/codechecker_structured")
+    ensure_existing_dir(ctx, analysis_artifact_outdir)
+
+    run_cmd = [
+        "--project",
+        str(tool_dir),
+        "run",
+        "CodeChecker",
+    ]
+
+    jobs_cmd = [
+        "--jobs",
+        str(int(get_threading_count() * 0.5)),
+    ]
+
+    skip_cmd = [
+        "--skip",
+        str(tool_dir.joinpath("skip.txt")),
+    ]
+
+    assert _is_http_up(
+    ), "Analysis commands requires a working codechecker server to upload results run the server with `run_codechecker_server` command"
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            *run_cmd,
+            "analyze",
+            compile_commands,
+            "--ctu-collect",
+            *skip_cmd,
+            "--output",
+            analysis_artifact_outdir,
+            *jobs_cmd,
+        ],
+        print_output=True,
+    )
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            *run_cmd,
+            "analyze",
+            compile_commands,
+            "--ctu-analyze",
+            *skip_cmd,
+            "--output",
+            analysis_artifact_outdir,
+            *jobs_cmd,
+        ],
+        print_output=True,
+        allow_fail=True,
+    )
+
+    code, stdout, stderr = run_command(
+        ctx,
+        "uv",
+        [
+            *run_cmd,
+            "parse",
+            analysis_artifact_outdir,
+            "--print-steps",
+        ],
+        capture=True,
+        allow_fail=True,
+    )
+
+    ensure_existing_dir(ctx, analysis_artifact_structured)
+    analysis_artifact_structured.joinpath("reports.txt").write_text(stdout)
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            *run_cmd,
+            "store",
+            analysis_artifact_outdir,
+            "--name",
+            "haxorg",
+            "--url",
+            "localhost:8001/Default",
+        ],
+        print_output=True,
+        allow_fail=True,
+    )

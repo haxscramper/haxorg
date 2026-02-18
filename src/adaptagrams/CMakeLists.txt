@@ -1,4 +1,4 @@
-if(NOT ${ORG_EMCC_BUILD})
+if(NOT ${ORG_BUILD_EMCC})
 
   set(COLA_DIR "${DEPS_DIR}/adaptagrams/cola")
   include(CMakeParseArguments)
@@ -7,9 +7,9 @@ if(NOT ${ORG_EMCC_BUILD})
   haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
   target_link_libraries(
     adaptagrams
-    PUBLIC Adaptagrams::cola
+    PUBLIC Adaptagrams::dialect
+           Adaptagrams::cola
            Adaptagrams::avoid
-           Adaptagrams::dialect
            Adaptagrams::topology
            Adaptagrams::vpsc
            hstd
@@ -46,11 +46,11 @@ if(NOT ${ORG_EMCC_BUILD})
     target_link_libraries(py_adaptagrams PRIVATE ubsan)
   endif()
 
-  if(${ORG_USE_PERFETTO})
+  if(${ORG_BUILD_WITH_PERFETTO})
     target_link_libraries(py_adaptagrams PRIVATE Perfetto::perfetto)
   endif()
 
-  if(${ORG_USE_TRACY})
+  if(${ORG_BUILD_WITH_TRACY})
     target_link_libraries(py_adaptagrams PUBLIC Tracy::TracyClient)
   endif()
 endif()

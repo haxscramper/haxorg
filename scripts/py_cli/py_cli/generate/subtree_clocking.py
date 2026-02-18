@@ -1,27 +1,20 @@
 #!/usr/bin/env python
 
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import functools
 import itertools
 from pathlib import Path
 import statistics
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
+from beartype.typing import Any, List, Optional, Tuple
 import pandas as pd
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
-from py_exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import evalDateTime
-from py_haxorg.pyhaxorg_utils import getFlatTags
+from py_cli import haxorg_cli, haxorg_opts
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 import rich_click as click
 
 CAT = __name__

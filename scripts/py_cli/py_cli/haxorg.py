@@ -3,12 +3,11 @@
 import sys
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Optional
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
-from py_scriptutils.script_logging import custom_traceback_handler
-from py_scriptutils.script_logging import log
+from beartype.typing import Any, Optional
+from py_cli import haxorg_cli, haxorg_opts
+from py_cli.export.haxorg_export import export
+from py_cli.generate.haxorg_generate import generate
+from py_scriptutils.script_logging import custom_traceback_handler, log
 from py_scriptutils.toml_config_profiler import DefaultWrapperValue
 import rich_click as click
 
@@ -26,9 +25,6 @@ def haxorg_main_cli(ctx: click.Context, **kwargs: Any) -> None:
     ctx.obj["run"] = haxorg_cli.CliRunContext(opts)
     pass
 
-
-from py_cli.export.haxorg_export import export
-from py_cli.generate.haxorg_generate import generate
 
 haxorg_main_cli.add_command(export)
 haxorg_main_cli.add_command(generate)

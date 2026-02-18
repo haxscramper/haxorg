@@ -7,23 +7,22 @@ from tempfile import TemporaryDirectory
 from typing import Any, Dict, List, Optional, Union
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from matplotlib.patches import FancyArrowPatch
-from matplotlib.patches import FancyBboxPatch
+from beartype.typing import List, Optional, Tuple
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import matplotlib.patches as patches
 from matplotlib.path import Path as MPath
 import matplotlib.pyplot as plt
 import numpy as np
 from plumbum import local
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import field_serializer
-from pydantic import field_validator
-from pydantic import model_serializer
-from pydantic import model_validator
-from pydantic import ValidationError
+from pydantic import (
+    BaseModel,
+    Field,
+    field_serializer,
+    field_validator,
+    model_serializer,
+    model_validator,
+    ValidationError,
+)
 
 
 @beartype
@@ -954,8 +953,7 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Gr
     return graph
 
 
-from py_scriptutils.script_logging import pprint_to_file
-from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:

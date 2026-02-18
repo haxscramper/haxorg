@@ -1,12 +1,9 @@
-option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdparty" OFF)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
-
-add_definitions(-DORG_DEPS_USE_ADAPTAGRAMS)
-add_definitions(-DORG_LIB_DEBUG_BUILD=1)
 
 set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
 set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
@@ -49,9 +46,9 @@ add_library(org_imgui_lib ${ORG_IMGUI_LIB_FILES})
 set_target_flags(org_imgui_lib)
 set_common_files(org_imgui_lib)
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(org_imgui_lib PUBLIC Perfetto::perfetto)
-  target_compile_definitions(org_imgui_lib PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(org_imgui_lib PUBLIC ORG_BUILD_WITH_PERFETTO)
 endif()
 
 target_include_directories(org_imgui_lib PUBLIC "${BASE}/src/app")
@@ -65,11 +62,14 @@ target_link_libraries(
          absl::log
          absl::base
          absl::flags
-         adaptagrams
          haxorg
          hstd
          cpptrace::cpptrace
          range-v3::range-v3)
+
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  target_link_libraries(org_imgui_lib PUBLIC adaptagrams)
+endif()
 
 file(GLOB ORG_IMGUI_APP_FILES "${IMGUI_ORG_ROOT}/gui_app/*.?pp")
 add_executable(org_imgui_app ${ORG_IMGUI_APP_FILES})

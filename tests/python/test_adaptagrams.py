@@ -1,11 +1,7 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import Any, Dict, List, Optional
 import pytest
 
 

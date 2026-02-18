@@ -4,20 +4,18 @@ import logging
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Optional
+from beartype.typing import Any, Optional
 import igraph as ig
 import plumbum
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
-from py_cli.generate.mind_map import elk_converter
-from py_cli.generate.mind_map import elk_schema
-from py_cli.generate.mind_map import haxorg_mind_map
-from py_cli.generate.mind_map import typst_schema
+from py_cli import haxorg_cli, haxorg_opts
+from py_cli.generate.mind_map import (
+    elk_converter,
+    elk_schema,
+    haxorg_mind_map,
+    typst_schema,
+)
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import pprint_to_file
-from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 import rich_click as click
 
 CAT = __name__
@@ -149,8 +147,9 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)
 @click.pass_context
 def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
+    "Main CLI entry point for mind map generation command"
     log(CAT).info("Starting mind map generation")
-    result = gen_mind_map(haxorg_cli.get_opts(ctx))
+    result = gen_mind_map(haxorg_cli.get_run(ctx))
     log(CAT).info(f"Typst file in {result.final_typst}")
     log(CAT).info(f"Dump of the mind map model {result.mman_initial_path}")
     log(CAT).info(f"MMAP ELK structure {result.mmap_elk_dump}")

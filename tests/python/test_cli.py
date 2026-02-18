@@ -1,19 +1,14 @@
 from pathlib import Path
 
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
+from beartype.typing import Any, Dict, List
 import more_itertools
 import pandas as pd
-from plumbum import CommandNotFound
-from plumbum import local
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
-from py_exporters import export_sqlite
+from plumbum import CommandNotFound, local
+from py_cli import haxorg_cli, haxorg_opts
+from py_haxorg.exporters import export_sqlite
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.sqlalchemy_utils import format_db_all
-from py_scriptutils.sqlalchemy_utils import open_sqlite
+from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 import pytest
 from sqlalchemy.orm import sessionmaker
 
@@ -495,9 +490,11 @@ def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
 def test_tag_sorting(stable_test_dir: Path) -> None:
     import functools
 
-    from py_cli.generate.sort_repository_tags import DuplicateType
-    from py_cli.generate.sort_repository_tags import sort_reposutory_tags
-    from py_cli.generate.sort_repository_tags import TagDuplicate
+    from py_cli.generate.sort_repository_tags import (
+        DuplicateType,
+        sort_reposutory_tags,
+        TagDuplicate,
+    )
 
     tag_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/cli/tag_collection")
 

@@ -9,7 +9,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <hstd/ext/graphviz.hpp>
 #endif
 #include <boost/preprocessor.hpp>
@@ -889,7 +889,7 @@ void switch_node_fields(
 }
 
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 hstd::ext::Graphviz::Graph toGraphviz(
     hstd::Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const&       conf = ImmAstGraphvizConf{});

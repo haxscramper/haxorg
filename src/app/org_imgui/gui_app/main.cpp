@@ -384,7 +384,7 @@ int main(int argc, char** argv) {
             hstd::log::init_file_sink(conf.log_file.value()));
     }
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> tracing_session;
     if (conf.perf_trace_file) {
         tracing_session = StartProcessTracing("Perfetto track example");

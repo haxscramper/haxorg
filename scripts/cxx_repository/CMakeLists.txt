@@ -35,11 +35,11 @@ if(TARGET Boost::process)
   target_link_libraries(code_forensics PUBLIC Boost::process)
 endif()
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(code_forensics PUBLIC Perfetto::perfetto)
 endif()
 
-if(${ORG_USE_TRACY})
+if(${ORG_BUILD_WITH_TRACY})
   target_link_libraries(code_forensics PUBLIC Tracy::TracyClient)
 endif()
 

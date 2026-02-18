@@ -22,12 +22,12 @@ glob_add_sources2(TARGET reflection_tool LS_REGEX "${BASE}/scripts/cxx_codegen/.
                   "${BASE}")
 haxorg_target_setup_v2(TARGET reflection_tool)
 
-if(${ORG_USE_PERFETTO})
+if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(reflection_tool PUBLIC Perfetto::perfetto)
-  target_compile_definitions(reflection_tool PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(reflection_tool PUBLIC ORG_BUILD_WITH_PERFETTO)
 endif()
 
-if(${ORG_USE_TRACY})
+if(${ORG_BUILD_WITH_TRACY})
   target_link_libraries(reflection_tool PRIVATE Tracy::TracyClient)
 endif()
 

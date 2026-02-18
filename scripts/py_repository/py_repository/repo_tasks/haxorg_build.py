@@ -3,24 +3,27 @@ import shutil
 from typing import Generator
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Iterable
-from beartype.typing import List
-from py_ci.util_scripting import cmake_opt
-from py_ci.util_scripting import get_j_cap
-from py_repository.repo_tasks.command_execution import run_cmake_build
-from py_repository.repo_tasks.command_execution import run_cmake_configure
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_component_build_dir
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.haxorg_base import base_environment
-from py_repository.repo_tasks.haxorg_base import generate_develop_deps_install_paths
-from py_repository.repo_tasks.haxorg_base import get_cmake_defines
-from py_repository.repo_tasks.haxorg_base import get_deps_install_dir
-from py_repository.repo_tasks.haxorg_base import symlink_build
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from beartype.typing import Any, Iterable, List
+from py_ci.util_scripting import cmake_opt, get_j_cap
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    run_cmake_build,
+    run_cmake_configure,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    get_build_root,
+    get_component_build_dir,
+    get_script_root,
+)
+from py_repository.repo_tasks.haxorg_base import (
+    base_environment,
+    generate_develop_deps_install_paths,
+    get_cmake_defines,
+    get_deps_install_dir,
+    symlink_build,
+)
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils import os_utils
 from py_scriptutils.algorithm import cond
 from py_scriptutils.files import FileOperation
@@ -53,8 +56,6 @@ def configure_cmake_haxorg(ctx: TaskContext, force: bool = False) -> None:
 
     pass_flags = [
         *get_cmake_defines(ctx),
-        cmake_opt("ORG_CPACK_PACKAGE_VERSION", ctx.config.HAXORG_VERSION),
-        cmake_opt("ORG_CPACK_PACKAGE_NAME", ctx.config.HAXORG_NAME),
         cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)),
         *cond(
             ctx.config.python_version,
@@ -100,10 +101,10 @@ def build_haxorg(ctx: TaskContext) -> None:
         ctx,
         build_dir=build_dir,
         targets=targets,
+        print_output=ctx.config.build_conf.real_time_output_print,
     )
 
-    if "all" in targets or "pyhaxorg" in targets:
-        run_command(ctx, "uv", ["sync", "--package", "py_haxorg"])
+    get_uv_develop_env_flags(ctx)
 
 
 @haxorg_task()
@@ -129,36 +130,10 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
             get_component_build_dir(ctx, "haxorg"),
             "--prefix",
             install_dir,
-            # cmake_opt("ORG_USE_PERFETTO", perfetto),
+            # cmake_opt("ORG_BUILD_WITH_PERFETTO", perfetto),
             # "--component",
             # "haxorg_component"
         ])
-
-
-@haxorg_task(dependencies=[configure_cmake_haxorg])
-def build_release_archive(ctx: TaskContext, force: bool = False) -> None:
-    "Generate source archive"
-
-    pack_res = get_script_root(ctx).joinpath("_CPack_Packages")
-    log(CAT).info(f"Package tmp directory {pack_res}")
-    if pack_res.exists():
-        shutil.rmtree(str(pack_res))
-
-    run_command(
-        ctx,
-        "cpack",
-        [
-            "--debug",
-            # "--verbose",
-            "--config",
-            str(
-                get_component_build_dir(ctx,
-                                        "haxorg").joinpath("CPackSourceConfig.cmake")),
-        ],
-    )
-
-    # else:
-    #     log(CAT).debug(op.explain("cpack code"))
 
 
 @haxorg_task()

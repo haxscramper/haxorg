@@ -3,16 +3,21 @@ set_common_files(haxorg)
 
 glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/.*" SEARCH_BASE "${BASE}")
 
-
 set_target_output(haxorg)
 set_target_flags(haxorg)
 
-if(NOT ${ORG_EMCC_BUILD})
-  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
-  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
-endif()
+if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
+  execute_process(
+    COMMAND which protoc
+    OUTPUT_VARIABLE PROTOC_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
 
-if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
+  execute_process(
+    COMMAND protoc --version
+    OUTPUT_VARIABLE PROTOC_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
 
   protobuf_generate(
     LANGUAGE
@@ -28,10 +33,10 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
     "${CMAKE_CURRENT_BINARY_DIR}")
 
   # Create a custom target for protobuf generation
-  add_custom_target(haxorg_generate_protobuf
+  add_custom_target(
+    haxorg_generate_protobuf
     DEPENDS ${ORG_PROTO_GENERATED_FILES}
-    COMMENT "Generating protobuf files"
-  )
+    COMMENT "Generating protobuf files")
 
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
   add_dependencies(haxorg haxorg_generate_protobuf)
@@ -39,28 +44,34 @@ if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
-                                    foonathan::lexy immer msgpack-cxx)
+                                    foonathan::lexy immer::immer)
 
-if(NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_MSGPACK})
+  target_link_libraries(haxorg PUBLIC msgpack-cxx)
+endif()
+
+if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
+  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
+  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
   target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
 endif()
 
-if(${ORG_DEPS_USE_PROTOBUF} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
-if(${ORG_USE_PERFETTO} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC Perfetto::perfetto)
 endif()
 
-if(${ORG_USE_TRACY} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_WITH_TRACY} AND NOT ${ORG_BUILD_EMCC})
   target_link_libraries(haxorg PUBLIC Tracy::TracyClient)
 endif()
 
 target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                                         $<INSTALL_INTERFACE:include>)
+                                         $<INSTALL_INTERFACE:src>)
 
-if(${ORG_BUILD_TESTS} AND NOT ${ORG_EMCC_BUILD})
+if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
   add_executable(tests_org)
   target_link_libraries(tests_org PUBLIC haxorg absl::base absl::log absl::flags)
   set_common_files(tests_org)

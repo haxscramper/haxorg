@@ -1,23 +1,15 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
-import itertools
 import os
 from pathlib import Path
 import shutil
 
 from beartype import beartype
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Set
-from beartype.typing import Union
-from py_exporters.export_ultraplain import ExporterUltraplain
+from beartype.typing import Dict, List, Optional, Set, Union
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_wrap import UserTime
-from py_haxorg.pyhaxorg_wrap import UserTimeBreakdown
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import ExceptionContextNote
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = "org"
 

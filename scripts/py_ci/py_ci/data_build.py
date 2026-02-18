@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
 import shlex
 from typing import Any, Callable, List, Optional
@@ -480,14 +479,14 @@ def get_deps_install_config(
 
 def get_published_build_opts() -> List[CmakeOptConfig]:
     return [
-        CmakeOptConfig("ORG_DEPS_USE_PROTOBUF", False),
+        CmakeOptConfig("ORG_BUILD_WITH_PROTOBUF", False),
         CmakeOptConfig("ORG_BUILD_TESTS", True),
         CmakeOptConfig("CMAKE_BUILD_TYPE", "Debug"),
-        CmakeOptConfig("ORG_BUILD_IS_DEVELOP", False),
+        CmakeOptConfig("ORG_BUILD_INTERNAL_TOOLS", False),
         CmakeOptConfig("ORG_BUILD_ASSUME_CLANG", True),
         CmakeOptConfig("CMAKE_CXX_COMPILER", "clang++"),
         CmakeOptConfig("CMAKE_C_COMPILER", "clang "),
         CmakeOptConfig("ORG_USE_SANITIZER", False),
-        CmakeOptConfig("ORG_DEPS_USE_ADAPTAGRAMS", False),
+        CmakeOptConfig("ORG_BUILD_WITH_ADAPTAGRAMS", False),
         CmakeOptConfig("ORG_DEPS_USE_PACKAGED_BOOST", False),
     ]

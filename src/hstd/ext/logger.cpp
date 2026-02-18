@@ -1,6 +1,6 @@
 #include "logger.hpp"
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <boost/log/attributes.hpp>
 #    include <boost/log/core.hpp>
 #    include <boost/log/expressions.hpp>
@@ -29,7 +29,7 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
 #    include <fstream>
-#    include <cpptrace.hpp>
+#    include <cpptrace/cpptrace.hpp>
 #    include <hstd/stdlib/JsonUse.hpp>
 
 

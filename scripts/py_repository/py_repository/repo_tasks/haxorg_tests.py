@@ -1,11 +1,17 @@
+import os
+from pathlib import Path
+
 from beartype.typing import List
-from py_repository.repo_tasks.command_execution import run_command
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    get_uv_develop_sync_flags,
+    run_command,
+)
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -39,9 +45,12 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         [
             "run",
             "--all-groups",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             "python",
             "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
         ],
+        print_output=ctx.config.py_test_conf.real_time_output_print,
     )
 
     retcode, stdout, stderr = run_command(
@@ -49,6 +58,9 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         "uv",
         [
             "run",
+            "--all-groups",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             "pytest",
             "-vv",
             "-ra",
@@ -91,6 +103,8 @@ def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
         "uv",
         [
             "run",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
             script,
             *arg,
         ],

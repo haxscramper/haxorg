@@ -3,32 +3,30 @@ from pathlib import Path
 import signal
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Unpack
+from beartype.typing import List, Unpack
 import plumbum
 from py_ci.util_scripting import cmake_opt
-from py_repository.repo_tasks.command_execution import run_cmake
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.command_execution import RunCommandKwargs
-from py_repository.repo_tasks.common import ensure_clean_dir
-from py_repository.repo_tasks.common import find_process
-from py_repository.repo_tasks.common import get_build_tmpdir
-from py_repository.repo_tasks.common import get_component_build_dir
-from py_repository.repo_tasks.common import get_log_dir
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.common import get_workflow_out
+from py_repository.repo_tasks.command_execution import (
+    run_cmake,
+    run_command,
+    RunCommandKwargs,
+)
+from py_repository.repo_tasks.common import (
+    ensure_clean_dir,
+    find_process,
+    get_build_tmpdir,
+    get_component_build_dir,
+    get_log_dir,
+    get_script_root,
+    get_workflow_out,
+)
 from py_repository.repo_tasks.deps_build import validate_dependencies_install
-from py_repository.repo_tasks.haxorg_base import get_toolchain_path
-from py_repository.repo_tasks.haxorg_base import symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg
-from py_repository.repo_tasks.haxorg_build import install_haxorg_develop
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
+from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.algorithm import maybe_splice
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import pprint_to_file
-from py_scriptutils.script_logging import to_debug_json
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 CAT = __name__
 

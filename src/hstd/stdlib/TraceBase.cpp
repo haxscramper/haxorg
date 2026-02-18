@@ -5,8 +5,8 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 
-#if !ORG_EMCC_BUILD
-#    include <cpptrace.hpp>
+#if !ORG_BUILD_EMCC
+#    include <cpptrace/cpptrace.hpp>
 #endif
 
 using namespace hstd;
@@ -136,7 +136,7 @@ void OperationsTracer::message(const OperationsMsg& value) const {
 }
 
 void OperationsTracer::stacktraceMessage() const {
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
     auto trace = cpptrace::generate_trace();
     for (auto const& it : trace) {
         message(
@@ -172,7 +172,7 @@ finally_std OperationsTracer::scopeLevelMsg(
 
 
 void OperationsMsg::use_stacktrace_as_msg() {
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
     this->msg = cpptrace::generate_trace().to_string(false);
 #endif
 }

@@ -23,7 +23,6 @@ template class org::algo::Exporter<ExporterPython, py::object>;
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
     pybind11::slice      slice) {
-
     size_t start;
     size_t stop;
     size_t step;

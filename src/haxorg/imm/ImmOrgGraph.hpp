@@ -1,12 +1,12 @@
 #pragma once
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
 #include <haxorg/imm/ImmOrg.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <hstd/ext/graphviz.hpp>
 #endif
 
@@ -279,7 +279,7 @@ struct [[refl(
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;

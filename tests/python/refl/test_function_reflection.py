@@ -3,8 +3,7 @@ from pathlib import Path
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_pybind11 as py11
 from py_codegen.gen_tu_cpp import ReferenceKind
-from py_textlayout.py_textlayout_wrap import TextLayout
-from py_textlayout.py_textlayout_wrap import TextOptions
+from py_haxorg.layout.wrap import TextLayout, TextOptions
 import pytest
 
 

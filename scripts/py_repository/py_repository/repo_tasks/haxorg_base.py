@@ -2,24 +2,25 @@ from pathlib import Path
 import sys
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
-from py_ci.data_build import get_deps_install_config
-from py_ci.data_build import get_emscripten_cmake_flags
-from py_ci.data_build import get_external_deps_list
-from py_ci.util_scripting import cmake_opt
-from py_repository.repo_tasks.command_execution import get_python_binary
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import check_path_exists
-from py_repository.repo_tasks.common import create_symlink
-from py_repository.repo_tasks.common import ctx_write_text
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_component_build_dir
-from py_repository.repo_tasks.common import get_script_root
+from beartype.typing import List, Optional
+from py_ci.data_build import (
+    get_deps_install_config,
+    get_emscripten_cmake_flags,
+    get_external_deps_list,
+)
+from py_ci.util_scripting import cmake_opt, get_threading_count
+from py_repository.repo_tasks.command_execution import get_python_binary, run_command
+from py_repository.repo_tasks.common import (
+    check_path_exists,
+    create_symlink,
+    ctx_write_text,
+    ensure_existing_dir,
+    get_build_root,
+    get_component_build_dir,
+    get_script_root,
+)
 from py_repository.repo_tasks.config import HaxorgConfig
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -101,6 +102,12 @@ def get_toolchain_path(ctx: TaskContext) -> Optional[Path]:
 
 @beartype
 def get_cmake_defines(ctx: TaskContext) -> List[str]:
+    """
+    Get full list of all the `-D` defines used to configure the cmake build
+    for the main haxorg project. Note it will set up the compiler, but won't
+    configure the generator -- this one is passed with `-G` and is configured
+    in the `run_cmake_configure` function.
+    """
     result: List[str] = []
     conf = ctx.config
 
@@ -113,10 +120,17 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_COVERAGE", conf.instrument.coverage))
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
-    result.append(cmake_opt("ORG_USE_PERFETTO", conf.instrument.perfetto))
-    result.append(cmake_opt("ORG_USE_MSGPACK", conf.build_conf.use_msgpack))
-    result.append(cmake_opt("ORG_USE_QT", conf.use.qt))
-    result.append(cmake_opt("ORG_USE_IMGUI", conf.use.imgui))
+    result.append(cmake_opt("ORG_BUILD_WITH_PERFETTO", conf.instrument.perfetto))
+    result.append(cmake_opt("ORG_BUILD_WITH_MSGPACK", conf.build_conf.use_msgpack))
+    result.append(cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS",
+                            conf.build_conf.use_adaptagrams))
+    result.append(cmake_opt("ORG_BUILD_WITH_CGRAPH", conf.build_conf.use_cgraph))
+    result.append(cmake_opt("ORG_BUILD_TESTS", conf.build_conf.build_tests))
+    result.append(cmake_opt("ORG_BUILD_WITH_QT", conf.use.qt))
+    result.append(cmake_opt("ORG_BUILD_IMGUI_GUI", conf.use.imgui))
+    result.append(cmake_opt("ORG_BUILD_PYHAXORG_BINDINGS", conf.build_conf.build_python))
+    result.append(
+        cmake_opt("ORG_BUILD_TEXT_LAYOUTER_BINDINGS", conf.build_conf.build_python))
     # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))
@@ -127,11 +141,21 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_DEPS_INSTALL_ROOT", get_deps_install_dir(ctx)))
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
     result.append(cmake_opt("Python_EXECUTABLE", get_python_binary(ctx)))
+    result.append(cmake_opt("ORG_DISABLE_WARNINGS", not conf.build_conf.use_warnings))
+
+    if conf.build_conf.cmake_generator == "Ninja":
+        # https://github.com/ninja-build/ninja/issues/2029
+        result.append(
+            cmake_opt(
+                "CMAKE_JOB_POOLS",
+                f"comp_jobs={get_threading_count()};link_jobs={get_threading_count()}"))
+        result.append(cmake_opt("CMAKE_JOB_POOL_COMPILE", "comp_jobs"))
+        result.append(cmake_opt("CMAKE_JOB_POOL_LINK", "link_jobs"))
 
     if conf.emscripten.build:
         result.append(cmake_opt("CMAKE_TOOLCHAIN_FILE", get_toolchain_path(ctx)))
-        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", False))
-        result.append(cmake_opt("ORG_EMCC_BUILD", True))
+        result.append(cmake_opt("ORG_BUILD_WITH_PROTOBUF", False))
+        result.append(cmake_opt("ORG_BUILD_EMCC", True))
         # result.append(cmake_opt("CMAKE_SIZEOF_VOID_P", "4"))
         # result.append(cmake_opt("CMAKE_SYSTEM_PROCESSOR", "wasm32"))
 
@@ -139,10 +163,10 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
             result.append(cmake_opt(flag.name, flag.value))
 
     else:
-        result.append(cmake_opt("ORG_EMCC_BUILD", False))
+        result.append(cmake_opt("ORG_BUILD_EMCC", False))
         result.append(cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler))
         result.append(cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler))
-        result.append(cmake_opt("ORG_DEPS_USE_PROTOBUF", conf.build_conf.use_protobuf))
+        result.append(cmake_opt("ORG_BUILD_WITH_PROTOBUF", conf.build_conf.use_protobuf))
 
     debug = False
     if debug:

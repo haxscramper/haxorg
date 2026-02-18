@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
         LOG(INFO)
             << "No log file configured, writing to regular logging output";
     }
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
     if (config->cli.out.perfetto) {
         perfetto_session = StartProcessTracing("code_forensics");
@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
 
     LOG(INFO) << "Completed DB write";
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
     if (config->cli.out.perfetto) {
         fs::path out_path{*config->cli.out.perfetto};
         LOG(INFO) << std::format("Perfetto output {}", out_path);

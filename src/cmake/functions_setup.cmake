@@ -1,7 +1,7 @@
 function(set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
-  if(${ORG_EMCC_BUILD})
+  if(${ORG_BUILD_EMCC})
     set(EMSCRIPTEN_FLAGS
         "-g4"
         "-gsource-map"
@@ -15,7 +15,7 @@ function(set_target_flags_impl)
         "--bind"
         "-sNO_DISABLE_EXCEPTION_CATCHING")
 
-    if(${ORG_USE_PERFETTO})
+    if(${ORG_BUILD_WITH_PERFETTO})
       list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
     endif()
 
@@ -31,7 +31,7 @@ function(set_target_flags_impl)
     add_target_property(${ARG_TARGET} LINK_FLAGS "${EMSCRIPTEN_FLAGS_STR}")
   endif()
 
-  if(NOT ${ORG_BUILD_IS_DEVELOP})
+  if(NOT ${ORG_BUILD_INTERNAL_TOOLS})
     if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")
@@ -44,6 +44,12 @@ function(set_target_flags_impl)
   if(${ORG_USE_SARIF})
     # Specify output file for the sarif report
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
+  endif()
+
+  if(${ORG_BUILD_WITH_CGRAPH})
+    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=1)
+  else()
+    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=0)
   endif()
 
   if(${ORG_DISABLE_WARNINGS})
@@ -71,29 +77,15 @@ function(set_target_flags_impl)
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
 
-  if(${ORG_USE_XRAY})
-
-  elseif(${ORG_BUILD_IS_DEVELOP})
-    if(${ORG_BUILD_USE_GOLD_WRAPPER})
-      set(GOLD_DIR "${BASE}/scripts/py_ci/py_ci")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=gold_wrap")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=gold_wrap")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-B")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "${GOLD_DIR}")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-B")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "${GOLD_DIR}")
-    else()
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fuse-ld=lld")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=lld")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-Wl,--time-trace")
-    endif()
-  endif()
-
   target_compile_features(${ARG_TARGET} PUBLIC cxx_std_23)
 
   if(${ORG_BUILD_ASSUME_CLANG})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
     add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+    find_program(MOLD_LINKER "mold")
+    if(MOLD_LINKER)
+      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
+    endif()
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -118,7 +110,6 @@ function(set_target_flags_impl)
       endif()
     endif()
 
-
     if(${ORG_USE_XRAY})
       add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")
       add_target_property(${ARG_TARGET} LINK_OPTIONS "-fxray-instrument")
@@ -129,12 +120,12 @@ function(set_target_flags_impl)
 
     add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
-    if(${ORG_USE_PERFETTO})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
+    if(${ORG_BUILD_WITH_PERFETTO})
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_PERFETTO)
     endif()
 
-    if(${ORG_USE_TRACY})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_TRACY)
+    if(${ORG_BUILD_WITH_TRACY})
+      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_TRACY)
     endif()
 
     if(${ORG_USE_XRAY})

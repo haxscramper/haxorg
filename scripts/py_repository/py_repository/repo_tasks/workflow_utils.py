@@ -1,7 +1,5 @@
 from collections import defaultdict
-from dataclasses import dataclass
-from dataclasses import field
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from datetime import timedelta
 from functools import wraps
 from graphlib import TopologicalSorter
@@ -9,13 +7,7 @@ import inspect
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Dict
-from beartype.typing import get_type_hints
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Set
+from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional, Set
 import docker
 import docker.models.containers
 import igraph as ig

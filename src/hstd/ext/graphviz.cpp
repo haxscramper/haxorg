@@ -1,4 +1,4 @@
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <hstd/ext/graphviz.hpp>
 #    include <filesystem>
 #    include <format>

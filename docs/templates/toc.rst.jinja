@@ -1,0 +1,9 @@
+{{ header }}
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+{% for docname in docnames %}
+   {{ docname }}
+{% endfor %}

@@ -2,13 +2,50 @@
 name = "py_haxorg"
 version = "0.1.0"
 description = ""
-authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]
-readme = {file = "README.org", content-type = "text/plain"}
+authors = [{ name = "haxscramper", email = "haxscramper@gmail.com" }]
+readme = { file = "README.org", content-type = "text/plain" }
 requires-python = ">=3.10,<3.14"
 dependencies = [
-    "beartype>=0.22.0",
+  "beartype>=0.22.0",
+  "dominate>=2.0.0,<3.0.0",
+  "py_scriptutils",
+  "rich>=13.0.0,<14.0.0",
+  "jsonpath-ng>=1.6.1,<2.0.0",
+  "sqlalchemy>=2.0.0,<3.0.0",
+  "more-itertools>=10.1.0,<11.0.0",
+  "pydantic>=2.4.2,<3.0.0",
+  "toml>=0.10.2,<0.11.0",
+  "rich-click>=1.6.1,<2.0.0",
+  "pyyaml>=6.0.1,<7.0.0",
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=64", "wheel"]
+build-backend = "_build_backend"
+backend-path = ["."]
+
+# Setuptools configuration (used when SKIP_CXX_BUILD=1)
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["build", "build.*"]
+
+# scikit-build-core configuration (used for full builds)
+[tool.scikit-build]
+cmake.source-dir = "../.."
+
+[tool.scikit-build.cmake.define]
+ORG_USE_CONAN_INSTALL = "ON"
+ORG_IS_CONAN_BUILD = "ON"
+CMAKE_BUILD_TYPE = "Release"
+ORG_BUILD_WITH_ADAPTAGRAMS = "OFF"
+CMAKE_CXX_COMPILER = "clang"
+ORG_BUILD_WITH_PROTOBUF = "OFF"
+ORG_BUILD_WITH_MSGPACK = "ON"
+ORG_BUILD_INTERNAL_TOOLS = "OFF"
+ORG_FORCE_ADAPTAGRAMS_BUILD = "OFF"
+ORG_BUILD_PYHAXORG_BINDINGS = "ON"
+ORG_BUILD_TEXT_LAYOUTER_BINDINGS = "ON"
+ORG_BUILD_TESTS = "OFF"

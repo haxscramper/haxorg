@@ -1,21 +1,20 @@
 import itertools
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import Generator
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Sequence
-from beartype.typing import Tuple
+from beartype.typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.gen_tu_cpp as tu
-from py_scriptutils.algorithm import drop_none
-from py_scriptutils.algorithm import iterate_object_tree
-from py_textlayout.py_textlayout_wrap import BlockId
-from py_textlayout.py_textlayout_wrap import TextLayout
-from py_textlayout.py_textlayout_wrap import TextOptions
+from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
+from py_scriptutils.algorithm import drop_none, iterate_object_tree
 
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"

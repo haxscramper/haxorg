@@ -65,7 +65,7 @@ int main(int argc, const char** argv) {
     }
 
 
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
     if (cli.perf_path) {
         perfetto_session = StartProcessTracing("profdata_merger");
@@ -95,7 +95,7 @@ int main(int argc, const char** argv) {
 
     if (cli.perf_path) {
         hstd::fs::path out_path{cli.perf_path.value()};
-#ifdef ORG_USE_PERFETTO
+#ifdef ORG_BUILD_WITH_PERFETTO
         StopTracing(std::move(perfetto_session), out_path);
 #endif
     }

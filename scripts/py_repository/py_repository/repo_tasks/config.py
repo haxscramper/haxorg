@@ -1,14 +1,10 @@
-from contextlib import contextmanager
+import enum
 from pathlib import Path
 import tempfile
 
 from beartype import beartype
-from beartype.typing import Generator
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
-from pydantic import BaseModel
-from pydantic import Field
+from beartype.typing import List, Optional
+from pydantic import BaseModel, Field
 
 CAT = __name__
 
@@ -48,13 +44,26 @@ class HaxorgEmscriptenConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgBuildConfig(BaseModel, extra="forbid"):
+    """
+    Shared build configuration parameters used for the haxorg project
+    and all compiled dependencies: compiler, generator etc.
+    """
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
     use_protobuf: bool = True
     use_msgpack: bool = True
+    use_cgraph: bool = Field(default=True, description="Enable features using cgraph")
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
+    use_warnings: bool = True
+    real_time_output_print: bool = Field(
+        default=False, description="Print the build output in real time")
+    use_adaptagrams: bool = Field(
+        default=True, description="Build the project with adaptagrams support")
+    build_python: bool = Field(default=True, description="Build python bindings")
+    build_tests: bool = Field(default=True,
+                              description="Build tests for hstd/haxorg project")
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
@@ -192,9 +201,6 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
         "from HTML generation.")
 
 
-import enum
-
-
 class HaxorgLogLevel(str, enum.Enum):
     NORMAL = "NORMAL"
     QUIET = "QUIET"
@@ -202,6 +208,7 @@ class HaxorgLogLevel(str, enum.Enum):
 
 
 class HaxorgConfig(BaseModel, extra="forbid"):
+    "Main workflow script configuration object"
     log_level: HaxorgLogLevel = Field(default=HaxorgLogLevel.NORMAL)
     debug: bool = Field(default=False)
 
@@ -253,7 +260,8 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     HAXORG_NAME: str = "haxorg"
     in_ci: bool = False
     HAXORG_DOCKER_IMAGE: str = "docker-haxorg"
-    CPACK_TEST_IMAGE: str = "docker-haxorg-cpack"
+    HAXORG_DOCKER_RELEASE_IMAGE: str = "docker-haxorg-cpack"
+    "Name of the image built for docker release testing"
     develop_ci_conf: HaxorgDevelopCiConfig = Field(default_factory=HaxorgDevelopCiConfig)
     py_test_conf: HaxorgPyTestsConfig = Field(default_factory=HaxorgPyTestsConfig)
     build_develop_deps_conf: HaxorgBuildDevelopDepsConfig = Field(

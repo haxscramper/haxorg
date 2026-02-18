@@ -1,16 +1,10 @@
 from collections import defaultdict
 import itertools
-from itertools import dropwhile
-from itertools import takewhile
+from itertools import dropwhile, takewhile
 import re
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import TypeVar
+from beartype.typing import Any, Callable, Iterable, List, Optional, TypeVar
 import more_itertools as mit
 
 T = TypeVar('T')

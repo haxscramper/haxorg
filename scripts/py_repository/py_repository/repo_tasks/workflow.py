@@ -3,42 +3,41 @@
 import json
 import logging
 from pathlib import Path
+import sys
 
-from beartype.typing import Any
-from beartype.typing import Optional
+from beartype.typing import Any, Optional
 import commentjson
-from py_repository.repo_tasks import examples_build
-from py_repository.repo_tasks import haxorg_base
-from py_repository.repo_tasks import haxorg_build
-from py_repository.repo_tasks import haxorg_codegen
-from py_repository.repo_tasks import haxorg_coverage
-from py_repository.repo_tasks import haxorg_docker
-from py_repository.repo_tasks import haxorg_docs
-from py_repository.repo_tasks import haxorg_linting
-from py_repository.repo_tasks import haxorg_tests
+from py_repository.repo_tasks import (
+    examples_build,
+    haxorg_base,
+    haxorg_build,
+    haxorg_codegen,
+    haxorg_coverage,
+    haxorg_docker,
+    haxorg_docs,
+    haxorg_linting,
+    haxorg_tests,
+)
 from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.config import HaxorgConfig
-from py_repository.repo_tasks.config import HaxorgLogLevel
+from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS
-from py_scriptutils.script_logging import CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED
-from py_scriptutils.script_logging import CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME
-from py_scriptutils.script_logging import CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import setup_multi_file_logging
-from py_scriptutils.toml_config_profiler import apply_options
-from py_scriptutils.toml_config_profiler import get_user_provided_params
-from py_scriptutils.toml_config_profiler import merge_dicts
-from py_scriptutils.toml_config_profiler import options_from_model
-from py_scriptutils.toml_config_profiler import pack_context
-from pydantic import BaseModel
-from pydantic import Field
+from py_scriptutils.script_logging import (
+    get_custom_traceback_handler,
+    log,
+    setup_multi_file_logging,
+)
+from py_scriptutils.toml_config_profiler import (
+    apply_options,
+    get_user_provided_params,
+    merge_dicts,
+    options_from_model,
+    pack_context,
+)
+from pydantic import BaseModel, Field
 import rich_click as click
 
 CAT = __name__
-
-logging.getLogger("plumbum.local").setLevel(logging.WARNING)
 
 
 class WorkflowOptions(BaseModel):
@@ -60,8 +59,12 @@ def workflow_options(f: Any) -> Any:
 @workflow_options
 @click.pass_context
 def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
+    "CLI entry point for the workflow script"
     opts = pack_context(ctx, WorkflowOptions, cli_kwargs=get_user_provided_params(ctx))
     setup_multi_file_logging(Path(opts.workflow_log_dir))
+
+    logging.getLogger("plumbum.local").setLevel(logging.WARNING)
+    sys.excepthook = get_custom_traceback_handler(show_args=False,)
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
     config_json = HaxorgConfig().model_dump()

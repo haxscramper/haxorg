@@ -1,17 +1,10 @@
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import NewType, TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
-import py_codegen.astbuilder_base as base
-from py_textlayout.py_textlayout_wrap import TextLayout
-
-if TYPE_CHECKING:
-    from py_textlayout.py_textlayout_wrap import BlockId
-else:
-    BlockId = NewType('BlockId', int)
+from beartype.typing import List, Optional
+import py_haxorg.astbuilder.astbuilder_base as base
+from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
 @beartype

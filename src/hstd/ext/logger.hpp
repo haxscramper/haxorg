@@ -1,6 +1,6 @@
 #pragma once
 
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
 
 #    define HSLOG_TRACE(__cat, ...)
 #    define HSLOG_DEBUG(__cat, ...)
@@ -31,7 +31,7 @@
 #    include <hstd/stdlib/ContainerAPI.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 #        include <QDebug>
 #        include <QBuffer>
 #    endif
@@ -41,7 +41,7 @@ namespace hstd::log {
 template <typename T>
 struct log_value_formatter {};
 
-#    if ORG_USE_QT
+#    if ORG_BUILD_WITH_QT
 template <typename T>
 concept QDebugFormattable = requires(QDebug debug, const T& value) {
     debug << value;

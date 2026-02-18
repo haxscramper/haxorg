@@ -1,12 +1,13 @@
-#include "SemOrgCereal.hpp"
-#include <msgpack.hpp>
-#include <string>
-#include <format>
-#include <nlohmann/json.hpp>
-#include <functional>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/ContainerAPI.hpp>
+#if ORG_BUILD_WITH_MSGPACK
+#    include "SemOrgCereal.hpp"
+#    include <msgpack.hpp>
+#    include <string>
+#    include <format>
+#    include <nlohmann/json.hpp>
+#    include <functional>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/stdlib/Debug.hpp>
+#    include <hstd/stdlib/ContainerAPI.hpp>
 
 namespace {
 int level = 0;
@@ -27,7 +28,7 @@ struct hstd::SerdeDefaultProvider<hstd::ReflPathItem<Tag>> {
 //               << std::endl; \
 //     auto __scope = hstd::finally{[&]() { --level; }};
 
-#define __trace_call()
+#    define __trace_call()
 
 using namespace org::imm;
 
@@ -1027,15 +1028,15 @@ struct convert<ImmAstStore> {
         msgpack::object const& o,
         ImmAstStore&           v) const {
         __trace_call();
-#define _kind(__Kind) +1
+#    define _kind(__Kind) +1
         constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
-#undef _kind
+#    undef _kind
 
         expect_map<ImmAstStore>(o, store_size);
         msgpack::object_kv* p(o.via.map.ptr);
-#define _kind(__Kind) convert_field(p, v.store##__Kind);
+#    define _kind(__Kind) convert_field(p, v.store##__Kind);
         EACH_SEM_ORG_KIND(_kind);
-#undef _kind
+#    undef _kind
         return o;
     }
 };
@@ -1047,15 +1048,15 @@ struct pack<ImmAstStore> {
         msgpack::packer<Stream>& o,
         ImmAstStore const&       v) const {
         __trace_call();
-#define _kind(__Kind) +1
+#    define _kind(__Kind) +1
         constexpr int store_size = 0 EACH_SEM_ORG_KIND(_kind);
-#undef _kind
+#    undef _kind
 
         o.pack_map(store_size);
 
-#define _kind(__Kind) pack_field(o, "store" #__Kind, v.store##__Kind);
+#    define _kind(__Kind) pack_field(o, "store" #__Kind, v.store##__Kind);
         EACH_SEM_ORG_KIND(_kind);
-#undef _kind
+#    undef _kind
         return o;
     }
 };
@@ -1190,3 +1191,4 @@ void org::imm::serializeFromText(
     msgpack_from_text(binary, tmp);
     LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
 }
+#endif

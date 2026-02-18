@@ -2,15 +2,13 @@ from dataclasses import dataclass
 import enum
 import logging
 import os
+from pathlib import Path
 import sys
 import traceback
-from types import MethodType
+from typing import Dict
 
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import Literal
-from beartype.typing import Optional
-from beartype.typing import Set
+from beartype import beartype
+from beartype.typing import Any, Callable, Literal, Optional, Set
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
@@ -128,10 +126,12 @@ def to_debug_json(
     return aux(obj)
 
 
-def pprint_to_file(value: Any, path: str, width: int = 120) -> None:
-    # Built-in python pprint is too broken for regular uses -- output is not
-    # always rendered to the max column limit is the biggest problem and I could
-    # not find any way to print converted translation unit safely.
+def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
+    """
+    Built-in python pprint is too broken for regular uses -- output is not
+    always rendered to the max column limit is the biggest problem and I could
+    not find any way to print converted translation unit safely.
+    """
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
         from py_scriptutils.rich_utils import render_rich_pprint
@@ -212,12 +212,6 @@ class ExceptionContextNote:
         return False
 
 
-CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE = True
-CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS = True
-CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED = False
-CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME = False
-
-
 def get_function_annotations(frame: Any) -> dict[str, str]:
     func_name = frame.f_code.co_name
     annotations = {}
@@ -258,115 +252,122 @@ class FrameInfo:
     code_line: str
 
 
-def custom_traceback_handler(exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
-    console = Console()
+def get_custom_traceback_handler(
+    truncate_value=True,
+    show_args=True,
+    show_argument_type_annotated=False,
+    show_argument_type_runtime=False,
+) -> Any:
+    """
+    Return custom traceback handler callback function
 
-    current_tb = exc_traceback
-    frames_info = []
+    :param truncate_value: pprint the full value even if it is wider than the terminal
+        or truncate it at fixed width
+    :param show_args: Show argument values in the function frames
+    :param show_argument_type_annotated: Show annotated/expected types for function arguments
+    :param show_argument_type_runtime: Show actual runtime types of the arguments
+    :return: Callback to assign to `sys.excepthook`
+    """
 
-    while current_tb is not None:
-        frame = current_tb.tb_frame
-        filename = frame.f_code.co_filename
+    def impl(exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
+        "nodoc"
+        console = Console()
 
-        if "<@beartype" not in filename:
-            line_no = current_tb.tb_lineno
-            func_name = frame.f_code.co_name
+        current_tb = exc_traceback
+        frames_info = []
 
-            args = {}
-            arg_types = {}
-            runtime_types = {}
+        while current_tb is not None:
+            frame = current_tb.tb_frame
+            filename = frame.f_code.co_filename
 
-            if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
-                arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
-                for arg_name in arg_names:
-                    if arg_name in frame.f_locals:
-                        args[arg_name] = frame.f_locals[arg_name]
+            if "<@beartype" not in filename:
+                line_no = current_tb.tb_lineno
+                func_name = frame.f_code.co_name
 
-                        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME:
-                            runtime_types[arg_name] = type(
-                                frame.f_locals[arg_name]).__name__
+                args = {}
+                arg_types = {}
+                runtime_types = {}
 
-                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED:
-                    arg_types = get_function_annotations(frame)
+                if show_args:
+                    arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
+                    for arg_name in arg_names:
+                        if arg_name in frame.f_locals:
+                            args[arg_name] = frame.f_locals[arg_name]
 
-            extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
-            frames_info.append(
-                FrameInfo(filename, line_no, func_name, args, arg_types, runtime_types,
-                          extracted_frame.line or ""))
+                            if show_argument_type_runtime:
+                                runtime_types[arg_name] = type(
+                                    frame.f_locals[arg_name]).__name__
 
-        current_tb = current_tb.tb_next
+                    if show_argument_type_annotated:
+                        arg_types = get_function_annotations(frame)
 
-    if not frames_info:
-        print(f"{exc_type.__name__} : {exc_value}")
-        return
+                extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
+                frames_info.append(
+                    FrameInfo(filename, line_no, func_name, args, arg_types,
+                              runtime_types, extracted_frame.line or ""))
 
-    max_arg_name_width = 0
-    if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
+            current_tb = current_tb.tb_next
+
+        if not frames_info:
+            print(f"{exc_type.__name__} : {exc_value}")
+            return
+
+        max_arg_name_width = 0
+        if show_args:
+            for frame_info in frames_info:
+                if frame_info.args:
+                    max_arg_name_width = max(
+                        max_arg_name_width,
+                        max(len(arg_name) for arg_name in frame_info.args.keys()))
+
         for frame_info in frames_info:
-            if frame_info.args:
-                max_arg_name_width = max(
-                    max_arg_name_width,
-                    max(len(arg_name) for arg_name in frame_info.args.keys()))
+            header = f"File \"{frame_info.filename}\", line {frame_info.line_no}, in {frame_info.func_name}"
+            print(f"{header} : {frame_info.code_line}")
 
-    for frame_info in frames_info:
-        header = f"File \"{frame_info.filename}\", line {frame_info.line_no}, in {frame_info.func_name}"
-        print(f"{header} : {frame_info.code_line}")
+            if show_args:
+                for arg_name, arg_value in frame_info.args.items():
+                    type_info = ""
 
-        if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGS:
-            for arg_name, arg_value in frame_info.args.items():
-                type_info = ""
+                    if show_argument_type_annotated and arg_name in frame_info.arg_types:
+                        type_info = f": {frame_info.arg_types[arg_name]}"
 
-                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_ANNOTATED and arg_name in frame_info.arg_types:
-                    type_info = f": {frame_info.arg_types[arg_name]}"
+                    if show_argument_type_runtime and arg_name in frame_info.runtime_types:
+                        runtime_type = frame_info.runtime_types[arg_name]
+                        if type_info:
+                            type_info += f" ({runtime_type})"
+                        else:
+                            type_info = f": {runtime_type}"
 
-                if CUSTOM_TRACEBACK_HANDLER_SHOW_ARGUMENT_TYPE_RUNTIME and arg_name in frame_info.runtime_types:
-                    runtime_type = frame_info.runtime_types[arg_name]
-                    if type_info:
-                        type_info += f" ({runtime_type})"
+                    available_width = console.width - max_arg_name_width - len(
+                        type_info) - 5
+
+                    if truncate_value:
+                        arg_repr = repr(arg_value)
+                        if len(arg_repr) > available_width:
+                            arg_repr = arg_repr[:available_width - 3] + "..."
+                        print(
+                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"
+                        )
                     else:
-                        type_info = f": {runtime_type}"
+                        import pprint
+                        formatted_value = pprint.pformat(arg_value, width=available_width)
+                        lines = formatted_value.split('\n')
 
-                available_width = console.width - max_arg_name_width - len(type_info) - 5
+                        print(
+                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"
+                        )
+                        for line in lines[1:]:
+                            print(f"  {'':<{max_arg_name_width}}   {line}")
 
-                if CUSTOM_TRACEBACK_HANDLER_TRUNCATE_VALUE:
-                    arg_repr = repr(arg_value)
-                    if len(arg_repr) > available_width:
-                        arg_repr = arg_repr[:available_width - 3] + "..."
-                    print(
-                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"
-                    )
-                else:
-                    import pprint
-                    formatted_value = pprint.pformat(arg_value, width=available_width)
-                    lines = formatted_value.split('\n')
+        print(f"{exc_type.__name__} : {exc_value}")
+        if hasattr(exc_value, "__notes__"):
+            for note in exc_value.__notes__:
+                print(f"Note: {note}")
 
-                    print(
-                        f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"
-                    )
-                    for line in lines[1:]:
-                        print(f"  {'':<{max_arg_name_width}}   {line}")
+        if hasattr(exc_value, "__rich_msg__"):
+            console.print(getattr(exc_value, "__rich_msg__"))
 
-    print(f"{exc_type.__name__} : {exc_value}")
-    if hasattr(exc_value, "__notes__"):
-        for note in exc_value.__notes__:
-            print(f"Note: {note}")
-
-    if hasattr(exc_value, "__rich_msg__"):
-        console.print(getattr(exc_value, "__rich_msg__"))
-
-
-sys.excepthook = custom_traceback_handler
-
-log("graphviz").setLevel(logging.ERROR)
-log("asyncio").setLevel(logging.ERROR)
-log("matplotlib").setLevel(logging.WARNING)
-
-import logging
-from pathlib import Path
-from typing import Dict
-
-from beartype import beartype
-from rich.text import Text
+    return impl
 
 
 class MultiFileHandler(logging.Handler):

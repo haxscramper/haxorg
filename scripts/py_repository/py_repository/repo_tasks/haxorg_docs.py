@@ -1,15 +1,20 @@
 from pathlib import Path
+import sys
 
-from beartype.typing import List
-from beartype.typing import Optional
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import check_path_exists
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_list_cli_pass
-from py_repository.repo_tasks.common import get_script_root
+from beartype.typing import List, Optional
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    get_uv_develop_sync_flags,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    check_path_exists,
+    get_build_root,
+    get_list_cli_pass,
+    get_script_root,
+)
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -36,20 +41,36 @@ def docs_doxygen(ctx: TaskContext) -> None:
 
 
 @haxorg_task()
+def docs_python(ctx: TaskContext) -> None:
+    "Build documentation for the Python workspace using Sphinx"
+    from py_repository.repo_docgen.gen_documentation_python import gen_docs
+    gen_docs(ctx)
+
+
+@haxorg_task()
 def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
     """Build documentation for the project using custom script"""
     if out_dir:
         out_dir_path = Path(out_dir)
     else:
         out_dir_path = Path(ctx.config.custom_docs_conf.out_dir)
+
     out_dir_path.mkdir(parents=True, exist_ok=True)
-    from py_repository.repo_docgen.gen_documentation import DocGenerationOptions
-    from py_repository.repo_docgen.gen_documentation import generate_documentation
+
+    build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
+    if str(build_dir) not in sys.path:
+        # custom documentation generation requires python support. If project
+        # setup was done with the source distribution of py-haxorg instead of the
+        # full binary, the `pyhaxorg.so` is only present in the build directory,
+        # but not in site-packages.
+        sys.path.append(str(build_dir))
+
+    from py_repository.repo_docgen.gen_coverage import DocGenerationOptions, gen_coverage
 
     assert check_path_exists(ctx, Path(
         get_cxx_profdata_params(ctx).output)), get_cxx_profdata_params(ctx).output
 
-    generate_documentation(conf=DocGenerationOptions(
+    gen_coverage(conf=DocGenerationOptions(
         html_out_path=out_dir_path,
         root_path=get_script_root(ctx),
         src_path=[

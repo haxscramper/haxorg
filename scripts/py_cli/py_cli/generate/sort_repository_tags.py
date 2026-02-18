@@ -7,14 +7,9 @@ import enum
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Set
+from beartype.typing import Any, Dict, List, Optional, Set
 import pandas as pd
-from py_cli import haxorg_cli
-from py_cli import haxorg_opts
+from py_cli import haxorg_cli, haxorg_opts
 from py_haxorg.pyhaxorg_utils import getFlatTags
 import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log

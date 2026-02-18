@@ -6,44 +6,50 @@ import shutil
 from tempfile import TemporaryDirectory
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import List
-from beartype.typing import Literal
-from beartype.typing import Optional
-from beartype.typing import Tuple
+from beartype.typing import Any, List, Literal, Optional, Tuple
 import docker
 import docker.errors
 import docker.models.containers
 import docker.types
-from py_ci.util_scripting import get_docker_cap_flags
-from py_repository.repo_tasks.command_execution import clone_repo_with_uncommitted_changes
-from py_repository.repo_tasks.command_execution import get_cmd_debug_file
-from py_repository.repo_tasks.command_execution import get_python_binary
-from py_repository.repo_tasks.command_execution import run_command
-from py_repository.repo_tasks.common import docker_user
-from py_repository.repo_tasks.common import ensure_clean_file
-from py_repository.repo_tasks.common import ensure_existing_dir
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.common import get_script_root
-from py_repository.repo_tasks.config import get_tmpdir
-from py_repository.repo_tasks.config import HaxorgLogLevel
+from py_ci.util_scripting import get_docker_cap_flags, get_threading_count
+from py_repository.repo_tasks.command_execution import (
+    clone_repo_with_uncommitted_changes,
+    get_cmd_debug_file,
+    get_python_binary,
+    get_uv_develop_sync_flags,
+    run_command,
+)
+from py_repository.repo_tasks.common import (
+    ctx_read_text,
+    ctx_write_text,
+    docker_user,
+    ensure_clean_file,
+    ensure_existing_dir,
+    get_build_root,
+    get_script_root,
+)
+from py_repository.repo_tasks.config import get_tmpdir, HaxorgLogLevel
 from py_repository.repo_tasks.deps_build import build_develop_deps
-from py_repository.repo_tasks.docker_fuse import cleanup_overlay_mount_points
-from py_repository.repo_tasks.docker_fuse import create_overlay_mount_points
-from py_repository.repo_tasks.examples_build import build_examples
-from py_repository.repo_tasks.examples_build import run_examples
-from py_repository.repo_tasks.examples_build import run_js_test_example
-from py_repository.repo_tasks.haxorg_build import build_haxorg
-from py_repository.repo_tasks.haxorg_build import install_haxorg_develop
-from py_repository.repo_tasks.haxorg_codegen import generate_binary_size_report
-from py_repository.repo_tasks.haxorg_codegen import generate_haxorg_sources
-from py_repository.repo_tasks.haxorg_codegen import generate_include_graph
-from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
+from py_repository.repo_tasks.docker_fuse import (
+    cleanup_overlay_mount_points,
+    create_overlay_mount_points,
+)
+from py_repository.repo_tasks.examples_build import (
+    build_examples,
+    run_examples,
+    run_js_test_example,
+)
+from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
+from py_repository.repo_tasks.haxorg_codegen import (
+    generate_binary_size_report,
+    generate_haxorg_sources,
+    generate_include_graph,
+    generate_python_protobuf_files,
+)
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
-from py_repository.repo_tasks.workflow_utils import haxorg_task
-from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import merge_dicts
 
@@ -58,15 +64,26 @@ def docker_mnt(src: Path, dst: Path) -> List[str]:
 
 
 def create_bind_mounts(ctx: TaskContext,
-                       mappings: List[Tuple[str, Path]],
+                       mappings: List[Tuple[str, Path] | str],
                        container_prefix: str = "/haxorg") -> List[docker.types.Mount]:
     """Create bind mounts from (container_relative_path, host_path) pairs."""
+
+    def get_mappings():
+        "nodoc"
+        for m in mappings:
+            if len(m) == 2:
+                assert m[1].exists(), str(m)
+                yield m
+            else:
+                assert Path(m).exists(), str(m)
+                yield m, Path(m)
+
     return [
         docker.types.Mount(
             target=f"{container_prefix}/{name}" if name else container_prefix,
             source=str(host_path.resolve()),
             type="bind",
-            read_only=False) for name, host_path in mappings
+            read_only=False) for name, host_path in get_mappings()
     ]
 
 
@@ -152,7 +169,6 @@ def run_docker_develop_test(
         "scripts",
         "tests",
         "benchmark",
-        "tasks.py",
         "examples",
         "docs",
         "pyproject.toml",
@@ -173,11 +189,11 @@ def run_docker_develop_test(
     nano_cpus = int(cpu_count * 0.9 * 1e9)
     mem_limit = "20g"
 
-    mounts = create_overlay_mount_points(
-        ctx,
-        mounts=mounts,
-        cow_root=get_tmpdir("docker_develop_cow"),
-    )
+    # mounts = create_overlay_mount_points(
+    #     ctx,
+    #     mounts=mounts,
+    #     cow_root=get_tmpdir("docker_develop_cow"),
+    # )
 
     container: docker.models.containers.Container = client.containers.run(
         image=ctx.config.HAXORG_DOCKER_IMAGE,
@@ -190,14 +206,15 @@ def run_docker_develop_test(
     )
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.config.use_unchanged_tasks = True
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
     dctx.config.emscripten.toolchain = "/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
     container_path = get_container_var(container, "PATH")
-    run_command(dctx, "uv", ["sync", "--all-groups"])
-    run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "/haxorg"])
+    run_command(dctx, "uv", ["sync", "--all-groups", *get_uv_develop_sync_flags(dctx)])
+    run_command(dctx, "git", ["config", "--global", "--add", "safe.directory", "*"])
     run_command(dctx, "git", ["config", "--global", "user.email", "you@example.com"])
     run_command(dctx, "git", ["config", "--global", "user.name", "Your Name"])
 
@@ -205,12 +222,15 @@ def run_docker_develop_test(
 
 
 @beartype
-def run_docker_release_test_impl(
+def _run_docker_release_test_impl(
     ctx: TaskContext,
     clone_dir_path: Path,
     build_dir_path: Path,
     clone_code: str,
 ) -> None:
+    """
+    Implementation of the docker release test runner
+    """
 
     source_prefix: Optional[Path] = None
     if clone_code == "all":
@@ -249,21 +269,41 @@ def run_docker_release_test_impl(
     cap_add = ["SYS_PTRACE"]
     client = docker.from_env()
 
+    def verify_mount(verify_context: TaskContext, repo_root: Path):
+        "Debug function to check if directory content was mounted properly"
+        run_command(verify_context, "ls", ["-al"], print_output=True)
+        run_command(verify_context, "ls", ["-l", repo_root], print_output=True)
+        run_command(verify_context,
+                    "ls", ["-l", str(repo_root.joinpath("src"))],
+                    print_output=True)
+        assert ctx_read_text(verify_context, repo_root.joinpath("conanfile.py"))
+        assert ctx_read_text(verify_context, repo_root.joinpath("CMakeLists.txt"))
+        assert ctx_read_text(verify_context,
+                             repo_root.joinpath("src/hstd/CMakeLists.txt"))
+        assert ctx_read_text(verify_context,
+                             repo_root.joinpath("src/hstd/CMakeLists.txt"))
+
+    verify_mount(ctx, get_script_root(ctx))
+
     mounts = create_bind_mounts(
         ctx,
         [
             ("thirdparty", Path(get_script_root(ctx, "thirdparty"))),
-            ("src", source_prefix),
+            ("src", source_prefix.joinpath("src")),
             ("wip", build_dir_path),
+            "CMakeLists.txt",
+            "conanfile.py",
+            "HaxorgConfig.cmake.in",
+            "tests",
         ],
         container_prefix="/haxorg",
     )
 
     cow_root = get_tmpdir("docker_release_cow")
-    mounts = create_overlay_mount_points(ctx, mounts=mounts, cow_root=cow_root)
+    # mounts = create_overlay_mount_points(ctx, mounts=mounts, cow_root=cow_root)
 
     container: docker.models.containers.Container = client.containers.run(
-        ctx.config.CPACK_TEST_IMAGE,
+        ctx.config.HAXORG_DOCKER_RELEASE_IMAGE,
         command="sleep infinity",
         mounts=mounts,
         environment=environment,
@@ -273,25 +313,37 @@ def run_docker_release_test_impl(
     )
 
     dctx = replace(ctx, docker_container=container, run_cache=set())
+    dctx.config.log_level = HaxorgLogLevel.VERBOSE
     dctx.config.use_unchanged_tasks = True
     dctx.repo_root = Path("/haxorg")
     dctx.config.workflow_log_dir = Path("/tmp/haxorg/docker_workflow_log_dir")
+    verify_mount(dctx, Path("/haxorg"))
 
     python_binary = get_python_binary(dctx)
     log(CAT).info(f"Using python binary {python_binary}")
 
-    run_command(dctx, "git", [
-        "config",
-        "--global",
-        "safe.directory",
-        "*",
+    run_command(dctx, "git", ["config", "--global", "safe.directory", "*"])
+
+    default_path = Path("/root/.conan2/profiles/default")
+    ensure_existing_dir(dctx, default_path.parent)
+    ctx_write_text(
+        dctx, default_path,
+        get_script_root(ctx).joinpath(
+            "scripts/py_ci/py_ci/conan_default_profile.ini").read_text())
+
+    # try:
+    run_command(dctx, "conan", [
+        "create",
+        ".",
+        "-vverbose",
+        "--test-folder=tests/vendor/conan_test_package",
+        "--build=missing",
+        "-c",
+        f"tools.build:jobs={get_threading_count()}",
     ])
 
-    try:
-        pass
-
-    finally:
-        cleanup_overlay_mount_points(ctx, cow_root=cow_root)
+    # finally:
+    #     cleanup_overlay_mount_points(ctx, cow_root=cow_root)
 
 
 @haxorg_task(dependencies=[])
@@ -301,6 +353,9 @@ def run_docker_release_test(
     clone_dir: Path = get_tmpdir("docker_release", "clone"),
     clone_code: Literal["none", "comitted", "all"] = "all",
 ) -> None:
+    """
+    Run the release test set in the docker container.
+    """
 
     dep_debug_stdout = get_cmd_debug_file("stdout")
     dep_debug_stderr = get_cmd_debug_file("stderr")
@@ -320,13 +375,13 @@ def run_docker_release_test(
             f.write(logs)
 
     try:
-        old_container = client.containers.get(ctx.config.CPACK_TEST_IMAGE)
+        old_container = client.containers.get(ctx.config.HAXORG_DOCKER_RELEASE_IMAGE)
         old_container.remove(force=True)
     except docker.errors.NotFound:
         pass
 
     dockerfile_path = Path(
-        get_script_root(ctx, "scripts/py_repository/cpack_build_in_fedora.dockerfile"))
+        get_script_root(ctx, "scripts/py_repository/fedora_release.dockerfile"))
     build_context_path = Path(get_script_root(ctx))
 
     def print_build_logs(build_logs: List[Any]) -> None:
@@ -341,7 +396,7 @@ def run_docker_release_test(
         image, build_logs = client.images.build(
             path=str(build_context_path),
             dockerfile=str(dockerfile_path),
-            tag=ctx.config.CPACK_TEST_IMAGE,
+            tag=ctx.config.HAXORG_DOCKER_RELEASE_IMAGE,
             rm=True  # Remove intermediate containers
         )
 
@@ -354,9 +409,10 @@ def run_docker_release_test(
 
     @beartype
     def run_with_build_dir(build_dir_path: Path) -> None:
+        "nodoc"
         if clone_dir:
             log(CAT).info("Specified clone directory, using it for docker")
-            run_docker_release_test_impl(
+            _run_docker_release_test_impl(
                 ctx,
                 clone_dir_path=Path(clone_dir),
                 build_dir_path=build_dir_path,
@@ -366,7 +422,7 @@ def run_docker_release_test(
             with TemporaryDirectory() as dir:
                 log(CAT).info(
                     f"No docker clone directory specified, using temporary {dir}")
-                run_docker_release_test_impl(
+                _run_docker_release_test_impl(
                     ctx,
                     clone_dir_path=Path(dir),
                     build_dir_path=build_dir_path,

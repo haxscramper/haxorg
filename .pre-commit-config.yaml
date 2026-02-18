@@ -45,3 +45,19 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_cxx_code.py
         language: system
         types: [c++]
+  - repo: local
+    hooks:
+      - id: cmake-format
+        name: cmake-format
+        entry: cmake-format -i
+        language: system
+        files: (CMakeLists\.txt|\.cmake)$
+  - repo: local
+    hooks:
+      - id: no-undocumented-api
+        name: Prevent undocumented Python/C++ functions/classes (whole file)
+        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_documentation_changes.py
+        language: system
+        pass_filenames: true
+        # args: [--whole-file]
+        files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$

@@ -1,6 +1,6 @@
 #pragma once
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <hstd/stdlib/Func.hpp>
 #    include <boost/graph/adjacency_list.hpp>
 #    include <hstd/stdlib/Json.hpp>

@@ -4,7 +4,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/sequtils.hpp>
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC
 #    include <boost/container/small_vector.hpp>
 #endif
 #include <hstd/system/exceptions.hpp>
@@ -453,13 +453,13 @@ class Vec
 template <typename T, int StartSize>
 struct SmallVec
     :
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
     public std::vector<T>
 #else
     public boost::container::small_vector<T, StartSize>
 #endif
     , public IndexedBase<T, SmallVec<T, StartSize>> {
-#if ORG_EMCC_BUILD
+#if ORG_BUILD_EMCC
     using Base = std::vector<T>;
 #else
     using Base = boost::container::small_vector<T, StartSize>;

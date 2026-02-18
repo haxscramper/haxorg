@@ -2,7 +2,7 @@
   "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
   "use_unchanged_tasks": true,
   "use_dependencies"   : true,
-  "build_conf"         : {"cmake_generator": "Unix Makefiles"},
+  "build_conf"         : {"cmake_generator": "Ninja", "real_time_output_print": false},
   "py_test_conf"       : {
     "extra_pytest_args"     : [
       // "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestCoverallOrg",

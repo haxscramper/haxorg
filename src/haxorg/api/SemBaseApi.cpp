@@ -19,7 +19,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <fstream>
 
-#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
+#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <SemOrgProto.pb.h>
 #endif
 
@@ -102,7 +102,7 @@ void org::exportToTreeFile(
 
 
 sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
-#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
+#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -112,32 +112,32 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
         org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
             read_node));
     return read_node.as<sem::Document>();
-#elif ORG_EMCC_BUILD
+#elif ORG_BUILD_EMCC
     throw std::logic_error(
         "Protobuf file parsing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
-        "`ORG_DEPS_USE_PROTOBUF` and rebuild to enable protobuf serde.");
+        "`ORG_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
 #endif
 }
 
 void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
-#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
+#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     std::ofstream     stream{file};
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
-#elif ORG_EMCC_BUILD
+#elif ORG_BUILD_EMCC
     throw std::logic_error(
         "Protobuf file writing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
-        "`ORG_DEPS_USE_PROTOBUF` and rebuild to enable protobuf serde.");
+        "`ORG_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
 #endif
 }
 

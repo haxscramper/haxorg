@@ -1,11 +1,12 @@
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import List
-from beartype.typing import Optional
+from beartype.typing import List, Optional
 import plumbum
-from py_repository.code_analysis.gen_coverage_cxx import ProfdataCookie
-from py_repository.code_analysis.gen_coverage_cxx import ProfdataFullProfile
+from py_repository.code_analysis.gen_coverage_cxx import (
+    ProfdataCookie,
+    ProfdataFullProfile,
+)
 from py_scriptutils.script_logging import log
 import pytest
 

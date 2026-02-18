@@ -13,7 +13,7 @@
 
 #include <hstd/stdlib/OptFormatter.hpp>
 
-#if ORG_USE_QT
+#if ORG_BUILD_WITH_QT
 #    include <QString>
 #endif
 
@@ -224,7 +224,7 @@ TEST_F(LoggerTest, CollectionRepr) {
 
 
 TEST_F(LoggerTest, QtTypes) {
-#if ORG_USE_QT
+#if ORG_BUILD_WITH_QT
     HSLOG_INFO("item {}", QString("test"));
     //
 #endif

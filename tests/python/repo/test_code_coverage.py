@@ -1,18 +1,11 @@
 from collections import defaultdict
-from dataclasses import dataclass
-from dataclasses import field
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 import re
 from tempfile import TemporaryDirectory
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Dict
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Tuple
-from beartype.typing import Union
+from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 from dominate import document
 import dominate.tags as tags
 import pandas as pd
@@ -20,20 +13,18 @@ from plumbum import local
 import py_repository.code_analysis.gen_coverage_cxx as cov
 import py_scriptutils.json_utils as ju
 from py_scriptutils.os_utils import gettempdir
-from py_scriptutils.pandas_utils import assert_frame
-from py_scriptutils.pandas_utils import dataframe_to_rich_table
+from py_scriptutils.pandas_utils import assert_frame, dataframe_to_rich_table
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.rich_utils import render_rich
-from py_scriptutils.rich_utils import render_rich_pprint
-from py_scriptutils.script_logging import log
-from py_scriptutils.script_logging import pprint_to_file
-from py_scriptutils.script_logging import to_debug_json
-from py_scriptutils.sqlalchemy_utils import dump_db_all
-from py_scriptutils.sqlalchemy_utils import dump_flat_table
-from py_scriptutils.sqlalchemy_utils import format_db_all
-from py_scriptutils.sqlalchemy_utils import format_rich_query
-from py_scriptutils.sqlalchemy_utils import open_sqlite_session
-from py_scriptutils.sqlalchemy_utils import Session
+from py_scriptutils.rich_utils import render_rich, render_rich_pprint
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.sqlalchemy_utils import (
+    dump_db_all,
+    dump_flat_table,
+    format_db_all,
+    format_rich_query,
+    open_sqlite_session,
+    Session,
+)
 import pytest
 import rich.box
 from sqlalchemy import select
@@ -627,8 +618,8 @@ def test_coverage_annotation_multiple_run_single_segment(stable_test_dir: Path) 
 
     session = open_sqlite_session(cmd.get_sqlite(), cov.CoverageSchema)
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath("main.cpp"),
     )
@@ -675,8 +666,8 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
         gettempdir()) / "test_coverage_annotation_multiple_run_multiple_segment.txt"
     db_debug_path.write_text(format_db_all(session, style=False))
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath("main.cpp"),
         debug_format_segments=gettempdir() / "annotated_segments.txt",
@@ -719,7 +710,7 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
 
     debug_path.write_text(
         cov.get_file_annotation_document(
-            session=session,
+            cxx_session=session,
             root_path=dir,
             abs_path=dir.joinpath("main.cpp"),
         ).render())
@@ -742,6 +733,7 @@ def test_coverage_annotation_multiple_run_multiple_segment(stable_test_dir: Path
         ))
 
 
+@beartype
 def run_common(
         cmd: ProfileRunParams,
         dir: Path,
@@ -753,6 +745,7 @@ def run_common(
         path_coverage_mapping_dump: Optional[Path] = Path("mapping_dump"),
         filename: Path = Path("main.cpp"),
 ) -> None:
+    "Shared logic for the custom code documentation generation in tests."
 
     def pass_path(path: Path) -> Path:
         if path.is_absolute():
@@ -774,8 +767,8 @@ def run_common(
     if path_dbdump:
         pass_path(path_dbdump).write_text(format_db_all(session, style=False))
 
-    file = cov.get_annotated_files_for_session(
-        session=session,
+    file = cov.get_annotated_file_for_session(
+        cxx_session=session,
         root_path=dir,
         abs_path=dir.joinpath(filename),
         debug_format_segments=pass_path(path_format_segments),
@@ -791,7 +784,7 @@ def run_common(
             html_out = html_out_dir.joinpath(code_in)
             pass_path(html_out).write_text(
                 cov.get_file_annotation_document(
-                    session=session,
+                    cxx_session=session,
                     root_path=dir,
                     abs_path=dir.joinpath(code_in),
                 ).render())

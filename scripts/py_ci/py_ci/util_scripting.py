@@ -13,7 +13,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def get_threading_count() -> int:
-    return int((os.cpu_count() or 6) * 0.6)
+    return int((os.cpu_count() or 6) * 0.9)
 
 
 def get_j_cap() -> List[str]:
@@ -209,7 +209,9 @@ def parse_haxorg_env() -> Dict[str, Any]:
     return result
 
 
-def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
+def cmake_opt(name: str, value: Union[str, bool, Path, None, List, int]) -> str:
+    """Convert a Python value to a CMake `-D` option string: `-D<name>=<value>`
+    """
     result = "-D" + name + "="
     if isinstance(value, (str, Path)):
         result += str(value)
@@ -219,6 +221,9 @@ def cmake_opt(name: str, value: Union[str, bool, Path, None, List]) -> str:
 
     elif isinstance(value, list):
         result += ";".join([str(it) for it in value])
+
+    elif isinstance(value, int):
+        result += str(value)
 
     elif value is None:
         result += "OFF"

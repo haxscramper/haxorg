@@ -1,6 +1,5 @@
 from contextlib import contextmanager
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 import difflib
 from functools import wraps
@@ -12,19 +11,21 @@ import traceback
 from types import GeneratorType
 
 from beartype import beartype
-from beartype.typing import Any
-from beartype.typing import Callable
-from beartype.typing import cast
-from beartype.typing import Dict
-from beartype.typing import Generator
-from beartype.typing import Iterable
-from beartype.typing import List
-from beartype.typing import Optional
-from beartype.typing import Sequence
-from beartype.typing import Type
-from beartype.typing import TypeAlias
-from beartype.typing import TypeVar
-from beartype.typing import Union
+from beartype.typing import (
+    Any,
+    Callable,
+    cast,
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeAlias,
+    TypeVar,
+    Union,
+)
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import to_debug_json
 

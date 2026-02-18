@@ -789,7 +789,7 @@ struct value_metadata<hstd::ext::ImmBox<T>> {
 };
 
 
-#if !ORG_EMCC_BUILD
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     const Vec<ImmAstVersion>& history,
     ImmAstGraphvizConf const& conf) {

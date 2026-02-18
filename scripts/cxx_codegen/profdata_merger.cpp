@@ -117,7 +117,9 @@ BOOST_DESCRIBE_ENUM(
 
 } // namespace llvm::coverage
 
+/// Trigger llvm unreachable using string argument
 NO_COVERAGE void llvm_unreachable_f(std::string const& msg) {
+    // tmp
     llvm_unreachable(msg.c_str());
 }
 

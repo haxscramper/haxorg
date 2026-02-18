@@ -7,13 +7,13 @@ on:
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    container: fedora:latest
     steps:
-      - run: pacman -Syu --noconfirm clang python-pip git
+      - run: |
+          dnf install -y clang clang-tools-extra python3-pip git sudo nodejs cmake-format python3-pyyaml
       - uses: actions/checkout@v4
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: astral-sh/setup-uv@v4
+      - run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - run: clang-format --version
       - run: uv sync --dev
-
       - run: uv run --dev pre-commit run --all-files --verbose

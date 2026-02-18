@@ -1,7 +1,7 @@
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
-#if ORG_DEPS_USE_PROTOBUF && !ORG_EMCC_BUILD
+#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 
 using namespace org::algo;
 using namespace org;
