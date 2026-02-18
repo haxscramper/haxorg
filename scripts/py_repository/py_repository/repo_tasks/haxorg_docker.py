@@ -72,11 +72,11 @@ def create_bind_mounts(ctx: TaskContext,
         "nodoc"
         for m in mappings:
             if len(m) == 2:
-                assert m[1].exists()
+                assert m[1].exists(), str(m)
                 yield m
             else:
-                assert Path(m).exists()
-                yield (m, Path(m))
+                assert Path(m).exists(), str(m)
+                yield m, Path(m)
 
     return [
         docker.types.Mount(
@@ -169,7 +169,6 @@ def run_docker_develop_test(
         "scripts",
         "tests",
         "benchmark",
-        "tasks.py",
         "examples",
         "docs",
         "pyproject.toml",
@@ -190,11 +189,11 @@ def run_docker_develop_test(
     nano_cpus = int(cpu_count * 0.9 * 1e9)
     mem_limit = "20g"
 
-    mounts = create_overlay_mount_points(
-        ctx,
-        mounts=mounts,
-        cow_root=get_tmpdir("docker_develop_cow"),
-    )
+    # mounts = create_overlay_mount_points(
+    #     ctx,
+    #     mounts=mounts,
+    #     cow_root=get_tmpdir("docker_develop_cow"),
+    # )
 
     container: docker.models.containers.Container = client.containers.run(
         image=ctx.config.HAXORG_DOCKER_IMAGE,

@@ -6,6 +6,7 @@ from beartype import beartype
 from beartype.typing import Any, Iterable, List
 from py_ci.util_scripting import cmake_opt, get_j_cap
 from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
     run_cmake_build,
     run_cmake_configure,
     run_command,
@@ -102,6 +103,8 @@ def build_haxorg(ctx: TaskContext) -> None:
         targets=targets,
         print_output=ctx.config.build_conf.real_time_output_print,
     )
+
+    get_uv_develop_env_flags(ctx)
 
 
 @haxorg_task()

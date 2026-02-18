@@ -121,13 +121,16 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_BUILD_WITH_PERFETTO", conf.instrument.perfetto))
-    result.append(cmake_opt("ORG_USE_MSGPACK", conf.build_conf.use_msgpack))
+    result.append(cmake_opt("ORG_BUILD_WITH_MSGPACK", conf.build_conf.use_msgpack))
     result.append(cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS",
                             conf.build_conf.use_adaptagrams))
     result.append(cmake_opt("ORG_BUILD_WITH_CGRAPH", conf.build_conf.use_cgraph))
     result.append(cmake_opt("ORG_BUILD_TESTS", conf.build_conf.build_tests))
     result.append(cmake_opt("ORG_BUILD_WITH_QT", conf.use.qt))
     result.append(cmake_opt("ORG_BUILD_IMGUI_GUI", conf.use.imgui))
+    result.append(cmake_opt("ORG_BUILD_PYHAXORG_BINDINGS", conf.build_conf.build_python))
+    result.append(
+        cmake_opt("ORG_BUILD_TEXT_LAYOUTER_BINDINGS", conf.build_conf.build_python))
     # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))
     result.append(
         cmake_opt("CMAKE_BUILD_TYPE", "Debug" if conf.debug else "RelWithDebInfo"))

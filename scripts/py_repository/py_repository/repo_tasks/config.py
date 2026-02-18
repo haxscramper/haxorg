@@ -61,6 +61,7 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
         default=False, description="Print the build output in real time")
     use_adaptagrams: bool = Field(
         default=True, description="Build the project with adaptagrams support")
+    build_python: bool = Field(default=True, description="Build python bindings")
     build_tests: bool = Field(default=True,
                               description="Build tests for hstd/haxorg project")
 
