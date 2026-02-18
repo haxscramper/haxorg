@@ -2,6 +2,7 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
 
+#if ORG_BUILD_WITH_MSGPACK
 namespace org::imm {
 [[refl(R"({"unique-name": "serializeAstContextToText"})")]] std::string serializeToText(
     std::shared_ptr<ImmAstContext> const& store);
@@ -26,3 +27,4 @@ json                 serializeFromTextToJson(std::string const& binary);
 [[refl]] std::string serializeFromTextToTreeDump(
     std::string const& binary);
 } // namespace org::imm
+#endif

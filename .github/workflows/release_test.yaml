@@ -21,6 +21,4 @@ jobs:
     - run: mkdir -p ~/.conan2/profiles
     - run: cp scripts/py_ci/py_ci/conan_default_profile.ini ~/.conan2/profiles/default
     - run: conan create . -vverbose --test-folder=tests/vendor/conan_test_package --build=missing
-    - run: uv run -C HAXORG_PY_SOURCE_DISTRIBUTION=1 \
-        ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg \
-        --test-package tests/vendor/haxorg_py_test_package
+    - run: uv run -C HAXORG_PY_SOURCE_DISTRIBUTION=1 ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg --test-package tests/vendor/haxorg_py_test_package

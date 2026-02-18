@@ -56,7 +56,7 @@ option(ORG_USE_COVERAGE "Enable test coverage" OFF)
 option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
 option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
 option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
-option(ORG_USE_SANITIZER "Use sanitizers" ON)
+option(ORG_USE_SANITIZER "Use sanitizers" OFF)
 option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
 
 # Optional features in the haxorg library
@@ -90,6 +90,11 @@ if(${ORG_BUILD_QT_GUI} AND NOT ${ORG_BUILD_WITH_QT})
     FATAL_ERROR
       "Build configuration enabled Qt GUI but not QT features, set ORG_BUILD_WITH_QT=ON or ORG_BUILD_QT_GUI=OFF to fix."
   )
+endif()
+
+if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_WITH_MSGPACK})
+  message(FATAL_ERROR "py-haxorg bindings were enabled, but msgpack option was disabled. "
+                      "Python wrappers require msgpack features.")
 endif()
 
 if(${ORG_BUILD_TESTS}
@@ -178,7 +183,7 @@ if(${ORG_BUILD_INTERNAL_TOOLS})
 endif()
 
 find_package(PkgConfig)
-if(NOT ${ORG_BUILD_EMCC})
+if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
   pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 endif()
 
@@ -208,14 +213,14 @@ else()
                INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
 endif()
 
-if(NOT ${ORG_BUILD_EMCC}
-   AND ${ORG_BUILD_PYHAXORG_BINDINGS}
-   AND ${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
-  find_package(
-    Python
-    COMPONENTS Interpreter Development
-    REQUIRED)
-  find_package(pybind11 CONFIG REQUIRED)
+if(NOT ${ORG_BUILD_EMCC})
+  if(${ORG_BUILD_PYHAXORG_BINDINGS} OR ${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
+    find_package(
+      Python
+      COMPONENTS Interpreter Development
+      REQUIRED)
+    find_package(pybind11 CONFIG REQUIRED)
+  endif()
 endif()
 
 if(${ORG_BUILD_WITH_TRACY})
