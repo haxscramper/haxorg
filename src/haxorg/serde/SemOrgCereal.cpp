@@ -8,6 +8,7 @@
 #    include <hstd/system/reflection.hpp>
 #    include <hstd/stdlib/Debug.hpp>
 #    include <hstd/stdlib/ContainerAPI.hpp>
+#    include <haxorg/imm/ImmOrgAdapter.hpp>
 
 namespace {
 int level = 0;

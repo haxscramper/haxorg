@@ -10,6 +10,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -944,4 +945,14 @@ void org::graph::MapGraphState::addNodeRec(
 std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
     std::shared_ptr<imm::ImmAstContext> ast) {
     return MapGraphState::FromAstContext(ast);
+}
+
+hstd::Opt<Str> MapNodeProp::getFootnoteName(
+    const std::shared_ptr<imm::ImmAstContext>& context) const {
+    if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
+        par && par->isFootnoteDefinition()) {
+        return par->getFootnoteName();
+    } else {
+        return std::nullopt;
+    }
 }

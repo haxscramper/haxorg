@@ -2,6 +2,7 @@
 #if !ORG_BUILD_EMCC
 #    include <boost/property_map/dynamic_property_map.hpp>
 #    include <haxorg/imm/ImmOrgGraph.hpp>
+#    include <haxorg/imm/ImmOrgAdapter.hpp>
 
 #    include <boost/graph/graph_traits.hpp>
 #    include <hstd/ext/graphwrap.hpp>

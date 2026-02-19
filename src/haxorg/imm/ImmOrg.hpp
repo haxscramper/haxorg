@@ -588,52 +588,6 @@ struct ImmAstStore {
 struct ImmAstVersion;
 struct ImmAdapter;
 
-#define __DECLARE_VALUE_READ_FIELD(                                       \
-    __FIELD_TYPE,                                                         \
-    __FIELD_NAME,                                                         \
-    __FIELD_UPPERCASE,                                                    \
-    __PARENT_TYPE,                                                        \
-    __PARENT_KIND)                                                        \
-    [[refl]] BOOST_PP_REMOVE_PARENS(__FIELD_TYPE) const&                  \
-        get##__FIELD_UPPERCASE() const;
-
-#define __DECLARE_VALUE_WRITE_FIELD(                                      \
-    __FIELD_TYPE,                                                         \
-    __FIELD_NAME,                                                         \
-    __FIELD_UPPERCASE,                                                    \
-    __PARENT_TYPE,                                                        \
-    __PARENT_KIND)                                                        \
-    [[refl]]                                                              \
-    void set##__FIELD_UPPERCASE(BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)      \
-                                    const& value);
-
-
-#define __DECLARE_VALUE_READ_TYPE(__KIND)                                 \
-    struct [[refl(R"({"default-constructor": false})")]] Imm##__KIND##    \
-        ValueRead {                                                       \
-        org::imm::Imm##__KIND* ptr;                                       \
-        Imm##__KIND##ValueRead(org::imm::Imm##__KIND const* ptr)          \
-            : ptr{const_cast<org::imm::Imm##__KIND*>(ptr)} {}             \
-        EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
-            __DECLARE_VALUE_READ_FIELD);                                  \
-        DESC_FIELDS(Imm##__KIND##ValueRead, ());                          \
-    };                                                                    \
-                                                                          \
-    struct [[refl(R"({"default-constructor": false})")]] Imm##__KIND##    \
-        Value : public org::imm::Imm##__KIND##ValueRead {                 \
-        using org::imm::Imm##__KIND##ValueRead::Imm##__KIND##ValueRead;   \
-        EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                \
-            __DECLARE_VALUE_WRITE_FIELD);                                 \
-        DESC_FIELDS(Imm##__KIND##Value, ());                              \
-    };
-
-
-EACH_SEM_ORG_KIND(__DECLARE_VALUE_READ_TYPE)
-
-#undef __DECLARE_VALUE_READ_TYPE
-#undef __DECLARE_VALUE_READ_FIELD
-#undef __DECLARE_VALUE_WRITE_FIELD
-
 /// \brief Store additional lookup and debug contexts for a particular
 /// version of the AST tree.
 struct
@@ -1331,16 +1285,14 @@ struct ImmAdapterTBase : ImmAdapter {
 
 /// \brief Generic adapter implementation, with no direct specialization.
 template <typename T>
-struct ImmAdapterT : ImmAdapterTBase<T> {
-    USE_IMM_ADAPTER_BASE(T);
-};
+struct ImmAdapterT;
 
-#define __declare_adapter(Derived, Base)                                  \
-    template <>                                                           \
-    struct ImmAdapterT<org::imm::Imm##Derived>;
+// #define __declare_adapter(Derived, Base)                                  \
+//     template <> \
+//     struct ImmAdapterT<org::imm::Imm##Derived>;
 
-EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
-#undef __declare_adapter
+// EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
+// #undef __declare_adapter
 
 /// \brief Base interface for accessing the final adapter specialization
 struct [[refl]] ImmAdapterVirtualBase {
@@ -1552,113 +1504,25 @@ struct [[refl]] ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 
-// Define specializations for all final (non-abstract) org-mode types.
-#define __define_adapter(Derived, Base)                                   \
-    template <>                                                           \
-    struct [[refl(                                                        \
-        "{\"default-constructor\": false, \"wrapper-name\": "             \
-        "\"Imm" #Derived                                                  \
-        "Adapter\", \"wrapper-has-params\": "                             \
-        "false}")]] ImmAdapterT<org::imm::Imm##Derived>                   \
-        : ImmAdapterTBase<Imm##Derived>                                   \
-        , ImmAdapter##Derived##API {                                      \
-        using api_type = ImmAdapter##Derived##API;                        \
-        USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
-        [[refl]] ImmAdapterT(org::imm::ImmAdapter const& other)           \
-            : ImmAdapterTBase<Imm##Derived>{other} {                      \
-            LOGIC_ASSERTION_CHECK_FMT(                                    \
-                other.getKind() == OrgSemKind::Derived,                   \
-                "Adapter type mismatch, creating {} from generic "        \
-                "adapter of type {}",                                     \
-                #Derived,                                                 \
-                other.getKind());                                         \
-        }                                                                 \
-        [[refl]] org::imm::Imm##Derived##ValueRead getValue() const {     \
-            return org::imm::Imm##Derived##ValueRead{&this->value()};     \
-        };                                                                \
-    };
-
-EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
-#undef __define_adapter
-
-
-template <typename T>
-template <typename F>
-inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::* fieldPtr) const {
-    return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, {}};
-}
-
-template <typename T>
-template <typename F>
-ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::* fieldPtr,
-    ImmPathStep const&       step) const {
-    return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
-}
-
-template <typename T>
-struct remove_sem_org {
-    using type = hstd::remove_smart_pointer<T>::type;
-};
-
-template <>
-struct remove_sem_org<ImmId> {
-    using type = ImmOrg;
-};
-
-template <>
-struct remove_sem_org<ImmAdapter> {
-    using type = ImmOrg;
-};
-
-template <typename T>
-struct remove_sem_org<ImmIdT<T>> {
-    using type = hstd::remove_smart_pointer<T>::type;
-};
-
-template <typename T>
-struct remove_sem_org<ImmAdapterT<T>> {
-    using type = hstd::remove_smart_pointer<T>::type;
-};
-
-
-template <typename T>
-concept IsImmOrg = std::
-    derived_from<typename remove_sem_org<T>::type, ImmOrg>;
-
-
-/// \brief Map immutable AST type to the sem type, defines inner type
-/// `sem_type`
-template <typename Imm>
-struct imm_to_sem_map {};
-
-/// \brief Map sem AST type to the immer type, defines inner type
-/// `imm_type`
-template <typename Mut>
-struct sem_to_imm_map {};
-
-#define _gen_map(__Kind)                                                  \
-    template <>                                                           \
-    struct imm_to_sem_map<org::imm::Imm##__Kind> {                        \
-        using sem_type = org::sem::__Kind;                                \
-    };                                                                    \
-    template <>                                                           \
-    struct sem_to_imm_map<org::sem::__Kind> {                             \
-        using imm_type = org::imm::Imm##__Kind;                           \
-    };
-EACH_SEM_ORG_KIND(_gen_map)
-#undef _gen_map
-
-sem::SemId<sem::Org> sem_from_immer(
-    org::imm::ImmId const& id,
-    ImmAstContext const&   ctx);
-
-org::imm::ImmId immer_from_sem(
-    org::sem::SemId<org::sem::Org> const& id,
-    ImmAstEditContext&                    ctx);
 
 } // namespace org::imm
+
+template <>
+struct std::hash<org::imm::ImmReflPathItemBase> {
+    std::size_t operator()(
+        org::imm::ImmReflPathItemBase const& it) const noexcept;
+};
+
+template <>
+struct std::hash<org::imm::ImmPathStep> {
+    std::size_t operator()(
+        org::imm::ImmPathStep const& step) const noexcept;
+};
+
+template <>
+struct std::hash<org::imm::ImmPath> {
+    std::size_t operator()(org::imm::ImmPath const& it) const noexcept;
+};
 
 
 template <>
@@ -1716,58 +1580,3 @@ struct std::formatter<org::imm::ImmAdapter> : std::formatter<std::string> {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };
-
-
-template <typename T>
-struct std::formatter<org::imm::ImmAdapterT<T>>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const org::imm::ImmAdapterT<T>& p, FormatContext& ctx)
-        const {
-        return hstd::fmt_ctx(p.id, ctx);
-    }
-};
-
-
-template <>
-struct std::hash<org::imm::ImmReflPathItemBase> {
-    std::size_t operator()(
-        org::imm::ImmReflPathItemBase const& it) const noexcept;
-};
-
-template <>
-struct std::hash<org::imm::ImmPathStep> {
-    std::size_t operator()(
-        org::imm::ImmPathStep const& step) const noexcept;
-};
-
-template <>
-struct std::hash<org::imm::ImmPath> {
-    std::size_t operator()(org::imm::ImmPath const& it) const noexcept;
-};
-
-
-namespace org::details {
-inline org::imm::ImmAstContext* ___get_context(
-    org::imm::ImmAstContext::Ptr p) {
-    return p.get();
-}
-inline org::imm::ImmAstEditContext* ___get_context(
-    org::imm::ImmAstEditContext& p) {
-    return &p;
-}
-
-inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
-    return p.ctx.lock()->debug->TraceState;
-}
-inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) {
-    return p->debug->TraceState;
-}
-} // namespace org::details
-
-#define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
-
-#define AST_EDIT_MSG(...)                                                 \
-    if (AST_EDIT_TRACE()) {                                               \
-        ::org::details::___get_context(ctx)->message(__VA_ARGS__);        \
-    }

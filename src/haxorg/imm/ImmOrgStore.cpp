@@ -17,6 +17,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 using namespace org;
 using namespace org::imm;
