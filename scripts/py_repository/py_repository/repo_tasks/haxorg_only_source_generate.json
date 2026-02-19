@@ -1,6 +1,6 @@
 {
   "use_dependencies": false,
-  "generate_sources_conf": {
-    "standalone": true
-  }
+  // "generate_sources_conf": {
+  //   "standalone": true
+  // }
 }

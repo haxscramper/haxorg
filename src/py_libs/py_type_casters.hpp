@@ -1,46 +1,37 @@
 #pragma once
 
 #undef slots
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/chrono.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/optional.h>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Str.hpp>
 
-
-namespace PYBIND11_NAMESPACE {
+namespace nanobind {
 namespace detail {
 template <>
 struct type_caster<hstd::Str> {
-  public:
-    PYBIND11_TYPE_CASTER(hstd::Str, _("str"));
+    NB_TYPE_CASTER(hstd::Str, const_name("str"));
 
-    bool load(handle src, bool arg) {
+    bool from_python(
+        handle        src,
+        uint8_t       flags,
+        cleanup_list* cleanup) noexcept {
         type_caster<std::string> impl;
-
-        bool result = impl.load(src, arg);
-        this->value = std::string(impl);
+        bool result = impl.from_python(src, flags, cleanup);
+        if (result) { this->value = impl.value; }
         return result;
     }
 
-    static handle cast(hstd::Str src, return_value_policy a1, handle a2) {
-        return type_caster<std::string>::cast(src, a1, a2);
-    }
-};
-
-template <>
-struct type_caster<pybind11::function> {
-    PYBIND11_TYPE_CASTER(function, const_name("function"));
-
-    bool load(handle src, bool) {
-        value = src.cast<pybind11::function>();
-        return !value.is_none();
-    }
-
-    static handle cast(const function& src, return_value_policy, handle) {
-        return src.inc_ref();
+    static handle from_cpp(
+        hstd::Str     src,
+        rv_policy     policy,
+        cleanup_list* cleanup) noexcept {
+        return type_caster<std::string>::from_cpp(
+            std::string(src), policy, cleanup);
     }
 };
 
 } // namespace detail
-} // namespace PYBIND11_NAMESPACE
+} // namespace nanobind
