@@ -1,3 +1,23 @@
+exclude: |
+  (?x)^(
+    scripts/py_wrappers/py_wrappers/py_adaptagrams\.pyi|
+    src/py_libs/py_adaptagrams/adaptagrams_py_wrap\.cpp|
+    src/wrappers/js/haxorg_wasm\.cpp|
+    src/wrappers/js/haxorg_wasm_types\.d\.ts|
+    scripts/py_haxorg/py_haxorg/pyhaxorg\.pyi|
+    src/py_libs/pyhaxorg/pyhaxorg\.cpp|
+    src/haxorg/serde/SemOrgProto\.proto|
+    src/haxorg/serde/SemOrgSerdeDeclarations\.hpp|
+    src/haxorg/serde/SemOrgSerdeDefinitions\.cpp|
+    src/haxorg/exporters/Exporter\.tcc|
+    src/haxorg/imm/ImmOrgSerde\.tcc|
+    src/haxorg/exporters/ExporterMethods\.tcc|
+    src/haxorg/sem/SemOrgEnums\.hpp|
+    src/haxorg/sem/SemOrgEnums\.cpp|
+    src/haxorg/sem/SemOrgSharedTypes\.hpp|
+    src/haxorg/sem/SemOrgTypes\.hpp|
+    src/haxorg/imm/ImmOrgTypes\.hpp
+  )$
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

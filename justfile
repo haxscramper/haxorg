@@ -16,5 +16,12 @@ run_docker_release_ci:
     --task run_docker_release_test \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json
 
+# RE-generate haxorg sources without running any dependent tasks
+run_haxorg_only_source_generation:
+  {{uv_run}} ./scripts/py_repository/py_repository/repo_tasks/workflow.py run \
+    --task generate_haxorg_sources \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
+
+
 run_github_ci:
   act push  --container-options "--cpus 24"

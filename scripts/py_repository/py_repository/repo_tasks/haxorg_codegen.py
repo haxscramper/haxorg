@@ -1,5 +1,6 @@
 import itertools
 from pathlib import Path
+import sys
 
 import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
@@ -115,6 +116,12 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         build_targets(ctx=ctx, targets=["py_textlayout_cpp"])
         ctx.run(generate_reflection_snapshot, ctx=ctx)
         ctx.run(symlink_build, ctx=ctx)
+
+    build_path = get_build_root(ctx, "haxorg")
+    if str(build_path) not in sys.path:
+        assert build_path.joinpath("py_textlayout_cpp.so").exists(
+        ), f"Text layout library was not compiled to dir {build_path}, workflow would not be able to run codegen."
+        sys.path.append(str(build_path))
 
     from py_codegen.codegen import run_codegen_task
 

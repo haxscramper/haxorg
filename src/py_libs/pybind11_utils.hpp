@@ -12,6 +12,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace org::bind::python {
 
