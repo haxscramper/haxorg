@@ -88,13 +88,13 @@ def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
             case ["void"]:
                 name = "None"
 
-            case ["pybind11", "bytes"]:
+            case ["nanobind", "bytes"]:
                 name = "bytes"
 
-            case ["pybind11", "function"] | [*_, "PyFunc"]:
+            case ["nanobind", "callable"] | [*_, "PyFunc"]:
                 name = "function"
 
-            case ["py", "object"] | ["pybind11", "object"]:
+            case ["py", "object"] | ["nanobind", "object"]:
                 name = "object"
 
             case ["UnorderedMap"]:
@@ -323,19 +323,19 @@ class NbFunction:
 @dataclass
 class NbMethod(NbFunction):
     "Nanobind-wrapped C++ method"
-    ExplicitClassParam: bool = False
-    "Explicitly add parent class as a first parameter to binding"
+    HasExplicitClassParam: bool = False
+    "Whether the function arguments will explicitly provide a custom class parameter"
 
     def __init__(
         self,
         Func: GenTuFunction,
         Body: Optional[List[BlockId]] = None,
         PyName: Optional[str] = None,
-        ExplicitClassParam: bool = False,
+        HasExplicitClassParam: bool = False,
         DefParams: Optional[List[BlockId]] = None,
     ):
         super().__init__(Func, Body, PyName, DefParams=DefParams)
-        self.ExplicitClassParam = ExplicitClassParam
+        self.HasExplicitClassParam = HasExplicitClassParam
 
     def build_typedef(  # type: ignore[override]
         self,
@@ -363,7 +363,7 @@ class NbMethod(NbFunction):
         b = ast.b
 
         Args: List[GenTuIdent] = []
-        if self.Func.IsConstructor or self.ExplicitClassParam:
+        if self.Func.IsConstructor or self.HasExplicitClassParam:
             pass
 
         elif self.Body:
@@ -385,7 +385,7 @@ class NbMethod(NbFunction):
                 Args=Args,
             )
 
-            if self.ExplicitClassParam and not self.Func.IsConstructor:
+            if self.HasExplicitClassParam and not self.Func.IsConstructor:
                 argument_binder = self.build_argument_binder(self.Func.arguments[1:],
                                                              ast=ast)
             else:
@@ -526,6 +526,7 @@ class NbEnum:
                                 ast.XCall("==", [ast.string("lhs"),
                                                  ast.string("rhs")])),
                         ],
+                        HasExplicitClassParam=True,
                     ).build_bind(self.Enum.name, ast),
                     NbMethod(
                         PyName="__hash__",
@@ -538,6 +539,7 @@ class NbEnum:
                                 ast.XCall("static_cast", [ast.string("it")],
                                           Params=[QualType(name="int")])),
                         ],
+                        HasExplicitClassParam=True,
                     ).build_bind(self.Enum.name, ast),
                 ] + [b.text(";")]),
             )
@@ -695,7 +697,7 @@ class NbClass:
                         IsConstructor=True,
                     ),
                     Body=body_impl,
-                    ExplicitClassParam=True,
+                    HasExplicitClassParam=True,
                 ))
 
     def InitMagicMethods(self, ast: ASTBuilder, base_map: GenTypeMap) -> None:
@@ -772,7 +774,7 @@ class NbClass:
                             ))
                     ],
                     DefParams=[ast.b.text("nanobind::keep_alive<0, 1>()")],
-                    ExplicitClassParam=True,
+                    HasExplicitClassParam=True,
                 ))
 
     def dedup_methods(self) -> List[NbMethod]:

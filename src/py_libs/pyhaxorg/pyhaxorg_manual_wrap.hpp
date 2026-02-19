@@ -7,7 +7,7 @@
 
 #    include "pyhaxorg_manual_impl.hpp"
 
-pybind11::module& m = *((pybind11::module*)nullptr);
+nanobind::module_& m = *((nanobind::module_*)nullptr);
 
 #endif
 

@@ -4,9 +4,28 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #undef slots
-#include <pybind11/pybind11.h>
+
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/array.h>
+#include <nanobind/stl/filesystem.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/set.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string_view.h>
+#include <nanobind/stl/tuple.h>
+#include <nanobind/stl/unique_ptr.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
+#include <nanobind/operators.h>
+#include <nanobind/make_iterator.h>
+#include <nanobind/ndarray.h>
+
 #include <haxorg/sem/SemOrg.hpp>
-#include <pybind11/stl.h>
 #include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Json.hpp>
 
@@ -37,39 +56,82 @@
 #include <haxorg/serde/SemOrgCereal.hpp>
 
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);
-
-namespace py = pybind11;
-
 template <>
-struct std::formatter<py::function> : std::formatter<std::string> {
+struct std::formatter<nanobind::callable> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const py::function& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx("py::function", ctx);
+    auto format(const nanobind::callable& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx("nanobind::callable", ctx);
     }
 };
+
+namespace nanobind::detail {
+
+template <typename O>
+struct type_caster<org::sem::SemId<O>> {
+    using Value = org::sem::SemId<O>;
+
+    static constexpr auto Name = const_name("SemId");
+    template <typename T_>
+    using Cast                    = Value;
+    static constexpr bool IsClass = false;
+    Value                 value   = Value::Nil();
+
+    bool from_python(
+        handle        src,
+        uint8_t       flags,
+        cleanup_list* cleanup) noexcept {
+        if (src.is_none()) {
+            value = Value::Nil();
+            return true;
+        }
+
+        using SharedCaster = make_caster<hstd::SPtr<O>>;
+        SharedCaster caster;
+        if (!caster.from_python(src, flags, cleanup)) { return false; }
+        value = Value(caster.operator cast_t<hstd::SPtr<O>>());
+        return true;
+    }
+
+    static handle from_cpp(
+        const Value&  src,
+        rv_policy     policy,
+        cleanup_list* cleanup) noexcept {
+        if (src.isNil()) { return none().release(); }
+        using SharedCaster = make_caster<hstd::SPtr<O>>;
+        return SharedCaster::from_cpp(src.value, policy, cleanup);
+    }
+
+    template <typename T_>
+    bool can_cast() const noexcept {
+        return !value.isNil();
+    }
+
+    explicit operator Value() { return value; }
+};
+
+} // namespace nanobind::detail
 
 namespace org::bind::python {
 
 std::vector<org::sem::SemId<org::sem::Org>> getSubnodeRange(
     org::sem::SemId<org::sem::Org> id,
-    pybind11::slice                slice);
+    nanobind::slice                slice);
 org::sem::SemId<org::sem::Org> getSingleSubnode(
     org::sem::SemId<org::sem::Org> id,
     int                            index);
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void eachSubnodeRec(
     org::sem::SemId<org::sem::Org> node,
-    py::function                   callback);
+    nanobind::callable             callback);
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void eachSubnodeRecSimplePath(
     org::sem::SemId<org::sem::Org> node,
-    py::function                   callback);
+    nanobind::callable             callback);
 
 struct [[refl(R"({ "backend": {"target-backends": ["python"]}})")]]
 PyCodeEvalParameters {
     hstd::SPtr<hstd::OperationsTracer> debug;
-    [[refl]] py::function              evalBlock;
+    [[refl]] nanobind::callable        evalBlock;
 
     [[refl]] void setTraceFile(std::string const& path) {
         debug = std::make_shared<hstd::OperationsTracer>();
@@ -81,7 +143,7 @@ PyCodeEvalParameters {
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
     org::parse::OrgDirectoryParseParameters* parameters,
-    py::function                             callback);
+    nanobind::callable                       callback);
 
 [[refl(R"({
   "backend": {
@@ -90,7 +152,7 @@ PyCodeEvalParameters {
     ]
   },
   "unique-name": "serializeAstContextToText"
-})")]] py::bytes
+})")]] nanobind::bytes
     serializeAstContextToText(
         std::shared_ptr<imm::ImmAstContext> const& store);
 
@@ -103,7 +165,7 @@ PyCodeEvalParameters {
   "unique-name": "serializeAstContextFromText"
 })")]] void
     serializeAstContextFromText(
-        py::bytes const&                           binary,
+        nanobind::bytes const&                     binary,
         std::shared_ptr<imm::ImmAstContext> const& store);
 
 [[refl(R"({
@@ -113,7 +175,7 @@ PyCodeEvalParameters {
     ]
   },
   "unique-name": "serializeAstReplaceEpochToText"
-})")]] py::bytes
+})")]] nanobind::bytes
     serializeAstReplaceEpochToText(
         std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
 
@@ -126,7 +188,7 @@ PyCodeEvalParameters {
   "unique-name": "serializeAstReplaceEpochFromText"
 })")]] void
     serializeAstReplaceEpochFromText(
-        py::bytes const&                                binary,
+        nanobind::bytes const&                          binary,
         std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
 
 [[refl(R"({
@@ -138,7 +200,7 @@ PyCodeEvalParameters {
   "unique-name": "serializeMapGraphFromText"
 })")]] void
     serializeMapGraphFromText(
-        py::bytes const&                             binary,
+        nanobind::bytes const&                       binary,
         std::shared_ptr<org::graph::MapGraph> const& store);
 
 [[refl(R"({
@@ -148,14 +210,14 @@ PyCodeEvalParameters {
     ]
   },
   "unique-name": "serializeMapGraphToText"
-})")]] py::bytes
+})")]] nanobind::bytes
     serializeMapGraphToText(
         std::shared_ptr<org::graph::MapGraph> const& store);
 
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     parse::OrgDirectoryParseParameters* params,
-    py::function                        callback);
+    nanobind::callable                  callback);
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] org::sem::SemId<sem::Org> evaluateCodeBlocks(
     org::sem::SemId<org::sem::Org>            node,
@@ -224,13 +286,13 @@ struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
 
 class PythonStreamDevice {
   public:
-    PythonStreamDevice(py::object py_stream) : stream(py_stream) {
+    PythonStreamDevice(nanobind::object py_stream) : stream(py_stream) {
         write = stream.attr("write");
     }
 
   private:
-    py::function write;
-    py::object   stream;
+    nanobind::callable write;
+    nanobind::object   stream;
 };
 
 template <typename... Ts>
@@ -244,16 +306,16 @@ concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
     std::remove_cvref_t<T>>;
 
 struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]]
-ExporterPython : org::algo::Exporter<ExporterPython, py::object> {
-    using Base = org::algo::Exporter<ExporterPython, py::object>;
+ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
+    using Base = org::algo::Exporter<ExporterPython, nanobind::object>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
 
     BOOST_DESCRIBE_CLASS(ExporterPython, (), (), (), ());
 
-    using PyFunc     = py::function;
-    using Res        = py::object;
+    using PyFunc     = nanobind::callable;
+    using Res        = nanobind::object;
     using SemCbMap   = hstd::UnorderedMap<OrgSemKind, PyFunc>;
     using FieldCbMap = hstd::UnorderedMap<LeafFieldType, PyFunc>;
 
@@ -366,8 +428,8 @@ ExporterPython : org::algo::Exporter<ExporterPython, py::object> {
         evalOrgFieldCb[kind] = cb;
     }
 
-    py::object    _self;
-    [[refl]] void setSelf(py::object val) { _self = val; }
+    nanobind::object _self;
+    [[refl]] void    setSelf(nanobind::object val) { _self = val; }
 
 
     SemCbMap      newOrgResCb;
@@ -446,7 +508,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, py::object> {
                 trace(VK::NewRes)
                     .with_node(node)
                     .with_msg(fmt("no callback for {}", T::staticKind)));
-            return py::none();
+            return nanobind::none();
         }
     }
 
@@ -669,6 +731,6 @@ ExporterPython : org::algo::Exporter<ExporterPython, py::object> {
     }
 };
 
-void init_py_manual_api(py::module& m);
+void init_py_manual_api(nanobind::module_& m);
 
 } // namespace org::bind::python

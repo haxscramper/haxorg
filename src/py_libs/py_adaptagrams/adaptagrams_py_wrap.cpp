@@ -83,16 +83,14 @@ NB_MODULE(py_adaptagrams, m) {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphDimension>();
                      })
     .def("__eq__",
-         [](hstd::ext::GraphDimension const& _self, hstd::ext::GraphDimension lhs, hstd::ext::GraphDimension rhs) -> bool {
+         [](hstd::ext::GraphDimension lhs, hstd::ext::GraphDimension rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](hstd::ext::GraphDimension const& _self, hstd::ext::GraphDimension it) -> int {
+         [](hstd::ext::GraphDimension it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind", type_registry_guard);
   nanobind::enum_<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind")
@@ -106,16 +104,14 @@ NB_MODULE(py_adaptagrams, m) {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>();
                      })
     .def("__eq__",
-         [](hstd::ext::GraphNodeConstraint::Kind const& _self, hstd::ext::GraphNodeConstraint::Kind lhs, hstd::ext::GraphNodeConstraint::Kind rhs) -> bool {
+         [](hstd::ext::GraphNodeConstraint::Kind lhs, hstd::ext::GraphNodeConstraint::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](hstd::ext::GraphNodeConstraint::Kind const& _self, hstd::ext::GraphNodeConstraint::Kind it) -> int {
+         [](hstd::ext::GraphNodeConstraint::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort", type_registry_guard);
   nanobind::enum_<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort")
@@ -129,16 +125,14 @@ NB_MODULE(py_adaptagrams, m) {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>();
                      })
     .def("__eq__",
-         [](hstd::ext::GraphEdgeConstraint::Port const& _self, hstd::ext::GraphEdgeConstraint::Port lhs, hstd::ext::GraphEdgeConstraint::Port rhs) -> bool {
+         [](hstd::ext::GraphEdgeConstraint::Port lhs, hstd::ext::GraphEdgeConstraint::Port rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](hstd::ext::GraphEdgeConstraint::Port const& _self, hstd::ext::GraphEdgeConstraint::Port it) -> int {
+         [](hstd::ext::GraphEdgeConstraint::Port it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<hstd::ext::GraphPoint>(m, "GraphPoint")
     .def("__init__",

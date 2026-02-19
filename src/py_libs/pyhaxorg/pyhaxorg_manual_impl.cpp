@@ -17,21 +17,16 @@ using namespace org;
 using namespace hstd;
 using namespace org::bind::python;
 
-template class org::algo::Exporter<ExporterPython, py::object>;
+template class org::algo::Exporter<ExporterPython, nanobind::object>;
 
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
     sem::SemId<sem::Org> id,
-    pybind11::slice      slice) {
-    size_t start;
-    size_t stop;
-    size_t step;
-    size_t slicelength;
+    nanobind::slice      slice) {
 
     Vec<sem::SemId<sem::Org>> const& data = id->subnodes;
-    if (!slice.compute(data.size(), &start, &stop, &step, &slicelength)) {
-        throw py::error_already_set();
-    }
+
+    auto [start, stop, step, slicelength] = slice.compute(data.size());
 
     std::vector<sem::SemId<sem::Org>> result{
         slicelength, sem::SemId<sem::Org>::Nil()};
@@ -46,16 +41,17 @@ sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index) {
     return id->at(index);
 }
 
-void init_py_manual_api(pybind11::module& m) {
+void init_py_manual_api(nanobind::module_& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);
 }
 
-std::string format_function_definition(const pybind11::function& func) {
+std::string format_function_definition(const nanobind::callable& func) {
     auto obj  = func.attr("__code__");
-    auto name = std::string{pybind11::str(func.attr("__name__"))};
-    auto file = std::string{pybind11::str(obj.attr("co_filename"))};
-    auto line = obj.attr("co_firstlineno").cast<int>();
+    auto name = std::string{nanobind::str(func.attr("__name__")).c_str()};
+    auto file = std::string{
+        nanobind::str(obj.attr("co_filename")).c_str()};
+    auto line = nanobind::cast<int>(obj.attr("co_firstlineno"));
 
     return std::format(
         "{}:{}@{}",
@@ -63,6 +59,7 @@ std::string format_function_definition(const pybind11::function& func) {
         line,
         std::filesystem::path(file).stem().string());
 }
+
 
 std::string ExporterPython::describe(const PyFunc& func) const {
     return format_function_definition(func);
@@ -115,7 +112,7 @@ ExporterPython::Res ExporterPython::newResImpl(sem::OrgArg node) {
         //     trace(VK::NewRes)
         //         .with_node(node)
         //         .with_msg(fmt("no callback for {}", node->getKind())));
-        return py::none();
+        return nanobind::none();
     }
 }
 
@@ -204,14 +201,14 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
 
 void org::bind::python::eachSubnodeRec(
     sem::SemId<sem::Org> node,
-    py::function         callback) {
+    nanobind::callable   callback) {
     org::eachSubnodeRec(
         node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
 
 void org::bind::python::eachSubnodeRecSimplePath(
     sem::SemId<sem::Org> node,
-    py::function         callback) {
+    nanobind::callable   callback) {
     org::eachSubnodeRecSimplePath(
         node, [&](sem::OrgArg arg, sem::OrgVecArg path) {
             callback(arg, path);
@@ -226,8 +223,8 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
 
     eval_conf.evalBlock = [&](org::sem::OrgCodeEvalInput const& input)
         -> Vec<org::sem::OrgCodeEvalOutput> {
-        return conf.evalBlock(input)
-            .cast<Vec<org::sem::OrgCodeEvalOutput>>();
+        return nanobind::cast<Vec<org::sem::OrgCodeEvalOutput>>(
+            conf.evalBlock(input));
     };
 
     return org::evaluateCodeBlocks(node, eval_conf);
@@ -235,57 +232,59 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
 
 void org::bind::python::setShouldProcessPath(
     org::parse::OrgDirectoryParseParameters* parameters,
-    pybind11::function                       callback) {
+    nanobind::callable                       callback) {
     parameters->shouldProcessPath =
         [callback](std::string const& fullPath) -> bool {
-        return callback(fullPath).cast<bool>();
+        return nanobind::cast<bool>(callback(fullPath));
     };
 }
 
 void org::bind::python::setGetParsedNode(
     org::parse::OrgDirectoryParseParameters* params,
-    pybind11::function                       callback) {
+    nanobind::callable                       callback) {
     params->getParsedNode =
         [callback](std::string const& fullPath) -> sem::SemId<sem::Org> {
-        return callback(fullPath).cast<sem::SemId<sem::Org>>();
+        return nanobind::cast<sem::SemId<sem::Org>>(callback(fullPath));
     };
 }
 
-pybind11::bytes org::bind::python::serializeAstContextToText(
+nanobind::bytes org::bind::python::serializeAstContextToText(
     const std::shared_ptr<imm::ImmAstContext>& store) {
-    return py::bytes(org::imm::serializeToText(store));
+    auto str = org::imm::serializeToText(store);
+    return nanobind::bytes(str.data(), str.size());
 }
 
-std::string bytes_to_string(py::bytes const& bytes) {
-    std::string_view view{bytes};
-    return std::string{view.data(), view.size()};
+std::string bytes_to_string(nanobind::bytes const& bytes) {
+    return std::string{bytes.c_str(), bytes.size()};
 }
 
 void org::bind::python::serializeAstContextFromText(
-    const pybind11::bytes&                     binary,
+    const nanobind::bytes&                     binary,
     const std::shared_ptr<imm::ImmAstContext>& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }
 
-pybind11::bytes org::bind::python::serializeAstReplaceEpochToText(
+nanobind::bytes org::bind::python::serializeAstReplaceEpochToText(
     const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
-    return py::bytes(org::imm::serializeToText(store));
+    auto tmp = org::imm::serializeToText(store);
+    return nanobind::bytes(tmp.c_str(), tmp.size());
 }
 
 void org::bind::python::serializeAstReplaceEpochFromText(
-    const pybind11::bytes&                          binary,
+    const nanobind::bytes&                          binary,
     const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }
 
 
-pybind11::bytes org::bind::python::serializeMapGraphToText(
+nanobind::bytes org::bind::python::serializeMapGraphToText(
     const std::shared_ptr<graph::MapGraph>& store) {
-    return py::bytes(org::imm::serializeToText(store));
+    std::string tmp = org::imm::serializeToText(store);
+    return nanobind::bytes(tmp.c_str(), tmp.size());
 }
 
 void org::bind::python::serializeMapGraphFromText(
-    const pybind11::bytes&                  binary,
+    const nanobind::bytes&                  binary,
     const std::shared_ptr<graph::MapGraph>& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }

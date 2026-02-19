@@ -2292,7 +2292,7 @@ ingoing elements.)RAW")
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setSelf",
-         static_cast<void(org::bind::python::ExporterPython::*)(pybind11::object)>(&org::bind::python::ExporterPython::setSelf),
+         static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
          nanobind::arg("val"))
     .def("setNewOrgRes",
          static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
@@ -2526,16 +2526,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::LispCode::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::LispCode::Kind const& _self, org::sem::LispCode::Kind lhs, org::sem::LispCode::Kind rhs) -> bool {
+         [](org::sem::LispCode::Kind lhs, org::sem::LispCode::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::LispCode::Kind const& _self, org::sem::LispCode::Kind it) -> int {
+         [](org::sem::LispCode::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::LispCode>(m, "LispCode")
     .def("__init__",
@@ -2628,16 +2626,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind lhs, org::sem::Tblfm::Expr::AxisRef::Position::Kind rhs) -> bool {
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind lhs, org::sem::Tblfm::Expr::AxisRef::Position::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind it) -> int {
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
     .def("__init__",
@@ -2826,16 +2822,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::Tblfm::Expr::Kind const& _self, org::sem::Tblfm::Expr::Kind lhs, org::sem::Tblfm::Expr::Kind rhs) -> bool {
+         [](org::sem::Tblfm::Expr::Kind lhs, org::sem::Tblfm::Expr::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Tblfm::Expr::Kind const& _self, org::sem::Tblfm::Expr::Kind it) -> int {
+         [](org::sem::Tblfm::Expr::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::Tblfm::Expr>(m, "TblfmExpr")
     .def("__init__",
@@ -2899,16 +2893,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag>();
                      })
     .def("__eq__",
-         [](org::sem::Tblfm::Assign::Flag const& _self, org::sem::Tblfm::Assign::Flag lhs, org::sem::Tblfm::Assign::Flag rhs) -> bool {
+         [](org::sem::Tblfm::Assign::Flag lhs, org::sem::Tblfm::Assign::Flag rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Tblfm::Assign::Flag const& _self, org::sem::Tblfm::Assign::Flag it) -> int {
+         [](org::sem::Tblfm::Assign::Flag it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::Tblfm::Assign>(m, "TblfmAssign")
     .def("__init__",
@@ -3043,16 +3035,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
+         [](org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind it) -> int {
+         [](org::sem::AttrValue::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::AttrValue>(m, "AttrValue")
     .def("__init__",
@@ -3127,16 +3117,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition>();
                      })
     .def("__eq__",
-         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition lhs, org::sem::TodoKeyword::Transition rhs) -> bool {
+         [](org::sem::TodoKeyword::Transition lhs, org::sem::TodoKeyword::Transition rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition it) -> int {
+         [](org::sem::TodoKeyword::Transition it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::TodoKeyword>(m, "TodoKeyword")
     .def("__init__",
@@ -3428,16 +3416,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::LinkTarget::Kind const& _self, org::sem::LinkTarget::Kind lhs, org::sem::LinkTarget::Kind rhs) -> bool {
+         [](org::sem::LinkTarget::Kind lhs, org::sem::LinkTarget::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::LinkTarget::Kind const& _self, org::sem::LinkTarget::Kind it) -> int {
+         [](org::sem::LinkTarget::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::LinkTarget>(m, "LinkTarget")
     .def("__init__",
@@ -3495,16 +3481,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>();
                      })
     .def("__eq__",
-         [](org::sem::SubtreeLogHead::Priority::Action const& _self, org::sem::SubtreeLogHead::Priority::Action lhs, org::sem::SubtreeLogHead::Priority::Action rhs) -> bool {
+         [](org::sem::SubtreeLogHead::Priority::Action lhs, org::sem::SubtreeLogHead::Priority::Action rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::SubtreeLogHead::Priority::Action const& _self, org::sem::SubtreeLogHead::Priority::Action it) -> int {
+         [](org::sem::SubtreeLogHead::Priority::Action it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Priority>(m, "SubtreeLogHeadPriority")
     .def("__init__",
@@ -3713,16 +3697,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::SubtreeLogHead::Kind const& _self, org::sem::SubtreeLogHead::Kind lhs, org::sem::SubtreeLogHead::Kind rhs) -> bool {
+         [](org::sem::SubtreeLogHead::Kind lhs, org::sem::SubtreeLogHead::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::SubtreeLogHead::Kind const& _self, org::sem::SubtreeLogHead::Kind it) -> int {
+         [](org::sem::SubtreeLogHead::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::SubtreeLogHead>(m, "SubtreeLogHead")
     .def("__init__",
@@ -3909,16 +3891,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType>();
                      })
     .def("__eq__",
-         [](org::sem::OrgCodeEvalInput::ResultType const& _self, org::sem::OrgCodeEvalInput::ResultType lhs, org::sem::OrgCodeEvalInput::ResultType rhs) -> bool {
+         [](org::sem::OrgCodeEvalInput::ResultType lhs, org::sem::OrgCodeEvalInput::ResultType rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::OrgCodeEvalInput::ResultType const& _self, org::sem::OrgCodeEvalInput::ResultType it) -> int {
+         [](org::sem::OrgCodeEvalInput::ResultType it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat", type_registry_guard);
   nanobind::enum_<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat")
@@ -3932,16 +3912,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat>();
                      })
     .def("__eq__",
-         [](org::sem::OrgCodeEvalInput::ResultFormat const& _self, org::sem::OrgCodeEvalInput::ResultFormat lhs, org::sem::OrgCodeEvalInput::ResultFormat rhs) -> bool {
+         [](org::sem::OrgCodeEvalInput::ResultFormat lhs, org::sem::OrgCodeEvalInput::ResultFormat rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::OrgCodeEvalInput::ResultFormat const& _self, org::sem::OrgCodeEvalInput::ResultFormat it) -> int {
+         [](org::sem::OrgCodeEvalInput::ResultFormat it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling", type_registry_guard);
   nanobind::enum_<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling")
@@ -3955,16 +3933,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling>();
                      })
     .def("__eq__",
-         [](org::sem::OrgCodeEvalInput::ResultHandling const& _self, org::sem::OrgCodeEvalInput::ResultHandling lhs, org::sem::OrgCodeEvalInput::ResultHandling rhs) -> bool {
+         [](org::sem::OrgCodeEvalInput::ResultHandling lhs, org::sem::OrgCodeEvalInput::ResultHandling rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::OrgCodeEvalInput::ResultHandling const& _self, org::sem::OrgCodeEvalInput::ResultHandling it) -> int {
+         [](org::sem::OrgCodeEvalInput::ResultHandling it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::OrgCodeEvalInput>(m, "OrgCodeEvalInput")
     .def("__init__",
@@ -4031,16 +4007,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind lhs, org::sem::ColumnView::Summary::CheckboxAggregate::Kind rhs) -> bool {
+         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind lhs, org::sem::ColumnView::Summary::CheckboxAggregate::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind it) -> int {
+         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
     .def("__init__",
@@ -4073,16 +4047,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self, org::sem::ColumnView::Summary::MathAggregate::Kind lhs, org::sem::ColumnView::Summary::MathAggregate::Kind rhs) -> bool {
+         [](org::sem::ColumnView::Summary::MathAggregate::Kind lhs, org::sem::ColumnView::Summary::MathAggregate::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self, org::sem::ColumnView::Summary::MathAggregate::Kind it) -> int {
+         [](org::sem::ColumnView::Summary::MathAggregate::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
     .def("__init__",
@@ -4114,16 +4086,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::ColumnView::Summary::Kind const& _self, org::sem::ColumnView::Summary::Kind lhs, org::sem::ColumnView::Summary::Kind rhs) -> bool {
+         [](org::sem::ColumnView::Summary::Kind lhs, org::sem::ColumnView::Summary::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::ColumnView::Summary::Kind const& _self, org::sem::ColumnView::Summary::Kind it) -> int {
+         [](org::sem::ColumnView::Summary::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::ColumnView::Summary>(m, "ColumnViewSummary")
     .def("__init__",
@@ -4268,16 +4238,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::BlockCodeLine::Part::Kind const& _self, org::sem::BlockCodeLine::Part::Kind lhs, org::sem::BlockCodeLine::Part::Kind rhs) -> bool {
+         [](org::sem::BlockCodeLine::Part::Kind lhs, org::sem::BlockCodeLine::Part::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::BlockCodeLine::Part::Kind const& _self, org::sem::BlockCodeLine::Part::Kind it) -> int {
+         [](org::sem::BlockCodeLine::Part::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::BlockCodeLine::Part>(m, "BlockCodeLinePart")
     .def("__init__",
@@ -4361,16 +4329,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>();
                      })
     .def("__eq__",
-         [](org::sem::DocumentExportConfig::TagExport const& _self, org::sem::DocumentExportConfig::TagExport lhs, org::sem::DocumentExportConfig::TagExport rhs) -> bool {
+         [](org::sem::DocumentExportConfig::TagExport lhs, org::sem::DocumentExportConfig::TagExport rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::DocumentExportConfig::TagExport const& _self, org::sem::DocumentExportConfig::TagExport it) -> int {
+         [](org::sem::DocumentExportConfig::TagExport it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering", type_registry_guard);
   nanobind::enum_<org::sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering")
@@ -4382,16 +4348,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>();
                      })
     .def("__eq__",
-         [](org::sem::DocumentExportConfig::TaskFiltering const& _self, org::sem::DocumentExportConfig::TaskFiltering lhs, org::sem::DocumentExportConfig::TaskFiltering rhs) -> bool {
+         [](org::sem::DocumentExportConfig::TaskFiltering lhs, org::sem::DocumentExportConfig::TaskFiltering rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::DocumentExportConfig::TaskFiltering const& _self, org::sem::DocumentExportConfig::TaskFiltering it) -> int {
+         [](org::sem::DocumentExportConfig::TaskFiltering it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks", type_registry_guard);
   nanobind::enum_<org::sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks")
@@ -4403,16 +4367,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>();
                      })
     .def("__eq__",
-         [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks lhs, org::sem::DocumentExportConfig::BrokenLinks rhs) -> bool {
+         [](org::sem::DocumentExportConfig::BrokenLinks lhs, org::sem::DocumentExportConfig::BrokenLinks rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks it) -> int {
+         [](org::sem::DocumentExportConfig::BrokenLinks it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees", type_registry_guard);
   nanobind::enum_<org::sem::DocumentExportConfig::ArchivedTrees>(m, "DocumentExportConfigArchivedTrees")
@@ -4423,16 +4385,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees>();
                      })
     .def("__eq__",
-         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees lhs, org::sem::DocumentExportConfig::ArchivedTrees rhs) -> bool {
+         [](org::sem::DocumentExportConfig::ArchivedTrees lhs, org::sem::DocumentExportConfig::ArchivedTrees rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees it) -> int {
+         [](org::sem::DocumentExportConfig::ArchivedTrees it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::DocumentExportConfig::DoExport>(m, "DocumentExportConfigDoExport")
     .def("__init__",
@@ -4482,16 +4442,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>();
                      })
     .def("__eq__",
-         [](org::sem::DocumentExportConfig::TocExportKind const& _self, org::sem::DocumentExportConfig::TocExportKind lhs, org::sem::DocumentExportConfig::TocExportKind rhs) -> bool {
+         [](org::sem::DocumentExportConfig::TocExportKind lhs, org::sem::DocumentExportConfig::TocExportKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::DocumentExportConfig::TocExportKind const& _self, org::sem::DocumentExportConfig::TocExportKind it) -> int {
+         [](org::sem::DocumentExportConfig::TocExportKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::DocumentExportConfig>(m, "DocumentExportConfig")
     .def("__init__",
@@ -4570,16 +4528,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::SubtreePeriod::Kind const& _self, org::sem::SubtreePeriod::Kind lhs, org::sem::SubtreePeriod::Kind rhs) -> bool {
+         [](org::sem::SubtreePeriod::Kind lhs, org::sem::SubtreePeriod::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::SubtreePeriod::Kind const& _self, org::sem::SubtreePeriod::Kind it) -> int {
+         [](org::sem::SubtreePeriod::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::SubtreePeriod>(m, "SubtreePeriod")
     .def("__init__",
@@ -4915,16 +4871,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level>();
                      })
     .def("__eq__",
-         [](org::sem::NamedProperty::Visibility::Level const& _self, org::sem::NamedProperty::Visibility::Level lhs, org::sem::NamedProperty::Visibility::Level rhs) -> bool {
+         [](org::sem::NamedProperty::Visibility::Level lhs, org::sem::NamedProperty::Visibility::Level rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::NamedProperty::Visibility::Level const& _self, org::sem::NamedProperty::Visibility::Level it) -> int {
+         [](org::sem::NamedProperty::Visibility::Level it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::NamedProperty::Visibility>(m, "NamedPropertyVisibility")
     .def("__init__",
@@ -5204,16 +5158,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::NamedProperty::Kind const& _self, org::sem::NamedProperty::Kind lhs, org::sem::NamedProperty::Kind rhs) -> bool {
+         [](org::sem::NamedProperty::Kind lhs, org::sem::NamedProperty::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::NamedProperty::Kind const& _self, org::sem::NamedProperty::Kind it) -> int {
+         [](org::sem::NamedProperty::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::NamedProperty>(m, "NamedProperty")
     .def("__init__",
@@ -5441,16 +5393,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind lhs, org::sem::OrgDiagnostics::Kind rhs) -> bool {
+         [](org::sem::OrgDiagnostics::Kind lhs, org::sem::OrgDiagnostics::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind it) -> int {
+         [](org::sem::OrgDiagnostics::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::OrgDiagnostics>(m, "OrgDiagnostics")
     .def("__init__",
@@ -5622,16 +5572,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode>();
                      })
     .def("__eq__",
-         [](org::sem::Time::Repeat::Mode const& _self, org::sem::Time::Repeat::Mode lhs, org::sem::Time::Repeat::Mode rhs) -> bool {
+         [](org::sem::Time::Repeat::Mode lhs, org::sem::Time::Repeat::Mode rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Time::Repeat::Mode const& _self, org::sem::Time::Repeat::Mode it) -> int {
+         [](org::sem::Time::Repeat::Mode it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::sem::Time::Repeat::Period>(m, "TimeRepeatPeriod", type_registry_guard);
   nanobind::enum_<org::sem::Time::Repeat::Period>(m, "TimeRepeatPeriod")
@@ -5645,16 +5593,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period>();
                      })
     .def("__eq__",
-         [](org::sem::Time::Repeat::Period const& _self, org::sem::Time::Repeat::Period lhs, org::sem::Time::Repeat::Period rhs) -> bool {
+         [](org::sem::Time::Repeat::Period lhs, org::sem::Time::Repeat::Period rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Time::Repeat::Period const& _self, org::sem::Time::Repeat::Period it) -> int {
+         [](org::sem::Time::Repeat::Period it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::Time::Repeat>(m, "TimeRepeat")
     .def("__init__",
@@ -5719,16 +5665,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::Time::TimeKind>();
                      })
     .def("__eq__",
-         [](org::sem::Time::TimeKind const& _self, org::sem::Time::TimeKind lhs, org::sem::Time::TimeKind rhs) -> bool {
+         [](org::sem::Time::TimeKind lhs, org::sem::Time::TimeKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::Time::TimeKind const& _self, org::sem::Time::TimeKind it) -> int {
+         [](org::sem::Time::TimeKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::Time, org::sem::Org>(m, "Time")
     .def("__init__",
@@ -6092,16 +6036,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::CriticMarkup::Kind const& _self, org::sem::CriticMarkup::Kind lhs, org::sem::CriticMarkup::Kind rhs) -> bool {
+         [](org::sem::CriticMarkup::Kind lhs, org::sem::CriticMarkup::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::CriticMarkup::Kind const& _self, org::sem::CriticMarkup::Kind it) -> int {
+         [](org::sem::CriticMarkup::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::CriticMarkup, org::sem::Org>(m, "CriticMarkup")
     .def("__init__",
@@ -6263,16 +6205,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::File::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::File::Kind const& _self, org::sem::File::Kind lhs, org::sem::File::Kind rhs) -> bool {
+         [](org::sem::File::Kind lhs, org::sem::File::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::File::Kind const& _self, org::sem::File::Kind it) -> int {
+         [](org::sem::File::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::File, org::sem::Org>(m, "File")
     .def("__init__",
@@ -6456,16 +6396,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind>();
                      })
     .def("__eq__",
-         [](org::sem::CmdInclude::Kind const& _self, org::sem::CmdInclude::Kind lhs, org::sem::CmdInclude::Kind rhs) -> bool {
+         [](org::sem::CmdInclude::Kind lhs, org::sem::CmdInclude::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::sem::CmdInclude::Kind const& _self, org::sem::CmdInclude::Kind it) -> int {
+         [](org::sem::CmdInclude::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::sem::CmdInclude, org::sem::Org>(m, "CmdInclude")
     .def("__init__",
@@ -6690,16 +6628,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Mode>();
                      })
     .def("__eq__",
-         [](org::imm::ImmTime::Repeat::Mode const& _self, org::imm::ImmTime::Repeat::Mode lhs, org::imm::ImmTime::Repeat::Mode rhs) -> bool {
+         [](org::imm::ImmTime::Repeat::Mode lhs, org::imm::ImmTime::Repeat::Mode rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmTime::Repeat::Mode const& _self, org::imm::ImmTime::Repeat::Mode it) -> int {
+         [](org::imm::ImmTime::Repeat::Mode it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod", type_registry_guard);
   nanobind::enum_<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod")
@@ -6713,16 +6649,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Period>();
                      })
     .def("__eq__",
-         [](org::imm::ImmTime::Repeat::Period const& _self, org::imm::ImmTime::Repeat::Period lhs, org::imm::ImmTime::Repeat::Period rhs) -> bool {
+         [](org::imm::ImmTime::Repeat::Period lhs, org::imm::ImmTime::Repeat::Period rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmTime::Repeat::Period const& _self, org::imm::ImmTime::Repeat::Period it) -> int {
+         [](org::imm::ImmTime::Repeat::Period it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
     .def("__init__",
@@ -6796,16 +6730,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
                      })
     .def("__eq__",
-         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
+         [](org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind it) -> int {
+         [](org::imm::ImmTime::TimeKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
     .def("__init__",
@@ -6839,16 +6771,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmCriticMarkup::Kind>();
                      })
     .def("__eq__",
-         [](org::imm::ImmCriticMarkup::Kind const& _self, org::imm::ImmCriticMarkup::Kind lhs, org::imm::ImmCriticMarkup::Kind rhs) -> bool {
+         [](org::imm::ImmCriticMarkup::Kind lhs, org::imm::ImmCriticMarkup::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmCriticMarkup::Kind const& _self, org::imm::ImmCriticMarkup::Kind it) -> int {
+         [](org::imm::ImmCriticMarkup::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
     .def("__init__",
@@ -6916,16 +6846,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
                      })
     .def("__eq__",
-         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
+         [](org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind it) -> int {
+         [](org::imm::ImmFile::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
     .def("__init__",
@@ -7059,16 +6987,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
                      })
     .def("__eq__",
-         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
+         [](org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind it) -> int {
+         [](org::imm::ImmCmdInclude::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   nanobind::class_<org::imm::ImmNoNodeValue, org::imm::ImmNoNodeValueRead>(m, "ImmNoNodeValue")
     .def("__repr__", [](org::imm::ImmNoNodeValue const& _self) -> std::string {
@@ -9671,16 +9597,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<CheckboxState>();
                      })
     .def("__eq__",
-         [](CheckboxState const& _self, CheckboxState lhs, CheckboxState rhs) -> bool {
+         [](CheckboxState lhs, CheckboxState rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](CheckboxState const& _self, CheckboxState it) -> int {
+         [](CheckboxState it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<SubtreeTodoSource>(m, "SubtreeTodoSource", type_registry_guard);
   nanobind::enum_<SubtreeTodoSource>(m, "SubtreeTodoSource")
@@ -9691,16 +9615,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<SubtreeTodoSource>();
                      })
     .def("__eq__",
-         [](SubtreeTodoSource const& _self, SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
+         [](SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](SubtreeTodoSource const& _self, SubtreeTodoSource it) -> int {
+         [](SubtreeTodoSource it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
   nanobind::enum_<ListFormattingMode>(m, "ListFormattingMode")
@@ -9713,16 +9635,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<ListFormattingMode>();
                      })
     .def("__eq__",
-         [](ListFormattingMode const& _self, ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
+         [](ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](ListFormattingMode const& _self, ListFormattingMode it) -> int {
+         [](ListFormattingMode it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
   nanobind::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
@@ -9738,16 +9658,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<InitialSubtreeVisibility>();
                      })
     .def("__eq__",
-         [](InitialSubtreeVisibility const& _self, InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
+         [](InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](InitialSubtreeVisibility const& _self, InitialSubtreeVisibility it) -> int {
+         [](InitialSubtreeVisibility it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
   nanobind::enum_<OrgSpecName>(m, "OrgSpecName")
@@ -9814,16 +9732,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<OrgSpecName>();
                      })
     .def("__eq__",
-         [](OrgSpecName const& _self, OrgSpecName lhs, OrgSpecName rhs) -> bool {
+         [](OrgSpecName lhs, OrgSpecName rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgSpecName const& _self, OrgSpecName it) -> int {
+         [](OrgSpecName it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
   nanobind::enum_<OrgNodeKind>(m, "OrgNodeKind")
@@ -9973,16 +9889,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<OrgNodeKind>();
                      })
     .def("__eq__",
-         [](OrgNodeKind const& _self, OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
+         [](OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgNodeKind const& _self, OrgNodeKind it) -> int {
+         [](OrgNodeKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
   nanobind::enum_<OrgTokenKind>(m, "OrgTokenKind")
@@ -10217,16 +10131,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<OrgTokenKind>();
                      })
     .def("__eq__",
-         [](OrgTokenKind const& _self, OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
+         [](OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgTokenKind const& _self, OrgTokenKind it) -> int {
+         [](OrgTokenKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<OrgJsonKind>(m, "OrgJsonKind", type_registry_guard);
   nanobind::enum_<OrgJsonKind>(m, "OrgJsonKind")
@@ -10241,16 +10153,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<OrgJsonKind>();
                      })
     .def("__eq__",
-         [](OrgJsonKind const& _self, OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
+         [](OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgJsonKind const& _self, OrgJsonKind it) -> int {
+         [](OrgJsonKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   nanobind::enum_<OrgSemKind>(m, "OrgSemKind")
@@ -10338,16 +10248,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<OrgSemKind>();
                      })
     .def("__eq__",
-         [](OrgSemKind const& _self, OrgSemKind lhs, OrgSemKind rhs) -> bool {
+         [](OrgSemKind lhs, OrgSemKind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgSemKind const& _self, OrgSemKind it) -> int {
+         [](OrgSemKind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind", type_registry_guard);
   nanobind::enum_<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
@@ -10358,16 +10266,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
                      })
     .def("__eq__",
-         [](org::AstTrackingGroup::Kind const& _self, org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
+         [](org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::AstTrackingGroup::Kind const& _self, org::AstTrackingGroup::Kind it) -> int {
+         [](org::AstTrackingGroup::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::graph::MapLink::Kind>(m, "graphMapLinkKind", type_registry_guard);
   nanobind::enum_<org::graph::MapLink::Kind>(m, "graphMapLinkKind")
@@ -10377,16 +10283,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::graph::MapLink::Kind>();
                      })
     .def("__eq__",
-         [](org::graph::MapLink::Kind const& _self, org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
+         [](org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::graph::MapLink::Kind const& _self, org::graph::MapLink::Kind it) -> int {
+         [](org::graph::MapLink::Kind it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
   nanobind::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
@@ -10403,16 +10307,14 @@ ingoing elements.)RAW")
                      return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
                      })
     .def("__eq__",
-         [](org::bind::python::LeafFieldType const& _self, org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
+         [](org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
          return lhs == rhs;
          },
-         nanobind::arg("lhs"),
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::bind::python::LeafFieldType const& _self, org::bind::python::LeafFieldType it) -> int {
+         [](org::bind::python::LeafFieldType it) -> int {
          return static_cast<int>(it);
-         },
-         nanobind::arg("it"))
+         })
     ;
   m.def("newSemTimeStatic",
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
@@ -10497,40 +10399,40 @@ ingoing elements.)RAW")
         static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
         nanobind::arg("binary"));
   m.def("eachSubnodeRec",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRec),
         nanobind::arg("node"),
         nanobind::arg("callback"));
   m.def("eachSubnodeRecSimplePath",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRecSimplePath),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRecSimplePath),
         nanobind::arg("node"),
         nanobind::arg("callback"));
   m.def("setShouldProcessPath",
-        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setShouldProcessPath),
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setShouldProcessPath),
         nanobind::arg("parameters"),
         nanobind::arg("callback"));
   m.def("serializeAstContextToText",
-        static_cast<pybind11::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
+        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
         nanobind::arg("store"));
   m.def("serializeAstContextFromText",
-        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
+        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeAstReplaceEpochToText",
-        static_cast<pybind11::bytes(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochToText),
+        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochToText),
         nanobind::arg("store"));
   m.def("serializeAstReplaceEpochFromText",
-        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochFromText),
+        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeMapGraphFromText",
-        static_cast<void(*)(pybind11::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
+        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeMapGraphToText",
-        static_cast<pybind11::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
+        static_cast<nanobind::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
         nanobind::arg("store"));
   m.def("setGetParsedNode",
-        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, pybind11::function)>(&org::bind::python::setGetParsedNode),
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setGetParsedNode),
         nanobind::arg("params"),
         nanobind::arg("callback"));
   m.def("evaluateCodeBlocks",
