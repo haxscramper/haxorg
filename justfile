@@ -22,6 +22,11 @@ run_haxorg_only_source_generation:
     --task generate_haxorg_sources \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
 
+run_haxorg_reflection_snapshot_generation:
+  {{uv_run}} ./scripts/py_repository/py_repository/repo_tasks/workflow.py run \
+    --task generate_reflection_snapshot \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
+
 
 run_github_ci:
   act push  --container-options "--cpus 24"

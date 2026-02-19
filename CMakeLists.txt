@@ -217,9 +217,9 @@ if(NOT ${ORG_BUILD_EMCC})
   if(${ORG_BUILD_PYHAXORG_BINDINGS} OR ${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
     find_package(
       Python
-      COMPONENTS Interpreter Development
+      COMPONENTS Interpreter Development.Module
       REQUIRED)
-    find_package(pybind11 CONFIG REQUIRED)
+    find_package(nanobind CONFIG REQUIRED)
   endif()
 endif()
 

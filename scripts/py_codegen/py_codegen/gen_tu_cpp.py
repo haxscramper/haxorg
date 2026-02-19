@@ -20,20 +20,35 @@ class GenTuParam:
 
 @beartype
 class GenTuBackendPythonParams(BaseModel, extra="forbid"):
-    holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
-        alias="holder-type", default=None)
+    "Extra parameters for python backend"
+    holder_type: Optional[Literal["shared", "unique"]] = Field(
+        alias="holder-type",
+        default=None,
+        description="Which holder type to use for python backend")
 
 
 @beartype
 class GenTuBackendWasmParams(BaseModel, extra="forbid"):
+    "Extra parameters for WASM backend"
     holder_type: Optional[Literal["shared", "unique"] | str | QualType] = Field(
-        alias="holder-type", default=None)
+        alias="holder-type",
+        default=None,
+        description="Which type to use as a holder type for WASM")
 
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
-    python: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
-    wasm: GenTuBackendPythonParams = Field(default_factory=GenTuBackendPythonParams)
+    """
+    Optional parameters for the backend generation config.
+    `[[refl]]` string parameter is parsed into JSON and this
+    class describes the allowed schema for this JSON.
+    """
+    python: GenTuBackendPythonParams = Field(
+        default_factory=GenTuBackendPythonParams,
+        description="Additional wrapper options for python backend")
+    wasm: GenTuBackendWasmParams = Field(
+        default_factory=GenTuBackendWasmParams,
+        description="Additional wrapper options for WASM backend")
     target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
@@ -911,17 +926,29 @@ def get_base_list(
 
 @beartype
 def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
+    """
+    Check if the input type is present in the type list.
+    Check is performed by flat name, additional qualifications are not used.
+    """
     return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
 
 
 @beartype
 @dataclass
 class TypeSpecialization():
+    "Fixed type specialization used in the wrapped C++ code"
     used_type: QualType
+    "Fully qualified underlying type in the specialization"
     bind_name: str
+    "Flat name for the wrapper class"
     std_type: Optional[QualType] = None
+    """
+    Underlying standard library type that already has converters, binders
+    and specialization.
+    """
 
     def getFlatUsed(self) -> str:
+        "Get flat joined name of the used type"
         return "".join(self.used_type.flatQualName())
 
 

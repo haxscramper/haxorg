@@ -67,7 +67,7 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
     assert t.RefKind == ReferenceKind.LValue
 
     ast = cpp.ASTBuilder(in_b=TextLayout())
-    wrap: py11.Py11Class = py11.Py11Class(ast, struct)
+    wrap: py11.NbClass = py11.NbClass(ast, struct)
     wrap.InitDefault(ast, wrap.Fields)
     lyt = TextLayout()
     builder = cpp.ASTBuilder(lyt)

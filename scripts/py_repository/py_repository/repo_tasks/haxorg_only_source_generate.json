@@ -1,1 +1,6 @@
-{"use_dependencies": false}
+{
+  "use_dependencies": false,
+  "generate_sources_conf": {
+    "standalone": true
+  }
+}

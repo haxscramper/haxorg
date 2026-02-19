@@ -13,14 +13,14 @@ import py_codegen.astbuilder_py as pya
 from py_codegen.astbuilder_pybind11 import (
     flat_scope,
     id_self,
-    Py11BindPass,
-    Py11Class,
-    Py11Enum,
+    NbBindPass,
+    NbClass,
+    NbEnum,
+    NbFunction,
+    NbMethod,
+    NbModule,
+    NbTypedefPass,
     Py11Field,
-    Py11Function,
-    Py11Method,
-    Py11Module,
-    Py11TypedefPass,
     py_type,
 )
 from py_codegen.org_codegen_data import *
@@ -705,12 +705,36 @@ def to_base_types(obj: Any) -> Any:
     return aux(obj, seen)
 
 
+NB_INCLUDE_LIST = [
+    GenTuInclude("nanobind/nanobind.h", True),
+    GenTuInclude("nanobind/stl/string.h", True),
+    GenTuInclude("nanobind/stl/vector.h", True),
+    GenTuInclude("nanobind/stl/map.h", True),
+    GenTuInclude("nanobind/stl/array.h", True),
+    GenTuInclude("nanobind/stl/filesystem.h", True),
+    GenTuInclude("nanobind/stl/function.h", True),
+    GenTuInclude("nanobind/stl/map.h", True),
+    GenTuInclude("nanobind/stl/optional.h", True),
+    GenTuInclude("nanobind/stl/set.h", True),
+    GenTuInclude("nanobind/stl/shared_ptr.h", True),
+    GenTuInclude("nanobind/stl/string_view.h", True),
+    GenTuInclude("nanobind/stl/tuple.h", True),
+    GenTuInclude("nanobind/stl/unique_ptr.h", True),
+    GenTuInclude("nanobind/stl/unordered_map.h", True),
+    GenTuInclude("nanobind/stl/variant.h", True),
+    GenTuInclude("nanobind/operators.h", True),
+    GenTuInclude("nanobind/make_iterator.h", True),
+    GenTuInclude("nanobind/ndarray.h", True),
+]
+
+
 @beartype
 def gen_adaptagrams_wrappers(
     ast: ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
 ) -> GenFiles:
+    "Generate wrappers for adaptagrams library"
     tu: ConvTu = conv_proto_file(reflection_path)
 
     reflection_debug = Path("/tmp/haxorg/adaptagrams_reflection.json")
@@ -719,7 +743,7 @@ def gen_adaptagrams_wrappers(
 
     with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
         base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
-        res = Py11Module("py_adaptagrams")
+        res = NbModule("py_adaptagrams")
         res.add_all(tu.get_all(), ast=ast, base_map=base_map)
         specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
         res.add_type_specializations(
@@ -742,8 +766,7 @@ def gen_adaptagrams_wrappers(
                         GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                         GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
                         GenTuInclude("py_libs/pybind11_utils.hpp", True),
-                        GenTuInclude("pybind11/pybind11.h", True),
-                        GenTuInclude("pybind11/stl.h", True),
+                        *NB_INCLUDE_LIST,
                         GenTuPass(res.build_bind(ast, base_map=base_map)),
                     ],
                 )),
@@ -1075,8 +1098,8 @@ def gen_pyhaxorg_python_wrappers(
     ast: ASTBuilder,
     pyast: pya.ASTBuilder,
 ) -> GenFiles:
-
-    res = Py11Module("pyhaxorg")
+    "Generate haxorg python wrappers"
+    res = NbModule("pyhaxorg")
 
     for decl in groups.get_entries_for_wrapping():
         if decl.reflectionParams.isAcceptedBackend("python"):
@@ -1102,9 +1125,8 @@ def gen_pyhaxorg_python_wrappers(
                 [
                     GenTuPass("#undef slots"),
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
-                    GenTuInclude("pybind11/pybind11.h", True),
+                    *NB_INCLUDE_LIST,
                     GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                    GenTuInclude("pybind11/stl.h", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),
                     GenTuPass(res.build_bind(ast, base_map=groups.base_map)),
                 ],
