@@ -769,6 +769,8 @@ class PyhaxorgTypeGroups():
         default_factory=lambda: GenTypeMap())  # type: ignore[assignment]
     full_enums: List[GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[GenTuStruct] = field(default_factory=list)
+    only_wrap_entries: List[GenTuEntry] = field(default_factory=list)
+    "Types not exposed for codegen, but only for entry wrapping"
     specializations: List[TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[GenTuUnion]:
@@ -792,7 +794,8 @@ class PyhaxorgTypeGroups():
             self.tu.functions + \
             self.immutable + \
             self.imm_id_specializations + \
-            self.adapter_specializations
+            self.adapter_specializations + \
+            self.only_wrap_entries
 
         return topological_sort_entries(result)
 
@@ -827,24 +830,34 @@ def get_pyhaxorg_type_groups(ast: ASTBuilder,
         base_map=res.base_map,
     )
 
+    imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
+    for sem_base in res.expanded:
+        derived_base: str = sem_base.name.name
+        Derived = QualType(name=f"Imm{derived_base}", Spaces=imm_space)
+        Base = QualType(name="ImmAdapterTBase", Spaces=imm_space, Parameters=[Derived])
+        res.only_wrap_entries.append(
+            GenTuStruct(
+                name=Base,
+                IsTemplateRecord=True,
+                ExplicitTemplateParams=[Derived],
+                reflectionParams=GenTuReflParams(
+                    backend=GenTuBackendParams(target_backends=["python"]),
+                    wrapper_has_params=False,
+                    wrapper_name=f"ImmAdapter{derived_base}Base",
+                ),
+            ))
+
     for org_type in get_types():
         res.imm_id_specializations.append(
             GenTuStruct(
                 OriginName="imm ID explicit",
-                name=QualType.ForName(
-                    "ImmIdT", Spaces=[QualType.ForName("org"),
-                                      QualType.ForName("imm")]),
+                name=QualType.ForName("ImmIdT", Spaces=imm_space),
                 IsExplicitInstantiation=True,
                 ExplicitTemplateParams=[gen_imm.rewrite_type_to_immutable(org_type.name)],
                 reflectionParams=GenTuReflParams(wrapper_name="ImmIdT" +
                                                  org_type.name.name),
                 IsDescribedRecord=False,
-                bases=[
-                    QualType.ForName(
-                        "ImmId",
-                        Spaces=[QualType.ForName("org"),
-                                QualType.ForName("imm")]),
-                ],
+                bases=[QualType.ForName("ImmId", Spaces=imm_space)],
             ))
 
     return res

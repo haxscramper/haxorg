@@ -295,7 +295,7 @@ def generate_adapter_specializations(
                 TemplateParams=tu.GenTuTemplateParams.FinalSpecialization(),
                 reflectionParams=tu.GenTuReflParams(
                     wrapper_has_params=False,
-                    wrapper_name=Derived.name,
+                    wrapper_name=f"{Derived.name}Adapter",
                     default_constructor=False,
                 ),
                 nested=[
