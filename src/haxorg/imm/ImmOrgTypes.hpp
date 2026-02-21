@@ -30,7 +30,7 @@ struct ImmErrorGroup : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmErrorGroup, (ImmOrg), (), (), (staticKind,
                                                          diagnostics));
   static OrgSemKind const staticKind;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> diagnostics = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::ErrorItem>> diagnostics = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
   bool operator==(org::imm::ImmErrorGroup const& other) const;
 };
@@ -40,7 +40,7 @@ struct ImmStmt : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmStmt() = default;
   BOOST_DESCRIBE_CLASS(ImmStmt, (ImmOrg), (), (), (attached));
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> attached;
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::Org>> attached;
   bool operator==(org::imm::ImmStmt const& other) const;
 };
 
@@ -124,7 +124,7 @@ struct ImmCmdCaption : public org::imm::ImmAttached {
                                                               text));
   static OrgSemKind const staticKind;
   /// \brief Content description
-  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  org::imm::ImmIdT<org::sem::Paragraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
   bool operator==(org::imm::ImmCmdCaption const& other) const;
 };
@@ -137,7 +137,7 @@ struct ImmCmdCreator : public org::imm::ImmCmd {
                                                          text));
   static OrgSemKind const staticKind;
   /// \brief Creator name text
-  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  org::imm::ImmIdT<org::sem::Paragraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCreator; }
   bool operator==(org::imm::ImmCmdCreator const& other) const;
 };
@@ -150,7 +150,7 @@ struct ImmCmdAuthor : public org::imm::ImmCmd {
                                                         text));
   static OrgSemKind const staticKind;
   /// \brief Author name text
-  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  org::imm::ImmIdT<org::sem::Paragraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAuthor; }
   bool operator==(org::imm::ImmCmdAuthor const& other) const;
 };
@@ -242,7 +242,7 @@ struct ImmCmdCustomText : public org::imm::ImmStmt {
   static OrgSemKind const staticKind;
   hstd::ext::ImmBox<hstd::Str> name;
   bool isAttached = false;
-  org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  org::imm::ImmIdT<org::sem::Paragraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
   bool operator==(org::imm::ImmCmdCustomText const& other) const;
 };
@@ -269,7 +269,7 @@ struct ImmCmdCall : public org::imm::ImmAttached {
   /// \brief Additional parameters aside from 'exporter',
   org::sem::AttrGroup endHeaderAttrs;
   /// \brief Code evaluation results
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::BlockCodeEvalResult>> result = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCall; }
   bool operator==(org::imm::ImmCmdCall const& other) const;
 };
@@ -310,7 +310,7 @@ struct ImmInlineFootnote : public org::imm::ImmInline {
   /// \brief Footnote text target name
   hstd::ext::ImmBox<hstd::Str> tag = "";
   /// \brief Link to possibly resolved definition
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>> definition = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Org>>> definition = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
   bool operator==(org::imm::ImmInlineFootnote const& other) const;
 };
@@ -363,8 +363,8 @@ struct ImmTime : public org::imm::ImmOrg {
 
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, warn, time));
-    hstd::ext::ImmVec<org::imm::ImmTime::Repeat> repeat = {};
-    hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>> warn = std::nullopt;
+    hstd::ext::ImmVec<org::sem::Time::Repeat> repeat = {};
+    hstd::ext::ImmBox<hstd::Opt<org::sem::Time::Repeat>> warn = std::nullopt;
     hstd::UserTime time;
     Static() {  }
     bool operator==(org::imm::ImmTime::Static const& other) const;
@@ -380,15 +380,15 @@ struct ImmTime : public org::imm::ImmOrg {
   using TimeVariant = std::variant<org::imm::ImmTime::Static, org::imm::ImmTime::Dynamic>;
   enum class TimeKind : short int { Static, Dynamic, };
   BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
-  using variant_enum_type = org::imm::ImmTime::TimeKind;
-  using variant_data_type = org::imm::ImmTime::TimeVariant;
+  using variant_enum_type = org::sem::Time::TimeKind;
+  using variant_data_type = org::sem::Time::TimeVariant;
   BOOST_DESCRIBE_CLASS(ImmTime, (ImmOrg), (), (), (staticKind,
                                                    isActive,
                                                    time));
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
   bool isActive = false;
-  org::imm::ImmTime::TimeVariant time;
+  org::sem::Time::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
   bool operator==(org::imm::ImmTime const& other) const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
@@ -397,11 +397,11 @@ struct ImmTime : public org::imm::ImmOrg {
   bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
   org::imm::ImmTime::Dynamic const& getDynamic() const { return hstd::variant_get<1>(time); }
   org::imm::ImmTime::Dynamic& getDynamic() { return hstd::variant_get<1>(time); }
-  static org::imm::ImmTime::TimeKind getTimeKind(org::imm::ImmTime::TimeVariant const& __input) { return static_cast<org::imm::ImmTime::TimeKind>(__input.index()); }
-  org::imm::ImmTime::TimeKind getTimeKind() const { return getTimeKind(time); }
+  static org::sem::Time::TimeKind getTimeKind(org::sem::Time::TimeVariant const& __input) { return static_cast<org::sem::Time::TimeKind>(__input.index()); }
+  org::sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
   char const* sub_variant_get_name() const { return "time"; }
-  org::imm::ImmTime::TimeVariant const& sub_variant_get_data() const { return time; }
-  org::imm::ImmTime::TimeKind sub_variant_get_kind() const { return getTimeKind(); }
+  org::sem::Time::TimeVariant const& sub_variant_get_data() const { return time; }
+  org::sem::Time::TimeKind sub_variant_get_kind() const { return getTimeKind(); }
 };
 
 /// \brief Range of time delimited by two points
@@ -413,9 +413,9 @@ struct ImmTimeRange : public org::imm::ImmOrg {
                                                         to));
   static OrgSemKind const staticKind;
   /// \brief Starting time
-  org::imm::ImmIdT<org::imm::ImmTime> from = org::imm::ImmIdT<org::imm::ImmTime>::Nil();
+  org::imm::ImmIdT<org::sem::Time> from = org::imm::ImmIdT<org::imm::ImmTime>::Nil();
   /// \brief Finishing time
-  org::imm::ImmIdT<org::imm::ImmTime> to = org::imm::ImmIdT<org::imm::ImmTime>::Nil();
+  org::imm::ImmIdT<org::sem::Time> to = org::imm::ImmIdT<org::imm::ImmTime>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
   bool operator==(org::imm::ImmTimeRange const& other) const;
 };
@@ -458,9 +458,9 @@ struct ImmSymbol : public org::imm::ImmOrg {
   /// \brief Name of the symbol
   hstd::ext::ImmBox<hstd::Str> name;
   /// \brief Optional list of parameters
-  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> parameters;
+  hstd::ext::ImmVec<org::sem::Symbol::Param> parameters;
   /// \brief Positional parameters
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> positional;
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::Org>> positional;
   virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
   bool operator==(org::imm::ImmSymbol const& other) const;
 };
@@ -578,7 +578,7 @@ struct ImmErrorSkipGroup : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmErrorSkipGroup, (ImmOrg), (), (), (staticKind,
                                                              skipped));
   static OrgSemKind const staticKind;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> skipped = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::ErrorSkipToken>> skipped = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorSkipGroup; }
   bool operator==(org::imm::ImmErrorSkipGroup const& other) const;
 };
@@ -691,7 +691,7 @@ struct ImmLink : public org::imm::ImmStmt {
                                                     description,
                                                     target));
   static OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> description = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> description = std::nullopt;
   org::sem::LinkTarget target;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   bool operator==(org::imm::ImmLink const& other) const;
@@ -791,7 +791,7 @@ struct ImmBlockCodeEvalResult : public org::imm::ImmBlock {
                                                                     node));
   static OrgSemKind const staticKind;
   hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> raw;
-  org::imm::ImmIdT<org::imm::ImmOrg> node = org::imm::ImmIdT<org::imm::ImmOrg>::Nil();
+  org::imm::ImmIdT<org::sem::Org> node = org::imm::ImmIdT<org::imm::ImmOrg>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCodeEvalResult; }
   bool operator==(org::imm::ImmBlockCodeEvalResult const& other) const;
 };
@@ -809,7 +809,7 @@ struct ImmBlockCode : public org::imm::ImmBlock {
   /// \brief Code block language name
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> lang = std::nullopt;
   /// \brief Code evaluation results
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::BlockCodeEvalResult>> result = {};
   /// \brief Collected code lines
   hstd::ext::ImmVec<org::sem::BlockCodeLine> lines = {};
   /// \brief Dash-based switches for code block execution
@@ -828,7 +828,7 @@ struct ImmSubtreeLog : public org::imm::ImmOrg {
   static OrgSemKind const staticKind;
   org::sem::SubtreeLogHead head;
   /// \brief Optional description of the log entry
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>> desc = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::StmtList>>> desc = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   bool operator==(org::imm::ImmSubtreeLog const& other) const;
 };
@@ -862,21 +862,21 @@ struct ImmSubtree : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> todo = std::nullopt;
   /// \brief Task completion state
   hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>> completion = std::nullopt;
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> description = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> description = std::nullopt;
   /// \brief Trailing tags
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> tags = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::HashTag>> tags = {};
   /// \brief Main title
-  org::imm::ImmIdT<org::imm::ImmParagraph> title = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
+  org::imm::ImmIdT<org::sem::Paragraph> title = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   /// \brief Associated subtree log
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> logbook = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
   hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> closed = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Time>>> closed = std::nullopt;
   /// \brief When is the deadline
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> deadline = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Time>>> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> scheduled = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Time>>> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
@@ -908,7 +908,7 @@ struct ImmRow : public org::imm::ImmCmd {
                                                   isBlock));
   static OrgSemKind const staticKind;
   /// \brief List of cells on the row
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> cells = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::Cell>> cells = {};
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
@@ -924,7 +924,7 @@ struct ImmTable : public org::imm::ImmBlock {
                                                       isBlock));
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> rows = {};
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::Row>> rows = {};
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
@@ -1014,7 +1014,7 @@ struct ImmListItem : public org::imm::ImmOrg {
   static OrgSemKind const staticKind;
   CheckboxState checkbox = CheckboxState::None;
   /// \brief Description list item header
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> header = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
@@ -1093,13 +1093,13 @@ struct ImmDocument : public org::imm::ImmOrg {
                                                        options,
                                                        exportFileName));
   static OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> title = std::nullopt;
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> author = std::nullopt;
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> creator = std::nullopt;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> filetags = {};
-  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>> email = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> title = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> author = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::Paragraph>>> creator = std::nullopt;
+  hstd::ext::ImmVec<org::sem::SemId<org::sem::HashTag>> filetags = {};
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SemId<org::sem::RawText>>> email = std::nullopt;
   hstd::ext::ImmVec<hstd::Str> language = {};
-  org::imm::ImmIdT<org::imm::ImmDocumentOptions> options = org::imm::ImmIdT<org::imm::ImmDocumentOptions>::Nil();
+  org::imm::ImmIdT<org::sem::DocumentOptions> options = org::imm::ImmIdT<org::imm::ImmDocumentOptions>::Nil();
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
   bool operator==(org::imm::ImmDocument const& other) const;
@@ -1165,8 +1165,8 @@ struct ImmFile : public org::imm::ImmOrg {
   using Data = std::variant<org::imm::ImmFile::Document, org::imm::ImmFile::Attachment, org::imm::ImmFile::Source>;
   enum class Kind : short int { Document, Attachment, Source, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Document, Attachment, Source)
-  using variant_enum_type = org::imm::ImmFile::Kind;
-  using variant_data_type = org::imm::ImmFile::Data;
+  using variant_enum_type = org::sem::File::Kind;
+  using variant_data_type = org::sem::File::Data;
   BOOST_DESCRIBE_CLASS(ImmFile, (ImmOrg), (), (), (staticKind,
                                                    relPath,
                                                    absPath,
@@ -1176,7 +1176,7 @@ struct ImmFile : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Str> relPath = "";
   /// \brief Absolute resolved path to physical file
   hstd::ext::ImmBox<hstd::Str> absPath = "";
-  org::imm::ImmFile::Data data;
+  org::sem::File::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool operator==(org::imm::ImmFile const& other) const;
   bool isDocument() const { return getFileKind() == Kind::Document; }
@@ -1188,11 +1188,11 @@ struct ImmFile : public org::imm::ImmOrg {
   bool isSource() const { return getFileKind() == Kind::Source; }
   org::imm::ImmFile::Source const& getSource() const { return hstd::variant_get<2>(data); }
   org::imm::ImmFile::Source& getSource() { return hstd::variant_get<2>(data); }
-  static org::imm::ImmFile::Kind getFileKind(org::imm::ImmFile::Data const& __input) { return static_cast<org::imm::ImmFile::Kind>(__input.index()); }
-  org::imm::ImmFile::Kind getFileKind() const { return getFileKind(data); }
+  static org::sem::File::Kind getFileKind(org::sem::File::Data const& __input) { return static_cast<org::sem::File::Kind>(__input.index()); }
+  org::sem::File::Kind getFileKind() const { return getFileKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
-  org::imm::ImmFile::Data const& sub_variant_get_data() const { return data; }
-  org::imm::ImmFile::Kind sub_variant_get_kind() const { return getFileKind(); }
+  org::sem::File::Data const& sub_variant_get_data() const { return data; }
+  org::sem::File::Kind sub_variant_get_kind() const { return getFileKind(); }
 };
 
 struct ImmDirectory : public org::imm::ImmOrg {
@@ -1281,8 +1281,8 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   using Data = std::variant<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::OrgDocument>;
   enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
-  using variant_enum_type = org::imm::ImmCmdInclude::Kind;
-  using variant_data_type = org::imm::ImmCmdInclude::Data;
+  using variant_enum_type = org::sem::CmdInclude::Kind;
+  using variant_data_type = org::sem::CmdInclude::Data;
   BOOST_DESCRIBE_CLASS(ImmCmdInclude, (ImmOrg), (), (), (staticKind,
                                                          path,
                                                          firstLine,
@@ -1295,7 +1295,7 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   hstd::ext::ImmBox<hstd::Opt<int>> lastLine = std::nullopt;
-  org::imm::ImmCmdInclude::Data data;
+  org::sem::CmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool operator==(org::imm::ImmCmdInclude const& other) const;
   bool isExample() const { return getIncludeKind() == Kind::Example; }
@@ -1313,11 +1313,11 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
   org::imm::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return hstd::variant_get<4>(data); }
   org::imm::ImmCmdInclude::OrgDocument& getOrgDocument() { return hstd::variant_get<4>(data); }
-  static org::imm::ImmCmdInclude::Kind getIncludeKind(org::imm::ImmCmdInclude::Data const& __input) { return static_cast<org::imm::ImmCmdInclude::Kind>(__input.index()); }
-  org::imm::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
+  static org::sem::CmdInclude::Kind getIncludeKind(org::sem::CmdInclude::Data const& __input) { return static_cast<org::sem::CmdInclude::Kind>(__input.index()); }
+  org::sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
-  org::imm::ImmCmdInclude::Data const& sub_variant_get_data() const { return data; }
-  org::imm::ImmCmdInclude::Kind sub_variant_get_kind() const { return getIncludeKind(); }
+  org::sem::CmdInclude::Data const& sub_variant_get_data() const { return data; }
+  org::sem::CmdInclude::Kind sub_variant_get_kind() const { return getIncludeKind(); }
 };
 
 }

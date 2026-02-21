@@ -5638,46 +5638,6 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
     ;
-  bind_enum_iterator<org::imm::ImmTime::Repeat::Mode>(m, "ImmTimeRepeatMode", type_registry_guard);
-  nanobind::enum_<org::imm::ImmTime::Repeat::Mode>(m, "ImmTimeRepeatMode")
-    .value("None", org::imm::ImmTime::Repeat::Mode::None, R"RAW(Do not repeat task on completion)RAW")
-    .value("Exact", org::imm::ImmTime::Repeat::Mode::Exact, R"RAW(?)RAW")
-    .value("FirstMatch", org::imm::ImmTime::Repeat::Mode::FirstMatch, R"RAW(Repeat on the first matching day in the future)RAW")
-    .value("SameDay", org::imm::ImmTime::Repeat::Mode::SameDay, R"RAW(Repeat task on the same day next week/month/year)RAW")
-    .def("__iter__", [](org::imm::ImmTime::Repeat::Mode const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Mode> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Mode>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmTime::Repeat::Mode lhs, org::imm::ImmTime::Repeat::Mode rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmTime::Repeat::Mode it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod", type_registry_guard);
-  nanobind::enum_<org::imm::ImmTime::Repeat::Period>(m, "ImmTimeRepeatPeriod")
-    .value("Year", org::imm::ImmTime::Repeat::Period::Year)
-    .value("Month", org::imm::ImmTime::Repeat::Period::Month)
-    .value("Week", org::imm::ImmTime::Repeat::Period::Week)
-    .value("Day", org::imm::ImmTime::Repeat::Period::Day)
-    .value("Hour", org::imm::ImmTime::Repeat::Period::Hour)
-    .value("Minute", org::imm::ImmTime::Repeat::Period::Minute)
-    .def("__iter__", [](org::imm::ImmTime::Repeat::Period const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Period> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::Repeat::Period>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmTime::Repeat::Period lhs, org::imm::ImmTime::Repeat::Period rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmTime::Repeat::Period it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
     .def("__init__",
          [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) {
@@ -5742,23 +5702,6 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
-  bind_enum_iterator<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind")
-    .value("Static", org::imm::ImmTime::TimeKind::Static)
-    .value("Dynamic", org::imm::ImmTime::TimeKind::Dynamic)
-    .def("__iter__", [](org::imm::ImmTime::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmTime::TimeKind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
   nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
     .def("__init__",
          [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) {
@@ -5779,26 +5722,6 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
-    ;
-  bind_enum_iterator<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmCriticMarkup::Kind>(m, "ImmCriticMarkupKind")
-    .value("Deletion", org::imm::ImmCriticMarkup::Kind::Deletion)
-    .value("Addition", org::imm::ImmCriticMarkup::Kind::Addition)
-    .value("Substitution", org::imm::ImmCriticMarkup::Kind::Substitution)
-    .value("Highlighting", org::imm::ImmCriticMarkup::Kind::Highlighting)
-    .value("Comment", org::imm::ImmCriticMarkup::Kind::Comment)
-    .def("__iter__", [](org::imm::ImmCriticMarkup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCriticMarkup::Kind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmCriticMarkup::Kind>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmCriticMarkup::Kind lhs, org::imm::ImmCriticMarkup::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmCriticMarkup::Kind it) -> int {
-         return static_cast<int>(it);
-         })
     ;
   nanobind::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
     .def("__init__",
@@ -5856,24 +5779,6 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
-    ;
-  bind_enum_iterator<org::imm::ImmFile::Kind>(m, "ImmFileKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmFile::Kind>(m, "ImmFileKind")
-    .value("Document", org::imm::ImmFile::Kind::Document)
-    .value("Attachment", org::imm::ImmFile::Kind::Attachment)
-    .value("Source", org::imm::ImmFile::Kind::Source)
-    .def("__iter__", [](org::imm::ImmFile::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmFile::Kind it) -> int {
-         return static_cast<int>(it);
-         })
     ;
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
     .def("__init__",
@@ -5995,26 +5900,6 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
-    ;
-  bind_enum_iterator<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind")
-    .value("Example", org::imm::ImmCmdInclude::Kind::Example)
-    .value("Export", org::imm::ImmCmdInclude::Kind::Export)
-    .value("Custom", org::imm::ImmCmdInclude::Kind::Custom)
-    .value("Src", org::imm::ImmCmdInclude::Kind::Src)
-    .value("OrgDocument", org::imm::ImmCmdInclude::Kind::OrgDocument)
-    .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
-                     })
-    .def("__eq__",
-         [](org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::imm::ImmCmdInclude::Kind it) -> int {
-         return static_cast<int>(it);
-         })
     ;
   nanobind::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
     ;

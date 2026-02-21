@@ -23,6 +23,7 @@ from py_codegen.astbuilder_pybind11 import (
     Py11Field,
     py_type,
 )
+import py_codegen.codegen_immutable as gen_imm
 from py_codegen.org_codegen_data import *
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_haxorg.layout.wrap import TextLayout, TextOptions
@@ -142,145 +143,6 @@ def get_exporter_methods(
 
     iterate_object_tree(expanded, iterate_tree_context, pre_visit=callback)
     return methods
-
-
-@beartype
-def get_imm_serde(
-    types: List[GenTuStruct],
-    ast: ASTBuilder,
-    base_map: GenTypeMap,
-) -> Sequence[GenTuPass | GenTuStruct]:
-    serde: List[GenTuStruct | GenTuPass] = []
-
-    def aux(it: Any) -> None:
-        match it:
-            case GenTuStruct():
-                if it.IsAbstract:
-                    return
-
-                sem_type = it.name
-                respace = it.name.flatQualScope()[2:] + [
-                    it.name.withoutAllScopeQualifiers()
-                ]
-                respace[0].name = "Imm" + respace[0].name
-                respace = [n_imm()] + respace
-                imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
-
-                writer_body: List[BlockId] = [
-                    ast.line(
-                        ast.Type(imm_type),
-                        ast.string(" result = "),
-                        ast.CallStatic(
-                            typ=QualType(
-                                name="SerdeDefaultProvider",
-                                Parameters=[imm_type],
-                                Spaces=[n_hstd()],
-                            ),
-                            opc="get",
-                        ),
-                        ast.string(";"),
-                    )
-                ]
-
-                reader_body: List[BlockId] = [
-                    ast.line(
-                        ast.Type(sem_type),
-                        ast.string(" result = "),
-                        ast.CallStatic(
-                            typ=QualType(
-                                name="SerdeDefaultProvider",
-                                Parameters=[sem_type],
-                                Spaces=[n_hstd()],
-                            ),
-                            opc="get",
-                        ),
-                        ast.string(";"),
-                    )
-                ]
-
-                def field_aux(sub: GenTuStruct) -> None:
-                    for field in sub.fields:
-                        if not field.isStatic:
-                            writer_body.append(
-                                ast.Call(
-                                    func=ast.string("assign_immer_field"),
-                                    Args=[
-                                        ast.string(f"result.{field.name}"),
-                                        ast.string(f"value.{field.name}"),
-                                        ast.string("ctx"),
-                                    ],
-                                    Stmt=True,
-                                ))
-
-                            reader_body.append(
-                                ast.Call(
-                                    func=ast.string("assign_sem_field"),
-                                    Args=[
-                                        ast.string(f"result.{field.name}"),
-                                        ast.string(f"value.{field.name}"),
-                                        ast.string("ctx"),
-                                    ],
-                                    Stmt=True,
-                                ))
-
-                    for base in sub.bases:
-                        assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
-                        base_type = base_map.get_one_type_for_name(base.name)
-                        if base_type:
-                            assert isinstance(base_type, GenTuStruct)
-                            assert base_type.name.name != sub.name.name
-                            field_aux(base_type)
-
-                # sys.setrecursionlimit(32)
-                field_aux(it)
-
-                writer_body.append(ast.Return(ast.string("result")))
-                reader_body.append(ast.Return(ast.string("result")))
-
-                writer = MethodDeclParams(
-                    Params=FunctionParams(
-                        Name="to_immer",
-                        ResultTy=imm_type,
-                        Args=[
-                            ParmVarParams(name="value", type=sem_type.asConstRef()),
-                            ParmVarParams(
-                                name="ctx",
-                                type=QualType(name="ImmAstEditContext").asRef()),
-                        ],
-                        Body=writer_body,
-                        AllowOneLine=False,
-                    ),
-                    isStatic=True,
-                )
-
-                reader = MethodDeclParams(
-                    Params=FunctionParams(
-                        Name="from_immer",
-                        ResultTy=sem_type,
-                        Args=[
-                            ParmVarParams(name="value", type=imm_type.asConstRef()),
-                            ParmVarParams(
-                                name="ctx",
-                                type=QualType(name="ImmAstContext").asConstRef()),
-                        ],
-                        Body=reader_body,
-                        AllowOneLine=False,
-                    ),
-                    isStatic=True,
-                )
-
-                rec = RecordParams(
-                    name=QualType(name="ImmSemSerde"),
-                    NameParams=[sem_type, imm_type],
-                    Template=GenTuTemplateParams(Stacks=[GenTuTemplateGroup(Params=[])]),
-                    members=[writer, reader],
-                )
-
-                serde.append(GenTuPass(ast.Record(rec)))
-
-    iterate_object_tree(types, [], pre_visit=aux)
-
-    return serde
 
 
 @beartype
@@ -559,218 +421,6 @@ def expand_type_groups(ast: ASTBuilder,
         return result
 
     return [rec_expand_type(T) for T in types]
-
-
-@beartype
-def mutate_type_to_immutable(obj: QualType) -> None:
-    obj.dbg_origin += "imm_write"
-    match obj:
-        case QualType(name="SemId", Parameters=[]):
-            obj.name = "ImmId"
-            obj.Spaces = [n_imm()]
-
-        case QualType(name="SemId"):
-            obj.name = "ImmIdT"
-            obj.Spaces = [n_imm()]
-
-        case QualType(name="Vec"):
-            obj.name = "ImmVec"
-            obj.Spaces = [n_hstd_ext()]
-
-        case QualType(name="UnorderedMap"):
-            obj.name = "ImmMap"
-            obj.Spaces = [n_hstd_ext()]
-
-        case _:
-            flat_namespace = obj.flatQualFullName()
-            match flat_namespace:
-                case [QualType(name="org"), QualType(name="sem"), *rest]:
-                    if rest and rest[0].isOrgType():
-                        if 1 == len(rest):
-                            obj.name = "Imm" + obj.name
-                            obj.Spaces = [n_imm()]
-
-                        elif 1 < len(rest):
-                            reuse_spaces = copy(rest)
-                            reuse_spaces.pop(0)
-                            reuse_spaces.pop(-1)
-                            obj.Spaces = [
-                                n_imm(), rest[0].model_copy(update=dict(name="Imm" +
-                                                                        rest[0].name)),
-                                *reuse_spaces
-                            ]
-
-                        else:
-                            pass
-
-
-@beartype
-def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
-    result = deepcopy(recs)
-
-    IMM_BOX = t("ImmBox", [n_hstd_ext()])
-    ORG_SPACE = n_imm()
-
-    def impl(obj: Any) -> None:
-        match obj:
-            case QualType():
-                mutate_type_to_immutable(obj)
-
-            case GenTuField(type=QualType(name="SemId", Parameters=[])):
-                assert obj.type
-                mutate_type_to_immutable(obj.type)
-                obj.value = "org::imm::ImmId::Nil()"
-
-            case GenTuField(type=QualType(name="SemId")):
-                assert obj.type
-                par0 = obj.type.par0()
-                assert par0
-                mutate_type_to_immutable(obj.type)
-                obj.value = f"org::imm::ImmIdT<org::imm::Imm{par0.name}>::Nil()"
-
-            case GenTuField(type=QualType(name="Opt")):
-                assert obj.type
-                par0 = obj.type.par0()
-                assert par0
-                obj.type = par0.withWrapperType(QualType(
-                    name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
-
-            case GenTuField(type=QualType(name="Str")):
-                assert obj.type
-                obj.type = obj.type.withWrapperType(IMM_BOX)
-
-            case GenTuStruct():
-                obj.methods = [
-                    it for it in obj.methods
-                    if (it.name in ["getKind"] or it.name == obj.name.name)
-                ]
-                obj.GenDescribeMethods = False
-                obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
-                self_arg = obj.name.asConstRef()
-
-                if obj.reflectionParams.backend.wasm.holder_type:
-                    obj.reflectionParams.backend.wasm.holder_type = None
-
-                obj.methods.append(
-                    GenTuFunction(
-                        result=QualType.ForName("bool"),
-                        name="operator==",
-                        isConst=True,
-                        arguments=[GenTuIdent(type=self_arg, name="other")],
-                    ))
-
-                if hasattr(obj, "isOrgType"):
-                    obj.nested = [
-                        GenTuPass(
-                            f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
-                        GenTuPass(f"virtual ~Imm{obj.name.name}() = default;"),
-                    ] + obj.nested
-
-    iterate_object_tree(result, [], pre_visit=impl)
-
-    return result
-
-
-def generate_adapter_specializations(ast: ASTBuilder,
-                                     types: List[GenTuStruct]) -> List[GenTuStruct]:
-    """
-    Create value reader types and explicit instantiations of the adapter template structures.
-    """
-    result: List[GenTuStruct] = list()
-    imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
-
-    def for_final_type(sem_base: GenTuStruct):
-        derived_base: str = sem_base.name.name
-        Derived = QualType(name=f"Imm{derived_base}", Spaces=imm_space)
-        DerivedValueRead = QualType(name=f"Imm{derived_base}ValueRead", Spaces=imm_space)
-        Api = QualType(name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
-        Base = QualType(name="ImmAdapterTBase", Spaces=imm_space, Parameters=[Derived])
-
-        result.append(
-            GenTuStruct(
-                name=DerivedValueRead.withoutAllScopeQualifiers(),
-                reflectionParams=GenTuReflParams(default_constructor=True),
-                methods=[
-                    GenTuFunction(
-                        name=f"get{f.name.capitalize()}",
-                        isConst=True,
-                        result=f.type.asConstRef(),
-                    ) for f in sem_base.fields if not f.isStatic
-                ] + [
-                    GenTuFunction(
-                        IsConstructor=True,
-                        name=DerivedValueRead.name,
-                        arguments=[GenTuIdent(
-                            name="ptr",
-                            type=Derived.asConstPtr(),
-                        )],
-                        InitList=[
-                            ast.XConstructObj(ast.string("ptr"), [
-                                ast.XCall("const_cast", [ast.string("ptr")],
-                                          Params=[
-                                              Derived.asPtr(1),
-                                          ])
-                            ])
-                        ])
-                ],
-                fields=[
-                    GenTuField(name="ptr",
-                               type=Derived.asPtr(1),
-                               isExposedForDescribe=False)
-                ]))
-
-        result.append(
-            GenTuStruct(
-                name=QualType(name="ImmAdapterT"),
-                IsTemplateRecord=True,
-                IsExplicitInstantiation=True,
-                ExplicitTemplateParams=[Derived],
-                bases=[Base, Api],
-                TemplateParams=GenTuTemplateParams.FinalSpecialization(),
-                reflectionParams=GenTuReflParams(
-                    wrapper_has_params=False,
-                    wrapper_name=Derived.name,
-                    default_constructor=False,
-                ),
-                nested=[
-                    GenTuPass(ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
-                    GenTuPass(ast.Using(UsingParams(newName="api_type", baseType=Api)))
-                ],
-                methods=[
-                    GenTuFunction(
-                        arguments=[
-                            GenTuIdent(
-                                type=QualType(name="ImmAdapter",
-                                              Spaces=imm_space).asConstRef(),
-                                name="other",
-                            )
-                        ],
-                        name="ImmAdapterT",
-                        IsConstructor=True,
-                        impl=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
-                            ast.Literal(
-                                "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
-                            ),
-                            ast.Literal(derived_base),
-                            ast.XCallRef(ast.string("other"), "getKind"),
-                        ])),
-                    GenTuFunction(
-                        isConst=True,
-                        name="getValue",
-                        result=DerivedValueRead,
-                        impl=ast.Return(
-                            ast.XConstructObj(
-                                DerivedValueRead,
-                                [ast.Addr(ast.XCallPtr(
-                                    ast.string("this"),
-                                    "value",
-                                ))]))),
-                ]))
-
-    for t in types:
-        for_final_type(t)
-
-    return result
 
 
 def to_base_types(obj: Any) -> Any:
@@ -1153,9 +803,10 @@ def get_pyhaxorg_type_groups(
     res = PyhaxorgTypeGroups()
     res.shared_types = expand_type_groups(ast, get_shared_sem_types())  # type: ignore
     res.expanded = expand_type_groups(ast, get_types())  # type: ignore
-    res.adapter_specializations = generate_adapter_specializations(ast, res.expanded)
-    res.immutable = expand_type_groups(ast,
-                                       rewrite_to_immutable(get_types()))  # type: ignore
+    res.adapter_specializations = gen_imm.generate_adapter_specializations(
+        ast, res.expanded)
+    res.immutable = expand_type_groups(ast, gen_imm.rewrite_to_immutable(
+        get_types()))  # type: ignore
 
     res.tu = conv_proto_file(reflection_path)
     res.base_map = get_base_map(
@@ -1172,8 +823,6 @@ def get_pyhaxorg_type_groups(
     )
 
     for org_type in get_types():
-        original_id = org_type.name.model_copy()
-        mutate_type_to_immutable(original_id)
         res.imm_id_specializations.append(
             GenTuStruct(
                 OriginName="imm ID explicit",
@@ -1181,7 +830,7 @@ def get_pyhaxorg_type_groups(
                     "ImmIdT", Spaces=[QualType.ForName("org"),
                                       QualType.ForName("imm")]),
                 IsExplicitInstantiation=True,
-                ExplicitTemplateParams=[original_id],
+                ExplicitTemplateParams=[gen_imm.rewrite_type_to_immutable(org_type.name)],
                 reflectionParams=GenTuReflParams(wrapper_name="ImmIdT" +
                                                  org_type.name.name),
                 IsDescribedRecord=False,
@@ -1346,7 +995,9 @@ def gen_pyhaxorg_source(
         GenUnit(
             GenTu(
                 "{base}/imm/ImmOrgSerde.tcc",
-                get_imm_serde(types=groups.expanded, ast=ast, base_map=groups.base_map),
+                gen_imm.get_imm_serde(types=groups.expanded,
+                                      ast=ast,
+                                      base_map=groups.base_map),
             ),),
         GenUnit(
             GenTu(

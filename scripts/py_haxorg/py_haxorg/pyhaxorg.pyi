@@ -2542,20 +2542,6 @@ class ImmIdTSymlink(ImmId):
 class ImmIdTCmdInclude(ImmId):
     def __init__(self) -> None: ...
 
-class ImmTimeRepeatMode(Enum):
-    _None = 1
-    Exact = 2
-    FirstMatch = 3
-    SameDay = 4
-
-class ImmTimeRepeatPeriod(Enum):
-    Year = 1
-    Month = 2
-    Week = 3
-    Day = 4
-    Hour = 5
-    Minute = 6
-
 class ImmTimeRepeat:
     def __init__(self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int) -> None: ...
     def __init__(self): ...
@@ -2567,13 +2553,13 @@ class ImmTimeRepeat:
     count: int
 
 class ImmTimeStatic:
-    def __init__(self, repeat: ImmVec[ImmTimeRepeat], warn: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(self, repeat: ImmVec[TimeRepeat], warn: ImmBox[Optional[TimeRepeat]], time: UserTime) -> None: ...
     def __init__(self): ...
     def __eq__(self, other: ImmTimeStatic) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    repeat: ImmVec[ImmTimeRepeat]
-    warn: ImmBox[Optional[ImmTimeRepeat]]
+    repeat: ImmVec[TimeRepeat]
+    warn: ImmBox[Optional[TimeRepeat]]
     time: UserTime
 
 class ImmTimeDynamic:
@@ -2584,11 +2570,7 @@ class ImmTimeDynamic:
     def __getattr__(self, name: str) -> object: ...
     expr: LispCode
 
-ImmTimeTimeVariant = Union[ImmTimeStatic, ImmTimeDynamic]
-class ImmTimeTimeKind(Enum):
-    Static = 1
-    Dynamic = 2
-
+TimeTimeVariant = Union[ImmTimeStatic, ImmTimeDynamic]
 class ImmSymbolParam:
     def __init__(self, key: ImmBox[Optional[str]], value: ImmBox[str]) -> None: ...
     def __eq__(self, other: ImmSymbolParam) -> bool: ...
@@ -2596,13 +2578,6 @@ class ImmSymbolParam:
     def __getattr__(self, name: str) -> object: ...
     key: ImmBox[Optional[str]]
     value: ImmBox[str]
-
-class ImmCriticMarkupKind(Enum):
-    Deletion = 1
-    Addition = 2
-    Substitution = 3
-    Highlighting = 4
-    Comment = 5
 
 class ImmFileDocument:
     def __init__(self) -> None: ...
@@ -2622,12 +2597,7 @@ class ImmFileSource:
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-ImmFileData = Union[ImmFileDocument, ImmFileAttachment, ImmFileSource]
-class ImmFileKind(Enum):
-    Document = 1
-    Attachment = 2
-    Source = 3
-
+FileData = Union[ImmFileDocument, ImmFileAttachment, ImmFileSource]
 class ImmCmdIncludeIncludeBase:
     def __init__(self) -> None: ...
     def __init__(self): ...
@@ -2677,14 +2647,7 @@ class ImmCmdIncludeOrgDocument(ImmCmdIncludeIncludeBase):
     minLevel: ImmBox[Optional[int]]
     customIdTarget: ImmBox[Optional[str]]
 
-ImmCmdIncludeData = Union[ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument]
-class ImmCmdIncludeKind(Enum):
-    Example = 1
-    Export = 2
-    Custom = 3
-    Src = 4
-    OrgDocument = 5
-
+CmdIncludeData = Union[ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument]
 class ImmAdapterOrgAPI(ImmAdapterVirtualBase):
     def __init__(self) -> None: ...
 
