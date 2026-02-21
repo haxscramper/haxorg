@@ -720,50 +720,50 @@
 
 #define EACH_SEM_ORG_CmdCustomArgs_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomArgs), CmdCustomArgs) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomArgs), CmdCustomArgs) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomArgs), CmdCustomArgs) \
 
 #define EACH_SEM_ORG_CmdCustomArgs_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Cmd)) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomArgs), CmdCustomArgs) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomArgs), CmdCustomArgs) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomArgs), CmdCustomArgs) \
 
 #define EACH_SEM_ORG_CmdCustomRaw_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomRaw), CmdCustomRaw) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomRaw), CmdCustomRaw) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomRaw), CmdCustomRaw) \
     __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdCustomRaw), CmdCustomRaw) \
 
 #define EACH_SEM_ORG_CmdCustomRaw_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Stmt)) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomRaw), CmdCustomRaw) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomRaw), CmdCustomRaw) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomRaw), CmdCustomRaw) \
     __IMPL_FIELD((hstd::Str), text, Text, (org::sem::CmdCustomRaw), CmdCustomRaw) \
 
 #define EACH_SEM_ORG_CmdCustomText_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomText), CmdCustomText) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomText), CmdCustomText) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomText), CmdCustomText) \
     __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdCustomText), CmdCustomText) \
 
 #define EACH_SEM_ORG_CmdCustomText_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Stmt)) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCustomText), CmdCustomText) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::sem::CmdCustomText), CmdCustomText) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::sem::CmdCustomText), CmdCustomText) \
     __IMPL_FIELD((org::sem::SemId<org::sem::Paragraph>), text, Text, (org::sem::CmdCustomText), CmdCustomText) \
 
 #define EACH_SEM_ORG_CmdCall_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, Filename, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, FileName, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, InsideHeaderAttrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, CallAttrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, EndHeaderAttrs, (org::sem::CmdCall), CmdCall) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::CmdCall), CmdCall) \
 
 #define EACH_SEM_ORG_CmdCall_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Attached)) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, Filename, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs, (org::sem::CmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), fileName, FileName, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, InsideHeaderAttrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, CallAttrs, (org::sem::CmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, EndHeaderAttrs, (org::sem::CmdCall), CmdCall) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::CmdCall), CmdCall) \
 
 #define EACH_SEM_ORG_CmdTblfm_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -799,12 +799,12 @@
     __IMPL_FIELD((hstd::Str), content, Content, (org::sem::InlineExport), InlineExport) \
 
 #define EACH_SEM_ORG_Time_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isActive, Isactive, (org::sem::Time), Time) \
+    __IMPL_FIELD((bool), isActive, IsActive, (org::sem::Time), Time) \
     __IMPL_FIELD((org::sem::Time::TimeVariant), time, Time, (org::sem::Time), Time) \
 
 #define EACH_SEM_ORG_Time_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((bool), isActive, Isactive, (org::sem::Time), Time) \
+    __IMPL_FIELD((bool), isActive, IsActive, (org::sem::Time), Time) \
     __IMPL_FIELD((org::sem::Time::TimeVariant), time, Time, (org::sem::Time), Time) \
 
 #define EACH_SEM_ORG_TimeRange_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1043,7 +1043,7 @@
 
 #define EACH_SEM_ORG_Subtree_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), level, Level, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, TreeId, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description, (org::sem::Subtree), Subtree) \
@@ -1054,14 +1054,14 @@
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), closed, Closed, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), deadline, Deadline, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((bool), isComment, Iscomment, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((bool), isArchived, Isarchived, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((bool), isComment, IsComment, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((bool), isArchived, IsArchived, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority, (org::sem::Subtree), Subtree) \
 
 #define EACH_SEM_ORG_Subtree_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((int), level, Level, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, Treeid, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), treeId, TreeId, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), todo, Todo, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SubtreeCompletion>), completion, Completion, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description, (org::sem::Subtree), Subtree) \
@@ -1072,34 +1072,34 @@
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), closed, Closed, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), deadline, Deadline, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Time>>), scheduled, Scheduled, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((bool), isComment, Iscomment, (org::sem::Subtree), Subtree) \
-    __IMPL_FIELD((bool), isArchived, Isarchived, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((bool), isComment, IsComment, (org::sem::Subtree), Subtree) \
+    __IMPL_FIELD((bool), isArchived, IsArchived, (org::sem::Subtree), Subtree) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), priority, Priority, (org::sem::Subtree), Subtree) \
 
 #define EACH_SEM_ORG_Cell_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Cell), Cell) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Cell), Cell) \
 
 #define EACH_SEM_ORG_Cell_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Cmd)) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Cell), Cell) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Cell), Cell) \
 
 #define EACH_SEM_ORG_Row_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Cell>>), cells, Cells, (org::sem::Row), Row) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Row), Row) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Row), Row) \
 
 #define EACH_SEM_ORG_Row_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Cmd)) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Cell>>), cells, Cells, (org::sem::Row), Row) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Row), Row) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Row), Row) \
 
 #define EACH_SEM_ORG_Table_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Row>>), rows, Rows, (org::sem::Table), Table) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Table), Table) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Table), Table) \
 
 #define EACH_SEM_ORG_Table_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Block)) \
     __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::Row>>), rows, Rows, (org::sem::Table), Table) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::sem::Table), Table) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::sem::Table), Table) \
 
 #define EACH_SEM_ORG_Paragraph_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1130,13 +1130,13 @@
 #define EACH_SEM_ORG_Call_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::Call), Call) \
     __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs, (org::sem::Call), Call) \
-    __IMPL_FIELD((bool), isCommand, Iscommand, (org::sem::Call), Call) \
+    __IMPL_FIELD((bool), isCommand, IsCommand, (org::sem::Call), Call) \
 
 #define EACH_SEM_ORG_Call_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((hstd::Str), name, Name, (org::sem::Call), Call) \
     __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs, (org::sem::Call), Call) \
-    __IMPL_FIELD((bool), isCommand, Iscommand, (org::sem::Call), Call) \
+    __IMPL_FIELD((bool), isCommand, IsCommand, (org::sem::Call), Call) \
 
 #define EACH_SEM_ORG_List_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1155,40 +1155,40 @@
     __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet, (org::sem::ListItem), ListItem) \
 
 #define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, Fixedwidthsections, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, Startupindented, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, MaxSubtreeLevelExport, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, TodoKeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, DoneKeywords, (org::sem::DocumentOptions), DocumentOptions) \
 
 #define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, Fixedwidthsections, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, Startupindented, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<int>), maxSubtreeLevelExport, MaxSubtreeLevelExport, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<org::sem::ColumnView>), columns, Columns, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), todoKeywords, TodoKeywords, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Vec<org::sem::TodoKeyword>), doneKeywords, DoneKeywords, (org::sem::DocumentOptions), DocumentOptions) \
 
 #define EACH_SEM_ORG_DocumentFragment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((int), baseLine, Baseline, (org::sem::DocumentFragment), DocumentFragment) \
-    __IMPL_FIELD((int), baseCol, Basecol, (org::sem::DocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseLine, BaseLine, (org::sem::DocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseCol, BaseCol, (org::sem::DocumentFragment), DocumentFragment) \
 
 #define EACH_SEM_ORG_DocumentFragment_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((int), baseLine, Baseline, (org::sem::DocumentFragment), DocumentFragment) \
-    __IMPL_FIELD((int), baseCol, Basecol, (org::sem::DocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseLine, BaseLine, (org::sem::DocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseCol, BaseCol, (org::sem::DocumentFragment), DocumentFragment) \
 
 #define EACH_SEM_ORG_CriticMarkup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::CriticMarkup::Kind), kind, Kind, (org::sem::CriticMarkup), CriticMarkup) \
@@ -1205,7 +1205,7 @@
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::RawText>>), email, Email, (org::sem::Document), Document) \
     __IMPL_FIELD((hstd::Vec<hstd::Str>), language, Language, (org::sem::Document), Document) \
     __IMPL_FIELD((org::sem::SemId<org::sem::DocumentOptions>), options, Options, (org::sem::Document), Document) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, Exportfilename, (org::sem::Document), Document) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, ExportFileName, (org::sem::Document), Document) \
 
 #define EACH_SEM_ORG_Document_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
@@ -1216,23 +1216,23 @@
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::RawText>>), email, Email, (org::sem::Document), Document) \
     __IMPL_FIELD((hstd::Vec<hstd::Str>), language, Language, (org::sem::Document), Document) \
     __IMPL_FIELD((org::sem::SemId<org::sem::DocumentOptions>), options, Options, (org::sem::Document), Document) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, Exportfilename, (org::sem::Document), Document) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), exportFileName, ExportFileName, (org::sem::Document), Document) \
 
 #define EACH_SEM_ORG_FileTarget_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), path, Path, (org::sem::FileTarget), FileTarget) \
     __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, Searchtarget, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, Targetid, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, SearchTarget, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, RestrictToHeadlines, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, TargetId, (org::sem::FileTarget), FileTarget) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), regexp, Regexp, (org::sem::FileTarget), FileTarget) \
 
 #define EACH_SEM_ORG_FileTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((hstd::Str), path, Path, (org::sem::FileTarget), FileTarget) \
     __IMPL_FIELD((hstd::Opt<int>), line, Line, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, Searchtarget, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines, (org::sem::FileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, Targetid, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), searchTarget, SearchTarget, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, RestrictToHeadlines, (org::sem::FileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), targetId, TargetId, (org::sem::FileTarget), FileTarget) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), regexp, Regexp, (org::sem::FileTarget), FileTarget) \
 
 #define EACH_SEM_ORG_TextSeparator_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1246,45 +1246,45 @@
     __IMPL_BASE((org::sem::Org)) \
 
 #define EACH_SEM_ORG_File_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), relPath, Relpath, (org::sem::File), File) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::File), File) \
+    __IMPL_FIELD((hstd::Str), relPath, RelPath, (org::sem::File), File) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::File), File) \
     __IMPL_FIELD((org::sem::File::Data), data, Data, (org::sem::File), File) \
 
 #define EACH_SEM_ORG_File_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((hstd::Str), relPath, Relpath, (org::sem::File), File) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::File), File) \
+    __IMPL_FIELD((hstd::Str), relPath, RelPath, (org::sem::File), File) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::File), File) \
     __IMPL_FIELD((org::sem::File::Data), data, Data, (org::sem::File), File) \
 
 #define EACH_SEM_ORG_Directory_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), relPath, Relpath, (org::sem::Directory), Directory) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::Directory), Directory) \
+    __IMPL_FIELD((hstd::Str), relPath, RelPath, (org::sem::Directory), Directory) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::Directory), Directory) \
 
 #define EACH_SEM_ORG_Directory_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((hstd::Str), relPath, Relpath, (org::sem::Directory), Directory) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::Directory), Directory) \
+    __IMPL_FIELD((hstd::Str), relPath, RelPath, (org::sem::Directory), Directory) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::Directory), Directory) \
 
 #define EACH_SEM_ORG_Symlink_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isDirectory, Isdirectory, (org::sem::Symlink), Symlink) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::Symlink), Symlink) \
+    __IMPL_FIELD((bool), isDirectory, IsDirectory, (org::sem::Symlink), Symlink) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::Symlink), Symlink) \
 
 #define EACH_SEM_ORG_Symlink_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((bool), isDirectory, Isdirectory, (org::sem::Symlink), Symlink) \
-    __IMPL_FIELD((hstd::Str), absPath, Abspath, (org::sem::Symlink), Symlink) \
+    __IMPL_FIELD((bool), isDirectory, IsDirectory, (org::sem::Symlink), Symlink) \
+    __IMPL_FIELD((hstd::Str), absPath, AbsPath, (org::sem::Symlink), Symlink) \
 
 #define EACH_SEM_ORG_CmdInclude_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::Str), path, Path, (org::sem::CmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::Opt<int>), firstLine, Firstline, (org::sem::CmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::Opt<int>), lastLine, Lastline, (org::sem::CmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::Opt<int>), firstLine, FirstLine, (org::sem::CmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::Opt<int>), lastLine, LastLine, (org::sem::CmdInclude), CmdInclude) \
     __IMPL_FIELD((org::sem::CmdInclude::Data), data, Data, (org::sem::CmdInclude), CmdInclude) \
 
 #define EACH_SEM_ORG_CmdInclude_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
     __IMPL_FIELD((hstd::Str), path, Path, (org::sem::CmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::Opt<int>), firstLine, Firstline, (org::sem::CmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::Opt<int>), lastLine, Lastline, (org::sem::CmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::Opt<int>), firstLine, FirstLine, (org::sem::CmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::Opt<int>), lastLine, LastLine, (org::sem::CmdInclude), CmdInclude) \
     __IMPL_FIELD((org::sem::CmdInclude::Data), data, Data, (org::sem::CmdInclude), CmdInclude) \
 
 #define EACH_IMM_ORG_ImmNoNode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1408,50 +1408,50 @@
 
 #define EACH_IMM_ORG_ImmCmdCustomArgs_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
 
 #define EACH_IMM_ORG_ImmCmdCustomArgs_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmCmd)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomArgs), CmdCustomArgs) \
 
 #define EACH_IMM_ORG_ImmCmdCustomRaw_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
 
 #define EACH_IMM_ORG_ImmCmdCustomRaw_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmStmt)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), text, Text, (org::imm::ImmCmdCustomRaw), CmdCustomRaw) \
 
 #define EACH_IMM_ORG_ImmCmdCustomText_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomText), CmdCustomText) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomText), CmdCustomText) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomText), CmdCustomText) \
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdCustomText), CmdCustomText) \
 
 #define EACH_IMM_ORG_ImmCmdCustomText_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmStmt)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCustomText), CmdCustomText) \
-    __IMPL_FIELD((bool), isAttached, Isattached, (org::imm::ImmCmdCustomText), CmdCustomText) \
+    __IMPL_FIELD((bool), isAttached, IsAttached, (org::imm::ImmCmdCustomText), CmdCustomText) \
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmParagraph>), text, Text, (org::imm::ImmCmdCustomText), CmdCustomText) \
 
 #define EACH_IMM_ORG_ImmCmdCall_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), fileName, Filename, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), fileName, FileName, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, InsideHeaderAttrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, CallAttrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, EndHeaderAttrs, (org::imm::ImmCmdCall), CmdCall) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmCmdCall), CmdCall) \
 
 #define EACH_IMM_ORG_ImmCmdCall_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmAttached)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), fileName, Filename, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, Insideheaderattrs, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, Callattrs, (org::imm::ImmCmdCall), CmdCall) \
-    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, Endheaderattrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), fileName, FileName, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), insideHeaderAttrs, InsideHeaderAttrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), callAttrs, CallAttrs, (org::imm::ImmCmdCall), CmdCall) \
+    __IMPL_FIELD((org::sem::AttrGroup), endHeaderAttrs, EndHeaderAttrs, (org::imm::ImmCmdCall), CmdCall) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmCmdCall), CmdCall) \
 
 #define EACH_IMM_ORG_ImmCmdTblfm_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1487,12 +1487,12 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), content, Content, (org::imm::ImmInlineExport), InlineExport) \
 
 #define EACH_IMM_ORG_ImmTime_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isActive, Isactive, (org::imm::ImmTime), Time) \
+    __IMPL_FIELD((bool), isActive, IsActive, (org::imm::ImmTime), Time) \
     __IMPL_FIELD((org::imm::ImmTime::TimeVariant), time, Time, (org::imm::ImmTime), Time) \
 
 #define EACH_IMM_ORG_ImmTime_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((bool), isActive, Isactive, (org::imm::ImmTime), Time) \
+    __IMPL_FIELD((bool), isActive, IsActive, (org::imm::ImmTime), Time) \
     __IMPL_FIELD((org::imm::ImmTime::TimeVariant), time, Time, (org::imm::ImmTime), Time) \
 
 #define EACH_IMM_ORG_ImmTimeRange_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1731,7 +1731,7 @@
 
 #define EACH_IMM_ORG_ImmSubtree_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((int), level, Level, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, Treeid, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, TreeId, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), todo, Todo, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>), completion, Completion, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), description, Description, (org::imm::ImmSubtree), Subtree) \
@@ -1742,14 +1742,14 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((bool), isComment, Iscomment, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((bool), isArchived, Isarchived, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((bool), isComment, IsComment, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((bool), isArchived, IsArchived, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), priority, Priority, (org::imm::ImmSubtree), Subtree) \
 
 #define EACH_IMM_ORG_ImmSubtree_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((int), level, Level, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, Treeid, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), treeId, TreeId, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), todo, Todo, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>), completion, Completion, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), description, Description, (org::imm::ImmSubtree), Subtree) \
@@ -1760,34 +1760,34 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), closed, Closed, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), deadline, Deadline, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>), scheduled, Scheduled, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((bool), isComment, Iscomment, (org::imm::ImmSubtree), Subtree) \
-    __IMPL_FIELD((bool), isArchived, Isarchived, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((bool), isComment, IsComment, (org::imm::ImmSubtree), Subtree) \
+    __IMPL_FIELD((bool), isArchived, IsArchived, (org::imm::ImmSubtree), Subtree) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), priority, Priority, (org::imm::ImmSubtree), Subtree) \
 
 #define EACH_IMM_ORG_ImmCell_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmCell), Cell) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmCell), Cell) \
 
 #define EACH_IMM_ORG_ImmCell_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmCmd)) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmCell), Cell) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmCell), Cell) \
 
 #define EACH_IMM_ORG_ImmRow_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>), cells, Cells, (org::imm::ImmRow), Row) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmRow), Row) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmRow), Row) \
 
 #define EACH_IMM_ORG_ImmRow_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmCmd)) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>), cells, Cells, (org::imm::ImmRow), Row) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmRow), Row) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmRow), Row) \
 
 #define EACH_IMM_ORG_ImmTable_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>), rows, Rows, (org::imm::ImmTable), Table) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmTable), Table) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmTable), Table) \
 
 #define EACH_IMM_ORG_ImmTable_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmBlock)) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>), rows, Rows, (org::imm::ImmTable), Table) \
-    __IMPL_FIELD((bool), isBlock, Isblock, (org::imm::ImmTable), Table) \
+    __IMPL_FIELD((bool), isBlock, IsBlock, (org::imm::ImmTable), Table) \
 
 #define EACH_IMM_ORG_ImmParagraph_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1818,13 +1818,13 @@
 #define EACH_IMM_ORG_ImmCall_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCall), Call) \
     __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs, (org::imm::ImmCall), Call) \
-    __IMPL_FIELD((bool), isCommand, Iscommand, (org::imm::ImmCall), Call) \
+    __IMPL_FIELD((bool), isCommand, IsCommand, (org::imm::ImmCall), Call) \
 
 #define EACH_IMM_ORG_ImmCall_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmCall), Call) \
     __IMPL_FIELD((org::sem::AttrGroup), attrs, Attrs, (org::imm::ImmCall), Call) \
-    __IMPL_FIELD((bool), isCommand, Iscommand, (org::imm::ImmCall), Call) \
+    __IMPL_FIELD((bool), isCommand, IsCommand, (org::imm::ImmCall), Call) \
 
 #define EACH_IMM_ORG_ImmList_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
 
@@ -1843,40 +1843,40 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), bullet, Bullet, (org::imm::ImmListItem), ListItem) \
 
 #define EACH_IMM_ORG_ImmDocumentOptions_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, Fixedwidthsections, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, Startupindented, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, MaxSubtreeLevelExport, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>), columns, Columns, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, TodoKeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, DoneKeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
 
 #define EACH_IMM_ORG_ImmDocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, Initialvisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, Exportconfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, Fixedwidthsections, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, Startupindented, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, Maxsubtreelevelexport, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), maxSubtreeLevelExport, MaxSubtreeLevelExport, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>), columns, Columns, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, Todokeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, Donekeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), todoKeywords, TodoKeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::TodoKeyword>), doneKeywords, DoneKeywords, (org::imm::ImmDocumentOptions), DocumentOptions) \
 
 #define EACH_IMM_ORG_ImmDocumentFragment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((int), baseLine, Baseline, (org::imm::ImmDocumentFragment), DocumentFragment) \
-    __IMPL_FIELD((int), baseCol, Basecol, (org::imm::ImmDocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseLine, BaseLine, (org::imm::ImmDocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseCol, BaseCol, (org::imm::ImmDocumentFragment), DocumentFragment) \
 
 #define EACH_IMM_ORG_ImmDocumentFragment_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((int), baseLine, Baseline, (org::imm::ImmDocumentFragment), DocumentFragment) \
-    __IMPL_FIELD((int), baseCol, Basecol, (org::imm::ImmDocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseLine, BaseLine, (org::imm::ImmDocumentFragment), DocumentFragment) \
+    __IMPL_FIELD((int), baseCol, BaseCol, (org::imm::ImmDocumentFragment), DocumentFragment) \
 
 #define EACH_IMM_ORG_ImmCriticMarkup_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::imm::ImmCriticMarkup::Kind), kind, Kind, (org::imm::ImmCriticMarkup), CriticMarkup) \
@@ -1893,7 +1893,7 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>), email, Email, (org::imm::ImmDocument), Document) \
     __IMPL_FIELD((hstd::ext::ImmVec<hstd::Str>), language, Language, (org::imm::ImmDocument), Document) \
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmDocumentOptions>), options, Options, (org::imm::ImmDocument), Document) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), exportFileName, Exportfilename, (org::imm::ImmDocument), Document) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), exportFileName, ExportFileName, (org::imm::ImmDocument), Document) \
 
 #define EACH_IMM_ORG_ImmDocument_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
@@ -1904,23 +1904,23 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>), email, Email, (org::imm::ImmDocument), Document) \
     __IMPL_FIELD((hstd::ext::ImmVec<hstd::Str>), language, Language, (org::imm::ImmDocument), Document) \
     __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmDocumentOptions>), options, Options, (org::imm::ImmDocument), Document) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), exportFileName, Exportfilename, (org::imm::ImmDocument), Document) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), exportFileName, ExportFileName, (org::imm::ImmDocument), Document) \
 
 #define EACH_IMM_ORG_ImmFileTarget_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), path, Path, (org::imm::ImmFileTarget), FileTarget) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), searchTarget, Searchtarget, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), targetId, Targetid, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), searchTarget, SearchTarget, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, RestrictToHeadlines, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), targetId, TargetId, (org::imm::ImmFileTarget), FileTarget) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), regexp, Regexp, (org::imm::ImmFileTarget), FileTarget) \
 
 #define EACH_IMM_ORG_ImmFileTarget_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), path, Path, (org::imm::ImmFileTarget), FileTarget) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), line, Line, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), searchTarget, Searchtarget, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((bool), restrictToHeadlines, Restricttoheadlines, (org::imm::ImmFileTarget), FileTarget) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), targetId, Targetid, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), searchTarget, SearchTarget, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((bool), restrictToHeadlines, RestrictToHeadlines, (org::imm::ImmFileTarget), FileTarget) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), targetId, TargetId, (org::imm::ImmFileTarget), FileTarget) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), regexp, Regexp, (org::imm::ImmFileTarget), FileTarget) \
 
 #define EACH_IMM_ORG_ImmTextSeparator_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
@@ -1934,45 +1934,45 @@
     __IMPL_BASE((org::imm::ImmOrg)) \
 
 #define EACH_IMM_ORG_ImmFile_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, Relpath, (org::imm::ImmFile), File) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmFile), File) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, RelPath, (org::imm::ImmFile), File) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmFile), File) \
     __IMPL_FIELD((org::imm::ImmFile::Data), data, Data, (org::imm::ImmFile), File) \
 
 #define EACH_IMM_ORG_ImmFile_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, Relpath, (org::imm::ImmFile), File) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmFile), File) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, RelPath, (org::imm::ImmFile), File) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmFile), File) \
     __IMPL_FIELD((org::imm::ImmFile::Data), data, Data, (org::imm::ImmFile), File) \
 
 #define EACH_IMM_ORG_ImmDirectory_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, Relpath, (org::imm::ImmDirectory), Directory) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmDirectory), Directory) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, RelPath, (org::imm::ImmDirectory), Directory) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmDirectory), Directory) \
 
 #define EACH_IMM_ORG_ImmDirectory_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, Relpath, (org::imm::ImmDirectory), Directory) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmDirectory), Directory) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), relPath, RelPath, (org::imm::ImmDirectory), Directory) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmDirectory), Directory) \
 
 #define EACH_IMM_ORG_ImmSymlink_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((bool), isDirectory, Isdirectory, (org::imm::ImmSymlink), Symlink) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmSymlink), Symlink) \
+    __IMPL_FIELD((bool), isDirectory, IsDirectory, (org::imm::ImmSymlink), Symlink) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmSymlink), Symlink) \
 
 #define EACH_IMM_ORG_ImmSymlink_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((bool), isDirectory, Isdirectory, (org::imm::ImmSymlink), Symlink) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, Abspath, (org::imm::ImmSymlink), Symlink) \
+    __IMPL_FIELD((bool), isDirectory, IsDirectory, (org::imm::ImmSymlink), Symlink) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), absPath, AbsPath, (org::imm::ImmSymlink), Symlink) \
 
 #define EACH_IMM_ORG_ImmCmdInclude_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), path, Path, (org::imm::ImmCmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), firstLine, Firstline, (org::imm::ImmCmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, Lastline, (org::imm::ImmCmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), firstLine, FirstLine, (org::imm::ImmCmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, LastLine, (org::imm::ImmCmdInclude), CmdInclude) \
     __IMPL_FIELD((org::imm::ImmCmdInclude::Data), data, Data, (org::imm::ImmCmdInclude), CmdInclude) \
 
 #define EACH_IMM_ORG_ImmCmdInclude_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), path, Path, (org::imm::ImmCmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), firstLine, Firstline, (org::imm::ImmCmdInclude), CmdInclude) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, Lastline, (org::imm::ImmCmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), firstLine, FirstLine, (org::imm::ImmCmdInclude), CmdInclude) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, LastLine, (org::imm::ImmCmdInclude), CmdInclude) \
     __IMPL_FIELD((org::imm::ImmCmdInclude::Data), data, Data, (org::imm::ImmCmdInclude), CmdInclude) \
 
 enum class CheckboxState : short int { None, Done, Empty, Partial, };

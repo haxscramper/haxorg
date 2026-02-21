@@ -2,7 +2,7 @@ import copy
 from dataclasses import replace
 
 from beartype import beartype
-from beartype.typing import Any, List, Sequence
+from beartype.typing import Any, List, Sequence, Tuple
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.gen_tu_cpp import GenTuFunction, QualType
 import py_codegen.gen_tu_cpp as tu
@@ -234,12 +234,14 @@ def rewrite_to_immutable(recs: List[tu.GenTuStruct]) -> List[tu.GenTuStruct]:
 
 
 @beartype
-def generate_adapter_specializations(ast: cpp.ASTBuilder,
-                                     types: List[tu.GenTuStruct]) -> List[tu.GenTuStruct]:
+def generate_adapter_specializations(
+        ast: cpp.ASTBuilder,
+        types: List[tu.GenTuStruct]) -> Tuple[List[tu.GenTuStruct], List[tu.GenTuStruct]]:
     """
     Create value reader types and explicit instantiations of the adapter template structures.
     """
-    result: List[tu.GenTuStruct] = list()
+    adapters: List[tu.GenTuStruct] = list()
+    readers: List[tu.GenTuStruct] = list()
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
 
     def for_final_type(sem_base: tu.GenTuStruct):
@@ -250,13 +252,13 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
         Api = QualType(name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
         Base = QualType(name="ImmAdapterTBase", Spaces=imm_space, Parameters=[Derived])
 
-        result.append(
+        readers.append(
             tu.GenTuStruct(
                 name=DerivedValueRead.withoutAllScopeQualifiers(),
                 reflectionParams=tu.GenTuReflParams(default_constructor=True),
                 methods=[
                     tu.GenTuFunction(
-                        name=f"get{f.name.capitalize()}",
+                        name=f"get{cpp.pascal_case(f.name)}",
                         isConst=True,
                         result=rewrite_field_to_immutable(f).type.asConstRef(),
                     ) for f in sem_base.fields if not f.isStatic
@@ -283,9 +285,9 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
                                   isExposedForDescribe=False)
                 ]))
 
-        result.append(
+        adapters.append(
             tu.GenTuStruct(
-                name=QualType(name="ImmAdapterT"),
+                name=QualType(name="ImmAdapterT", Spaces=imm_space),
                 IsTemplateRecord=True,
                 IsExplicitInstantiation=True,
                 ExplicitTemplateParams=[Derived],
@@ -335,7 +337,7 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
     for t in types:
         for_final_type(t)
 
-    return result
+    return adapters, readers
 
 
 @beartype

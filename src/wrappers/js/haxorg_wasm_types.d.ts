@@ -762,9 +762,23 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockCommentAPI: ImmAdapterBlockCommentAPIConstructor;
   ImmAdapterParagraphAPI: ImmAdapterParagraphAPIConstructor;
   ImmAdapterListAPI: ImmAdapterListAPIConstructor;
+  ImmStmt: ImmStmtConstructor;
+  ImmSubtree: ImmSubtreeConstructor;
+  ImmNoNode: ImmNoNodeConstructor;
+  ImmErrorItem: ImmErrorItemConstructor;
+  ImmErrorGroup: ImmErrorGroupConstructor;
+  ImmErrorSkipGroup: ImmErrorSkipGroupConstructor;
+  ImmErrorSkipToken: ImmErrorSkipTokenConstructor;
+  ImmStmtList: ImmStmtListConstructor;
+  ImmEmpty: ImmEmptyConstructor;
   ImmAdapterHashTagAPI: ImmAdapterHashTagAPIConstructor;
   ImmAdapterInlineFootnoteAPI: ImmAdapterInlineFootnoteAPIConstructor;
   ImmAdapterSubtreeCompletionAPI: ImmAdapterSubtreeCompletionAPIConstructor;
+  ImmInline: ImmInlineConstructor;
+  ImmTime: ImmTimeConstructor;
+  ImmTimeRange: ImmTimeRangeConstructor;
+  ImmMacro: ImmMacroConstructor;
+  ImmSymbol: ImmSymbolConstructor;
   ImmAdapterEscapedAPI: ImmAdapterEscapedAPIConstructor;
   ImmAdapterNewlineAPI: ImmAdapterNewlineAPIConstructor;
   ImmAdapterSpaceAPI: ImmAdapterSpaceAPIConstructor;
@@ -775,6 +789,7 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterPlaceholderAPI: ImmAdapterPlaceholderAPIConstructor;
   ImmAdapterBigIdentAPI: ImmAdapterBigIdentAPIConstructor;
   ImmAdapterTextTargetAPI: ImmAdapterTextTargetAPIConstructor;
+  ImmLeaf: ImmLeafConstructor;
   ImmAdapterBoldAPI: ImmAdapterBoldAPIConstructor;
   ImmAdapterUnderlineAPI: ImmAdapterUnderlineAPIConstructor;
   ImmAdapterMonospaceAPI: ImmAdapterMonospaceAPIConstructor;
@@ -784,6 +799,23 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterItalicAPI: ImmAdapterItalicAPIConstructor;
   ImmAdapterStrikeAPI: ImmAdapterStrikeAPIConstructor;
   ImmAdapterParAPI: ImmAdapterParAPIConstructor;
+  ImmMarkup: ImmMarkupConstructor;
+  ImmLatex: ImmLatexConstructor;
+  ImmSubtreeLog: ImmSubtreeLogConstructor;
+  ImmColonExample: ImmColonExampleConstructor;
+  ImmCall: ImmCallConstructor;
+  ImmFile: ImmFileConstructor;
+  ImmDirectory: ImmDirectoryConstructor;
+  ImmSymlink: ImmSymlinkConstructor;
+  ImmDocumentFragment: ImmDocumentFragmentConstructor;
+  ImmCriticMarkup: ImmCriticMarkupConstructor;
+  ImmListItem: ImmListItemConstructor;
+  ImmDocumentOptions: ImmDocumentOptionsConstructor;
+  ImmDocument: ImmDocumentConstructor;
+  ImmFileTarget: ImmFileTargetConstructor;
+  ImmTextSeparator: ImmTextSeparatorConstructor;
+  ImmCmdInclude: ImmCmdIncludeConstructor;
+  ImmDocumentGroup: ImmDocumentGroupConstructor;
   BlockCenter: BlockCenterConstructor;
   BlockQuote: BlockQuoteConstructor;
   BlockVerse: BlockVerseConstructor;
@@ -816,6 +848,34 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockAPI: ImmAdapterBlockAPIConstructor;
   ImmAdapterCellAPI: ImmAdapterCellAPIConstructor;
   ImmAdapterRowAPI: ImmAdapterRowAPIConstructor;
+  ImmCmd: ImmCmdConstructor;
+  ImmCmdCustomRaw: ImmCmdCustomRawConstructor;
+  ImmCmdCustomText: ImmCmdCustomTextConstructor;
+  ImmLink: ImmLinkConstructor;
+  ImmBlockComment: ImmBlockCommentConstructor;
+  ImmParagraph: ImmParagraphConstructor;
+  ImmList: ImmListConstructor;
+  ImmHashTag: ImmHashTagConstructor;
+  ImmInlineFootnote: ImmInlineFootnoteConstructor;
+  ImmEscaped: ImmEscapedConstructor;
+  ImmNewline: ImmNewlineConstructor;
+  ImmSpace: ImmSpaceConstructor;
+  ImmWord: ImmWordConstructor;
+  ImmAtMention: ImmAtMentionConstructor;
+  ImmRawText: ImmRawTextConstructor;
+  ImmPunctuation: ImmPunctuationConstructor;
+  ImmPlaceholder: ImmPlaceholderConstructor;
+  ImmBigIdent: ImmBigIdentConstructor;
+  ImmTextTarget: ImmTextTargetConstructor;
+  ImmBold: ImmBoldConstructor;
+  ImmUnderline: ImmUnderlineConstructor;
+  ImmMonospace: ImmMonospaceConstructor;
+  ImmMarkQuote: ImmMarkQuoteConstructor;
+  ImmRadioTarget: ImmRadioTargetConstructor;
+  ImmVerbatim: ImmVerbatimConstructor;
+  ImmItalic: ImmItalicConstructor;
+  ImmStrike: ImmStrikeConstructor;
+  ImmPar: ImmParConstructor;
   CmdCaption: CmdCaptionConstructor;
   CmdColumns: CmdColumnsConstructor;
   CmdName: CmdNameConstructor;
@@ -829,6 +889,13 @@ export interface haxorg_wasm_module_auto {
   ImmCmdAttr: ImmCmdAttrConstructor;
   ImmCmdExport: ImmCmdExportConstructor;
   ImmAdapterAttachedAPI: ImmAdapterAttachedAPIConstructor;
+  ImmLineCommand: ImmLineCommandConstructor;
+  ImmCmdCustomArgs: ImmCmdCustomArgsConstructor;
+  ImmCmdCreator: ImmCmdCreatorConstructor;
+  ImmCmdAuthor: ImmCmdAuthorConstructor;
+  ImmCmdEmail: ImmCmdEmailConstructor;
+  ImmCmdLanguage: ImmCmdLanguageConstructor;
+  ImmCmdTblfm: ImmCmdTblfmConstructor;
   ImmAdapterBlockCenterAPI: ImmAdapterBlockCenterAPIConstructor;
   ImmAdapterBlockQuoteAPI: ImmAdapterBlockQuoteAPIConstructor;
   ImmAdapterBlockVerseAPI: ImmAdapterBlockVerseAPIConstructor;
@@ -841,12 +908,33 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockCodeEvalResultAPI: ImmAdapterBlockCodeEvalResultAPIConstructor;
   ImmAdapterBlockCodeAPI: ImmAdapterBlockCodeAPIConstructor;
   ImmAdapterTableAPI: ImmAdapterTableAPIConstructor;
+  ImmBlock: ImmBlockConstructor;
+  ImmCell: ImmCellConstructor;
+  ImmRow: ImmRowConstructor;
   ImmAdapterCmdCaptionAPI: ImmAdapterCmdCaptionAPIConstructor;
   ImmAdapterCmdColumnsAPI: ImmAdapterCmdColumnsAPIConstructor;
   ImmAdapterCmdNameAPI: ImmAdapterCmdNameAPIConstructor;
   ImmAdapterCmdCallAPI: ImmAdapterCmdCallAPIConstructor;
   ImmAdapterCmdResultsAPI: ImmAdapterCmdResultsAPIConstructor;
   ImmAdapterCmdAttrAPI: ImmAdapterCmdAttrAPIConstructor;
+  ImmAttached: ImmAttachedConstructor;
+  ImmBlockCenter: ImmBlockCenterConstructor;
+  ImmBlockQuote: ImmBlockQuoteConstructor;
+  ImmBlockVerse: ImmBlockVerseConstructor;
+  ImmBlockExample: ImmBlockExampleConstructor;
+  ImmInlineExport: ImmInlineExportConstructor;
+  ImmCmdExport: ImmCmdExportConstructor;
+  ImmBlockExport: ImmBlockExportConstructor;
+  ImmBlockDynamicFallback: ImmBlockDynamicFallbackConstructor;
+  ImmBlockAdmonition: ImmBlockAdmonitionConstructor;
+  ImmBlockCodeEvalResult: ImmBlockCodeEvalResultConstructor;
+  ImmBlockCode: ImmBlockCodeConstructor;
+  ImmTable: ImmTableConstructor;
+  ImmCmdCaption: ImmCmdCaptionConstructor;
+  ImmCmdColumns: ImmCmdColumnsConstructor;
+  ImmCmdName: ImmCmdNameConstructor;
+  ImmCmdCall: ImmCmdCallConstructor;
+  ImmCmdAttr: ImmCmdAttrConstructor;
   CheckboxState: {
     None: CheckboxState,
     Done: CheckboxState,
@@ -4319,12 +4407,82 @@ export interface ImmAdapterParagraphAPIConstructor { new(): ImmAdapterParagraphA
 export interface ImmAdapterParagraphAPI {  }
 export interface ImmAdapterListAPIConstructor { new(): ImmAdapterListAPI; }
 export interface ImmAdapterListAPI {  }
+export interface ImmStmtConstructor { new(): ImmStmt; }
+export interface ImmStmt {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmStmtValueRead;
+}
+export interface ImmSubtreeConstructor { new(): ImmSubtree; }
+export interface ImmSubtree {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmSubtreeValueRead;
+}
+export interface ImmNoNodeConstructor { new(): ImmNoNode; }
+export interface ImmNoNode {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmNoNodeValueRead;
+}
+export interface ImmErrorItemConstructor { new(): ImmErrorItem; }
+export interface ImmErrorItem {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmErrorItemValueRead;
+}
+export interface ImmErrorGroupConstructor { new(): ImmErrorGroup; }
+export interface ImmErrorGroup {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmErrorGroupValueRead;
+}
+export interface ImmErrorSkipGroupConstructor { new(): ImmErrorSkipGroup; }
+export interface ImmErrorSkipGroup {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmErrorSkipGroupValueRead;
+}
+export interface ImmErrorSkipTokenConstructor { new(): ImmErrorSkipToken; }
+export interface ImmErrorSkipToken {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmErrorSkipTokenValueRead;
+}
+export interface ImmStmtListConstructor { new(): ImmStmtList; }
+export interface ImmStmtList {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmStmtListValueRead;
+}
+export interface ImmEmptyConstructor { new(): ImmEmpty; }
+export interface ImmEmpty {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmEmptyValueRead;
+}
 export interface ImmAdapterHashTagAPIConstructor { new(): ImmAdapterHashTagAPI; }
 export interface ImmAdapterHashTagAPI {  }
 export interface ImmAdapterInlineFootnoteAPIConstructor { new(): ImmAdapterInlineFootnoteAPI; }
 export interface ImmAdapterInlineFootnoteAPI {  }
 export interface ImmAdapterSubtreeCompletionAPIConstructor { new(): ImmAdapterSubtreeCompletionAPI; }
 export interface ImmAdapterSubtreeCompletionAPI {  }
+export interface ImmInlineConstructor { new(): ImmInline; }
+export interface ImmInline {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmInlineValueRead;
+}
+export interface ImmTimeConstructor { new(): ImmTime; }
+export interface ImmTime {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmTimeValueRead;
+}
+export interface ImmTimeRangeConstructor { new(): ImmTimeRange; }
+export interface ImmTimeRange {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmTimeRangeValueRead;
+}
+export interface ImmMacroConstructor { new(): ImmMacro; }
+export interface ImmMacro {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmMacroValueRead;
+}
+export interface ImmSymbolConstructor { new(): ImmSymbol; }
+export interface ImmSymbol {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmSymbolValueRead;
+}
 export interface ImmAdapterEscapedAPIConstructor { new(): ImmAdapterEscapedAPI; }
 export interface ImmAdapterEscapedAPI {  }
 export interface ImmAdapterNewlineAPIConstructor { new(): ImmAdapterNewlineAPI; }
@@ -4345,6 +4503,11 @@ export interface ImmAdapterBigIdentAPIConstructor { new(): ImmAdapterBigIdentAPI
 export interface ImmAdapterBigIdentAPI {  }
 export interface ImmAdapterTextTargetAPIConstructor { new(): ImmAdapterTextTargetAPI; }
 export interface ImmAdapterTextTargetAPI {  }
+export interface ImmLeafConstructor { new(): ImmLeaf; }
+export interface ImmLeaf {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmLeafValueRead;
+}
 export interface ImmAdapterBoldAPIConstructor { new(): ImmAdapterBoldAPI; }
 export interface ImmAdapterBoldAPI {  }
 export interface ImmAdapterUnderlineAPIConstructor { new(): ImmAdapterUnderlineAPI; }
@@ -4363,6 +4526,91 @@ export interface ImmAdapterStrikeAPIConstructor { new(): ImmAdapterStrikeAPI; }
 export interface ImmAdapterStrikeAPI {  }
 export interface ImmAdapterParAPIConstructor { new(): ImmAdapterParAPI; }
 export interface ImmAdapterParAPI {  }
+export interface ImmMarkupConstructor { new(): ImmMarkup; }
+export interface ImmMarkup {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmMarkupValueRead;
+}
+export interface ImmLatexConstructor { new(): ImmLatex; }
+export interface ImmLatex {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmLatexValueRead;
+}
+export interface ImmSubtreeLogConstructor { new(): ImmSubtreeLog; }
+export interface ImmSubtreeLog {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmSubtreeLogValueRead;
+}
+export interface ImmColonExampleConstructor { new(): ImmColonExample; }
+export interface ImmColonExample {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmColonExampleValueRead;
+}
+export interface ImmCallConstructor { new(): ImmCall; }
+export interface ImmCall {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCallValueRead;
+}
+export interface ImmFileConstructor { new(): ImmFile; }
+export interface ImmFile {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmFileValueRead;
+}
+export interface ImmDirectoryConstructor { new(): ImmDirectory; }
+export interface ImmDirectory {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmDirectoryValueRead;
+}
+export interface ImmSymlinkConstructor { new(): ImmSymlink; }
+export interface ImmSymlink {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmSymlinkValueRead;
+}
+export interface ImmDocumentFragmentConstructor { new(): ImmDocumentFragment; }
+export interface ImmDocumentFragment {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmDocumentFragmentValueRead;
+}
+export interface ImmCriticMarkupConstructor { new(): ImmCriticMarkup; }
+export interface ImmCriticMarkup {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCriticMarkupValueRead;
+}
+export interface ImmListItemConstructor { new(): ImmListItem; }
+export interface ImmListItem {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmListItemValueRead;
+}
+export interface ImmDocumentOptionsConstructor { new(): ImmDocumentOptions; }
+export interface ImmDocumentOptions {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmDocumentOptionsValueRead;
+}
+export interface ImmDocumentConstructor { new(): ImmDocument; }
+export interface ImmDocument {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmDocumentValueRead;
+}
+export interface ImmFileTargetConstructor { new(): ImmFileTarget; }
+export interface ImmFileTarget {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmFileTargetValueRead;
+}
+export interface ImmTextSeparatorConstructor { new(): ImmTextSeparator; }
+export interface ImmTextSeparator {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmTextSeparatorValueRead;
+}
+export interface ImmCmdIncludeConstructor { new(): ImmCmdInclude; }
+export interface ImmCmdInclude {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdIncludeValueRead;
+}
+export interface ImmDocumentGroupConstructor { new(): ImmDocumentGroup; }
+export interface ImmDocumentGroup {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmDocumentGroupValueRead;
+}
 export interface BlockCenterConstructor { new(): BlockCenter; }
 export interface BlockCenter { getKind(): OrgSemKind; }
 export interface BlockQuoteConstructor { new(): BlockQuote; }
@@ -4491,6 +4739,146 @@ export interface ImmAdapterCellAPIConstructor { new(): ImmAdapterCellAPI; }
 export interface ImmAdapterCellAPI {  }
 export interface ImmAdapterRowAPIConstructor { new(): ImmAdapterRowAPI; }
 export interface ImmAdapterRowAPI {  }
+export interface ImmCmdConstructor { new(): ImmCmd; }
+export interface ImmCmd {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdValueRead;
+}
+export interface ImmCmdCustomRawConstructor { new(): ImmCmdCustomRaw; }
+export interface ImmCmdCustomRaw {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCustomRawValueRead;
+}
+export interface ImmCmdCustomTextConstructor { new(): ImmCmdCustomText; }
+export interface ImmCmdCustomText {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCustomTextValueRead;
+}
+export interface ImmLinkConstructor { new(): ImmLink; }
+export interface ImmLink {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmLinkValueRead;
+}
+export interface ImmBlockCommentConstructor { new(): ImmBlockComment; }
+export interface ImmBlockComment {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockCommentValueRead;
+}
+export interface ImmParagraphConstructor { new(): ImmParagraph; }
+export interface ImmParagraph {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmParagraphValueRead;
+}
+export interface ImmListConstructor { new(): ImmList; }
+export interface ImmList {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmListValueRead;
+}
+export interface ImmHashTagConstructor { new(): ImmHashTag; }
+export interface ImmHashTag {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmHashTagValueRead;
+}
+export interface ImmInlineFootnoteConstructor { new(): ImmInlineFootnote; }
+export interface ImmInlineFootnote {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmInlineFootnoteValueRead;
+}
+export interface ImmEscapedConstructor { new(): ImmEscaped; }
+export interface ImmEscaped {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmEscapedValueRead;
+}
+export interface ImmNewlineConstructor { new(): ImmNewline; }
+export interface ImmNewline {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmNewlineValueRead;
+}
+export interface ImmSpaceConstructor { new(): ImmSpace; }
+export interface ImmSpace {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmSpaceValueRead;
+}
+export interface ImmWordConstructor { new(): ImmWord; }
+export interface ImmWord {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmWordValueRead;
+}
+export interface ImmAtMentionConstructor { new(): ImmAtMention; }
+export interface ImmAtMention {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmAtMentionValueRead;
+}
+export interface ImmRawTextConstructor { new(): ImmRawText; }
+export interface ImmRawText {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmRawTextValueRead;
+}
+export interface ImmPunctuationConstructor { new(): ImmPunctuation; }
+export interface ImmPunctuation {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmPunctuationValueRead;
+}
+export interface ImmPlaceholderConstructor { new(): ImmPlaceholder; }
+export interface ImmPlaceholder {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmPlaceholderValueRead;
+}
+export interface ImmBigIdentConstructor { new(): ImmBigIdent; }
+export interface ImmBigIdent {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBigIdentValueRead;
+}
+export interface ImmTextTargetConstructor { new(): ImmTextTarget; }
+export interface ImmTextTarget {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmTextTargetValueRead;
+}
+export interface ImmBoldConstructor { new(): ImmBold; }
+export interface ImmBold {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBoldValueRead;
+}
+export interface ImmUnderlineConstructor { new(): ImmUnderline; }
+export interface ImmUnderline {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmUnderlineValueRead;
+}
+export interface ImmMonospaceConstructor { new(): ImmMonospace; }
+export interface ImmMonospace {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmMonospaceValueRead;
+}
+export interface ImmMarkQuoteConstructor { new(): ImmMarkQuote; }
+export interface ImmMarkQuote {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmMarkQuoteValueRead;
+}
+export interface ImmRadioTargetConstructor { new(): ImmRadioTarget; }
+export interface ImmRadioTarget {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmRadioTargetValueRead;
+}
+export interface ImmVerbatimConstructor { new(): ImmVerbatim; }
+export interface ImmVerbatim {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmVerbatimValueRead;
+}
+export interface ImmItalicConstructor { new(): ImmItalic; }
+export interface ImmItalic {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmItalicValueRead;
+}
+export interface ImmStrikeConstructor { new(): ImmStrike; }
+export interface ImmStrike {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmStrikeValueRead;
+}
+export interface ImmParConstructor { new(): ImmPar; }
+export interface ImmPar {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmParValueRead;
+}
 export interface CmdCaptionConstructor { new(): CmdCaption; }
 export interface CmdCaption {
   getKind(): OrgSemKind;
@@ -4571,6 +4959,41 @@ export interface ImmCmdExport {
 }
 export interface ImmAdapterAttachedAPIConstructor { new(): ImmAdapterAttachedAPI; }
 export interface ImmAdapterAttachedAPI {  }
+export interface ImmLineCommandConstructor { new(): ImmLineCommand; }
+export interface ImmLineCommand {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmLineCommandValueRead;
+}
+export interface ImmCmdCustomArgsConstructor { new(): ImmCmdCustomArgs; }
+export interface ImmCmdCustomArgs {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCustomArgsValueRead;
+}
+export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
+export interface ImmCmdCreator {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCreatorValueRead;
+}
+export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
+export interface ImmCmdAuthor {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdAuthorValueRead;
+}
+export interface ImmCmdEmailConstructor { new(): ImmCmdEmail; }
+export interface ImmCmdEmail {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdEmailValueRead;
+}
+export interface ImmCmdLanguageConstructor { new(): ImmCmdLanguage; }
+export interface ImmCmdLanguage {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdLanguageValueRead;
+}
+export interface ImmCmdTblfmConstructor { new(): ImmCmdTblfm; }
+export interface ImmCmdTblfm {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdTblfmValueRead;
+}
 export interface ImmAdapterBlockCenterAPIConstructor { new(): ImmAdapterBlockCenterAPI; }
 export interface ImmAdapterBlockCenterAPI {  }
 export interface ImmAdapterBlockQuoteAPIConstructor { new(): ImmAdapterBlockQuoteAPI; }
@@ -4595,6 +5018,21 @@ export interface ImmAdapterBlockCodeAPIConstructor { new(): ImmAdapterBlockCodeA
 export interface ImmAdapterBlockCodeAPI {  }
 export interface ImmAdapterTableAPIConstructor { new(): ImmAdapterTableAPI; }
 export interface ImmAdapterTableAPI {  }
+export interface ImmBlockConstructor { new(): ImmBlock; }
+export interface ImmBlock {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockValueRead;
+}
+export interface ImmCellConstructor { new(): ImmCell; }
+export interface ImmCell {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCellValueRead;
+}
+export interface ImmRowConstructor { new(): ImmRow; }
+export interface ImmRow {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmRowValueRead;
+}
 export interface ImmAdapterCmdCaptionAPIConstructor { new(): ImmAdapterCmdCaptionAPI; }
 export interface ImmAdapterCmdCaptionAPI {  }
 export interface ImmAdapterCmdColumnsAPIConstructor { new(): ImmAdapterCmdColumnsAPI; }
@@ -4607,6 +5045,96 @@ export interface ImmAdapterCmdResultsAPIConstructor { new(): ImmAdapterCmdResult
 export interface ImmAdapterCmdResultsAPI {  }
 export interface ImmAdapterCmdAttrAPIConstructor { new(): ImmAdapterCmdAttrAPI; }
 export interface ImmAdapterCmdAttrAPI {  }
+export interface ImmAttachedConstructor { new(): ImmAttached; }
+export interface ImmAttached {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmAttachedValueRead;
+}
+export interface ImmBlockCenterConstructor { new(): ImmBlockCenter; }
+export interface ImmBlockCenter {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockCenterValueRead;
+}
+export interface ImmBlockQuoteConstructor { new(): ImmBlockQuote; }
+export interface ImmBlockQuote {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockQuoteValueRead;
+}
+export interface ImmBlockVerseConstructor { new(): ImmBlockVerse; }
+export interface ImmBlockVerse {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockVerseValueRead;
+}
+export interface ImmBlockExampleConstructor { new(): ImmBlockExample; }
+export interface ImmBlockExample {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockExampleValueRead;
+}
+export interface ImmInlineExportConstructor { new(): ImmInlineExport; }
+export interface ImmInlineExport {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmInlineExportValueRead;
+}
+export interface ImmCmdExportConstructor { new(): ImmCmdExport; }
+export interface ImmCmdExport {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdExportValueRead;
+}
+export interface ImmBlockExportConstructor { new(): ImmBlockExport; }
+export interface ImmBlockExport {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockExportValueRead;
+}
+export interface ImmBlockDynamicFallbackConstructor { new(): ImmBlockDynamicFallback; }
+export interface ImmBlockDynamicFallback {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockDynamicFallbackValueRead;
+}
+export interface ImmBlockAdmonitionConstructor { new(): ImmBlockAdmonition; }
+export interface ImmBlockAdmonition {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockAdmonitionValueRead;
+}
+export interface ImmBlockCodeEvalResultConstructor { new(): ImmBlockCodeEvalResult; }
+export interface ImmBlockCodeEvalResult {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockCodeEvalResultValueRead;
+}
+export interface ImmBlockCodeConstructor { new(): ImmBlockCode; }
+export interface ImmBlockCode {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmBlockCodeValueRead;
+}
+export interface ImmTableConstructor { new(): ImmTable; }
+export interface ImmTable {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmTableValueRead;
+}
+export interface ImmCmdCaptionConstructor { new(): ImmCmdCaption; }
+export interface ImmCmdCaption {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCaptionValueRead;
+}
+export interface ImmCmdColumnsConstructor { new(): ImmCmdColumns; }
+export interface ImmCmdColumns {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdColumnsValueRead;
+}
+export interface ImmCmdNameConstructor { new(): ImmCmdName; }
+export interface ImmCmdName {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdNameValueRead;
+}
+export interface ImmCmdCallConstructor { new(): ImmCmdCall; }
+export interface ImmCmdCall {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdCallValueRead;
+}
+export interface ImmCmdAttrConstructor { new(): ImmCmdAttr; }
+export interface ImmCmdAttr {
+  ImmAdapterT(other: ImmAdapter): void;
+  getValue(): ImmCmdAttrValueRead;
+}
 export enum CheckboxState {
   None,
   Done,

@@ -650,12 +650,13 @@ def gen_pyhaxorg_shared_iteration_macros(types: List[GenTuStruct]) -> List[GenTu
 
 
 @beartype
-def gen_pyhaxorg_field_iteration_macros(
-    types: List[GenTuStruct],
-    base_map: GenTypeMap,
-    ast: ASTBuilder,
-    macro_namespace: str,
-) -> List[GenTuPass]:
+def gen_pyhaxorg_field_iteration_macros(types: List[GenTuStruct], base_map: GenTypeMap,
+                                        ast: ASTBuilder,
+                                        macro_namespace: str) -> List[GenTuPass]:
+    """
+    Generate collection of macros to iterate over fixed set of haxorg entires at
+    compile-time: fields, types, node kinds etc.
+    """
 
     result: List[GenTuPass] = []
 
@@ -680,6 +681,7 @@ def gen_pyhaxorg_field_iteration_macros(
                     ))
 
             def impl_field(field: GenTuField) -> None:
+                "nodoc"
                 ast.b.add_at(
                     def_stack,
                     ast.b.line([
@@ -693,7 +695,7 @@ def gen_pyhaxorg_field_iteration_macros(
                                 # field name without changes
                                 ast.string(field.name),
                                 # field name for `getField` etc.
-                                ast.string(field.name.capitalize()),
+                                ast.string(cpp.pascal_case(field.name)),
                                 # Parent type for field, in case you need to define methods for each field
                                 # outside of the class body.
                                 ast.pars(ast.Type(group.typ)),
@@ -755,9 +757,12 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
 @beartype
 @dataclass
 class PyhaxorgTypeGroups():
+    "Type groups for wrapping and codegen"
     shared_types: List[GenTuStruct] = field(default_factory=list)
     expanded: List[GenTuStruct] = field(default_factory=list)
     immutable: List[GenTuStruct] = field(default_factory=list)
+    reader_accessors: List[GenTuStruct] = field(default_factory=list)
+    "Proxy objects wrapping around pointer to the immutable AST node value."
     adapter_specializations: List[GenTuStruct] = field(default_factory=list)
     tu: ConvTu = field(default_factory=lambda: ConvTu())
     base_map: GenTypeMap = field(
@@ -767,6 +772,7 @@ class PyhaxorgTypeGroups():
     specializations: List[TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[GenTuUnion]:
+        "Get full list of entries to be wrapped for public API"
 
         def aux(e: GenTuEntry, ind: int) -> None:
             match e:
@@ -777,9 +783,6 @@ class PyhaxorgTypeGroups():
                     for sub in e.nested:
                         aux(sub, ind + 1)
 
-        # for e in self.immutable:
-        #     aux(e, 0)
-
         result = self.full_enums + \
             self.tu.enums + \
             self.tu.structs + \
@@ -788,23 +791,25 @@ class PyhaxorgTypeGroups():
             self.expanded + \
             self.tu.functions + \
             self.immutable + \
-            self.imm_id_specializations
-
-        # return result
+            self.imm_id_specializations + \
+            self.adapter_specializations
 
         return topological_sort_entries(result)
 
 
 @beartype
-def get_pyhaxorg_type_groups(
-    ast: ASTBuilder,
-    reflection_path: Path,
-) -> PyhaxorgTypeGroups:
+def get_pyhaxorg_type_groups(ast: ASTBuilder,
+                             reflection_path: Path) -> PyhaxorgTypeGroups:
+    """
+    Get type groups and method implementations for the haxorg library
+    source file generation and wrappers.
+    """
     res = PyhaxorgTypeGroups()
     res.shared_types = expand_type_groups(ast, get_shared_sem_types())  # type: ignore
     res.expanded = expand_type_groups(ast, get_types())  # type: ignore
-    res.adapter_specializations = gen_imm.generate_adapter_specializations(
-        ast, res.expanded)
+    (adapters, readers) = gen_imm.generate_adapter_specializations(ast, res.expanded)
+    res.adapter_specializations = adapters
+    res.reader_accessors = readers
     res.immutable = expand_type_groups(ast, gen_imm.rewrite_to_immutable(
         get_types()))  # type: ignore
 
@@ -934,10 +939,10 @@ def gen_pyhaxorg_napi_wrappers(
 
 
 @beartype
-def gen_pyhaxorg_source(
-    ast: ASTBuilder,
-    groups: PyhaxorgTypeGroups,
-) -> GenFiles:
+def gen_pyhaxorg_source(ast: ASTBuilder, groups: PyhaxorgTypeGroups) -> GenFiles:
+    """
+    Generate source files compiled as a part of the haxorg library: sem and imm AST definitions.
+    """
     proto = pb.ProtoBuilder(
         wrapped=groups.full_enums + groups.shared_types + groups.expanded,  # type: ignore
         ast=ast,
@@ -1081,7 +1086,9 @@ def gen_pyhaxorg_source(
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
-                    GenTuNamespace(n_imm(), groups.adapter_specializations),
+                    GenTuNamespace(
+                        n_imm(),
+                        groups.reader_accessors + groups.adapter_specializations),
                 ],
             )),
     ])
