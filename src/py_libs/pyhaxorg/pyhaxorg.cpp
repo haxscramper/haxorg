@@ -48,6 +48,12 @@ NB_MAKE_OPAQUE(std::vector<org::imm::ImmUniqId>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmUniqId>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
 NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
@@ -136,6 +142,9 @@ NB_MODULE(pyhaxorg, m) {
   bind_hstdVec<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_hstdVec<org::imm::ImmUniqId>(m, "VecOfImmUniqId", type_registry_guard);
   bind_hstdVec<org::graph::MapLink>(m, "VecOfGraphMapLink", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "UnorderedMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "UnorderedMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "UnorderedMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
   bind_hstdVec<org::graph::MapNode>(m, "VecOfGraphMapNode", type_registry_guard);
   bind_hstdVec<org::graph::MapEdge>(m, "VecOfGraphMapEdge", type_registry_guard);
   bind_hstdVec<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
@@ -1023,10 +1032,10 @@ list items, this field contains a newly created statment list)RAW")
          static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter),
          nanobind::arg("context"))
     .def("getSubtreeId",
-         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
+         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
          nanobind::arg("context"))
     .def("getFootnoteName",
-         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
+         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
          nanobind::arg("context"))
     .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1222,7 +1231,7 @@ ingoing elements.)RAW")
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("getUnresolvedLink",
-         static_cast<int(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
@@ -5702,6 +5711,23 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
+  bind_enum_iterator<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind")
+    .value("Static", org::imm::ImmTime::TimeKind::Static)
+    .value("Dynamic", org::imm::ImmTime::TimeKind::Dynamic)
+    .def("__iter__", [](org::imm::ImmTime::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmTime::TimeKind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
   nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
     .def("__init__",
          [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) {
@@ -5779,6 +5805,24 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmFile::Kind>(m, "ImmFileKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmFile::Kind>(m, "ImmFileKind")
+    .value("Document", org::imm::ImmFile::Kind::Document)
+    .value("Attachment", org::imm::ImmFile::Kind::Attachment)
+    .value("Source", org::imm::ImmFile::Kind::Source)
+    .def("__iter__", [](org::imm::ImmFile::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmFile::Kind it) -> int {
+         return static_cast<int>(it);
+         })
     ;
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
     .def("__init__",
@@ -5900,6 +5944,26 @@ ingoing elements.)RAW")
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
+    ;
+  bind_enum_iterator<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind")
+    .value("Example", org::imm::ImmCmdInclude::Kind::Example)
+    .value("Export", org::imm::ImmCmdInclude::Kind::Export)
+    .value("Custom", org::imm::ImmCmdInclude::Kind::Custom)
+    .value("Src", org::imm::ImmCmdInclude::Kind::Src)
+    .value("OrgDocument", org::imm::ImmCmdInclude::Kind::OrgDocument)
+    .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
+                     })
+    .def("__eq__",
+         [](org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::imm::ImmCmdInclude::Kind it) -> int {
+         return static_cast<int>(it);
+         })
     ;
   nanobind::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
     ;

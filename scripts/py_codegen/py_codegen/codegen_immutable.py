@@ -4,39 +4,42 @@ from dataclasses import replace
 from beartype import beartype
 from beartype.typing import Any, List, Sequence
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.gen_tu_cpp import QualType
+from py_codegen.gen_tu_cpp import GenTuFunction, QualType
 import py_codegen.gen_tu_cpp as tu
 from py_scriptutils.algorithm import iterate_object_tree
 
 
 @beartype
 def rewrite_type_to_immutable(obj: QualType) -> QualType:
-    obj = obj.model_copy(deep=True)
-    obj.dbg_origin += "imm_write"
+    """
+    Recursively rewrite input type to the immutable AST counterpart.
+    """
+
+    def get_update(o: QualType, **kwargs) -> QualType:
+        "Get updated version of the type"
+        return o.model_copy(
+            update={
+                "Parameters": [rewrite_type_to_immutable(P) for P in o.Parameters],
+                "dbg_origin": o.dbg_origin + "imm_write",
+                **kwargs,
+            })
+
+    def map_spaces(o: QualType) -> List[QualType]:
+        "Recursively map used type spaces"
+        return [rewrite_type_to_immutable(S) for S in o.Spaces]
+
     match obj:
         case QualType(name="SemId", Parameters=[]):
-            return obj.model_copy(update=dict(
-                name="ImmId",
-                Spaces=[n_imm()],
-            ))
+            return get_update(obj, name="ImmId", Spaces=[tu.n_imm()])
 
         case QualType(name="SemId"):
-            return obj.model_copy(update=dict(
-                name="ImmIdT",
-                Spaces=[tu.n_imm()],
-            ))
+            return get_update(obj, name="ImmIdT", Spaces=[tu.n_imm()])
 
         case QualType(name="Vec"):
-            return obj.model_copy(update=dict(
-                name="ImmVec",
-                Spaces=[tu.n_hstd_ext()],
-            ))
+            return get_update(obj, name="ImmVec", Spaces=[tu.n_hstd_ext()])
 
         case QualType(name="UnorderedMap"):
-            return obj.model_copy(update=dict(
-                name="ImmMap",
-                Spaces=[tu.n_hstd_ext()],
-            ))
+            return get_update(obj, name="ImmMap", Spaces=[tu.n_hstd_ext()])
 
         case _:
             flat_namespace = obj.flatQualFullName()
@@ -44,30 +47,42 @@ def rewrite_type_to_immutable(obj: QualType) -> QualType:
                 case [QualType(name="org"), QualType(name="sem"), *rest]:
                     if rest and rest[0].isOrgType():
                         if 1 == len(rest):
-                            return obj.model_copy(update=dict(
-                                name="Imm" + obj.name,
-                                Spaces=[tu.n_imm()],
-                            ))
+                            return get_update(obj,
+                                              name=f"Imm{obj.name}",
+                                              Spaces=[tu.n_imm()])
 
                         elif 1 < len(rest):
                             reuse_spaces = copy.copy(rest)
                             reuse_spaces.pop(0)
                             reuse_spaces.pop(-1)
-                            return obj.model_copy(update=dict(Spaces=[
-                                tu.n_imm(),
-                                rest[0].model_copy(update=dict(name="Imm" +
-                                                               rest[0].name)),
-                                *reuse_spaces,
-                            ],))
+                            return get_update(
+                                obj,
+                                Spaces=[
+                                    tu.n_imm(),
+                                    rest[0].model_copy(update=dict(name="Imm" +
+                                                                   rest[0].name)),
+                                    *reuse_spaces,
+                                ],
+                            )
+
+                        else:
+                            return get_update(obj, Spaces=map_spaces(obj))
+
+                case _:
+                    return get_update(obj, Spaces=map_spaces(obj))
 
     return obj
 
+
 @beartype
 def rewrite_ident_to_immutable(obj: tu.GenTuIdent) -> tu.GenTuIdent:
+    "Rewrite typed identifier to immutable AST version"
     return replace(obj, type=rewrite_type_to_immutable(obj.type))
+
 
 @beartype
 def rewrite_field_to_immutable(obj: tu.GenTuField) -> tu.GenTuField:
+    "Convert sem org AST field to immutable version"
     IMM_BOX = tu.t("ImmBox", [tu.n_hstd_ext()])
     match obj:
         case tu.GenTuField(type=QualType(name="SemId", Parameters=[])):
@@ -91,9 +106,10 @@ def rewrite_field_to_immutable(obj: tu.GenTuField) -> tu.GenTuField:
         case tu.GenTuField(type=QualType(name="Opt")):
             par0 = obj.type.par0()
             assert par0
-            new_type = par0.withWrapperType(QualType(name="Opt",
-                                                     Spaces=[tu.n_hstd()
-                                                            ])).withWrapperType(IMM_BOX)
+            new_type = rewrite_type_to_immutable(par0)
+            new_type = new_type.withWrapperType(QualType(
+                name="Opt", Spaces=[tu.n_hstd()])).withWrapperType(IMM_BOX)
+
             return replace(obj, type=new_type)
 
         case tu.GenTuField(type=QualType(name="Str")):
@@ -108,18 +124,32 @@ def rewrite_field_to_immutable(obj: tu.GenTuField) -> tu.GenTuField:
 
 
 @beartype
+def rewrite_function_to_immutable(func: tu.GenTuFunction) -> tu.GenTuFunction:
+    "Rewrite all arguments, return types and parameters for a function to immutable AST"
+    return replace(
+        func,
+        result=rewrite_any_to_immutable(func.result),
+        arguments=rewrite_any_to_immutable(func.arguments),
+        params=rewrite_any_to_immutable(func.params),
+    )
+
+
+@beartype
 def rewrite_struct_to_immutable(obj: tu.GenTuStruct) -> tu.GenTuStruct:
+    """
+    Rewrite all nested structure content and the structure name
+    for use in the immutable AST
+    """
     new_fields = [rewrite_field_to_immutable(f) for f in obj.fields]
 
     new_methods = [
-        it for it in obj.methods if (it.name in ["getKind"] or it.name == obj.name.name)
+        rewrite_any_to_immutable(it)
+        for it in obj.methods
+        if (it.name in ["getKind"] or it.name == obj.name.name)
     ]
 
     new_nested = [it for it in obj.nested if not isinstance(it, tu.GenTuPass)]
-    new_nested = [
-        rewrite_any_to_immutable(it)
-        for it in new_nested
-    ]
+    new_nested = [rewrite_any_to_immutable(it) for it in new_nested]
 
     self_arg = obj.name.asConstRef()
 
@@ -128,7 +158,9 @@ def rewrite_struct_to_immutable(obj: tu.GenTuStruct) -> tu.GenTuStruct:
             result=QualType.ForName("bool"),
             name="operator==",
             isConst=True,
-            arguments=[tu.GenTuIdent(type=rewrite_type_to_immutable(self_arg), name="other")],
+            arguments=[
+                tu.GenTuIdent(type=rewrite_type_to_immutable(self_arg), name="other")
+            ],
         ))
 
     new_reflection_params = copy.deepcopy(obj.reflectionParams)
@@ -153,9 +185,18 @@ def rewrite_struct_to_immutable(obj: tu.GenTuStruct) -> tu.GenTuStruct:
         reflectionParams=new_reflection_params,
     )
 
+
 @beartype
-def rewrite_any_to_immutable[T: tu.GenTuUnion | tu.GenTuTypeGroup](it: T) -> T:
+def rewrite_any_to_immutable(
+        it: tu.GenTuUnion | tu.GenTuTypeGroup | QualType | list | None) -> Any:
+    """
+    Recursively rewrite any input item to the immutable AST version
+    and return a new instance.
+    """
     match it:
+        case None:
+            return it
+
         case tu.GenTuStruct():
             return rewrite_struct_to_immutable(it)
 
@@ -165,8 +206,22 @@ def rewrite_any_to_immutable[T: tu.GenTuUnion | tu.GenTuTypeGroup](it: T) -> T:
         case tu.GenTuPass() | tu.GenTuEnum():
             return it
 
+        case tu.GenTuFunction():
+            return rewrite_function_to_immutable(it)
+
+        case QualType():
+            return rewrite_type_to_immutable(it)
+
+        case list():
+            return [rewrite_any_to_immutable(i) for i in it]
+
         case tu.GenTuTypeGroup():
-            return replace(it, types=[rewrite_any_to_immutable(s) for s in it.types])
+            return replace(
+                it,
+                types=rewrite_any_to_immutable(it.types),
+                enumName=rewrite_any_to_immutable(it.enumName),
+                variantName=rewrite_any_to_immutable(it.variantName),
+            )
 
         case _:
             raise TypeError(f"Unexpected input type for immutable rewrite: {type(it)}")
@@ -174,6 +229,7 @@ def rewrite_any_to_immutable[T: tu.GenTuUnion | tu.GenTuTypeGroup](it: T) -> T:
 
 @beartype
 def rewrite_to_immutable(recs: List[tu.GenTuStruct]) -> List[tu.GenTuStruct]:
+    "Rewrite collection of structures to immutable AST"
     return [rewrite_struct_to_immutable(rec) for rec in recs]
 
 
@@ -187,6 +243,7 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
 
     def for_final_type(sem_base: tu.GenTuStruct):
+        "Create immutable AST adapter specialization for sem struct"
         derived_base: str = sem_base.name.name
         Derived = QualType(name=f"Imm{derived_base}", Spaces=imm_space)
         DerivedValueRead = QualType(name=f"Imm{derived_base}ValueRead", Spaces=imm_space)
@@ -201,7 +258,7 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
                     tu.GenTuFunction(
                         name=f"get{f.name.capitalize()}",
                         isConst=True,
-                        result=rewrite_type_to_immutable(f.type.asConstRef()),
+                        result=rewrite_field_to_immutable(f).type.asConstRef(),
                     ) for f in sem_base.fields if not f.isStatic
                 ] + [
                     tu.GenTuFunction(
@@ -222,8 +279,8 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
                 ],
                 fields=[
                     tu.GenTuField(name="ptr",
-                               type=Derived.asPtr(1),
-                               isExposedForDescribe=False)
+                                  type=Derived.asPtr(1),
+                                  isExposedForDescribe=False)
                 ]))
 
         result.append(
@@ -241,7 +298,8 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
                 ),
                 nested=[
                     tu.GenTuPass(ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
-                    tu.GenTuPass(ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+                    tu.GenTuPass(
+                        ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
                 ],
                 methods=[
                     tu.GenTuFunction(
@@ -279,12 +337,14 @@ def generate_adapter_specializations(ast: cpp.ASTBuilder,
 
     return result
 
+
 @beartype
 def get_imm_serde(
     types: List[tu.GenTuStruct],
     ast: cpp.ASTBuilder,
     base_map: tu.GenTypeMap,
 ) -> Sequence[tu.GenTuPass | tu.GenTuStruct]:
+    "Create immutable AST serde types for msgpack"
     serde: List[tu.GenTuStruct | tu.GenTuPass] = []
 
     def aux(it: Any) -> None:
@@ -407,7 +467,8 @@ def get_imm_serde(
                 rec = cpp.RecordParams(
                     name=QualType(name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
-                    Template=cpp.GenTuTemplateParams(Stacks=[tu.GenTuTemplateGroup(Params=[])]),
+                    Template=cpp.GenTuTemplateParams(
+                        Stacks=[tu.GenTuTemplateGroup(Params=[])]),
                     members=[writer, reader],
                 )
 

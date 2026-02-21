@@ -581,11 +581,11 @@ export interface haxorg_wasm_module_auto {
   format_TimeRepeatPeriod(value: TimeRepeatPeriod): string;
   ImmTimeStatic: ImmTimeStaticConstructor;
   ImmTimeDynamic: ImmTimeDynamicConstructor;
-  TimeTimeKind: {
-    Static: TimeTimeKind,
-    Dynamic: TimeTimeKind,
+  ImmTimeTimeKind: {
+    Static: ImmTimeTimeKind,
+    Dynamic: ImmTimeTimeKind,
   }
-  format_TimeTimeKind(value: TimeTimeKind): string;
+  format_ImmTimeTimeKind(value: ImmTimeTimeKind): string;
   ImmTimeRange: ImmTimeRangeConstructor;
   ImmMacro: ImmMacroConstructor;
   ImmSymbol: ImmSymbolConstructor;
@@ -618,12 +618,12 @@ export interface haxorg_wasm_module_auto {
   ImmFileDocument: ImmFileDocumentConstructor;
   ImmFileAttachment: ImmFileAttachmentConstructor;
   ImmFileSource: ImmFileSourceConstructor;
-  FileKind: {
-    Document: FileKind,
-    Attachment: FileKind,
-    Source: FileKind,
+  ImmFileKind: {
+    Document: ImmFileKind,
+    Attachment: ImmFileKind,
+    Source: ImmFileKind,
   }
-  format_FileKind(value: FileKind): string;
+  format_ImmFileKind(value: ImmFileKind): string;
   ImmDirectory: ImmDirectoryConstructor;
   ImmSymlink: ImmSymlinkConstructor;
   ImmCmdInclude: ImmCmdIncludeConstructor;
@@ -633,14 +633,14 @@ export interface haxorg_wasm_module_auto {
   ImmCmdIncludeCustom: ImmCmdIncludeCustomConstructor;
   ImmCmdIncludeSrc: ImmCmdIncludeSrcConstructor;
   ImmCmdIncludeOrgDocument: ImmCmdIncludeOrgDocumentConstructor;
-  CmdIncludeKind: {
-    Example: CmdIncludeKind,
-    Export: CmdIncludeKind,
-    Custom: CmdIncludeKind,
-    Src: CmdIncludeKind,
-    OrgDocument: CmdIncludeKind,
+  ImmCmdIncludeKind: {
+    Example: ImmCmdIncludeKind,
+    Export: ImmCmdIncludeKind,
+    Custom: ImmCmdIncludeKind,
+    Src: ImmCmdIncludeKind,
+    OrgDocument: ImmCmdIncludeKind,
   }
-  format_CmdIncludeKind(value: CmdIncludeKind): string;
+  format_ImmCmdIncludeKind(value: ImmCmdIncludeKind): string;
   ImmAdapterOrgAPI: ImmAdapterOrgAPIConstructor;
   Cmd: CmdConstructor;
   CmdCustomRaw: CmdCustomRawConstructor;
@@ -1692,8 +1692,8 @@ export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
 export interface GraphMapNodeProp {
   getAdapter(context: ImmAstContext): ImmAdapter;
-  getSubtreeId(context: ImmAstContext): number;
-  getFootnoteName(context: ImmAstContext): number;
+  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<string>;
+  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<string>;
   id: ImmUniqId
   unresolved: haxorg_wasm.Vec<GraphMapLink>
 }
@@ -1748,7 +1748,7 @@ export interface GraphMapGraphState {
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
   addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
   getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.Vec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): number;
+  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
 }
@@ -3499,12 +3499,12 @@ export interface ImmErrorGroupConstructor { new(): ImmErrorGroup; }
 export interface ImmErrorGroup {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorGroup): boolean;
-  diagnostics: haxorg_wasm.ImmVec<ErrorItem>
+  diagnostics: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorItem>>
 }
 export interface ImmStmtConstructor { new(): ImmStmt; }
 export interface ImmStmt {
   __eq__(other: ImmStmt): boolean;
-  attached: haxorg_wasm.ImmVec<Org>
+  attached: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmOrg>>
 }
 export interface ImmInlineConstructor { new(): ImmInline; }
 export interface ImmInline { __eq__(other: ImmInline): boolean; }
@@ -3533,13 +3533,13 @@ export interface ImmTime {
   isDynamic(): boolean;
   getDynamicConst(): ImmTimeDynamic;
   getDynamicMut(): ImmTimeDynamic;
-  getTimeKindStatic(__input: TimeTimeVariant): TimeTimeKind;
-  getTimeKind(): TimeTimeKind;
+  getTimeKindStatic(__input: ImmTimeTimeVariant): ImmTimeTimeKind;
+  getTimeKind(): ImmTimeTimeKind;
   sub_variant_get_name(): string;
-  sub_variant_get_data(): TimeTimeVariant;
-  sub_variant_get_kind(): TimeTimeKind;
+  sub_variant_get_data(): ImmTimeTimeVariant;
+  sub_variant_get_kind(): ImmTimeTimeKind;
   isActive: boolean
-  time: TimeTimeVariant
+  time: ImmTimeTimeVariant
 }
 export interface ImmTimeRepeatConstructor { new(): ImmTimeRepeat; }
 export interface ImmTimeRepeat {
@@ -3567,8 +3567,8 @@ export interface ImmTimeStaticConstructor { new(): ImmTimeStatic; }
 export interface ImmTimeStatic {
   Static(): void;
   __eq__(other: ImmTimeStatic): boolean;
-  repeat: haxorg_wasm.ImmVec<TimeRepeat>
-  warn: haxorg_wasm.ImmBox<haxorg_wasm.Optional<TimeRepeat>>
+  repeat: haxorg_wasm.ImmVec<ImmTimeRepeat>
+  warn: haxorg_wasm.ImmBox<haxorg_wasm.Optional<ImmTimeRepeat>>
   time: UserTime
 }
 export interface ImmTimeDynamicConstructor { new(): ImmTimeDynamic; }
@@ -3577,8 +3577,8 @@ export interface ImmTimeDynamic {
   __eq__(other: ImmTimeDynamic): boolean;
   expr: LispCode
 }
-export type TimeTimeVariant = haxorg_wasm.StdVariant<ImmTimeStatic, ImmTimeDynamic>;
-export enum TimeTimeKind {
+export type ImmTimeTimeVariant = haxorg_wasm.StdVariant<ImmTimeStatic, ImmTimeDynamic>;
+export enum ImmTimeTimeKind {
   Static,
   Dynamic,
 }
@@ -3586,8 +3586,8 @@ export interface ImmTimeRangeConstructor { new(): ImmTimeRange; }
 export interface ImmTimeRange {
   getKind(): OrgSemKind;
   __eq__(other: ImmTimeRange): boolean;
-  from: haxorg_wasm.ImmIdT<Time>
-  to: haxorg_wasm.ImmIdT<Time>
+  from: haxorg_wasm.ImmIdT<ImmTime>
+  to: haxorg_wasm.ImmIdT<ImmTime>
 }
 export interface ImmMacroConstructor { new(): ImmMacro; }
 export interface ImmMacro {
@@ -3601,8 +3601,8 @@ export interface ImmSymbol {
   getKind(): OrgSemKind;
   __eq__(other: ImmSymbol): boolean;
   name: haxorg_wasm.ImmBox<string>
-  parameters: haxorg_wasm.ImmVec<SymbolParam>
-  positional: haxorg_wasm.ImmVec<Org>
+  parameters: haxorg_wasm.ImmVec<ImmSymbolParam>
+  positional: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmOrg>>
 }
 export interface ImmSymbolParamConstructor { new(): ImmSymbolParam; }
 export interface ImmSymbolParam {
@@ -3614,7 +3614,7 @@ export interface ImmErrorSkipGroupConstructor { new(): ImmErrorSkipGroup; }
 export interface ImmErrorSkipGroup {
   getKind(): OrgSemKind;
   __eq__(other: ImmErrorSkipGroup): boolean;
-  skipped: haxorg_wasm.ImmVec<ErrorSkipToken>
+  skipped: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmErrorSkipToken>>
 }
 export interface ImmMarkupConstructor { new(): ImmMarkup; }
 export interface ImmMarkup { __eq__(other: ImmMarkup): boolean; }
@@ -3634,7 +3634,7 @@ export interface ImmSubtreeLog {
   getKind(): OrgSemKind;
   __eq__(other: ImmSubtreeLog): boolean;
   head: SubtreeLogHead
-  desc: haxorg_wasm.ImmBox<haxorg_wasm.Optional<StmtList>>
+  desc: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmStmtList>>>
 }
 export interface ImmSubtreeConstructor { new(): ImmSubtree; }
 export interface ImmSubtree {
@@ -3644,14 +3644,14 @@ export interface ImmSubtree {
   treeId: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
   todo: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
   completion: haxorg_wasm.ImmBox<haxorg_wasm.Optional<SubtreeCompletion>>
-  description: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
-  tags: haxorg_wasm.ImmVec<HashTag>
-  title: haxorg_wasm.ImmIdT<Paragraph>
-  logbook: haxorg_wasm.ImmVec<SubtreeLog>
+  description: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+  tags: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>
+  title: haxorg_wasm.ImmIdT<ImmParagraph>
+  logbook: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmSubtreeLog>>
   properties: haxorg_wasm.ImmVec<NamedProperty>
-  closed: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Time>>
-  deadline: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Time>>
-  scheduled: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Time>>
+  closed: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
+  deadline: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
+  scheduled: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>>
   isComment: boolean
   isArchived: boolean
   priority: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
@@ -3674,7 +3674,7 @@ export interface ImmListItem {
   getKind(): OrgSemKind;
   __eq__(other: ImmListItem): boolean;
   checkbox: CheckboxState
-  header: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
+  header: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
   bullet: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
 }
 export interface ImmDocumentOptionsConstructor { new(): ImmDocumentOptions; }
@@ -3717,13 +3717,13 @@ export interface ImmDocumentConstructor { new(): ImmDocument; }
 export interface ImmDocument {
   getKind(): OrgSemKind;
   __eq__(other: ImmDocument): boolean;
-  title: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
-  author: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
-  creator: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
-  filetags: haxorg_wasm.ImmVec<HashTag>
-  email: haxorg_wasm.ImmBox<haxorg_wasm.Optional<RawText>>
+  title: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+  author: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+  creator: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
+  filetags: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>
+  email: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmRawText>>>
   language: haxorg_wasm.ImmVec<string>
-  options: haxorg_wasm.ImmIdT<DocumentOptions>
+  options: haxorg_wasm.ImmIdT<ImmDocumentOptions>
   exportFileName: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
 }
 export interface ImmFileTargetConstructor { new(): ImmFileTarget; }
@@ -3760,14 +3760,14 @@ export interface ImmFile {
   isSource(): boolean;
   getSourceConst(): ImmFileSource;
   getSourceMut(): ImmFileSource;
-  getFileKindStatic(__input: FileData): FileKind;
-  getFileKind(): FileKind;
+  getFileKindStatic(__input: ImmFileData): ImmFileKind;
+  getFileKind(): ImmFileKind;
   sub_variant_get_name(): string;
-  sub_variant_get_data(): FileData;
-  sub_variant_get_kind(): FileKind;
+  sub_variant_get_data(): ImmFileData;
+  sub_variant_get_kind(): ImmFileKind;
   relPath: haxorg_wasm.ImmBox<string>
   absPath: haxorg_wasm.ImmBox<string>
-  data: FileData
+  data: ImmFileData
 }
 export interface ImmFileDocumentConstructor { new(): ImmFileDocument; }
 export interface ImmFileDocument { __eq__(other: ImmFileDocument): boolean; }
@@ -3775,8 +3775,8 @@ export interface ImmFileAttachmentConstructor { new(): ImmFileAttachment; }
 export interface ImmFileAttachment { __eq__(other: ImmFileAttachment): boolean; }
 export interface ImmFileSourceConstructor { new(): ImmFileSource; }
 export interface ImmFileSource { __eq__(other: ImmFileSource): boolean; }
-export type FileData = haxorg_wasm.StdVariant<ImmFileDocument, ImmFileAttachment, ImmFileSource>;
-export enum FileKind {
+export type ImmFileData = haxorg_wasm.StdVariant<ImmFileDocument, ImmFileAttachment, ImmFileSource>;
+export enum ImmFileKind {
   Document,
   Attachment,
   Source,
@@ -3814,15 +3814,15 @@ export interface ImmCmdInclude {
   isOrgDocument(): boolean;
   getOrgDocumentConst(): ImmCmdIncludeOrgDocument;
   getOrgDocumentMut(): ImmCmdIncludeOrgDocument;
-  getIncludeKindStatic(__input: CmdIncludeData): CmdIncludeKind;
-  getIncludeKind(): CmdIncludeKind;
+  getIncludeKindStatic(__input: ImmCmdIncludeData): ImmCmdIncludeKind;
+  getIncludeKind(): ImmCmdIncludeKind;
   sub_variant_get_name(): string;
-  sub_variant_get_data(): CmdIncludeData;
-  sub_variant_get_kind(): CmdIncludeKind;
+  sub_variant_get_data(): ImmCmdIncludeData;
+  sub_variant_get_kind(): ImmCmdIncludeKind;
   path: haxorg_wasm.ImmBox<string>
   firstLine: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
   lastLine: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
-  data: CmdIncludeData
+  data: ImmCmdIncludeData
 }
 export interface ImmCmdIncludeIncludeBaseConstructor { new(): ImmCmdIncludeIncludeBase; }
 export interface ImmCmdIncludeIncludeBase {
@@ -3861,8 +3861,8 @@ export interface ImmCmdIncludeOrgDocument {
   minLevel: haxorg_wasm.ImmBox<haxorg_wasm.Optional<number>>
   customIdTarget: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
 }
-export type CmdIncludeData = haxorg_wasm.StdVariant<ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument>;
-export enum CmdIncludeKind {
+export type ImmCmdIncludeData = haxorg_wasm.StdVariant<ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument>;
+export enum ImmCmdIncludeKind {
   Example,
   Export,
   Custom,
@@ -3996,13 +3996,13 @@ export interface ImmCmdCustomText {
   __eq__(other: ImmCmdCustomText): boolean;
   name: haxorg_wasm.ImmBox<string>
   isAttached: boolean
-  text: haxorg_wasm.ImmIdT<Paragraph>
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmLinkConstructor { new(): ImmLink; }
 export interface ImmLink {
   getKind(): OrgSemKind;
   __eq__(other: ImmLink): boolean;
-  description: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Paragraph>>
+  description: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>>
   target: LinkTarget
 }
 export interface ImmBlockCommentConstructor { new(): ImmBlockComment; }
@@ -4031,7 +4031,7 @@ export interface ImmInlineFootnote {
   getKind(): OrgSemKind;
   __eq__(other: ImmInlineFootnote): boolean;
   tag: haxorg_wasm.ImmBox<string>
-  definition: haxorg_wasm.ImmBox<haxorg_wasm.Optional<Org>>
+  definition: haxorg_wasm.ImmBox<haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmOrg>>>
 }
 export interface ImmInlineExportConstructor { new(): ImmInlineExport; }
 export interface ImmInlineExport {
@@ -4259,13 +4259,13 @@ export interface ImmCmdCreatorConstructor { new(): ImmCmdCreator; }
 export interface ImmCmdCreator {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdCreator): boolean;
-  text: haxorg_wasm.ImmIdT<Paragraph>
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmCmdAuthorConstructor { new(): ImmCmdAuthor; }
 export interface ImmCmdAuthor {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdAuthor): boolean;
-  text: haxorg_wasm.ImmIdT<Paragraph>
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmCmdEmailConstructor { new(): ImmCmdEmail; }
 export interface ImmCmdEmail {
@@ -4302,7 +4302,7 @@ export interface ImmRowConstructor { new(): ImmRow; }
 export interface ImmRow {
   getKind(): OrgSemKind;
   __eq__(other: ImmRow): boolean;
-  cells: haxorg_wasm.ImmVec<Cell>
+  cells: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmCell>>
   isBlock: boolean
 }
 export interface ImmAdapterCmdAPIConstructor { new(): ImmAdapterCmdAPI; }
@@ -4451,14 +4451,14 @@ export interface ImmBlockCodeEvalResult {
   getKind(): OrgSemKind;
   __eq__(other: ImmBlockCodeEvalResult): boolean;
   raw: haxorg_wasm.ImmVec<OrgCodeEvalOutput>
-  node: haxorg_wasm.ImmIdT<Org>
+  node: haxorg_wasm.ImmIdT<ImmOrg>
 }
 export interface ImmBlockCodeConstructor { new(): ImmBlockCode; }
 export interface ImmBlockCode {
   getKind(): OrgSemKind;
   __eq__(other: ImmBlockCode): boolean;
   lang: haxorg_wasm.ImmBox<haxorg_wasm.Optional<string>>
-  result: haxorg_wasm.ImmVec<BlockCodeEvalResult>
+  result: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>
   lines: haxorg_wasm.ImmVec<BlockCodeLine>
   switches: AttrGroup
 }
@@ -4466,7 +4466,7 @@ export interface ImmTableConstructor { new(): ImmTable; }
 export interface ImmTable {
   getKind(): OrgSemKind;
   __eq__(other: ImmTable): boolean;
-  rows: haxorg_wasm.ImmVec<Row>
+  rows: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmRow>>
   isBlock: boolean
 }
 export interface ImmAttachedConstructor { new(): ImmAttached; }
@@ -4531,7 +4531,7 @@ export interface ImmCmdCaptionConstructor { new(): ImmCmdCaption; }
 export interface ImmCmdCaption {
   getKind(): OrgSemKind;
   __eq__(other: ImmCmdCaption): boolean;
-  text: haxorg_wasm.ImmIdT<Paragraph>
+  text: haxorg_wasm.ImmIdT<ImmParagraph>
 }
 export interface ImmCmdColumnsConstructor { new(): ImmCmdColumns; }
 export interface ImmCmdColumns {
@@ -4554,7 +4554,7 @@ export interface ImmCmdCall {
   insideHeaderAttrs: AttrGroup
   callAttrs: AttrGroup
   endHeaderAttrs: AttrGroup
-  result: haxorg_wasm.ImmVec<BlockCodeEvalResult>
+  result: haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmBlockCodeEvalResult>>
 }
 export interface ImmCmdAttrConstructor { new(): ImmCmdAttr; }
 export interface ImmCmdAttr {

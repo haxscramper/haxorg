@@ -36,7 +36,7 @@ struct ImmAdapterT<org::imm::ImmErrorItem> : public org::imm::ImmAdapterTBase<or
 struct ImmErrorGroupValueRead {
   BOOST_DESCRIBE_CLASS(ImmErrorGroupValueRead, (), (), (), ());
   org::imm::ImmErrorGroup* ptr;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::ErrorItem>> const& getDiagnostics() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> const& getDiagnostics() const;
   ImmErrorGroupValueRead(org::imm::ImmErrorGroup const* ptr) : ptr{const_cast<org::imm::ImmErrorGroup*>(ptr)} {  }
 };
 
@@ -52,7 +52,7 @@ struct ImmAdapterT<org::imm::ImmErrorGroup> : public org::imm::ImmAdapterTBase<o
 struct ImmStmtValueRead {
   BOOST_DESCRIBE_CLASS(ImmStmtValueRead, (), (), (), ());
   org::imm::ImmStmt* ptr;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::Org>> const& getAttached() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getAttached() const;
   ImmStmtValueRead(org::imm::ImmStmt const* ptr) : ptr{const_cast<org::imm::ImmStmt*>(ptr)} {  }
 };
 
@@ -174,7 +174,7 @@ struct ImmAdapterT<org::imm::ImmAttached> : public org::imm::ImmAdapterTBase<org
 struct ImmLeafValueRead {
   BOOST_DESCRIBE_CLASS(ImmLeafValueRead, (), (), (), ());
   org::imm::ImmLeaf* ptr;
-  hstd::Str const& getText() const;
+  hstd::ext::ImmBox<hstd::Str> const& getText() const;
   ImmLeafValueRead(org::imm::ImmLeaf const* ptr) : ptr{const_cast<org::imm::ImmLeaf*>(ptr)} {  }
 };
 
@@ -190,7 +190,7 @@ struct ImmAdapterT<org::imm::ImmLeaf> : public org::imm::ImmAdapterTBase<org::im
 struct ImmCmdCaptionValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCaptionValueRead, (), (), (), ());
   org::imm::ImmCmdCaption* ptr;
-  org::imm::ImmIdT<org::sem::Paragraph> const& getText() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
   ImmCmdCaptionValueRead(org::imm::ImmCmdCaption const* ptr) : ptr{const_cast<org::imm::ImmCmdCaption*>(ptr)} {  }
 };
 
@@ -206,7 +206,7 @@ struct ImmAdapterT<org::imm::ImmCmdCaption> : public org::imm::ImmAdapterTBase<o
 struct ImmCmdCreatorValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCreatorValueRead, (), (), (), ());
   org::imm::ImmCmdCreator* ptr;
-  org::imm::ImmIdT<org::sem::Paragraph> const& getText() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
   ImmCmdCreatorValueRead(org::imm::ImmCmdCreator const* ptr) : ptr{const_cast<org::imm::ImmCmdCreator*>(ptr)} {  }
 };
 
@@ -222,7 +222,7 @@ struct ImmAdapterT<org::imm::ImmCmdCreator> : public org::imm::ImmAdapterTBase<o
 struct ImmCmdAuthorValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdAuthorValueRead, (), (), (), ());
   org::imm::ImmCmdAuthor* ptr;
-  org::imm::ImmIdT<org::sem::Paragraph> const& getText() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
   ImmCmdAuthorValueRead(org::imm::ImmCmdAuthor const* ptr) : ptr{const_cast<org::imm::ImmCmdAuthor*>(ptr)} {  }
 };
 
@@ -238,7 +238,7 @@ struct ImmAdapterT<org::imm::ImmCmdAuthor> : public org::imm::ImmAdapterTBase<or
 struct ImmCmdEmailValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdEmailValueRead, (), (), (), ());
   org::imm::ImmCmdEmail* ptr;
-  hstd::Str const& getText() const;
+  hstd::ext::ImmBox<hstd::Str> const& getText() const;
   ImmCmdEmailValueRead(org::imm::ImmCmdEmail const* ptr) : ptr{const_cast<org::imm::ImmCmdEmail*>(ptr)} {  }
 };
 
@@ -254,7 +254,7 @@ struct ImmAdapterT<org::imm::ImmCmdEmail> : public org::imm::ImmAdapterTBase<org
 struct ImmCmdLanguageValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdLanguageValueRead, (), (), (), ());
   org::imm::ImmCmdLanguage* ptr;
-  hstd::Str const& getText() const;
+  hstd::ext::ImmBox<hstd::Str> const& getText() const;
   ImmCmdLanguageValueRead(org::imm::ImmCmdLanguage const* ptr) : ptr{const_cast<org::imm::ImmCmdLanguage*>(ptr)} {  }
 };
 
@@ -286,7 +286,7 @@ struct ImmAdapterT<org::imm::ImmCmdColumns> : public org::imm::ImmAdapterTBase<o
 struct ImmCmdNameValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdNameValueRead, (), (), (), ());
   org::imm::ImmCmdName* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   ImmCmdNameValueRead(org::imm::ImmCmdName const* ptr) : ptr{const_cast<org::imm::ImmCmdName*>(ptr)} {  }
 };
 
@@ -302,7 +302,7 @@ struct ImmAdapterT<org::imm::ImmCmdName> : public org::imm::ImmAdapterTBase<org:
 struct ImmCmdCustomArgsValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCustomArgsValueRead, (), (), (), ());
   org::imm::ImmCmdCustomArgs* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   bool const& getIsattached() const;
   ImmCmdCustomArgsValueRead(org::imm::ImmCmdCustomArgs const* ptr) : ptr{const_cast<org::imm::ImmCmdCustomArgs*>(ptr)} {  }
 };
@@ -319,9 +319,9 @@ struct ImmAdapterT<org::imm::ImmCmdCustomArgs> : public org::imm::ImmAdapterTBas
 struct ImmCmdCustomRawValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCustomRawValueRead, (), (), (), ());
   org::imm::ImmCmdCustomRaw* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   bool const& getIsattached() const;
-  hstd::Str const& getText() const;
+  hstd::ext::ImmBox<hstd::Str> const& getText() const;
   ImmCmdCustomRawValueRead(org::imm::ImmCmdCustomRaw const* ptr) : ptr{const_cast<org::imm::ImmCmdCustomRaw*>(ptr)} {  }
 };
 
@@ -337,9 +337,9 @@ struct ImmAdapterT<org::imm::ImmCmdCustomRaw> : public org::imm::ImmAdapterTBase
 struct ImmCmdCustomTextValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCustomTextValueRead, (), (), (), ());
   org::imm::ImmCmdCustomText* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   bool const& getIsattached() const;
-  org::imm::ImmIdT<org::sem::Paragraph> const& getText() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
   ImmCmdCustomTextValueRead(org::imm::ImmCmdCustomText const* ptr) : ptr{const_cast<org::imm::ImmCmdCustomText*>(ptr)} {  }
 };
 
@@ -355,12 +355,12 @@ struct ImmAdapterT<org::imm::ImmCmdCustomText> : public org::imm::ImmAdapterTBas
 struct ImmCmdCallValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdCallValueRead, (), (), (), ());
   org::imm::ImmCmdCall* ptr;
-  hstd::Str const& getName() const;
-  hstd::Opt<hstd::Str> const& getFilename() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getFilename() const;
   org::sem::AttrGroup const& getInsideheaderattrs() const;
   org::sem::AttrGroup const& getCallattrs() const;
   org::sem::AttrGroup const& getEndheaderattrs() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::BlockCodeEvalResult>> const& getResult() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const;
   ImmCmdCallValueRead(org::imm::ImmCmdCall const* ptr) : ptr{const_cast<org::imm::ImmCmdCall*>(ptr)} {  }
 };
 
@@ -408,8 +408,8 @@ struct ImmAdapterT<org::imm::ImmHashTag> : public org::imm::ImmAdapterTBase<org:
 struct ImmInlineFootnoteValueRead {
   BOOST_DESCRIBE_CLASS(ImmInlineFootnoteValueRead, (), (), (), ());
   org::imm::ImmInlineFootnote* ptr;
-  hstd::Str const& getTag() const;
-  hstd::Opt<org::sem::SemId<org::sem::Org>> const& getDefinition() const;
+  hstd::ext::ImmBox<hstd::Str> const& getTag() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>> const& getDefinition() const;
   ImmInlineFootnoteValueRead(org::imm::ImmInlineFootnote const* ptr) : ptr{const_cast<org::imm::ImmInlineFootnote*>(ptr)} {  }
 };
 
@@ -425,8 +425,8 @@ struct ImmAdapterT<org::imm::ImmInlineFootnote> : public org::imm::ImmAdapterTBa
 struct ImmInlineExportValueRead {
   BOOST_DESCRIBE_CLASS(ImmInlineExportValueRead, (), (), (), ());
   org::imm::ImmInlineExport* ptr;
-  hstd::Str const& getExporter() const;
-  hstd::Str const& getContent() const;
+  hstd::ext::ImmBox<hstd::Str> const& getExporter() const;
+  hstd::ext::ImmBox<hstd::Str> const& getContent() const;
   ImmInlineExportValueRead(org::imm::ImmInlineExport const* ptr) : ptr{const_cast<org::imm::ImmInlineExport*>(ptr)} {  }
 };
 
@@ -459,8 +459,8 @@ struct ImmAdapterT<org::imm::ImmTime> : public org::imm::ImmAdapterTBase<org::im
 struct ImmTimeRangeValueRead {
   BOOST_DESCRIBE_CLASS(ImmTimeRangeValueRead, (), (), (), ());
   org::imm::ImmTimeRange* ptr;
-  org::imm::ImmIdT<org::sem::Time> const& getFrom() const;
-  org::imm::ImmIdT<org::sem::Time> const& getTo() const;
+  org::imm::ImmIdT<org::imm::ImmTime> const& getFrom() const;
+  org::imm::ImmIdT<org::imm::ImmTime> const& getTo() const;
   ImmTimeRangeValueRead(org::imm::ImmTimeRange const* ptr) : ptr{const_cast<org::imm::ImmTimeRange*>(ptr)} {  }
 };
 
@@ -476,7 +476,7 @@ struct ImmAdapterT<org::imm::ImmTimeRange> : public org::imm::ImmAdapterTBase<or
 struct ImmMacroValueRead {
   BOOST_DESCRIBE_CLASS(ImmMacroValueRead, (), (), (), ());
   org::imm::ImmMacro* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   org::sem::AttrGroup const& getAttrs() const;
   ImmMacroValueRead(org::imm::ImmMacro const* ptr) : ptr{const_cast<org::imm::ImmMacro*>(ptr)} {  }
 };
@@ -493,9 +493,9 @@ struct ImmAdapterT<org::imm::ImmMacro> : public org::imm::ImmAdapterTBase<org::i
 struct ImmSymbolValueRead {
   BOOST_DESCRIBE_CLASS(ImmSymbolValueRead, (), (), (), ());
   org::imm::ImmSymbol* ptr;
-  hstd::Str const& getName() const;
-  hstd::ext::ImmVec<org::sem::Symbol::Param> const& getParameters() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::Org>> const& getPositional() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
+  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> const& getParameters() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getPositional() const;
   ImmSymbolValueRead(org::imm::ImmSymbol const* ptr) : ptr{const_cast<org::imm::ImmSymbol*>(ptr)} {  }
 };
 
@@ -676,7 +676,7 @@ struct ImmAdapterT<org::imm::ImmErrorSkipToken> : public org::imm::ImmAdapterTBa
 struct ImmErrorSkipGroupValueRead {
   BOOST_DESCRIBE_CLASS(ImmErrorSkipGroupValueRead, (), (), (), ());
   org::imm::ImmErrorSkipGroup* ptr;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::ErrorSkipToken>> const& getSkipped() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const& getSkipped() const;
   ImmErrorSkipGroupValueRead(org::imm::ImmErrorSkipGroup const* ptr) : ptr{const_cast<org::imm::ImmErrorSkipGroup*>(ptr)} {  }
 };
 
@@ -858,7 +858,7 @@ struct ImmAdapterT<org::imm::ImmLatex> : public org::imm::ImmAdapterTBase<org::i
 struct ImmLinkValueRead {
   BOOST_DESCRIBE_CLASS(ImmLinkValueRead, (), (), (), ());
   org::imm::ImmLink* ptr;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getDescription() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getDescription() const;
   org::sem::LinkTarget const& getTarget() const;
   ImmLinkValueRead(org::imm::ImmLink const* ptr) : ptr{const_cast<org::imm::ImmLink*>(ptr)} {  }
 };
@@ -935,7 +935,7 @@ struct ImmAdapterT<org::imm::ImmBlockVerse> : public org::imm::ImmAdapterTBase<o
 struct ImmBlockDynamicFallbackValueRead {
   BOOST_DESCRIBE_CLASS(ImmBlockDynamicFallbackValueRead, (), (), (), ());
   org::imm::ImmBlockDynamicFallback* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   ImmBlockDynamicFallbackValueRead(org::imm::ImmBlockDynamicFallback const* ptr) : ptr{const_cast<org::imm::ImmBlockDynamicFallback*>(ptr)} {  }
 };
 
@@ -966,8 +966,8 @@ struct ImmAdapterT<org::imm::ImmBlockExample> : public org::imm::ImmAdapterTBase
 struct ImmBlockExportValueRead {
   BOOST_DESCRIBE_CLASS(ImmBlockExportValueRead, (), (), (), ());
   org::imm::ImmBlockExport* ptr;
-  hstd::Str const& getExporter() const;
-  hstd::Str const& getContent() const;
+  hstd::ext::ImmBox<hstd::Str> const& getExporter() const;
+  hstd::ext::ImmBox<hstd::Str> const& getContent() const;
   ImmBlockExportValueRead(org::imm::ImmBlockExport const* ptr) : ptr{const_cast<org::imm::ImmBlockExport*>(ptr)} {  }
 };
 
@@ -999,7 +999,7 @@ struct ImmBlockCodeEvalResultValueRead {
   BOOST_DESCRIBE_CLASS(ImmBlockCodeEvalResultValueRead, (), (), (), ());
   org::imm::ImmBlockCodeEvalResult* ptr;
   hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> const& getRaw() const;
-  org::imm::ImmIdT<org::sem::Org> const& getNode() const;
+  org::imm::ImmIdT<org::imm::ImmOrg> const& getNode() const;
   ImmBlockCodeEvalResultValueRead(org::imm::ImmBlockCodeEvalResult const* ptr) : ptr{const_cast<org::imm::ImmBlockCodeEvalResult*>(ptr)} {  }
 };
 
@@ -1015,8 +1015,8 @@ struct ImmAdapterT<org::imm::ImmBlockCodeEvalResult> : public org::imm::ImmAdapt
 struct ImmBlockCodeValueRead {
   BOOST_DESCRIBE_CLASS(ImmBlockCodeValueRead, (), (), (), ());
   org::imm::ImmBlockCode* ptr;
-  hstd::Opt<hstd::Str> const& getLang() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::BlockCodeEvalResult>> const& getResult() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getLang() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const;
   hstd::ext::ImmVec<org::sem::BlockCodeLine> const& getLines() const;
   org::sem::AttrGroup const& getSwitches() const;
   ImmBlockCodeValueRead(org::imm::ImmBlockCode const* ptr) : ptr{const_cast<org::imm::ImmBlockCode*>(ptr)} {  }
@@ -1035,7 +1035,7 @@ struct ImmSubtreeLogValueRead {
   BOOST_DESCRIBE_CLASS(ImmSubtreeLogValueRead, (), (), (), ());
   org::imm::ImmSubtreeLog* ptr;
   org::sem::SubtreeLogHead const& getHead() const;
-  hstd::Opt<org::sem::SemId<org::sem::StmtList>> const& getDesc() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>> const& getDesc() const;
   ImmSubtreeLogValueRead(org::imm::ImmSubtreeLog const* ptr) : ptr{const_cast<org::imm::ImmSubtreeLog*>(ptr)} {  }
 };
 
@@ -1052,20 +1052,20 @@ struct ImmSubtreeValueRead {
   BOOST_DESCRIBE_CLASS(ImmSubtreeValueRead, (), (), (), ());
   org::imm::ImmSubtree* ptr;
   int const& getLevel() const;
-  hstd::Opt<hstd::Str> const& getTreeid() const;
-  hstd::Opt<hstd::Str> const& getTodo() const;
-  hstd::Opt<org::sem::SubtreeCompletion> const& getCompletion() const;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getDescription() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::HashTag>> const& getTags() const;
-  org::imm::ImmIdT<org::sem::Paragraph> const& getTitle() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::SubtreeLog>> const& getLogbook() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getTreeid() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getTodo() const;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>> const& getCompletion() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getDescription() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getTags() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getTitle() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const& getLogbook() const;
   hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const;
-  hstd::Opt<org::sem::SemId<org::sem::Time>> const& getClosed() const;
-  hstd::Opt<org::sem::SemId<org::sem::Time>> const& getDeadline() const;
-  hstd::Opt<org::sem::SemId<org::sem::Time>> const& getScheduled() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> const& getClosed() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> const& getDeadline() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> const& getScheduled() const;
   bool const& getIscomment() const;
   bool const& getIsarchived() const;
-  hstd::Opt<hstd::Str> const& getPriority() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getPriority() const;
   ImmSubtreeValueRead(org::imm::ImmSubtree const* ptr) : ptr{const_cast<org::imm::ImmSubtree*>(ptr)} {  }
 };
 
@@ -1097,7 +1097,7 @@ struct ImmAdapterT<org::imm::ImmCell> : public org::imm::ImmAdapterTBase<org::im
 struct ImmRowValueRead {
   BOOST_DESCRIBE_CLASS(ImmRowValueRead, (), (), (), ());
   org::imm::ImmRow* ptr;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::Cell>> const& getCells() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> const& getCells() const;
   bool const& getIsblock() const;
   ImmRowValueRead(org::imm::ImmRow const* ptr) : ptr{const_cast<org::imm::ImmRow*>(ptr)} {  }
 };
@@ -1114,7 +1114,7 @@ struct ImmAdapterT<org::imm::ImmRow> : public org::imm::ImmAdapterTBase<org::imm
 struct ImmTableValueRead {
   BOOST_DESCRIBE_CLASS(ImmTableValueRead, (), (), (), ());
   org::imm::ImmTable* ptr;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::Row>> const& getRows() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> const& getRows() const;
   bool const& getIsblock() const;
   ImmTableValueRead(org::imm::ImmTable const* ptr) : ptr{const_cast<org::imm::ImmTable*>(ptr)} {  }
 };
@@ -1161,7 +1161,7 @@ struct ImmAdapterT<org::imm::ImmColonExample> : public org::imm::ImmAdapterTBase
 struct ImmCmdAttrValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdAttrValueRead, (), (), (), ());
   org::imm::ImmCmdAttr* ptr;
-  hstd::Str const& getTarget() const;
+  hstd::ext::ImmBox<hstd::Str> const& getTarget() const;
   ImmCmdAttrValueRead(org::imm::ImmCmdAttr const* ptr) : ptr{const_cast<org::imm::ImmCmdAttr*>(ptr)} {  }
 };
 
@@ -1177,8 +1177,8 @@ struct ImmAdapterT<org::imm::ImmCmdAttr> : public org::imm::ImmAdapterTBase<org:
 struct ImmCmdExportValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdExportValueRead, (), (), (), ());
   org::imm::ImmCmdExport* ptr;
-  hstd::Str const& getExporter() const;
-  hstd::Str const& getContent() const;
+  hstd::ext::ImmBox<hstd::Str> const& getExporter() const;
+  hstd::ext::ImmBox<hstd::Str> const& getContent() const;
   ImmCmdExportValueRead(org::imm::ImmCmdExport const* ptr) : ptr{const_cast<org::imm::ImmCmdExport*>(ptr)} {  }
 };
 
@@ -1194,7 +1194,7 @@ struct ImmAdapterT<org::imm::ImmCmdExport> : public org::imm::ImmAdapterTBase<or
 struct ImmCallValueRead {
   BOOST_DESCRIBE_CLASS(ImmCallValueRead, (), (), (), ());
   org::imm::ImmCall* ptr;
-  hstd::Str const& getName() const;
+  hstd::ext::ImmBox<hstd::Str> const& getName() const;
   org::sem::AttrGroup const& getAttrs() const;
   bool const& getIscommand() const;
   ImmCallValueRead(org::imm::ImmCall const* ptr) : ptr{const_cast<org::imm::ImmCall*>(ptr)} {  }
@@ -1228,8 +1228,8 @@ struct ImmListItemValueRead {
   BOOST_DESCRIBE_CLASS(ImmListItemValueRead, (), (), (), ());
   org::imm::ImmListItem* ptr;
   CheckboxState const& getCheckbox() const;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getHeader() const;
-  hstd::Opt<hstd::Str> const& getBullet() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getHeader() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getBullet() const;
   ImmListItemValueRead(org::imm::ImmListItem const* ptr) : ptr{const_cast<org::imm::ImmListItem*>(ptr)} {  }
 };
 
@@ -1248,12 +1248,12 @@ struct ImmDocumentOptionsValueRead {
   InitialSubtreeVisibility const& getInitialvisibility() const;
   hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const;
   org::sem::DocumentExportConfig const& getExportconfig() const;
-  hstd::Opt<bool> const& getFixedwidthsections() const;
-  hstd::Opt<bool> const& getStartupindented() const;
-  hstd::Opt<hstd::Str> const& getCategory() const;
-  hstd::Opt<hstd::Str> const& getSetupfile() const;
-  hstd::Opt<int> const& getMaxsubtreelevelexport() const;
-  hstd::Opt<org::sem::ColumnView> const& getColumns() const;
+  hstd::ext::ImmBox<hstd::Opt<bool>> const& getFixedwidthsections() const;
+  hstd::ext::ImmBox<hstd::Opt<bool>> const& getStartupindented() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getCategory() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getSetupfile() const;
+  hstd::ext::ImmBox<hstd::Opt<int>> const& getMaxsubtreelevelexport() const;
+  hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>> const& getColumns() const;
   hstd::ext::ImmVec<org::sem::TodoKeyword> const& getTodokeywords() const;
   hstd::ext::ImmVec<org::sem::TodoKeyword> const& getDonekeywords() const;
   ImmDocumentOptionsValueRead(org::imm::ImmDocumentOptions const* ptr) : ptr{const_cast<org::imm::ImmDocumentOptions*>(ptr)} {  }
@@ -1304,14 +1304,14 @@ struct ImmAdapterT<org::imm::ImmCriticMarkup> : public org::imm::ImmAdapterTBase
 struct ImmDocumentValueRead {
   BOOST_DESCRIBE_CLASS(ImmDocumentValueRead, (), (), (), ());
   org::imm::ImmDocument* ptr;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getTitle() const;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getAuthor() const;
-  hstd::Opt<org::sem::SemId<org::sem::Paragraph>> const& getCreator() const;
-  hstd::ext::ImmVec<org::sem::SemId<org::sem::HashTag>> const& getFiletags() const;
-  hstd::Opt<org::sem::SemId<org::sem::RawText>> const& getEmail() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getTitle() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getAuthor() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> const& getCreator() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getFiletags() const;
+  hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>> const& getEmail() const;
   hstd::ext::ImmVec<hstd::Str> const& getLanguage() const;
-  org::imm::ImmIdT<org::sem::DocumentOptions> const& getOptions() const;
-  hstd::Opt<hstd::Str> const& getExportfilename() const;
+  org::imm::ImmIdT<org::imm::ImmDocumentOptions> const& getOptions() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getExportfilename() const;
   ImmDocumentValueRead(org::imm::ImmDocument const* ptr) : ptr{const_cast<org::imm::ImmDocument*>(ptr)} {  }
 };
 
@@ -1327,12 +1327,12 @@ struct ImmAdapterT<org::imm::ImmDocument> : public org::imm::ImmAdapterTBase<org
 struct ImmFileTargetValueRead {
   BOOST_DESCRIBE_CLASS(ImmFileTargetValueRead, (), (), (), ());
   org::imm::ImmFileTarget* ptr;
-  hstd::Str const& getPath() const;
-  hstd::Opt<int> const& getLine() const;
-  hstd::Opt<hstd::Str> const& getSearchtarget() const;
+  hstd::ext::ImmBox<hstd::Str> const& getPath() const;
+  hstd::ext::ImmBox<hstd::Opt<int>> const& getLine() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getSearchtarget() const;
   bool const& getRestricttoheadlines() const;
-  hstd::Opt<hstd::Str> const& getTargetid() const;
-  hstd::Opt<hstd::Str> const& getRegexp() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getTargetid() const;
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> const& getRegexp() const;
   ImmFileTargetValueRead(org::imm::ImmFileTarget const* ptr) : ptr{const_cast<org::imm::ImmFileTarget*>(ptr)} {  }
 };
 
@@ -1378,8 +1378,8 @@ struct ImmAdapterT<org::imm::ImmDocumentGroup> : public org::imm::ImmAdapterTBas
 struct ImmFileValueRead {
   BOOST_DESCRIBE_CLASS(ImmFileValueRead, (), (), (), ());
   org::imm::ImmFile* ptr;
-  hstd::Str const& getRelpath() const;
-  hstd::Str const& getAbspath() const;
+  hstd::ext::ImmBox<hstd::Str> const& getRelpath() const;
+  hstd::ext::ImmBox<hstd::Str> const& getAbspath() const;
   org::imm::ImmFile::Data const& getData() const;
   ImmFileValueRead(org::imm::ImmFile const* ptr) : ptr{const_cast<org::imm::ImmFile*>(ptr)} {  }
 };
@@ -1396,8 +1396,8 @@ struct ImmAdapterT<org::imm::ImmFile> : public org::imm::ImmAdapterTBase<org::im
 struct ImmDirectoryValueRead {
   BOOST_DESCRIBE_CLASS(ImmDirectoryValueRead, (), (), (), ());
   org::imm::ImmDirectory* ptr;
-  hstd::Str const& getRelpath() const;
-  hstd::Str const& getAbspath() const;
+  hstd::ext::ImmBox<hstd::Str> const& getRelpath() const;
+  hstd::ext::ImmBox<hstd::Str> const& getAbspath() const;
   ImmDirectoryValueRead(org::imm::ImmDirectory const* ptr) : ptr{const_cast<org::imm::ImmDirectory*>(ptr)} {  }
 };
 
@@ -1414,7 +1414,7 @@ struct ImmSymlinkValueRead {
   BOOST_DESCRIBE_CLASS(ImmSymlinkValueRead, (), (), (), ());
   org::imm::ImmSymlink* ptr;
   bool const& getIsdirectory() const;
-  hstd::Str const& getAbspath() const;
+  hstd::ext::ImmBox<hstd::Str> const& getAbspath() const;
   ImmSymlinkValueRead(org::imm::ImmSymlink const* ptr) : ptr{const_cast<org::imm::ImmSymlink*>(ptr)} {  }
 };
 
@@ -1430,9 +1430,9 @@ struct ImmAdapterT<org::imm::ImmSymlink> : public org::imm::ImmAdapterTBase<org:
 struct ImmCmdIncludeValueRead {
   BOOST_DESCRIBE_CLASS(ImmCmdIncludeValueRead, (), (), (), ());
   org::imm::ImmCmdInclude* ptr;
-  hstd::Str const& getPath() const;
-  hstd::Opt<int> const& getFirstline() const;
-  hstd::Opt<int> const& getLastline() const;
+  hstd::ext::ImmBox<hstd::Str> const& getPath() const;
+  hstd::ext::ImmBox<hstd::Opt<int>> const& getFirstline() const;
+  hstd::ext::ImmBox<hstd::Opt<int>> const& getLastline() const;
   org::imm::ImmCmdInclude::Data const& getData() const;
   ImmCmdIncludeValueRead(org::imm::ImmCmdInclude const* ptr) : ptr{const_cast<org::imm::ImmCmdInclude*>(ptr)} {  }
 };
