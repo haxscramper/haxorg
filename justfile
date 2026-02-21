@@ -23,7 +23,7 @@ run_docker_release_ci:
 
 # RE-generate haxorg sources without running any dependent tasks
 run_haxorg_only_source_generation:
-  {{uv_run}} ./scripts/py_repository/py_repository/repo_tasks/workflow.py ruFn \
+  {{uv_run}} ./scripts/py_repository/py_repository/repo_tasks/workflow.py run \
     --task generate_haxorg_sources \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
 

@@ -12,40 +12,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdoptional_bind<org::sem::SemId<org::sem::Org>>(g, "StdOptionalOfSemIdOfOrg");
   org::bind::js::hstdVec_bind<hstd::ext::Report>(g, "VecOfReport");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "VecOfSemIdOfErrorGroup");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmErrorItem>>(g, "ImmFlexVectorOfImmIdTOfImmErrorItem");
-  org::bind::js::immerbox_bind<hstd::Str>(g, "ImmBoxOfStr");
-  org::bind::js::immerbox_bind<std::optional<hstd::Str>>(g, "ImmBoxOfStdOptionalOfStr");
-  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(g, "ImmFlexVectorOfImmIdTOfImmBlockCodeEvalResult");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmOrg");
-  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "StdOptionalOfImmIdTOfImmOrg");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmSymbol::Param>(g, "ImmFlexVectorOfImmSymbolParam");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "ImmFlexVectorOfImmIdTOfImmOrg");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(g, "ImmFlexVectorOfImmIdTOfImmErrorSkipToken");
-  org::bind::js::immerflex_vector_bind<hstd::Str>(g, "ImmFlexVectorOfStr");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmParagraph");
-  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "StdOptionalOfImmIdTOfImmParagraph");
-  org::bind::js::immerflex_vector_bind<org::sem::OrgCodeEvalOutput>(g, "ImmFlexVectorOfOrgCodeEvalOutput");
-  org::bind::js::immerflex_vector_bind<org::sem::BlockCodeLine>(g, "ImmFlexVectorOfBlockCodeLine");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmStmtList");
-  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "StdOptionalOfImmIdTOfImmStmtList");
-  org::bind::js::immerbox_bind<std::optional<org::sem::SubtreeCompletion>>(g, "ImmBoxOfStdOptionalOfSubtreeCompletion");
-  org::bind::js::stdoptional_bind<org::sem::SubtreeCompletion>(g, "StdOptionalOfSubtreeCompletion");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmHashTag>>(g, "ImmFlexVectorOfImmIdTOfImmHashTag");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(g, "ImmFlexVectorOfImmIdTOfImmSubtreeLog");
-  org::bind::js::immerflex_vector_bind<org::sem::NamedProperty>(g, "ImmFlexVectorOfNamedProperty");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmTime");
-  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmTime>>(g, "StdOptionalOfImmIdTOfImmTime");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmCell>>(g, "ImmFlexVectorOfImmIdTOfImmCell");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmIdT<org::imm::ImmRow>>(g, "ImmFlexVectorOfImmIdTOfImmRow");
-  org::bind::js::immerbox_bind<std::optional<bool>>(g, "ImmBoxOfStdOptionalOfBool");
-  org::bind::js::stdoptional_bind<bool>(g, "StdOptionalOfBool");
-  org::bind::js::immerbox_bind<std::optional<int>>(g, "ImmBoxOfStdOptionalOfInt");
-  org::bind::js::immerbox_bind<std::optional<org::sem::ColumnView>>(g, "ImmBoxOfStdOptionalOfColumnView");
-  org::bind::js::stdoptional_bind<org::sem::ColumnView>(g, "StdOptionalOfColumnView");
-  org::bind::js::immerflex_vector_bind<org::sem::TodoKeyword>(g, "ImmFlexVectorOfTodoKeyword");
-  org::bind::js::immerbox_bind<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>>(g, "ImmBoxOfStdOptionalOfImmIdTOfImmRawText");
-  org::bind::js::stdoptional_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "StdOptionalOfImmIdTOfImmRawText");
   org::bind::js::stdoptional_bind<org::imm::ImmAdapter>(g, "StdOptionalOfImmAdapter");
   org::bind::js::hstdVec_bind<int>(g, "VecOfInt");
   org::bind::js::hstdVec_bind<org::imm::ImmAdapter>(g, "VecOfImmAdapter");
@@ -57,12 +23,8 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<hstd::SequenceAnnotationTag>(g, "VecOfSequenceAnnotationTag");
   org::bind::js::hstdVec_bind<org::imm::ImmUniqId>(g, "VecOfImmUniqId");
   org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "VecOfGraphMapLink");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "UnorderedMapOfGraphMapNodeGraphMapNodeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "UnorderedMapOfGraphMapEdgeGraphMapEdgeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "UnorderedMapOfGraphMapNodeGraphAdjNodesList");
   org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "VecOfGraphMapNode");
   org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "VecOfGraphMapEdge");
-  org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
   org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "VecOfLispCode");
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>(g, "VecOfTblfmAssign");
   org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef::Position>(g, "OptOfTblfmExprAxisRefPosition");
@@ -105,9 +67,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "VecOfSemIdOfSubtreeLog");
   org::bind::js::hstdVec_bind<org::sem::NamedProperty>(g, "VecOfNamedProperty");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Time>>(g, "OptOfSemIdOfTime");
-}
-
-void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>(g, "VecOfSubtreePeriod");
   org::bind::js::hstdIntSet_bind<org::sem::SubtreePeriod::Kind>(g, "IntSetOfSubtreePeriodKind");
   org::bind::js::hstdOpt_bind<org::sem::NamedProperty>(g, "OptOfNamedProperty");
@@ -238,6 +197,9 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmOrg>("ImmOrg")
     ;
+}
+
+void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmPathStep>("ImmPathStep")
     .constructor<>()
     ;
@@ -252,290 +214,6 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAstReplaceEpoch>("ImmAstReplaceEpoch")
     .smart_ptr<std::shared_ptr<org::imm::ImmAstReplaceEpoch>>("ImmAstReplaceEpoch")
-    ;
-  emscripten::class_<org::imm::ImmNoNodeValueRead>("ImmNoNodeValueRead")
-    ;
-  emscripten::class_<org::imm::ImmErrorItemValueRead>("ImmErrorItemValueRead")
-    .function("getDiag", static_cast<org::sem::OrgDiagnostics const&(org::imm::ImmErrorItemValueRead::*)() const>(&org::imm::ImmErrorItemValueRead::getDiag))
-    ;
-  emscripten::class_<org::imm::ImmErrorGroupValueRead>("ImmErrorGroupValueRead")
-    .function("getDiagnostics", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&(org::imm::ImmErrorGroupValueRead::*)() const>(&org::imm::ImmErrorGroupValueRead::getDiagnostics))
-    ;
-  emscripten::class_<org::imm::ImmStmtListValueRead>("ImmStmtListValueRead")
-    ;
-  emscripten::class_<org::imm::ImmEmptyValueRead>("ImmEmptyValueRead")
-    ;
-  emscripten::class_<org::imm::ImmCmdCaptionValueRead>("ImmCmdCaptionValueRead")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCaptionValueRead::*)() const>(&org::imm::ImmCmdCaptionValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCreatorValueRead>("ImmCmdCreatorValueRead")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCreatorValueRead::*)() const>(&org::imm::ImmCmdCreatorValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdAuthorValueRead>("ImmCmdAuthorValueRead")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdAuthorValueRead::*)() const>(&org::imm::ImmCmdAuthorValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdEmailValueRead>("ImmCmdEmailValueRead")
-    .function("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdEmailValueRead::*)() const>(&org::imm::ImmCmdEmailValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdLanguageValueRead>("ImmCmdLanguageValueRead")
-    .function("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdLanguageValueRead::*)() const>(&org::imm::ImmCmdLanguageValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdColumnsValueRead>("ImmCmdColumnsValueRead")
-    .function("getView", static_cast<org::sem::ColumnView const&(org::imm::ImmCmdColumnsValueRead::*)() const>(&org::imm::ImmCmdColumnsValueRead::getView))
-    ;
-  emscripten::class_<org::imm::ImmCmdNameValueRead>("ImmCmdNameValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdNameValueRead::*)() const>(&org::imm::ImmCmdNameValueRead::getName))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomArgsValueRead>("ImmCmdCustomArgsValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getName))
-    .function("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomArgsValueRead::*)() const>(&org::imm::ImmCmdCustomArgsValueRead::getIsattached))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomRawValueRead>("ImmCmdCustomRawValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getName))
-    .function("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getIsattached))
-    .function("getText", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomRawValueRead::*)() const>(&org::imm::ImmCmdCustomRawValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomTextValueRead>("ImmCmdCustomTextValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getName))
-    .function("getIsattached", static_cast<bool const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getIsattached))
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmCmdCustomTextValueRead::*)() const>(&org::imm::ImmCmdCustomTextValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCallValueRead>("ImmCmdCallValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getName))
-    .function("getFilename", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getFilename))
-    .function("getInsideheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getInsideheaderattrs))
-    .function("getCallattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getCallattrs))
-    .function("getEndheaderattrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getEndheaderattrs))
-    .function("getResult", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmCmdCallValueRead::*)() const>(&org::imm::ImmCmdCallValueRead::getResult))
-    ;
-  emscripten::class_<org::imm::ImmCmdTblfmValueRead>("ImmCmdTblfmValueRead")
-    .function("getExpr", static_cast<org::sem::Tblfm const&(org::imm::ImmCmdTblfmValueRead::*)() const>(&org::imm::ImmCmdTblfmValueRead::getExpr))
-    ;
-  emscripten::class_<org::imm::ImmHashTagValueRead>("ImmHashTagValueRead")
-    .function("getText", static_cast<org::sem::HashTagText const&(org::imm::ImmHashTagValueRead::*)() const>(&org::imm::ImmHashTagValueRead::getText))
-    ;
-  emscripten::class_<org::imm::ImmInlineFootnoteValueRead>("ImmInlineFootnoteValueRead")
-    .function("getTag", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getTag))
-    .function("getDefinition", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&(org::imm::ImmInlineFootnoteValueRead::*)() const>(&org::imm::ImmInlineFootnoteValueRead::getDefinition))
-    ;
-  emscripten::class_<org::imm::ImmInlineExportValueRead>("ImmInlineExportValueRead")
-    .function("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getExporter))
-    .function("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmInlineExportValueRead::*)() const>(&org::imm::ImmInlineExportValueRead::getContent))
-    ;
-  emscripten::class_<org::imm::ImmTimeValueRead>("ImmTimeValueRead")
-    .function("getIsactive", static_cast<bool const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getIsactive))
-    .function("getTime", static_cast<org::imm::ImmTime::TimeVariant const&(org::imm::ImmTimeValueRead::*)() const>(&org::imm::ImmTimeValueRead::getTime))
-    ;
-  emscripten::class_<org::imm::ImmTimeRangeValueRead>("ImmTimeRangeValueRead")
-    .function("getFrom", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getFrom))
-    .function("getTo", static_cast<org::imm::ImmIdT<org::imm::ImmTime> const&(org::imm::ImmTimeRangeValueRead::*)() const>(&org::imm::ImmTimeRangeValueRead::getTo))
-    ;
-  emscripten::class_<org::imm::ImmMacroValueRead>("ImmMacroValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getName))
-    .function("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmMacroValueRead::*)() const>(&org::imm::ImmMacroValueRead::getAttrs))
-    ;
-  emscripten::class_<org::imm::ImmSymbolValueRead>("ImmSymbolValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getName))
-    .function("getParameters", static_cast<immer::flex_vector<org::imm::ImmSymbol::Param> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getParameters))
-    .function("getPositional", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&(org::imm::ImmSymbolValueRead::*)() const>(&org::imm::ImmSymbolValueRead::getPositional))
-    ;
-  emscripten::class_<org::imm::ImmEscapedValueRead>("ImmEscapedValueRead")
-    ;
-  emscripten::class_<org::imm::ImmNewlineValueRead>("ImmNewlineValueRead")
-    ;
-  emscripten::class_<org::imm::ImmSpaceValueRead>("ImmSpaceValueRead")
-    ;
-  emscripten::class_<org::imm::ImmWordValueRead>("ImmWordValueRead")
-    ;
-  emscripten::class_<org::imm::ImmAtMentionValueRead>("ImmAtMentionValueRead")
-    ;
-  emscripten::class_<org::imm::ImmRawTextValueRead>("ImmRawTextValueRead")
-    ;
-  emscripten::class_<org::imm::ImmPunctuationValueRead>("ImmPunctuationValueRead")
-    ;
-  emscripten::class_<org::imm::ImmPlaceholderValueRead>("ImmPlaceholderValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBigIdentValueRead>("ImmBigIdentValueRead")
-    ;
-  emscripten::class_<org::imm::ImmTextTargetValueRead>("ImmTextTargetValueRead")
-    ;
-  emscripten::class_<org::imm::ImmErrorSkipTokenValueRead>("ImmErrorSkipTokenValueRead")
-    ;
-  emscripten::class_<org::imm::ImmErrorSkipGroupValueRead>("ImmErrorSkipGroupValueRead")
-    .function("getSkipped", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&(org::imm::ImmErrorSkipGroupValueRead::*)() const>(&org::imm::ImmErrorSkipGroupValueRead::getSkipped))
-    ;
-  emscripten::class_<org::imm::ImmBoldValueRead>("ImmBoldValueRead")
-    ;
-  emscripten::class_<org::imm::ImmUnderlineValueRead>("ImmUnderlineValueRead")
-    ;
-  emscripten::class_<org::imm::ImmMonospaceValueRead>("ImmMonospaceValueRead")
-    ;
-  emscripten::class_<org::imm::ImmMarkQuoteValueRead>("ImmMarkQuoteValueRead")
-    ;
-  emscripten::class_<org::imm::ImmVerbatimValueRead>("ImmVerbatimValueRead")
-    ;
-  emscripten::class_<org::imm::ImmItalicValueRead>("ImmItalicValueRead")
-    ;
-  emscripten::class_<org::imm::ImmStrikeValueRead>("ImmStrikeValueRead")
-    ;
-  emscripten::class_<org::imm::ImmParValueRead>("ImmParValueRead")
-    ;
-  emscripten::class_<org::imm::ImmRadioTargetValueRead>("ImmRadioTargetValueRead")
-    .function("getWords", static_cast<immer::flex_vector<hstd::Str> const&(org::imm::ImmRadioTargetValueRead::*)() const>(&org::imm::ImmRadioTargetValueRead::getWords))
-    ;
-  emscripten::class_<org::imm::ImmLatexValueRead>("ImmLatexValueRead")
-    ;
-  emscripten::class_<org::imm::ImmLinkValueRead>("ImmLinkValueRead")
-    .function("getDescription", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getDescription))
-    .function("getTarget", static_cast<org::sem::LinkTarget const&(org::imm::ImmLinkValueRead::*)() const>(&org::imm::ImmLinkValueRead::getTarget))
-    ;
-  emscripten::class_<org::imm::ImmBlockCenterValueRead>("ImmBlockCenterValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockQuoteValueRead>("ImmBlockQuoteValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockCommentValueRead>("ImmBlockCommentValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockVerseValueRead>("ImmBlockVerseValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockDynamicFallbackValueRead>("ImmBlockDynamicFallbackValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockDynamicFallbackValueRead::*)() const>(&org::imm::ImmBlockDynamicFallbackValueRead::getName))
-    ;
-  emscripten::class_<org::imm::ImmBlockExampleValueRead>("ImmBlockExampleValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockExportValueRead>("ImmBlockExportValueRead")
-    .function("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getExporter))
-    .function("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmBlockExportValueRead::*)() const>(&org::imm::ImmBlockExportValueRead::getContent))
-    ;
-  emscripten::class_<org::imm::ImmBlockAdmonitionValueRead>("ImmBlockAdmonitionValueRead")
-    ;
-  emscripten::class_<org::imm::ImmBlockCodeEvalResultValueRead>("ImmBlockCodeEvalResultValueRead")
-    .function("getRaw", static_cast<immer::flex_vector<org::sem::OrgCodeEvalOutput> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getRaw))
-    .function("getNode", static_cast<org::imm::ImmIdT<org::imm::ImmOrg> const&(org::imm::ImmBlockCodeEvalResultValueRead::*)() const>(&org::imm::ImmBlockCodeEvalResultValueRead::getNode))
-    ;
-  emscripten::class_<org::imm::ImmBlockCodeValueRead>("ImmBlockCodeValueRead")
-    .function("getLang", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLang))
-    .function("getResult", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getResult))
-    .function("getLines", static_cast<immer::flex_vector<org::sem::BlockCodeLine> const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getLines))
-    .function("getSwitches", static_cast<org::sem::AttrGroup const&(org::imm::ImmBlockCodeValueRead::*)() const>(&org::imm::ImmBlockCodeValueRead::getSwitches))
-    ;
-  emscripten::class_<org::imm::ImmSubtreeLogValueRead>("ImmSubtreeLogValueRead")
-    .function("getHead", static_cast<org::sem::SubtreeLogHead const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getHead))
-    .function("getDesc", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&(org::imm::ImmSubtreeLogValueRead::*)() const>(&org::imm::ImmSubtreeLogValueRead::getDesc))
-    ;
-  emscripten::class_<org::imm::ImmSubtreeValueRead>("ImmSubtreeValueRead")
-    .function("getLevel", static_cast<int const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLevel))
-    .function("getTreeid", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTreeid))
-    .function("getTodo", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTodo))
-    .function("getCompletion", static_cast<immer::box<std::optional<org::sem::SubtreeCompletion>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getCompletion))
-    .function("getDescription", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDescription))
-    .function("getTags", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTags))
-    .function("getTitle", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getTitle))
-    .function("getLogbook", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getLogbook))
-    .function("getProperties", static_cast<immer::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getProperties))
-    .function("getClosed", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getClosed))
-    .function("getDeadline", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getDeadline))
-    .function("getScheduled", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getScheduled))
-    .function("getIscomment", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIscomment))
-    .function("getIsarchived", static_cast<bool const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getIsarchived))
-    .function("getPriority", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmSubtreeValueRead::*)() const>(&org::imm::ImmSubtreeValueRead::getPriority))
-    ;
-}
-
-void subdivide_2(org::bind::js::type_registration_guard& g) {
-  emscripten::class_<org::imm::ImmCellValueRead>("ImmCellValueRead")
-    .function("getIsblock", static_cast<bool const&(org::imm::ImmCellValueRead::*)() const>(&org::imm::ImmCellValueRead::getIsblock))
-    ;
-  emscripten::class_<org::imm::ImmRowValueRead>("ImmRowValueRead")
-    .function("getCells", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getCells))
-    .function("getIsblock", static_cast<bool const&(org::imm::ImmRowValueRead::*)() const>(&org::imm::ImmRowValueRead::getIsblock))
-    ;
-  emscripten::class_<org::imm::ImmTableValueRead>("ImmTableValueRead")
-    .function("getRows", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getRows))
-    .function("getIsblock", static_cast<bool const&(org::imm::ImmTableValueRead::*)() const>(&org::imm::ImmTableValueRead::getIsblock))
-    ;
-  emscripten::class_<org::imm::ImmParagraphValueRead>("ImmParagraphValueRead")
-    ;
-  emscripten::class_<org::imm::ImmColonExampleValueRead>("ImmColonExampleValueRead")
-    ;
-  emscripten::class_<org::imm::ImmCmdAttrValueRead>("ImmCmdAttrValueRead")
-    .function("getTarget", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdAttrValueRead::*)() const>(&org::imm::ImmCmdAttrValueRead::getTarget))
-    ;
-  emscripten::class_<org::imm::ImmCmdExportValueRead>("ImmCmdExportValueRead")
-    .function("getExporter", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getExporter))
-    .function("getContent", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdExportValueRead::*)() const>(&org::imm::ImmCmdExportValueRead::getContent))
-    ;
-  emscripten::class_<org::imm::ImmCallValueRead>("ImmCallValueRead")
-    .function("getName", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getName))
-    .function("getAttrs", static_cast<org::sem::AttrGroup const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getAttrs))
-    .function("getIscommand", static_cast<bool const&(org::imm::ImmCallValueRead::*)() const>(&org::imm::ImmCallValueRead::getIscommand))
-    ;
-  emscripten::class_<org::imm::ImmListValueRead>("ImmListValueRead")
-    ;
-  emscripten::class_<org::imm::ImmListItemValueRead>("ImmListItemValueRead")
-    .function("getCheckbox", static_cast<CheckboxState const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getCheckbox))
-    .function("getHeader", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getHeader))
-    .function("getBullet", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmListItemValueRead::*)() const>(&org::imm::ImmListItemValueRead::getBullet))
-    ;
-  emscripten::class_<org::imm::ImmDocumentOptionsValueRead>("ImmDocumentOptionsValueRead")
-    .function("getInitialvisibility", static_cast<InitialSubtreeVisibility const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getInitialvisibility))
-    .function("getProperties", static_cast<immer::flex_vector<org::sem::NamedProperty> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getProperties))
-    .function("getExportconfig", static_cast<org::sem::DocumentExportConfig const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getExportconfig))
-    .function("getFixedwidthsections", static_cast<immer::box<std::optional<bool>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getFixedwidthsections))
-    .function("getStartupindented", static_cast<immer::box<std::optional<bool>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getStartupindented))
-    .function("getCategory", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getCategory))
-    .function("getSetupfile", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getSetupfile))
-    .function("getMaxsubtreelevelexport", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getMaxsubtreelevelexport))
-    .function("getColumns", static_cast<immer::box<std::optional<org::sem::ColumnView>> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getColumns))
-    .function("getTodokeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getTodokeywords))
-    .function("getDonekeywords", static_cast<immer::flex_vector<org::sem::TodoKeyword> const&(org::imm::ImmDocumentOptionsValueRead::*)() const>(&org::imm::ImmDocumentOptionsValueRead::getDonekeywords))
-    ;
-  emscripten::class_<org::imm::ImmDocumentFragmentValueRead>("ImmDocumentFragmentValueRead")
-    .function("getBaseline", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBaseline))
-    .function("getBasecol", static_cast<int const&(org::imm::ImmDocumentFragmentValueRead::*)() const>(&org::imm::ImmDocumentFragmentValueRead::getBasecol))
-    ;
-  emscripten::class_<org::imm::ImmCriticMarkupValueRead>("ImmCriticMarkupValueRead")
-    .function("getKind", static_cast<org::imm::ImmCriticMarkup::Kind const&(org::imm::ImmCriticMarkupValueRead::*)() const>(&org::imm::ImmCriticMarkupValueRead::getKind))
-    ;
-  emscripten::class_<org::imm::ImmDocumentValueRead>("ImmDocumentValueRead")
-    .function("getTitle", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getTitle))
-    .function("getAuthor", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getAuthor))
-    .function("getCreator", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getCreator))
-    .function("getFiletags", static_cast<immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getFiletags))
-    .function("getEmail", static_cast<immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getEmail))
-    .function("getLanguage", static_cast<immer::flex_vector<hstd::Str> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getLanguage))
-    .function("getOptions", static_cast<org::imm::ImmIdT<org::imm::ImmDocumentOptions> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getOptions))
-    .function("getExportfilename", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmDocumentValueRead::*)() const>(&org::imm::ImmDocumentValueRead::getExportfilename))
-    ;
-  emscripten::class_<org::imm::ImmFileTargetValueRead>("ImmFileTargetValueRead")
-    .function("getPath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getPath))
-    .function("getLine", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getLine))
-    .function("getSearchtarget", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getSearchtarget))
-    .function("getRestricttoheadlines", static_cast<bool const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRestricttoheadlines))
-    .function("getTargetid", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getTargetid))
-    .function("getRegexp", static_cast<immer::box<std::optional<hstd::Str>> const&(org::imm::ImmFileTargetValueRead::*)() const>(&org::imm::ImmFileTargetValueRead::getRegexp))
-    ;
-  emscripten::class_<org::imm::ImmTextSeparatorValueRead>("ImmTextSeparatorValueRead")
-    ;
-  emscripten::class_<org::imm::ImmDocumentGroupValueRead>("ImmDocumentGroupValueRead")
-    ;
-  emscripten::class_<org::imm::ImmFileValueRead>("ImmFileValueRead")
-    .function("getRelpath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getRelpath))
-    .function("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getAbspath))
-    .function("getData", static_cast<org::imm::ImmFile::Data const&(org::imm::ImmFileValueRead::*)() const>(&org::imm::ImmFileValueRead::getData))
-    ;
-  emscripten::class_<org::imm::ImmDirectoryValueRead>("ImmDirectoryValueRead")
-    .function("getRelpath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getRelpath))
-    .function("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmDirectoryValueRead::*)() const>(&org::imm::ImmDirectoryValueRead::getAbspath))
-    ;
-  emscripten::class_<org::imm::ImmSymlinkValueRead>("ImmSymlinkValueRead")
-    .function("getIsdirectory", static_cast<bool const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getIsdirectory))
-    .function("getAbspath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmSymlinkValueRead::*)() const>(&org::imm::ImmSymlinkValueRead::getAbspath))
-    ;
-  emscripten::class_<org::imm::ImmCmdIncludeValueRead>("ImmCmdIncludeValueRead")
-    .function("getPath", static_cast<immer::box<hstd::Str> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getPath))
-    .function("getFirstline", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getFirstline))
-    .function("getLastline", static_cast<immer::box<std::optional<int>> const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getLastline))
-    .function("getData", static_cast<org::imm::ImmCmdInclude::Data const&(org::imm::ImmCmdIncludeValueRead::*)() const>(&org::imm::ImmCmdIncludeValueRead::getData))
     ;
   emscripten::class_<org::imm::ImmAstContext>("ImmAstContext")
     .smart_ptr<std::shared_ptr<org::imm::ImmAstContext>>("ImmAstContext")
@@ -692,8 +370,8 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("id", &org::graph::MapNodeProp::id)
     .property("unresolved", &org::graph::MapNodeProp::unresolved)
     .function("getAdapter", static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter))
-    .function("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
-    .function("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
+    .function("getSubtreeId", static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
+    .function("getFootnoteName", static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
     .constructor<>()
     ;
   emscripten::class_<org::graph::MapEdgeProp>("GraphMapEdgeProp")
@@ -755,7 +433,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("addNode", static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode))
     .function("addNodeRec", static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec))
     .function("getUnresolvedSubtreeLinks", static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks))
-    .function("getUnresolvedLink", static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
+    .function("getUnresolvedLink", static_cast<int(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
     ;
   emscripten::class_<org::sem::LispCode>("LispCode")
     .property("data", &org::sem::LispCode::data)
@@ -1143,9 +821,6 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Priority::Action>("OrgSemSubtreeLogHeadPriorityAction");
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeLogHead::Note>("SubtreeLogHeadNote")
     .property("on", &org::sem::SubtreeLogHead::Note::on)
     .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==))
@@ -1254,6 +929,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::sem::OrgCodeEvalInput::ResultType>("OrgSemOrgCodeEvalInputResultType");
   org::bind::js::bind_enum<org::sem::OrgCodeEvalInput::ResultFormat>("OrgSemOrgCodeEvalInputResultFormat");
   org::bind::js::bind_enum<org::sem::OrgCodeEvalInput::ResultHandling>("OrgSemOrgCodeEvalInputResultHandling");
+}
+
+void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::OrgCodeEvalOutput>("OrgCodeEvalOutput")
     .property("stdoutText", &org::sem::OrgCodeEvalOutput::stdoutText)
     .property("stderrText", &org::sem::OrgCodeEvalOutput::stderrText)
@@ -1855,9 +1533,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Markup, emscripten::base<org::sem::Org>>("Markup")
     .smart_ptr<org::sem::SemId<org::sem::Markup>>("Markup")
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::RadioTarget, emscripten::base<org::sem::Org>>("RadioTarget")
     .smart_ptr<org::sem::SemId<org::sem::RadioTarget>>("RadioTarget")
     .property("words", &org::sem::RadioTarget::words)
@@ -2018,6 +1693,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::File::Document>("FileDocument")
     .constructor<>()
     ;
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::File::Attachment>("FileAttachment")
     .constructor<>()
     ;
@@ -2304,9 +1982,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, emscripten::base<org::imm::ImmId>>("ImmIdTParagraph")
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, emscripten::base<org::imm::ImmId>>("ImmIdTColonExample")
     .constructor<>()
     ;
@@ -2358,6 +2033,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, emscripten::base<org::imm::ImmId>>("ImmIdTCmdInclude")
     .constructor<>()
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmNoNode, emscripten::base<org::imm::ImmOrg>>("ImmNoNode")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmNoNode::*)() const>(&org::imm::ImmNoNode::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmNoNode::*)(org::imm::ImmNoNode const&) const>(&org::imm::ImmNoNode::operator==))
@@ -2697,290 +2375,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::imm::ImmCmdInclude::Kind>("OrgImmImmCmdIncludeKind");
-  emscripten::class_<org::imm::ImmNoNodeValue, emscripten::base<org::imm::ImmNoNodeValueRead>>("ImmNoNodeValue")
-    ;
-  emscripten::class_<org::imm::ImmErrorItemValue, emscripten::base<org::imm::ImmErrorItemValueRead>>("ImmErrorItemValue")
-    .function("setDiag", static_cast<void(org::imm::ImmErrorItemValue::*)(org::sem::OrgDiagnostics const&)>(&org::imm::ImmErrorItemValue::setDiag))
-    ;
-  emscripten::class_<org::imm::ImmErrorGroupValue, emscripten::base<org::imm::ImmErrorGroupValueRead>>("ImmErrorGroupValue")
-    .function("setDiagnostics", static_cast<void(org::imm::ImmErrorGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorItem>> const&)>(&org::imm::ImmErrorGroupValue::setDiagnostics))
-    ;
-  emscripten::class_<org::imm::ImmStmtListValue, emscripten::base<org::imm::ImmStmtListValueRead>>("ImmStmtListValue")
-    ;
-  emscripten::class_<org::imm::ImmEmptyValue, emscripten::base<org::imm::ImmEmptyValueRead>>("ImmEmptyValue")
-    ;
-  emscripten::class_<org::imm::ImmCmdCaptionValue, emscripten::base<org::imm::ImmCmdCaptionValueRead>>("ImmCmdCaptionValue")
-    .function("setText", static_cast<void(org::imm::ImmCmdCaptionValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCaptionValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCreatorValue, emscripten::base<org::imm::ImmCmdCreatorValueRead>>("ImmCmdCreatorValue")
-    .function("setText", static_cast<void(org::imm::ImmCmdCreatorValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCreatorValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdAuthorValue, emscripten::base<org::imm::ImmCmdAuthorValueRead>>("ImmCmdAuthorValue")
-    .function("setText", static_cast<void(org::imm::ImmCmdAuthorValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdAuthorValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdEmailValue, emscripten::base<org::imm::ImmCmdEmailValueRead>>("ImmCmdEmailValue")
-    .function("setText", static_cast<void(org::imm::ImmCmdEmailValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdEmailValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdLanguageValue, emscripten::base<org::imm::ImmCmdLanguageValueRead>>("ImmCmdLanguageValue")
-    .function("setText", static_cast<void(org::imm::ImmCmdLanguageValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdLanguageValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdColumnsValue, emscripten::base<org::imm::ImmCmdColumnsValueRead>>("ImmCmdColumnsValue")
-    .function("setView", static_cast<void(org::imm::ImmCmdColumnsValue::*)(org::sem::ColumnView const&)>(&org::imm::ImmCmdColumnsValue::setView))
-    ;
-  emscripten::class_<org::imm::ImmCmdNameValue, emscripten::base<org::imm::ImmCmdNameValueRead>>("ImmCmdNameValue")
-    .function("setName", static_cast<void(org::imm::ImmCmdNameValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdNameValue::setName))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomArgsValue, emscripten::base<org::imm::ImmCmdCustomArgsValueRead>>("ImmCmdCustomArgsValue")
-    .function("setName", static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomArgsValue::setName))
-    .function("setIsattached", static_cast<void(org::imm::ImmCmdCustomArgsValue::*)(bool const&)>(&org::imm::ImmCmdCustomArgsValue::setIsattached))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomRawValue, emscripten::base<org::imm::ImmCmdCustomRawValueRead>>("ImmCmdCustomRawValue")
-    .function("setName", static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setName))
-    .function("setIsattached", static_cast<void(org::imm::ImmCmdCustomRawValue::*)(bool const&)>(&org::imm::ImmCmdCustomRawValue::setIsattached))
-    .function("setText", static_cast<void(org::imm::ImmCmdCustomRawValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomRawValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCustomTextValue, emscripten::base<org::imm::ImmCmdCustomTextValueRead>>("ImmCmdCustomTextValue")
-    .function("setName", static_cast<void(org::imm::ImmCmdCustomTextValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCustomTextValue::setName))
-    .function("setIsattached", static_cast<void(org::imm::ImmCmdCustomTextValue::*)(bool const&)>(&org::imm::ImmCmdCustomTextValue::setIsattached))
-    .function("setText", static_cast<void(org::imm::ImmCmdCustomTextValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmCmdCustomTextValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmCmdCallValue, emscripten::base<org::imm::ImmCmdCallValueRead>>("ImmCmdCallValue")
-    .function("setName", static_cast<void(org::imm::ImmCmdCallValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdCallValue::setName))
-    .function("setFilename", static_cast<void(org::imm::ImmCmdCallValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmCmdCallValue::setFilename))
-    .function("setInsideheaderattrs", static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setInsideheaderattrs))
-    .function("setCallattrs", static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setCallattrs))
-    .function("setEndheaderattrs", static_cast<void(org::imm::ImmCmdCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCmdCallValue::setEndheaderattrs))
-    .function("setResult", static_cast<void(org::imm::ImmCmdCallValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmCmdCallValue::setResult))
-    ;
-  emscripten::class_<org::imm::ImmCmdTblfmValue, emscripten::base<org::imm::ImmCmdTblfmValueRead>>("ImmCmdTblfmValue")
-    .function("setExpr", static_cast<void(org::imm::ImmCmdTblfmValue::*)(org::sem::Tblfm const&)>(&org::imm::ImmCmdTblfmValue::setExpr))
-    ;
-  emscripten::class_<org::imm::ImmHashTagValue, emscripten::base<org::imm::ImmHashTagValueRead>>("ImmHashTagValue")
-    .function("setText", static_cast<void(org::imm::ImmHashTagValue::*)(org::sem::HashTagText const&)>(&org::imm::ImmHashTagValue::setText))
-    ;
-  emscripten::class_<org::imm::ImmInlineFootnoteValue, emscripten::base<org::imm::ImmInlineFootnoteValueRead>>("ImmInlineFootnoteValue")
-    .function("setTag", static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineFootnoteValue::setTag))
-    .function("setDefinition", static_cast<void(org::imm::ImmInlineFootnoteValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmOrg>>> const&)>(&org::imm::ImmInlineFootnoteValue::setDefinition))
-    ;
-  emscripten::class_<org::imm::ImmInlineExportValue, emscripten::base<org::imm::ImmInlineExportValueRead>>("ImmInlineExportValue")
-    .function("setExporter", static_cast<void(org::imm::ImmInlineExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setExporter))
-    .function("setContent", static_cast<void(org::imm::ImmInlineExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmInlineExportValue::setContent))
-    ;
-  emscripten::class_<org::imm::ImmTimeValue, emscripten::base<org::imm::ImmTimeValueRead>>("ImmTimeValue")
-    .function("setIsactive", static_cast<void(org::imm::ImmTimeValue::*)(bool const&)>(&org::imm::ImmTimeValue::setIsactive))
-    .function("setTime", static_cast<void(org::imm::ImmTimeValue::*)(org::imm::ImmTime::TimeVariant const&)>(&org::imm::ImmTimeValue::setTime))
-    ;
-  emscripten::class_<org::imm::ImmTimeRangeValue, emscripten::base<org::imm::ImmTimeRangeValueRead>>("ImmTimeRangeValue")
-    .function("setFrom", static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setFrom))
-    .function("setTo", static_cast<void(org::imm::ImmTimeRangeValue::*)(org::imm::ImmIdT<org::imm::ImmTime> const&)>(&org::imm::ImmTimeRangeValue::setTo))
-    ;
-  emscripten::class_<org::imm::ImmMacroValue, emscripten::base<org::imm::ImmMacroValueRead>>("ImmMacroValue")
-    .function("setName", static_cast<void(org::imm::ImmMacroValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmMacroValue::setName))
-    .function("setAttrs", static_cast<void(org::imm::ImmMacroValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmMacroValue::setAttrs))
-    ;
-  emscripten::class_<org::imm::ImmSymbolValue, emscripten::base<org::imm::ImmSymbolValueRead>>("ImmSymbolValue")
-    .function("setName", static_cast<void(org::imm::ImmSymbolValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmSymbolValue::setName))
-    .function("setParameters", static_cast<void(org::imm::ImmSymbolValue::*)(immer::flex_vector<org::imm::ImmSymbol::Param> const&)>(&org::imm::ImmSymbolValue::setParameters))
-    .function("setPositional", static_cast<void(org::imm::ImmSymbolValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmOrg>> const&)>(&org::imm::ImmSymbolValue::setPositional))
-    ;
-  emscripten::class_<org::imm::ImmEscapedValue, emscripten::base<org::imm::ImmEscapedValueRead>>("ImmEscapedValue")
-    ;
-  emscripten::class_<org::imm::ImmNewlineValue, emscripten::base<org::imm::ImmNewlineValueRead>>("ImmNewlineValue")
-    ;
-  emscripten::class_<org::imm::ImmSpaceValue, emscripten::base<org::imm::ImmSpaceValueRead>>("ImmSpaceValue")
-    ;
-  emscripten::class_<org::imm::ImmWordValue, emscripten::base<org::imm::ImmWordValueRead>>("ImmWordValue")
-    ;
-  emscripten::class_<org::imm::ImmAtMentionValue, emscripten::base<org::imm::ImmAtMentionValueRead>>("ImmAtMentionValue")
-    ;
-  emscripten::class_<org::imm::ImmRawTextValue, emscripten::base<org::imm::ImmRawTextValueRead>>("ImmRawTextValue")
-    ;
-  emscripten::class_<org::imm::ImmPunctuationValue, emscripten::base<org::imm::ImmPunctuationValueRead>>("ImmPunctuationValue")
-    ;
-  emscripten::class_<org::imm::ImmPlaceholderValue, emscripten::base<org::imm::ImmPlaceholderValueRead>>("ImmPlaceholderValue")
-    ;
-  emscripten::class_<org::imm::ImmBigIdentValue, emscripten::base<org::imm::ImmBigIdentValueRead>>("ImmBigIdentValue")
-    ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
-  emscripten::class_<org::imm::ImmTextTargetValue, emscripten::base<org::imm::ImmTextTargetValueRead>>("ImmTextTargetValue")
-    ;
-  emscripten::class_<org::imm::ImmErrorSkipTokenValue, emscripten::base<org::imm::ImmErrorSkipTokenValueRead>>("ImmErrorSkipTokenValue")
-    ;
-  emscripten::class_<org::imm::ImmErrorSkipGroupValue, emscripten::base<org::imm::ImmErrorSkipGroupValueRead>>("ImmErrorSkipGroupValue")
-    .function("setSkipped", static_cast<void(org::imm::ImmErrorSkipGroupValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const&)>(&org::imm::ImmErrorSkipGroupValue::setSkipped))
-    ;
-  emscripten::class_<org::imm::ImmBoldValue, emscripten::base<org::imm::ImmBoldValueRead>>("ImmBoldValue")
-    ;
-  emscripten::class_<org::imm::ImmUnderlineValue, emscripten::base<org::imm::ImmUnderlineValueRead>>("ImmUnderlineValue")
-    ;
-  emscripten::class_<org::imm::ImmMonospaceValue, emscripten::base<org::imm::ImmMonospaceValueRead>>("ImmMonospaceValue")
-    ;
-  emscripten::class_<org::imm::ImmMarkQuoteValue, emscripten::base<org::imm::ImmMarkQuoteValueRead>>("ImmMarkQuoteValue")
-    ;
-  emscripten::class_<org::imm::ImmVerbatimValue, emscripten::base<org::imm::ImmVerbatimValueRead>>("ImmVerbatimValue")
-    ;
-  emscripten::class_<org::imm::ImmItalicValue, emscripten::base<org::imm::ImmItalicValueRead>>("ImmItalicValue")
-    ;
-  emscripten::class_<org::imm::ImmStrikeValue, emscripten::base<org::imm::ImmStrikeValueRead>>("ImmStrikeValue")
-    ;
-  emscripten::class_<org::imm::ImmParValue, emscripten::base<org::imm::ImmParValueRead>>("ImmParValue")
-    ;
-  emscripten::class_<org::imm::ImmRadioTargetValue, emscripten::base<org::imm::ImmRadioTargetValueRead>>("ImmRadioTargetValue")
-    .function("setWords", static_cast<void(org::imm::ImmRadioTargetValue::*)(immer::flex_vector<hstd::Str> const&)>(&org::imm::ImmRadioTargetValue::setWords))
-    ;
-  emscripten::class_<org::imm::ImmLatexValue, emscripten::base<org::imm::ImmLatexValueRead>>("ImmLatexValue")
-    ;
-  emscripten::class_<org::imm::ImmLinkValue, emscripten::base<org::imm::ImmLinkValueRead>>("ImmLinkValue")
-    .function("setDescription", static_cast<void(org::imm::ImmLinkValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmLinkValue::setDescription))
-    .function("setTarget", static_cast<void(org::imm::ImmLinkValue::*)(org::sem::LinkTarget const&)>(&org::imm::ImmLinkValue::setTarget))
-    ;
-  emscripten::class_<org::imm::ImmBlockCenterValue, emscripten::base<org::imm::ImmBlockCenterValueRead>>("ImmBlockCenterValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockQuoteValue, emscripten::base<org::imm::ImmBlockQuoteValueRead>>("ImmBlockQuoteValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockCommentValue, emscripten::base<org::imm::ImmBlockCommentValueRead>>("ImmBlockCommentValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockVerseValue, emscripten::base<org::imm::ImmBlockVerseValueRead>>("ImmBlockVerseValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockDynamicFallbackValue, emscripten::base<org::imm::ImmBlockDynamicFallbackValueRead>>("ImmBlockDynamicFallbackValue")
-    .function("setName", static_cast<void(org::imm::ImmBlockDynamicFallbackValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockDynamicFallbackValue::setName))
-    ;
-  emscripten::class_<org::imm::ImmBlockExampleValue, emscripten::base<org::imm::ImmBlockExampleValueRead>>("ImmBlockExampleValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockExportValue, emscripten::base<org::imm::ImmBlockExportValueRead>>("ImmBlockExportValue")
-    .function("setExporter", static_cast<void(org::imm::ImmBlockExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setExporter))
-    .function("setContent", static_cast<void(org::imm::ImmBlockExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmBlockExportValue::setContent))
-    ;
-  emscripten::class_<org::imm::ImmBlockAdmonitionValue, emscripten::base<org::imm::ImmBlockAdmonitionValueRead>>("ImmBlockAdmonitionValue")
-    ;
-  emscripten::class_<org::imm::ImmBlockCodeEvalResultValue, emscripten::base<org::imm::ImmBlockCodeEvalResultValueRead>>("ImmBlockCodeEvalResultValue")
-    .function("setRaw", static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(immer::flex_vector<org::sem::OrgCodeEvalOutput> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setRaw))
-    .function("setNode", static_cast<void(org::imm::ImmBlockCodeEvalResultValue::*)(org::imm::ImmIdT<org::imm::ImmOrg> const&)>(&org::imm::ImmBlockCodeEvalResultValue::setNode))
-    ;
-  emscripten::class_<org::imm::ImmBlockCodeValue, emscripten::base<org::imm::ImmBlockCodeValueRead>>("ImmBlockCodeValue")
-    .function("setLang", static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmBlockCodeValue::setLang))
-    .function("setResult", static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const&)>(&org::imm::ImmBlockCodeValue::setResult))
-    .function("setLines", static_cast<void(org::imm::ImmBlockCodeValue::*)(immer::flex_vector<org::sem::BlockCodeLine> const&)>(&org::imm::ImmBlockCodeValue::setLines))
-    .function("setSwitches", static_cast<void(org::imm::ImmBlockCodeValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmBlockCodeValue::setSwitches))
-    ;
-  emscripten::class_<org::imm::ImmSubtreeLogValue, emscripten::base<org::imm::ImmSubtreeLogValueRead>>("ImmSubtreeLogValue")
-    .function("setHead", static_cast<void(org::imm::ImmSubtreeLogValue::*)(org::sem::SubtreeLogHead const&)>(&org::imm::ImmSubtreeLogValue::setHead))
-    .function("setDesc", static_cast<void(org::imm::ImmSubtreeLogValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmStmtList>>> const&)>(&org::imm::ImmSubtreeLogValue::setDesc))
-    ;
-  emscripten::class_<org::imm::ImmSubtreeValue, emscripten::base<org::imm::ImmSubtreeValueRead>>("ImmSubtreeValue")
-    .function("setLevel", static_cast<void(org::imm::ImmSubtreeValue::*)(int const&)>(&org::imm::ImmSubtreeValue::setLevel))
-    .function("setTreeid", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTreeid))
-    .function("setTodo", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setTodo))
-    .function("setCompletion", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::sem::SubtreeCompletion>> const&)>(&org::imm::ImmSubtreeValue::setCompletion))
-    .function("setDescription", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmSubtreeValue::setDescription))
-    .function("setTags", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&)>(&org::imm::ImmSubtreeValue::setTags))
-    .function("setTitle", static_cast<void(org::imm::ImmSubtreeValue::*)(org::imm::ImmIdT<org::imm::ImmParagraph> const&)>(&org::imm::ImmSubtreeValue::setTitle))
-    .function("setLogbook", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const&)>(&org::imm::ImmSubtreeValue::setLogbook))
-    .function("setProperties", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::flex_vector<org::sem::NamedProperty> const&)>(&org::imm::ImmSubtreeValue::setProperties))
-    .function("setClosed", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setClosed))
-    .function("setDeadline", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setDeadline))
-    .function("setScheduled", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmTime>>> const&)>(&org::imm::ImmSubtreeValue::setScheduled))
-    .function("setIscomment", static_cast<void(org::imm::ImmSubtreeValue::*)(bool const&)>(&org::imm::ImmSubtreeValue::setIscomment))
-    .function("setIsarchived", static_cast<void(org::imm::ImmSubtreeValue::*)(bool const&)>(&org::imm::ImmSubtreeValue::setIsarchived))
-    .function("setPriority", static_cast<void(org::imm::ImmSubtreeValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmSubtreeValue::setPriority))
-    ;
-  emscripten::class_<org::imm::ImmCellValue, emscripten::base<org::imm::ImmCellValueRead>>("ImmCellValue")
-    .function("setIsblock", static_cast<void(org::imm::ImmCellValue::*)(bool const&)>(&org::imm::ImmCellValue::setIsblock))
-    ;
-  emscripten::class_<org::imm::ImmRowValue, emscripten::base<org::imm::ImmRowValueRead>>("ImmRowValue")
-    .function("setCells", static_cast<void(org::imm::ImmRowValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmCell>> const&)>(&org::imm::ImmRowValue::setCells))
-    .function("setIsblock", static_cast<void(org::imm::ImmRowValue::*)(bool const&)>(&org::imm::ImmRowValue::setIsblock))
-    ;
-  emscripten::class_<org::imm::ImmTableValue, emscripten::base<org::imm::ImmTableValueRead>>("ImmTableValue")
-    .function("setRows", static_cast<void(org::imm::ImmTableValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmRow>> const&)>(&org::imm::ImmTableValue::setRows))
-    .function("setIsblock", static_cast<void(org::imm::ImmTableValue::*)(bool const&)>(&org::imm::ImmTableValue::setIsblock))
-    ;
-  emscripten::class_<org::imm::ImmParagraphValue, emscripten::base<org::imm::ImmParagraphValueRead>>("ImmParagraphValue")
-    ;
-  emscripten::class_<org::imm::ImmColonExampleValue, emscripten::base<org::imm::ImmColonExampleValueRead>>("ImmColonExampleValue")
-    ;
-  emscripten::class_<org::imm::ImmCmdAttrValue, emscripten::base<org::imm::ImmCmdAttrValueRead>>("ImmCmdAttrValue")
-    .function("setTarget", static_cast<void(org::imm::ImmCmdAttrValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdAttrValue::setTarget))
-    ;
-  emscripten::class_<org::imm::ImmCmdExportValue, emscripten::base<org::imm::ImmCmdExportValueRead>>("ImmCmdExportValue")
-    .function("setExporter", static_cast<void(org::imm::ImmCmdExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setExporter))
-    .function("setContent", static_cast<void(org::imm::ImmCmdExportValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdExportValue::setContent))
-    ;
-  emscripten::class_<org::imm::ImmCallValue, emscripten::base<org::imm::ImmCallValueRead>>("ImmCallValue")
-    .function("setName", static_cast<void(org::imm::ImmCallValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCallValue::setName))
-    .function("setAttrs", static_cast<void(org::imm::ImmCallValue::*)(org::sem::AttrGroup const&)>(&org::imm::ImmCallValue::setAttrs))
-    .function("setIscommand", static_cast<void(org::imm::ImmCallValue::*)(bool const&)>(&org::imm::ImmCallValue::setIscommand))
-    ;
-  emscripten::class_<org::imm::ImmListValue, emscripten::base<org::imm::ImmListValueRead>>("ImmListValue")
-    ;
-  emscripten::class_<org::imm::ImmListItemValue, emscripten::base<org::imm::ImmListItemValueRead>>("ImmListItemValue")
-    .function("setCheckbox", static_cast<void(org::imm::ImmListItemValue::*)(CheckboxState const&)>(&org::imm::ImmListItemValue::setCheckbox))
-    .function("setHeader", static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmListItemValue::setHeader))
-    .function("setBullet", static_cast<void(org::imm::ImmListItemValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmListItemValue::setBullet))
-    ;
-  emscripten::class_<org::imm::ImmDocumentOptionsValue, emscripten::base<org::imm::ImmDocumentOptionsValueRead>>("ImmDocumentOptionsValue")
-    .function("setInitialvisibility", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(InitialSubtreeVisibility const&)>(&org::imm::ImmDocumentOptionsValue::setInitialvisibility))
-    .function("setProperties", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::NamedProperty> const&)>(&org::imm::ImmDocumentOptionsValue::setProperties))
-    .function("setExportconfig", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(org::sem::DocumentExportConfig const&)>(&org::imm::ImmDocumentOptionsValue::setExportconfig))
-    .function("setFixedwidthsections", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<bool>> const&)>(&org::imm::ImmDocumentOptionsValue::setFixedwidthsections))
-    .function("setStartupindented", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<bool>> const&)>(&org::imm::ImmDocumentOptionsValue::setStartupindented))
-    .function("setCategory", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentOptionsValue::setCategory))
-    .function("setSetupfile", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentOptionsValue::setSetupfile))
-    .function("setMaxsubtreelevelexport", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmDocumentOptionsValue::setMaxsubtreelevelexport))
-    .function("setColumns", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::box<std::optional<org::sem::ColumnView>> const&)>(&org::imm::ImmDocumentOptionsValue::setColumns))
-    .function("setTodokeywords", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setTodokeywords))
-    .function("setDonekeywords", static_cast<void(org::imm::ImmDocumentOptionsValue::*)(immer::flex_vector<org::sem::TodoKeyword> const&)>(&org::imm::ImmDocumentOptionsValue::setDonekeywords))
-    ;
-  emscripten::class_<org::imm::ImmDocumentFragmentValue, emscripten::base<org::imm::ImmDocumentFragmentValueRead>>("ImmDocumentFragmentValue")
-    .function("setBaseline", static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBaseline))
-    .function("setBasecol", static_cast<void(org::imm::ImmDocumentFragmentValue::*)(int const&)>(&org::imm::ImmDocumentFragmentValue::setBasecol))
-    ;
-  emscripten::class_<org::imm::ImmCriticMarkupValue, emscripten::base<org::imm::ImmCriticMarkupValueRead>>("ImmCriticMarkupValue")
-    .function("setKind", static_cast<void(org::imm::ImmCriticMarkupValue::*)(org::imm::ImmCriticMarkup::Kind const&)>(&org::imm::ImmCriticMarkupValue::setKind))
-    ;
-  emscripten::class_<org::imm::ImmDocumentValue, emscripten::base<org::imm::ImmDocumentValueRead>>("ImmDocumentValue")
-    .function("setTitle", static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setTitle))
-    .function("setAuthor", static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setAuthor))
-    .function("setCreator", static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmParagraph>>> const&)>(&org::imm::ImmDocumentValue::setCreator))
-    .function("setFiletags", static_cast<void(org::imm::ImmDocumentValue::*)(immer::flex_vector<org::imm::ImmIdT<org::imm::ImmHashTag>> const&)>(&org::imm::ImmDocumentValue::setFiletags))
-    .function("setEmail", static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<org::imm::ImmIdT<org::imm::ImmRawText>>> const&)>(&org::imm::ImmDocumentValue::setEmail))
-    .function("setLanguage", static_cast<void(org::imm::ImmDocumentValue::*)(immer::flex_vector<hstd::Str> const&)>(&org::imm::ImmDocumentValue::setLanguage))
-    .function("setOptions", static_cast<void(org::imm::ImmDocumentValue::*)(org::imm::ImmIdT<org::imm::ImmDocumentOptions> const&)>(&org::imm::ImmDocumentValue::setOptions))
-    .function("setExportfilename", static_cast<void(org::imm::ImmDocumentValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmDocumentValue::setExportfilename))
-    ;
-  emscripten::class_<org::imm::ImmFileTargetValue, emscripten::base<org::imm::ImmFileTargetValueRead>>("ImmFileTargetValue")
-    .function("setPath", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileTargetValue::setPath))
-    .function("setLine", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmFileTargetValue::setLine))
-    .function("setSearchtarget", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setSearchtarget))
-    .function("setRestricttoheadlines", static_cast<void(org::imm::ImmFileTargetValue::*)(bool const&)>(&org::imm::ImmFileTargetValue::setRestricttoheadlines))
-    .function("setTargetid", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setTargetid))
-    .function("setRegexp", static_cast<void(org::imm::ImmFileTargetValue::*)(immer::box<std::optional<hstd::Str>> const&)>(&org::imm::ImmFileTargetValue::setRegexp))
-    ;
-  emscripten::class_<org::imm::ImmTextSeparatorValue, emscripten::base<org::imm::ImmTextSeparatorValueRead>>("ImmTextSeparatorValue")
-    ;
-  emscripten::class_<org::imm::ImmDocumentGroupValue, emscripten::base<org::imm::ImmDocumentGroupValueRead>>("ImmDocumentGroupValue")
-    ;
-  emscripten::class_<org::imm::ImmFileValue, emscripten::base<org::imm::ImmFileValueRead>>("ImmFileValue")
-    .function("setRelpath", static_cast<void(org::imm::ImmFileValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileValue::setRelpath))
-    .function("setAbspath", static_cast<void(org::imm::ImmFileValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmFileValue::setAbspath))
-    .function("setData", static_cast<void(org::imm::ImmFileValue::*)(org::imm::ImmFile::Data const&)>(&org::imm::ImmFileValue::setData))
-    ;
-  emscripten::class_<org::imm::ImmDirectoryValue, emscripten::base<org::imm::ImmDirectoryValueRead>>("ImmDirectoryValue")
-    .function("setRelpath", static_cast<void(org::imm::ImmDirectoryValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setRelpath))
-    .function("setAbspath", static_cast<void(org::imm::ImmDirectoryValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmDirectoryValue::setAbspath))
-    ;
-  emscripten::class_<org::imm::ImmSymlinkValue, emscripten::base<org::imm::ImmSymlinkValueRead>>("ImmSymlinkValue")
-    .function("setIsdirectory", static_cast<void(org::imm::ImmSymlinkValue::*)(bool const&)>(&org::imm::ImmSymlinkValue::setIsdirectory))
-    .function("setAbspath", static_cast<void(org::imm::ImmSymlinkValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmSymlinkValue::setAbspath))
-    ;
-  emscripten::class_<org::imm::ImmCmdIncludeValue, emscripten::base<org::imm::ImmCmdIncludeValueRead>>("ImmCmdIncludeValue")
-    .function("setPath", static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<hstd::Str> const&)>(&org::imm::ImmCmdIncludeValue::setPath))
-    .function("setFirstline", static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setFirstline))
-    .function("setLastline", static_cast<void(org::imm::ImmCmdIncludeValue::*)(immer::box<std::optional<int>> const&)>(&org::imm::ImmCmdIncludeValue::setLastline))
-    .function("setData", static_cast<void(org::imm::ImmCmdIncludeValue::*)(org::imm::ImmCmdInclude::Data const&)>(&org::imm::ImmCmdIncludeValue::setData))
-    ;
   emscripten::class_<org::imm::ImmAdapterOrgAPI, emscripten::base<org::imm::ImmAdapterVirtualBase>>("ImmAdapterOrgAPI")
     ;
   emscripten::class_<org::sem::Cmd, emscripten::base<org::sem::Stmt>>("Cmd")
@@ -3269,6 +2663,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmTextTarget::*)(org::imm::ImmTextTarget const&) const>(&org::imm::ImmTextTarget::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmErrorSkipToken, emscripten::base<org::imm::ImmLeaf>>("ImmErrorSkipToken")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmErrorSkipToken::*)() const>(&org::imm::ImmErrorSkipToken::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmErrorSkipToken::*)(org::imm::ImmErrorSkipToken const&) const>(&org::imm::ImmErrorSkipToken::operator==))
@@ -3289,9 +2686,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmMonospace::*)(org::imm::ImmMonospace const&) const>(&org::imm::ImmMonospace::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmMarkQuote, emscripten::base<org::imm::ImmMarkup>>("ImmMarkQuote")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmMarkQuote::*)() const>(&org::imm::ImmMarkQuote::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmMarkQuote::*)(org::imm::ImmMarkQuote const&) const>(&org::imm::ImmMarkQuote::operator==))
@@ -3514,47 +2908,11 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterListAPI, emscripten::base<org::imm::ImmAdapterStmtAPI>>("ImmAdapterListAPI")
     ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, emscripten::base<org::imm::ImmAdapterSubtreeAPI>>("ImmSubtreeAdapter")
-    .function("getValue", static_cast<org::imm::ImmSubtreeValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, emscripten::base<org::imm::ImmAdapterNoNodeAPI>>("ImmNoNodeAdapter")
-    .function("getValue", static_cast<org::imm::ImmNoNodeValueRead(org::imm::ImmAdapterT<org::imm::ImmNoNode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNoNode>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, emscripten::base<org::imm::ImmAdapterErrorItemAPI>>("ImmErrorItemAdapter")
-    .function("getValue", static_cast<org::imm::ImmErrorItemValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, emscripten::base<org::imm::ImmAdapterErrorGroupAPI>>("ImmErrorGroupAdapter")
-    .function("getValue", static_cast<org::imm::ImmErrorGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, emscripten::base<org::imm::ImmAdapterErrorSkipGroupAPI>>("ImmErrorSkipGroupAdapter")
-    .function("getValue", static_cast<org::imm::ImmErrorSkipGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, emscripten::base<org::imm::ImmAdapterErrorSkipTokenAPI>>("ImmErrorSkipTokenAdapter")
-    .function("getValue", static_cast<org::imm::ImmErrorSkipTokenValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, emscripten::base<org::imm::ImmAdapterStmtListAPI>>("ImmStmtListAdapter")
-    .function("getValue", static_cast<org::imm::ImmStmtListValueRead(org::imm::ImmAdapterT<org::imm::ImmStmtList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmtList>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, emscripten::base<org::imm::ImmAdapterEmptyAPI>>("ImmEmptyAdapter")
-    .function("getValue", static_cast<org::imm::ImmEmptyValueRead(org::imm::ImmAdapterT<org::imm::ImmEmpty>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEmpty>::getValue))
-    ;
   emscripten::class_<org::imm::ImmAdapterHashTagAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterHashTagAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterInlineFootnoteAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterInlineFootnoteAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterSubtreeCompletionAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterSubtreeCompletionAPI")
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, emscripten::base<org::imm::ImmAdapterTimeAPI>>("ImmTimeAdapter")
-    .function("getValue", static_cast<org::imm::ImmTimeValueRead(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, emscripten::base<org::imm::ImmAdapterTimeRangeAPI>>("ImmTimeRangeAdapter")
-    .function("getValue", static_cast<org::imm::ImmTimeRangeValueRead(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, emscripten::base<org::imm::ImmAdapterMacroAPI>>("ImmMacroAdapter")
-    .function("getValue", static_cast<org::imm::ImmMacroValueRead(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, emscripten::base<org::imm::ImmAdapterSymbolAPI>>("ImmSymbolAdapter")
-    .function("getValue", static_cast<org::imm::ImmSymbolValueRead(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getValue))
     ;
   emscripten::class_<org::imm::ImmAdapterEscapedAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterEscapedAPI")
     ;
@@ -3593,57 +2951,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterStrikeAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterStrikeAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterParAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterParAPI")
-    ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmLatex>, emscripten::base<org::imm::ImmAdapterLatexAPI>>("ImmLatexAdapter")
-    .function("getValue", static_cast<org::imm::ImmLatexValueRead(org::imm::ImmAdapterT<org::imm::ImmLatex>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLatex>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, emscripten::base<org::imm::ImmAdapterSubtreeLogAPI>>("ImmSubtreeLogAdapter")
-    .function("getValue", static_cast<org::imm::ImmSubtreeLogValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, emscripten::base<org::imm::ImmAdapterColonExampleAPI>>("ImmColonExampleAdapter")
-    .function("getValue", static_cast<org::imm::ImmColonExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmColonExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmColonExample>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCall>, emscripten::base<org::imm::ImmAdapterCallAPI>>("ImmCallAdapter")
-    .function("getValue", static_cast<org::imm::ImmCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmFile>, emscripten::base<org::imm::ImmAdapterFileAPI>>("ImmFileAdapter")
-    .function("getValue", static_cast<org::imm::ImmFileValueRead(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDirectory>, emscripten::base<org::imm::ImmAdapterDirectoryAPI>>("ImmDirectoryAdapter")
-    .function("getValue", static_cast<org::imm::ImmDirectoryValueRead(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSymlink>, emscripten::base<org::imm::ImmAdapterSymlinkAPI>>("ImmSymlinkAdapter")
-    .function("getValue", static_cast<org::imm::ImmSymlinkValueRead(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, emscripten::base<org::imm::ImmAdapterDocumentFragmentAPI>>("ImmDocumentFragmentAdapter")
-    .function("getValue", static_cast<org::imm::ImmDocumentFragmentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, emscripten::base<org::imm::ImmAdapterCriticMarkupAPI>>("ImmCriticMarkupAdapter")
-    .function("getValue", static_cast<org::imm::ImmCriticMarkupValueRead(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, emscripten::base<org::imm::ImmAdapterListItemAPI>>("ImmListItemAdapter")
-    .function("getValue", static_cast<org::imm::ImmListItemValueRead(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, emscripten::base<org::imm::ImmAdapterDocumentOptionsAPI>>("ImmDocumentOptionsAdapter")
-    .function("getValue", static_cast<org::imm::ImmDocumentOptionsValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, emscripten::base<org::imm::ImmAdapterDocumentAPI>>("ImmDocumentAdapter")
-    .function("getValue", static_cast<org::imm::ImmDocumentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, emscripten::base<org::imm::ImmAdapterFileTargetAPI>>("ImmFileTargetAdapter")
-    .function("getValue", static_cast<org::imm::ImmFileTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, emscripten::base<org::imm::ImmAdapterTextSeparatorAPI>>("ImmTextSeparatorAdapter")
-    .function("getValue", static_cast<org::imm::ImmTextSeparatorValueRead(org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, emscripten::base<org::imm::ImmAdapterCmdIncludeAPI>>("ImmCmdIncludeAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdIncludeValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, emscripten::base<org::imm::ImmAdapterDocumentGroupAPI>>("ImmDocumentGroupAdapter")
-    .function("getValue", static_cast<org::imm::ImmDocumentGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::getValue))
     ;
   emscripten::class_<org::sem::BlockCenter, emscripten::base<org::sem::Block>>("BlockCenter")
     .smart_ptr<org::sem::SemId<org::sem::BlockCenter>>("BlockCenter")
@@ -3691,6 +2998,9 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::BlockCode, emscripten::base<org::sem::Block>>("BlockCode")
     .smart_ptr<org::sem::SemId<org::sem::BlockCode>>("BlockCode")
     .property("lang", &org::sem::BlockCode::lang)
@@ -3795,87 +3105,6 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterRowAPI, emscripten::base<org::imm::ImmAdapterCmdAPI>>("ImmAdapterRowAPI")
     ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, emscripten::base<org::imm::ImmAdapterCmdCustomRawAPI>>("ImmCmdCustomRawAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCustomRawValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, emscripten::base<org::imm::ImmAdapterCmdCustomTextAPI>>("ImmCmdCustomTextAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCustomTextValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, emscripten::base<org::imm::ImmAdapterLinkAPI>>("ImmLinkAdapter")
-    .function("getValue", static_cast<org::imm::ImmLinkValueRead(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, emscripten::base<org::imm::ImmAdapterBlockCommentAPI>>("ImmBlockCommentAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockCommentValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockComment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockComment>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmParagraph>, emscripten::base<org::imm::ImmAdapterParagraphAPI>>("ImmParagraphAdapter")
-    .function("getValue", static_cast<org::imm::ImmParagraphValueRead(org::imm::ImmAdapterT<org::imm::ImmParagraph>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmParagraph>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmList>, emscripten::base<org::imm::ImmAdapterListAPI>>("ImmListAdapter")
-    .function("getValue", static_cast<org::imm::ImmListValueRead(org::imm::ImmAdapterT<org::imm::ImmList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmList>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmHashTag>, emscripten::base<org::imm::ImmAdapterHashTagAPI>>("ImmHashTagAdapter")
-    .function("getValue", static_cast<org::imm::ImmHashTagValueRead(org::imm::ImmAdapterT<org::imm::ImmHashTag>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmHashTag>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, emscripten::base<org::imm::ImmAdapterInlineFootnoteAPI>>("ImmInlineFootnoteAdapter")
-    .function("getValue", static_cast<org::imm::ImmInlineFootnoteValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, emscripten::base<org::imm::ImmAdapterEscapedAPI>>("ImmEscapedAdapter")
-    .function("getValue", static_cast<org::imm::ImmEscapedValueRead(org::imm::ImmAdapterT<org::imm::ImmEscaped>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEscaped>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmNewline>, emscripten::base<org::imm::ImmAdapterNewlineAPI>>("ImmNewlineAdapter")
-    .function("getValue", static_cast<org::imm::ImmNewlineValueRead(org::imm::ImmAdapterT<org::imm::ImmNewline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNewline>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSpace>, emscripten::base<org::imm::ImmAdapterSpaceAPI>>("ImmSpaceAdapter")
-    .function("getValue", static_cast<org::imm::ImmSpaceValueRead(org::imm::ImmAdapterT<org::imm::ImmSpace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSpace>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, emscripten::base<org::imm::ImmAdapterWordAPI>>("ImmWordAdapter")
-    .function("getValue", static_cast<org::imm::ImmWordValueRead(org::imm::ImmAdapterT<org::imm::ImmWord>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmWord>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmAtMention>, emscripten::base<org::imm::ImmAdapterAtMentionAPI>>("ImmAtMentionAdapter")
-    .function("getValue", static_cast<org::imm::ImmAtMentionValueRead(org::imm::ImmAdapterT<org::imm::ImmAtMention>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmAtMention>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmRawText>, emscripten::base<org::imm::ImmAdapterRawTextAPI>>("ImmRawTextAdapter")
-    .function("getValue", static_cast<org::imm::ImmRawTextValueRead(org::imm::ImmAdapterT<org::imm::ImmRawText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRawText>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, emscripten::base<org::imm::ImmAdapterPunctuationAPI>>("ImmPunctuationAdapter")
-    .function("getValue", static_cast<org::imm::ImmPunctuationValueRead(org::imm::ImmAdapterT<org::imm::ImmPunctuation>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPunctuation>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, emscripten::base<org::imm::ImmAdapterPlaceholderAPI>>("ImmPlaceholderAdapter")
-    .function("getValue", static_cast<org::imm::ImmPlaceholderValueRead(org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, emscripten::base<org::imm::ImmAdapterBigIdentAPI>>("ImmBigIdentAdapter")
-    .function("getValue", static_cast<org::imm::ImmBigIdentValueRead(org::imm::ImmAdapterT<org::imm::ImmBigIdent>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBigIdent>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, emscripten::base<org::imm::ImmAdapterTextTargetAPI>>("ImmTextTargetAdapter")
-    .function("getValue", static_cast<org::imm::ImmTextTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmTextTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextTarget>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBold>, emscripten::base<org::imm::ImmAdapterBoldAPI>>("ImmBoldAdapter")
-    .function("getValue", static_cast<org::imm::ImmBoldValueRead(org::imm::ImmAdapterT<org::imm::ImmBold>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBold>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmUnderline>, emscripten::base<org::imm::ImmAdapterUnderlineAPI>>("ImmUnderlineAdapter")
-    .function("getValue", static_cast<org::imm::ImmUnderlineValueRead(org::imm::ImmAdapterT<org::imm::ImmUnderline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmUnderline>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMonospace>, emscripten::base<org::imm::ImmAdapterMonospaceAPI>>("ImmMonospaceAdapter")
-    .function("getValue", static_cast<org::imm::ImmMonospaceValueRead(org::imm::ImmAdapterT<org::imm::ImmMonospace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMonospace>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, emscripten::base<org::imm::ImmAdapterMarkQuoteAPI>>("ImmMarkQuoteAdapter")
-    .function("getValue", static_cast<org::imm::ImmMarkQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, emscripten::base<org::imm::ImmAdapterRadioTargetAPI>>("ImmRadioTargetAdapter")
-    .function("getValue", static_cast<org::imm::ImmRadioTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, emscripten::base<org::imm::ImmAdapterVerbatimAPI>>("ImmVerbatimAdapter")
-    .function("getValue", static_cast<org::imm::ImmVerbatimValueRead(org::imm::ImmAdapterT<org::imm::ImmVerbatim>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmVerbatim>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmItalic>, emscripten::base<org::imm::ImmAdapterItalicAPI>>("ImmItalicAdapter")
-    .function("getValue", static_cast<org::imm::ImmItalicValueRead(org::imm::ImmAdapterT<org::imm::ImmItalic>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmItalic>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmStrike>, emscripten::base<org::imm::ImmAdapterStrikeAPI>>("ImmStrikeAdapter")
-    .function("getValue", static_cast<org::imm::ImmStrikeValueRead(org::imm::ImmAdapterT<org::imm::ImmStrike>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStrike>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, emscripten::base<org::imm::ImmAdapterParAPI>>("ImmParAdapter")
-    .function("getValue", static_cast<org::imm::ImmParValueRead(org::imm::ImmAdapterT<org::imm::ImmPar>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPar>::getValue))
-    ;
   emscripten::class_<org::sem::CmdCaption, emscripten::base<org::sem::Attached>>("CmdCaption")
     .smart_ptr<org::sem::SemId<org::sem::CmdCaption>>("CmdCaption")
     .property("text", &org::sem::CmdCaption::text)
@@ -3962,24 +3191,6 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterAttachedAPI, emscripten::base<org::imm::ImmAdapterLineCommandAPI>>("ImmAdapterAttachedAPI")
     ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, emscripten::base<org::imm::ImmAdapterCmdCustomArgsAPI>>("ImmCmdCustomArgsAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCustomArgsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, emscripten::base<org::imm::ImmAdapterCmdCreatorAPI>>("ImmCmdCreatorAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCreatorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, emscripten::base<org::imm::ImmAdapterCmdAuthorAPI>>("ImmCmdAuthorAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdAuthorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, emscripten::base<org::imm::ImmAdapterCmdEmailAPI>>("ImmCmdEmailAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdEmailValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>, emscripten::base<org::imm::ImmAdapterCmdLanguageAPI>>("ImmCmdLanguageAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdLanguageValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, emscripten::base<org::imm::ImmAdapterCmdTblfmAPI>>("ImmCmdTblfmAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdTblfmValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getValue))
-    ;
   emscripten::class_<org::imm::ImmAdapterBlockCenterAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockCenterAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterBlockQuoteAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockQuoteAPI")
@@ -3994,9 +3205,6 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterBlockExportAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockExportAPI")
     ;
-}
-
-void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterBlockDynamicFallbackAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockDynamicFallbackAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterBlockAdmonitionAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockAdmonitionAPI")
@@ -4006,12 +3214,6 @@ void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterBlockCodeAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockCodeAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterTableAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterTableAPI")
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, emscripten::base<org::imm::ImmAdapterCellAPI>>("ImmCellAdapter")
-    .function("getValue", static_cast<org::imm::ImmCellValueRead(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, emscripten::base<org::imm::ImmAdapterRowAPI>>("ImmRowAdapter")
-    .function("getValue", static_cast<org::imm::ImmRowValueRead(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getValue))
     ;
   emscripten::class_<org::imm::ImmAdapterCmdCaptionAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdCaptionAPI")
     ;
@@ -4024,57 +3226,6 @@ void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterCmdResultsAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdResultsAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterCmdAttrAPI, emscripten::base<org::imm::ImmAdapterAttachedAPI>>("ImmAdapterCmdAttrAPI")
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, emscripten::base<org::imm::ImmAdapterBlockCenterAPI>>("ImmBlockCenterAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockCenterValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, emscripten::base<org::imm::ImmAdapterBlockQuoteAPI>>("ImmBlockQuoteAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, emscripten::base<org::imm::ImmAdapterBlockVerseAPI>>("ImmBlockVerseAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockVerseValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, emscripten::base<org::imm::ImmAdapterBlockExampleAPI>>("ImmBlockExampleAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExample>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, emscripten::base<org::imm::ImmAdapterInlineExportAPI>>("ImmInlineExportAdapter")
-    .function("getValue", static_cast<org::imm::ImmInlineExportValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, emscripten::base<org::imm::ImmAdapterCmdExportAPI>>("ImmCmdExportAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdExportValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, emscripten::base<org::imm::ImmAdapterBlockExportAPI>>("ImmBlockExportAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockExportValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, emscripten::base<org::imm::ImmAdapterBlockDynamicFallbackAPI>>("ImmBlockDynamicFallbackAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockDynamicFallbackValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, emscripten::base<org::imm::ImmAdapterBlockAdmonitionAPI>>("ImmBlockAdmonitionAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockAdmonitionValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, emscripten::base<org::imm::ImmAdapterBlockCodeEvalResultAPI>>("ImmBlockCodeEvalResultAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockCodeEvalResultValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, emscripten::base<org::imm::ImmAdapterBlockCodeAPI>>("ImmBlockCodeAdapter")
-    .function("getValue", static_cast<org::imm::ImmBlockCodeValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTable>, emscripten::base<org::imm::ImmAdapterTableAPI>>("ImmTableAdapter")
-    .function("getValue", static_cast<org::imm::ImmTableValueRead(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, emscripten::base<org::imm::ImmAdapterCmdCaptionAPI>>("ImmCmdCaptionAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCaptionValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, emscripten::base<org::imm::ImmAdapterCmdColumnsAPI>>("ImmCmdColumnsAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdColumnsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdName>, emscripten::base<org::imm::ImmAdapterCmdNameAPI>>("ImmCmdNameAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdNameValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdName>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdName>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, emscripten::base<org::imm::ImmAdapterCmdCallAPI>>("ImmCmdCallAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getValue))
-    ;
-  emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, emscripten::base<org::imm::ImmAdapterCmdAttrAPI>>("ImmCmdAttrAdapter")
-    .function("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
     ;
   org::bind::js::bind_enum<CheckboxState>("CheckboxState");
   org::bind::js::bind_enum<SubtreeTodoSource>("SubtreeTodoSource");
@@ -4122,8 +3273,5 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   subdivide_4(g);
   subdivide_5(g);
   subdivide_6(g);
-  subdivide_7(g);
-  subdivide_8(g);
-  subdivide_9(g);
 }
 /* clang-format on */

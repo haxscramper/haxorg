@@ -777,8 +777,8 @@ class ProtoBuilder():
                             writer,
                             reader,
                         ],
-                        Template=cpp.TemplateParams(Stacks=[cpp.TemplateGroup(
-                            Params=[])]),
+                        Template=cpp.GenTuTemplateParams(
+                            Stacks=[cpp.GenTuTemplateGroup(Params=[])]),
                         IsTemplateSpecialization=True,
                     ),
                     writer_specialization,

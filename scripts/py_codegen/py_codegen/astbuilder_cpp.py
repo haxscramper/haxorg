@@ -138,6 +138,9 @@ class QualType(BaseModel, extra="forbid"):
     def asConstRef(self) -> "QualType":
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
 
+    def asConstPtr(self) -> "QualType":
+        return self.model_copy(update=dict(isConst=True, ptrCount=1))
+
     def asRef(self) -> "QualType":
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
@@ -479,28 +482,28 @@ class QualType(BaseModel, extra="forbid"):
 
 @beartype
 @dataclass
-class TemplateTypename:
+class GenTuTemplateTypename:
     Placeholder: bool = False
     Variadic: bool = False
     Name: str = ""
-    Nested: List['TemplateTypename'] = field(default_factory=list)
+    Nested: List['GenTuTemplateTypename'] = field(default_factory=list)
     Concept: Optional[str] = None
 
 
 @beartype
 @dataclass
-class TemplateGroup:
-    Params: List[TemplateTypename] = field(default_factory=list)
+class GenTuTemplateGroup:
+    Params: List[GenTuTemplateTypename] = field(default_factory=list)
 
 
 @beartype
 @dataclass
-class TemplateParams:
-    Stacks: List[TemplateGroup] = field(default_factory=list)
+class GenTuTemplateParams:
+    Stacks: List[GenTuTemplateGroup] = field(default_factory=list)
 
     @staticmethod
-    def FinalSpecialization() -> "TemplateParams":
-        return TemplateParams(Stacks=[TemplateGroup()])
+    def FinalSpecialization() -> "GenTuTemplateParams":
+        return GenTuTemplateParams(Stacks=[GenTuTemplateGroup()])
 
 
 class StorageClass(Enum):
@@ -531,7 +534,7 @@ class ParmVarParams:
 class FunctionParams:
     Name: str
     doc: DocParams = field(default_factory=lambda: DocParams(""))
-    Template: TemplateParams = field(default_factory=TemplateParams)
+    Template: GenTuTemplateParams = field(default_factory=GenTuTemplateParams)
     ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
@@ -539,6 +542,7 @@ class FunctionParams:
     Inline: bool = False
     InitList: List[BlockId] = field(default_factory=list)
     AllowOneLine: bool = True
+    IsConstructor: bool = False
 
 
 @beartype
@@ -553,7 +557,7 @@ class LambdaCapture:
 class LambdaParams:
     Args: List[ParmVarParams] = field(default_factory=list)
     ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("auto"))
-    Template: TemplateParams = field(default_factory=TemplateParams)
+    Template: GenTuTemplateParams = field(default_factory=GenTuTemplateParams)
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
     IsLine: bool = True
@@ -690,7 +694,7 @@ class RecordParams:
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
     nested: List[RecordNested] = field(default_factory=list)
-    Template: TemplateParams = field(default_factory=TemplateParams)
+    Template: Optional[GenTuTemplateParams] = field(default_factory=GenTuTemplateParams)
     IsDefinition: bool = True
     TrailingLine: bool = True
     IsTemplateSpecialization: bool = False
@@ -706,7 +710,7 @@ class RecordParams:
 class UsingParams:
     baseType: QualType
     newName: Optional[str] = None
-    Template: TemplateParams = field(default_factory=TemplateParams)
+    Template: GenTuTemplateParams = field(default_factory=GenTuTemplateParams)
 
 
 @beartype
@@ -824,12 +828,12 @@ class ASTBuilder(base.AstbuilderBase):
                          Params=Params)
 
     def XConstructObj(self,
-                      obj: QualType,
+                      obj: QualType | BlockId,
                       Args: List[BlockId] = [],
                       Line: bool = True) -> BlockId:
         if Line:
             return self.line([
-                self.Type(obj),
+                self.Type(obj) if isinstance(obj, QualType) else obj,
                 self.string("{"),
                 self.csv(Args),
                 self.string("}"),
@@ -1286,14 +1290,23 @@ class ASTBuilder(base.AstbuilderBase):
             self.InitList(method.Params),
         ])
 
+        if method.Params.IsConstructor:
+            has_body = bool(method.Params.InitList) or bool(method.Params.Body)
+
+        else:
+            has_body = bool(method.Params.Body)
+
+        if has_body:
+            impl_block = self.block(
+                head,
+                method.Params.Body or list(),
+                allowOneLine=method.Params.AllowOneLine,
+            )
+        else:
+            impl_block = self.b.line([head, self.string(";")])
+
         return self.WithAccess(
-            self.WithDoc(
-                self.b.line([head, self.string(";")])
-                if method.Params.Body is None else self.block(
-                    head,
-                    method.Params.Body,
-                    allowOneLine=method.Params.AllowOneLine,
-                ), method.Params.doc),
+            self.WithDoc(impl_block, method.Params.doc),
             method.access,
         )
 
@@ -1601,9 +1614,9 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Template(
-            self, Param: Union[TemplateTypename, TemplateGroup,
-                               TemplateParams]) -> BlockId:
-        if isinstance(Param, TemplateTypename):
+        self, Param: Union[GenTuTemplateTypename, GenTuTemplateGroup, GenTuTemplateParams]
+    ) -> BlockId:
+        if isinstance(Param, GenTuTemplateTypename):
             concept_str = Param.Concept if Param.Concept else (
                 "typename" if not Param.Nested else "template")
             placeholder_str = "" if Param.Placeholder else " "
@@ -1619,7 +1632,7 @@ class ASTBuilder(base.AstbuilderBase):
                                           self.string(">"))
             ])
 
-        elif isinstance(Param, TemplateGroup):
+        elif isinstance(Param, GenTuTemplateGroup):
             return self.b.line([
                 self.string("template <"),
                 self.b.join([self.Template(Param) for Param in Param.Params],
@@ -1628,14 +1641,15 @@ class ASTBuilder(base.AstbuilderBase):
             ])
 
         else:
-            assert (isinstance(Param, TemplateParams))
+            assert (isinstance(Param, GenTuTemplateParams))
             return self.b.stack([self.Template(Spec) for Spec in Param.Stacks])
 
-    def WithTemplate(self, Templ: TemplateParams, Body: BlockId) -> BlockId:
-        if not Templ.Stacks:
-            return Body
-        else:
+    def WithTemplate(self, Templ: Optional[GenTuTemplateParams],
+                     Body: BlockId) -> BlockId:
+        if Templ and Templ.Stacks:
             return self.b.stack([self.Template(Templ), Body])
+        else:
+            return Body
 
     def WithDoc(self, content: BlockId, doc: Optional[DocParams]) -> BlockId:
         if not doc or not doc.brief and not doc.full:

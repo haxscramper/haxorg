@@ -272,7 +272,7 @@ def get_imm_serde(
                 rec = RecordParams(
                     name=QualType(name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
-                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    Template=GenTuTemplateParams(Stacks=[GenTuTemplateGroup(Params=[])]),
                     members=[writer, reader],
                 )
 
@@ -671,6 +671,108 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     return result
 
 
+def generate_adapter_specializations(ast: ASTBuilder,
+                                     types: List[GenTuStruct]) -> List[GenTuStruct]:
+    """
+    Create value reader types and explicit instantiations of the adapter template structures.
+    """
+    result: List[GenTuStruct] = list()
+    imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
+
+    def for_final_type(sem_base: GenTuStruct):
+        derived_base: str = sem_base.name.name
+        Derived = QualType(name=f"Imm{derived_base}", Spaces=imm_space)
+        DerivedValueRead = QualType(name=f"Imm{derived_base}ValueRead", Spaces=imm_space)
+        Api = QualType(name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
+        Base = QualType(name="ImmAdapterTBase", Spaces=imm_space, Parameters=[Derived])
+
+        result.append(
+            GenTuStruct(
+                name=DerivedValueRead.withoutAllScopeQualifiers(),
+                reflectionParams=GenTuReflParams(default_constructor=True),
+                methods=[
+                    GenTuFunction(
+                        name=f"get{f.name.capitalize()}",
+                        isConst=True,
+                        result=f.type.asConstRef(),
+                    ) for f in sem_base.fields if not f.isStatic
+                ] + [
+                    GenTuFunction(
+                        IsConstructor=True,
+                        name=DerivedValueRead.name,
+                        arguments=[GenTuIdent(
+                            name="ptr",
+                            type=Derived.asConstPtr(),
+                        )],
+                        InitList=[
+                            ast.XConstructObj(ast.string("ptr"), [
+                                ast.XCall("const_cast", [ast.string("ptr")],
+                                          Params=[
+                                              Derived.asPtr(1),
+                                          ])
+                            ])
+                        ])
+                ],
+                fields=[
+                    GenTuField(name="ptr",
+                               type=Derived.asPtr(1),
+                               isExposedForDescribe=False)
+                ]))
+
+        result.append(
+            GenTuStruct(
+                name=QualType(name="ImmAdapterT"),
+                IsTemplateRecord=True,
+                IsExplicitInstantiation=True,
+                ExplicitTemplateParams=[Derived],
+                bases=[Base, Api],
+                TemplateParams=GenTuTemplateParams.FinalSpecialization(),
+                reflectionParams=GenTuReflParams(
+                    wrapper_has_params=False,
+                    wrapper_name=Derived.name,
+                    default_constructor=False,
+                ),
+                nested=[
+                    GenTuPass(ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
+                    GenTuPass(ast.Using(UsingParams(newName="api_type", baseType=Api)))
+                ],
+                methods=[
+                    GenTuFunction(
+                        arguments=[
+                            GenTuIdent(
+                                type=QualType(name="ImmAdapter",
+                                              Spaces=imm_space).asConstRef(),
+                                name="other",
+                            )
+                        ],
+                        name="ImmAdapterT",
+                        IsConstructor=True,
+                        impl=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
+                            ast.Literal(
+                                "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
+                            ),
+                            ast.Literal(derived_base),
+                            ast.XCallRef(ast.string("other"), "getKind"),
+                        ])),
+                    GenTuFunction(
+                        isConst=True,
+                        name="getValue",
+                        result=DerivedValueRead,
+                        impl=ast.Return(
+                            ast.XConstructObj(
+                                DerivedValueRead,
+                                [ast.Addr(ast.XCallPtr(
+                                    ast.string("this"),
+                                    "value",
+                                ))]))),
+                ]))
+
+    for t in types:
+        for_final_type(t)
+
+    return result
+
+
 def to_base_types(obj: Any) -> Any:
 
     def aux(obj: Any, seen: Any) -> Any:
@@ -1006,6 +1108,7 @@ class PyhaxorgTypeGroups():
     shared_types: List[GenTuStruct] = field(default_factory=list)
     expanded: List[GenTuStruct] = field(default_factory=list)
     immutable: List[GenTuStruct] = field(default_factory=list)
+    adapter_specializations: List[GenTuStruct] = field(default_factory=list)
     tu: ConvTu = field(default_factory=lambda: ConvTu())
     base_map: GenTypeMap = field(
         default_factory=lambda: GenTypeMap())  # type: ignore[assignment]
@@ -1050,6 +1153,7 @@ def get_pyhaxorg_type_groups(
     res = PyhaxorgTypeGroups()
     res.shared_types = expand_type_groups(ast, get_shared_sem_types())  # type: ignore
     res.expanded = expand_type_groups(ast, get_types())  # type: ignore
+    res.adapter_specializations = generate_adapter_specializations(ast, res.expanded)
     res.immutable = expand_type_groups(ast,
                                        rewrite_to_immutable(get_types()))  # type: ignore
 
@@ -1318,6 +1422,15 @@ def gen_pyhaxorg_source(
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
                     GenTuNamespace(n_imm(), groups.immutable),
+                ],
+            )),
+        GenUnit(
+            GenTu(
+                "{base}/imm/ImmOrgAdapterGenerated.hpp",
+                [
+                    GenTuPass("#pragma once"),
+                    GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
+                    GenTuNamespace(n_imm(), groups.adapter_specializations),
                 ],
             )),
     ])

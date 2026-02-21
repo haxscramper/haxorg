@@ -4,9 +4,11 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import List, Literal, Sequence, Set, TypeAlias
+from mypy.checker import is_static
 from py_codegen.astbuilder_cpp import *
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import cond, iterate_object_tree
+from py_scriptutils.script_logging import log
 from pydantic import AliasChoices
 
 CAT = __name__
@@ -181,6 +183,7 @@ class GenTuFunction:
     OriginName: Optional[str] = None
 
     IsConstructor: bool = False
+    InitList: List[BlockId] = field(default_factory=list)
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
 
@@ -230,6 +233,7 @@ class GenTuField:
     isStatic: bool = False
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
+    isExposedForDescribe: bool = True
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
 
@@ -267,6 +271,7 @@ class GenTuStruct:
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     OriginName: Optional[str] = None
     IsDescribedRecord: bool = False
+    TemplateParams: Optional[GenTuTemplateParams] = None
 
     def __str__(self) -> str:
         return f"GenTuStruct({self.name.format()})"
@@ -484,9 +489,9 @@ class GenConverter:
     pendingToplevel: List[BlockId] = field(default_factory=list)
     context: List[QualType] = field(default_factory=list)
 
-    def convertParams(self, Params: List[GenTuParam]) -> TemplateGroup:
-        return TemplateGroup(
-            Params=[TemplateTypename(Name=Param.name) for Param in Params])
+    def convertParams(self, Params: List[GenTuParam]) -> GenTuTemplateGroup:
+        return GenTuTemplateGroup(
+            Params=[GenTuTemplateTypename(Name=Param.name) for Param in Params])
 
     def convertFunctionBlock(self, func: FunctionParams) -> BlockId:
         return self.ast.Function(func)
@@ -496,6 +501,8 @@ class GenConverter:
             ResultTy=func.result,
             Name=func.name,
             doc=self.convertDoc(func.doc),
+            InitList=func.InitList,
+            IsConstructor=func.IsConstructor,
         )
 
         if func.params:
@@ -546,9 +553,12 @@ class GenConverter:
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
-            name=record.name,
+            name=record.declarationQualName()
+            if record.IsExplicitInstantiation else record.name,
             doc=self.convertDoc(record.doc),
             bases=record.bases,
+            IsTemplateSpecialization=record.IsExplicitInstantiation,
+            Template=record.TemplateParams,
         )
 
         with GenConverterWithContext(self, record.name):
@@ -592,23 +602,39 @@ class GenConverter:
             ]
 
             if record.GenDescribeFields or record.GenDescribeMethods:
+                if record.GenDescribeFields:
+                    described_fields = [
+                        self.ast.string(f.name)
+                        for f in record.fields
+                        if f.isExposedForDescribe
+                    ]
+                else:
+                    described_fields = []
+
+                if record.GenDescribeMethods:
+                    described_methods = methods
+
+                else:
+                    described_methods = []
+
+                LineParameters = len(described_fields) < 4 and len(described_methods) < 1
+
                 params.nested.append(
                     self.ast.XCall(
                         "BOOST_DESCRIBE_CLASS",
                         [
                             self.ast.string(record.name.name),
                             self.ast.pars(
-                                self.ast.csv([B.name for B in record.bases], False)),
+                                self.ast.csv([B.name for B in record.bases],
+                                             LineParameters)),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(
-                                self.ast.csv(
-                                    cond(record.GenDescribeFields, fields, []) +
-                                    cond(record.GenDescribeMethods, methods, []),
-                                    len(fields) < 6 and len(methods) < 2)),
+                                self.ast.csv(described_fields + described_methods,
+                                             len(fields) < 6 and len(methods) < 2)),
                         ],
-                        False,
-                        len(fields) < 4 and len(methods) < 1,
+                        Stmt=True,
+                        LineParameters=LineParameters,
                     ))
 
         return self.ast.Record(params)

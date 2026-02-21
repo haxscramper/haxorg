@@ -11,6 +11,7 @@ exclude: |
     src/haxorg/serde/SemOrgSerdeDefinitions\.cpp|
     src/haxorg/exporters/Exporter\.tcc|
     src/haxorg/imm/ImmOrgSerde\.tcc|
+    src/haxorg/imm/ImmOrgAdapterGenerated\.hpp|
     src/haxorg/exporters/ExporterMethods\.tcc|
     src/haxorg/sem/SemOrgEnums\.hpp|
     src/haxorg/sem/SemOrgEnums\.cpp|
