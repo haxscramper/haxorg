@@ -314,6 +314,7 @@ def generate_adapter_specializations(
                         ],
                         name="ImmAdapterT",
                         IsConstructor=True,
+                        InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
                         impl=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
                             ast.Literal(
                                 "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
