@@ -516,12 +516,11 @@ class NbEnum:
                         Func=GenTuFunction(
                             name="",
                             result=QualType(name="int"),
-                            arguments=[GenTuIdent(self.Enum.name, "v")],
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
-                                          args=[ast.string("v")],
+                                          args=[ast.string("_self")],
                                           Params=[
                                               QualType(name="int"),
                                           ]))
@@ -532,12 +531,11 @@ class NbEnum:
                         Func=GenTuFunction(
                             name="",
                             result=QualType(name="int"),
-                            arguments=[GenTuIdent(self.Enum.name, "v")],
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
-                                          args=[ast.string("v")],
+                                          args=[ast.string("_self")],
                                           Params=[
                                               QualType(name="int"),
                                           ]))

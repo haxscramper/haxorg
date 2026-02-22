@@ -1562,16 +1562,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::LispCode::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::LispCode::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::LispCode::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::LispCode::Kind const& _self, org::sem::LispCode::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::LispCode::Kind const& _self, org::sem::LispCode::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::LispCode::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::LispCode::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::LispCode::Kind lhs, org::sem::LispCode::Kind rhs) -> bool {
          return lhs == rhs;
@@ -1673,16 +1669,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self, org::sem::Tblfm::Expr::AxisRef::Position::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Kind lhs, org::sem::Tblfm::Expr::AxisRef::Position::Kind rhs) -> bool {
          return lhs == rhs;
@@ -1879,16 +1871,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Tblfm::Expr::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::Tblfm::Expr::Kind const& _self, org::sem::Tblfm::Expr::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Tblfm::Expr::Kind const& _self, org::sem::Tblfm::Expr::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Tblfm::Expr::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Tblfm::Expr::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Tblfm::Expr::Kind lhs, org::sem::Tblfm::Expr::Kind rhs) -> bool {
          return lhs == rhs;
@@ -1960,16 +1948,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Tblfm::Assign::Flag const& _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag> {
                      return org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag>();
                      })
-    .def("__int__",
-         [](org::sem::Tblfm::Assign::Flag const& _self, org::sem::Tblfm::Assign::Flag v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Tblfm::Assign::Flag const& _self, org::sem::Tblfm::Assign::Flag v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Tblfm::Assign::Flag const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Tblfm::Assign::Flag const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Tblfm::Assign::Flag lhs, org::sem::Tblfm::Assign::Flag rhs) -> bool {
          return lhs == rhs;
@@ -2116,16 +2100,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::AttrValue::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::AttrValue::Kind const& _self, org::sem::AttrValue::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::AttrValue::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::AttrValue::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::AttrValue::Kind lhs, org::sem::AttrValue::Kind rhs) -> bool {
          return lhs == rhs;
@@ -2209,16 +2189,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::TodoKeyword::Transition const& _self) -> org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition> {
                      return org::bind::python::PyEnumIterator<org::sem::TodoKeyword::Transition>();
                      })
-    .def("__int__",
-         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::TodoKeyword::Transition const& _self, org::sem::TodoKeyword::Transition v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::TodoKeyword::Transition const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::TodoKeyword::Transition const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::TodoKeyword::Transition lhs, org::sem::TodoKeyword::Transition rhs) -> bool {
          return lhs == rhs;
@@ -2518,16 +2494,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::LinkTarget::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::LinkTarget::Kind const& _self, org::sem::LinkTarget::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::LinkTarget::Kind const& _self, org::sem::LinkTarget::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::LinkTarget::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::LinkTarget::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::LinkTarget::Kind lhs, org::sem::LinkTarget::Kind rhs) -> bool {
          return lhs == rhs;
@@ -2593,16 +2565,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::SubtreeLogHead::Priority::Action const& _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action> {
                      return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>();
                      })
-    .def("__int__",
-         [](org::sem::SubtreeLogHead::Priority::Action const& _self, org::sem::SubtreeLogHead::Priority::Action v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::SubtreeLogHead::Priority::Action const& _self, org::sem::SubtreeLogHead::Priority::Action v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::SubtreeLogHead::Priority::Action const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::SubtreeLogHead::Priority::Action const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::SubtreeLogHead::Priority::Action lhs, org::sem::SubtreeLogHead::Priority::Action rhs) -> bool {
          return lhs == rhs;
@@ -2819,16 +2787,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::SubtreeLogHead::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::SubtreeLogHead::Kind const& _self, org::sem::SubtreeLogHead::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::SubtreeLogHead::Kind const& _self, org::sem::SubtreeLogHead::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::SubtreeLogHead::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::SubtreeLogHead::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::SubtreeLogHead::Kind lhs, org::sem::SubtreeLogHead::Kind rhs) -> bool {
          return lhs == rhs;
@@ -3024,16 +2988,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultType const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType>();
                      })
-    .def("__int__",
-         [](org::sem::OrgCodeEvalInput::ResultType const& _self, org::sem::OrgCodeEvalInput::ResultType v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::OrgCodeEvalInput::ResultType const& _self, org::sem::OrgCodeEvalInput::ResultType v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::OrgCodeEvalInput::ResultType const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::OrgCodeEvalInput::ResultType const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::OrgCodeEvalInput::ResultType lhs, org::sem::OrgCodeEvalInput::ResultType rhs) -> bool {
          return lhs == rhs;
@@ -3055,16 +3015,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultFormat const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat>();
                      })
-    .def("__int__",
-         [](org::sem::OrgCodeEvalInput::ResultFormat const& _self, org::sem::OrgCodeEvalInput::ResultFormat v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::OrgCodeEvalInput::ResultFormat const& _self, org::sem::OrgCodeEvalInput::ResultFormat v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::OrgCodeEvalInput::ResultFormat const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::OrgCodeEvalInput::ResultFormat const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::OrgCodeEvalInput::ResultFormat lhs, org::sem::OrgCodeEvalInput::ResultFormat rhs) -> bool {
          return lhs == rhs;
@@ -3086,16 +3042,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultHandling const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling>();
                      })
-    .def("__int__",
-         [](org::sem::OrgCodeEvalInput::ResultHandling const& _self, org::sem::OrgCodeEvalInput::ResultHandling v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::OrgCodeEvalInput::ResultHandling const& _self, org::sem::OrgCodeEvalInput::ResultHandling v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::OrgCodeEvalInput::ResultHandling const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::OrgCodeEvalInput::ResultHandling const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::OrgCodeEvalInput::ResultHandling lhs, org::sem::OrgCodeEvalInput::ResultHandling rhs) -> bool {
          return lhs == rhs;
@@ -3170,16 +3122,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self, org::sem::ColumnView::Summary::CheckboxAggregate::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind lhs, org::sem::ColumnView::Summary::CheckboxAggregate::Kind rhs) -> bool {
          return lhs == rhs;
@@ -3220,16 +3168,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self, org::sem::ColumnView::Summary::MathAggregate::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self, org::sem::ColumnView::Summary::MathAggregate::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::ColumnView::Summary::MathAggregate::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::ColumnView::Summary::MathAggregate::Kind lhs, org::sem::ColumnView::Summary::MathAggregate::Kind rhs) -> bool {
          return lhs == rhs;
@@ -3269,16 +3213,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::ColumnView::Summary::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::ColumnView::Summary::Kind const& _self, org::sem::ColumnView::Summary::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::ColumnView::Summary::Kind const& _self, org::sem::ColumnView::Summary::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::ColumnView::Summary::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::ColumnView::Summary::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::ColumnView::Summary::Kind lhs, org::sem::ColumnView::Summary::Kind rhs) -> bool {
          return lhs == rhs;
@@ -3431,16 +3371,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::BlockCodeLine::Part::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::BlockCodeLine::Part::Kind const& _self, org::sem::BlockCodeLine::Part::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::BlockCodeLine::Part::Kind const& _self, org::sem::BlockCodeLine::Part::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::BlockCodeLine::Part::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::BlockCodeLine::Part::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::BlockCodeLine::Part::Kind lhs, org::sem::BlockCodeLine::Part::Kind rhs) -> bool {
          return lhs == rhs;
@@ -3532,16 +3468,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TagExport const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>();
                      })
-    .def("__int__",
-         [](org::sem::DocumentExportConfig::TagExport const& _self, org::sem::DocumentExportConfig::TagExport v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::DocumentExportConfig::TagExport const& _self, org::sem::DocumentExportConfig::TagExport v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::DocumentExportConfig::TagExport const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::DocumentExportConfig::TagExport const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::DocumentExportConfig::TagExport lhs, org::sem::DocumentExportConfig::TagExport rhs) -> bool {
          return lhs == rhs;
@@ -3561,16 +3493,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TaskFiltering const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>();
                      })
-    .def("__int__",
-         [](org::sem::DocumentExportConfig::TaskFiltering const& _self, org::sem::DocumentExportConfig::TaskFiltering v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::DocumentExportConfig::TaskFiltering const& _self, org::sem::DocumentExportConfig::TaskFiltering v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::DocumentExportConfig::TaskFiltering const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::DocumentExportConfig::TaskFiltering const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::DocumentExportConfig::TaskFiltering lhs, org::sem::DocumentExportConfig::TaskFiltering rhs) -> bool {
          return lhs == rhs;
@@ -3590,16 +3518,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::BrokenLinks const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>();
                      })
-    .def("__int__",
-         [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::DocumentExportConfig::BrokenLinks const& _self, org::sem::DocumentExportConfig::BrokenLinks v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::DocumentExportConfig::BrokenLinks const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::DocumentExportConfig::BrokenLinks const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::DocumentExportConfig::BrokenLinks lhs, org::sem::DocumentExportConfig::BrokenLinks rhs) -> bool {
          return lhs == rhs;
@@ -3618,16 +3542,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::ArchivedTrees const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::ArchivedTrees>();
                      })
-    .def("__int__",
-         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::DocumentExportConfig::ArchivedTrees const& _self, org::sem::DocumentExportConfig::ArchivedTrees v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::DocumentExportConfig::ArchivedTrees const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::DocumentExportConfig::ArchivedTrees const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::DocumentExportConfig::ArchivedTrees lhs, org::sem::DocumentExportConfig::ArchivedTrees rhs) -> bool {
          return lhs == rhs;
@@ -3685,16 +3605,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::DocumentExportConfig::TocExportKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind> {
                      return org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>();
                      })
-    .def("__int__",
-         [](org::sem::DocumentExportConfig::TocExportKind const& _self, org::sem::DocumentExportConfig::TocExportKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::DocumentExportConfig::TocExportKind const& _self, org::sem::DocumentExportConfig::TocExportKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::DocumentExportConfig::TocExportKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::DocumentExportConfig::TocExportKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::DocumentExportConfig::TocExportKind lhs, org::sem::DocumentExportConfig::TocExportKind rhs) -> bool {
          return lhs == rhs;
@@ -3781,16 +3697,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::SubtreePeriod::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::SubtreePeriod::Kind const& _self, org::sem::SubtreePeriod::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::SubtreePeriod::Kind const& _self, org::sem::SubtreePeriod::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::SubtreePeriod::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::SubtreePeriod::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::SubtreePeriod::Kind lhs, org::sem::SubtreePeriod::Kind rhs) -> bool {
          return lhs == rhs;
@@ -4134,16 +4046,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::NamedProperty::Visibility::Level const& _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level> {
                      return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level>();
                      })
-    .def("__int__",
-         [](org::sem::NamedProperty::Visibility::Level const& _self, org::sem::NamedProperty::Visibility::Level v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::NamedProperty::Visibility::Level const& _self, org::sem::NamedProperty::Visibility::Level v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::NamedProperty::Visibility::Level const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::NamedProperty::Visibility::Level const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::NamedProperty::Visibility::Level lhs, org::sem::NamedProperty::Visibility::Level rhs) -> bool {
          return lhs == rhs;
@@ -4431,16 +4339,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::NamedProperty::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::NamedProperty::Kind const& _self, org::sem::NamedProperty::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::NamedProperty::Kind const& _self, org::sem::NamedProperty::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::NamedProperty::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::NamedProperty::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::NamedProperty::Kind lhs, org::sem::NamedProperty::Kind rhs) -> bool {
          return lhs == rhs;
@@ -4676,16 +4580,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::OrgDiagnostics::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgDiagnostics::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::OrgDiagnostics::Kind const& _self, org::sem::OrgDiagnostics::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::OrgDiagnostics::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::OrgDiagnostics::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::OrgDiagnostics::Kind lhs, org::sem::OrgDiagnostics::Kind rhs) -> bool {
          return lhs == rhs;
@@ -5041,16 +4941,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Time::Repeat::Mode const& _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode> {
                      return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode>();
                      })
-    .def("__int__",
-         [](org::sem::Time::Repeat::Mode const& _self, org::sem::Time::Repeat::Mode v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Time::Repeat::Mode const& _self, org::sem::Time::Repeat::Mode v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Time::Repeat::Mode const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Time::Repeat::Mode const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Time::Repeat::Mode lhs, org::sem::Time::Repeat::Mode rhs) -> bool {
          return lhs == rhs;
@@ -5072,16 +4968,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Time::Repeat::Period const& _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period> {
                      return org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period>();
                      })
-    .def("__int__",
-         [](org::sem::Time::Repeat::Period const& _self, org::sem::Time::Repeat::Period v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Time::Repeat::Period const& _self, org::sem::Time::Repeat::Period v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Time::Repeat::Period const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Time::Repeat::Period const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Time::Repeat::Period lhs, org::sem::Time::Repeat::Period rhs) -> bool {
          return lhs == rhs;
@@ -5157,16 +5049,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::Time::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::Time::TimeKind> {
                      return org::bind::python::PyEnumIterator<org::sem::Time::TimeKind>();
                      })
-    .def("__int__",
-         [](org::sem::Time::TimeKind const& _self, org::sem::Time::TimeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::Time::TimeKind const& _self, org::sem::Time::TimeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::Time::TimeKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::Time::TimeKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::Time::TimeKind lhs, org::sem::Time::TimeKind rhs) -> bool {
          return lhs == rhs;
@@ -5538,16 +5426,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::CriticMarkup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::CriticMarkup::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::CriticMarkup::Kind const& _self, org::sem::CriticMarkup::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::CriticMarkup::Kind const& _self, org::sem::CriticMarkup::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::CriticMarkup::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::CriticMarkup::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::CriticMarkup::Kind lhs, org::sem::CriticMarkup::Kind rhs) -> bool {
          return lhs == rhs;
@@ -5717,16 +5601,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::File::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::File::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::File::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::File::Kind const& _self, org::sem::File::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::File::Kind const& _self, org::sem::File::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::File::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::File::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::File::Kind lhs, org::sem::File::Kind rhs) -> bool {
          return lhs == rhs;
@@ -5924,16 +5804,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::sem::CmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind> {
                      return org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind>();
                      })
-    .def("__int__",
-         [](org::sem::CmdInclude::Kind const& _self, org::sem::CmdInclude::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::sem::CmdInclude::Kind const& _self, org::sem::CmdInclude::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::sem::CmdInclude::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::CmdInclude::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::sem::CmdInclude::Kind lhs, org::sem::CmdInclude::Kind rhs) -> bool {
          return lhs == rhs;
@@ -6231,16 +6107,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::imm::ImmTime::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind> {
                      return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
                      })
-    .def("__int__",
-         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::imm::ImmTime::TimeKind const& _self, org::imm::ImmTime::TimeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::imm::ImmTime::TimeKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::imm::ImmTime::TimeKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
          return lhs == rhs;
@@ -6337,16 +6209,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::imm::ImmFile::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind> {
                      return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
                      })
-    .def("__int__",
-         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::imm::ImmFile::Kind const& _self, org::imm::ImmFile::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::imm::ImmFile::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::imm::ImmFile::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
          return lhs == rhs;
@@ -6494,16 +6362,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind> {
                      return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
                      })
-    .def("__int__",
-         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::imm::ImmCmdInclude::Kind const& _self, org::imm::ImmCmdInclude::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::imm::ImmCmdInclude::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::imm::ImmCmdInclude::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
          return lhs == rhs;
@@ -7983,16 +7847,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](CheckboxState const& _self) -> org::bind::python::PyEnumIterator<CheckboxState> {
                      return org::bind::python::PyEnumIterator<CheckboxState>();
                      })
-    .def("__int__",
-         [](CheckboxState const& _self, CheckboxState v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](CheckboxState const& _self, CheckboxState v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](CheckboxState const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](CheckboxState const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](CheckboxState lhs, CheckboxState rhs) -> bool {
          return lhs == rhs;
@@ -8011,16 +7871,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](SubtreeTodoSource const& _self) -> org::bind::python::PyEnumIterator<SubtreeTodoSource> {
                      return org::bind::python::PyEnumIterator<SubtreeTodoSource>();
                      })
-    .def("__int__",
-         [](SubtreeTodoSource const& _self, SubtreeTodoSource v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](SubtreeTodoSource const& _self, SubtreeTodoSource v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](SubtreeTodoSource const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](SubtreeTodoSource const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
          return lhs == rhs;
@@ -8041,16 +7897,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](ListFormattingMode const& _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
                      return org::bind::python::PyEnumIterator<ListFormattingMode>();
                      })
-    .def("__int__",
-         [](ListFormattingMode const& _self, ListFormattingMode v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](ListFormattingMode const& _self, ListFormattingMode v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](ListFormattingMode const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](ListFormattingMode const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
          return lhs == rhs;
@@ -8074,16 +7926,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](InitialSubtreeVisibility const& _self) -> org::bind::python::PyEnumIterator<InitialSubtreeVisibility> {
                      return org::bind::python::PyEnumIterator<InitialSubtreeVisibility>();
                      })
-    .def("__int__",
-         [](InitialSubtreeVisibility const& _self, InitialSubtreeVisibility v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](InitialSubtreeVisibility const& _self, InitialSubtreeVisibility v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](InitialSubtreeVisibility const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](InitialSubtreeVisibility const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
          return lhs == rhs;
@@ -8158,16 +8006,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](OrgSpecName const& _self) -> org::bind::python::PyEnumIterator<OrgSpecName> {
                      return org::bind::python::PyEnumIterator<OrgSpecName>();
                      })
-    .def("__int__",
-         [](OrgSpecName const& _self, OrgSpecName v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](OrgSpecName const& _self, OrgSpecName v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](OrgSpecName const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgSpecName const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](OrgSpecName lhs, OrgSpecName rhs) -> bool {
          return lhs == rhs;
@@ -8325,16 +8169,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
                      return org::bind::python::PyEnumIterator<OrgNodeKind>();
                      })
-    .def("__int__",
-         [](OrgNodeKind const& _self, OrgNodeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](OrgNodeKind const& _self, OrgNodeKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](OrgNodeKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgNodeKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
          return lhs == rhs;
@@ -8577,16 +8417,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<OrgTokenKind> {
                      return org::bind::python::PyEnumIterator<OrgTokenKind>();
                      })
-    .def("__int__",
-         [](OrgTokenKind const& _self, OrgTokenKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](OrgTokenKind const& _self, OrgTokenKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](OrgTokenKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgTokenKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
          return lhs == rhs;
@@ -8609,16 +8445,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](OrgJsonKind const& _self) -> org::bind::python::PyEnumIterator<OrgJsonKind> {
                      return org::bind::python::PyEnumIterator<OrgJsonKind>();
                      })
-    .def("__int__",
-         [](OrgJsonKind const& _self, OrgJsonKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](OrgJsonKind const& _self, OrgJsonKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](OrgJsonKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgJsonKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
          return lhs == rhs;
@@ -8714,16 +8546,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
                      return org::bind::python::PyEnumIterator<OrgSemKind>();
                      })
-    .def("__int__",
-         [](OrgSemKind const& _self, OrgSemKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](OrgSemKind const& _self, OrgSemKind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](OrgSemKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgSemKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](OrgSemKind lhs, OrgSemKind rhs) -> bool {
          return lhs == rhs;
@@ -8742,16 +8570,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::AstTrackingGroup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
                      return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
                      })
-    .def("__int__",
-         [](org::AstTrackingGroup::Kind const& _self, org::AstTrackingGroup::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::AstTrackingGroup::Kind const& _self, org::AstTrackingGroup::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
          return lhs == rhs;
@@ -8769,16 +8593,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::graph::MapLink::Kind const& _self) -> org::bind::python::PyEnumIterator<org::graph::MapLink::Kind> {
                      return org::bind::python::PyEnumIterator<org::graph::MapLink::Kind>();
                      })
-    .def("__int__",
-         [](org::graph::MapLink::Kind const& _self, org::graph::MapLink::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::graph::MapLink::Kind const& _self, org::graph::MapLink::Kind v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::graph::MapLink::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::graph::MapLink::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
          return lhs == rhs;
@@ -8803,16 +8623,12 @@ ingoing elements.)RAW")
     .def("__iter__", [](org::bind::python::LeafFieldType const& _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
                      return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
                      })
-    .def("__int__",
-         [](org::bind::python::LeafFieldType const& _self, org::bind::python::LeafFieldType v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
-    .def("__index__",
-         [](org::bind::python::LeafFieldType const& _self, org::bind::python::LeafFieldType v) -> int {
-         return static_cast<int>(v);
-         },
-         nanobind::arg("v"))
+    .def("__int__", [](org::bind::python::LeafFieldType const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::bind::python::LeafFieldType const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
     .def("__eq__",
          [](org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
          return lhs == rhs;

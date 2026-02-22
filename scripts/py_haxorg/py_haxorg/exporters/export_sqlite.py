@@ -407,22 +407,23 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                             location=get_location(node),
                         ))
 
-            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.CmdCaption | osk.CmdTblfm | osk.CmdInclude:
+            case org.Newline() | org.Space() | org.Empty() | org.TextSeparator(
+            ) | org.CmdCaption() | org.CmdTblfm() | org.CmdInclude():
                 pass
 
-            case osk.BlockCode:
+            case org.BlockCode():
                 pass
 
-            case osk.BlockQuote:
+            case org.BlockQuote():
                 pass
 
-            case osk.BlockExport:
+            case org.BlockExport():
                 pass
 
-            case osk.BlockExample:
+            case org.BlockExample():
                 pass
 
-            case osk.Table:
+            case org.Table():
                 pass
 
     aux(node)

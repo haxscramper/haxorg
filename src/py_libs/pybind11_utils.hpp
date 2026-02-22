@@ -19,6 +19,8 @@
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <nanobind/stl/bind_map.h>
+#include <nanobind/stl/bind_vector.h>
 
 namespace org::bind::python {
 
@@ -167,229 +169,65 @@ void bind_immerflex_vector(
         m, PyNameType, guard);
 }
 
+/// \brief Bind specialization of the std vector map for use in python
 template <typename T>
 void bind_stdvector(
     nb::module_&         m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
+    using Vec = std::vector<T>;
 
-    auto base_name = std::string(PyNameType) + "StdVector";
+    std::string name = std::string(PyNameType) + "StdVector";
+    if (guard.contains(name)) { return; }
 
-    if (!guard.contains(base_name)) {
-        guard.incl(base_name);
-        nb::class_<std::vector<T>>(m, base_name.c_str())
-            .def(nb::init<>())
-            .def(
-                "__len__",
-                [](std::vector<T> const& v) { return v.size(); })
-            .def(
-                "__getitem__",
-                [](std::vector<T> const& v, size_t i) -> T const& {
-                    if (i >= v.size()) { throw nb::index_error(); }
-                    return v[i];
-                },
-                nb::rv_policy::reference_internal)
-            .def(
-                "__setitem__",
-                [](std::vector<T>& v, size_t i, T const& val) {
-                    if (i >= v.size()) { throw nb::index_error(); }
-                    v[i] = val;
-                })
-            .def(
-                "append",
-                [](std::vector<T>& v, T const& val) { v.push_back(val); })
-            .def(
-                "__iter__",
-                [](std::vector<T>& v) {
-                    return nb::make_iterator(
-                        nb::type<std::vector<T>>(),
-                        "iterator",
-                        v.begin(),
-                        v.end());
-                },
-                nb::keep_alive<0, 1>());
-    }
+    guard.incl(name);
+
+    auto cls = nb::bind_vector<Vec>(m, name.c_str());
+    cls.def(nb::init<>());
 }
 
+/// \brief Bind specialization of the hstd vector for use in python
 template <typename T>
 void bind_hstdVec(
     nb::module_&         m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
+    using Vec = hstd::Vec<T>;
 
-    auto base_name = std::string(PyNameType) + "StdVector";
-    auto hstd_name = std::string(PyNameType) + "Vec";
+    std::string name = std::string(PyNameType) + "Vec";
+    if (guard.contains(name)) { return; }
 
-    if (!guard.contains(base_name)) {
-        guard.incl(base_name);
-        nb::class_<std::vector<T>>(m, base_name.c_str())
-            .def(nb::init<>())
-            .def(
-                "__len__",
-                [](std::vector<T> const& v) { return v.size(); })
-            .def(
-                "__getitem__",
-                [](std::vector<T> const& v, size_t i) -> T const& {
-                    if (i >= v.size()) { throw nb::index_error(); }
-                    return v[i];
-                },
-                nb::rv_policy::reference_internal)
-            .def(
-                "__setitem__",
-                [](std::vector<T>& v, size_t i, T const& val) {
-                    if (i >= v.size()) { throw nb::index_error(); }
-                    v[i] = val;
-                })
-            .def(
-                "append",
-                [](std::vector<T>& v, T const& val) { v.push_back(val); })
-            .def(
-                "__iter__",
-                [](std::vector<T>& v) {
-                    return nb::make_iterator(
-                        nb::type<std::vector<T>>(),
-                        "iterator",
-                        v.begin(),
-                        v.end());
-                },
-                nb::keep_alive<0, 1>());
-    }
+    guard.incl(name);
 
-    if (!guard.contains(hstd_name)) {
-        guard.incl(hstd_name);
-        nb::class_<hstd::Vec<T>, std::vector<T>>(m, hstd_name.c_str())
-            .def(nb::init<>())
-            .def(nb::init<const hstd::Vec<T>&>())
-            .def(
-                "__init__",
-                [](hstd::Vec<T>* self, nb::list list) {
-                    new (self) hstd::Vec<T>();
-                    for (auto const& it : list) {
-                        self->push_back(nb::cast<T>(it));
-                    }
-                })
-            .def("FromValue", &hstd::Vec<T>::FromValue);
-    }
+    auto cls = nb::bind_vector<Vec>(m, name.c_str());
+    cls.def(nb::init<>())
+        .def(nb::init<const Vec&>())
+        .def(
+            "__init__",
+            [](Vec* self, nb::iterable it) {
+                new (self) Vec();
+                for (nb::handle h : it) {
+                    self->push_back(nb::cast<T>(h));
+                }
+            })
+        .def("FromValue", &Vec::FromValue);
 }
 
-
-template <typename K, typename V>
+/// \brief Bind specialization of the hstd unordered map for use in python
+template <typename K, typename V, typename Hash = std::hash<K>>
 void bind_hstdUnorderedMap(
     nb::module_&         m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
-    auto base_name = std::string(PyNameType) + "StdUnorderedMap";
-    auto hstd_name = std::string(PyNameType) + "UnorderedMap";
+    using Map = hstd::UnorderedMap<K, V, Hash>;
 
-    if (!guard.contains(base_name)) {
-        guard.incl(base_name);
-        nb::class_<std::unordered_map<K, V>>(m, base_name.c_str())
-            .def(nb::init<>())
-            .def(
-                "__len__",
-                [](std::unordered_map<K, V> const& map) {
-                    return map.size();
-                })
-            .def(
-                "__getitem__",
-                [](std::unordered_map<K, V> const& map,
-                   K const&                        key) -> V const& {
-                    auto it = map.find(key);
-                    if (it == map.end()) { throw nb::key_error(); }
-                    return it->second;
-                },
-                nb::rv_policy::reference_internal)
-            .def(
-                "__setitem__",
-                [](std::unordered_map<K, V>& map,
-                   K const&                  key,
-                   V const&                  val) { map[key] = val; })
-            .def(
-                "__contains__",
-                [](std::unordered_map<K, V> const& map, K const& key) {
-                    return map.count(key) > 0;
-                })
-            .def(
-                "__iter__",
-                [](std::unordered_map<K, V>& map) {
-                    return nb::make_key_iterator(
-                        nb::type<std::unordered_map<K, V>>(),
-                        "key_iterator",
-                        map.begin(),
-                        map.end());
-                },
-                nb::keep_alive<0, 1>());
-    }
+    std::string name = std::string(PyNameType) + "UnorderedMap";
+    if (guard.contains(name)) { return; }
 
-    if (!guard.contains(hstd_name)) {
-        guard.incl(hstd_name);
-        nb::class_<hstd::UnorderedMap<K, V>, std::unordered_map<K, V>>(
-            m, hstd_name.c_str())
-            .def(nb::init<>())
-            .def(nb::init<const hstd::UnorderedMap<K, V>&>());
-    }
-}
+    guard.incl(name);
 
-/// \brief Bind unordered map type for python
-template <typename K, typename V>
-void bind_mapping(
-    nb::module_&         m,
-    const char*          PyNameType,
-    PyTypeRegistryGuard& guard) {
-    using M = hstd::UnorderedMap<K, V>;
-
-    auto base_name = std::string(PyNameType) + "StdUnorderedMap";
-    auto hstd_name = std::string(PyNameType) + "UnorderedMap";
-
-    if (!guard.contains(base_name)) {
-        guard.incl(base_name);
-        nb::class_<std::unordered_map<K, V>>(m, base_name.c_str())
-            .def(nb::init<>())
-            .def(
-                "__len__",
-                [](std::unordered_map<K, V> const& map) {
-                    return map.size();
-                })
-            .def(
-                "__getitem__",
-                [](std::unordered_map<K, V> const& map,
-                   K const&                        key) -> V const& {
-                    auto it = map.find(key);
-                    if (it == map.end()) { throw nb::key_error(); }
-                    return it->second;
-                },
-                nb::rv_policy::reference_internal)
-            .def(
-                "__setitem__",
-                [](std::unordered_map<K, V>& map,
-                   K const&                  key,
-                   V const&                  val) { map[key] = val; })
-            .def(
-                "__contains__",
-                [](std::unordered_map<K, V> const& map, K const& key) {
-                    return map.count(key) > 0;
-                })
-            .def(
-                "__iter__",
-                [](std::unordered_map<K, V>& map) {
-                    return nb::make_key_iterator(
-                        nb::type<std::unordered_map<K, V>>(),
-                        "key_iterator",
-                        map.begin(),
-                        map.end());
-                },
-                nb::keep_alive<0, 1>());
-    }
-
-    if (!guard.contains(hstd_name)) {
-        guard.incl(hstd_name);
-        nb::class_<hstd::UnorderedMap<K, V>, std::unordered_map<K, V>>(
-            m, hstd_name.c_str())
-            .def(nb::init<>())
-            .def("contains", &M::contains)
-            .def("get", &M::get)
-            .def("keys", &M::keys);
-    }
+    auto cls = nb::bind_map<Map>(m, name.c_str());
+    cls.def(nb::init<>()).def(nb::init<const Map&>());
 }
 
 /// nodoc
