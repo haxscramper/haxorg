@@ -1,5 +1,6 @@
 import itertools
 from pathlib import Path
+import sys
 
 import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
@@ -18,6 +19,7 @@ from py_repository.repo_tasks.common import (
 from py_repository.repo_tasks.config import get_tmpdir, HaxorgLogLevel
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
 from py_repository.repo_tasks.haxorg_build import (
+    build_and_setup_text_layout_lib,
     build_haxorg,
     build_targets,
     configure_cmake_haxorg,
@@ -68,11 +70,13 @@ CODEGEN_TASKS = [
 ]
 
 
-@haxorg_task(dependencies=[generate_python_protobuf_files])
+@haxorg_task(
+    dependencies=[generate_python_protobuf_files, build_and_setup_text_layout_lib])
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
+    from py_codegen.refl_read import open_proto_file
 
     for task in CODEGEN_TASKS:
         out_file = get_build_root(ctx, f"{task}.pb")
@@ -99,23 +103,17 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
             ).model_dump(),
         )
 
-        log(CAT).info("Updated reflection")
+        reflection_debug = get_tmpdir().joinpath(f"reflection_{task}.json")
+        reflection_debug.write_text(open_proto_file(out_file).to_json(2))
+
+        log(CAT).info(f"Updated reflection, wrote debug JSON to {reflection_debug}")
 
 
 # TODO Make compiled reflection generation build optional
-@haxorg_task()
+@haxorg_task(dependencies=[build_and_setup_text_layout_lib, generate_reflection_snapshot])
 def generate_haxorg_sources(ctx: TaskContext) -> None:
     """Update auto-generated source files"""
     assert not ctx.config.emscripten.build, "Codegen is not supported for the EMCC build"
-
-    # TODO source file generation should optionally overwrite the target OR
-    # compare the new and old source code (to avoid breaking the subsequent
-    # compilation of the source)
-    if not ctx.config.generate_sources_conf.standalone:
-        build_targets(ctx=ctx, targets=["py_textlayout_cpp"])
-        ctx.run(generate_reflection_snapshot, ctx=ctx)
-        ctx.run(symlink_build, ctx=ctx)
-
     from py_codegen.codegen import run_codegen_task
 
     for task in CODEGEN_TASKS:

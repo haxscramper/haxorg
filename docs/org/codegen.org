@@ -32,7 +32,7 @@ Currently, those are the main code-generated file groups in the repository:
 - Enumerations :: ~sem/SemOrgEnums.hpp~  and ~sem/SemOrgEnums.cpp~ provides
   a list of enumeration types alongside  with reflection data to be used in
   the org type definitions.
-- Python  bindings  :: =pybind11=  wrappers  are  automatically created  to
+- Python  bindings  :: =nanobind=  wrappers  are  automatically created  to
   expose all the fields in the org types.
 - Protobuf grammar :: Codegen  generates protobuf grammar description saved
   in the ~serde/SemOrgProto.proto~

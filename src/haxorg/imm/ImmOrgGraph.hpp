@@ -3,6 +3,7 @@
 #    include <boost/graph/properties.hpp>
 #endif
 #include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
@@ -59,14 +60,7 @@ struct [[refl]] MapNodeProp {
     }
 
     [[refl]] hstd::Opt<hstd::Str> getFootnoteName(
-        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
-        if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
-            par && par->isFootnoteDefinition()) {
-            return par->getFootnoteName();
-        } else {
-            return std::nullopt;
-        }
-    }
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const;
 
     DESC_FIELDS(MapNodeProp, (unresolved, id));
 };

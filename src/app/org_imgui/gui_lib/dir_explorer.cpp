@@ -5,6 +5,7 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 #include <sys/inotify.h>
 #include <unistd.h>

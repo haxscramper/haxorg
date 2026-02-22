@@ -375,12 +375,16 @@ def get_external_deps_list(
     )
 
     dep(
-        build_name="pybind11",
-        deps_name="pybind11",
+        build_name="nanobind",
+        deps_name="nanobind",
         cmake_dirs=[
-            ("pybind11", ["pybind11/share/cmake/pybind11"]),
+            ("nanobind", ["nanobind/nanobind/cmake"]),
         ],
-        configure_args=[opt("PYBIND11_TEST", False)],
+        configure_args=[
+            opt("NB_TEST", False),
+            opt("NB_TEST_FREE_THREADED", False),
+            opt("NB_CREATE_INSTALL_RULES", True),
+        ],
     )
 
     utf8 = dep(

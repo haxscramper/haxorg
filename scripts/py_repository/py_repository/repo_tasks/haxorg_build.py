@@ -115,6 +115,22 @@ def build_targets(ctx: TaskContext, targets: List[str]) -> None:
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
 
 
+@haxorg_task()
+def build_and_setup_text_layout_lib(ctx: TaskContext) -> None:
+    "Build the py text layout library and add .so to path"
+    import sys
+    build_targets(ctx=ctx, targets=["py_textlayout_cpp"])
+    ctx.run(symlink_build, ctx=ctx)
+
+    build_path = get_build_root(ctx, "haxorg")
+    if str(build_path) not in sys.path:
+        text_layout_so = list(build_path.glob("py_textlayout_cpp*.so"))
+        assert 0 < len(
+            text_layout_so
+        ), f"Text layout library was not compiled to dir {build_path}, workflow would not be able to run codegen."
+        sys.path.append(str(build_path))
+
+
 @haxorg_task(dependencies=[build_haxorg])
 def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
     """Install haxorg targets in the build directory"""

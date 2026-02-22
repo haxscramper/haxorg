@@ -333,7 +333,7 @@ class WasmMethod(WasmFunction):
         )
 
         if self.Func.IsConstructor:
-            call_pass = ast.XCall("pybind11::init", args=[call_pass])
+            call_pass = ast.XCall("nanobind::init", args=[call_pass])
 
         def_args = []
         if not self.Func.IsConstructor:

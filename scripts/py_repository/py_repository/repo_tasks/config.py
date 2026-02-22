@@ -11,7 +11,10 @@ CAT = __name__
 
 @beartype
 def get_tmpdir(*name: str) -> Path:
-    return Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name)
+    "Get or create temporary directory for temporary workflow/haxorg files"
+    result = Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name)
+    result.mkdir(parents=True, exist_ok=True)
+    return result
 
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
@@ -67,8 +70,9 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
+    "Configuration for how sources would be generated"
     tmp: bool = False
-    standalone: bool = False
+    "Put generated sources in a temporary directory"
 
 
 class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):
@@ -102,7 +106,12 @@ class HaxorgExampleConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
+    "Pytest config parameters"
     extra_pytest_args: List[str] = Field(default_factory=list)
+    use_valgrind: bool = Field(
+        default=False, description="Execute pytest with valgrind memory leak detection")
+    valgrind_suppression: Optional[Path] = Field(
+        default=None, description="Path to valgrind suppression file")
     real_time_output_print: bool = Field(
         default=True,
         description=

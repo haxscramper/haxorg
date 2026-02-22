@@ -207,6 +207,7 @@ def default_constructor_method(name: str) -> GenTuFunction:
 
 
 def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
+    "Create codegen struct for AST data"
     res = GenTuStruct(
         QualType(
             name=name,
@@ -226,14 +227,7 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
         GenTuPass(f"virtual ~{name}() = default;")
     ] + res.nested
 
-    res.reflectionParams.backend.python.holder_type = QualType(
-        name="SemId",
-        Spaces=[
-            QualType(name="org"),
-            QualType(name="sem"),
-        ],
-    )
-
+    res.reflectionParams.backend.python.holder_type = "shared"
     res.reflectionParams.backend.wasm.holder_type = QualType(
         name="SemId",
         Spaces=[

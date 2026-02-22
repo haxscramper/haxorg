@@ -7,14 +7,16 @@ import commentjson
 
 
 def check_json_file(filepath: Path) -> list[str]:
+    "Check if all JSON configurations have expected values"
     errors = []
 
     with open(filepath) as f:
         data = commentjson.load(f)
 
     # Check use_dependencies
-    if "use_dependencies" in data and data["use_dependencies"] is not True:
-        errors.append(f"{filepath}: 'use_dependencies' must be true or not set")
+    if "only_source" not in str(filepath):
+        if "use_dependencies" in data and data["use_dependencies"] is not True:
+            errors.append(f"{filepath}: 'use_dependencies' must be true or not set")
 
     # Check py_test_conf.extra_pytest_args
     if "py_test_conf" in data and "extra_pytest_args" in data["py_test_conf"]:

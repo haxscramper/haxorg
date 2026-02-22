@@ -158,6 +158,7 @@ def plot_timestamped_events_with_pandas(
 
 @beartype
 def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
+    "Main entry point for activity analysis CLI command"
     opts = ctx.opts
     assert opts.generate
     assert opts.generate.activity_analysis
@@ -175,13 +176,11 @@ def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
                                                               output_path=[sql_db]):
         nodes: List[Tuple[org.Org, str]] = []
         for file in infile:
-            log(CAT).info(file)
             nodes.append((parseCachedFile(ctx, file), file.name))
 
         if sql_db.exists():
             sql_db.unlink()
 
-        log(CAT).info("Registering DB")
         engine: Engine = create_engine("sqlite:///" + str(sql_db))
         sql.Base.metadata.create_all(engine)
         for node, file_name in nodes:
@@ -189,7 +188,6 @@ def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
 
     else:
         engine: Engine = create_engine("sqlite:///" + str(sql_db))  # type: ignore
-        log(CAT).info("No DB update needed")
 
     # log(CAT).info("Plotting data")
     # plot = plot_timestamped_events_with_pandas(

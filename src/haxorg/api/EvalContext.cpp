@@ -9,6 +9,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <deque>
 
 using namespace org;

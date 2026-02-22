@@ -8,6 +8,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 
 using namespace org;

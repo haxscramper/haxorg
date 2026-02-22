@@ -191,17 +191,7 @@ sem::OrgPtrVariant asVariant(Org* in);
 struct [[refl(R"({
   "backend": {
     "python": {
-      "holder-type": {
-        "name": "SemId",
-        "Spaces": [
-          {
-            "name": "org"
-          },
-          {
-            "name": "sem"
-          }
-        ]
-      }
+      "holder-type": "shared"
     },
     "wasm": {
       "holder-type": {

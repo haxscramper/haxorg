@@ -88,4 +88,4 @@ Unit testing for the regular cxx code if possible, plus collection of test docum
 Where is the project on the roadmap at the moment, are there any fixed plans or it is just me bumping around the code and fixing things if I see anything that catches my attention this particular moment? Not in a formal sense at the moment, but a rough outline of the things I want to do is:
 
 - *Finish rewrite to the standard library types and RE-flex lexer* -- implementation with Qt types was working correctly as far back as August 2023, but since then I decided to completely drop dependency on Qt, use the RE-flex lexer instead of hand-rolled one and so some other things reorganizing the project. It has taken quite a bit of time, the main missing link being the new lexer implementation. Parser and sem convert don't have to change as much.
-- *Stabilize exposed python API* -- =pybind11= wrapper generation relies on the
+- *Stabilize exposed python API* -- =nanobind= wrapper generation relies on the

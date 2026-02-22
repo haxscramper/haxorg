@@ -62,7 +62,7 @@ def _binary_build_requires() -> list[str]:
     # Things you only want present for the CMake/pybind/conan build.
     return [
         "scikit-build-core>=0.5",
-        "pybind11",
+        "nanobind",
         "conan",
     ]
 

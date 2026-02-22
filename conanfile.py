@@ -52,7 +52,7 @@ class HaxorgConan(ConanFile):
         # self.requires("openssl/[>=3.6.1 <4]")
 
         if self.options.use_python_bindings:
-            self.requires("pybind11/[>=3.0.1 <4]")
+            self.requires("nanobind/[>=2.9.2 <3]")
 
         if self.options.use_perfetto:
             self.requires("perfetto/[>=52.0 <53]")

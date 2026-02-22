@@ -5,6 +5,7 @@
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 using namespace hstd;
 

@@ -1,4 +1,6 @@
 #include "SemAstDiff.hpp"
+#include <haxorg/imm/ImmOrgAdapter.hpp>
+
 
 using namespace org::algo;
 using namespace hstd::ext;

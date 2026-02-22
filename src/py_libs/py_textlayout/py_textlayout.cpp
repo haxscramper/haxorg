@@ -2,14 +2,32 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <boost/stacktrace.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/array.h>
+#include <nanobind/stl/filesystem.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/map.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/set.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string_view.h>
+#include <nanobind/stl/tuple.h>
+#include <nanobind/stl/unique_ptr.h>
+#include <nanobind/stl/unordered_map.h>
+#include <nanobind/stl/variant.h>
+#include <nanobind/operators.h>
+#include <nanobind/make_iterator.h>
+#include <nanobind/ndarray.h>
 #undef slots
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include <hstd/stdlib/algorithms.hpp>
 
 #include <py_type_casters.hpp>
 
 using namespace hstd::layout;
+namespace nb = nanobind;
 
 void exception_breakpoint() {
     // std::cout << "Stacktrace:\n"
@@ -95,9 +113,9 @@ struct TextLayout {
         return b.surround_non_empty(content, before, after);
     }
 
-    static void py_define(pybind11::module& m) {
-        pybind11::class_<TextLayout>(m, "TextLayout")
-            .def(pybind11::init<>())
+    static void py_define(nb::module_& m) {
+        nb::class_<TextLayout>(m, "TextLayout")
+            .def(nb::init<>())
             .def("dbg", &TextLayout::dbg)
             .def("text", &TextLayout::text)
             .def("line", &TextLayout::line)
@@ -107,14 +125,14 @@ struct TextLayout {
             .def(
                 "stack",
                 &TextLayout::stack,
-                pybind11::arg("ids") = std::vector<Id>{})
+                nb::arg("ids") = std::vector<Id>{})
             .def(
                 "join",
                 &TextLayout::join,
-                pybind11::arg("items"),
-                pybind11::arg("join"),
-                pybind11::arg("isLine")     = true,
-                pybind11::arg("isTrailing") = false)
+                nb::arg("items"),
+                nb::arg("join"),
+                nb::arg("isLine")     = true,
+                nb::arg("isTrailing") = false)
             .def("choice", &TextLayout::choice)
             .def("indent", &TextLayout::indent)
             .def("space", &TextLayout::space)
@@ -124,24 +142,24 @@ struct TextLayout {
             .def("toTreeRepr", &TextLayout::toTreeRepr)
             .def(
                 "add_at",
-                pybind11::overload_cast<Id const&, Id const&>(
+                nb::overload_cast<Id const&, Id const&>(
                     &TextLayout::add_at))
             .def(
                 "add_at_list",
-                pybind11::overload_cast<Id const&, std::vector<Id> const&>(
+                nb::overload_cast<Id const&, std::vector<Id> const&>(
                     &TextLayout::add_at))
             //
             ;
     }
 };
 
-namespace PYBIND11_NAMESPACE {
+namespace nanobind {
 namespace detail {
 template <>
 struct type_caster<TextLayout::Id> {
-  public:
-    PYBIND11_TYPE_CASTER(TextLayout::Id, const_name("BlockId"));
-    bool load(handle src, bool) {
+    NB_TYPE_CASTER(TextLayout::Id, const_name("BlockId"));
+
+    bool from_python(handle src, uint8_t, cleanup_list*) noexcept {
         PyObject* source = src.ptr();
         PyObject* tmp    = PyNumber_Long(source);
         if (!tmp) { return false; }
@@ -150,12 +168,15 @@ struct type_caster<TextLayout::Id> {
         return !PyErr_Occurred();
     }
 
-    static handle cast(TextLayout::Id src, return_value_policy, handle) {
+    static handle from_cpp(
+        TextLayout::Id src,
+        rv_policy,
+        cleanup_list*) noexcept {
         return PyLong_FromUnsignedLongLong(src.id.getValue());
     }
 };
 } // namespace detail
-} // namespace PYBIND11_NAMESPACE
+} // namespace nanobind
 
 
 BOOST_DESCRIBE_STRUCT(
@@ -170,19 +191,19 @@ BOOST_DESCRIBE_STRUCT(
      cpack));
 
 
-PYBIND11_MODULE(py_textlayout_cpp, m) {
-    using namespace pybind11;
+NB_MODULE(py_textlayout_cpp, m) {
+    using namespace nb;
     TextLayout::py_define(m);
 
     class_<hstd::layout::Options>(m, "TextOptions")
-        .def(pybind11::init<>())
-        .def_readwrite("leftMargin", &Options::leftMargin)
-        .def_readwrite("rightMargin", &Options::rightMargin)
-        .def_readwrite("leftMarginCost", &Options::leftMarginCost)
-        .def_readwrite("rightMarginCost", &Options::rightMarginCost)
-        .def_readwrite("linebreakCost", &Options::linebreakCost)
-        .def_readwrite("indentSpaces", &Options::indentSpaces)
-        .def_readwrite("cpack", &Options::cpack)
+        .def(nb::init<>())
+        .def_rw("leftMargin", &Options::leftMargin)
+        .def_rw("rightMargin", &Options::rightMargin)
+        .def_rw("leftMarginCost", &Options::leftMarginCost)
+        .def_rw("rightMarginCost", &Options::rightMarginCost)
+        .def_rw("linebreakCost", &Options::linebreakCost)
+        .def_rw("indentSpaces", &Options::indentSpaces)
+        .def_rw("cpack", &Options::cpack)
         //
         ;
 }

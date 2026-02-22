@@ -393,6 +393,9 @@ def should_check_entry(entry: Entry, whole_file: bool,
     elif re.match(r"^main$", entry.name):
         return False
 
+    elif re.match(r"\.aux$", entry.name):
+        return False
+
     return any(entry.line_range.intersects(r) for r in change_ranges)
 
 

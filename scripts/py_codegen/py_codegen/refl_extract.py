@@ -146,9 +146,11 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
 
 @beartype
 def get_compile_commands(conf: TuOptions) -> Path:
-    lg = log("refl.cli.read")
+    """
+    Get compile commands expanded with the `compdb` for
+    header files.
+    """
     if conf.compilation_database:
-        lg.info(f"Using provided compilation database file {conf.compilation_database}")
         assert Path(conf.compilation_database).exists(), conf.compilation_database
         database = Path(conf.compilation_database)
 
@@ -161,7 +163,6 @@ def get_compile_commands(conf: TuOptions) -> Path:
         source = Path(conf.source_root)
 
         if not build.joinpath(comp).exists():
-            lg.info(f"'{build.joinpath(comp)}' does not exist, using cmake to generate")
             cmake = local["cmake"]
             cmake.run([
                 *conf.cmake_configure_options,
@@ -173,7 +174,6 @@ def get_compile_commands(conf: TuOptions) -> Path:
             ])
 
         if not source.joinpath(comp).exists():
-            lg.info(f"'{source.joinpath(comp)}' does not exist, using compdb to generate")
             compdb = local["uv"]
             _, stdout, _ = compdb.run(
                 ["run", "compdb", "-p",
@@ -390,6 +390,9 @@ def run_collector_for_path(
     mapping: PathMapping,
     commands: List[CompileCommand],
 ) -> Optional[TuWrap]:
+    """
+    Run reflection data collector for input path
+    """
     path = mapping.path
     tu: CollectorRunResult = run_collector(conf, path, path.with_suffix(".py"))
     if tu.success:
@@ -404,7 +407,6 @@ def run_collector_for_path(
             with open(out_path, "w") as file:
                 assert tu.pb_path
                 file.write(remove_dbgOrigin(open_proto_file(tu.pb_path).to_json()))
-                log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
 

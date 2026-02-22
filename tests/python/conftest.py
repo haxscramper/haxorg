@@ -33,7 +33,8 @@ trace_collector: TraceCollector = None
 
 
 def pytest_configure(config: Any) -> None:
-    for logger_name in ["plumbum.local"]:
+    "nodoc"
+    for logger_name in ["plumbum.local", "matplotlib.font_manager"]:
         logger = logging.getLogger(logger_name)
         logger.disabled = True
 
