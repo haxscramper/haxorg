@@ -124,7 +124,9 @@ def build_and_setup_text_layout_lib(ctx: TaskContext) -> None:
 
     build_path = get_build_root(ctx, "haxorg")
     if str(build_path) not in sys.path:
-        assert build_path.joinpath("py_textlayout_cpp.so").exists(
+        text_layout_so = list(build_path.glob("py_textlayout_cpp*.so"))
+        assert 0 < len(
+            text_layout_so
         ), f"Text layout library was not compiled to dir {build_path}, workflow would not be able to run codegen."
         sys.path.append(str(build_path))
 

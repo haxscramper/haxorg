@@ -1,6 +1,5 @@
 /* clang-format off */
 #undef slots
-#define PYBIND11_DETAILED_ERROR_MESSAGES
 #include <adaptagrams/adaptagrams_ir.hpp>
 #include <py_libs/nanobind_utils.hpp>
 #include <nanobind/nanobind.h>

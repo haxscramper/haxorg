@@ -1,6 +1,5 @@
 /* clang-format off */
 #undef slots
-#define PYBIND11_DETAILED_ERROR_MESSAGES
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
