@@ -643,7 +643,10 @@ class NbClass:
 
         for meth in value.methods:
             if meth.isExposedForWrap and not meth.isPureVirtual:
-                self.Methods.append(NbMethod(meth))
+                if meth.IsConstructor:
+                    self.InitImpls.append(NbMethod(meth))
+                else:
+                    self.Methods.append(NbMethod(meth))
 
         for _field in value.fields:
             if _field.isExposedForWrap:

@@ -643,17 +643,17 @@ field subset.)RAW")
     .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
          nanobind::arg("idx"),
-         nanobind::arg("withPath") = 1)
+         nanobind::arg("withPath") = true)
     .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
          nanobind::arg("path"),
-         nanobind::arg("withPath") = 1)
+         nanobind::arg("withPath") = true)
     .def("is_",
          static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
          nanobind::arg("kind"))
     .def("sub",
          static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
-         nanobind::arg("withPath") = 1)
+         nanobind::arg("withPath") = true)
     .def("__repr__", [](org::imm::ImmAdapter const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1380,6 +1380,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Call* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Call();
@@ -1401,6 +1402,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::List>(m, "LispCodeList")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::List* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::List();
@@ -1421,6 +1423,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::KeyValue>(m, "LispCodeKeyValue")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::KeyValue* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::KeyValue();
@@ -1442,6 +1445,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Number>(m, "LispCodeNumber")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Number* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Number();
@@ -1462,6 +1466,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Text>(m, "LispCodeText")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Text* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Text();
@@ -1482,6 +1487,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Ident>(m, "LispCodeIdent")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Ident* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Ident();
@@ -1502,6 +1508,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Boolean>(m, "LispCodeBoolean")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Boolean* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Boolean();
@@ -1522,6 +1529,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Real>(m, "LispCodeReal")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Real* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode::Real();
@@ -1565,6 +1573,7 @@ ingoing elements.)RAW")
          })
     ;
   nanobind::class_<org::sem::LispCode>(m, "LispCode")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::LispCode();
@@ -1974,6 +1983,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::AttrValue::DimensionSpan>(m, "AttrValueDimensionSpan")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::DimensionSpan* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::AttrValue::DimensionSpan();
@@ -1995,6 +2005,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::AttrValue::TextValue>(m, "AttrValueTextValue")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::TextValue* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::AttrValue::TextValue();
@@ -2015,6 +2026,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::AttrValue::FileReference>(m, "AttrValueFileReference")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::FileReference* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::AttrValue::FileReference();
@@ -2036,6 +2048,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::AttrValue::LispValue>(m, "AttrValueLispValue")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::LispValue* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::AttrValue::LispValue();
@@ -2074,6 +2087,7 @@ ingoing elements.)RAW")
          })
     ;
   nanobind::class_<org::sem::AttrValue>(m, "AttrValue")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::AttrValue();
@@ -2889,6 +2903,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgCodeEvalInput::Var>(m, "OrgCodeEvalInputVar")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgCodeEvalInput::Var* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::OrgCodeEvalInput::Var();
@@ -4808,6 +4823,7 @@ ingoing elements.)RAW")
          })
     ;
   nanobind::class_<org::sem::Time::Repeat>(m, "TimeRepeat")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Time::Repeat* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::Time::Repeat();
@@ -4827,6 +4843,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Time::Static>(m, "TimeStatic")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Time::Static* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::Time::Static();
@@ -4846,6 +4863,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Time::Dynamic>(m, "TimeDynamic")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Time::Dynamic* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::Time::Dynamic();
@@ -5488,6 +5506,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeIncludeBase")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::IncludeBase();
@@ -5504,6 +5523,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::Example, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExample")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::Example* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::Example();
@@ -5520,6 +5540,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::Export, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExport")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::Export* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::Export();
@@ -5537,6 +5558,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::Custom, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeCustom")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::Custom* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::Custom();
@@ -5554,6 +5576,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::Src, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeSrc")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::Src* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::Src();
@@ -5571,6 +5594,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::CmdInclude::OrgDocument, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeOrgDocument")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::CmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) {
          new(result) org::sem::CmdInclude::OrgDocument();
@@ -5824,6 +5848,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
     ;
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmTime::Repeat();
@@ -5846,6 +5871,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmTime::Static>(m, "ImmTimeStatic")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmTime::Static* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmTime::Static();
@@ -5868,6 +5894,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmTime::Dynamic>(m, "ImmTimeDynamic")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmTime::Dynamic* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmTime::Dynamic();
@@ -6001,6 +6028,7 @@ ingoing elements.)RAW")
          })
     ;
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::IncludeBase();
@@ -6020,6 +6048,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExample")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::Example* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::Example();
@@ -6039,6 +6068,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExport")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::Export* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::Export();
@@ -6059,6 +6089,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeCustom")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::Custom* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::Custom();
@@ -6079,6 +6110,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeSrc")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::Src* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::Src();
@@ -6099,6 +6131,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmCmdInclude::OrgDocument, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeOrgDocument")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmCmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) {
          new(result) org::imm::ImmCmdInclude::OrgDocument();
@@ -6684,7 +6717,7 @@ ingoing elements.)RAW")
     .def("getFsSubnode",
          static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
          nanobind::arg("name"),
-         nanobind::arg("withPath") = 1)
+         nanobind::arg("withPath") = true)
     ;
   nanobind::class_<org::imm::ImmAdapterSymlinkAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSymlinkAPI")
     ;
@@ -6863,30 +6896,39 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterListAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterListAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStmt>, org::imm::ImmAdapterStmtAPI>(m, "ImmStmtAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmStmtValueRead(org::imm::ImmAdapterT<org::imm::ImmStmt>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmt>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmAdapterSubtreeAPI>(m, "ImmSubtreeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSubtreeValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, org::imm::ImmAdapterNoNodeAPI>(m, "ImmNoNodeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmNoNodeValueRead(org::imm::ImmAdapterT<org::imm::ImmNoNode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNoNode>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmAdapterErrorItemAPI>(m, "ImmErrorItemAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorItemValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, org::imm::ImmAdapterErrorSkipGroupAPI>(m, "ImmErrorSkipGroupAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorSkipGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, org::imm::ImmAdapterErrorSkipTokenAPI>(m, "ImmErrorSkipTokenAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmErrorSkipTokenValueRead(org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterStmtListAPI>(m, "ImmStmtListAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmStmtListValueRead(org::imm::ImmAdapterT<org::imm::ImmStmtList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmtList>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmAdapterEmptyAPI>(m, "ImmEmptyAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmEmptyValueRead(org::imm::ImmAdapterT<org::imm::ImmEmpty>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEmpty>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterHashTagAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterHashTagAPI")
@@ -6896,18 +6938,23 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterSubtreeCompletionAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterSubtreeCompletionAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInline>, org::imm::ImmAdapterInlineAPI>(m, "ImmInlineAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmInlineValueRead(org::imm::ImmAdapterT<org::imm::ImmInline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInline>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmAdapterTimeAPI>(m, "ImmTimeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmTimeValueRead(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterTimeRangeAPI>(m, "ImmTimeRangeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmTimeRangeValueRead(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmAdapterMacroAPI>(m, "ImmMacroAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmMacroValueRead(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmAdapterSymbolAPI>(m, "ImmSymbolAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSymbolValueRead(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterEscapedAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterEscapedAPI")
@@ -6931,6 +6978,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterTextTargetAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterTextTargetAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLeaf>, org::imm::ImmAdapterLeafAPI>(m, "ImmLeafAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmLeafValueRead(org::imm::ImmAdapterT<org::imm::ImmLeaf>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLeaf>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterBoldAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterBoldAPI")
@@ -6952,54 +7000,71 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterParAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterParAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMarkup>, org::imm::ImmAdapterMarkupAPI>(m, "ImmMarkupAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmMarkupValueRead(org::imm::ImmAdapterT<org::imm::ImmMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMarkup>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLatex>, org::imm::ImmAdapterLatexAPI>(m, "ImmLatexAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmLatexValueRead(org::imm::ImmAdapterT<org::imm::ImmLatex>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLatex>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterSubtreeLogAPI>(m, "ImmSubtreeLogAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSubtreeLogValueRead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterColonExampleAPI>(m, "ImmColonExampleAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmColonExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmColonExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmColonExample>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCall>, org::imm::ImmAdapterCallAPI>(m, "ImmCallAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmAdapterFileAPI>(m, "ImmFileAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmFileValueRead(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmAdapterDirectoryAPI>(m, "ImmDirectoryAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmDirectoryValueRead(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmAdapterSymlinkAPI>(m, "ImmSymlinkAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSymlinkValueRead(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmAdapterDocumentFragmentAPI>(m, "ImmDocumentFragmentAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmDocumentFragmentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmAdapterCriticMarkupAPI>(m, "ImmCriticMarkupAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCriticMarkupValueRead(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterListItemAPI>(m, "ImmListItemAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmListItemValueRead(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterDocumentOptionsAPI>(m, "ImmDocumentOptionsAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmDocumentOptionsValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterDocumentAPI>(m, "ImmDocumentAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmDocumentValueRead(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterFileTargetAPI>(m, "ImmFileTargetAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmFileTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmAdapterTextSeparatorAPI>(m, "ImmTextSeparatorAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmTextSeparatorValueRead(org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmAdapterCmdIncludeAPI>(m, "ImmCmdIncludeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdIncludeValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmAdapterDocumentGroupAPI>(m, "ImmDocumentGroupAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmDocumentGroupValueRead(org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::getValue))
     ;
   nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
@@ -7200,87 +7265,115 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterRowAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterRowAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmd>, org::imm::ImmAdapterCmdAPI>(m, "ImmCmdAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdValueRead(org::imm::ImmAdapterT<org::imm::ImmCmd>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmd>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmAdapterCmdCustomRawAPI>(m, "ImmCmdCustomRawAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCustomRawValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmAdapterCmdCustomTextAPI>(m, "ImmCmdCustomTextAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCustomTextValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterLinkAPI>(m, "ImmLinkAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmLinkValueRead(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterBlockCommentAPI>(m, "ImmBlockCommentAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockCommentValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockComment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockComment>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmParagraph>, org::imm::ImmAdapterParagraphAPI>(m, "ImmParagraphAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmParagraphValueRead(org::imm::ImmAdapterT<org::imm::ImmParagraph>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmParagraph>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmList>, org::imm::ImmAdapterListAPI>(m, "ImmListAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmListValueRead(org::imm::ImmAdapterT<org::imm::ImmList>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmList>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmHashTag>, org::imm::ImmAdapterHashTagAPI>(m, "ImmHashTagAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmHashTagValueRead(org::imm::ImmAdapterT<org::imm::ImmHashTag>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmHashTag>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmAdapterInlineFootnoteAPI>(m, "ImmInlineFootnoteAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmInlineFootnoteValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmAdapterEscapedAPI>(m, "ImmEscapedAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmEscapedValueRead(org::imm::ImmAdapterT<org::imm::ImmEscaped>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmEscaped>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmNewline>, org::imm::ImmAdapterNewlineAPI>(m, "ImmNewlineAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmNewlineValueRead(org::imm::ImmAdapterT<org::imm::ImmNewline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmNewline>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSpace>, org::imm::ImmAdapterSpaceAPI>(m, "ImmSpaceAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmSpaceValueRead(org::imm::ImmAdapterT<org::imm::ImmSpace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSpace>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, org::imm::ImmAdapterWordAPI>(m, "ImmWordAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmWordValueRead(org::imm::ImmAdapterT<org::imm::ImmWord>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmWord>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmAtMention>, org::imm::ImmAdapterAtMentionAPI>(m, "ImmAtMentionAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmAtMentionValueRead(org::imm::ImmAdapterT<org::imm::ImmAtMention>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmAtMention>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRawText>, org::imm::ImmAdapterRawTextAPI>(m, "ImmRawTextAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmRawTextValueRead(org::imm::ImmAdapterT<org::imm::ImmRawText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRawText>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, org::imm::ImmAdapterPunctuationAPI>(m, "ImmPunctuationAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmPunctuationValueRead(org::imm::ImmAdapterT<org::imm::ImmPunctuation>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPunctuation>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, org::imm::ImmAdapterPlaceholderAPI>(m, "ImmPlaceholderAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmPlaceholderValueRead(org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, org::imm::ImmAdapterBigIdentAPI>(m, "ImmBigIdentAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBigIdentValueRead(org::imm::ImmAdapterT<org::imm::ImmBigIdent>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBigIdent>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, org::imm::ImmAdapterTextTargetAPI>(m, "ImmTextTargetAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmTextTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmTextTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTextTarget>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBold>, org::imm::ImmAdapterBoldAPI>(m, "ImmBoldAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBoldValueRead(org::imm::ImmAdapterT<org::imm::ImmBold>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBold>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmUnderline>, org::imm::ImmAdapterUnderlineAPI>(m, "ImmUnderlineAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmUnderlineValueRead(org::imm::ImmAdapterT<org::imm::ImmUnderline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmUnderline>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMonospace>, org::imm::ImmAdapterMonospaceAPI>(m, "ImmMonospaceAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmMonospaceValueRead(org::imm::ImmAdapterT<org::imm::ImmMonospace>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMonospace>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, org::imm::ImmAdapterMarkQuoteAPI>(m, "ImmMarkQuoteAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmMarkQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmAdapterRadioTargetAPI>(m, "ImmRadioTargetAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmRadioTargetValueRead(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmAdapterVerbatimAPI>(m, "ImmVerbatimAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmVerbatimValueRead(org::imm::ImmAdapterT<org::imm::ImmVerbatim>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmVerbatim>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmItalic>, org::imm::ImmAdapterItalicAPI>(m, "ImmItalicAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmItalicValueRead(org::imm::ImmAdapterT<org::imm::ImmItalic>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmItalic>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStrike>, org::imm::ImmAdapterStrikeAPI>(m, "ImmStrikeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmStrikeValueRead(org::imm::ImmAdapterT<org::imm::ImmStrike>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStrike>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmAdapterParAPI>(m, "ImmParAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmParValueRead(org::imm::ImmAdapterT<org::imm::ImmPar>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPar>::getValue))
     ;
   nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
@@ -7394,24 +7487,31 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterAttachedAPI, org::imm::ImmAdapterLineCommandAPI>(m, "ImmAdapterAttachedAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLineCommand>, org::imm::ImmAdapterLineCommandAPI>(m, "ImmLineCommandAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmLineCommandValueRead(org::imm::ImmAdapterT<org::imm::ImmLineCommand>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLineCommand>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterCmdCustomArgsAPI>(m, "ImmCmdCustomArgsAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCustomArgsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, org::imm::ImmAdapterCmdCreatorAPI>(m, "ImmCmdCreatorAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCreatorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, org::imm::ImmAdapterCmdAuthorAPI>(m, "ImmCmdAuthorAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdAuthorValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, org::imm::ImmAdapterCmdEmailAPI>(m, "ImmCmdEmailAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdEmailValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>, org::imm::ImmAdapterCmdLanguageAPI>(m, "ImmCmdLanguageAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdLanguageValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmAdapterCmdTblfmAPI>(m, "ImmCmdTblfmAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdTblfmValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterBlockCenterAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCenterAPI")
@@ -7439,12 +7539,15 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterTableAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterTableAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlock>, org::imm::ImmAdapterBlockAPI>(m, "ImmBlockAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockValueRead(org::imm::ImmAdapterT<org::imm::ImmBlock>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlock>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmAdapterCellAPI>(m, "ImmCellAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCellValueRead(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmAdapterRowAPI>(m, "ImmRowAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmRowValueRead(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterCmdCaptionAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCaptionAPI")
@@ -7460,57 +7563,75 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterCmdAttrAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdAttrAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmAttached>, org::imm::ImmAdapterAttachedAPI>(m, "ImmAttachedAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmAttachedValueRead(org::imm::ImmAdapterT<org::imm::ImmAttached>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmAttached>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, org::imm::ImmAdapterBlockCenterAPI>(m, "ImmBlockCenterAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockCenterValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, org::imm::ImmAdapterBlockQuoteAPI>(m, "ImmBlockQuoteAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockQuoteValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, org::imm::ImmAdapterBlockVerseAPI>(m, "ImmBlockVerseAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockVerseValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, org::imm::ImmAdapterBlockExampleAPI>(m, "ImmBlockExampleAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockExampleValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExample>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExample>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, org::imm::ImmAdapterInlineExportAPI>(m, "ImmInlineExportAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmInlineExportValueRead(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, org::imm::ImmAdapterCmdExportAPI>(m, "ImmCmdExportAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdExportValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, org::imm::ImmAdapterBlockExportAPI>(m, "ImmBlockExportAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockExportValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmAdapterBlockDynamicFallbackAPI>(m, "ImmBlockDynamicFallbackAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockDynamicFallbackValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, org::imm::ImmAdapterBlockAdmonitionAPI>(m, "ImmBlockAdmonitionAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockAdmonitionValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterBlockCodeEvalResultAPI>(m, "ImmBlockCodeEvalResultAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockCodeEvalResultValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterBlockCodeAPI>(m, "ImmBlockCodeAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmBlockCodeValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmAdapterTableAPI>(m, "ImmTableAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmTableValueRead(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterCmdCaptionAPI>(m, "ImmCmdCaptionAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCaptionValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmAdapterCmdColumnsAPI>(m, "ImmCmdColumnsAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdColumnsValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdName>, org::imm::ImmAdapterCmdNameAPI>(m, "ImmCmdNameAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdNameValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdName>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdName>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmAdapterCmdCallAPI>(m, "ImmCmdCallAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdCallValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getValue))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
+    .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getValue", static_cast<org::imm::ImmCmdAttrValueRead(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getValue))
     ;
   bind_enum_iterator<CheckboxState>(m, "CheckboxState", type_registry_guard);
@@ -8245,7 +8366,7 @@ ingoing elements.)RAW")
   m.def("newSemTimeStatic",
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
         nanobind::arg("breakdown"),
-        nanobind::arg("isActive") = 0);
+        nanobind::arg("isActive") = false);
   m.def("initImmutableAstContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext));
   m.def("asOneNode",
         static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&)>(&org::asOneNode),

@@ -11,7 +11,10 @@ CAT = __name__
 
 @beartype
 def get_tmpdir(*name: str) -> Path:
-    return Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name)
+    "Get or create temporary directory for temporary workflow/haxorg files"
+    result = Path(tempfile.gettempdir()).joinpath("haxorg").joinpath(*name)
+    result.mkdir(parents=True, exist_ok=True)
+    return result
 
 
 class HaxorgInstrumentConfig(BaseModel, extra="forbid"):
@@ -67,8 +70,9 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
+    "Configuration for how sources would be generated"
     tmp: bool = False
-    standalone: bool = False
+    "Put generated sources in a temporary directory"
 
 
 class HaxorgCustomDocsConfig(BaseModel, extra="forbid"):

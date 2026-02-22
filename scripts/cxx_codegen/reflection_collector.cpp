@@ -1046,8 +1046,7 @@ void ReflASTVisitor::fillExpr(
         bool outValue = boolLiteral->getValue();
         Out->set_kind(ExprKind::Lit);
         Out->set_value(outValue ? "true" : "false");
-    }
-    if (auto val = In->getIntegerConstantExpr(*Ctx)) {
+    } else if (auto val = In->getIntegerConstantExpr(*Ctx)) {
         Out->set_kind(ExprKind::Lit);
         llvm::SmallString<32> Str;
         val->toString(Str);

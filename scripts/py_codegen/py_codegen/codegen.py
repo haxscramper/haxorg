@@ -27,6 +27,7 @@ import py_codegen.codegen_immutable as gen_imm
 from py_codegen.org_codegen_data import *
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_haxorg.layout.wrap import TextLayout, TextOptions
+from py_repository.repo_tasks.config import get_tmpdir
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file
@@ -1219,17 +1220,22 @@ def run_codegen_pyhaxorg(
     reflection_path: Path,
     t: TextLayout,
 ) -> None:
+    """
+    Generate sources for the haxorg library
+    :param is_tmp_codegen: If set, put newly genrated sources in the
+      temporary directory instead of overwriting existing ones. Useful
+      for development.
+    :param reflection_path: Input protobuf file with reflection information.
+    """
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_path=Path(reflection_path),
     )
 
-    with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
+    groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_groups.yaml")
+    with groups_dump_yaml.open("w") as file:
         yaml.safe_dump(to_base_types(groups.tu), stream=file)
-
-    with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
-        log(CAT).debug(f"Debug reflection data to {file.name}")
-        file.write(open_proto_file(reflection_path).to_json(2))
+        log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
 
     _write_files_group(
         gen_pyhaxorg_napi_wrappers(

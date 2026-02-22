@@ -8,11 +8,8 @@ from typing import NewType, TYPE_CHECKING
 
 from beartype import beartype
 from beartype.typing import List, Optional, overload, Union
+from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
-
-
-def pascal_case(s: str) -> str:
-    return s[0].upper() + s[1:] if s else ""
 
 
 class AstLineCtx:
