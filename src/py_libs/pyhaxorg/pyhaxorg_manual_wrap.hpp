@@ -1,9 +1,8 @@
 #ifndef PY_HAXORG_COMPILING
 
 #    undef slots
-#    include <pybind11/pybind11.h>
+#    include <nanobind/nanobind.h>
 #    include <haxorg/sem/SemOrg.hpp>
-#    include <pybind11/stl.h>
 
 #    include "pyhaxorg_manual_impl.hpp"
 

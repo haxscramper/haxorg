@@ -34,10 +34,7 @@ struct PyTypeRegistryGuard {
         return py_cxx_map.contains(name);
     }
 
-    PyTypeRegistryGuard() {
-        // nanobind does not expose a global registry of registered types
-        // in the same way pybind11 does, so we start with an empty guard.
-    }
+    PyTypeRegistryGuard() {}
 };
 
 template <typename E>

@@ -47,7 +47,7 @@
 #    include <SemOrgProto.pb.h>
 #endif
 #include <py_libs/py_type_casters.hpp>
-#include <py_libs/pybind11_utils.hpp>
+#include <py_libs/nanobind_utils.hpp>
 
 #include <frameobject.h>
 #include <haxorg/api/SemBaseApi.hpp>

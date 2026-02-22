@@ -8,9 +8,7 @@ from typing import *
 
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
-import py_codegen.astbuilder_proto as pb
-import py_codegen.astbuilder_py as pya
-from py_codegen.astbuilder_pybind11 import (
+from py_codegen.astbuilder_nanobind import (
     flat_scope,
     id_self,
     NbBindPass,
@@ -23,6 +21,8 @@ from py_codegen.astbuilder_pybind11 import (
     Py11Field,
     py_type,
 )
+import py_codegen.astbuilder_proto as pb
+import py_codegen.astbuilder_py as pya
 import py_codegen.codegen_immutable as gen_imm
 from py_codegen.org_codegen_data import *
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
@@ -516,9 +516,8 @@ def gen_adaptagrams_wrappers(
                     "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
                     [
                         GenTuPass("#undef slots"),
-                        GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                         GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
-                        GenTuInclude("py_libs/pybind11_utils.hpp", True),
+                        GenTuInclude("py_libs/nanobind_utils.hpp", True),
                         *NB_INCLUDE_LIST,
                         GenTuPass(res.build_bind(ast, base_map=base_map)),
                     ],
@@ -896,7 +895,6 @@ def gen_pyhaxorg_python_wrappers(
                 "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
-                    GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
                     *NB_INCLUDE_LIST,
                     GenTuInclude("haxorg/sem/SemOrg.hpp", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),

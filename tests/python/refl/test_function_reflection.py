@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import py_codegen.astbuilder_cpp as cpp
-import py_codegen.astbuilder_pybind11 as py11
+import py_codegen.astbuilder_nanobind as py11
 from py_codegen.gen_tu_cpp import get_base_map, ReferenceKind
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 import pytest
