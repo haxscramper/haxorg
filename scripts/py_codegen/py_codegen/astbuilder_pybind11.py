@@ -963,6 +963,16 @@ class NbModule:
         "Register used type specializations in the module"
 
         opaque_declarations: List[BlockId] = []
+
+        self.Decls.append(NbBindPass(ast.string("nanobind::set_leak_warnings(false);")))
+        # Disabling warnings. Trivial test in `"tests/python/test_coverall.py::test_run_typst_construction"` reports
+        # two leaked instances, while valgrind does not report any issues. I'm going to treat
+        # this as a false positive until I get more information on what might be causing this.
+        # The test I mentioned above constructs two objects, and they are both leaked, even though
+        # it does not call any methods, return shared pointers or anything of that nature.
+        # Exporter python is not a complex class. Text layout wrapper is even more trivial, and it is
+        # also marked as leaked.
+
         specialization_calls: List[BlockId] = [
             ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
         ]

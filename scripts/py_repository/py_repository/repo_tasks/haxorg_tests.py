@@ -7,6 +7,7 @@ from py_repository.repo_tasks.command_execution import (
     get_uv_develop_sync_flags,
     run_command,
 )
+from py_repository.repo_tasks.config import get_tmpdir
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
@@ -53,6 +54,39 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         print_output=ctx.config.py_test_conf.real_time_output_print,
     )
 
+    pytest_cmd = [
+        "pytest",
+        "-vv",
+        "-ra",
+        "-s",
+        "--log-cli-level=DEBUG",
+        "--tb=short",
+        "--disable-warnings",
+    ]
+
+    if not ctx.config.py_test_conf.use_valgrind:
+        pytest_cmd += [
+            "--cov=scripts",
+            "--cov-report=html",
+            "--cov-context=test",
+        ]
+
+    if ctx.config.py_test_conf.use_valgrind:
+        env["DEBUGINFOD_URLS"] = "https://debuginfod.archlinux.org"
+        uv_cmd_args = [
+            "valgrind",
+            "--tool=memcheck",
+            "--leak-check=full",
+            "--show-leak-kinds=definite",
+            f"--suppressions={str(ctx.config.py_test_conf.valgrind_suppression)}",
+            "--log-file=" + str(get_tmpdir().joinpath("valgrind-out.txt")),
+            "python",
+            "-m",
+            *pytest_cmd,
+        ]
+    else:
+        uv_cmd_args = pytest_cmd
+
     retcode, stdout, stderr = run_command(
         ctx,
         "uv",
@@ -61,22 +95,14 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
             "--all-groups",
             *get_uv_develop_sync_flags(ctx),
             *get_uv_develop_env_flags(ctx),
-            "pytest",
-            "-vv",
-            "-ra",
-            "-s",
-            "--log-cli-level=DEBUG",
-            "--tb=short",
-            "--cov=scripts",
-            "--cov-report=html",
-            "--cov-context=test",
-            "--disable-warnings",
-            # "--cov-branch",
+            *uv_cmd_args,
             *args,
         ],
         allow_fail=True,
         env=env,
         print_output=ctx.config.py_test_conf.real_time_output_print,
+        stderr_debug=get_tmpdir().joinpath("test_stderr.txt"),
+        stdout_debug=get_tmpdir().joinpath("test_stdout.txt"),
     )
 
     if not ctx.config.py_test_conf.real_time_output_print:

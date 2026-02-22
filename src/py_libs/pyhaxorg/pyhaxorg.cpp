@@ -8763,5 +8763,6 @@ ingoing elements.)RAW")
         nanobind::arg("node"),
         nanobind::arg("conf"),
         nanobind::arg("parse_context"));
+  nanobind::set_leak_warnings(false);
 }
 /* clang-format on */

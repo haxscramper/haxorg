@@ -106,7 +106,12 @@ class HaxorgExampleConfig(BaseModel, extra="forbid"):
 
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
+    "Pytest config parameters"
     extra_pytest_args: List[str] = Field(default_factory=list)
+    use_valgrind: bool = Field(
+        default=False, description="Execute pytest with valgrind memory leak detection")
+    valgrind_suppression: Optional[Path] = Field(
+        default=None, description="Path to valgrind suppression file")
     real_time_output_print: bool = Field(
         default=True,
         description=

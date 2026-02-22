@@ -1296,6 +1296,12 @@ def get_test_node_from_file() -> org.Org:
     return parse.parseFileWithIncludes(str(file), opts)
 
 
+def test_run_typst_construction() -> None:
+    from py_haxorg.exporters.export_typst import ExporterTypst
+
+    exp = ExporterTypst()
+
+
 def test_run_typst_exporter(cov: Coverage) -> None:
     node = get_test_node_from_file()
     from py_haxorg.exporters.export_typst import (

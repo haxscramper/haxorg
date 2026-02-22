@@ -592,5 +592,6 @@ assert failure if the structure is incorrect.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::set_leak_warnings(false);
 }
 /* clang-format on */
