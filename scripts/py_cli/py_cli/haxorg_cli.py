@@ -54,6 +54,10 @@ def parseFile(
     file: Path,
     parse_opts: Optional[org.OrgParseParameters] = None,
 ) -> org.Org:
+    """
+    Parse input org-mode file, optionally caching and recursively resolving includes.
+    This function only parses a single file.
+    """
     result: org.Org = None  # type: ignore
     if ctx.opts.follow_includes:
         dir_opts = org.OrgDirectoryParseParameters()
@@ -64,7 +68,6 @@ def parseFile(
 
             org.setGetParsedNode(dir_opts, parse_node_impl)
 
-        log(CAT).info(f"Parse file with includes {file}")
         result = ctx.parse.parseFileWithIncludes(str(file.resolve()), dir_opts)
     else:
         if parse_opts:

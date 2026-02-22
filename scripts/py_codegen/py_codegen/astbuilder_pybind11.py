@@ -512,6 +512,38 @@ class NbEnum:
                         ],
                     ).build_bind(self.Enum.name, ast),
                     NbMethod(
+                        PyName="__int__",
+                        Func=GenTuFunction(
+                            name="",
+                            result=QualType(name="int"),
+                            arguments=[GenTuIdent(self.Enum.name, "v")],
+                        ),
+                        Body=[
+                            ast.Return(
+                                ast.XCall("static_cast",
+                                          args=[ast.string("v")],
+                                          Params=[
+                                              QualType(name="int"),
+                                          ]))
+                        ],
+                    ).build_bind(self.Enum.name, ast),
+                    NbMethod(
+                        PyName="__index__",
+                        Func=GenTuFunction(
+                            name="",
+                            result=QualType(name="int"),
+                            arguments=[GenTuIdent(self.Enum.name, "v")],
+                        ),
+                        Body=[
+                            ast.Return(
+                                ast.XCall("static_cast",
+                                          args=[ast.string("v")],
+                                          Params=[
+                                              QualType(name="int"),
+                                          ]))
+                        ],
+                    ).build_bind(self.Enum.name, ast),
+                    NbMethod(
                         PyName="__eq__",
                         Func=GenTuFunction(
                             name="",

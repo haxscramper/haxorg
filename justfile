@@ -35,3 +35,5 @@ run_haxorg_reflection_snapshot_generation:
 
 run_github_ci:
   act push  --container-options "--cpus 24"
+
+run_haxorg_codegen_and_tests: run_haxorg_only_source_generation run_py_tests

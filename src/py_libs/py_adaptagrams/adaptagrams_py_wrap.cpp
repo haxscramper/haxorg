@@ -82,6 +82,16 @@ NB_MODULE(py_adaptagrams, m) {
     .def("__iter__", [](hstd::ext::GraphDimension const& _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphDimension> {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphDimension>();
                      })
+    .def("__int__",
+         [](hstd::ext::GraphDimension const& _self, hstd::ext::GraphDimension v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
+    .def("__index__",
+         [](hstd::ext::GraphDimension const& _self, hstd::ext::GraphDimension v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
     .def("__eq__",
          [](hstd::ext::GraphDimension lhs, hstd::ext::GraphDimension rhs) -> bool {
          return lhs == rhs;
@@ -103,6 +113,16 @@ NB_MODULE(py_adaptagrams, m) {
     .def("__iter__", [](hstd::ext::GraphNodeConstraint::Kind const& _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind> {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>();
                      })
+    .def("__int__",
+         [](hstd::ext::GraphNodeConstraint::Kind const& _self, hstd::ext::GraphNodeConstraint::Kind v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
+    .def("__index__",
+         [](hstd::ext::GraphNodeConstraint::Kind const& _self, hstd::ext::GraphNodeConstraint::Kind v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
     .def("__eq__",
          [](hstd::ext::GraphNodeConstraint::Kind lhs, hstd::ext::GraphNodeConstraint::Kind rhs) -> bool {
          return lhs == rhs;
@@ -124,6 +144,16 @@ NB_MODULE(py_adaptagrams, m) {
     .def("__iter__", [](hstd::ext::GraphEdgeConstraint::Port const& _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port> {
                      return org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>();
                      })
+    .def("__int__",
+         [](hstd::ext::GraphEdgeConstraint::Port const& _self, hstd::ext::GraphEdgeConstraint::Port v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
+    .def("__index__",
+         [](hstd::ext::GraphEdgeConstraint::Port const& _self, hstd::ext::GraphEdgeConstraint::Port v) -> int {
+         return static_cast<int>(v);
+         },
+         nanobind::arg("v"))
     .def("__eq__",
          [](hstd::ext::GraphEdgeConstraint::Port lhs, hstd::ext::GraphEdgeConstraint::Port rhs) -> bool {
          return lhs == rhs;
