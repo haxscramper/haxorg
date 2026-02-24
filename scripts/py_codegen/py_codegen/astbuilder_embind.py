@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from beartype import beartype
 from beartype.typing import Union
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.gen_tu_cpp import *
+from py_codegen.codegen_ir import *
 from py_haxorg.astbuilder.astbuilder_base import pascal_case
 
 
@@ -114,7 +114,7 @@ class WasmField():
     def __init__(self, Field: GenTuField) -> None:
         self.Field = Field
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
             ast.line([
                 ast.string(self.Field.name),
@@ -124,7 +124,7 @@ class WasmField():
             ])
         ]
 
-    def build_bind(self, ast: ASTBuilder, Class: QualType) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder, Class: QualType) -> BlockId:
         return ast.XCall(
             ".property",
             args=[
@@ -147,7 +147,7 @@ class WasmTypedef:
     def __init__(self, Def: GenTuTypedef) -> None:
         self.Def = Def
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
             ast.line([
                 ast.string("export type "),
@@ -158,10 +158,10 @@ class WasmTypedef:
             ])
         ]
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def build_bind(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return []
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return []
 
 
@@ -177,10 +177,10 @@ class WasmFunction():
         self.Func = Func
         self.Body = Body
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return self.get_typedef(ast, base_map)
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
             ast.line([
                 ast.string(self.getWasmName()),
@@ -201,7 +201,7 @@ class WasmFunction():
 
     def build_call_pass(
         self,
-        ast: ASTBuilder,
+        ast: cpp.ASTBuilder,
         Args: List[GenTuIdent],
         FunctionQualName: BlockId,
         Class: Optional[QualType] = None,
@@ -209,10 +209,11 @@ class WasmFunction():
     ) -> BlockId:
         if self.Body:
             return ast.Lambda(
-                LambdaParams(
+                cpp.LambdaParams(
                     ResultTy=self.Func.result,
                     Args=[
-                        ParmVarParams(Arg.type, Arg.name) for Arg in self.Func.arguments
+                        cpp.ParmVarParams(Arg.type, Arg.name)
+                        for Arg in self.Func.arguments
                     ],
                     Body=self.Body,
                     IsLine=False,
@@ -227,7 +228,7 @@ class WasmFunction():
                 Params=[function_type],
             )
 
-    def build_bind(self, b: ASTBuilder) -> BlockId:
+    def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
 
         if self.Func.spaces:
             full_name = b.Scoped(
@@ -261,7 +262,7 @@ class WasmEnum():
     def getWasmName(self) -> str:
         return self.Enum.name.getBindName(ignored_spaces=IGNORED_NAMESPACES)
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [
             ast.block(head=ast.string(f"{self.getWasmName()}:"),
                       content=[
@@ -272,7 +273,7 @@ class WasmEnum():
                 f"format_{self.getWasmName()}(value: {self.getWasmName()}): string;")
         ]
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         body = []
         for field in self.Enum.fields:
             if field.value:
@@ -288,7 +289,7 @@ class WasmEnum():
             )
         ]
 
-    def build_bind(self, b: ASTBuilder) -> BlockId:
+    def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
         return b.Call(
             func=b.string("org::bind::js::bind_enum"),
             Params=[
@@ -312,7 +313,7 @@ class WasmMethod(WasmFunction):
         super().__init__(Func)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:  # type: ignore
+    def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         b = ast.b
 
         Args: List[GenTuIdent] = []
@@ -367,10 +368,10 @@ class WasmClass():
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         return [ast.string(f"{self.getWasmName()}: {self.getWasmName()}Constructor;")]
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
         body = []
 
         for Meth in self.Record.methods:
@@ -394,7 +395,7 @@ class WasmClass():
             )
         ]
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         b = ast.b
 
         sub: List[BlockId] = []
@@ -555,7 +556,7 @@ class WasmModule():
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
 
-    def build_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_typedef(self, ast: cpp.ASTBuilder, base_map: GenTypeMap) -> BlockId:
         body = []
         iface = []
 
@@ -580,7 +581,7 @@ class WasmModule():
             *body,
         ])
 
-    def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder,
+    def build_bind(self, ast: cpp.ASTBuilder, b: cpp.ASTBuilder,
                    base_map: GenTypeMap) -> BlockId:
         Result = b.b.stack()
 
@@ -600,10 +601,10 @@ class WasmModule():
             b.b.add_at(
                 Result,
                 ast.Function(
-                    FunctionParams(
+                    cpp.FunctionParams(
                         Name=f"subdivide_{subivide_count}",
                         Args=[
-                            ParmVarParams(
+                            cpp.ParmVarParams(
                                 type=QualType(
                                     name="org::bind::js::type_registration_guard",
                                     RefKind=ReferenceKind.LValue,
@@ -656,7 +657,7 @@ class WasmModule():
 
         for key, value in overload_counts.items():
             if 1 < value:
-                log(CAT).warning(
+                raise ValueError(
                     f"{key} is overloaded without unique name, has {value} overloads")
 
         b.b.add_at(

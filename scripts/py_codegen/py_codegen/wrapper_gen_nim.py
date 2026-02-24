@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import Callable, List, NewType, Optional, Set, Tuple, Union
 import py_codegen.astbuilder_nim as nim
-from py_codegen.gen_tu_cpp import (
+from py_codegen.codegen_ir import (
     GenTuEnum,
     GenTuEnumField,
     GenTuField,

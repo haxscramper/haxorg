@@ -5,7 +5,7 @@ from enum import Enum
 from beartype.typing import *
 # Now you should be able to import your C++ library
 from py_codegen.astbuilder_cpp import *
-from py_codegen.gen_tu_cpp import *
+from py_codegen.codegen_ir import *
 
 
 @beartype

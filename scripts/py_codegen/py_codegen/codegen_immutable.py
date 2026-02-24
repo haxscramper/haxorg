@@ -4,8 +4,8 @@ from dataclasses import replace
 from beartype import beartype
 from beartype.typing import Any, List, Sequence, Tuple
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.gen_tu_cpp import GenTuFunction, QualType
-import py_codegen.gen_tu_cpp as tu
+from py_codegen.codegen_ir import GenTuFunction, QualType
+import py_codegen.codegen_ir as tu
 from py_scriptutils.algorithm import iterate_object_tree
 
 

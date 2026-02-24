@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 
 from beartype import beartype
-from py_codegen.gen_tu_cpp import *
+from py_codegen.codegen_ir import *
 import py_codegen.proto_lib.reflection_defs as pb
 
 

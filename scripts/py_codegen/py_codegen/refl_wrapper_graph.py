@@ -8,7 +8,7 @@ from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 import graphviz as gv
 import igraph as ig
-from py_codegen.gen_tu_cpp import (
+from py_codegen.codegen_ir import (
     GenTuEnum,
     GenTuFunction,
     GenTuStruct,

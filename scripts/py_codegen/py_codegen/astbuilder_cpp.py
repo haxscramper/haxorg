@@ -2,513 +2,14 @@ from copy import copy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 import inspect
-import itertools
 import os
-from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    NewType,
-    Optional,
-    Tuple,
-    Union,
-)
+from beartype.typing import Any, Iterable, List, Optional, Tuple, Union
+from py_codegen import codegen_ir
+from py_codegen.codegen_ir import GenTuTemplateParams, QualType, StorageClass
 import py_haxorg.astbuilder.astbuilder_base as base
-from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_haxorg.layout.wrap import BlockId, TextLayout
-from pydantic import BaseModel, Field
-
-DEBUG_TYPE_ORIGIN = False
-
-
-class QualTypeKind(str, Enum):
-    RegularType = "RegularTyp0e"
-    FunctionPtr = "FunctionPtr"
-    MethodPtr = "MethodPtr"
-    Array = "Array"
-    TypeExpr = "TypeExpr"
-
-    def __rich_repr__(self) -> Any:
-        yield self.name
-
-
-class ReferenceKind(str, Enum):
-    NotRef = "NotRef"
-    LValue = "LValue"
-    RValue = "RValue"
-
-    def __rich_repr__(self) -> Any:
-        yield self.name
-
-    def __repr__(self) -> str:
-        return self.name
-
-
-@beartype
-class QualType(BaseModel, extra="forbid"):
-    name: str = ""
-    Parameters: List['QualType'] = Field(default_factory=list)
-    Spaces: List['QualType'] = Field(default_factory=list)
-    isNamespace: bool = False
-
-    isConst: bool = False
-    ptrCount: int = 0
-    RefKind: ReferenceKind = ReferenceKind.NotRef
-    dbg_origin: str = Field(default="", exclude=True)
-    verticalParamList: bool = Field(default=False, exclude=True)
-    isBuiltin: bool = Field(default=False)
-    #: Prefix the type with leading `::` to refer to the global namespace
-    isGlobalNamespace: bool = Field(default=False)
-    IsPackExpansion: bool = Field(default=False)
-
-    expr: Optional[str] = None
-    Kind: QualTypeKind = QualTypeKind.RegularType
-
-    meta: Dict[str, Any] = Field(default={})
-
-    def getBindName(
-            self,
-            ignored_spaces: List[str] = [],
-            withParams: bool = False,
-            rename_map: Dict[Tuple[str, ...], str] = dict(),
-    ) -> str:
-
-        def aux(t: QualType) -> str:
-            res = ""
-
-            flat = tuple(t.flatQualName())
-
-            if flat in rename_map:
-                res += rename_map[flat]
-
-            else:
-                for N in t.Spaces:
-                    res += aux(N)
-
-                if t.name not in ignored_spaces:
-                    res += pascal_case(t.name)
-
-            if withParams and 0 < len(t.Parameters):
-                res += "Of"
-                res += "".join([aux(T) for T in t.Parameters])
-
-            return res
-
-        return aux(self)
-
-    def par0(self) -> Optional["QualType"]:
-        if 0 < len(self.Parameters):
-            return self.Parameters[0]
-
-        else:
-            return None
-
-    def par1(self) -> Optional["QualType"]:
-        if 1 < len(self.Parameters):
-            return self.Parameters[1]
-
-        else:
-            return None
-
-    def test(self, met: str) -> bool:
-        return bool(self.meta.get(met, False))
-
-    def isOrgType(self) -> bool:
-        return self.meta.get("isOrgType", False)
-
-    @staticmethod
-    def ForName(name: str, **args: Any) -> "QualType":
-        return QualType(name=name, **args)
-
-    @staticmethod
-    def ForExpr(expr: str, **args: Any) -> "QualType":
-        return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
-
-    def flatten(self) -> "QualType":
-        return self.model_copy(update=dict(Spaces=self.flatQualScope()))
-
-    def withDbgOrigin(self, msg: str) -> "QualType":
-        return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
-
-    def asConstRef(self) -> "QualType":
-        return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
-
-    def asConstPtr(self) -> "QualType":
-        return self.model_copy(update=dict(isConst=True, ptrCount=1))
-
-    def asRef(self) -> "QualType":
-        return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
-
-    def flatQualScope(self) -> List["QualType"]:
-        "Flatten fully qualified name for the type"
-
-        def aux(it: QualType) -> List[QualType]:
-            return list(itertools.chain(
-                *(aux(s) for s in it.Spaces))) + [it.withoutAllScopeQualifiers()]
-
-        return list(itertools.chain(*(aux(s) for s in self.Spaces)))
-
-    def flatQualFullName(self) -> List["QualType"]:
-        return self.flatQualScope() + [self.withoutAllScopeQualifiers()]
-
-    def flatQualNameNoNamespace(self) -> List["QualType"]:
-        "Return qualified name for the type, dropping all namespace parents (but leaving non-namespaces)"
-        return [it for it in self.flatQualScope() if not it.isNamespace]
-
-    def asPtr(self, ptrCount: int = 1) -> "QualType":
-        return self.model_copy(update=dict(ptrCount=ptrCount))
-
-    def withGlobalSpace(self) -> "QualType":
-        return self.model_copy(update=dict(isGlobalNamespace=True))
-
-    def flatSpaceNames(self) -> List[str]:
-        "Get flat list of names for fully qualified type"
-
-        def aux(Typ: QualType) -> List[str]:
-            res: List[str] = []
-            for S in Typ.Spaces:
-                res += aux(S)
-
-            res += [Typ.name]
-            return res
-
-        return list(itertools.chain(*[aux(S) for S in self.Spaces]))
-
-    def flatQualName(self) -> List[str]:
-        return self.flatSpaceNames() + [self.name]
-
-    def asSpaceFor(self, other: 'QualType') -> 'QualType':
-        return other.model_copy(update=dict(
-            Spaces=self.Spaces +
-            [self.model_copy(update=dict(
-                Spaces=[],
-                isGlobalNamespace=False,
-            ))],
-            isGlobalNamespace=self.isGlobalNamespace,
-        ))
-
-    def withTemplateParams(self, Params: List["QualType"]) -> "QualType":
-        return self.model_copy(update=dict(Parameters=Params))
-
-    def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
-        if isinstance(name, str):
-            return QualType(name=name, Parameters=[self])
-
-        else:
-            return name.model_copy(update=dict(Parameters=[self]))
-
-    def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
-        flat = self.flatten()
-        added: QualType = QualType(name=name) if isinstance(name, str) else name
-        assert isinstance(added, QualType), type(added)
-        return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
-
-    def withoutCVRef(self) -> "QualType":
-        return self.model_copy(update=dict(
-            isConst=False,
-            RefKind=ReferenceKind.NotRef,
-        ))
-
-    def withoutSpace(self, name: str) -> 'QualType':
-        flat = self.flatten()
-        return flat.model_copy(update=dict(
-            Spaces=[S for S in flat.Spaces if S.name != name]))
-
-    def withoutAllScopeQualifiers(self) -> 'QualType':
-        return self.model_copy(update=dict(Spaces=[]))
-
-    def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
-        """Change the namespace of the qualified type from the current list to the [name]
-        Resulting type will have only [name] as the space"""
-        added: QualType = QualType(name=name) if isinstance(name, str) else name
-        assert isinstance(added, QualType), type(added)
-        return self.flatten().model_copy(update=dict(Spaces=[added]))
-
-    def isArray(self) -> bool:
-        return self.Kind == QualTypeKind.Array
-
-    def isFunction(self) -> bool:
-        return self.Kind == QualTypeKind.FunctionPtr
-
-    def isPrimitive(self) -> bool:
-        return self.isBuiltin or self.name in [
-            "size_t",
-            "uint32_t",
-            "uint16_t",
-            "int32_t",
-            "int64_t",
-            "uint64_t",
-        ]
-
-    @beartype
-    class Function(BaseModel, extra="forbid"):
-        ReturnTy: Optional['QualType']
-        Args: List['QualType']
-        Ident: str = ""
-        Class: Optional['QualType'] = None
-        IsConst: bool = False
-
-    func: Optional[Function] = None
-
-    def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
-        ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
-        ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
-        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked.
-        result = []
-
-        def aux(T: QualType) -> None:
-            for S in T.Spaces:
-                aux(S)
-
-            for P in T.Parameters:
-                aux(P)
-
-            if with_modifiers:
-                result.append((
-                    T.name,
-                    T.isConst,
-                    T.ptrCount,
-                    T.RefKind,
-                ))
-
-            else:
-                result.append((T.name,))  # type: ignore[arg-type]
-
-        aux(self)
-        return tuple(result)
-
-    def get_recursive_uses(self) -> List["QualType"]:
-        result: List[QualType] = []
-        match self.Kind:
-            case QualTypeKind.RegularType:
-                result.append(self)
-                for p in self.Parameters:
-                    result.extend(p.get_recursive_uses())
-
-            case QualTypeKind.FunctionPtr:
-                assert self.func
-                for arg in self.func.Args:
-                    result.extend(arg.get_recursive_uses())
-
-            case QualTypeKind.Array:
-                for p in self.Parameters:
-                    result.extend(p.get_recursive_uses())
-
-            case QualTypeKind.TypeExpr:
-                pass
-
-            case _:
-                assert False, self.Kind
-
-        return result
-
-    def qual_hash(self) -> int:
-        return hash(self.flat_repr_flatten(with_modifiers=False))
-
-    def __hash__(self) -> int:
-        return hash(self.flat_repr_flatten())
-
-    def __repr__(self) -> str:
-        return self.format()
-
-    def __str__(self) -> str:
-        return self.format()
-
-    def format_native(
-        self,
-        with_cvref: bool = True,
-        max_depth: Optional[int] = None,
-        max_params: Optional[int] = None,
-        max_param_size: Optional[int] = None,
-    ) -> str:
-
-        def aux(Typ: QualType, depth: int) -> str:
-            if max_depth and max_depth < depth:
-                return ""
-
-            if with_cvref:
-                cvref = "{const}{ptr}{ref}".format(
-                    const=" const" if Typ.isConst else "",
-                    ptr=("*" * Typ.ptrCount),
-                    ref={
-                        ReferenceKind.LValue: "&",
-                        ReferenceKind.RValue: "&&",
-                        ReferenceKind.NotRef: ""
-                    }[Typ.RefKind],
-                )
-            else:
-                cvref = ""
-
-            spaces = "".join([f"{aux(S, depth=depth + 1)}::" for S in Typ.Spaces])
-
-            match Typ.Kind:
-                case QualTypeKind.FunctionPtr:
-                    assert Typ.func
-                    result = "{result}({args})(*)".format(
-                        result=aux(Typ.func.ReturnTy or QualType.ForName("void"),
-                                   depth=depth + 1),
-                        args=", ".join([aux(T, depth=depth + 1) for T in Typ.func.Args]),
-                    )
-
-                case QualTypeKind.Array:
-                    result = "{first}[{expr}]{cvref}".format(
-                        first=aux(Typ.Parameters[0], depth=depth + 1),
-                        expr=aux(Typ.Parameters[1], depth=depth +
-                                 1) if 1 < len(Typ.Parameters) else "",
-                        cvref=cvref,
-                    )
-
-                case QualTypeKind.RegularType:
-                    if max_params:
-                        params_list = Typ.Parameters[:min(len(Typ.Parameters), max_params
-                                                         )]
-
-                    else:
-                        params_list = Typ.Parameters
-
-                    params_format = [aux(T, depth=depth + 1) for T in params_list]
-                    if max_param_size:
-                        params_format = [
-                            p[:min(len(p), max_param_size)] for p in params_format
-                        ]
-
-                    result = "{spaces}{name}{args}{cvref}".format(
-                        name=Typ.name or "?",
-                        args="<{}>".format(", ".join(params_format))
-                        if params_format else "",
-                        cvref=cvref,
-                        spaces=spaces,
-                    )
-
-                case QualTypeKind.TypeExpr:
-                    result = f"{Typ.expr}"
-
-                case _:
-                    assert False, Typ.Kind
-
-            return result
-
-        # return self.model_dump_json() + "  --- " + aux(self)
-        return aux(self, depth=0)
-        # return str(self.flat_repr_flatten())
-
-    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
-
-        def aux(Typ: QualType) -> str:
-            cvref = "{const}{ptr}{ref}".format(
-                const=" const" if Typ.isConst else "",
-                ptr=("*" * Typ.ptrCount),
-                ref={
-                    ReferenceKind.LValue: "&",
-                    ReferenceKind.RValue: "&&",
-                    ReferenceKind.NotRef: ""
-                }[Typ.RefKind],
-            )
-
-            origin = f" FROM:{Typ.dbg_origin}" if (dbgOrigin and Typ.dbg_origin) else ""
-
-            spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
-            # if spaces:
-            #     spaces = f"{spaces}"
-
-            match Typ.Kind:
-                case QualTypeKind.FunctionPtr:
-                    assert Typ.func
-                    assert Typ.func.ReturnTy, "Missing return type for function pointer"
-                    result = "{spaces}FUNC:{origin}({args})".format(
-                        spaces=spaces,
-                        origin=aux(Typ.func.ReturnTy),
-                        args=", ".join([aux(T) for T in Typ.func.Args]),
-                    )
-
-                case QualTypeKind.Array:
-                    result = "{spaces}ARR:{first}[{expr}]{cvref}{origin}".format(
-                        first=aux(Typ.Parameters[0]),
-                        expr=aux(Typ.Parameters[1]) if 1 < len(Typ.Parameters) else "",
-                        cvref=cvref,
-                        origin=origin,
-                        spaces=spaces,
-                    )
-
-                case QualTypeKind.RegularType:
-                    result = "{spaces}REC:({name}{args}{cvref}{origin})".format(
-                        name=Typ.name or "?",
-                        args="<{}>".format(", ".join([aux(T) for T in Typ.Parameters]))
-                        if Typ.Parameters else "",
-                        cvref=cvref,
-                        origin=origin,
-                        spaces=spaces,
-                        # namespace=("NSP" if Typ.isNamespace else ""),
-                    )
-
-                case QualTypeKind.TypeExpr:
-                    result = f"[E:{Typ.expr}]"
-
-                case _:
-                    assert False, Typ.Kind
-
-            return "{" + result + "}"
-
-        # return self.model_dump_json() + "  --- " + aux(self)
-        return aux(self)
-        # return str(self.flat_repr_flatten())
-
-    def asNamespace(self, is_namespace: bool = True) -> "QualType":
-        self.isNamespace = is_namespace
-        return self
-
-    def withVerticalParams(self, params: bool = True) -> "QualType":
-        self.verticalParamList = params
-        return self
-
-    @classmethod
-    def from_name(cls, name: str) -> "QualType":
-        return cls(name=name)
-
-    @classmethod
-    def from_name_and_parameters(cls, name: str,
-                                 parameters: List['QualType']) -> "QualType":
-        return cls(name=name, Parameters=parameters)
-
-    @classmethod
-    def from_spaces_and_name(cls, spaces: List[str], name: str) -> "QualType":
-        return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
-
-
-@beartype
-@dataclass
-class GenTuTemplateTypename:
-    Placeholder: bool = False
-    Variadic: bool = False
-    Name: str = ""
-    Nested: List['GenTuTemplateTypename'] = field(default_factory=list)
-    Concept: Optional[str] = None
-
-
-@beartype
-@dataclass
-class GenTuTemplateGroup:
-    Params: List[GenTuTemplateTypename] = field(default_factory=list)
-
-
-@beartype
-@dataclass
-class GenTuTemplateParams:
-    Stacks: List[GenTuTemplateGroup] = field(default_factory=list)
-
-    @staticmethod
-    def FinalSpecialization() -> "GenTuTemplateParams":
-        return GenTuTemplateParams(Stacks=[GenTuTemplateGroup()])
-
-
-class StorageClass(Enum):
-    None_ = 0
-    Static = 1
 
 
 @beartype
@@ -1492,14 +993,14 @@ class ASTBuilder(base.AstbuilderBase):
 
             qualifiers += "*" * type_.ptrCount
             match type_.RefKind:
-                case ReferenceKind.LValue:
+                case codegen_ir.ReferenceKind.LValue:
                     qualifiers += "&"
 
-                case ReferenceKind.RValue:
+                case codegen_ir.ReferenceKind.RValue:
                     qualifiers += "&&"
 
         def get_dbg_str() -> str:
-            if DEBUG_TYPE_ORIGIN and type_.dbg_origin:
+            if codegen_ir.DEBUG_TYPE_ORIGIN and type_.dbg_origin:
                 return f" /* {type_.dbg_origin} */"
 
             else:
@@ -1509,7 +1010,7 @@ class ASTBuilder(base.AstbuilderBase):
             return self.string(get_dbg_str())
 
         match type_.Kind:
-            case QualTypeKind.FunctionPtr:
+            case codegen_ir.QualTypeKind.FunctionPtr:
                 assert type_.func
                 pointer_type = [self.Type(type_.func.Class),
                                 self.string("::")] if type_.func.Class else []
@@ -1523,11 +1024,11 @@ class ASTBuilder(base.AstbuilderBase):
                     get_dbg(),
                 ])
 
-            case QualTypeKind.TypeExpr:
+            case codegen_ir.QualTypeKind.TypeExpr:
                 assert type_.expr
                 return self.string(type_.expr + get_dbg_str())
 
-            case QualTypeKind.Array:
+            case codegen_ir.QualTypeKind.Array:
                 return self.b.line([
                     self.Type(type_.Parameters[0]),
                     self.string("["),
@@ -1537,7 +1038,7 @@ class ASTBuilder(base.AstbuilderBase):
                     get_dbg(),
                 ])
 
-            case QualTypeKind.RegularType:
+            case codegen_ir.QualTypeKind.RegularType:
                 type_scopes: List[BlockId] = []
                 if type_.isGlobalNamespace:
                     # Double colon is added by join later on
@@ -1614,9 +1115,10 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Template(
-        self, Param: Union[GenTuTemplateTypename, GenTuTemplateGroup, GenTuTemplateParams]
+        self, Param: Union[codegen_ir.GenTuTemplateTypename,
+                           codegen_ir.GenTuTemplateGroup, GenTuTemplateParams]
     ) -> BlockId:
-        if isinstance(Param, GenTuTemplateTypename):
+        if isinstance(Param, codegen_ir.GenTuTemplateTypename):
             concept_str = Param.Concept if Param.Concept else (
                 "typename" if not Param.Nested else "template")
             placeholder_str = "" if Param.Placeholder else " "
@@ -1632,7 +1134,7 @@ class ASTBuilder(base.AstbuilderBase):
                                           self.string(">"))
             ])
 
-        elif isinstance(Param, GenTuTemplateGroup):
+        elif isinstance(Param, codegen_ir.GenTuTemplateGroup):
             return self.b.line([
                 self.string("template <"),
                 self.b.join([self.Template(Param) for Param in Param.Params],

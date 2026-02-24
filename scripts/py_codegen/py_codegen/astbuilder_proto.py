@@ -12,7 +12,7 @@ from beartype.typing import (
     Tuple,
 )
 import py_codegen.astbuilder_cpp as cpp
-import py_codegen.gen_tu_cpp as tu
+import py_codegen.codegen_ir as tu
 from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 from py_scriptutils.algorithm import drop_none, iterate_object_tree
 
