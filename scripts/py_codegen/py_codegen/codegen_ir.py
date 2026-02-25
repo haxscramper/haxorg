@@ -737,27 +737,17 @@ class GenTuField:
     OriginName: Optional[str] = None
 
 
-GenTuEntry = Union[
-    GenTuEnum,
-    "GenTuStruct",
-    "GenTuTypeGroup",
-    GenTuFunction,
-    "GenTuNamespace",
-    GenTuInclude,
-    GenTuTypedef,
-    GenTuPass,
-]
 
 
 @beartype
 @dataclass
-class GenTuStruct:
+class GenTuStruct():
     name: QualType
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
-    nested: List[GenTuEntry] = field(default_factory=list)
+    nested: List[Union[GenTuEnum, "GenTuStruct", "GenTuTypeGroup", GenTuTypedef, GenTuPass,]] = field(default_factory=list)
     IsForwardDecl: bool = False
     IsAbstract: bool = False
     has_name: bool = True
@@ -822,10 +812,11 @@ class GenTuTypeGroup:
 @dataclass
 class GenTuNamespace:
     name: QualType
-    entries: Sequence[GenTuEntry]
+    entries: Sequence[Union[GenTuEnum, GenTuStruct, GenTuTypeGroup, GenTuFunction, "GenTuNamespace", GenTuInclude,  GenTuTypedef,    GenTuPass,]]
 
 
-GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
+type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude |  GenTuTypedef |    GenTuPass
+type GenTuUnion = GenTuStruct | GenTuEnum | GenTuTypedef | GenTuFunction
 
 
 @beartype

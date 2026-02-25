@@ -15,7 +15,6 @@ from py_scriptutils.script_logging import log
 
 CAT = __name__
 
-
 @beartype
 def topological_sort_entries(
         entries: List[codegen_ir.GenTuUnion]) -> List[codegen_ir.GenTuUnion]:
@@ -88,220 +87,217 @@ def get_osk_enum(expanded: List[codegen_ir.GenTuStruct]) -> codegen_ir.GenTuEnum
 
 
 @beartype
-def expand_type_groups(
-    ast: cpp.ASTBuilder, types: Sequence[codegen_ir.GenTuStruct]
-) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+def rec_expand_type(ast: cpp.ASTBuilder, typ: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
+    converted: List[codegen_ir.GenTuEntry] = []
+    methods: List[codegen_ir.GenTuFunction] = []
+    fields: List[codegen_ir.GenTuField] = []
+    for item in typ.nested:
+        match item:
+            case codegen_ir.GenTuStruct():
+                converted.append(rec_expand_type(ast, item))
 
-    @beartype
-    def rec_expand_group(
-        record: codegen_ir.GenTuTypeGroup,
-    ) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
-        result: List[codegen_ir.GenTuEntry | codegen_ir.GenTuField] = []
-        typeNames: List[QualType] = []
+            case codegen_ir.GenTuTypeGroup():
+                for res in rec_expand_group(ast, item):
+                    if isinstance(res, codegen_ir.GenTuField):
+                        fields.append(res)
 
-        for item in record.types:
-            expanded = rec_expand_type(item)
-            result.append(expanded)
-            if not item.IsAbstract:
-                typeNames.append(expanded.name)
+                    elif isinstance(res, codegen_ir.GenTuFunction):
+                        methods.append(res)
 
-        if record.iteratorMacroName:
-            iteratorMacro = cpp.MacroParams(
-                name=record.iteratorMacroName,
-                params=[cpp.MacroParams.Param("__IMPL")],
-                doc=cpp.DocParams(""),
-            )
+                    else:
+                        converted.append(res)
 
-            for typeItem in typeNames:
-                iteratorMacro.definition.append(f"__IMPL({typeItem.name})")
+            case codegen_ir.GenTuEnum():
+                converted.append(replace(item, name=item.name))
 
-            result.append(codegen_ir.GenTuPass(ast.Macro(iteratorMacro)))
+            case codegen_ir.GenTuPass():
+                converted.append(item)
 
-        if record.variantName and record.enumName:
-            enum_type = record.enumName
-            variant_type = record.variantName
+            case _:
+                assert False, type(item)
+
+    result = replace(
+        typ,
+        # name=typ.name.model_copy(update=dict(Spaces=context)),
+        nested=converted,
+        methods=typ.methods + methods,
+        fields=typ.fields + fields,
+    )
+
+    if hasattr(typ, "isOrgType"):
+        setattr(result, "isOrgType", getattr(typ, "isOrgType"))
+
+    return result
+
+@beartype
+def rec_expand_group(ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+    result: List[codegen_ir.GenTuEntry | codegen_ir.GenTuField] = []
+    typeNames: List[QualType] = []
+
+    for item in record.types:
+        expanded = rec_expand_type(ast, item)
+        result.append(expanded)
+        if not item.IsAbstract:
+            typeNames.append(expanded.name)
+
+    if record.iteratorMacroName:
+        iteratorMacro = cpp.MacroParams(
+            name=record.iteratorMacroName,
+            params=[cpp.MacroParams.Param("__IMPL")],
+            doc=cpp.DocParams(""),
+        )
+
+        for typeItem in typeNames:
+            iteratorMacro.definition.append(f"__IMPL({typeItem.name})")
+
+        result.append(codegen_ir.GenTuPass(ast.Macro(iteratorMacro)))
+
+    if record.variantName and record.enumName:
+        enum_type = record.enumName
+        variant_type = record.variantName
+        result.append(
+            codegen_ir.GenTuTypedef(
+                name=variant_type,
+                base=QualType(
+                    name="variant",
+                    Spaces=[QualType.ForName("std")],
+                    Parameters=typeNames,
+                ),
+            ))
+
+        result.append(
+            codegen_ir.GenTuEnum(
+                name=enum_type,
+                doc=codegen_ir.GenTuDoc(""),
+                fields=[
+                    codegen_ir.GenTuEnumField(N.name, codegen_ir.GenTuDoc(""))
+                    for N in typeNames
+                ],
+            ))
+
+        for idx, T in enumerate(typeNames):
+            kindName = T.name[0].upper() + T.name[1:]
             result.append(
-                codegen_ir.GenTuTypedef(
-                    name=variant_type,
-                    base=QualType(
-                        name="variant",
-                        Spaces=[QualType.ForName("std")],
-                        Parameters=typeNames,
-                    ),
-                ))
-
-            result.append(
-                codegen_ir.GenTuEnum(
-                    name=enum_type,
+                codegen_ir.GenTuFunction(
                     doc=codegen_ir.GenTuDoc(""),
-                    fields=[
-                        codegen_ir.GenTuEnumField(N.name, codegen_ir.GenTuDoc(""))
-                        for N in typeNames
-                    ],
+                    name="is" + kindName,
+                    result=QualType.ForName("bool"),
+                    isConst=True,
+                    impl=ast.Return(
+                        ast.XCall("==", [
+                            ast.XCall(record.kindGetter, []),
+                            ast.string(f"{enum_type.name}::{kindName}"),
+                        ])),
                 ))
 
-            for idx, T in enumerate(typeNames):
-                kindName = T.name[0].upper() + T.name[1:]
+            for isConst in [True, False]:
                 result.append(
                     codegen_ir.GenTuFunction(
                         doc=codegen_ir.GenTuDoc(""),
-                        name="is" + kindName,
-                        result=QualType.ForName("bool"),
-                        isConst=True,
+                        name="get" + kindName,
+                        result=T.model_copy(update=dict(
+                            RefKind=codegen_ir.ReferenceKind.LValue,
+                            isConst=isConst,
+                        )),
+                        reflectionParams=codegen_ir.GenTuReflParams(
+                            unique_name="get" + kindName +
+                            ("Const" if isConst else "Mut")),
+                        isConst=isConst,
                         impl=ast.Return(
-                            ast.XCall("==", [
-                                ast.XCall(record.kindGetter, []),
-                                ast.string(f"{enum_type.name}::{kindName}"),
-                            ])),
+                            ast.XCall(
+                                "hstd::variant_get",
+                                [ast.string(record.variantField)],
+                                Params=[QualType.ForName(str(idx))],
+                            )),
                     ))
 
-                for isConst in [True, False]:
-                    result.append(
-                        codegen_ir.GenTuFunction(
-                            doc=codegen_ir.GenTuDoc(""),
-                            name="get" + kindName,
-                            result=T.model_copy(update=dict(
-                                RefKind=codegen_ir.ReferenceKind.LValue,
-                                isConst=isConst,
-                            )),
-                            reflectionParams=codegen_ir.GenTuReflParams(
-                                unique_name="get" + kindName +
-                                ("Const" if isConst else "Mut")),
-                            isConst=isConst,
-                            impl=ast.Return(
-                                ast.XCall(
-                                    "hstd::variant_get",
-                                    [ast.string(record.variantField)],
-                                    Params=[QualType.ForName(str(idx))],
-                                )),
-                        ))
-
-            result.append(
-                codegen_ir.GenTuFunction(
-                    isStatic=True,
-                    doc=codegen_ir.GenTuDoc(""),
-                    name=record.kindGetter,
-                    reflectionParams=codegen_ir.GenTuReflParams(
-                        unique_name=record.kindGetter + "Static"),
-                    result=enum_type,
-                    arguments=[
-                        codegen_ir.GenTuIdent(variant_type.asConstRef(), "__input")
-                    ],
-                    impl=ast.Return(
-                        ast.XCall(
-                            "static_cast",
-                            args=[ast.XCallRef(ast.string("__input"), "index")],
-                            Params=[enum_type],
-                        )),
-                ))
-
-            result.append(
-                codegen_ir.GenTuFunction(
-                    name=record.kindGetter,
-                    result=enum_type,
-                    impl=ast.Return(
-                        ast.XCall(record.kindGetter, [ast.string(record.variantField)])),
-                    doc=codegen_ir.GenTuDoc(""),
-                    isConst=True,
-                ))
-
-            result.append(
-                codegen_ir.GenTuFunction(
-                    name="sub_variant_get_name",
-                    result=QualType(name="char", ptrCount=1, isConst=True),
-                    impl=ast.Return(ast.StringLiteral(record.variantField)),
-                    doc=codegen_ir.GenTuDoc(""),
-                    isConst=True,
-                ))
-
-            result.append(
-                codegen_ir.GenTuFunction(
-                    name="sub_variant_get_data",
-                    result=record.variantName.asConstRef(),
-                    impl=ast.Return(ast.string(record.variantField)),
-                    doc=codegen_ir.GenTuDoc(""),
-                    isConst=True,
-                ))
-
-            result.append(
-                codegen_ir.GenTuFunction(
-                    name="sub_variant_get_kind",
-                    result=record.enumName,
-                    impl=ast.Return(ast.XCall(record.kindGetter)),
-                    doc=codegen_ir.GenTuDoc(""),
-                    isConst=True,
-                ))
-
-            result.append(
-                codegen_ir.GenTuPass(
-                    ast.Using(
-                        cpp.UsingParams(newName="variant_enum_type",
-                                        baseType=enum_type))))
-
-            result.append(
-                codegen_ir.GenTuPass(
-                    ast.Using(
-                        cpp.UsingParams(newName="variant_data_type",
-                                        baseType=variant_type))))
-
-            variant_field = codegen_ir.GenTuField(
-                type=copy.deepcopy(variant_type),
-                name=record.variantField,
+        result.append(
+            codegen_ir.GenTuFunction(
+                isStatic=True,
                 doc=codegen_ir.GenTuDoc(""),
-                value=ast.string(record.variantValue) if record.variantValue else None,
-            )
+                name=record.kindGetter,
+                reflectionParams=codegen_ir.GenTuReflParams(
+                    unique_name=record.kindGetter + "Static"),
+                result=enum_type,
+                arguments=[
+                    codegen_ir.GenTuIdent(variant_type.asConstRef(), "__input")
+                ],
+                impl=ast.Return(
+                    ast.XCall(
+                        "static_cast",
+                        args=[ast.XCallRef(ast.string("__input"), "index")],
+                        Params=[enum_type],
+                    )),
+            ))
 
-            setattr(variant_field, "isVariantField", True)
-            setattr(variant_field, "variantGetter", record.kindGetter)
+        result.append(
+            codegen_ir.GenTuFunction(
+                name=record.kindGetter,
+                result=enum_type,
+                impl=ast.Return(
+                    ast.XCall(record.kindGetter, [ast.string(record.variantField)])),
+                doc=codegen_ir.GenTuDoc(""),
+                isConst=True,
+            ))
 
-            result.append(variant_field)
+        result.append(
+            codegen_ir.GenTuFunction(
+                name="sub_variant_get_name",
+                result=QualType(name="char", ptrCount=1, isConst=True),
+                impl=ast.Return(ast.StringLiteral(record.variantField)),
+                doc=codegen_ir.GenTuDoc(""),
+                isConst=True,
+            ))
 
-        return result
+        result.append(
+            codegen_ir.GenTuFunction(
+                name="sub_variant_get_data",
+                result=record.variantName.asConstRef(),
+                impl=ast.Return(ast.string(record.variantField)),
+                doc=codegen_ir.GenTuDoc(""),
+                isConst=True,
+            ))
 
-    @beartype
-    def rec_expand_type(typ: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
-        converted: List[codegen_ir.GenTuEntry] = []
-        methods: List[codegen_ir.GenTuFunction] = []
-        fields: List[codegen_ir.GenTuField] = []
-        for item in typ.nested:
-            match item:
-                case codegen_ir.GenTuStruct():
-                    converted.append(rec_expand_type(item))
+        result.append(
+            codegen_ir.GenTuFunction(
+                name="sub_variant_get_kind",
+                result=record.enumName,
+                impl=ast.Return(ast.XCall(record.kindGetter)),
+                doc=codegen_ir.GenTuDoc(""),
+                isConst=True,
+            ))
 
-                case codegen_ir.GenTuTypeGroup():
-                    for res in rec_expand_group(item):
-                        if isinstance(res, codegen_ir.GenTuField):
-                            fields.append(res)
+        result.append(
+            codegen_ir.GenTuPass(
+                ast.Using(
+                    cpp.UsingParams(newName="variant_enum_type",
+                                    baseType=enum_type))))
 
-                        elif isinstance(res, codegen_ir.GenTuFunction):
-                            methods.append(res)
+        result.append(
+            codegen_ir.GenTuPass(
+                ast.Using(
+                    cpp.UsingParams(newName="variant_data_type",
+                                    baseType=variant_type))))
 
-                        else:
-                            converted.append(res)
-
-                case codegen_ir.GenTuEnum():
-                    converted.append(replace(item, name=item.name))
-
-                case codegen_ir.GenTuPass():
-                    converted.append(item)
-
-                case _:
-                    assert False, type(item)
-
-        result = replace(
-            typ,
-            # name=typ.name.model_copy(update=dict(Spaces=context)),
-            nested=converted,
-            methods=typ.methods + methods,
-            fields=typ.fields + fields,
+        variant_field = codegen_ir.GenTuField(
+            type=copy.deepcopy(variant_type),
+            name=record.variantField,
+            doc=codegen_ir.GenTuDoc(""),
+            value=ast.string(record.variantValue) if record.variantValue else None,
         )
 
-        if hasattr(typ, "isOrgType"):
-            setattr(result, "isOrgType", getattr(typ, "isOrgType"))
+        setattr(variant_field, "isVariantField", True)
+        setattr(variant_field, "variantGetter", record.kindGetter)
 
-        return result
+        result.append(variant_field)
 
-    return [rec_expand_type(T) for T in types]
+    return result
+
+@beartype
+def expand_type_groups(
+    ast: cpp.ASTBuilder, types: Sequence[codegen_ir.GenTuStruct]
+) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+    return [rec_expand_type(ast, T) for T in types]
 
 
 @beartype
