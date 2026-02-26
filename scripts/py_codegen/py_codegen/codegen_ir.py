@@ -53,23 +53,38 @@ class ReferenceKind(str, Enum):
 
 @beartype
 class QualType(BaseModel, extra="forbid"):
+    """
+    Recursive structure representing a fully qualified type name for named types,
+    or more complex variants like function signature etc.
+    """
     name: str = ""
-    Parameters: List['QualType'] = Field(default_factory=list)
-    Spaces: List['QualType'] = Field(default_factory=list)
+    Parameters: List["QualType"] = Field(default_factory=list)
+    "List of template type parameters for the type"
+    Spaces: List["QualType"] = Field(default_factory=list)
+    "List of parent namespaces"
     isNamespace: bool = False
+    "Whether the entry itself is a namespace or a type"
 
     isConst: bool = False
+    "Does type have a const annotation?"
     ptrCount: int = 0
+    "How many pointer indirection annotations is on the type"
     RefKind: ReferenceKind = ReferenceKind.NotRef
+    "is this type a L-Value/R-Value reference?"
     dbg_origin: str = Field(default="", exclude=True)
+    "Extra field to put debug information about the type origin"
     verticalParamList: bool = Field(default=False, exclude=True)
     isBuiltin: bool = Field(default=False)
-    #: Prefix the type with leading `::` to refer to the global namespace
+    "Whether the qualified type represents a built-in one"
     isGlobalNamespace: bool = Field(default=False)
+    "Prefix the type with leading `::` to refer to the global namespace"
     IsPackExpansion: bool = Field(default=False)
+    "Is this type an expansion of variadic template type parameter"
 
     expr: Optional[str] = None
+    "Expression text for the literal value"
     Kind: QualTypeKind = QualTypeKind.RegularType
+    "Kind of the qualified type"
 
     meta: Dict[str, Any] = Field(default={})
 
@@ -184,7 +199,8 @@ class QualType(BaseModel, extra="forbid"):
     def flatQualName(self) -> List[str]:
         return self.flatSpaceNames() + [self.name]
 
-    def asSpaceFor(self, other: 'QualType') -> 'QualType':
+    def asSpaceFor(self, other: "QualType") -> "QualType":
+        "Use the current type as a wrapper space for other type"
         return other.model_copy(update=dict(
             Spaces=self.Spaces +
             [self.model_copy(update=dict(
@@ -204,7 +220,8 @@ class QualType(BaseModel, extra="forbid"):
         else:
             return name.model_copy(update=dict(Parameters=[self]))
 
-    def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
+    def withExtraSpace(self, name: Union["QualType", str]) -> "QualType":
+        "Return copy with prepended space"
         flat = self.flatten()
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
@@ -216,15 +233,17 @@ class QualType(BaseModel, extra="forbid"):
             RefKind=ReferenceKind.NotRef,
         ))
 
-    def withoutSpace(self, name: str) -> 'QualType':
+    def withoutSpace(self, name: str) -> "QualType":
+        "Return the type excluding all the spaces with the provided `name`"
         flat = self.flatten()
         return flat.model_copy(update=dict(
             Spaces=[S for S in flat.Spaces if S.name != name]))
 
-    def withoutAllScopeQualifiers(self) -> 'QualType':
+    def withoutAllScopeQualifiers(self) -> "QualType":
+        "Return the type with no parent spaces"
         return self.model_copy(update=dict(Spaces=[]))
 
-    def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
+    def withChangedSpace(self, name: Union["QualType", str]) -> "QualType":
         """Change the namespace of the qualified type from the current list to the [name]
         Resulting type will have only [name] as the space"""
         added: QualType = QualType(name=name) if isinstance(name, str) else name
@@ -664,32 +683,63 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
+    """
+    Intermediate representation for the callable entry: function, lambda or method in the C++ code.
+    Whether specific function entry is considered either of those depends on the parent context --
+    if it is placed in class it is a method, if it is a toplevel it is a function etc.
+    """
     result: Optional[QualType] = None
+    "Return type of the function. `None` means void, although `void` might be used explicitly"
     name: str = ""
+    "Non-demangled function name as seen in the source file"
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    params: List[GenTuParam] = field(default_factory=list)
+    "Documentation comment above the function"
+    params: Optional[GenTuTemplateParams] = field(default=None)
+    "Function template parameters"
     arguments: List[GenTuIdent] = field(default_factory=list)
+    "Runtime function arguments"
     impl: Optional[Union[str, BlockId]] = None
+    """
+    Implementation body for the function -- might be set up for the codegen,
+    is not set up by the reflection tool.
+    """
     isVirtual: bool = False
+    "Whether method is marked as virtual in this specific declaration"
     isConst: bool = False
+    "Is method virtual"
     isStatic: bool = False
+    "Is class method static"
     isPureVirtual: bool = False
+    "Is class method pure virtual"
     isOverride: bool = False
+    "Does method override parent implementation"
     parentClass: Optional['GenTuStruct'] = None
+    """
+    Optional specification for the parent struct -- might be set up by the codegen, is
+    not set up by the reflection tool.
+    """
     original: Optional[Path] = None
+    "Path to the file where function was declared"
     spaces: List[QualType] = field(default_factory=list)
+    "Fully qualified namespace for the function declaration"
     isExposedForWrap: bool = True
+    "Whether function is exposed for the public wrap interface"
     OriginName: Optional[str] = None
 
     IsConstructor: bool = False
+    "Is function a constructor"
     InitList: List[BlockId] = field(default_factory=list)
+    "Init list for the constructor definition"
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+    "Additional reflection parameters for the function wrapping"
 
     def get_full_qualified_name(self) -> QualType:
+        "Get a single type with the fully qualified spaces and function name"
         return QualType(name=self.name, Spaces=self.spaces)
 
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
+        "Get a qualified type for the function signature"
         return QualType(
             func=QualType.Function(
                 ReturnTy=self.result,
@@ -701,6 +751,7 @@ class GenTuFunction:
         )
 
     def format(self) -> str:
+        "Format function representation as a string"
         assert self.result, "Missing function return type"
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
             [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))
@@ -723,8 +774,11 @@ class GenTuPass:
 @beartype
 @dataclass
 class GenTuField:
+    "Single field in the structure"
     type: Optional[QualType]
+    "Type field, if specified"
     name: str
+    "Field name as seen in the source code"
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     decl: Optional[Union['GenTuStruct', 'GenTuEnum']] = None
     value: Optional[Union[str, BlockId]] = None
@@ -733,6 +787,7 @@ class GenTuField:
     isTypeDecl: bool = False
     isExposedForWrap: bool = True
     isExposedForDescribe: bool = True
+    "Whether to include the field in the auto-generated BOOST_DESCRIBE_CLASS"
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
 
@@ -762,14 +817,25 @@ class GenTuStruct():
     has_name: bool = True
     original: Optional[Path] = field(default=None)
     GenDescribeMethods: bool = False
+    "Include boost describe for the class methods"
     GenDescribeFields: bool = True
+    "Include boost describe for the class fields"
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
+    "Extra reflection parameters for the code generation"
     IsExplicitInstantiation: bool = False
+    "Whether the class is an explicit instantiation of the template"
     IsTemplateRecord: bool = False
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
+    """
+    Template parameters explicitly specified in the structure declaration.
+    Note that IsExplicitInstantiation must also be set to codegen type
+    specializations.
+    """
     OriginName: Optional[str] = None
     IsDescribedRecord: bool = False
+    "For structs from reflection parser -- is there a boost describe annotation in code"
     TemplateParams: Optional[GenTuTemplateParams] = None
+    "Template parameters for the structure"
 
     def __str__(self) -> str:
         return f"GenTuStruct({self.name.format()})"
