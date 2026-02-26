@@ -547,8 +547,14 @@ def get_uv_develop_sync_flags(ctx: TaskContext) -> List[str]:
     if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
         result.append("--verbose")
 
-    result.append("-C")
-    result.append("HAXORG_PY_SOURCE_DISTRIBUTION=1")
+    result.extend(["-C", "HAXORG_PY_SOURCE_DISTRIBUTION=1"])
+
+    if ctx.config.debug:
+        result.extend(["-C", "cmake.build-type=RelWithDebInfo"])
+        result.extend(["-C", "cmake.define.NB_DEBUG=ON"])
+
+    else:
+        result.extend(["-C", "cmake.build-type=Release"])
 
     for package in ["py_haxorg"]:
         result.extend(["--reinstall-package", package])

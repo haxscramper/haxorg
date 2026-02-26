@@ -29,16 +29,9 @@ repos:
         exclude: ^\.clang-format$
   - repo: local
     hooks:
-      - id: isort
-        name: isort
-        entry: uv run --dev isort
-        language: system
-        types: [python]
-  - repo: local
-    hooks:
       - id: yapf
-        name: yapf
-        entry: uv run --dev yapf -i
+        name: Format python code
+        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/safe_yapf_format.py
         language: system
         types: [python]
   - repo: https://github.com/gitleaks/gitleaks

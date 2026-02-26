@@ -15,6 +15,7 @@ from py_scriptutils.script_logging import log
 
 CAT = __name__
 
+
 @beartype
 def topological_sort_entries(
         entries: List[codegen_ir.GenTuUnion]) -> List[codegen_ir.GenTuUnion]:
@@ -87,7 +88,11 @@ def get_osk_enum(expanded: List[codegen_ir.GenTuStruct]) -> codegen_ir.GenTuEnum
 
 
 @beartype
-def rec_expand_type(ast: cpp.ASTBuilder, typ: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
+def rec_expand_type(ast: cpp.ASTBuilder,
+                    typ: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
+    """
+    Recursively expand all the type groups in the input structure.
+    """
     converted: List[codegen_ir.GenTuEntry] = []
     methods: List[codegen_ir.GenTuFunction] = []
     fields: List[codegen_ir.GenTuField] = []
@@ -129,8 +134,16 @@ def rec_expand_type(ast: cpp.ASTBuilder, typ: codegen_ir.GenTuStruct) -> codegen
 
     return result
 
+
 @beartype
-def rec_expand_group(ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+def rec_expand_group(
+    ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup
+) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+    """
+    Recursively expand all the types in the type group, generating a new
+    list of entries that should be added to the parent structure for the
+    type group.
+    """
     result: List[codegen_ir.GenTuEntry | codegen_ir.GenTuField] = []
     typeNames: List[QualType] = []
 
@@ -219,9 +232,7 @@ def rec_expand_group(ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup) -> 
                 reflectionParams=codegen_ir.GenTuReflParams(
                     unique_name=record.kindGetter + "Static"),
                 result=enum_type,
-                arguments=[
-                    codegen_ir.GenTuIdent(variant_type.asConstRef(), "__input")
-                ],
+                arguments=[codegen_ir.GenTuIdent(variant_type.asConstRef(), "__input")],
                 impl=ast.Return(
                     ast.XCall(
                         "static_cast",
@@ -269,15 +280,13 @@ def rec_expand_group(ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup) -> 
 
         result.append(
             codegen_ir.GenTuPass(
-                ast.Using(
-                    cpp.UsingParams(newName="variant_enum_type",
-                                    baseType=enum_type))))
+                ast.Using(cpp.UsingParams(newName="variant_enum_type",
+                                          baseType=enum_type))))
 
         result.append(
             codegen_ir.GenTuPass(
                 ast.Using(
-                    cpp.UsingParams(newName="variant_data_type",
-                                    baseType=variant_type))))
+                    cpp.UsingParams(newName="variant_data_type", baseType=variant_type))))
 
         variant_field = codegen_ir.GenTuField(
             type=copy.deepcopy(variant_type),
@@ -292,6 +301,7 @@ def rec_expand_group(ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup) -> 
         result.append(variant_field)
 
     return result
+
 
 @beartype
 def expand_type_groups(
@@ -362,16 +372,16 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
     res.immutable = expand_type_groups(ast,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
-    res.tu = refl_read.conv_proto_file(reflection_path)
-    res.base_map = tu.get_base_map(
-        res.expanded + res.shared_types + res.immutable + res.tu.enums + res.tu.structs +
-        res.tu.typedefs,)
+    res.conv_tu = refl_read.conv_proto_file(reflection_path)
+    res.base_map = codegen_ir.get_base_map(
+        res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
+        res.conv_tu.structs + res.conv_tu.typedefs,)
 
     res.full_enums = org_data.get_shared_sem_enums() + org_data.get_enums() + [
         get_osk_enum(res.expanded)
     ]
 
-    res.specializations = tu.collect_type_specializations(
+    res.specializations = codegen_ir.collect_type_specializations(
         res.get_entries_for_wrapping(),
         base_map=res.base_map,
     )
@@ -393,7 +403,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                 ),
             ))
 
-    for org_type in get_types():
+    for org_type in org_data.get_types():
         res.imm_id_specializations.append(
             codegen_ir.GenTuStruct(
                 OriginName="imm ID explicit",

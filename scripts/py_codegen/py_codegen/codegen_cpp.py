@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import List
-from py_codegen import codegen_ir
+from py_codegen import codegen_cpp, codegen_ir
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId
@@ -16,9 +16,11 @@ class GenConverter:
     pendingToplevel: List[BlockId] = field(default_factory=list)
     context: List[QualType] = field(default_factory=list)
 
-    def convertParams(self, Params: List[codegen_ir.GenTuParam]) -> codegen_ir.GenTuTemplateGroup:
-        return codegen_ir.GenTuTemplateGroup(
-            Params=[codegen_ir.GenTuTemplateTypename(Name=Param.name) for Param in Params])
+    def convertParams(
+            self, Params: List[codegen_ir.GenTuParam]) -> codegen_ir.GenTuTemplateGroup:
+        return codegen_ir.GenTuTemplateGroup(Params=[
+            codegen_ir.GenTuTemplateTypename(Name=Param.name) for Param in Params
+        ])
 
     def convertFunctionBlock(self, func: cpp.FunctionParams) -> BlockId:
         return self.ast.Function(func)
@@ -49,9 +51,10 @@ class GenConverter:
         return cpp.DocParams(brief=doc.brief, full=doc.full)
 
     def convertIdent(self, ident: codegen_ir.GenTuIdent) -> cpp.ParmVarParams:
-        return cpp.ParmVarParams(name=ident.name,
-                             type=ident.type,
-                             defArg=self.ast.string(ident.value) if ident.value else None)
+        return cpp.ParmVarParams(
+            name=ident.name,
+            type=ident.type,
+            defArg=self.ast.string(ident.value) if ident.value else None)
 
     def convertTu(self, tu: codegen_ir.GenTu) -> BlockId:
         decls: List[BlockId] = []
@@ -88,9 +91,9 @@ class GenConverter:
             Template=record.TemplateParams,
         )
 
-        with codegen_ir.GenConverterWithContext(self, record.name):
-            for type in record.nested:
-                for sub in self.convert(type):
+        with codegen_cpp.GenConverterWithContext(self, record.name):
+            for nest_type in record.nested:
+                for sub in self.convert(nest_type):
                     params.nested.append(sub)
 
             for member in record.fields:
@@ -192,9 +195,9 @@ class GenConverter:
 
         else:
             params = cpp.EnumParams(name=entry.name.name,
-                                doc=self.convertDoc(entry.doc),
-                                base=entry.base,
-                                IsLine=not any([F.doc.brief for F in entry.fields]))
+                                    doc=self.convertDoc(entry.doc),
+                                    base=entry.base,
+                                    IsLine=not any([F.doc.brief for F in entry.fields]))
 
             for _field in entry.fields:
                 params.fields.append(
@@ -249,7 +252,7 @@ class GenConverter:
 
     def convertNamespace(self, space: codegen_ir.GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
-        with codegen_ir.GenConverterWithContext(self, space.name.asNamespace()):
+        with codegen_cpp.GenConverterWithContext(self, space.name.asNamespace()):
             self.ast.b.add_at(
                 result,
                 self.ast.b.line([
@@ -314,3 +317,20 @@ class GenConverter:
                 raise ValueError("Unexpected kind '%s'" % type(entry))
 
         return decls
+
+
+@beartype
+@dataclass
+class GenConverterWithContext:
+    "Context manager to add elements to the converter context"
+    conv: "GenConverter"
+    "Converter context"
+    typ: QualType
+    "Extra type to append to the converter context"
+
+    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+        self.conv.context.pop()
+
+    def __enter__(self) -> "GenConverterWithContext":
+        self.conv.context.append(self.typ)
+        return self

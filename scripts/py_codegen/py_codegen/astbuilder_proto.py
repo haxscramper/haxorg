@@ -42,7 +42,7 @@ class ProtoBuilder():
 
         def find_enums(obj: Any) -> None:
             if isinstance(obj, codegen_ir.GenTuEnum):
-                filter = tu.filter_walk_scope(context)
+                filter = codegen_ir.filter_walk_scope(context)
                 self.enum_type_list.append(obj.name)
 
             elif isinstance(obj, codegen_ir.GenTuTypedef):
@@ -123,7 +123,8 @@ class ProtoBuilder():
                             drop_none(
                                 aux_item(sub, indent=indent + 1) for sub in it.nested),
                             aux_field_list(
-                                (tu.get_type_base_fields(it, self.base_map) + it.fields),
+                                (codegen_ir.get_type_base_fields(it, self.base_map) +
+                                 it.fields),
                                 indexer=make_full_enumerator(),
                                 indent=indent), [
                                     aux_field(
@@ -289,7 +290,7 @@ class ProtoBuilder():
                 ))
 
             case _:
-                if tu.in_type_list(typ, self.enum_type_list):
+                if codegen_ir.in_type_list(typ, self.enum_type_list):
                     return QualType.ForName("_".join(
                         typ.withoutSpace("sem").withoutSpace(
                             "org").flatQualName())).withExtraSpace("orgproto")
@@ -337,7 +338,7 @@ class ProtoBuilder():
         #     field_type = field_type.Parameters[0]
 
         field_proto_type = self.rewrite_for_proto_serde(field_type)
-        is_enum_field = tu.in_type_list(field_type, self.enum_type_list)
+        is_enum_field = codegen_ir.in_type_list(field_type, self.enum_type_list)
 
         if not is_read_getter and is_enum_field:
             field_read = self.ast.XCall(
@@ -349,7 +350,7 @@ class ProtoBuilder():
         return (field_read, field_type, field_proto_type)
 
     def is_enum_type(self, typ: QualType) -> bool:
-        return tu.in_type_list(typ, self.enum_type_list)
+        return codegen_ir.in_type_list(typ, self.enum_type_list)
 
     def is_direct_set_type(self, typ: QualType) -> bool:
         return typ.name in ["int", "string", "bool", "float"] or self.is_enum_type(typ)
@@ -661,7 +662,7 @@ class ProtoBuilder():
 
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
-                for base in tu.get_base_list(it, self.base_map):
+                for base in codegen_ir.get_base_list(it, self.base_map):
                     base_type = self.base_map.get_one_type_for_name(base.name)
                     assert base_type is None or isinstance(
                         base_type,
@@ -674,7 +675,7 @@ class ProtoBuilder():
                             QualType(
                                 name="proto_serde",
                                 Parameters=[proto_param_type, base],
-                                Spaces=[tu.n_org_algo()],
+                                Spaces=[codegen_ir.n_org_algo()],
                             ),
                             "write",
                             [out, _in],
@@ -686,7 +687,7 @@ class ProtoBuilder():
                             QualType(
                                 name="proto_serde",
                                 Parameters=[proto_param_type, base],
-                                Spaces=[tu.n_org_algo()],
+                                Spaces=[codegen_ir.n_org_algo()],
                             ),
                             "read",
                             [
@@ -764,14 +765,14 @@ class ProtoBuilder():
                 writer_specialization = QualType(
                     name="proto_serde",
                     Parameters=[proto_param_type, org_param_type],
-                    Spaces=[tu.n_org_algo()],
+                    Spaces=[codegen_ir.n_org_algo()],
                 )
 
                 result.append((
                     cpp.RecordParams(
                         name=cpp.QualType(
                             name="proto_serde",
-                            Spaces=[tu.n_org_algo()],
+                            Spaces=[codegen_ir.n_org_algo()],
                         ),
                         doc=cpp.DocParams(""),
                         NameParams=[proto_param_type, org_param_type],
@@ -779,8 +780,8 @@ class ProtoBuilder():
                             writer,
                             reader,
                         ],
-                        Template=cpp.GenTuTemplateParams(
-                            Stacks=[cpp.GenTuTemplateGroup(Params=[])]),
+                        Template=codegen_ir.GenTuTemplateParams(
+                            Stacks=[codegen_ir.GenTuTemplateGroup(Params=[])]),
                         IsTemplateSpecialization=True,
                     ),
                     writer_specialization,

@@ -6,6 +6,8 @@ import py_codegen.astbuilder_cpp as cpp
 from py_codegen.codegen_ir import QualType
 import py_codegen.codegen_ir as tu
 from py_codegen.codegen_type_groups import get_concrete_types
+from py_haxorg.astbuilder.astbuilder_utils import pascal_case
+from py_scriptutils.algorithm import iterate_object_tree
 
 
 @beartype
@@ -182,7 +184,7 @@ def gen_pyhaxorg_field_iteration_macros(
                                 # field name without changes
                                 ast.string(field.name),
                                 # field name for `getField` etc.
-                                ast.string(cpp.pascal_case(field.name)),
+                                ast.string(pascal_case(field.name)),
                                 # Parent type for field, in case you need to define methods for
                                 # each field outside of the class body.
                                 ast.pars(ast.Type(group.typ)),

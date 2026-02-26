@@ -737,17 +737,26 @@ class GenTuField:
     OriginName: Optional[str] = None
 
 
-
-
 @beartype
 @dataclass
 class GenTuStruct():
+    """
+    Intermediate representation of the C++ record
+    """
     name: QualType
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     fields: List[GenTuField] = field(default_factory=list)
+    "Field directly in the structure"
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
-    nested: List[Union[GenTuEnum, "GenTuStruct", "GenTuTypeGroup", GenTuTypedef, GenTuPass,]] = field(default_factory=list)
+    nested: List[Union[
+        GenTuEnum,
+        "GenTuStruct",
+        "GenTuTypeGroup",
+        GenTuTypedef,
+        GenTuPass,
+    ]] = field(default_factory=list)
+    "All extra elements in the class "
     IsForwardDecl: bool = False
     IsAbstract: bool = False
     has_name: bool = True
@@ -811,8 +820,25 @@ class GenTuTypeGroup:
 @beartype
 @dataclass
 class GenTuNamespace:
+    """
+    Intermediate representation of the C++ namespace block.
+    """
     name: QualType
-    entries: Sequence[Union[GenTuEnum, GenTuStruct, GenTuTypeGroup, GenTuFunction, "GenTuNamespace", GenTuInclude,  GenTuTypedef,    GenTuPass,]]
+    entries: Sequence[Union[
+        GenTuEnum,
+        GenTuStruct,
+        GenTuTypeGroup,
+        GenTuFunction,
+        "GenTuNamespace",
+        GenTuInclude,
+        GenTuTypedef,
+        GenTuPass,
+    ]]
+    """
+    Entries in the namespace. Note that each individual entry should have a
+    fully qualified name with all the parent spaces in it, so this class
+    is mainly used for the physical placement of elements.
+    """
 
 
 type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude |  GenTuTypedef |    GenTuPass
@@ -955,20 +981,6 @@ class GenUnit:
 @dataclass
 class GenFiles:
     files: List[GenUnit]
-
-
-@beartype
-@dataclass
-class GenConverterWithContext:
-    conv: "GenConverter"
-    typ: QualType
-
-    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        self.conv.context.pop()
-
-    def __enter__(self) -> "GenConverterWithContext":
-        self.conv.context.append(self.typ)
-        return self
 
 
 @beartype

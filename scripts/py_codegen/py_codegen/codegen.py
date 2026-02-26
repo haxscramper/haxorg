@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from py_codegen import codegen_cpp
+from py_codegen import codegen_cpp, refl_read
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
 from py_codegen.astbuilder_nanobind import NbModule
@@ -14,7 +14,6 @@ from py_codegen.codegen_iteration_macros import (
 )
 from py_codegen.codegen_type_groups import get_pyhaxorg_type_groups, PyhaxorgTypeGroups
 from py_codegen.org_codegen_data import *
-from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_repository.repo_tasks.config import get_tmpdir
 from py_scriptutils.algorithm import cond
@@ -199,10 +198,10 @@ def gen_adaptagrams_wrappers(
     reflection_path: Path,
 ) -> GenFiles:
     "Generate wrappers for adaptagrams library"
-    tu: ConvTu = conv_proto_file(reflection_path)
+    tu: refl_read.ConvTu = refl_read.conv_proto_file(reflection_path)
 
     reflection_debug = Path("/tmp/haxorg/adaptagrams_reflection.json")
-    reflection_debug.write_text(open_proto_file(reflection_path).to_json(2))
+    reflection_debug.write_text(refl_read.open_proto_file(reflection_path).to_json(2))
     log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
 
     with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
@@ -610,7 +609,7 @@ def run_codegen_pyhaxorg(
 
     groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_groups.yaml")
     with groups_dump_yaml.open("w") as file:
-        yaml.safe_dump(to_base_types(groups.tu), stream=file)
+        yaml.safe_dump(to_base_types(groups.conv_tu), stream=file)
         log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
 
     _write_files_group(
