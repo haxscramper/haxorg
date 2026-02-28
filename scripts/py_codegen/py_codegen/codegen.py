@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from py_codegen import codegen_cpp, refl_read
+from py_codegen import codegen_cpp, refl_read, codegen_ir
 import py_codegen.astbuilder_cpp as cpp
+import os
 import py_codegen.astbuilder_embind as napi
 from py_codegen.astbuilder_nanobind import NbModule
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
 import py_codegen.codegen_immutable as gen_imm
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_field_iteration_macros,
     gen_pyhaxorg_iteration_macros,
@@ -63,7 +65,8 @@ def get_exporter_methods(
                                  Spaces=[QualType.ForName("sem")] +
                                  [QualType.ForName(t) for t in scope_names]))
             decl_scope = "" if forward else "Exporter<V, R>::"
-            t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
+            t_params = None if forward else codegen_ir.GenTuTemplateParams.FromTypeNameList(
+                ["V", "R"])
 
             variant_methods: List[GenTuFunction] = []
             for field in fields:
@@ -193,7 +196,7 @@ NB_INCLUDE_LIST = [
 
 @beartype
 def gen_adaptagrams_wrappers(
-    ast: ASTBuilder,
+    ast: cpp.ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
 ) -> GenFiles:
@@ -206,9 +209,10 @@ def gen_adaptagrams_wrappers(
 
     with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
         base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
-        res = NbModule("py_adaptagrams")
-        res.add_all(tu.get_all(), ast=ast, base_map=base_map)
-        specializations = collect_type_specializations(tu.get_all(), base_map=base_map)
+        conf = NanobindAstbuilderConfig(base_map)
+        res = NbModule("py_adaptagrams", conf)
+        res.add_all(tu.get_all(), ast=ast)
+        specializations = collect_type_specializations(tu.get_all(), conf.base_map)
         res.add_type_specializations(
             ast=ast,
             specializations=specializations,
@@ -218,7 +222,7 @@ def gen_adaptagrams_wrappers(
             GenUnit(
                 GenTu(
                     "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                    [GenTuPass(res.build_typedef(pyast, base_map=base_map))],
+                    [GenTuPass(res.build_typedef(pyast))],
                     clangFormatGuard=False,
                 )),
             GenUnit(
@@ -229,7 +233,7 @@ def gen_adaptagrams_wrappers(
                         GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
                         GenTuInclude("py_libs/nanobind_utils.hpp", True),
                         *NB_INCLUDE_LIST,
-                        GenTuPass(res.build_bind(ast, base_map=base_map)),
+                        GenTuPass(res.build_bind(ast)),
                     ],
                 )),
         ])
@@ -238,15 +242,16 @@ def gen_adaptagrams_wrappers(
 @beartype
 def gen_pyhaxorg_python_wrappers(
     groups: PyhaxorgTypeGroups,
-    ast: ASTBuilder,
+    ast: cpp.ASTBuilder,
     pyast: pya.ASTBuilder,
 ) -> GenFiles:
     "Generate haxorg python wrappers"
-    res = NbModule("pyhaxorg")
+    conf = NanobindAstbuilderConfig(groups.base_map)
+    res = NbModule("pyhaxorg", conf)
 
     for decl in groups.get_entries_for_wrapping():
         if decl.reflectionParams.isAcceptedBackend("python"):
-            res.add_decl(decl, ast=ast, base_map=groups.base_map)
+            res.add_decl(decl, ast=ast)
 
     res.add_type_specializations(
         ast,
@@ -259,7 +264,7 @@ def gen_pyhaxorg_python_wrappers(
         GenUnit(
             GenTu(
                 "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                [GenTuPass(res.build_typedef(pyast, base_map=groups.base_map))],
+                [GenTuPass(res.build_typedef(pyast))],
                 clangFormatGuard=False,
             )),
         GenUnit(
@@ -270,7 +275,7 @@ def gen_pyhaxorg_python_wrappers(
                     *NB_INCLUDE_LIST,
                     GenTuInclude("haxorg/sem/SemOrg.hpp", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                    GenTuPass(res.build_bind(ast, base_map=groups.base_map)),
+                    GenTuPass(res.build_bind(ast)),
                 ],
             )),
     ])
@@ -284,7 +289,7 @@ def gen_pyhaxorg_python_wrappers(
 @beartype
 def gen_pyhaxorg_napi_wrappers(
     groups: PyhaxorgTypeGroups,
-    ast: ASTBuilder,
+    ast: cpp.ASTBuilder,
     base_map: GenTypeMap,
 ) -> GenFiles:
 
@@ -328,7 +333,7 @@ def gen_pyhaxorg_napi_wrappers(
 
 
 @beartype
-def gen_pyhaxorg_source(ast: ASTBuilder, groups: PyhaxorgTypeGroups) -> GenFiles:
+def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenFiles:
     """
     Generate source files compiled as a part of the haxorg library: sem and imm AST definitions.
     """
@@ -487,7 +492,7 @@ def gen_pyhaxorg_source(ast: ASTBuilder, groups: PyhaxorgTypeGroups) -> GenFiles
 
 def gen_description_files(
     description: GenFiles,
-    builder: ASTBuilder,
+    builder: cpp.ASTBuilder,
     t: TextLayout,
     tmp: bool,
 ) -> None:
@@ -557,7 +562,7 @@ def codegen_options(f: Any) -> Any:
 
 def _write_files_group(
     impl: GenFiles,
-    builder: ASTBuilder,
+    builder: cpp.ASTBuilder,
     is_tmp_codegen: bool,
     t: TextLayout,
 ) -> None:
@@ -572,7 +577,7 @@ def _write_files_group(
 @beartype
 def run_codegen_adaptagrams(
     is_tmp_codegen: bool,
-    builder: ASTBuilder,
+    builder: cpp.ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
     t: TextLayout,
@@ -592,7 +597,7 @@ def run_codegen_adaptagrams(
 @beartype
 def run_codegen_pyhaxorg(
     is_tmp_codegen: bool,
-    builder: ASTBuilder,
+    builder: cpp.ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
     t: TextLayout,
@@ -652,7 +657,7 @@ def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: 
                      is_tmp_codegen: bool) -> None:
     t = TextLayout()
     pyast = pya.ASTBuilder(t)
-    builder = ASTBuilder(t)
+    builder = cpp.ASTBuilder(t)
 
     with ExceptionContextNote(f"reflection_path:{reflection_path}, task: {task}"):
         match task:

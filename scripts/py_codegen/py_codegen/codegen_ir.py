@@ -543,6 +543,21 @@ class GenTuTemplateParams:
     def FinalSpecialization() -> "GenTuTemplateParams":
         return GenTuTemplateParams(Stacks=[GenTuTemplateGroup()])
 
+    @staticmethod
+    def FromTypeList(Params: List[QualType]) -> "GenTuTemplateParams":
+        "Create template type parameter from list of qualified types"
+        return GenTuTemplateParams(Stacks=[
+            GenTuTemplateGroup(
+                Params=[GenTuTemplateTypename(Name=p.name) for p in Params])
+        ])
+
+    @staticmethod
+    def FromTypeNameList(Params: List[str]) -> "GenTuTemplateParams":
+        "Create template type parameter from list of template parameter names"
+        return GenTuTemplateParams(Stacks=[
+            GenTuTemplateGroup(Params=[GenTuTemplateTypename(Name=p) for p in Params])
+        ])
+
 
 class StorageClass(Enum):
     None_ = 0

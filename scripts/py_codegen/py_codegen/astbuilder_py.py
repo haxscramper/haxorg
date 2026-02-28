@@ -4,20 +4,14 @@ from typing import NewType, TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import List, Optional
 import py_haxorg.astbuilder.astbuilder_base as base
+from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
 @beartype
 @dataclass
-class PyType:
-    Name: str
-    Params: List['PyType'] = field(default_factory=list)
-
-
-@beartype
-@dataclass
 class IdentParams:
-    Type: PyType
+    Type: QualType
     Name: str
 
 
@@ -31,7 +25,7 @@ class DecoratorParams:
 @dataclass
 class FunctionDefParams:
     Name: str
-    ResultTy: Optional[PyType]
+    ResultTy: Optional[QualType]
     Args: List[IdentParams] = field(default_factory=list)
     Decorators: List[DecoratorParams] = field(default_factory=list)
     Doc: str = ""
@@ -48,7 +42,7 @@ class MethodParams:
 @beartype
 @dataclass
 class FieldParams:
-    Type: PyType
+    Type: QualType
     Name: str
 
 
@@ -57,7 +51,7 @@ class FieldParams:
 class ClassParams:
     Name: str
     Methods: List[MethodParams] = field(default_factory=list)
-    Bases: List[PyType] = field(default_factory=list)
+    Bases: List[QualType] = field(default_factory=list)
     Fields: List[FieldParams] = field(default_factory=list)
 
 
@@ -84,17 +78,17 @@ class ASTBuilder(base.AstbuilderBase):
     def Decorator(self, p: DecoratorParams) -> BlockId:
         return self.b.line([self.string("@"), self.string(p.Name)])
 
-    def Type(self, p: PyType) -> BlockId:
-        if p.Params:
+    def Type(self, p: QualType) -> BlockId:
+        if p.Parameters:
             return self.b.line([
-                self.string(p.Name),
+                self.string(p.name),
                 self.string("["),
-                self.csv([self.Type(T) for T in p.Params]),
+                self.csv([self.Type(T) for T in p.Parameters]),
                 self.string("]")
             ])
 
         else:
-            return self.string(p.Name)
+            return self.string(p.name)
 
     def Arg(self, p: IdentParams) -> BlockId:
         return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])

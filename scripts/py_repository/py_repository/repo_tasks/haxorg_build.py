@@ -115,7 +115,7 @@ def build_targets(ctx: TaskContext, targets: List[str]) -> None:
     build_haxorg(ctx=ctx.with_temp_config(conf_copy))
 
 
-@haxorg_task()
+@haxorg_task(dependencies=[configure_cmake_haxorg])
 def build_and_setup_text_layout_lib(ctx: TaskContext) -> None:
     "Build the py text layout library and add .so to path"
     import sys
