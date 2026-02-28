@@ -54,7 +54,7 @@ def test_anon_structure_fields(stable_test_dir: Path) -> None:
 def test_field_with_std_import(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
     code_dir = Path(stable_test_dir)
-    tu = refl_test_driver.run_provider(
+    tu = refl_test_driver.run_reflection_tool_provider(
         "#include <vector>\nstruct Content { std::vector<int> items; };",
         code_dir,
         output_dir=stable_test_dir,
@@ -186,7 +186,7 @@ def test_nim_record_field_conversion(stable_test_dir: Path) -> None:
 def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
     code_dir = stable_test_dir
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         {
             "file.hpp":
                 """
@@ -233,7 +233,7 @@ echo "method field", value.run_method()
 @pytest.mark.test_release
 def test_annotated_declaration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         """
 struct NotAnnotatedStruct {};
 struct [[refl]] AnnotatedStruct {};
@@ -275,7 +275,7 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     code_dir = stable_test_dir
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         {
             "a.hpp": "struct B; struct A { B* field; };",
             "b.hpp": "struct A; struct B { A* field; };"

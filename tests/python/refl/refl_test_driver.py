@@ -113,7 +113,7 @@ class ReflProviderRunResult:
 
 
 @beartype
-def run_provider(
+def run_reflection_tool_provider(
     text: Union[str, Dict[str, str]],
     code_dir: Path,
     output_dir: Path,
@@ -209,7 +209,7 @@ def get_struct(
     **kwargs: Any,
 ) -> GenTuStruct:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         code_dir_override or Path(code_dir),
         output_dir=stable_test_dir,
@@ -222,7 +222,7 @@ def get_struct(
 @beartype
 def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUnion]:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -234,7 +234,7 @@ def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUn
 @beartype
 def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -247,7 +247,7 @@ def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
 @beartype
 def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFunction:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -259,10 +259,12 @@ def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFuncti
 
 
 @beartype
-def get_type(preamble: List[str],
-             typ: str,
+def get_type(*,
+             preamble: List[str],
              stable_test_dir: Path,
+             typ: str = "",
              struct_header: str = "struct [[refl]] test",
+             field_decl: Optional[str] = None,
              **kwargs: Any) -> QualType:
     """
     Parse the `typ` parameter to qualified type and return result.
@@ -271,11 +273,20 @@ def get_type(preamble: List[str],
     :param typ: text of the type to parse
     :param stable_test_dir: Temporary directory to put the text for parsing
     :param struct_header: Temporary structure wrapping around type usage
+    :param field_decl: Override standard field declaration block
     """
+    assert not (typ and field_decl), "Declare either typ or field_decl, but not both"
+
+    if field_decl:
+        type_use = field_decl
+
+    else:
+        type_use = f"[[refl]] {typ} field;"
+
     struct = get_struct(
         "\n".join(preamble) + f"""
 {struct_header} {{
-    [[refl]] {typ} field;
+    {type_use}
 }};
 """,
         stable_test_dir=stable_test_dir,

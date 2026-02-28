@@ -113,6 +113,7 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
     res.isConst = any([it.is_const for it in typ.qualifiers])
     res.isNamespace = typ.is_namespace
+    res.isGlobalNamespace = typ.is_global_namespace
     res.RefKind = {
         pb.ReferenceKind.NotRef: ReferenceKind.NotRef,
         pb.ReferenceKind.LValue: ReferenceKind.LValue,

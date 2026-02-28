@@ -7,6 +7,7 @@ from py_repository.repo_tasks.command_execution import (
     get_uv_develop_sync_flags,
     run_command,
 )
+from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import get_tmpdir
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -24,6 +25,9 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues.
     """
+
+    for file in get_build_root(ctx).rglob("*.gcda"):
+        file.unlink()
 
     args = arg
     env = dict()

@@ -474,6 +474,8 @@ def gen_pyhaxorg_source(ast: ASTBuilder, groups: PyhaxorgTypeGroups) -> GenFiles
                 "{base}/imm/ImmOrgAdapterGenerated.hpp",
                 [
                     GenTuPass("#pragma once"),
+                    GenTuPass(
+                        "#pragma clang diagnostic ignored \"-Wextra-qualification\""),
                     GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
                     GenTuNamespace(
                         n_imm(),

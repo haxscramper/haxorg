@@ -244,7 +244,6 @@ def run_reflection_tool(
 
     if reflection_tool_profraw_path:
         tool = tool.with_env(LLVM_PROFILE_FILE=str(reflection_tool_profraw_path))
-        log(CAT).info(f"reflection_tool_profraw_path = {reflection_tool_profraw_path}")
 
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
