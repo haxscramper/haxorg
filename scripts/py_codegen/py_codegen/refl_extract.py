@@ -16,6 +16,8 @@ from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
+CAT = __name__
+
 
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs",)
@@ -190,19 +192,27 @@ def get_compile_commands(conf: TuOptions) -> Path:
 @beartype
 @dataclass
 class CollectorRunResult:
+    "Reflection tool run conversion result"
     conv_tu: Optional[ConvTu]
+    "Converted translation unit"
     pb_path: Optional[Path]
+    "Conversion protobuf path"
     success: bool
+    "If the conversion was successful"
     res_stdout: str
+    "Tool stdout"
     res_stderr: str
+    "Tool stderr"
     flags: dict = field(default_factory=dict)
+    "Extra configuration options for the reflection tool"
 
 
 @beartype
-def run_collector(
+def run_reflection_tool(
     conf: TuOptions,
     input: Path,
     output: Path,
+    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> CollectorRunResult:
     """
     Execute reflection data collector binary, producing a new converted translation
@@ -232,6 +242,10 @@ def run_collector(
 
     tool = local[conf.indexing_tool]
 
+    if reflection_tool_profraw_path:
+        tool = tool.with_env(LLVM_PROFILE_FILE=str(reflection_tool_profraw_path))
+        log(CAT).info(f"reflection_tool_profraw_path = {reflection_tool_profraw_path}")
+
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
         # log("refl.cli").info(
@@ -259,7 +273,6 @@ def run_collector(
 
     if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
                                                    tmp_output):
-        # log("refl.cli.read").info(f"Running collector on {input}")
 
         res_code, res_stdout, res_stderr = cast(
             Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None))
@@ -391,16 +404,22 @@ def remove_dbgOrigin(json_str: str) -> str:
 
 
 @beartype
-def run_collector_for_path(
+def run_reflection_tool_for_path(
     conf: TuOptions,
     mapping: PathMapping,
     commands: List[CompileCommand],
+    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> Optional[TuWrap]:
     """
     Run reflection data collector for input path
     """
     path = mapping.path
-    tu: CollectorRunResult = run_collector(conf, path, path.with_suffix(".py"))
+    tu: CollectorRunResult = run_reflection_tool(
+        conf,
+        path,
+        path.with_suffix(".py"),
+        reflection_tool_profraw_path=reflection_tool_profraw_path,
+    )
     if tu.success:
         relative = Path(conf.output_directory).joinpath(path.relative_to(mapping.root))
 

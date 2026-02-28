@@ -142,7 +142,7 @@ def get_html_page_tabs(tab_order: List[str]) -> tags.div:
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.css")
 
 
 class DocGenerationOptions(BaseModel, extra="forbid"):
@@ -292,6 +292,7 @@ def _generate_code_file(gen: FileGenParams, opts: DocGenerationOptions) -> FileG
         path.parent.mkdir(exist_ok=True, parents=True)
         with GlobCompleteEvent("Render HTML", "cov"):
             path.write_text(doc.render())
+            log(CAT).info(path)
 
         with GlobCompleteEvent("Dump JSON", "cov"):
             path.with_suffix(".json").write_text(file.model_dump_json(indent=2))

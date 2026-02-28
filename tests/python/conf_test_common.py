@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from pathlib import Path
 
 from beartype import beartype
@@ -35,6 +36,33 @@ def _get_cookie_list() -> List[ProfdataCookie]:
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
     log(CAT).info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
     return ProfdataFullProfile(runs=_get_cookie_list())
+
+
+@contextmanager
+def WithBinaryCoverageTest(
+    test_binary: str,
+    uniq_name: str,
+    parameter_desc: Optional[dict] = None,
+    coverage_out_dir: Optional[Path] = None,
+):
+    "Execute code block "
+    if coverage_out_dir:
+        profraw = get_profraw_path(coverage_out_dir, test_name=uniq_name)
+        cookie = ProfdataCookie(
+            test_binary=test_binary,
+            test_class=None,
+            test_name=uniq_name,
+            test_profile=str(profraw),
+            test_params=parameter_desc,
+        )
+
+        if profraw.exists():
+            profraw.unlink()
+
+        yield profraw
+
+        assert profraw.exists()
+        _get_cookie_list().append(cookie)
 
 
 @beartype

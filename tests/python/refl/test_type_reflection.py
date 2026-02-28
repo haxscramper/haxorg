@@ -1,16 +1,38 @@
 from pathlib import Path
 
 import py_codegen.astbuilder_cpp as cpp
-import py_codegen.astbuilder_nanobind as py11
-from py_codegen.codegen_ir import get_base_map, ReferenceKind
-from py_haxorg.layout.wrap import TextLayout, TextOptions
+from beartype.typing import List
 import pytest
+
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from tests.python.conf_test_common import WithBinaryCoverageTest
+
+
+def get_type(stable_test_dir: Path, stable_unique_test_name: str, preamble: List[str],
+             typ: str) -> cpp.QualType:
+    "Utility function to get reflection type value"
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    with WithBinaryCoverageTest(
+            test_binary=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
+            uniq_name=stable_unique_test_name,
+            coverage_out_dir=stable_test_dir) as profraw_path:
+        t = refl_test_driver.get_type(
+            preamble,
+            typ,
+            stable_test_dir,
+            reflection_tool_profraw_path=profraw_path,
+        )
+    return t
 
 
 @pytest.mark.test_release
-def test_primitive_type(stable_test_dir: Path):
-    import tests.python.refl.refl_test_driver as refl_test_driver
-    t = refl_test_driver.get_type([], "int", stable_test_dir)
+def test_primitive_type(stable_test_dir: Path, stable_unique_test_name: str):
+    t = get_type(
+        stable_test_dir,
+        stable_unique_test_name,
+        [],
+        "int",
+    )
     assert t.name == "int"
     assert t.isPrimitive() == True
 

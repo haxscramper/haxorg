@@ -114,10 +114,10 @@ def trace_session() -> Generator[None, Any, Any]:
     if coverage_env:
         coverage = Path(coverage_env)
         summary = summarize_cookies(coverage)
-        log(CAT).info(
-            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions"
-        )
         respath = coverage.joinpath("test-summary.json")
+        log(CAT).info(
+            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions, writing to {respath}"
+        )
         respath.parent.mkdir(parents=True, exist_ok=True)
         respath.write_text(summary.model_dump_json(indent=2))
 
@@ -395,6 +395,15 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
     final_dir.mkdir(parents=True, exist_ok=True)
 
     return final_dir
+
+
+@pytest.fixture
+def stable_unique_test_name(request: pytest.FixtureRequest) -> str:
+    """
+    Test fixture to provide stable unique string to each test run.
+    """
+    final_dir = get_test_dir(request, Path("/"))
+    return str(final_dir).replace("/", "_")
 
 
 @pytest.fixture

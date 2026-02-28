@@ -1,6 +1,6 @@
 {
   "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
-  "debug": true,
+  "debug"              : true,
   "use_unchanged_tasks": true,
   "use_dependencies"   : true,
   "build_conf"         : {"cmake_generator": "Ninja", "real_time_output_print": false},
@@ -8,7 +8,7 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
-//      "tests/python/refl/test_type_reflection.py"
+      // "tests/python/refl/test_type_reflection.py"
       // "tests/python/test_coverall.py::test_run_typst_construction"
       // "tests/python/test_simple_org_use.py::test_attached_property_link"
       // "tests/python/cxx_integration/test_integrate_cxx_org.py::ManualFileRun::TestCoverallOrg",
@@ -21,5 +21,10 @@
       // "tests/python/test_cli.py::test_tag_sorting"
     ],
     "real_time_output_print": true
+  },
+  "instrument"         : {"coverage": true},
+  "coverage_conf"      : {
+    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"}, {"binary_pattern": "reflection_tool"} ],
+    "coverage_html_whitelist": [ "OrgParser",                      "reflection_collector"                ]
   }
 }

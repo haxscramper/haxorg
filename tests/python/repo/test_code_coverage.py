@@ -633,10 +633,10 @@ def test_coverage_annotation_multiple_run_single_segment(stable_test_dir: Path) 
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.css")
 
 js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.js")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.js")
 
 
 @pytest.mark.test_release

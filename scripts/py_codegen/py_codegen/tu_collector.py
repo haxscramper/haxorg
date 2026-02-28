@@ -10,7 +10,7 @@ from py_codegen.refl_extract import (
     GenGraph,
     PathMapping,
     read_compile_cmmands,
-    run_collector_for_path,
+    run_reflection_tool_for_path,
     TuOptions,
     TuWrap,
 )
@@ -31,6 +31,7 @@ def run_wrap_for_config(
     conf: TuOptions,
     wrap_time_trace: Optional[TraceCollector] = None,
 ) -> None:
+    "nodoc"
     paths: List[PathMapping] = expand_input(conf)  # [:10]
     wraps: List[TuWrap] = []
 
@@ -53,7 +54,7 @@ def run_wrap_for_config(
             if any([cmd.file == str(mapping.path) for cmd in commands]):
                 with wrap_time_trace.complete_event("Run collector", "read",
                                                     {"path": str(mapping.path)}):
-                    wrap = run_collector_for_path(conf, mapping, commands)
+                    wrap = run_reflection_tool_for_path(conf, mapping, commands)
                     if wrap:
                         wraps.append(wrap)
                         out_map[wrap.original] = wrap.mapping

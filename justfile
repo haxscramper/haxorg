@@ -19,6 +19,14 @@ run_py_tests:
   {{workflow_run}} --task run_py_tests \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
 
+run_coverage_merge:
+  {{workflow_run}} --task run_cxx_coverage_merge \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
+run_custom_docs_gen:
+  {{workflow_run}} --task build_custom_docs \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
 run_docker_release_ci:
   {{workflow_run}} --task run_docker_release_test \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json
@@ -46,3 +54,5 @@ run_haxorg_codegen_and_tests: run_haxorg_only_source_generation run_py_tests
 run_haxorg_builder_codegen_and_tests: build_haxorg run_haxorg_reflection_snapshot_generation run_haxorg_only_source_generation run_py_tests
 
 run_haxorg_builder_and_tests: build_haxorg run_haxorg_only_source_generation run_py_tests
+
+run_pytest_and_coverage_docs: run_py_tests run_coverage_merge run_custom_docs_gen
