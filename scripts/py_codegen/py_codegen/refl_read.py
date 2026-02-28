@@ -127,6 +127,7 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
+    "Convert reflection tool protobuf record to codgen IR struct"
     result = GenTuStruct(
         conv_proto_type(record.name, is_anon_name=not record.has_name),
         GenTuDoc(""),
@@ -209,6 +210,8 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             parentClass=result,
             OriginName="refl",
             IsConstructor=IsConstructor,
+            isVirtual=meth.is_virtual,
+            isPureVirtual=meth.is_pure_virtual,
         )
 
         if meth.reflection_params:

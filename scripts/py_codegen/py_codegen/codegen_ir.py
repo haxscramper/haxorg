@@ -29,11 +29,17 @@ DEBUG_TYPE_ORIGIN = False
 
 
 class QualTypeKind(str, Enum):
-    RegularType = "RegularTyp0e"
+    "Type of the fully qualified kind"
+    RegularType = "RegularType"
+    "Built-in or user-defined type for struct, class, union, enum"
     FunctionPtr = "FunctionPtr"
+    "Pointer to function"
     MethodPtr = "MethodPtr"
+    "Pointer to method"
     Array = "Array"
+    "Constant or dynamic array type"
     TypeExpr = "TypeExpr"
+    "Compile-time literal in template parameters"
 
     def __rich_repr__(self) -> Any:
         yield self.name
@@ -59,7 +65,12 @@ class QualType(BaseModel, extra="forbid"):
     """
     name: str = ""
     Parameters: List["QualType"] = Field(default_factory=list)
-    "List of template type parameters for the type"
+    """
+    List of template type parameters for the type. Depending on the type kind
+    the parameters stored might be explicit template type parameters for the
+    custom structure, or they might be used to store parameters for the array
+    type.
+    """
     Spaces: List["QualType"] = Field(default_factory=list)
     "List of parent namespaces"
     isNamespace: bool = False
@@ -86,7 +97,23 @@ class QualType(BaseModel, extra="forbid"):
     Kind: QualTypeKind = QualTypeKind.RegularType
     "Kind of the qualified type"
 
+    @beartype
+    class Function(BaseModel, extra="forbid"):
+        "Pointer to function signature"
+        ReturnTy: Optional['QualType']
+        "Type of the function return type"
+        Args: List['QualType']
+        "Types of the function arguments"
+        Class: Optional['QualType'] = None
+        "Type of the method's class"
+        IsConst: bool = False
+        "For const methods"
+
+    func: Optional[Function] = None
+    "Typed representation of the pointer-to-function type"
+
     meta: Dict[str, Any] = Field(default={})
+    "Extra qualified type metadata"
 
     def getBindName(
             self,
@@ -265,16 +292,6 @@ class QualType(BaseModel, extra="forbid"):
             "int64_t",
             "uint64_t",
         ]
-
-    @beartype
-    class Function(BaseModel, extra="forbid"):
-        ReturnTy: Optional['QualType']
-        Args: List['QualType']
-        Ident: str = ""
-        Class: Optional['QualType'] = None
-        IsConst: bool = False
-
-    func: Optional[Function] = None
 
     def flat_repr_flatten(self, with_modifiers: bool = True) -> Any:
         ## NOTE: Used for hashing, order of append is important, it must match the actual representation,

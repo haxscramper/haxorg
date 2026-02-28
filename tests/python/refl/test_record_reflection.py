@@ -269,6 +269,79 @@ struct [[refl]] PartiallyAnnotatedFields {
 
 
 @pytest.mark.test_release
+def test_reflection_bases(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    value = refl_test_driver.get_struct(
+        """
+        struct A {};
+        struct B {};
+        template <typename T1, typename T2> struct C {};
+        struct [[refl]] Derived : public A, public B, public C<int, float> {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+    )
+
+    assert value.name.name == "Derived"
+    assert len(value.bases) == 3
+    assert value.bases[0].name == "A"
+    assert value.bases[1].name == "B"
+    assert value.bases[2].name == "C"
+    assert value.bases[2].Parameters[0].name == "int"
+    assert value.bases[2].Parameters[1].name == "float"
+
+
+@pytest.mark.test_release
+def test_trivial_method_reflection(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    value = refl_test_driver.get_struct(
+        """
+        struct [[refl]] Derived {
+            [[refl]] int test1();
+            [[refl]] void test2();
+            [[refl]] virtual int test3() const = 0;
+            [[refl]] virtual int test4() const;
+            [[refl]] int test5(int default_value = 5);
+            [[refl]] static int test6();
+        };
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+    )
+
+    assert value.name.name == "Derived"
+    assert len(value.methods) == 6
+    m = value.methods
+    assert m[0].name == "test1"
+    assert m[0].result.name == "int"
+
+    assert m[1].name == "test2"
+    assert m[1].result.name == "void"
+
+    assert m[2].name == "test3"
+    assert m[2].result.name == "int"
+    assert m[2].isConst == True
+    assert m[2].isVirtual == True
+    assert m[3].isPureVirtual == True
+
+    assert m[3].name == "test4"
+    assert m[3].result.name == "int"
+    assert m[3].isConst == True
+    assert m[3].isVirtual == True
+
+    assert m[4].name == "test5"
+    assert m[4].result.name == "int"
+    assert len(m[4].arguments) == 1
+    assert m[4].arguments[0].type == "int"
+    assert m[4].arguments[0].value == "5"
+    assert m[4].arguments[0].name == "default_value"
+
+    assert m[5].name == "test6"
+    assert m[5].result.name == "void"
+    assert m[5].isStatic == True
+
+
+@pytest.mark.test_release
 def test_type_cross_dependency(stable_test_dir: Path) -> None:
     import py_codegen.wrapper_gen_nim as gen_nim
 
