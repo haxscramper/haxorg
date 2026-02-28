@@ -204,8 +204,10 @@ def run_collector(
     input: Path,
     output: Path,
 ) -> CollectorRunResult:
-    # Execute reflection data collector binary, producing a new converted translation
-    # unit or an empty result of conversion has failed.
+    """
+    Execute reflection data collector binary, producing a new converted translation
+    unit or an empty result of conversion has failed.
+    """
     assert input.exists()
     if not output.parent.exists():
         output.parent.mkdir(parents=True)
@@ -232,8 +234,8 @@ def run_collector(
 
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
-        log("refl.cli").info(
-            f"Explicitly provided reflection file {conf.binary_collection_file}")
+        # log("refl.cli").info(
+        #     f"Explicitly provided reflection file {conf.binary_collection_file}")
     else:
         # Create a temporary list of files content will be added to the dumped translation
         # unit.
@@ -257,7 +259,7 @@ def run_collector(
 
     if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
                                                    tmp_output):
-        log("refl.cli.read").info(f"Running collector on {input}")
+        # log("refl.cli.read").info(f"Running collector on {input}")
 
         res_code, res_stdout, res_stderr = cast(
             Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None))
@@ -315,6 +317,7 @@ def write_run_result_information(
     path: Path,
     commands: List[CompileCommand],
 ) -> None:
+    "Write reflection collector run result"
     debug_dir = Path(conf.convert_failure_log_dir)
     # if debug_dir.exists():
     #     shutil.rmtree(str(debug_dir))
@@ -324,9 +327,12 @@ def write_run_result_information(
 
     if not tu.success or conf.reflection_run_verbose:
         if not conf.print_reflection_run_fail_to_stdout:
-            log().warning(
-                f"{'Executed' if tu.success else 'Failed to run'} conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
-            )
+            text = f"{'Executed' if tu.success else 'Failed to run'} conversion for '{path}', wrote to {debug_dir}/{sanitized}"
+            if conf.reflection_run_verbose:
+                log().debug(text)
+
+            else:
+                log().error(text)
 
     def write_reflection_stats(file: io.TextIOWrapper) -> None:
 

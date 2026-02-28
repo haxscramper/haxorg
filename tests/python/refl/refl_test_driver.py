@@ -118,8 +118,12 @@ def run_provider(
     code_dir: Path,
     output_dir: Path,
     only_annotated: bool = False,
+    reflection_run_verbose: bool = False,
     print_reflection_run_fail_to_stdout: bool = False,
 ) -> ReflProviderRunResult:
+    """
+    Run reflection data provider
+    """
     if not code_dir.exists():
         code_dir.mkdir(parents=True)
 
@@ -148,7 +152,7 @@ def run_provider(
 
     conf.cache_collector_runs = False
     conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
-    conf.reflection_run_verbose = True
+    conf.reflection_run_verbose = reflection_run_verbose
     conf.reflection_run_serialize = True
 
     compile_commands_content = [
@@ -160,7 +164,7 @@ def run_provider(
         ) for file in text.keys()
     ]
 
-    log().info(compile_commands_content)
+    # log().info(compile_commands_content)
 
     compile_commands.write_text(
         json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
@@ -246,6 +250,35 @@ def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFuncti
 
     assert len(tu.functions) == 1
     return tu.functions[0]
+
+
+@beartype
+def get_type(preamble: List[str],
+             typ: str,
+             stable_test_dir: Path,
+             struct_header: str = "struct [[refl]] test",
+             **kwargs: Any) -> QualType:
+    """
+    Parse the `typ` parameter to qualified type and return result.
+
+    :param preamble: List of extra definitions to insert before the type parsing
+    :param typ: text of the type to parse
+    :param stable_test_dir: Temporary directory to put the text for parsing
+    :param struct_header: Temporary structure wrapping around type usage
+    """
+    struct = get_struct(
+        "\n".join(preamble) + f"""
+{struct_header} {{
+    [[refl]] {typ} field;
+}};
+""",
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        **kwargs,
+    )
+
+    assert len(struct.fields) == 1
+    return struct.fields[0].type
 
 
 @beartype
