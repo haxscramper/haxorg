@@ -174,7 +174,7 @@ void bind_stdvector(
     PyTypeRegistryGuard& guard) {
     using Vec = std::vector<T>;
 
-    std::string name = std::string(PyNameType) + "StdVector";
+    std::string name = std::string(PyNameType);
     if (guard.contains(name)) { return; }
 
     guard.incl(name);
@@ -191,7 +191,7 @@ void bind_hstdVec(
     PyTypeRegistryGuard& guard) {
     using Vec = hstd::Vec<T>;
 
-    std::string name = std::string(PyNameType) + "Vec";
+    std::string name = std::string(PyNameType);
     if (guard.contains(name)) { return; }
 
     guard.incl(name);
@@ -218,7 +218,7 @@ void bind_hstdUnorderedMap(
     PyTypeRegistryGuard& guard) {
     using Map = hstd::UnorderedMap<K, V, Hash>;
 
-    std::string name = std::string(PyNameType) + "UnorderedMap";
+    std::string name = std::string(PyNameType);
     if (guard.contains(name)) { return; }
 
     guard.incl(name);
@@ -226,6 +226,108 @@ void bind_hstdUnorderedMap(
     auto cls = nb::bind_map<Map>(m, name.c_str());
     cls.def(nb::init<>()).def(nb::init<const Map&>());
 }
+
+/// \brief Bind specialization of the hstd unordered map for use in python
+template <typename K, typename V, typename Hash = std::hash<K>>
+void bind_stdunordered_map(
+    nb::module_&         m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    using Map        = std::unordered_map<K, V, Hash>;
+    std::string name = std::string(PyNameType);
+    if (guard.contains(name)) { return; }
+    guard.incl(name);
+    auto cls = nb::bind_map<Map>(m, name.c_str());
+    cls.def(nb::init<>()).def(nb::init<const Map&>());
+}
+
+/// \brief Bind specialization of std::pair for use in python
+template <typename K, typename V>
+void bind_stdpair(
+    nb::module_&         m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    using Pair       = std::pair<K, V>;
+    std::string name = std::string(PyNameType);
+    if (guard.contains(name)) { return; }
+    guard.incl(name);
+
+    nb::class_<Pair> cls(m, name.c_str());
+    cls.def(nb::init<>())
+        .def(nb::init<const K&, const V&>())
+        .def(nb::init<const Pair&>())
+        .def_rw("first", &Pair::first)
+        .def_rw("second", &Pair::second);
+}
+
+/// \brief Bind generic set-like container API for use in python
+template <typename Set>
+nb::class_<Set> bind_set(nb::module_& m, const char* PyNameType) {
+    using Value = typename Set::value_type;
+
+    nb::class_<Set> cls(m, PyNameType);
+    cls.def(nb::init<>())
+        .def(nb::init<const Set&>())
+        .def(nb::init([](nb::iterable it) {
+            Set result;
+            for (nb::handle h : it) { result.insert(nb::cast<Value>(h)); }
+            return result;
+        }))
+        .def("__len__", [](const Set& s) { return s.size(); })
+        .def("__bool__", [](const Set& s) { return !s.empty(); })
+        .def(
+            "__contains__",
+            [](const Set& s, const Value& v) { return s.contains(v); })
+        .def(
+            "__iter__",
+            [](const Set& s) {
+                return nb::make_iterator(
+                    nb::type<Set>(), "iterator", s.begin(), s.end());
+            },
+            nb::keep_alive<0, 1>())
+        .def("add", [](Set& s, const Value& v) { s.insert(v); })
+        .def("discard", [](Set& s, const Value& v) { s.erase(v); })
+        .def("clear", &Set::clear)
+        .def("copy", [](const Set& s) { return Set(s); })
+        .def("update", [](Set& s, nb::iterable it) {
+            for (nb::handle h : it) { s.insert(nb::cast<Value>(h)); }
+        });
+
+    return cls;
+}
+
+/// \brief Bind specialization of std::unordered_set for use in python
+template <
+    typename T,
+    typename Hash  = std::hash<T>,
+    typename Eq    = std::equal_to<T>,
+    typename Alloc = std::allocator<T>>
+void bind_stdunorderedset(
+    nb::module_&         m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    using Set        = std::unordered_set<T, Hash, Eq, Alloc>;
+    std::string name = std::string(PyNameType);
+    if (guard.contains(name)) { return; }
+    guard.incl(name);
+
+    bind_set<Set>(m, name.c_str());
+}
+
+/// \brief Bind specialization of hstd::UnorderedSet for use in python
+template <typename T>
+void bind_hstdUnorderedSet(
+    nb::module_&         m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    using Set        = hstd::UnorderedSet<T>;
+    std::string name = std::string(PyNameType);
+    if (guard.contains(name)) { return; }
+    guard.incl(name);
+
+    bind_set<Set>(m, name.c_str());
+}
+
 
 /// nodoc
 template <typename T>

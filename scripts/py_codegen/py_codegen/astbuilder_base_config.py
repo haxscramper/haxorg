@@ -59,8 +59,23 @@ class AstbulderConfig(abc.ABC):
     def getSanitizedIdent(self, s: str) -> str:
         return s
 
-    def isTemplateInstantiation(self, t: QualType) -> bool:
-        return 0 < len(t.Parameters)
+    def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
+        """
+        Check if the type represents a template instantion that has to be
+        explicitly wrapped as an extra type for codegen backend.
+        """
+        match tuple(t.flatQualName()):
+            case name if name in {
+                ("org", "sem", "SemId"),
+                ("std", "shared_ptr"),
+                ("hstd", "SharedPtrApi"),
+                ("org", "imm", "ImmAdapterT"),
+                ("org", "algo", "Exporter"),
+            }:
+                return False
+
+            case _:
+                return 0 < len(t.Parameters)
 
     def getBindName(self, t: QualType, withParams: bool = False) -> str:
         """
@@ -91,6 +106,24 @@ class AstbulderConfig(abc.ABC):
 
                 case ["hstd", "UnorderedMap"]:
                     res += "HstdMap"
+
+                case ["std", "unordered_set"]:
+                    res += "StdSet"
+
+                case ["hstd", "UnorderedSet"]:
+                    res += "HstdSet"
+
+                case ["std", "map"]:
+                    res += "StdSortedMap"
+
+                case ["hstd", "SortedMap"]:
+                    res += "HstdSortedMap"
+
+                case ["std", "set"]:
+                    res += "StdSortedSet"
+
+                case ["hstd", "SortedSet"]:
+                    res += "HstdSortedSet"
 
                 case _:
                     for N in t.Spaces:
@@ -125,9 +158,6 @@ class AstbulderConfig(abc.ABC):
         match derived.flatQualName():
             case ["hstd", "Vec"]:
                 return [get_base_par0(["std"], "vector")]
-
-            case ["hstd", "IntSet"]:
-                return [get_base_par0(["std"], "int_set")]
 
             case ["hstd", "ImmBox"]:
                 return [get_base_par0(["immer"], "box")]

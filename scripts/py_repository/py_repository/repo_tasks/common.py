@@ -251,21 +251,6 @@ def get_build_tmpdir(ctx: TaskContext, component: str) -> Path:
 
 
 @beartype
-def ui_notify(message: str, is_ok: bool = True) -> None:
-    try:
-        cmd = local["notify-send"]
-        cmd.run(
-            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
-
-    except Exception:
-        if is_ok:
-            log(CAT).info(message)
-
-        else:
-            log(CAT).error(message)
-
-
-@beartype
 def create_symlink(ctx: TaskContext, link_path: Path, real_path: Path,
                    is_dir: bool) -> None:
     if ctx.docker_container is not None:

@@ -1667,7 +1667,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
-  withFieldSubset: UnorderedSet<StdPair<OrgSemKind, ImmReflFieldId>>
+  withFieldSubset: HstdSet<StdPair<OrgSemKind, ImmReflFieldId>>
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }

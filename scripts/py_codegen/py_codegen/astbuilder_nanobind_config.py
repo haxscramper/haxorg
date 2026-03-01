@@ -5,6 +5,14 @@ from py_codegen import codegen_ir
 
 class NanobindAstbuilderConfig(AstbulderConfig):
 
+    # def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
+    #     match tuple(t.flatQualName()):
+    #         case ("std", "variant"):
+    #             return False
+    #
+    #         case _:
+    #             return super().isUnwrappedTemplateInstantiation(t)
+
     def getSanitizedIdent(self, s: str) -> str:
         """
         Convert C++ identifiers to valid Python identifiers.

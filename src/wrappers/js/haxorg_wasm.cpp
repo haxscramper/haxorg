@@ -4,346 +4,10 @@
 #include "haxorg_wasm_manual.hpp"
 using namespace org::bind::js;
 void subdivide_0(org::bind::js::type_registration_guard& g) {
-  org::bind::js::stdoptional_bind<int>(g, "StdOptional");
-  org::bind::js::stdoptional_bind<std::string>(g, "StdOptional");
-  org::bind::js::hstdVec_bind<org::sem::OrgJson>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::OrgJson>(g, "StdVec");
-  org::bind::js::stdoptional_bind<org::parse::SourceLoc>(g, "StdOptional");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Org>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::Org>(g, "SemId");
-  org::bind::js::hstdSharedPtrApi_bind<org::parse::OrgParseParameters>(g, "SharedPtrApi");
-  org::bind::js::hstdSharedPtrApi_bind<org::parse::OrgDirectoryParseParameters>(g, "SharedPtrApi");
-  org::bind::js::stdshared_ptr_bind<hstd::ext::Cache>(g, "StdShared_ptr");
-  org::bind::js::stdshared_ptr_bind<org::parse::OrgParseParameters>(g, "StdShared_ptr");
-  org::bind::js::stdoptional_bind<org::sem::SemId<org::sem::Org>>(g, "StdOptional");
-  org::bind::js::stdshared_ptr_bind<org::parse::OrgDirectoryParseParameters>(g, "StdShared_ptr");
-  org::bind::js::orgsemSemId_bind<org::sem::File>(g, "SemId");
-  org::bind::js::hstdVec_bind<hstd::ext::Report>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::ext::Report>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::ErrorGroup>(g, "SemId");
-  org::bind::js::hstdSharedPtrApi_bind<org::parse::ParseContext>(g, "SharedPtrApi");
-  org::bind::js::hstdSharedPtrApi_bind<org::imm::ImmAstReplaceEpoch>(g, "SharedPtrApi");
-  org::bind::js::hstdSharedPtrApi_bind<org::imm::ImmAstContext>(g, "SharedPtrApi");
-  org::bind::js::stdshared_ptr_bind<org::imm::ImmAstContext>(g, "StdShared_ptr");
-  org::bind::js::stdshared_ptr_bind<org::imm::ImmAstReplaceEpoch>(g, "StdShared_ptr");
-  org::bind::js::stdoptional_bind<org::imm::ImmAdapter>(g, "StdOptional");
-  org::bind::js::hstdVec_bind<int>(g, "HstdVec");
-  org::bind::js::stdvector_bind<int>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::imm::ImmAdapter>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::imm::ImmAdapter>(g, "StdVec");
-  org::bind::js::hstdUnorderedSet_bind<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(g, "UnorderedSet");
-  org::bind::js::stdpair_bind<OrgSemKind, org::imm::ImmReflFieldId>(g, "StdPair");
-  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingPath>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<org::sem::HashTagFlat, org::AstTrackingPath>(g, "StdMap");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::AstTrackingAlternatives>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<hstd::Str, org::AstTrackingAlternatives>(g, "StdMap");
-  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>(g, "StdMap");
-  org::bind::js::stdoptional_bind<org::AstTrackingAlternatives>(g, "StdOptional");
-  org::bind::js::hstdVec_bind<hstd::SequenceSegment>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::SequenceSegment>(g, "StdVec");
-  org::bind::js::hstdVec_bind<hstd::SequenceAnnotationTag>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::SequenceAnnotationTag>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::imm::ImmUniqId>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::imm::ImmUniqId>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::graph::MapLink>(g, "StdVec");
-  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptional");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "StdMap");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "StdMap");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "StdMap");
-  org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::graph::MapNode>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::graph::MapEdge>(g, "StdVec");
-  org::bind::js::hstdSharedPtrApi_bind<org::graph::MapGraph>(g, "SharedPtrApi");
-  org::bind::js::hstdSharedPtrApi_bind<org::graph::MapConfig>(g, "SharedPtrApi");
-  org::bind::js::stdshared_ptr_bind<org::graph::MapGraph>(g, "StdShared_ptr");
-  org::bind::js::stdshared_ptr_bind<org::graph::MapGraphState>(g, "StdShared_ptr");
-  org::bind::js::stdshared_ptr_bind<org::graph::MapConfig>(g, "StdShared_ptr");
-  org::bind::js::orgimmImmAdapterT_bind<org::imm::ImmSubtree>(g, "ImmAdapterT");
-  org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptional");
-  org::bind::js::orgimmImmAdapterT_bind<org::imm::ImmLink>(g, "ImmAdapterT");
-  org::bind::js::hstdSharedPtrApi_bind<org::graph::MapGraphState>(g, "SharedPtrApi");
-  org::bind::js::orgalgoExporter_bind<org::bind::python::ExporterPython, nanobind::object>(g, "Exporter");
-  org::bind::js::stdvariant_bind<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>(g, "StdVariant");
-  org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::LispCode>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::Tblfm::Assign>(g, "StdVec");
-  org::bind::js::stdvariant_bind<org::sem::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisName, org::sem::Tblfm::Expr::IntLiteral, org::sem::Tblfm::Expr::FloatLiteral, org::sem::Tblfm::Expr::RangeRef, org::sem::Tblfm::Expr::Call, org::sem::Tblfm::Expr::Elisp>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef::Position>(g, "Opt");
-  org::bind::js::stdvariant_bind<org::sem::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Name>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Expr>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::Tblfm::Expr>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign::Flag>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::Tblfm::Assign::Flag>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<hstd::Str>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::AttrValue::DimensionSpan>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::AttrValue::DimensionSpan>(g, "StdVec");
-  org::bind::js::stdvariant_bind<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::LispValue>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<bool>(g, "Opt");
-  org::bind::js::hstdOpt_bind<int>(g, "Opt");
-  org::bind::js::hstdOpt_bind<double>(g, "Opt");
-  org::bind::js::hstdVec_bind<hstd::Str>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::Str>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::HashTagText>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::HashTagText>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::HashTagFlat>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::HashTagFlat>(g, "StdVec");
-  org::bind::js::stdvariant_bind<org::sem::LinkTarget::Raw, org::sem::LinkTarget::Id, org::sem::LinkTarget::CustomId, org::sem::LinkTarget::SubtreeTitle, org::sem::LinkTarget::Person, org::sem::LinkTarget::UserProtocol, org::sem::LinkTarget::Internal, org::sem::LinkTarget::Footnote, org::sem::LinkTarget::File, org::sem::LinkTarget::Attachment>(g, "StdVariant");
-  org::bind::js::stdvariant_bind<org::sem::SubtreeLogHead::Priority, org::sem::SubtreeLogHead::Note, org::sem::SubtreeLogHead::Refile, org::sem::SubtreeLogHead::Clock, org::sem::SubtreeLogHead::State, org::sem::SubtreeLogHead::Deadline, org::sem::SubtreeLogHead::Schedule, org::sem::SubtreeLogHead::Tag, org::sem::SubtreeLogHead::Unknown>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<std::string>(g, "Opt");
-  org::bind::js::hstdOpt_bind<hstd::UserTime>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::AttrValue>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::AttrValue>(g, "StdVec");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::sem::AttrList>(g, "HstdMap");
-}
-
-void subdivide_1(org::bind::js::type_registration_guard& g) {
-  org::bind::js::stdunordered_map_bind<hstd::Str, org::sem::AttrList>(g, "StdMap");
-  org::bind::js::hstdOpt_bind<org::sem::AttrValue>(g, "Opt");
-  org::bind::js::hstdOpt_bind<org::sem::AttrList>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalInput::Var>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::OrgCodeEvalInput::Var>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<org::sem::OrgCodeEvalInput::Var>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::ColumnView::Column>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::ColumnView::Column>(g, "StdVec");
-  org::bind::js::stdvariant_bind<org::sem::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::MathAggregate>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<org::sem::ColumnView::Summary>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine::Part>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::BlockCodeLine::Part>(g, "StdVec");
-  org::bind::js::stdvariant_bind<org::sem::BlockCodeLine::Part::Raw, org::sem::BlockCodeLine::Part::Callout, org::sem::BlockCodeLine::Part::Tangle>(g, "StdVariant");
-  org::bind::js::stdvariant_bind<org::sem::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::ExportFixed>(g, "StdVariant");
-  org::bind::js::stdvariant_bind<org::sem::NamedProperty::Nonblocking, org::sem::NamedProperty::ArchiveTime, org::sem::NamedProperty::ArchiveFile, org::sem::NamedProperty::ArchiveOlpath, org::sem::NamedProperty::ArchiveTarget, org::sem::NamedProperty::ArchiveCategory, org::sem::NamedProperty::ArchiveTodo, org::sem::NamedProperty::Trigger, org::sem::NamedProperty::ExportLatexClass, org::sem::NamedProperty::CookieData, org::sem::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexHeader, org::sem::NamedProperty::ExportLatexCompiler, org::sem::NamedProperty::Ordered, org::sem::NamedProperty::Effort, org::sem::NamedProperty::Visibility, org::sem::NamedProperty::ExportOptions, org::sem::NamedProperty::Blocker, org::sem::NamedProperty::Unnumbered, org::sem::NamedProperty::Created, org::sem::NamedProperty::RadioId, org::sem::NamedProperty::HashtagDef, org::sem::NamedProperty::CustomArgs, org::sem::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomId, org::sem::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeFlags>(g, "StdVariant");
-  org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>(g, "HstdMap");
-  org::bind::js::stdunordered_map_bind<hstd::Str, hstd::Str>(g, "StdMap");
-  org::bind::js::stdvariant_bind<org::sem::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::InternalError>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<org::parse::SourceLoc>(g, "Opt");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmNoNode>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmErrorItem>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmErrorGroup>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmStmt>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmInline>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmStmtList>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmEmpty>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmd>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlock>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmLineCommand>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmAttached>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmLeaf>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCaption>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCreator>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdAuthor>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdEmail>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdLanguage>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdColumns>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdName>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCustomArgs>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCustomRaw>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCustomText>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdCall>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdTblfm>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmHashTag>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmInlineFootnote>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmInlineExport>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmTime>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmTimeRange>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmMacro>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmSymbol>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmEscaped>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmNewline>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmSpace>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmWord>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmAtMention>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmRawText>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmPunctuation>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmPlaceholder>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBigIdent>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmTextTarget>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmErrorSkipToken>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmErrorSkipGroup>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmMarkup>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBold>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmUnderline>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmMonospace>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmMarkQuote>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmVerbatim>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmItalic>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmStrike>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmPar>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmRadioTarget>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmLatex>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmLink>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockCenter>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockQuote>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockComment>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockVerse>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockDynamicFallback>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockExample>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockExport>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockAdmonition>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockCodeEvalResult>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmBlockCode>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmSubtreeLog>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmSubtree>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCell>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmRow>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmTable>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmParagraph>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmColonExample>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdAttr>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdExport>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCall>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmList>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmListItem>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmDocumentOptions>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmDocumentFragment>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCriticMarkup>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmDocument>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmFileTarget>(g, "ImmAdapterTBase");
-}
-
-void subdivide_2(org::bind::js::type_registration_guard& g) {
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmTextSeparator>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmDocumentGroup>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmFile>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmDirectory>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmSymlink>(g, "ImmAdapterTBase");
-  org::bind::js::orgimmImmAdapterTBase_bind<org::imm::ImmCmdInclude>(g, "ImmAdapterTBase");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::ErrorItem>(g, "SemId");
-  org::bind::js::hstdOpt_bind<org::sem::AttrValue::LispValue>(g, "Opt");
-  org::bind::js::hstdOpt_bind<org::sem::AttrValue::Kind>(g, "Opt");
-  org::bind::js::stdvariant_bind<org::sem::Time::Static, org::sem::Time::Dynamic>(g, "StdVariant");
-  org::bind::js::hstdVec_bind<org::sem::Time::Repeat>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::Time::Repeat>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<org::sem::Time::Repeat>(g, "Opt");
-  org::bind::js::orgsemSemId_bind<org::sem::Time>(g, "SemId");
-  org::bind::js::hstdOpt_bind<int64_t>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::Symbol::Param>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::Symbol::Param>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorSkipToken>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorSkipToken>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::ErrorSkipToken>(g, "SemId");
-  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::StmtList>>(g, "Opt");
-  org::bind::js::orgsemSemId_bind<org::sem::StmtList>(g, "SemId");
-  org::bind::js::hstdOpt_bind<org::sem::SubtreeCompletion>(g, "Opt");
-  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Paragraph>>(g, "Opt");
-  org::bind::js::orgsemSemId_bind<org::sem::Paragraph>(g, "SemId");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::HashTag>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::HashTag>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::HashTag>(g, "SemId");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::SubtreeLog>(g, "SemId");
-  org::bind::js::hstdVec_bind<org::sem::NamedProperty>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::NamedProperty>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Time>>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SubtreePeriod>(g, "StdVec");
-  org::bind::js::hstdIntSet_bind<org::sem::SubtreePeriod::Kind>(g, "IntSet");
-  org::bind::js::stdint_set_bind<org::sem::SubtreePeriod::Kind>(g, "StdInt_set");
-  org::bind::js::hstdOpt_bind<org::sem::NamedProperty>(g, "Opt");
-  org::bind::js::hstdOpt_bind<org::sem::ColumnView>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::TodoKeyword>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::TodoKeyword>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::RawText>>(g, "Opt");
-  org::bind::js::orgsemSemId_bind<org::sem::RawText>(g, "SemId");
-  org::bind::js::orgsemSemId_bind<org::sem::DocumentOptions>(g, "SemId");
-  org::bind::js::stdvariant_bind<org::sem::File::Document, org::sem::File::Attachment, org::sem::File::Source>(g, "StdVariant");
-  org::bind::js::stdvariant_bind<org::sem::CmdInclude::Example, org::sem::CmdInclude::Export, org::sem::CmdInclude::Custom, org::sem::CmdInclude::Src, org::sem::CmdInclude::OrgDocument>(g, "StdVariant");
-  org::bind::js::hstdOpt_bind<org::sem::SubtreePath>(g, "Opt");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmErrorItem>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmErrorItem>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmOrg>(g, "ImmIdT");
-  org::bind::js::hstdextImmBox_bind<hstd::Str>(g, "ImmBox");
-  org::bind::js::stdvariant_bind<org::imm::ImmTime::Static, org::imm::ImmTime::Dynamic>(g, "StdVariant");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmTime::Repeat>(g, "ImmVec");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmTime::Repeat>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmTime::Repeat>(g, "Opt");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmTime>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmSymbol::Param>(g, "ImmVec");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<hstd::Str>>(g, "ImmBox");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmErrorSkipToken>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<hstd::Str>(g, "ImmVec");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "Opt");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmStmtList>(g, "ImmIdT");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::sem::SubtreeCompletion>>(g, "ImmBox");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "Opt");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmParagraph>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmHashTag>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmHashTag>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmSubtreeLog>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::sem::NamedProperty>(g, "ImmVec");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmTime>>(g, "Opt");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<bool>>(g, "ImmBox");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<int>>(g, "ImmBox");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::sem::ColumnView>>(g, "ImmBox");
-  org::bind::js::hstdextImmVec_bind<org::sem::TodoKeyword>(g, "ImmVec");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "Opt");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmRawText>(g, "ImmIdT");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmDocumentOptions>(g, "ImmIdT");
-  org::bind::js::stdvariant_bind<org::imm::ImmFile::Document, org::imm::ImmFile::Attachment, org::imm::ImmFile::Source>(g, "StdVariant");
-  org::bind::js::stdvariant_bind<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::OrgDocument>(g, "StdVariant");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::sem::SubtreePath>>(g, "ImmBox");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BigIdent>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::BigIdent>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::BigIdent>(g, "SemId");
-  org::bind::js::hstdVec_bind<hstd::UserTime>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::UserTime>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Time>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Time>>(g, "StdVec");
-  org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Org>>(g, "Opt");
-  org::bind::js::hstdextImmBox_bind<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>(g, "ImmBox");
-  org::bind::js::hstdOpt_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "Opt");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Cell>>(g, "HstdVec");
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Cell>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::Cell>(g, "SemId");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmCell>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmCell>(g, "ImmIdT");
-  org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalOutput>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::OrgCodeEvalOutput>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::BlockCodeEvalResult>(g, "SemId");
-  org::bind::js::hstdVec_bind<org::sem::BlockCodeLine>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::BlockCodeLine>(g, "StdVec");
-  org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Row>>(g, "HstdVec");
-  org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Row>>(g, "StdVec");
-  org::bind::js::orgsemSemId_bind<org::sem::Row>(g, "SemId");
-  org::bind::js::hstdextImmVec_bind<org::sem::OrgCodeEvalOutput>(g, "ImmVec");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmBlockCodeEvalResult>(g, "ImmIdT");
-  org::bind::js::hstdextImmVec_bind<org::sem::BlockCodeLine>(g, "ImmVec");
-  org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmRow>>(g, "ImmVec");
-  org::bind::js::orgimmImmIdT_bind<org::imm::ImmRow>(g, "ImmIdT");
-  org::bind::js::orgsemSemId_bind<org::sem::Document>(g, "SemId");
   org::bind::js::hstdVec_bind<org::AstTrackingGroup>(g, "HstdVec");
   org::bind::js::stdvector_bind<org::AstTrackingGroup>(g, "StdVec");
   org::bind::js::hstdVec_bind<hstd::SequenceAnnotation>(g, "HstdVec");
   org::bind::js::stdvector_bind<hstd::SequenceAnnotation>(g, "StdVec");
-  org::bind::js::hstdVec_bind<hstd::SequenceSegmentGroup>(g, "HstdVec");
-  org::bind::js::stdvector_bind<hstd::SequenceSegmentGroup>(g, "StdVec");
-  org::bind::js::stdshared_ptr_bind<org::parse::ParseContext>(g, "StdShared_ptr");
   emscripten::class_<hstd::UserTimeBreakdown>("UserTimeBreakdown")
     .property("year", &hstd::UserTimeBreakdown::year)
     .property("month", &hstd::UserTimeBreakdown::month)
@@ -892,9 +556,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::AttrValue::TextValue>("AttrValueTextValue")
     .property("value", &org::sem::AttrValue::TextValue::value)
     .function("__eq__", static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==))
@@ -1073,6 +734,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Priority::Action>("SubtreeLogHeadPriorityAction");
+}
+
+void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeLogHead::Note>("SubtreeLogHeadNote")
     .property("on", &org::sem::SubtreeLogHead::Note::on)
     .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==))
@@ -1632,9 +1296,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::IncludeError::*)(org::sem::OrgDiagnostics::IncludeError const&) const>(&org::sem::OrgDiagnostics::IncludeError::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::OrgDiagnostics::ConvertError>("OrgDiagnosticsConvertError")
     .property("brief", &org::sem::OrgDiagnostics::ConvertError::brief)
     .property("detail", &org::sem::OrgDiagnostics::ConvertError::detail)
@@ -1785,6 +1446,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Markup, emscripten::base<org::sem::Org>>("Markup")
     .smart_ptr<org::sem::SemId<org::sem::Markup>>("Markup")
     ;
+}
+
+void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::RadioTarget, emscripten::base<org::sem::Org>>("RadioTarget")
     .smart_ptr<org::sem::SemId<org::sem::RadioTarget>>("RadioTarget")
     .property("words", &org::sem::RadioTarget::words)
@@ -2159,9 +1823,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmMonospace>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmMarkQuote>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2234,6 +1895,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2691,9 +2355,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::HashTag::*)() const>(&org::sem::HashTag::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::HashTag>>)
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::InlineFootnote, emscripten::base<org::sem::Inline>>("InlineFootnote")
     .smart_ptr<org::sem::SemId<org::sem::InlineFootnote>>("InlineFootnote")
     .property("tag", &org::sem::InlineFootnote::tag)
@@ -2823,6 +2484,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdCustomText::*)(org::imm::ImmCmdCustomText const&) const>(&org::imm::ImmCmdCustomText::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmLink, emscripten::base<org::imm::ImmStmt>>("ImmLink")
     .property("description", &org::imm::ImmLink::description)
     .property("target", &org::imm::ImmLink::target)
@@ -3117,9 +2781,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdLanguage::*)(org::imm::ImmCmdLanguage const&) const>(&org::imm::ImmCmdLanguage::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdCustomArgs, emscripten::base<org::imm::ImmCmd>>("ImmCmdCustomArgs")
     .property("name", &org::imm::ImmCmdCustomArgs::name)
     .property("isAttached", &org::imm::ImmCmdCustomArgs::isAttached)
@@ -3196,6 +2857,9 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmInline>, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterT")
     .function("getValue", static_cast<org::imm::ImmInlineValueRead(org::imm::ImmAdapterT<org::imm::ImmInline>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInline>::getValue))
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, emscripten::base<org::imm::ImmAdapterTimeAPI>>("ImmAdapterT")
     .function("getValue", static_cast<org::imm::ImmTimeValueRead(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getValue))
     ;
@@ -3462,9 +3126,6 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, emscripten::base<org::imm::ImmAdapterLinkAPI>>("ImmAdapterT")
     .function("getValue", static_cast<org::imm::ImmLinkValueRead(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getValue))
     ;
-}
-
-void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, emscripten::base<org::imm::ImmAdapterBlockCommentAPI>>("ImmAdapterT")
     .function("getValue", static_cast<org::imm::ImmBlockCommentValueRead(org::imm::ImmAdapterT<org::imm::ImmBlockComment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockComment>::getValue))
     ;
@@ -3537,6 +3198,9 @@ void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, emscripten::base<org::imm::ImmAdapterParAPI>>("ImmAdapterT")
     .function("getValue", static_cast<org::imm::ImmParValueRead(org::imm::ImmAdapterT<org::imm::ImmPar>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmPar>::getValue))
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CmdCaption, emscripten::base<org::sem::Attached>>("CmdCaption")
     .smart_ptr<org::sem::SemId<org::sem::CmdCaption>>("CmdCaption")
     .property("text", &org::sem::CmdCaption::text)
@@ -3761,9 +3425,6 @@ void subdivide_9(org::bind::js::type_registration_guard& g) {
   emscripten::function("exportToYamlString", static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString));
   emscripten::function("exportToYamlFile", static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile));
   emscripten::function("exportToJsonString", static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&)>(&org::exportToJsonString));
-}
-
-void subdivide_10(org::bind::js::type_registration_guard& g) {
   emscripten::function("exportToJsonFile", static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string)>(&org::exportToJsonFile));
   emscripten::function("readProtobufFile", static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const&)>(&org::readProtobufFile));
   emscripten::function("exportToProtobufFile", static_cast<void(*)(org::sem::SemId<org::sem::Document>, std::string const&)>(&org::exportToProtobufFile));
@@ -3792,9 +3453,5 @@ EMSCRIPTEN_BINDINGS(haxorg_wasm) {
   subdivide_4(g);
   subdivide_5(g);
   subdivide_6(g);
-  subdivide_7(g);
-  subdivide_8(g);
-  subdivide_9(g);
-  subdivide_10(g);
 }
 /* clang-format on */

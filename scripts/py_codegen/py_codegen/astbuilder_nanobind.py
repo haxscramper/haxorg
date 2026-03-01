@@ -863,7 +863,7 @@ class NbModule:
 
             specialization_calls.append(
                 ast.XCall(
-                    f"bind_{spec.getFlatUsed()}",
+                    f"org::bind::python::bind_{spec.getFlatUsed()}",
                     [
                         ast.string("m"),
                         ast.StringLiteral(spec.bind_name),
