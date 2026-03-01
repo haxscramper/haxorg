@@ -21,58 +21,44 @@
 #include <nanobind/operators.h>
 #include <nanobind/make_iterator.h>
 #include <nanobind/ndarray.h>
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphPoint>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPoint>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align::Spec>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align::Spec>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align>)
-NB_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
 NB_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
-NB_MAKE_OPAQUE(std::vector<int>)
+NB_MAKE_OPAQUE(std::pair<int, int>)
 NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<vpsc::Rectangle>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphEdge>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Subgraph>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Subgraph>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphPath>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPath>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphRect>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphRect>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Result::Subgraph>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Result::Subgraph>)
-NB_MAKE_OPAQUE(std::vector<hstd::Vec<int>>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::Vec<int>>)
 NB_MODULE(py_adaptagrams, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  bind_hstdVec<hstd::ext::GraphPoint>(m, "VecOfGraphPoint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "VecOfGraphNodeConstraintAlignSpec", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
-  bind_hstdVec<std::pair<int, int>>(m, "VecOfStdPairOfIntInt", type_registry_guard);
-  bind_hstdVec<int>(m, "VecOfInt", type_registry_guard);
-  bind_stdvector<vpsc::Rectangle>(m, "StdVectorOfVpscRectangle", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphSize>(m, "VecOfGraphSize", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "UnorderedMapOfGraphEdgeGraphEdgeConstraint", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphPath>(m, "VecOfGraphPath", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphRect>(m, "VecOfGraphRect", type_registry_guard);
-  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
-  bind_hstdVec<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
-  bind_hstdVec<hstd::Vec<int>>(m, "VecOfVecOfInt", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphPoint>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphNodeConstraint::Align>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<std::pair<int, int>>(m, "HstdVec", type_registry_guard);
+  bind_stdpair<int, int>(m, "StdPair", type_registry_guard);
+  bind_hstdVec<int>(m, "HstdVec", type_registry_guard);
+  bind_stdvector<vpsc::Rectangle>(m, "StdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphSize>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphEdge>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphNodeConstraint>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphLayoutIR::Subgraph>(m, "HstdVec", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "HstdMap", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "HstdMap", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphPath>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphRect>(m, "HstdVec", type_registry_guard);
+  bind_hstdUnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "HstdMap", type_registry_guard);
+  bind_hstdVec<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "HstdVec", type_registry_guard);
+  bind_hstdVec<hstd::Vec<int>>(m, "HstdVec", type_registry_guard);
   bind_enum_iterator<hstd::ext::GraphDimension>(m, "GraphDimension", type_registry_guard);
   nanobind::enum_<hstd::ext::GraphDimension>(m, "GraphDimension")
     .value("XDIM", hstd::ext::GraphDimension::XDIM)

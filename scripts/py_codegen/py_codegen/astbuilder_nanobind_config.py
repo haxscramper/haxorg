@@ -5,9 +5,6 @@ from py_codegen import codegen_ir
 
 class NanobindAstbuilderConfig(AstbulderConfig):
 
-    def getBindName(self, t: QualType) -> str:
-        pass
-
     def getSanitizedIdent(self, s: str) -> str:
         """
         Convert C++ identifiers to valid Python identifiers.

@@ -858,10 +858,6 @@ class NbModule:
             if spec.used_type.name in ["Opt", "optional"]:
                 continue
 
-            if spec.std_type:
-                opaque_declarations.append(
-                    ast.XCall("NB_MAKE_OPAQUE", [ast.Type(spec.std_type)]))
-
             opaque_declarations.append(
                 ast.XCall("NB_MAKE_OPAQUE", [ast.Type(spec.used_type)]))
 

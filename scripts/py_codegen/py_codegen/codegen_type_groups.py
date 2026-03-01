@@ -8,6 +8,7 @@ from beartype.typing import Dict, List, Sequence
 from py_codegen import codegen_ir, refl_read
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.codegen_immutable as gen_imm
+from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_ir import QualType
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
@@ -327,7 +328,8 @@ class PyhaxorgTypeGroups():
     imm_id_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     only_wrap_entries: List[codegen_ir.GenTuEntry] = field(default_factory=list)
     "Types not exposed for codegen, but only for entry wrapping"
-    specializations: List[codegen_ir.TypeSpecialization] = field(default_factory=list)
+
+    # specializations: List[codegen_ir.TypeSpecialization] = field(default_factory=list)
 
     def get_entries_for_wrapping(self) -> List[codegen_ir.GenTuUnion]:
         "Get full list of entries to be wrapped for public API"
@@ -381,10 +383,10 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
         get_osk_enum(res.expanded)
     ]
 
-    res.specializations = codegen_ir.collect_type_specializations(
-        res.get_entries_for_wrapping(),
-        base_map=res.base_map,
-    )
+    # res.specializations = collect_type_specializations(
+    #     res.get_entries_for_wrapping(),
+    #     base_map=res,
+    # )
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
     for sem_base in res.expanded:

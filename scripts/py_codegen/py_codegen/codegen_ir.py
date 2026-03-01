@@ -18,7 +18,6 @@ from beartype.typing import (
     TypeAlias,
     Union,
 )
-from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
 from pydantic import AliasChoices, BaseModel, Field
@@ -114,36 +113,6 @@ class QualType(BaseModel, extra="forbid"):
 
     meta: Dict[str, Any] = Field(default={})
     "Extra qualified type metadata"
-
-    def getBindName(
-            self,
-            ignored_spaces: List[str] = [],
-            withParams: bool = False,
-            rename_map: Dict[Tuple[str, ...], str] = dict(),
-    ) -> str:
-
-        def aux(t: QualType) -> str:
-            res = ""
-
-            flat = tuple(t.flatQualName())
-
-            if flat in rename_map:
-                res += rename_map[flat]
-
-            else:
-                for N in t.Spaces:
-                    res += aux(N)
-
-                if t.name not in ignored_spaces:
-                    res += pascal_case(t.name)
-
-            if withParams and 0 < len(t.Parameters):
-                res += "Of"
-                res += "".join([aux(T) for T in t.Parameters])
-
-            return res
-
-        return aux(self)
 
     def par0(self) -> Optional["QualType"]:
         if 0 < len(self.Parameters):
@@ -259,6 +228,42 @@ class QualType(BaseModel, extra="forbid"):
             isConst=False,
             RefKind=ReferenceKind.NotRef,
         ))
+
+    def withoutCVRefRec(self) -> "QualType":
+        "Recursively remove all CV-qualifiers from the qualified type"
+        base_override = dict(
+            isConst=False,
+            RefKind=ReferenceKind.NotRef,
+            ptrCount=0,
+            isNamespace=False,
+            meta=dict(),
+        )
+
+        match self.Kind:
+            case QualTypeKind.RegularType | QualTypeKind.Array:
+                return self.model_copy(
+                    update={
+                        "Spaces": [S.withoutCVRefRec() for S in self.Spaces],
+                        "Parameters": [P.withoutCVRefRec() for P in self.Parameters],
+                        **base_override,
+                    })
+
+            case QualTypeKind.FunctionPtr | QualTypeKind.MethodPtr:
+                return self.model_copy(
+                    update={
+                        "func":
+                            QualType.Function(
+                                ReturnTy=self.func.ReturnTy.withoutCVRef(),
+                                Args=[A.withoutCVRefRec() for A in self.func.Args],
+                                IsConst=False,
+                                Class=self.func.Class.withoutCVRefRec() if self.func.
+                                Class else None,
+                            ),
+                        **base_override,
+                    })
+
+            case QualTypeKind.TypeExpr:
+                return self.model_copy()
 
     def withoutSpace(self, name: str) -> "QualType":
         "Return the type excluding all the spaces with the provided `name`"
@@ -1259,11 +1264,6 @@ class TypeSpecialization():
     "Fully qualified underlying type in the specialization"
     bind_name: str
     "Flat name for the wrapper class"
-    std_type: Optional[QualType] = None
-    """
-    Underlying standard library type that already has converters, binders
-    and specialization.
-    """
 
     def getFlatUsed(self) -> str:
         "Get flat joined name of the used type"
@@ -1386,116 +1386,3 @@ def sanitize_ident(
         result = '_empty_'
 
     return result
-
-
-@beartype
-def collect_type_specializations(entries: List[GenTuUnion],
-                                 base_map: GenTypeMap) -> List[TypeSpecialization]:
-    res = []
-
-    @beartype
-    def name_bind(Typ: QualType) -> str:
-        return Typ.getBindName(
-            withParams=True,
-            ignored_spaces=IGNORED_NAMESPACES,
-            rename_map={
-                ("immer", "box"): "ImmBox",
-                ("immer", "flex_vector"): "ImmFlexVector",
-                ("immer", "map"): "ImmMap",
-            },
-        )
-
-    type_use_context: List[Any] = []
-    seen_types: Set[int] = set()
-
-    def record_specializations(value: Any) -> None:
-        nonlocal type_use_context
-        if isinstance(value, QualType):
-
-            def rec_type(T: QualType) -> None:
-
-                def rec_drop(T: QualType) -> QualType:
-                    return T.model_copy(update=dict(
-                        isConst=False,
-                        RefKind=ReferenceKind.NotRef,
-                        ptrCount=0,
-                        isNamespace=False,
-                        meta=dict(),
-                        Spaces=[rec_drop(S) for S in T.Spaces],
-                        Parameters=[rec_drop(P) for P in T.Parameters],
-                    ))
-
-                T = rec_drop(T)
-
-                if hash(T) in seen_types:
-                    return
-
-                else:
-                    seen_types.add(hash(T))
-
-                if T.name in [
-                        "Vec",
-                        "UnorderedMap",
-                        "IntSet",
-                        "vector",
-                        "flex_vector",
-                        "map",
-                        "box",
-                        "Opt",
-                        "optional",
-                ]:
-                    std_type: Optional[str] = {
-                        "Vec": "vector",
-                        "UnorderedMap": "unordered_map",
-                        "IntSet": "int_set",
-                        "vector": "imm_vector",
-                        "flex_vector": "imm_flex_vector",
-                        "map": "imm_map",
-                        "box": "imm_box",
-                    }.get(T.name, None)
-
-                    if T.name in ["Vec", "UnorderedMap"]:
-                        assert std_type
-                        if T.name in ["Vec", "vector", "box", "flex_vector", "IntSet"]:
-                            assert len(T.Parameters) == 1, T.format(dbgOrigin=True)
-
-                        elif T.name in ["UnorderedMap", "map"]:
-                            assert len(T.Parameters) == 2, T.format(dbgOrigin=True)
-
-                        stdvec_t = QualType.ForName(
-                            std_type,
-                            Spaces=[QualType.ForName("std")],
-                            Parameters=T.Parameters,
-                        )
-
-                        res.append(
-                            TypeSpecialization(
-                                std_type=stdvec_t,
-                                used_type=T,
-                                bind_name=name_bind(T),
-                            ))
-
-                    else:
-                        res.append(
-                            TypeSpecialization(
-                                used_type=T,
-                                bind_name=name_bind(T),
-                            ))
-
-                else:
-                    for P in T.Parameters:
-                        rec_type(P)
-
-            if base_map.is_typedef(value):
-                rec_type(base_map.get_underlying_type(value))  # type: ignore
-
-            else:
-                rec_type(value)
-
-    iterate_object_tree(
-        entries,
-        type_use_context,
-        pre_visit=record_specializations,
-    )
-
-    return res

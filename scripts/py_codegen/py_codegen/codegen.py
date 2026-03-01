@@ -4,11 +4,13 @@ from py_codegen import codegen_cpp, refl_read, codegen_ir
 import py_codegen.astbuilder_cpp as cpp
 import os
 import py_codegen.astbuilder_embind as napi
+from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.astbuilder_nanobind import NbModule
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
 import py_codegen.codegen_immutable as gen_imm
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
+from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_field_iteration_macros,
     gen_pyhaxorg_iteration_macros,
@@ -212,7 +214,7 @@ def gen_adaptagrams_wrappers(
         conf = NanobindAstbuilderConfig(base_map)
         res = NbModule("py_adaptagrams", conf)
         res.add_all(tu.get_all(), ast=ast)
-        specializations = collect_type_specializations(tu.get_all(), conf.base_map)
+        specializations = collect_type_specializations(tu.get_all(), conf)
         res.add_type_specializations(
             ast=ast,
             specializations=specializations,
@@ -255,7 +257,10 @@ def gen_pyhaxorg_python_wrappers(
 
     res.add_type_specializations(
         ast,
-        specializations=groups.specializations,
+        specializations=collect_type_specializations(
+            groups.get_entries_for_wrapping(),
+            conf,
+        ),
     )
 
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
@@ -295,6 +300,7 @@ def gen_pyhaxorg_napi_wrappers(
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
+    conf = EmbindAstbuilderConfig(base_map)
     res = napi.WasmModule("haxorg_wasm")
 
     res.add_specializations(
