@@ -33,9 +33,13 @@ class ParmVarParams:
 @beartype
 @dataclass
 class FunctionParams:
+    """
+    Common function parameters for CPP.
+    """
     Name: str
     doc: DocParams = field(default_factory=lambda: DocParams(""))
-    Template: GenTuTemplateParams = field(default_factory=GenTuTemplateParams)
+    Template: Optional[GenTuTemplateParams] = field(default_factory=GenTuTemplateParams)
+    "Template parameters for function"
     ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_

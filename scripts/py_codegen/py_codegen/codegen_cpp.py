@@ -11,31 +11,29 @@ from py_haxorg.layout.wrap import BlockId
 @beartype
 @dataclass
 class GenConverter:
+    """
+    Convert from codegen IR structure to the CPP backend-specific types.
+    """
     ast: cpp.ASTBuilder
     isSource: bool = False
     pendingToplevel: List[BlockId] = field(default_factory=list)
     context: List[QualType] = field(default_factory=list)
 
-    def convertParams(
-            self, Params: List[codegen_ir.GenTuParam]) -> codegen_ir.GenTuTemplateGroup:
-        return codegen_ir.GenTuTemplateGroup(Params=[
-            codegen_ir.GenTuTemplateTypename(Name=Param.name) for Param in Params
-        ])
-
     def convertFunctionBlock(self, func: cpp.FunctionParams) -> BlockId:
         return self.ast.Function(func)
 
     def convertFunction(self, func: codegen_ir.GenTuFunction) -> cpp.FunctionParams:
+        """
+        Map codegen IR free function to common CPP codegen function parameters.
+        """
         decl = cpp.FunctionParams(
             ResultTy=func.result,
             Name=func.name,
             doc=self.convertDoc(func.doc),
             InitList=func.InitList,
             IsConstructor=func.IsConstructor,
+            Template=func.params,
         )
-
-        if func.params:
-            decl.Template.Stacks = [self.convertParams(func.params)]
 
         if func.impl is not None:
             if isinstance(func.impl, str):

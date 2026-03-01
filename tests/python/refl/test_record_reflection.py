@@ -322,7 +322,7 @@ def test_trivial_method_reflection(stable_test_dir: Path) -> None:
     assert m[2].result.name == "int"
     assert m[2].isConst == True
     assert m[2].isVirtual == True
-    assert m[3].isPureVirtual == True
+    assert m[2].isPureVirtual == True
 
     assert m[3].name == "test4"
     assert m[3].result.name == "int"
@@ -332,12 +332,12 @@ def test_trivial_method_reflection(stable_test_dir: Path) -> None:
     assert m[4].name == "test5"
     assert m[4].result.name == "int"
     assert len(m[4].arguments) == 1
-    assert m[4].arguments[0].type == "int"
+    assert m[4].arguments[0].type.name == "int"
     assert m[4].arguments[0].value == "5"
     assert m[4].arguments[0].name == "default_value"
 
     assert m[5].name == "test6"
-    assert m[5].result.name == "void"
+    assert m[5].result.name == "int"
     assert m[5].isStatic == True
 
 

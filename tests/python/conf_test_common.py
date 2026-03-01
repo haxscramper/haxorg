@@ -76,6 +76,9 @@ def runtest(
     parameter_desc: Optional[dict] = None,
     coverage_out_dir: Optional[Path] = None,
 ) -> tuple[int, str, str]:
+    """
+    Execute GTest/QTest wrapped in pytest interface.
+    """
     global cookie_list
 
     env = run_env or {}
@@ -105,9 +108,9 @@ def runtest(
 
         result = run(dict(**env, LLVM_PROFILE_FILE=str(profraw)))
         _get_cookie_list().append(cookie)
-        log(CAT).info(
-            f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
-        )
+        # log(CAT).info(
+        #     f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
+        # )
         return result
 
     else:

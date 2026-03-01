@@ -544,7 +544,7 @@ class NbClass:
         self.conf = conf
 
         for meth in value.methods:
-            if meth.isExposedForWrap and not meth.isPureVirtual:
+            if meth.isExposedForWrap:
                 if meth.IsConstructor:
                     self.InitImpls.append(NbMethod(meth, conf))
                 else:

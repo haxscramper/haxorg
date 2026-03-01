@@ -1142,6 +1142,7 @@ void ReflASTVisitor::fillParmVarDecl(
     }
 }
 
+// nodoc
 void ReflASTVisitor::fillMethodDecl(
     Record::Method*         sub,
     c::CXXMethodDecl const* method) {
@@ -1154,6 +1155,7 @@ void ReflASTVisitor::fillMethodDecl(
     sub->set_isconst(method->isConst());
     sub->set_isstatic(method->isStatic());
     sub->set_isvirtual(method->isVirtual());
+    sub->set_ispurevirtual(method->isPureVirtual());
     sub->set_isimplicit(method->isImplicit());
     sub->set_isoperator(method->getNameAsString().starts_with("operator"));
     if (sub->isoperator()) {

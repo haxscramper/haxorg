@@ -1,5 +1,6 @@
 /* clang-format off */
 #pragma once
+#pragma clang diagnostic ignored "-Wextra-qualification"
 #include <haxorg/imm/ImmOrg.hpp>
 namespace org::imm {
 struct ImmNoNodeValueRead {

@@ -139,7 +139,7 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
     .smart_ptr<org::sem::SemId<org::sem::Org>>("Org")
     .property("loc", &org::sem::Org::loc)
     .property("subnodes", &org::sem::Org::subnodes)
-    .function("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
+    .function("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), emscripten::pure_virtual())
     .function("push_back", static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back))
     .function("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
     .function("insert", static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert))
