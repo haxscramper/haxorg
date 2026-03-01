@@ -34,6 +34,7 @@ run_docker_release_ci:
 # RE-generate haxorg sources without running any dependent tasks
 run_haxorg_only_source_generation:
   {{workflow_run}} --task generate_haxorg_sources \
+    --workflow_log_dir /tmp/haxorg/workflow_source_generation_log \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
 
 run_haxorg_reflection_snapshot_generation:

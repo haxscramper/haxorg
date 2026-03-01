@@ -16,6 +16,7 @@ from py_repository.repo_tasks.common import (
     get_component_build_dir,
     get_script_root,
 )
+from py_repository.repo_tasks.config import get_tmpdir
 from py_repository.repo_tasks.haxorg_base import (
     base_environment,
     generate_develop_deps_install_paths,
@@ -102,6 +103,8 @@ def build_haxorg(ctx: TaskContext) -> None:
         build_dir=build_dir,
         targets=targets,
         print_output=ctx.config.build_conf.real_time_output_print,
+        stderr_debug=get_tmpdir("run_command").joinpath("haxorg_build_stderr.log"),
+        stdout_debug=get_tmpdir("run_command").joinpath("haxorg_build_stdout.log"),
     )
 
     get_uv_develop_env_flags(ctx)

@@ -301,11 +301,12 @@ def gen_pyhaxorg_napi_wrappers(
     cpp_builder = cpp.ASTBuilder(ast.b)
 
     conf = EmbindAstbuilderConfig(base_map)
-    res = napi.WasmModule("haxorg_wasm")
+    res = napi.WasmModule("haxorg_wasm", conf)
 
     res.add_specializations(
         b=ast,
-        specializations=groups.specializations,
+        specializations=collect_type_specializations(groups.get_entries_for_wrapping(),
+                                                     conf),
     )
 
     for decl in groups.get_entries_for_wrapping():
@@ -322,18 +323,11 @@ def gen_pyhaxorg_napi_wrappers(
     return GenFiles([
         GenUnit(
             GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
-                GenTuPass(res.build_bind(
-                    ast=ast,
-                    b=cpp_builder,
-                    base_map=base_map,
-                )),
+                GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
             ])),
         GenUnit(
             GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
-                GenTuPass(res.build_typedef(
-                    ast=ast,
-                    base_map=base_map,
-                )),
+                GenTuPass(res.build_typedef(ast=ast)),
             ])),
     ])
 

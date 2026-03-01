@@ -380,9 +380,7 @@ class MultiFileHandler(logging.Handler):
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
         self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s - %(filename)s:%(lineno)d - %(name)s - %(levelname)s - %(message)s"
-            ))
+            logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s"))
         self.plain_console = Console(color_system=None,
                                      legacy_windows=False,
                                      force_terminal=False,
@@ -404,8 +402,7 @@ class MultiFileHandler(logging.Handler):
             handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
                 logging.Formatter(
-                    "%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
-            )
+                    "%(levelname)s - %(filename)s:%(lineno)d - %(message)s"))
             self.logger_handlers[logger_name] = handler
         return self.logger_handlers[logger_name]
 

@@ -465,94 +465,94 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
-  ImmIdTNoNode: ImmIdTNoNodeConstructor;
-  ImmIdTErrorItem: ImmIdTErrorItemConstructor;
-  ImmIdTErrorGroup: ImmIdTErrorGroupConstructor;
-  ImmIdTStmt: ImmIdTStmtConstructor;
-  ImmIdTInline: ImmIdTInlineConstructor;
-  ImmIdTStmtList: ImmIdTStmtListConstructor;
-  ImmIdTEmpty: ImmIdTEmptyConstructor;
-  ImmIdTCmd: ImmIdTCmdConstructor;
-  ImmIdTBlock: ImmIdTBlockConstructor;
-  ImmIdTLineCommand: ImmIdTLineCommandConstructor;
-  ImmIdTAttached: ImmIdTAttachedConstructor;
-  ImmIdTLeaf: ImmIdTLeafConstructor;
-  ImmIdTCmdCaption: ImmIdTCmdCaptionConstructor;
-  ImmIdTCmdCreator: ImmIdTCmdCreatorConstructor;
-  ImmIdTCmdAuthor: ImmIdTCmdAuthorConstructor;
-  ImmIdTCmdEmail: ImmIdTCmdEmailConstructor;
-  ImmIdTCmdLanguage: ImmIdTCmdLanguageConstructor;
-  ImmIdTCmdColumns: ImmIdTCmdColumnsConstructor;
-  ImmIdTCmdName: ImmIdTCmdNameConstructor;
-  ImmIdTCmdCustomArgs: ImmIdTCmdCustomArgsConstructor;
-  ImmIdTCmdCustomRaw: ImmIdTCmdCustomRawConstructor;
-  ImmIdTCmdCustomText: ImmIdTCmdCustomTextConstructor;
-  ImmIdTCmdCall: ImmIdTCmdCallConstructor;
-  ImmIdTCmdTblfm: ImmIdTCmdTblfmConstructor;
-  ImmIdTHashTag: ImmIdTHashTagConstructor;
-  ImmIdTInlineFootnote: ImmIdTInlineFootnoteConstructor;
-  ImmIdTInlineExport: ImmIdTInlineExportConstructor;
-  ImmIdTTime: ImmIdTTimeConstructor;
-  ImmIdTTimeRange: ImmIdTTimeRangeConstructor;
-  ImmIdTMacro: ImmIdTMacroConstructor;
-  ImmIdTSymbol: ImmIdTSymbolConstructor;
-  ImmIdTEscaped: ImmIdTEscapedConstructor;
-  ImmIdTNewline: ImmIdTNewlineConstructor;
-  ImmIdTSpace: ImmIdTSpaceConstructor;
-  ImmIdTWord: ImmIdTWordConstructor;
-  ImmIdTAtMention: ImmIdTAtMentionConstructor;
-  ImmIdTRawText: ImmIdTRawTextConstructor;
-  ImmIdTPunctuation: ImmIdTPunctuationConstructor;
-  ImmIdTPlaceholder: ImmIdTPlaceholderConstructor;
-  ImmIdTBigIdent: ImmIdTBigIdentConstructor;
-  ImmIdTTextTarget: ImmIdTTextTargetConstructor;
-  ImmIdTErrorSkipToken: ImmIdTErrorSkipTokenConstructor;
-  ImmIdTErrorSkipGroup: ImmIdTErrorSkipGroupConstructor;
-  ImmIdTMarkup: ImmIdTMarkupConstructor;
-  ImmIdTBold: ImmIdTBoldConstructor;
-  ImmIdTUnderline: ImmIdTUnderlineConstructor;
-  ImmIdTMonospace: ImmIdTMonospaceConstructor;
-  ImmIdTMarkQuote: ImmIdTMarkQuoteConstructor;
-  ImmIdTVerbatim: ImmIdTVerbatimConstructor;
-  ImmIdTItalic: ImmIdTItalicConstructor;
-  ImmIdTStrike: ImmIdTStrikeConstructor;
-  ImmIdTPar: ImmIdTParConstructor;
-  ImmIdTRadioTarget: ImmIdTRadioTargetConstructor;
-  ImmIdTLatex: ImmIdTLatexConstructor;
-  ImmIdTLink: ImmIdTLinkConstructor;
-  ImmIdTBlockCenter: ImmIdTBlockCenterConstructor;
-  ImmIdTBlockQuote: ImmIdTBlockQuoteConstructor;
-  ImmIdTBlockComment: ImmIdTBlockCommentConstructor;
-  ImmIdTBlockVerse: ImmIdTBlockVerseConstructor;
-  ImmIdTBlockDynamicFallback: ImmIdTBlockDynamicFallbackConstructor;
-  ImmIdTBlockExample: ImmIdTBlockExampleConstructor;
-  ImmIdTBlockExport: ImmIdTBlockExportConstructor;
-  ImmIdTBlockAdmonition: ImmIdTBlockAdmonitionConstructor;
-  ImmIdTBlockCodeEvalResult: ImmIdTBlockCodeEvalResultConstructor;
-  ImmIdTBlockCode: ImmIdTBlockCodeConstructor;
-  ImmIdTSubtreeLog: ImmIdTSubtreeLogConstructor;
-  ImmIdTSubtree: ImmIdTSubtreeConstructor;
-  ImmIdTCell: ImmIdTCellConstructor;
-  ImmIdTRow: ImmIdTRowConstructor;
-  ImmIdTTable: ImmIdTTableConstructor;
-  ImmIdTParagraph: ImmIdTParagraphConstructor;
-  ImmIdTColonExample: ImmIdTColonExampleConstructor;
-  ImmIdTCmdAttr: ImmIdTCmdAttrConstructor;
-  ImmIdTCmdExport: ImmIdTCmdExportConstructor;
-  ImmIdTCall: ImmIdTCallConstructor;
-  ImmIdTList: ImmIdTListConstructor;
-  ImmIdTListItem: ImmIdTListItemConstructor;
-  ImmIdTDocumentOptions: ImmIdTDocumentOptionsConstructor;
-  ImmIdTDocumentFragment: ImmIdTDocumentFragmentConstructor;
-  ImmIdTCriticMarkup: ImmIdTCriticMarkupConstructor;
-  ImmIdTDocument: ImmIdTDocumentConstructor;
-  ImmIdTFileTarget: ImmIdTFileTargetConstructor;
-  ImmIdTTextSeparator: ImmIdTTextSeparatorConstructor;
-  ImmIdTDocumentGroup: ImmIdTDocumentGroupConstructor;
-  ImmIdTFile: ImmIdTFileConstructor;
-  ImmIdTDirectory: ImmIdTDirectoryConstructor;
-  ImmIdTSymlink: ImmIdTSymlinkConstructor;
-  ImmIdTCmdInclude: ImmIdTCmdIncludeConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
+  ImmIdT: ImmIdTConstructor;
   ImmNoNode: ImmNoNodeConstructor;
   ImmErrorItem: ImmErrorItemConstructor;
   ImmErrorGroup: ImmErrorGroupConstructor;
@@ -762,23 +762,23 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockCommentAPI: ImmAdapterBlockCommentAPIConstructor;
   ImmAdapterParagraphAPI: ImmAdapterParagraphAPIConstructor;
   ImmAdapterListAPI: ImmAdapterListAPIConstructor;
-  ImmStmtAdapter: ImmStmtAdapterConstructor;
-  ImmSubtreeAdapter: ImmSubtreeAdapterConstructor;
-  ImmNoNodeAdapter: ImmNoNodeAdapterConstructor;
-  ImmErrorItemAdapter: ImmErrorItemAdapterConstructor;
-  ImmErrorGroupAdapter: ImmErrorGroupAdapterConstructor;
-  ImmErrorSkipGroupAdapter: ImmErrorSkipGroupAdapterConstructor;
-  ImmErrorSkipTokenAdapter: ImmErrorSkipTokenAdapterConstructor;
-  ImmStmtListAdapter: ImmStmtListAdapterConstructor;
-  ImmEmptyAdapter: ImmEmptyAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   ImmAdapterHashTagAPI: ImmAdapterHashTagAPIConstructor;
   ImmAdapterInlineFootnoteAPI: ImmAdapterInlineFootnoteAPIConstructor;
   ImmAdapterSubtreeCompletionAPI: ImmAdapterSubtreeCompletionAPIConstructor;
-  ImmInlineAdapter: ImmInlineAdapterConstructor;
-  ImmTimeAdapter: ImmTimeAdapterConstructor;
-  ImmTimeRangeAdapter: ImmTimeRangeAdapterConstructor;
-  ImmMacroAdapter: ImmMacroAdapterConstructor;
-  ImmSymbolAdapter: ImmSymbolAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   ImmAdapterEscapedAPI: ImmAdapterEscapedAPIConstructor;
   ImmAdapterNewlineAPI: ImmAdapterNewlineAPIConstructor;
   ImmAdapterSpaceAPI: ImmAdapterSpaceAPIConstructor;
@@ -789,7 +789,7 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterPlaceholderAPI: ImmAdapterPlaceholderAPIConstructor;
   ImmAdapterBigIdentAPI: ImmAdapterBigIdentAPIConstructor;
   ImmAdapterTextTargetAPI: ImmAdapterTextTargetAPIConstructor;
-  ImmLeafAdapter: ImmLeafAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   ImmAdapterBoldAPI: ImmAdapterBoldAPIConstructor;
   ImmAdapterUnderlineAPI: ImmAdapterUnderlineAPIConstructor;
   ImmAdapterMonospaceAPI: ImmAdapterMonospaceAPIConstructor;
@@ -799,23 +799,23 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterItalicAPI: ImmAdapterItalicAPIConstructor;
   ImmAdapterStrikeAPI: ImmAdapterStrikeAPIConstructor;
   ImmAdapterParAPI: ImmAdapterParAPIConstructor;
-  ImmMarkupAdapter: ImmMarkupAdapterConstructor;
-  ImmLatexAdapter: ImmLatexAdapterConstructor;
-  ImmSubtreeLogAdapter: ImmSubtreeLogAdapterConstructor;
-  ImmColonExampleAdapter: ImmColonExampleAdapterConstructor;
-  ImmCallAdapter: ImmCallAdapterConstructor;
-  ImmFileAdapter: ImmFileAdapterConstructor;
-  ImmDirectoryAdapter: ImmDirectoryAdapterConstructor;
-  ImmSymlinkAdapter: ImmSymlinkAdapterConstructor;
-  ImmDocumentFragmentAdapter: ImmDocumentFragmentAdapterConstructor;
-  ImmCriticMarkupAdapter: ImmCriticMarkupAdapterConstructor;
-  ImmListItemAdapter: ImmListItemAdapterConstructor;
-  ImmDocumentOptionsAdapter: ImmDocumentOptionsAdapterConstructor;
-  ImmDocumentAdapter: ImmDocumentAdapterConstructor;
-  ImmFileTargetAdapter: ImmFileTargetAdapterConstructor;
-  ImmTextSeparatorAdapter: ImmTextSeparatorAdapterConstructor;
-  ImmCmdIncludeAdapter: ImmCmdIncludeAdapterConstructor;
-  ImmDocumentGroupAdapter: ImmDocumentGroupAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   BlockCenter: BlockCenterConstructor;
   BlockQuote: BlockQuoteConstructor;
   BlockVerse: BlockVerseConstructor;
@@ -848,34 +848,34 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockAPI: ImmAdapterBlockAPIConstructor;
   ImmAdapterCellAPI: ImmAdapterCellAPIConstructor;
   ImmAdapterRowAPI: ImmAdapterRowAPIConstructor;
-  ImmCmdAdapter: ImmCmdAdapterConstructor;
-  ImmCmdCustomRawAdapter: ImmCmdCustomRawAdapterConstructor;
-  ImmCmdCustomTextAdapter: ImmCmdCustomTextAdapterConstructor;
-  ImmLinkAdapter: ImmLinkAdapterConstructor;
-  ImmBlockCommentAdapter: ImmBlockCommentAdapterConstructor;
-  ImmParagraphAdapter: ImmParagraphAdapterConstructor;
-  ImmListAdapter: ImmListAdapterConstructor;
-  ImmHashTagAdapter: ImmHashTagAdapterConstructor;
-  ImmInlineFootnoteAdapter: ImmInlineFootnoteAdapterConstructor;
-  ImmEscapedAdapter: ImmEscapedAdapterConstructor;
-  ImmNewlineAdapter: ImmNewlineAdapterConstructor;
-  ImmSpaceAdapter: ImmSpaceAdapterConstructor;
-  ImmWordAdapter: ImmWordAdapterConstructor;
-  ImmAtMentionAdapter: ImmAtMentionAdapterConstructor;
-  ImmRawTextAdapter: ImmRawTextAdapterConstructor;
-  ImmPunctuationAdapter: ImmPunctuationAdapterConstructor;
-  ImmPlaceholderAdapter: ImmPlaceholderAdapterConstructor;
-  ImmBigIdentAdapter: ImmBigIdentAdapterConstructor;
-  ImmTextTargetAdapter: ImmTextTargetAdapterConstructor;
-  ImmBoldAdapter: ImmBoldAdapterConstructor;
-  ImmUnderlineAdapter: ImmUnderlineAdapterConstructor;
-  ImmMonospaceAdapter: ImmMonospaceAdapterConstructor;
-  ImmMarkQuoteAdapter: ImmMarkQuoteAdapterConstructor;
-  ImmRadioTargetAdapter: ImmRadioTargetAdapterConstructor;
-  ImmVerbatimAdapter: ImmVerbatimAdapterConstructor;
-  ImmItalicAdapter: ImmItalicAdapterConstructor;
-  ImmStrikeAdapter: ImmStrikeAdapterConstructor;
-  ImmParAdapter: ImmParAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   CmdCaption: CmdCaptionConstructor;
   CmdColumns: CmdColumnsConstructor;
   CmdName: CmdNameConstructor;
@@ -889,13 +889,13 @@ export interface haxorg_wasm_module_auto {
   ImmCmdAttr: ImmCmdAttrConstructor;
   ImmCmdExport: ImmCmdExportConstructor;
   ImmAdapterAttachedAPI: ImmAdapterAttachedAPIConstructor;
-  ImmLineCommandAdapter: ImmLineCommandAdapterConstructor;
-  ImmCmdCustomArgsAdapter: ImmCmdCustomArgsAdapterConstructor;
-  ImmCmdCreatorAdapter: ImmCmdCreatorAdapterConstructor;
-  ImmCmdAuthorAdapter: ImmCmdAuthorAdapterConstructor;
-  ImmCmdEmailAdapter: ImmCmdEmailAdapterConstructor;
-  ImmCmdLanguageAdapter: ImmCmdLanguageAdapterConstructor;
-  ImmCmdTblfmAdapter: ImmCmdTblfmAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   ImmAdapterBlockCenterAPI: ImmAdapterBlockCenterAPIConstructor;
   ImmAdapterBlockQuoteAPI: ImmAdapterBlockQuoteAPIConstructor;
   ImmAdapterBlockVerseAPI: ImmAdapterBlockVerseAPIConstructor;
@@ -908,33 +908,33 @@ export interface haxorg_wasm_module_auto {
   ImmAdapterBlockCodeEvalResultAPI: ImmAdapterBlockCodeEvalResultAPIConstructor;
   ImmAdapterBlockCodeAPI: ImmAdapterBlockCodeAPIConstructor;
   ImmAdapterTableAPI: ImmAdapterTableAPIConstructor;
-  ImmBlockAdapter: ImmBlockAdapterConstructor;
-  ImmCellAdapter: ImmCellAdapterConstructor;
-  ImmRowAdapter: ImmRowAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   ImmAdapterCmdCaptionAPI: ImmAdapterCmdCaptionAPIConstructor;
   ImmAdapterCmdColumnsAPI: ImmAdapterCmdColumnsAPIConstructor;
   ImmAdapterCmdNameAPI: ImmAdapterCmdNameAPIConstructor;
   ImmAdapterCmdCallAPI: ImmAdapterCmdCallAPIConstructor;
   ImmAdapterCmdResultsAPI: ImmAdapterCmdResultsAPIConstructor;
   ImmAdapterCmdAttrAPI: ImmAdapterCmdAttrAPIConstructor;
-  ImmAttachedAdapter: ImmAttachedAdapterConstructor;
-  ImmBlockCenterAdapter: ImmBlockCenterAdapterConstructor;
-  ImmBlockQuoteAdapter: ImmBlockQuoteAdapterConstructor;
-  ImmBlockVerseAdapter: ImmBlockVerseAdapterConstructor;
-  ImmBlockExampleAdapter: ImmBlockExampleAdapterConstructor;
-  ImmInlineExportAdapter: ImmInlineExportAdapterConstructor;
-  ImmCmdExportAdapter: ImmCmdExportAdapterConstructor;
-  ImmBlockExportAdapter: ImmBlockExportAdapterConstructor;
-  ImmBlockDynamicFallbackAdapter: ImmBlockDynamicFallbackAdapterConstructor;
-  ImmBlockAdmonitionAdapter: ImmBlockAdmonitionAdapterConstructor;
-  ImmBlockCodeEvalResultAdapter: ImmBlockCodeEvalResultAdapterConstructor;
-  ImmBlockCodeAdapter: ImmBlockCodeAdapterConstructor;
-  ImmTableAdapter: ImmTableAdapterConstructor;
-  ImmCmdCaptionAdapter: ImmCmdCaptionAdapterConstructor;
-  ImmCmdColumnsAdapter: ImmCmdColumnsAdapterConstructor;
-  ImmCmdNameAdapter: ImmCmdNameAdapterConstructor;
-  ImmCmdCallAdapter: ImmCmdCallAdapterConstructor;
-  ImmCmdAttrAdapter: ImmCmdAttrAdapterConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
+  ImmAdapterT: ImmAdapterTConstructor;
   CheckboxState: {
     None: CheckboxState,
     Done: CheckboxState,
@@ -1503,9 +1503,9 @@ export interface haxorg_wasm_module_auto {
   exportToProtobufFile(doc: Document, file: string): void;
   exportToTreeString(node: Org, opts: OrgTreeExportOpts): string;
   exportToTreeFile(node: Org, path: string, opts: OrgTreeExportOpts): void;
-  getAstTrackingMap(nodes: haxorg_wasm.Vec<Org>): AstTrackingMap;
-  getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.Vec<AstTrackingGroup>;
-  annotateSequence(groups: haxorg_wasm.Vec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.Vec<SequenceAnnotation>;
+  getAstTrackingMap(nodes: haxorg_wasm.HstdVec<Org>): AstTrackingMap;
+  getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.HstdVec<AstTrackingGroup>;
+  annotateSequence(groups: haxorg_wasm.HstdVec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.HstdVec<SequenceAnnotation>;
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
   serializeAstContextToText(store: ImmAstContext): string;
   serializeAstContextFromText(binary: string, store: ImmAstContext): void;
@@ -1551,7 +1551,7 @@ export interface OrgJson {
   getItem(index: number): OrgJson;
   getInt(): number;
   getBool(): boolean;
-  getArray(): haxorg_wasm.Vec<OrgJson>;
+  getArray(): haxorg_wasm.HstdVec<OrgJson>;
   dump(indent: number): string;
 }
 export interface OrgConstructor { new(): Org; }
@@ -1563,7 +1563,7 @@ export interface Org {
   at(idx: number): Org;
   is(kind: OrgSemKind): boolean;
   loc: haxorg_wasm.Optional<ParseSourceLoc>
-  subnodes: haxorg_wasm.Vec<Org>
+  subnodes: haxorg_wasm.HstdVec<Org>
 }
 export interface OperationsTracerConstructor { new(): OperationsTracer; }
 export interface OperationsTracer {
@@ -1605,8 +1605,8 @@ export interface ParseContext {
   parseDirectory(path: string): haxorg_wasm.Optional<Org>;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-  collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.Vec<Report>;
-  collectErrorNodes(tree: Org): haxorg_wasm.Vec<ErrorGroup>;
+  collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.HstdVec<Report>;
+  collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
 }
 export interface ImmIdConstructor { new(): ImmId; }
 export interface ImmId {
@@ -1658,9 +1658,9 @@ export interface ImmAdapter {
   getSelfIndex(): number;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
-  atPath(path: haxorg_wasm.Vec<number>, withPath: boolean): ImmAdapter;
+  atPath(path: haxorg_wasm.HstdVec<number>, withPath: boolean): ImmAdapter;
   is(kind: OrgSemKind): boolean;
-  sub(withPath: boolean): haxorg_wasm.Vec<ImmAdapter>;
+  sub(withPath: boolean): haxorg_wasm.HstdVec<ImmAdapter>;
 }
 export interface ImmAdapterTreeReprConfConstructor { new(): ImmAdapterTreeReprConf; }
 export interface ImmAdapterTreeReprConf {
@@ -1693,11 +1693,11 @@ export interface AstTrackingPathConstructor { new(): AstTrackingPath; }
 export interface AstTrackingPath {
   getParent(offset: number): Org;
   getNode(): Org;
-  path: haxorg_wasm.Vec<Org>
+  path: haxorg_wasm.HstdVec<Org>
 }
 export interface AstTrackingAlternativesConstructor { new(): AstTrackingAlternatives; }
 export interface AstTrackingAlternatives {
-  getAllNodes(): haxorg_wasm.Vec<Org>;
+  getAllNodes(): haxorg_wasm.HstdVec<Org>;
   getNode(): Org;
 }
 export interface AstTrackingGroupConstructor { new(): AstTrackingGroup; }
@@ -1715,14 +1715,14 @@ export interface AstTrackingGroup {
 export interface AstTrackingGroupRadioTargetConstructor { new(): AstTrackingGroupRadioTarget; }
 export interface AstTrackingGroupRadioTarget {
   target: AstTrackingPath
-  nodes: haxorg_wasm.Vec<Org>
+  nodes: haxorg_wasm.HstdVec<Org>
 }
 export interface AstTrackingGroupSingleConstructor { new(): AstTrackingGroupSingle; }
 export interface AstTrackingGroupSingle { node: Org }
 export interface AstTrackingGroupTrackedHashtagConstructor { new(): AstTrackingGroupTrackedHashtag; }
 export interface AstTrackingGroupTrackedHashtag {
   tag: Org
-  targets: haxorg_wasm.UnorderedMap<HashTagFlat, AstTrackingPath>
+  targets: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingPath>
 }
 export interface AstTrackingMapConstructor { new(): AstTrackingMap; }
 export interface AstTrackingMap {
@@ -1730,12 +1730,12 @@ export interface AstTrackingMap {
   getNamePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
   getAnchorTarget(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
   getFootnotePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  footnotes: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
-  subtrees: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
-  names: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
-  anchorTargets: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
-  radioTargets: haxorg_wasm.UnorderedMap<string, AstTrackingAlternatives>
-  hashtagDefinitions: haxorg_wasm.UnorderedMap<HashTagFlat, AstTrackingAlternatives>
+  footnotes: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
+  subtrees: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
+  names: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
+  anchorTargets: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
+  radioTargets: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
+  hashtagDefinitions: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingAlternatives>
 }
 export interface SequenceSegmentConstructor { new(): SequenceSegment; }
 export interface SequenceSegment {
@@ -1746,19 +1746,19 @@ export interface SequenceSegment {
 export interface SequenceSegmentGroupConstructor { new(): SequenceSegmentGroup; }
 export interface SequenceSegmentGroup {
   kind: number
-  segments: haxorg_wasm.Vec<SequenceSegment>
+  segments: haxorg_wasm.HstdVec<SequenceSegment>
 }
 export interface SequenceAnnotationTagConstructor { new(): SequenceAnnotationTag; }
 export interface SequenceAnnotationTag {
   groupKind: number
-  segmentKinds: haxorg_wasm.Vec<number>
+  segmentKinds: haxorg_wasm.HstdVec<number>
 }
 export interface SequenceAnnotationConstructor { new(): SequenceAnnotation; }
 export interface SequenceAnnotation {
   isAnnotatedWith(groupKind: number, segmentKind: number): boolean;
   first: number
   last: number
-  annotations: haxorg_wasm.Vec<SequenceAnnotationTag>
+  annotations: haxorg_wasm.HstdVec<SequenceAnnotationTag>
 }
 export interface GraphMapLinkConstructor { new(): GraphMapLink; }
 export interface GraphMapLink {
@@ -1773,7 +1773,7 @@ export interface GraphMapLink {
 export interface GraphMapLinkLinkConstructor { new(): GraphMapLinkLink; }
 export interface GraphMapLinkLink {
   link: ImmUniqId
-  description: haxorg_wasm.Vec<ImmUniqId>
+  description: haxorg_wasm.HstdVec<ImmUniqId>
 }
 export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
 export interface GraphMapLinkRadio { target: ImmUniqId }
@@ -1783,7 +1783,7 @@ export interface GraphMapNodeProp {
   getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<string>;
   getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<string>;
   id: ImmUniqId
-  unresolved: haxorg_wasm.Vec<GraphMapLink>
+  unresolved: haxorg_wasm.HstdVec<GraphMapLink>
 }
 export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
 export interface GraphMapEdgeProp { link: GraphMapLink }
@@ -1804,10 +1804,10 @@ export interface GraphMapGraph {
   edgeCount(): number;
   outNodes(node: GraphMapNode): GraphAdjNodesList;
   inNodes(node: GraphMapNode): GraphAdjNodesList;
-  adjEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
-  adjNodes(node: GraphMapNode): haxorg_wasm.Vec<GraphMapNode>;
-  outEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
-  inEdges(node: GraphMapNode): haxorg_wasm.Vec<GraphMapEdge>;
+  adjEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
+  adjNodes(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapNode>;
+  outEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
+  inEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
   outDegree(node: GraphMapNode): number;
   inDegree(node: GraphMapNode): number;
   isRegisteredNode(id: GraphMapNode): boolean;
@@ -1835,7 +1835,7 @@ export interface GraphMapGraphState {
   registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
   addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
-  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.Vec<GraphMapLink>;
+  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.HstdVec<GraphMapLink>;
   getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
@@ -1880,20 +1880,20 @@ export interface LispCodeCall {
   __eq__(other: LispCodeCall): boolean;
   Call(): void;
   name: string
-  args: haxorg_wasm.Vec<LispCode>
+  args: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeListConstructor { new(): LispCodeList; }
 export interface LispCodeList {
   __eq__(other: LispCodeList): boolean;
   List(): void;
-  items: haxorg_wasm.Vec<LispCode>
+  items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
 export interface LispCodeKeyValue {
   __eq__(other: LispCodeKeyValue): boolean;
   KeyValue(): void;
   name: string
-  value: haxorg_wasm.Vec<LispCode>
+  value: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeNumberConstructor { new(): LispCodeNumber; }
 export interface LispCodeNumber {
@@ -1939,7 +1939,7 @@ export enum LispCodeKind {
 export interface TblfmConstructor { new(): Tblfm; }
 export interface Tblfm {
   __eq__(other: Tblfm): boolean;
-  exprs: haxorg_wasm.Vec<TblfmAssign>
+  exprs: haxorg_wasm.HstdVec<TblfmAssign>
 }
 export interface TblfmExprConstructor { new(): TblfmExpr; }
 export interface TblfmExpr {
@@ -2034,7 +2034,7 @@ export interface TblfmExprCallConstructor { new(): TblfmExprCall; }
 export interface TblfmExprCall {
   __eq__(other: TblfmExprCall): boolean;
   name: string
-  args: haxorg_wasm.Vec<TblfmExpr>
+  args: haxorg_wasm.HstdVec<TblfmExpr>
 }
 export interface TblfmExprElispConstructor { new(): TblfmExprElisp; }
 export interface TblfmExprElisp {
@@ -2055,8 +2055,8 @@ export interface TblfmAssignConstructor { new(): TblfmAssign; }
 export interface TblfmAssign {
   __eq__(other: TblfmAssign): boolean;
   target: TblfmExprAxisRef
-  expr: haxorg_wasm.Vec<TblfmExpr>
-  flags: haxorg_wasm.Vec<TblfmAssignFlag>
+  expr: haxorg_wasm.HstdVec<TblfmExpr>
+  flags: haxorg_wasm.HstdVec<TblfmAssignFlag>
 }
 export enum TblfmAssignFlag {
   CellLeftAlign,
@@ -2099,7 +2099,7 @@ export interface AttrValue {
   sub_variant_get_kind(): AttrValueKind;
   name: haxorg_wasm.Optional<string>
   varname: haxorg_wasm.Optional<string>
-  span: haxorg_wasm.Vec<AttrValueDimensionSpan>
+  span: haxorg_wasm.HstdVec<AttrValueDimensionSpan>
   isQuoted: boolean
   data: AttrValueDataVariant
 }
@@ -2139,7 +2139,7 @@ export interface HashTagFlatConstructor { new(): HashTagFlat; }
 export interface HashTagFlat {
   __eq__(other: HashTagFlat): boolean;
   __lt__(other: HashTagFlat): boolean;
-  tags: haxorg_wasm.Vec<string>
+  tags: haxorg_wasm.HstdVec<string>
 }
 export interface TodoKeywordConstructor { new(): TodoKeyword; }
 export interface TodoKeyword {
@@ -2157,15 +2157,15 @@ export enum TodoKeywordTransition {
 export interface HashTagTextConstructor { new(): HashTagText; }
 export interface HashTagText {
   __eq__(other: HashTagText): boolean;
-  prefixMatch(prefix: haxorg_wasm.Vec<string>): boolean;
-  getFlatHashes(withIntermediate: boolean): haxorg_wasm.Vec<HashTagFlat>;
+  prefixMatch(prefix: haxorg_wasm.HstdVec<string>): boolean;
+  getFlatHashes(withIntermediate: boolean): haxorg_wasm.HstdVec<HashTagFlat>;
   head: string
-  subtags: haxorg_wasm.Vec<HashTagText>
+  subtags: haxorg_wasm.HstdVec<HashTagText>
 }
 export interface SubtreePathConstructor { new(): SubtreePath; }
 export interface SubtreePath {
   __eq__(other: SubtreePath): boolean;
-  path: haxorg_wasm.Vec<string>
+  path: haxorg_wasm.HstdVec<string>
 }
 export interface LinkTargetConstructor { new(): LinkTarget; }
 export interface LinkTarget {
@@ -2391,14 +2391,14 @@ export interface SubtreeCompletion {
 export interface AttrListConstructor { new(): AttrList; }
 export interface AttrList {
   __eq__(other: AttrList): boolean;
-  items: haxorg_wasm.Vec<AttrValue>
+  items: haxorg_wasm.HstdVec<AttrValue>
 }
 export interface AttrGroupConstructor { new(): AttrGroup; }
 export interface AttrGroup {
-  getFlatArgs(): haxorg_wasm.Vec<AttrValue>;
-  getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
-  setNamedAttr(key: string, attrs: haxorg_wasm.Vec<AttrValue>): void;
-  setPositionalAttr(items: haxorg_wasm.Vec<AttrValue>): void;
+  getFlatArgs(): haxorg_wasm.HstdVec<AttrValue>;
+  getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<AttrValue>;
+  setNamedAttr(key: string, attrs: haxorg_wasm.HstdVec<AttrValue>): void;
+  setPositionalAttr(items: haxorg_wasm.HstdVec<AttrValue>): void;
   getPositionalSize(): number;
   getNamedSize(): number;
   isEmpty(): boolean;
@@ -2415,7 +2415,7 @@ export interface AttrGroup {
   getFirstVarNamed(index: string): haxorg_wasm.Optional<AttrValue>;
   __eq__(other: AttrGroup): boolean;
   positional: AttrList
-  named: haxorg_wasm.UnorderedMap<string, AttrList>
+  named: haxorg_wasm.HstdMap<string, AttrList>
 }
 export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
 export interface OrgCodeEvalInput {
@@ -2428,7 +2428,7 @@ export interface OrgCodeEvalInput {
   resultFormat: OrgCodeEvalInputResultFormat
   resultHandling: OrgCodeEvalInputResultHandling
   language: string
-  argList: haxorg_wasm.Vec<OrgCodeEvalInputVar>
+  argList: haxorg_wasm.HstdVec<OrgCodeEvalInputVar>
 }
 export interface OrgCodeEvalInputVarConstructor { new(): OrgCodeEvalInputVar; }
 export interface OrgCodeEvalInputVar {
@@ -2467,14 +2467,14 @@ export interface OrgCodeEvalOutput {
   stderrText: string
   code: number
   cmd: haxorg_wasm.Optional<string>
-  args: haxorg_wasm.Vec<string>
+  args: haxorg_wasm.HstdVec<string>
   cwd: string
   appliedHeaderArg: AttrGroup
 }
 export interface ColumnViewConstructor { new(): ColumnView; }
 export interface ColumnView {
   __eq__(other: ColumnView): boolean;
-  columns: haxorg_wasm.Vec<ColumnViewColumn>
+  columns: haxorg_wasm.HstdVec<ColumnViewColumn>
 }
 export interface ColumnViewSummaryConstructor { new(): ColumnViewSummary; }
 export interface ColumnViewSummary {
@@ -2532,7 +2532,7 @@ export interface ColumnViewColumn {
 export interface BlockCodeLineConstructor { new(): BlockCodeLine; }
 export interface BlockCodeLine {
   __eq__(other: BlockCodeLine): boolean;
-  parts: haxorg_wasm.Vec<BlockCodeLinePart>
+  parts: haxorg_wasm.HstdVec<BlockCodeLinePart>
 }
 export interface BlockCodeLinePartConstructor { new(): BlockCodeLinePart; }
 export interface BlockCodeLinePart {
@@ -2626,7 +2626,7 @@ export interface DocumentExportConfig {
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
 export interface DocumentExportConfigTaskExport {
   __eq__(other: DocumentExportConfigTaskExport): boolean;
-  taskWhitelist: haxorg_wasm.Vec<string>
+  taskWhitelist: haxorg_wasm.HstdVec<string>
 }
 export enum DocumentExportConfigTagExport {
   None,
@@ -2827,7 +2827,7 @@ export interface NamedPropertyCookieData {
 export interface NamedPropertyExportLatexClassOptionsConstructor { new(): NamedPropertyExportLatexClassOptions; }
 export interface NamedPropertyExportLatexClassOptions {
   __eq__(other: NamedPropertyExportLatexClassOptions): boolean;
-  options: haxorg_wasm.Vec<string>
+  options: haxorg_wasm.HstdVec<string>
 }
 export interface NamedPropertyExportLatexHeaderConstructor { new(): NamedPropertyExportLatexHeader; }
 export interface NamedPropertyExportLatexHeader {
@@ -2865,12 +2865,12 @@ export interface NamedPropertyExportOptionsConstructor { new(): NamedPropertyExp
 export interface NamedPropertyExportOptions {
   __eq__(other: NamedPropertyExportOptions): boolean;
   backend: string
-  values: haxorg_wasm.UnorderedMap<string, string>
+  values: haxorg_wasm.HstdMap<string, string>
 }
 export interface NamedPropertyBlockerConstructor { new(): NamedPropertyBlocker; }
 export interface NamedPropertyBlocker {
   __eq__(other: NamedPropertyBlocker): boolean;
-  blockers: haxorg_wasm.Vec<string>
+  blockers: haxorg_wasm.HstdVec<string>
 }
 export interface NamedPropertyUnnumberedConstructor { new(): NamedPropertyUnnumbered; }
 export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered): boolean; }
@@ -2882,7 +2882,7 @@ export interface NamedPropertyCreated {
 export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
 export interface NamedPropertyRadioId {
   __eq__(other: NamedPropertyRadioId): boolean;
-  words: haxorg_wasm.Vec<string>
+  words: haxorg_wasm.HstdVec<string>
 }
 export interface NamedPropertyHashtagDefConstructor { new(): NamedPropertyHashtagDef; }
 export interface NamedPropertyHashtagDef {
@@ -3044,14 +3044,14 @@ export interface ErrorItem {
 export interface ErrorGroupConstructor { new(): ErrorGroup; }
 export interface ErrorGroup {
   getKind(): OrgSemKind;
-  diagnostics: haxorg_wasm.Vec<ErrorItem>
+  diagnostics: haxorg_wasm.HstdVec<ErrorItem>
 }
 export interface StmtConstructor { new(): Stmt; }
 export interface Stmt {
-  getAttached(kind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<Org>;
-  getCaption(): haxorg_wasm.Vec<Org>;
-  getName(): haxorg_wasm.Vec<string>;
-  getAttrs(kind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
+  getAttached(kind: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<Org>;
+  getCaption(): haxorg_wasm.HstdVec<Org>;
+  getName(): haxorg_wasm.HstdVec<string>;
+  getAttrs(kind: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<AttrValue>;
   getFirstAttr(kind: string): haxorg_wasm.Optional<AttrValue>;
   getFirstAttrString(kind: string): haxorg_wasm.Optional<string>;
   getFirstAttrInt(kind: string): haxorg_wasm.Optional<number>;
@@ -3059,7 +3059,7 @@ export interface Stmt {
   getFirstAttrDouble(kind: string): haxorg_wasm.Optional<number>;
   getFirstAttrLisp(kind: string): haxorg_wasm.Optional<AttrValueLispValue>;
   getFirstAttrKind(kind: string): haxorg_wasm.Optional<AttrValueKind>;
-  attached: haxorg_wasm.Vec<Org>
+  attached: haxorg_wasm.HstdVec<Org>
 }
 export interface InlineConstructor { new(): Inline; }
 export interface Inline {  }
@@ -3120,7 +3120,7 @@ export enum TimeRepeatPeriod {
 export interface TimeStaticConstructor { new(): TimeStatic; }
 export interface TimeStatic {
   Static(): void;
-  repeat: haxorg_wasm.Vec<TimeRepeat>
+  repeat: haxorg_wasm.HstdVec<TimeRepeat>
   warn: haxorg_wasm.Optional<TimeRepeat>
   time: UserTime
 }
@@ -3151,8 +3151,8 @@ export interface SymbolConstructor { new(): Symbol; }
 export interface Symbol {
   getKind(): OrgSemKind;
   name: string
-  parameters: haxorg_wasm.Vec<SymbolParam>
-  positional: haxorg_wasm.Vec<Org>
+  parameters: haxorg_wasm.HstdVec<SymbolParam>
+  positional: haxorg_wasm.HstdVec<Org>
 }
 export interface SymbolParamConstructor { new(): SymbolParam; }
 export interface SymbolParam {
@@ -3162,14 +3162,14 @@ export interface SymbolParam {
 export interface ErrorSkipGroupConstructor { new(): ErrorSkipGroup; }
 export interface ErrorSkipGroup {
   getKind(): OrgSemKind;
-  skipped: haxorg_wasm.Vec<ErrorSkipToken>
+  skipped: haxorg_wasm.HstdVec<ErrorSkipToken>
 }
 export interface MarkupConstructor { new(): Markup; }
 export interface Markup {  }
 export interface RadioTargetConstructor { new(): RadioTarget; }
 export interface RadioTarget {
   getKind(): OrgSemKind;
-  words: haxorg_wasm.Vec<string>
+  words: haxorg_wasm.HstdVec<string>
 }
 export interface LatexConstructor { new(): Latex; }
 export interface Latex { getKind(): OrgSemKind; }
@@ -3183,8 +3183,8 @@ export interface SubtreeLog {
 export interface SubtreeConstructor { new(): Subtree; }
 export interface Subtree {
   getKind(): OrgSemKind;
-  getTimePeriods(kinds: haxorg_wasm.IntSet<SubtreePeriodKind>): haxorg_wasm.Vec<SubtreePeriod>;
-  getProperties(kind: string, subkind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
+  getTimePeriods(kinds: haxorg_wasm.IntSet<SubtreePeriodKind>): haxorg_wasm.HstdVec<SubtreePeriod>;
+  getProperties(kind: string, subkind: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<NamedProperty>;
   getProperty(kind: string, subkind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
   removeProperty(kind: string, subkind: haxorg_wasm.Optional<string>): void;
   setProperty(value: NamedProperty): void;
@@ -3196,10 +3196,10 @@ export interface Subtree {
   todo: haxorg_wasm.Optional<string>
   completion: haxorg_wasm.Optional<SubtreeCompletion>
   description: haxorg_wasm.Optional<Paragraph>
-  tags: haxorg_wasm.Vec<HashTag>
+  tags: haxorg_wasm.HstdVec<HashTag>
   title: Paragraph
-  logbook: haxorg_wasm.Vec<SubtreeLog>
-  properties: haxorg_wasm.Vec<NamedProperty>
+  logbook: haxorg_wasm.HstdVec<SubtreeLog>
+  properties: haxorg_wasm.HstdVec<NamedProperty>
   closed: haxorg_wasm.Optional<Time>
   deadline: haxorg_wasm.Optional<Time>
   scheduled: haxorg_wasm.Optional<Time>
@@ -3228,10 +3228,10 @@ export interface ListItem {
 export interface DocumentOptionsConstructor { new(): DocumentOptions; }
 export interface DocumentOptions {
   getKind(): OrgSemKind;
-  getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
+  getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<NamedProperty>;
   getProperty(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
   initialVisibility: InitialSubtreeVisibility
-  properties: haxorg_wasm.Vec<NamedProperty>
+  properties: haxorg_wasm.HstdVec<NamedProperty>
   exportConfig: DocumentExportConfig
   fixedWidthSections: haxorg_wasm.Optional<boolean>
   startupIndented: haxorg_wasm.Optional<boolean>
@@ -3239,8 +3239,8 @@ export interface DocumentOptions {
   setupfile: haxorg_wasm.Optional<string>
   maxSubtreeLevelExport: haxorg_wasm.Optional<number>
   columns: haxorg_wasm.Optional<ColumnView>
-  todoKeywords: haxorg_wasm.Vec<TodoKeyword>
-  doneKeywords: haxorg_wasm.Vec<TodoKeyword>
+  todoKeywords: haxorg_wasm.HstdVec<TodoKeyword>
+  doneKeywords: haxorg_wasm.HstdVec<TodoKeyword>
 }
 export interface DocumentFragmentConstructor { new(): DocumentFragment; }
 export interface DocumentFragment {
@@ -3263,14 +3263,14 @@ export enum CriticMarkupKind {
 export interface DocumentConstructor { new(): Document; }
 export interface Document {
   getKind(): OrgSemKind;
-  getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<NamedProperty>;
+  getProperties(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<NamedProperty>;
   getProperty(kind: string, subKind: haxorg_wasm.Optional<string>): haxorg_wasm.Optional<NamedProperty>;
   title: haxorg_wasm.Optional<Paragraph>
   author: haxorg_wasm.Optional<Paragraph>
   creator: haxorg_wasm.Optional<Paragraph>
-  filetags: haxorg_wasm.Vec<HashTag>
+  filetags: haxorg_wasm.HstdVec<HashTag>
   email: haxorg_wasm.Optional<RawText>
-  language: haxorg_wasm.Vec<string>
+  language: haxorg_wasm.HstdVec<string>
   options: DocumentOptions
   exportFileName: haxorg_wasm.Optional<string>
 }
@@ -3396,182 +3396,182 @@ export enum CmdIncludeKind {
   Src,
   OrgDocument,
 }
-export interface ImmIdTNoNodeConstructor { new(): ImmIdTNoNode; }
-export interface ImmIdTNoNode {  }
-export interface ImmIdTErrorItemConstructor { new(): ImmIdTErrorItem; }
-export interface ImmIdTErrorItem {  }
-export interface ImmIdTErrorGroupConstructor { new(): ImmIdTErrorGroup; }
-export interface ImmIdTErrorGroup {  }
-export interface ImmIdTStmtConstructor { new(): ImmIdTStmt; }
-export interface ImmIdTStmt {  }
-export interface ImmIdTInlineConstructor { new(): ImmIdTInline; }
-export interface ImmIdTInline {  }
-export interface ImmIdTStmtListConstructor { new(): ImmIdTStmtList; }
-export interface ImmIdTStmtList {  }
-export interface ImmIdTEmptyConstructor { new(): ImmIdTEmpty; }
-export interface ImmIdTEmpty {  }
-export interface ImmIdTCmdConstructor { new(): ImmIdTCmd; }
-export interface ImmIdTCmd {  }
-export interface ImmIdTBlockConstructor { new(): ImmIdTBlock; }
-export interface ImmIdTBlock {  }
-export interface ImmIdTLineCommandConstructor { new(): ImmIdTLineCommand; }
-export interface ImmIdTLineCommand {  }
-export interface ImmIdTAttachedConstructor { new(): ImmIdTAttached; }
-export interface ImmIdTAttached {  }
-export interface ImmIdTLeafConstructor { new(): ImmIdTLeaf; }
-export interface ImmIdTLeaf {  }
-export interface ImmIdTCmdCaptionConstructor { new(): ImmIdTCmdCaption; }
-export interface ImmIdTCmdCaption {  }
-export interface ImmIdTCmdCreatorConstructor { new(): ImmIdTCmdCreator; }
-export interface ImmIdTCmdCreator {  }
-export interface ImmIdTCmdAuthorConstructor { new(): ImmIdTCmdAuthor; }
-export interface ImmIdTCmdAuthor {  }
-export interface ImmIdTCmdEmailConstructor { new(): ImmIdTCmdEmail; }
-export interface ImmIdTCmdEmail {  }
-export interface ImmIdTCmdLanguageConstructor { new(): ImmIdTCmdLanguage; }
-export interface ImmIdTCmdLanguage {  }
-export interface ImmIdTCmdColumnsConstructor { new(): ImmIdTCmdColumns; }
-export interface ImmIdTCmdColumns {  }
-export interface ImmIdTCmdNameConstructor { new(): ImmIdTCmdName; }
-export interface ImmIdTCmdName {  }
-export interface ImmIdTCmdCustomArgsConstructor { new(): ImmIdTCmdCustomArgs; }
-export interface ImmIdTCmdCustomArgs {  }
-export interface ImmIdTCmdCustomRawConstructor { new(): ImmIdTCmdCustomRaw; }
-export interface ImmIdTCmdCustomRaw {  }
-export interface ImmIdTCmdCustomTextConstructor { new(): ImmIdTCmdCustomText; }
-export interface ImmIdTCmdCustomText {  }
-export interface ImmIdTCmdCallConstructor { new(): ImmIdTCmdCall; }
-export interface ImmIdTCmdCall {  }
-export interface ImmIdTCmdTblfmConstructor { new(): ImmIdTCmdTblfm; }
-export interface ImmIdTCmdTblfm {  }
-export interface ImmIdTHashTagConstructor { new(): ImmIdTHashTag; }
-export interface ImmIdTHashTag {  }
-export interface ImmIdTInlineFootnoteConstructor { new(): ImmIdTInlineFootnote; }
-export interface ImmIdTInlineFootnote {  }
-export interface ImmIdTInlineExportConstructor { new(): ImmIdTInlineExport; }
-export interface ImmIdTInlineExport {  }
-export interface ImmIdTTimeConstructor { new(): ImmIdTTime; }
-export interface ImmIdTTime {  }
-export interface ImmIdTTimeRangeConstructor { new(): ImmIdTTimeRange; }
-export interface ImmIdTTimeRange {  }
-export interface ImmIdTMacroConstructor { new(): ImmIdTMacro; }
-export interface ImmIdTMacro {  }
-export interface ImmIdTSymbolConstructor { new(): ImmIdTSymbol; }
-export interface ImmIdTSymbol {  }
-export interface ImmIdTEscapedConstructor { new(): ImmIdTEscaped; }
-export interface ImmIdTEscaped {  }
-export interface ImmIdTNewlineConstructor { new(): ImmIdTNewline; }
-export interface ImmIdTNewline {  }
-export interface ImmIdTSpaceConstructor { new(): ImmIdTSpace; }
-export interface ImmIdTSpace {  }
-export interface ImmIdTWordConstructor { new(): ImmIdTWord; }
-export interface ImmIdTWord {  }
-export interface ImmIdTAtMentionConstructor { new(): ImmIdTAtMention; }
-export interface ImmIdTAtMention {  }
-export interface ImmIdTRawTextConstructor { new(): ImmIdTRawText; }
-export interface ImmIdTRawText {  }
-export interface ImmIdTPunctuationConstructor { new(): ImmIdTPunctuation; }
-export interface ImmIdTPunctuation {  }
-export interface ImmIdTPlaceholderConstructor { new(): ImmIdTPlaceholder; }
-export interface ImmIdTPlaceholder {  }
-export interface ImmIdTBigIdentConstructor { new(): ImmIdTBigIdent; }
-export interface ImmIdTBigIdent {  }
-export interface ImmIdTTextTargetConstructor { new(): ImmIdTTextTarget; }
-export interface ImmIdTTextTarget {  }
-export interface ImmIdTErrorSkipTokenConstructor { new(): ImmIdTErrorSkipToken; }
-export interface ImmIdTErrorSkipToken {  }
-export interface ImmIdTErrorSkipGroupConstructor { new(): ImmIdTErrorSkipGroup; }
-export interface ImmIdTErrorSkipGroup {  }
-export interface ImmIdTMarkupConstructor { new(): ImmIdTMarkup; }
-export interface ImmIdTMarkup {  }
-export interface ImmIdTBoldConstructor { new(): ImmIdTBold; }
-export interface ImmIdTBold {  }
-export interface ImmIdTUnderlineConstructor { new(): ImmIdTUnderline; }
-export interface ImmIdTUnderline {  }
-export interface ImmIdTMonospaceConstructor { new(): ImmIdTMonospace; }
-export interface ImmIdTMonospace {  }
-export interface ImmIdTMarkQuoteConstructor { new(): ImmIdTMarkQuote; }
-export interface ImmIdTMarkQuote {  }
-export interface ImmIdTVerbatimConstructor { new(): ImmIdTVerbatim; }
-export interface ImmIdTVerbatim {  }
-export interface ImmIdTItalicConstructor { new(): ImmIdTItalic; }
-export interface ImmIdTItalic {  }
-export interface ImmIdTStrikeConstructor { new(): ImmIdTStrike; }
-export interface ImmIdTStrike {  }
-export interface ImmIdTParConstructor { new(): ImmIdTPar; }
-export interface ImmIdTPar {  }
-export interface ImmIdTRadioTargetConstructor { new(): ImmIdTRadioTarget; }
-export interface ImmIdTRadioTarget {  }
-export interface ImmIdTLatexConstructor { new(): ImmIdTLatex; }
-export interface ImmIdTLatex {  }
-export interface ImmIdTLinkConstructor { new(): ImmIdTLink; }
-export interface ImmIdTLink {  }
-export interface ImmIdTBlockCenterConstructor { new(): ImmIdTBlockCenter; }
-export interface ImmIdTBlockCenter {  }
-export interface ImmIdTBlockQuoteConstructor { new(): ImmIdTBlockQuote; }
-export interface ImmIdTBlockQuote {  }
-export interface ImmIdTBlockCommentConstructor { new(): ImmIdTBlockComment; }
-export interface ImmIdTBlockComment {  }
-export interface ImmIdTBlockVerseConstructor { new(): ImmIdTBlockVerse; }
-export interface ImmIdTBlockVerse {  }
-export interface ImmIdTBlockDynamicFallbackConstructor { new(): ImmIdTBlockDynamicFallback; }
-export interface ImmIdTBlockDynamicFallback {  }
-export interface ImmIdTBlockExampleConstructor { new(): ImmIdTBlockExample; }
-export interface ImmIdTBlockExample {  }
-export interface ImmIdTBlockExportConstructor { new(): ImmIdTBlockExport; }
-export interface ImmIdTBlockExport {  }
-export interface ImmIdTBlockAdmonitionConstructor { new(): ImmIdTBlockAdmonition; }
-export interface ImmIdTBlockAdmonition {  }
-export interface ImmIdTBlockCodeEvalResultConstructor { new(): ImmIdTBlockCodeEvalResult; }
-export interface ImmIdTBlockCodeEvalResult {  }
-export interface ImmIdTBlockCodeConstructor { new(): ImmIdTBlockCode; }
-export interface ImmIdTBlockCode {  }
-export interface ImmIdTSubtreeLogConstructor { new(): ImmIdTSubtreeLog; }
-export interface ImmIdTSubtreeLog {  }
-export interface ImmIdTSubtreeConstructor { new(): ImmIdTSubtree; }
-export interface ImmIdTSubtree {  }
-export interface ImmIdTCellConstructor { new(): ImmIdTCell; }
-export interface ImmIdTCell {  }
-export interface ImmIdTRowConstructor { new(): ImmIdTRow; }
-export interface ImmIdTRow {  }
-export interface ImmIdTTableConstructor { new(): ImmIdTTable; }
-export interface ImmIdTTable {  }
-export interface ImmIdTParagraphConstructor { new(): ImmIdTParagraph; }
-export interface ImmIdTParagraph {  }
-export interface ImmIdTColonExampleConstructor { new(): ImmIdTColonExample; }
-export interface ImmIdTColonExample {  }
-export interface ImmIdTCmdAttrConstructor { new(): ImmIdTCmdAttr; }
-export interface ImmIdTCmdAttr {  }
-export interface ImmIdTCmdExportConstructor { new(): ImmIdTCmdExport; }
-export interface ImmIdTCmdExport {  }
-export interface ImmIdTCallConstructor { new(): ImmIdTCall; }
-export interface ImmIdTCall {  }
-export interface ImmIdTListConstructor { new(): ImmIdTList; }
-export interface ImmIdTList {  }
-export interface ImmIdTListItemConstructor { new(): ImmIdTListItem; }
-export interface ImmIdTListItem {  }
-export interface ImmIdTDocumentOptionsConstructor { new(): ImmIdTDocumentOptions; }
-export interface ImmIdTDocumentOptions {  }
-export interface ImmIdTDocumentFragmentConstructor { new(): ImmIdTDocumentFragment; }
-export interface ImmIdTDocumentFragment {  }
-export interface ImmIdTCriticMarkupConstructor { new(): ImmIdTCriticMarkup; }
-export interface ImmIdTCriticMarkup {  }
-export interface ImmIdTDocumentConstructor { new(): ImmIdTDocument; }
-export interface ImmIdTDocument {  }
-export interface ImmIdTFileTargetConstructor { new(): ImmIdTFileTarget; }
-export interface ImmIdTFileTarget {  }
-export interface ImmIdTTextSeparatorConstructor { new(): ImmIdTTextSeparator; }
-export interface ImmIdTTextSeparator {  }
-export interface ImmIdTDocumentGroupConstructor { new(): ImmIdTDocumentGroup; }
-export interface ImmIdTDocumentGroup {  }
-export interface ImmIdTFileConstructor { new(): ImmIdTFile; }
-export interface ImmIdTFile {  }
-export interface ImmIdTDirectoryConstructor { new(): ImmIdTDirectory; }
-export interface ImmIdTDirectory {  }
-export interface ImmIdTSymlinkConstructor { new(): ImmIdTSymlink; }
-export interface ImmIdTSymlink {  }
-export interface ImmIdTCmdIncludeConstructor { new(): ImmIdTCmdInclude; }
-export interface ImmIdTCmdInclude {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
+export interface ImmIdTConstructor { new(): ImmIdT; }
+export interface ImmIdT {  }
 export interface ImmNoNodeConstructor { new(): ImmNoNode; }
 export interface ImmNoNode {
   getKind(): OrgSemKind;
@@ -3961,7 +3961,7 @@ export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
 export interface ImmAdapterOrgAPI {  }
 export interface CmdConstructor { new(): Cmd; }
 export interface Cmd {
-  getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.Vec<AttrValue>;
+  getAttrs(key: haxorg_wasm.Optional<string>): haxorg_wasm.HstdVec<AttrValue>;
   getFirstAttr(kind: string): haxorg_wasm.Optional<AttrValue>;
   attrs: AttrGroup
 }
@@ -3993,19 +3993,19 @@ export interface Paragraph {
   isFootnoteDefinition(): boolean;
   getFootnoteName(): haxorg_wasm.Optional<string>;
   hasAdmonition(): boolean;
-  getAdmonitions(): haxorg_wasm.Vec<string>;
-  getAdmonitionNodes(): haxorg_wasm.Vec<BigIdent>;
+  getAdmonitions(): haxorg_wasm.HstdVec<string>;
+  getAdmonitionNodes(): haxorg_wasm.HstdVec<BigIdent>;
   hasTimestamp(): boolean;
-  getTimestamps(): haxorg_wasm.Vec<UserTime>;
-  getTimestampNodes(): haxorg_wasm.Vec<Time>;
+  getTimestamps(): haxorg_wasm.HstdVec<UserTime>;
+  getTimestampNodes(): haxorg_wasm.HstdVec<Time>;
   hasLeadHashtags(): boolean;
-  getLeadHashtags(): haxorg_wasm.Vec<HashTag>;
-  getBody(): haxorg_wasm.Vec<Org>;
+  getLeadHashtags(): haxorg_wasm.HstdVec<HashTag>;
+  getBody(): haxorg_wasm.HstdVec<Org>;
 }
 export interface ListConstructor { new(): List; }
 export interface List {
   getKind(): OrgSemKind;
-  getListAttrs(key: string): haxorg_wasm.Vec<AttrValue>;
+  getListAttrs(key: string): haxorg_wasm.HstdVec<AttrValue>;
   getListFormattingMode(): ListFormattingMode;
   isDescriptionList(): boolean;
   isNumberedList(): boolean;
@@ -4336,7 +4336,7 @@ export interface Cell {
 export interface RowConstructor { new(): Row; }
 export interface Row {
   getKind(): OrgSemKind;
-  cells: haxorg_wasm.Vec<Cell>
+  cells: haxorg_wasm.HstdVec<Cell>
   isBlock: boolean
 }
 export interface ImmBlockConstructor { new(): ImmBlock; }
@@ -4407,48 +4407,48 @@ export interface ImmAdapterParagraphAPIConstructor { new(): ImmAdapterParagraphA
 export interface ImmAdapterParagraphAPI {  }
 export interface ImmAdapterListAPIConstructor { new(): ImmAdapterListAPI; }
 export interface ImmAdapterListAPI {  }
-export interface ImmStmtAdapterConstructor { new(): ImmStmtAdapter; }
-export interface ImmStmtAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmStmtValueRead;
 }
-export interface ImmSubtreeAdapterConstructor { new(): ImmSubtreeAdapter; }
-export interface ImmSubtreeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmSubtreeValueRead;
 }
-export interface ImmNoNodeAdapterConstructor { new(): ImmNoNodeAdapter; }
-export interface ImmNoNodeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmNoNodeValueRead;
 }
-export interface ImmErrorItemAdapterConstructor { new(): ImmErrorItemAdapter; }
-export interface ImmErrorItemAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmErrorItemValueRead;
 }
-export interface ImmErrorGroupAdapterConstructor { new(): ImmErrorGroupAdapter; }
-export interface ImmErrorGroupAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmErrorGroupValueRead;
 }
-export interface ImmErrorSkipGroupAdapterConstructor { new(): ImmErrorSkipGroupAdapter; }
-export interface ImmErrorSkipGroupAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmErrorSkipGroupValueRead;
 }
-export interface ImmErrorSkipTokenAdapterConstructor { new(): ImmErrorSkipTokenAdapter; }
-export interface ImmErrorSkipTokenAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmErrorSkipTokenValueRead;
 }
-export interface ImmStmtListAdapterConstructor { new(): ImmStmtListAdapter; }
-export interface ImmStmtListAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmStmtListValueRead;
 }
-export interface ImmEmptyAdapterConstructor { new(): ImmEmptyAdapter; }
-export interface ImmEmptyAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmEmptyValueRead;
 }
@@ -4458,28 +4458,28 @@ export interface ImmAdapterInlineFootnoteAPIConstructor { new(): ImmAdapterInlin
 export interface ImmAdapterInlineFootnoteAPI {  }
 export interface ImmAdapterSubtreeCompletionAPIConstructor { new(): ImmAdapterSubtreeCompletionAPI; }
 export interface ImmAdapterSubtreeCompletionAPI {  }
-export interface ImmInlineAdapterConstructor { new(): ImmInlineAdapter; }
-export interface ImmInlineAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmInlineValueRead;
 }
-export interface ImmTimeAdapterConstructor { new(): ImmTimeAdapter; }
-export interface ImmTimeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmTimeValueRead;
 }
-export interface ImmTimeRangeAdapterConstructor { new(): ImmTimeRangeAdapter; }
-export interface ImmTimeRangeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmTimeRangeValueRead;
 }
-export interface ImmMacroAdapterConstructor { new(): ImmMacroAdapter; }
-export interface ImmMacroAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmMacroValueRead;
 }
-export interface ImmSymbolAdapterConstructor { new(): ImmSymbolAdapter; }
-export interface ImmSymbolAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmSymbolValueRead;
 }
@@ -4503,8 +4503,8 @@ export interface ImmAdapterBigIdentAPIConstructor { new(): ImmAdapterBigIdentAPI
 export interface ImmAdapterBigIdentAPI {  }
 export interface ImmAdapterTextTargetAPIConstructor { new(): ImmAdapterTextTargetAPI; }
 export interface ImmAdapterTextTargetAPI {  }
-export interface ImmLeafAdapterConstructor { new(): ImmLeafAdapter; }
-export interface ImmLeafAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmLeafValueRead;
 }
@@ -4526,88 +4526,88 @@ export interface ImmAdapterStrikeAPIConstructor { new(): ImmAdapterStrikeAPI; }
 export interface ImmAdapterStrikeAPI {  }
 export interface ImmAdapterParAPIConstructor { new(): ImmAdapterParAPI; }
 export interface ImmAdapterParAPI {  }
-export interface ImmMarkupAdapterConstructor { new(): ImmMarkupAdapter; }
-export interface ImmMarkupAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmMarkupValueRead;
 }
-export interface ImmLatexAdapterConstructor { new(): ImmLatexAdapter; }
-export interface ImmLatexAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmLatexValueRead;
 }
-export interface ImmSubtreeLogAdapterConstructor { new(): ImmSubtreeLogAdapter; }
-export interface ImmSubtreeLogAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmSubtreeLogValueRead;
 }
-export interface ImmColonExampleAdapterConstructor { new(): ImmColonExampleAdapter; }
-export interface ImmColonExampleAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmColonExampleValueRead;
 }
-export interface ImmCallAdapterConstructor { new(): ImmCallAdapter; }
-export interface ImmCallAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCallValueRead;
 }
-export interface ImmFileAdapterConstructor { new(): ImmFileAdapter; }
-export interface ImmFileAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmFileValueRead;
 }
-export interface ImmDirectoryAdapterConstructor { new(): ImmDirectoryAdapter; }
-export interface ImmDirectoryAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmDirectoryValueRead;
 }
-export interface ImmSymlinkAdapterConstructor { new(): ImmSymlinkAdapter; }
-export interface ImmSymlinkAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmSymlinkValueRead;
 }
-export interface ImmDocumentFragmentAdapterConstructor { new(): ImmDocumentFragmentAdapter; }
-export interface ImmDocumentFragmentAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmDocumentFragmentValueRead;
 }
-export interface ImmCriticMarkupAdapterConstructor { new(): ImmCriticMarkupAdapter; }
-export interface ImmCriticMarkupAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCriticMarkupValueRead;
 }
-export interface ImmListItemAdapterConstructor { new(): ImmListItemAdapter; }
-export interface ImmListItemAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmListItemValueRead;
 }
-export interface ImmDocumentOptionsAdapterConstructor { new(): ImmDocumentOptionsAdapter; }
-export interface ImmDocumentOptionsAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmDocumentOptionsValueRead;
 }
-export interface ImmDocumentAdapterConstructor { new(): ImmDocumentAdapter; }
-export interface ImmDocumentAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmDocumentValueRead;
 }
-export interface ImmFileTargetAdapterConstructor { new(): ImmFileTargetAdapter; }
-export interface ImmFileTargetAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmFileTargetValueRead;
 }
-export interface ImmTextSeparatorAdapterConstructor { new(): ImmTextSeparatorAdapter; }
-export interface ImmTextSeparatorAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmTextSeparatorValueRead;
 }
-export interface ImmCmdIncludeAdapterConstructor { new(): ImmCmdIncludeAdapter; }
-export interface ImmCmdIncludeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdIncludeValueRead;
 }
-export interface ImmDocumentGroupAdapterConstructor { new(): ImmDocumentGroupAdapter; }
-export interface ImmDocumentGroupAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmDocumentGroupValueRead;
 }
@@ -4636,7 +4636,7 @@ export interface BlockAdmonition { getKind(): OrgSemKind; }
 export interface BlockCodeEvalResultConstructor { new(): BlockCodeEvalResult; }
 export interface BlockCodeEvalResult {
   getKind(): OrgSemKind;
-  raw: haxorg_wasm.Vec<OrgCodeEvalOutput>
+  raw: haxorg_wasm.HstdVec<OrgCodeEvalOutput>
   node: Org
 }
 export interface BlockCodeConstructor { new(): BlockCode; }
@@ -4644,14 +4644,14 @@ export interface BlockCode {
   getKind(): OrgSemKind;
   getVariable(varname: string): haxorg_wasm.Optional<AttrValue>;
   lang: haxorg_wasm.Optional<string>
-  result: haxorg_wasm.Vec<BlockCodeEvalResult>
-  lines: haxorg_wasm.Vec<BlockCodeLine>
+  result: haxorg_wasm.HstdVec<BlockCodeEvalResult>
+  lines: haxorg_wasm.HstdVec<BlockCodeLine>
   switches: AttrGroup
 }
 export interface TableConstructor { new(): Table; }
 export interface Table {
   getKind(): OrgSemKind;
-  rows: haxorg_wasm.Vec<Row>
+  rows: haxorg_wasm.HstdVec<Row>
   isBlock: boolean
 }
 export interface AttachedConstructor { new(): Attached; }
@@ -4739,143 +4739,143 @@ export interface ImmAdapterCellAPIConstructor { new(): ImmAdapterCellAPI; }
 export interface ImmAdapterCellAPI {  }
 export interface ImmAdapterRowAPIConstructor { new(): ImmAdapterRowAPI; }
 export interface ImmAdapterRowAPI {  }
-export interface ImmCmdAdapterConstructor { new(): ImmCmdAdapter; }
-export interface ImmCmdAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdValueRead;
 }
-export interface ImmCmdCustomRawAdapterConstructor { new(): ImmCmdCustomRawAdapter; }
-export interface ImmCmdCustomRawAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCustomRawValueRead;
 }
-export interface ImmCmdCustomTextAdapterConstructor { new(): ImmCmdCustomTextAdapter; }
-export interface ImmCmdCustomTextAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCustomTextValueRead;
 }
-export interface ImmLinkAdapterConstructor { new(): ImmLinkAdapter; }
-export interface ImmLinkAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmLinkValueRead;
 }
-export interface ImmBlockCommentAdapterConstructor { new(): ImmBlockCommentAdapter; }
-export interface ImmBlockCommentAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockCommentValueRead;
 }
-export interface ImmParagraphAdapterConstructor { new(): ImmParagraphAdapter; }
-export interface ImmParagraphAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmParagraphValueRead;
 }
-export interface ImmListAdapterConstructor { new(): ImmListAdapter; }
-export interface ImmListAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmListValueRead;
 }
-export interface ImmHashTagAdapterConstructor { new(): ImmHashTagAdapter; }
-export interface ImmHashTagAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmHashTagValueRead;
 }
-export interface ImmInlineFootnoteAdapterConstructor { new(): ImmInlineFootnoteAdapter; }
-export interface ImmInlineFootnoteAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmInlineFootnoteValueRead;
 }
-export interface ImmEscapedAdapterConstructor { new(): ImmEscapedAdapter; }
-export interface ImmEscapedAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmEscapedValueRead;
 }
-export interface ImmNewlineAdapterConstructor { new(): ImmNewlineAdapter; }
-export interface ImmNewlineAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmNewlineValueRead;
 }
-export interface ImmSpaceAdapterConstructor { new(): ImmSpaceAdapter; }
-export interface ImmSpaceAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmSpaceValueRead;
 }
-export interface ImmWordAdapterConstructor { new(): ImmWordAdapter; }
-export interface ImmWordAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmWordValueRead;
 }
-export interface ImmAtMentionAdapterConstructor { new(): ImmAtMentionAdapter; }
-export interface ImmAtMentionAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmAtMentionValueRead;
 }
-export interface ImmRawTextAdapterConstructor { new(): ImmRawTextAdapter; }
-export interface ImmRawTextAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmRawTextValueRead;
 }
-export interface ImmPunctuationAdapterConstructor { new(): ImmPunctuationAdapter; }
-export interface ImmPunctuationAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmPunctuationValueRead;
 }
-export interface ImmPlaceholderAdapterConstructor { new(): ImmPlaceholderAdapter; }
-export interface ImmPlaceholderAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmPlaceholderValueRead;
 }
-export interface ImmBigIdentAdapterConstructor { new(): ImmBigIdentAdapter; }
-export interface ImmBigIdentAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBigIdentValueRead;
 }
-export interface ImmTextTargetAdapterConstructor { new(): ImmTextTargetAdapter; }
-export interface ImmTextTargetAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmTextTargetValueRead;
 }
-export interface ImmBoldAdapterConstructor { new(): ImmBoldAdapter; }
-export interface ImmBoldAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBoldValueRead;
 }
-export interface ImmUnderlineAdapterConstructor { new(): ImmUnderlineAdapter; }
-export interface ImmUnderlineAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmUnderlineValueRead;
 }
-export interface ImmMonospaceAdapterConstructor { new(): ImmMonospaceAdapter; }
-export interface ImmMonospaceAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmMonospaceValueRead;
 }
-export interface ImmMarkQuoteAdapterConstructor { new(): ImmMarkQuoteAdapter; }
-export interface ImmMarkQuoteAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmMarkQuoteValueRead;
 }
-export interface ImmRadioTargetAdapterConstructor { new(): ImmRadioTargetAdapter; }
-export interface ImmRadioTargetAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmRadioTargetValueRead;
 }
-export interface ImmVerbatimAdapterConstructor { new(): ImmVerbatimAdapter; }
-export interface ImmVerbatimAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmVerbatimValueRead;
 }
-export interface ImmItalicAdapterConstructor { new(): ImmItalicAdapter; }
-export interface ImmItalicAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmItalicValueRead;
 }
-export interface ImmStrikeAdapterConstructor { new(): ImmStrikeAdapter; }
-export interface ImmStrikeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmStrikeValueRead;
 }
-export interface ImmParAdapterConstructor { new(): ImmParAdapter; }
-export interface ImmParAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmParValueRead;
 }
@@ -4902,7 +4902,7 @@ export interface CmdCall {
   insideHeaderAttrs: AttrGroup
   callAttrs: AttrGroup
   endHeaderAttrs: AttrGroup
-  result: haxorg_wasm.Vec<BlockCodeEvalResult>
+  result: haxorg_wasm.HstdVec<BlockCodeEvalResult>
 }
 export interface CmdAttrConstructor { new(): CmdAttr; }
 export interface CmdAttr {
@@ -4959,38 +4959,38 @@ export interface ImmCmdExport {
 }
 export interface ImmAdapterAttachedAPIConstructor { new(): ImmAdapterAttachedAPI; }
 export interface ImmAdapterAttachedAPI {  }
-export interface ImmLineCommandAdapterConstructor { new(): ImmLineCommandAdapter; }
-export interface ImmLineCommandAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmLineCommandValueRead;
 }
-export interface ImmCmdCustomArgsAdapterConstructor { new(): ImmCmdCustomArgsAdapter; }
-export interface ImmCmdCustomArgsAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCustomArgsValueRead;
 }
-export interface ImmCmdCreatorAdapterConstructor { new(): ImmCmdCreatorAdapter; }
-export interface ImmCmdCreatorAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCreatorValueRead;
 }
-export interface ImmCmdAuthorAdapterConstructor { new(): ImmCmdAuthorAdapter; }
-export interface ImmCmdAuthorAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdAuthorValueRead;
 }
-export interface ImmCmdEmailAdapterConstructor { new(): ImmCmdEmailAdapter; }
-export interface ImmCmdEmailAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdEmailValueRead;
 }
-export interface ImmCmdLanguageAdapterConstructor { new(): ImmCmdLanguageAdapter; }
-export interface ImmCmdLanguageAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdLanguageValueRead;
 }
-export interface ImmCmdTblfmAdapterConstructor { new(): ImmCmdTblfmAdapter; }
-export interface ImmCmdTblfmAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdTblfmValueRead;
 }
@@ -5018,18 +5018,18 @@ export interface ImmAdapterBlockCodeAPIConstructor { new(): ImmAdapterBlockCodeA
 export interface ImmAdapterBlockCodeAPI {  }
 export interface ImmAdapterTableAPIConstructor { new(): ImmAdapterTableAPI; }
 export interface ImmAdapterTableAPI {  }
-export interface ImmBlockAdapterConstructor { new(): ImmBlockAdapter; }
-export interface ImmBlockAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockValueRead;
 }
-export interface ImmCellAdapterConstructor { new(): ImmCellAdapter; }
-export interface ImmCellAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCellValueRead;
 }
-export interface ImmRowAdapterConstructor { new(): ImmRowAdapter; }
-export interface ImmRowAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmRowValueRead;
 }
@@ -5045,93 +5045,93 @@ export interface ImmAdapterCmdResultsAPIConstructor { new(): ImmAdapterCmdResult
 export interface ImmAdapterCmdResultsAPI {  }
 export interface ImmAdapterCmdAttrAPIConstructor { new(): ImmAdapterCmdAttrAPI; }
 export interface ImmAdapterCmdAttrAPI {  }
-export interface ImmAttachedAdapterConstructor { new(): ImmAttachedAdapter; }
-export interface ImmAttachedAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmAttachedValueRead;
 }
-export interface ImmBlockCenterAdapterConstructor { new(): ImmBlockCenterAdapter; }
-export interface ImmBlockCenterAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockCenterValueRead;
 }
-export interface ImmBlockQuoteAdapterConstructor { new(): ImmBlockQuoteAdapter; }
-export interface ImmBlockQuoteAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockQuoteValueRead;
 }
-export interface ImmBlockVerseAdapterConstructor { new(): ImmBlockVerseAdapter; }
-export interface ImmBlockVerseAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockVerseValueRead;
 }
-export interface ImmBlockExampleAdapterConstructor { new(): ImmBlockExampleAdapter; }
-export interface ImmBlockExampleAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockExampleValueRead;
 }
-export interface ImmInlineExportAdapterConstructor { new(): ImmInlineExportAdapter; }
-export interface ImmInlineExportAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmInlineExportValueRead;
 }
-export interface ImmCmdExportAdapterConstructor { new(): ImmCmdExportAdapter; }
-export interface ImmCmdExportAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdExportValueRead;
 }
-export interface ImmBlockExportAdapterConstructor { new(): ImmBlockExportAdapter; }
-export interface ImmBlockExportAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockExportValueRead;
 }
-export interface ImmBlockDynamicFallbackAdapterConstructor { new(): ImmBlockDynamicFallbackAdapter; }
-export interface ImmBlockDynamicFallbackAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockDynamicFallbackValueRead;
 }
-export interface ImmBlockAdmonitionAdapterConstructor { new(): ImmBlockAdmonitionAdapter; }
-export interface ImmBlockAdmonitionAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockAdmonitionValueRead;
 }
-export interface ImmBlockCodeEvalResultAdapterConstructor { new(): ImmBlockCodeEvalResultAdapter; }
-export interface ImmBlockCodeEvalResultAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockCodeEvalResultValueRead;
 }
-export interface ImmBlockCodeAdapterConstructor { new(): ImmBlockCodeAdapter; }
-export interface ImmBlockCodeAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmBlockCodeValueRead;
 }
-export interface ImmTableAdapterConstructor { new(): ImmTableAdapter; }
-export interface ImmTableAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmTableValueRead;
 }
-export interface ImmCmdCaptionAdapterConstructor { new(): ImmCmdCaptionAdapter; }
-export interface ImmCmdCaptionAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCaptionValueRead;
 }
-export interface ImmCmdColumnsAdapterConstructor { new(): ImmCmdColumnsAdapter; }
-export interface ImmCmdColumnsAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdColumnsValueRead;
 }
-export interface ImmCmdNameAdapterConstructor { new(): ImmCmdNameAdapter; }
-export interface ImmCmdNameAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdNameValueRead;
 }
-export interface ImmCmdCallAdapterConstructor { new(): ImmCmdCallAdapter; }
-export interface ImmCmdCallAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdCallValueRead;
 }
-export interface ImmCmdAttrAdapterConstructor { new(): ImmCmdAttrAdapter; }
-export interface ImmCmdAttrAdapter {
+export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
+export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getValue(): ImmCmdAttrValueRead;
 }

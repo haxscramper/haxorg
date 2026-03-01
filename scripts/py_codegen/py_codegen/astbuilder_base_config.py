@@ -2,9 +2,12 @@ import abc
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
 from beartype import beartype
-from beartype.typing import List
+from beartype.typing import List, Optional
 
 from py_haxorg.astbuilder.astbuilder_utils import pascal_case
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -38,6 +41,17 @@ class AstbulderConfig(abc.ABC):
         else:
             return t
 
+    def getTypeDefinition(
+            self, t: QualType) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct]:
+        mapped = self.base_map.get_types_for_qual_name(t)
+        if 0 < len(mapped):
+            assert len(mapped) == 1, f"{t} maps to more than one type"
+            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct))
+            return mapped[0]
+
+        else:
+            return None
+
     def getUnderlyingType(self, t: QualType) -> QualType:
         "Resolve typedef"
         return self.base_map.get_underlying_type(t)
@@ -53,32 +67,37 @@ class AstbulderConfig(abc.ABC):
         Get name of the wrapped type for backend.
         """
         res = ""
+        wrapper = self.base_map.get_wrapper_type(t)
 
-        match t.flatQualName():
-            case ["immer", "box"] | ["hstd", "ImmBox"]:
-                res += "ImmBox"
+        if wrapper:
+            res += wrapper
 
-            case ["immer", "flex_vector"] | ["immer", "vector"] | ["hstd", "ImmVec"]:
-                res += "ImmVec"
+        else:
+            match t.flatQualName():
+                case ["immer", "box"] | ["hstd", "ImmBox"]:
+                    res += "ImmBox"
 
-            case ["std", "vector"]:
-                res += "StdVec"
+                case ["immer", "flex_vector"] | ["immer", "vector"] | ["hstd", "ImmVec"]:
+                    res += "ImmVec"
 
-            case ["hstd", "Vec"]:
-                res += "HstdVec"
+                case ["std", "vector"]:
+                    res += "StdVec"
 
-            case ["std", "unordered_map"]:
-                res += "StdMap"
+                case ["hstd", "Vec"]:
+                    res += "HstdVec"
 
-            case ["hstd", "UnorderedMap"]:
-                res += "HstdMap"
+                case ["std", "unordered_map"]:
+                    res += "StdMap"
 
-            case _:
-                for N in t.Spaces:
-                    res += self.getBindName(N, withParams=withParams)
+                case ["hstd", "UnorderedMap"]:
+                    res += "HstdMap"
 
-                if t.name not in codegen_ir.IGNORED_NAMESPACES:
-                    res += pascal_case(t.name)
+                case _:
+                    for N in t.Spaces:
+                        res += self.getBindName(N, withParams=withParams)
+
+                    if t.name not in codegen_ir.IGNORED_NAMESPACES:
+                        res += pascal_case(t.name)
 
         if withParams and 0 < len(t.Parameters):
             res += "Of"

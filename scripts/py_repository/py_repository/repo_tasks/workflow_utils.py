@@ -11,7 +11,7 @@ from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional,
 import docker
 import docker.models.containers
 import igraph as ig
-from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
@@ -219,15 +219,16 @@ class TaskContext():
         return result
 
     def get_task_debug_streams(self, cmd: str, args: Any) -> tuple[Path, Path]:
+        """
+        Get unique stderr, stdout pair of files for the command to write output to.
+        """
         import hashlib
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
-            Path(
-                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"
-            ),
-            Path(
-                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"
-            ),
+            get_tmpdir("run_command").joinpath(
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
+            get_tmpdir("run_command").joinpath(
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
         )
 
         result[0].parent.mkdir(parents=True, exist_ok=True)
