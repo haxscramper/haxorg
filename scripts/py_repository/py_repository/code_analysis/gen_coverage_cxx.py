@@ -1048,7 +1048,7 @@ def get_annotated_file_for_session(
     run_functions: Dict[int, CovFunction] = dict()
 
     if file_cov is not None:
-        log(CAT).debug(f"Has file coverage for {abs_path}")
+        # log(CAT).debug(f"Has file coverage for {abs_path}")
         with ExceptionContextNote(f"root_path={root_path} abs_path={abs_path}"):
             with GlobCompleteEvent("Get flat coverage", "cov"):
                 # Get all segments applicable for this file and group them into `(First, Last) -> Data`

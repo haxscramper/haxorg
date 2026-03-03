@@ -322,7 +322,7 @@ class PyhaxorgTypeGroups():
     "Proxy objects wrapping around pointer to the immutable AST node value."
     adapter_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     conv_tu: ConvTu = field(default_factory=lambda: ConvTu())
-    base_map: codegen_ir.GenTypeMap = field(
+    type_map: codegen_ir.GenTypeMap = field(
         default_factory=lambda: codegen_ir.GenTypeMap())  # type: ignore[assignment]
     full_enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
@@ -338,7 +338,7 @@ class PyhaxorgTypeGroups():
             match e:
                 case codegen_ir.GenTuStruct():
                     log(CAT).info(
-                        f"{'  ' * ind}{e.name.name} {e.name} wrapper:{e.reflectionParams.wrapper_name} py:{py_type(e.name, self.base_map)}"
+                        f"{'  ' * ind}{e.name.name} {e.name} wrapper:{e.reflectionParams.wrapper_name} py:{py_type(e.name, self.type_map)}"
                     )
                     for sub in e.nested:
                         aux(sub, ind + 1)
@@ -375,7 +375,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
     res.conv_tu = refl_read.conv_proto_file(reflection_path)
-    res.base_map = codegen_ir.get_base_map(
+    res.type_map = codegen_ir.get_type_map(
         res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
         res.conv_tu.structs + res.conv_tu.typedefs,)
 
@@ -385,7 +385,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
 
     # res.specializations = collect_type_specializations(
     #     res.get_entries_for_wrapping(),
-    #     base_map=res,
+    #     type_map=res,
     # )
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]

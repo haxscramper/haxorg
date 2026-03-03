@@ -17,8 +17,8 @@ class AstbulderConfig(abc.ABC):
     generation.
     """
 
-    def __init__(self, base_map: codegen_ir.GenTypeMap):
-        self.base_map = base_map
+    def __init__(self, type_map: codegen_ir.GenTypeMap):
+        self.type_map = type_map
 
     @abc.abstractmethod
     def getBackendType(self, t: QualType) -> QualType:
@@ -27,11 +27,11 @@ class AstbulderConfig(abc.ABC):
 
     def isKnownClass(self, t: QualType) -> bool:
         "Check if type name refers to registered entry"
-        return self.base_map.is_known_type(t)
+        return self.type_map.is_known_type(t)
 
     def isTypedef(self, t: QualType) -> bool:
         "Check if a type is a typedef alias"
-        return self.base_map.is_typedef(t)
+        return self.type_map.is_typedef(t)
 
     def getResolvedType(self, t: QualType) -> "QualType":
         "Resolve all type aliases"
@@ -43,7 +43,7 @@ class AstbulderConfig(abc.ABC):
 
     def getTypeDefinition(
             self, t: QualType) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct]:
-        mapped = self.base_map.get_types_for_qual_name(t)
+        mapped = self.type_map.get_types_for_qual_name(t)
         if 0 < len(mapped):
             assert len(mapped) == 1, f"{t} maps to more than one type"
             assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct))
@@ -54,7 +54,7 @@ class AstbulderConfig(abc.ABC):
 
     def getUnderlyingType(self, t: QualType) -> QualType:
         "Resolve typedef"
-        return self.base_map.get_underlying_type(t)
+        return self.type_map.get_underlying_type(t)
 
     def getSanitizedIdent(self, s: str) -> str:
         return s
@@ -84,7 +84,7 @@ class AstbulderConfig(abc.ABC):
         Get name of the wrapped type for backend.
         """
         res = ""
-        wrapper = self.base_map.get_wrapper_type(t)
+        wrapper = self.type_map.get_wrapper_type(t)
 
         if wrapper:
             res += wrapper

@@ -10,8 +10,6 @@ from beartype.typing import Any, cast, Dict, List, Optional, Tuple
 from plumbum import local
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_codegen.refl_wrapper_graph import TuWrap
-import py_codegen.wrapper_gen_nim as gen_nim
-from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
@@ -93,7 +91,6 @@ class TuOptions(BaseModel):
         "Directory to dump debug information about failed translation unit converter runs"
     )
 
-    nim: Optional[gen_nim.NimOptions] = None
     print_reflection_run_fail_to_stdout: bool = Field(
         description="If reflection tool run fails, write the error report to stdout",
         default=False)

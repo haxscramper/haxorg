@@ -5,6 +5,7 @@ import re
 from beartype import beartype
 from beartype.typing import List, Optional, Union
 import py_haxorg.astbuilder.astbuilder_base as base
+from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, PragmaParams
 from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
@@ -49,13 +50,6 @@ class ImportParams:
         default_factory=list)  ## One or more files to be imported
     QuoteImport: bool = True  ## Quote each individual import statement or paste them as raw identifiers
     FormatMode: ImportParamsMode = ImportParamsMode.Stack
-
-
-@beartype
-@dataclass
-class PragmaParams:
-    Name: str
-    Arguments: List[BlockId] = field(default_factory=list)
 
 
 @beartype
@@ -135,85 +129,9 @@ def sanitize_name(name: str) -> str:
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
-    def __init__(self, in_b: TextLayout) -> None:
+    def __init__(self, in_b: TextLayout, conf: NimAstbuilderConfig) -> None:
         super().__init__(in_b)
-
-    def safename(self, name: str) -> str:
-        if name in set([
-                "addr",
-                "and",
-                "as",
-                "asm",
-                "bind",
-                "block",
-                "break",
-                "case",
-                "cast",
-                "concept",
-                "const",
-                "continue",
-                "converter",
-                "defer",
-                "discard",
-                "distinct",
-                "div",
-                "do",
-                "elif",
-                "else",
-                "end",
-                "enum",
-                "except",
-                "export",
-                "finally",
-                "for",
-                "from",
-                "func",
-                "if",
-                "import",
-                "in",
-                "include",
-                "interface",
-                "is",
-                "isnot",
-                "iterator",
-                "let",
-                "macro",
-                "method",
-                "mixin",
-                "mod",
-                "nil",
-                "not",
-                "notin",
-                "object",
-                "of",
-                "or",
-                "out",
-                "proc",
-                "ptr",
-                "raise",
-                "ref",
-                "return",
-                "shl",
-                "shr",
-                "static",
-                "template",
-                "try",
-                "tuple",
-                "type",
-                "using",
-                "var",
-                "when",
-                "while",
-                "xor",
-                "yield",
-        ]):
-            return f"`{name}`"
-
-        elif not all([c.isalnum() or c == "_" for c in name]):
-            return f"`{name}`"
-
-        else:
-            return name
+        self.conf = conf
 
     def Type(self, t: Type) -> BlockId:
         match t.Kind:
@@ -238,7 +156,7 @@ class ASTBuilder(base.AstbuilderBase):
             case TypeKind.RegularType:
                 head: BlockId = self.string(
                     t.Name) if t.Name in ["ptr", "ref"] else self.string(
-                        self.safename(t.Name))
+                        self.conf.getSanitizedIdent(t.Name))
 
                 if 0 < len(t.Parameters):
                     if t.Name == "ptr":
@@ -266,7 +184,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def EnumField(self, f: EnumFieldParams, padTo: int = 0) -> BlockId:
         return self.b.line([
-            self.string(self.safename(f.Name).ljust(padTo)),
+            self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
             *([] if f.Value is None else [self.string(" = "), f.Value]),
         ])
 
@@ -280,14 +198,15 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line([
-            self.string(self.safename(enum.Name)),
+            self.string(self.conf.getSanitizedIdent(enum.Name)),
             self.string("*" if enum.Exported else ""),
             self.Pragmas(enum.Pragmas),
             self.string(" = "),
             self.string("enum"),
         ])
 
-        field_widths: int = max([len(self.safename(f.Name)) for f in enum.Fields] + [0])
+        field_widths: int = max(
+            [len(self.conf.getSanitizedIdent(f.Name)) for f in enum.Fields] + [0])
 
         return self.b.stack([
             head,
@@ -300,7 +219,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Function(self, func: FunctionParams) -> BlockId:
         head = self.b.line([
             self.string(str(func.Kind.name).lower() + " "),
-            self.string(self.safename(func.Name)),
+            self.string(self.conf.getSanitizedIdent(func.Name)),
             self.string("*" if func.Exported else "")
         ])
 
@@ -348,7 +267,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
         return self.b.line([
-            self.string(self.safename(f.Name).ljust(padTo)),
+            self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
             self.string("*" if f.Exported else ""),
             self.Pragmas(f.Pragmas),
             self.string(": "),
@@ -357,7 +276,8 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Pragma(self, p: PragmaParams) -> BlockId:
         return self.b.line([
-            self.string(self.safename(p.Name)), *([] if len(p.Arguments) == 0 else [
+            self.string(self.conf.getSanitizedIdent(p.Name)),
+            *([] if len(p.Arguments) == 0 else [
                 self.string(": "),
                 *p.Arguments,
             ])
@@ -418,8 +338,8 @@ class ASTBuilder(base.AstbuilderBase):
             self.string("object"),
         ])
 
-        field_widths: int = max([len(self.safename(f.Name))
-                                 for f in Obj.Fields] + [0]) + 1
+        field_widths: int = max(
+            [len(self.conf.getSanitizedIdent(f.Name)) for f in Obj.Fields] + [0]) + 1
 
         return self.b.stack([
             head,

@@ -7,6 +7,8 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 from plumbum import CommandNotFound, local
 import py_codegen.refl_extract as ex
+from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
+from py_codegen.codegen_ir import GenTypeMap
 from py_codegen.refl_read import (
     ConvTu,
     GenTuEnum,
@@ -301,8 +303,8 @@ def get_type(*,
 @beartype
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
-    builder = gen_nim.nim.ASTBuilder(t)
-    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())
+    builder = gen_nim.nim.ASTBuilder(t, conf=NimAstbuilderConfig(type_map=GenTypeMap()))
+    return gen_nim.conv_res_to_nim(builder, content)
 
 
 @beartype
@@ -324,10 +326,11 @@ def format_nim_code(refl: ReflProviderRunResult,
         code = gen_nim.to_nim(
             graph=graph,
             sub=sub,
-            conf=gen_nim.NimOptions(
-                with_header_imports=with_header_imports,
-                is_cpp_wrap=is_cpp_wrap,
-            ),
+            conf=NimAstbuilderConfig(type_map=GenTypeMap(),
+                                     opts=NimAstbuilderStaticConfig(
+                                         with_header_imports=with_header_imports,
+                                         is_cpp_wrap=is_cpp_wrap,
+                                     )),
             output_directory=refl.code_dir,
             get_out_path=get_out_path,
         )

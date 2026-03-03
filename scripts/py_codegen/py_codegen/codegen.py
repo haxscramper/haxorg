@@ -41,14 +41,14 @@ def with_enum_reflection_api(body: List[Any]) -> List[Any]:
 def get_exporter_methods(
     forward: bool,
     expanded: List[GenTuStruct],
-    base_map: GenTypeMap,
+    type_map: GenTypeMap,
 ) -> List[GenTuFunction]:
     methods: List[GenTuFunction] = []
     iterate_tree_context: List[Any] = []
 
     def callback(value: Any) -> None:
         nonlocal methods
-        nonlocal base_map
+        nonlocal type_map
         nonlocal iterate_tree_context
         if isinstance(value, GenTuStruct):
             scope_full: List[GenTuStruct] = [
@@ -58,7 +58,7 @@ def get_exporter_methods(
             name: str = value.name.name
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
-                field for field in (value.fields + get_type_base_fields(value, base_map))
+                field for field in (value.fields + get_type_base_fields(value, type_map))
                 if field.isExposedForWrap
             ]
 
@@ -210,8 +210,8 @@ def gen_adaptagrams_wrappers(
     log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
 
     with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
-        base_map = get_base_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
-        conf = NanobindAstbuilderConfig(base_map)
+        type_map = get_type_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
+        conf = NanobindAstbuilderConfig(type_map)
         res = NbModule("py_adaptagrams", conf)
         res.add_all(tu.get_all(), ast=ast)
         specializations = collect_type_specializations(tu.get_all(), conf)
@@ -248,7 +248,7 @@ def gen_pyhaxorg_python_wrappers(
     pyast: pya.ASTBuilder,
 ) -> GenFiles:
     "Generate haxorg python wrappers"
-    conf = NanobindAstbuilderConfig(groups.base_map)
+    conf = NanobindAstbuilderConfig(groups.type_map)
     res = NbModule("pyhaxorg", conf)
 
     for decl in groups.get_entries_for_wrapping():
@@ -295,12 +295,12 @@ def gen_pyhaxorg_python_wrappers(
 def gen_pyhaxorg_napi_wrappers(
     groups: PyhaxorgTypeGroups,
     ast: cpp.ASTBuilder,
-    base_map: GenTypeMap,
+    type_map: GenTypeMap,
 ) -> GenFiles:
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
-    conf = EmbindAstbuilderConfig(base_map)
+    conf = EmbindAstbuilderConfig(type_map)
     res = napi.WasmModule("haxorg_wasm", conf)
 
     res.add_specializations(
@@ -340,7 +340,7 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
     proto = pb.ProtoBuilder(
         wrapped=groups.full_enums + groups.shared_types + groups.expanded,  # type: ignore
         ast=ast,
-        base_map=groups.base_map,
+        type_map=groups.type_map,
     )
     t = ast.b
 
@@ -388,21 +388,21 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
-                get_exporter_methods(False, groups.shared_types, base_map=groups.base_map)
-                + get_exporter_methods(False, groups.expanded, base_map=groups.base_map),
+                get_exporter_methods(False, groups.shared_types, type_map=groups.type_map)
+                + get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/imm/ImmOrgSerde.tcc",
                 gen_imm.get_imm_serde(types=groups.expanded,
                                       ast=ast,
-                                      base_map=groups.base_map),
+                                      type_map=groups.type_map),
             ),),
         GenUnit(
             GenTu(
                 "{base}/exporters/ExporterMethods.tcc",
-                get_exporter_methods(True, groups.shared_types, base_map=groups.base_map)
-                + get_exporter_methods(True, groups.expanded, base_map=groups.base_map))),
+                get_exporter_methods(True, groups.shared_types, type_map=groups.type_map)
+                + get_exporter_methods(True, groups.expanded, type_map=groups.type_map))),
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
@@ -411,12 +411,12 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     gen_pyhaxorg_iteration_macros(types=groups.expanded)) +
                 gen_pyhaxorg_field_iteration_macros(
                     types=groups.expanded,
-                    base_map=groups.base_map,
+                    type_map=groups.type_map,
                     ast=ast,
                     macro_namespace="SEM",
                 ) + gen_pyhaxorg_field_iteration_macros(
                     types=groups.immutable,
-                    base_map=groups.base_map,
+                    type_map=groups.type_map,
                     ast=ast,
                     macro_namespace="IMM",
                 ) + groups.full_enums,
@@ -623,7 +623,7 @@ def run_codegen_pyhaxorg(
         gen_pyhaxorg_napi_wrappers(
             groups=groups,
             ast=builder,
-            base_map=groups.base_map,
+            type_map=groups.type_map,
         ),
         is_tmp_codegen=is_tmp_codegen,
         builder=builder,

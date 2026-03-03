@@ -64,7 +64,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
 
     def getBackendType(self, Typ: QualType) -> QualType:
         "Map C++ type to the python"
-        wrapper_override = self.base_map.get_wrapper_type(Typ)
+        wrapper_override = self.type_map.get_wrapper_type(Typ)
 
         if wrapper_override:
             name = wrapper_override
@@ -75,8 +75,8 @@ class NanobindAstbuilderConfig(AstbulderConfig):
             ]
 
             if flat == ["std", "shared_ptr"] and 1 == len(
-                    Typ.Parameters) and self.base_map.is_known_type(
-                        Typ.Parameters[0]) and self.base_map.get_one_type_for_qual_name(
+                    Typ.Parameters) and self.type_map.is_known_type(
+                        Typ.Parameters[0]) and self.type_map.get_one_type_for_qual_name(
                             Typ.Parameters[0]
                         ).reflectionParams.backend.python.holder_type == "shared":
                 return self.getBackendType(Typ.Parameters[0])
@@ -138,7 +138,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case _:
                     name = "".join(flat)
 
-        struct = self.base_map.get_struct_for_qual_name(Typ)
+        struct = self.type_map.get_struct_for_qual_name(Typ)
         if not struct or struct.reflectionParams.wrapper_has_params:
             res = QualType(name=name)
             if Typ.name != "SemId":

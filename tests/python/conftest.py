@@ -39,6 +39,7 @@ def pytest_configure(config: Any) -> None:
             "matplotlib.font_manager",
             "graphviz._tools",
             "matplotlib",
+            "asyncio",
     ]:
         logger = logging.getLogger(logger_name)
         logger.disabled = True

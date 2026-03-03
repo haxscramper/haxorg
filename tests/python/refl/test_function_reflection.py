@@ -3,7 +3,7 @@ from pathlib import Path
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_nanobind as py11
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
-from py_codegen.codegen_ir import get_base_map, ReferenceKind
+from py_codegen.codegen_ir import get_type_map, ReferenceKind
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 import pytest
 
@@ -68,7 +68,7 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
     assert t.RefKind == ReferenceKind.LValue
 
     ast = cpp.ASTBuilder(in_b=TextLayout())
-    conf = NanobindAstbuilderConfig(get_base_map([]))
+    conf = NanobindAstbuilderConfig(get_type_map([]))
     wrap: py11.NbClass = py11.NbClass(ast, struct, conf)
     wrap.InitDefault(ast, wrap.Fields)
     lyt = TextLayout()

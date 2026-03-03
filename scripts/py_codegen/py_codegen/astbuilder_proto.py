@@ -28,9 +28,9 @@ class ProtoBuilder():
         self,
         wrapped: Sequence[codegen_ir.GenTuUnion],
         ast: cpp.ASTBuilder,
-        base_map: codegen_ir.GenTypeMap,
+        type_map: codegen_ir.GenTypeMap,
     ):
-        self.base_map = base_map
+        self.type_map = type_map
         self.ast = ast
         self.t = ast.b
 
@@ -123,7 +123,7 @@ class ProtoBuilder():
                             drop_none(
                                 aux_item(sub, indent=indent + 1) for sub in it.nested),
                             aux_field_list(
-                                (codegen_ir.get_type_base_fields(it, self.base_map) +
+                                (codegen_ir.get_type_base_fields(it, self.type_map) +
                                  it.fields),
                                 indexer=make_full_enumerator(),
                                 indent=indent), [
@@ -662,8 +662,8 @@ class ProtoBuilder():
 
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
-                for base in codegen_ir.get_base_list(it, self.base_map):
-                    base_type = self.base_map.get_one_type_for_name(base.name)
+                for base in codegen_ir.get_base_list(it, self.type_map):
+                    base_type = self.type_map.get_one_type_for_name(base.name)
                     assert base_type is None or isinstance(
                         base_type,
                         codegen_ir.GenTuStruct), "Base type must be GenTuStruct or None"

@@ -355,7 +355,7 @@ def generate_adapter_specializations(
 def get_imm_serde(
     types: List[codegen_ir.GenTuStruct],
     ast: cpp.ASTBuilder,
-    base_map: codegen_ir.GenTypeMap,
+    type_map: codegen_ir.GenTypeMap,
 ) -> Sequence[codegen_ir.GenTuPass | codegen_ir.GenTuStruct]:
     "Create immutable AST serde types for msgpack"
     serde: List[codegen_ir.GenTuStruct | codegen_ir.GenTuPass] = []
@@ -433,7 +433,7 @@ def get_imm_serde(
 
                     for base in sub.bases:
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
-                        base_type = base_map.get_one_type_for_name(base.name)
+                        base_type = type_map.get_one_type_for_name(base.name)
                         if base_type:
                             assert isinstance(base_type, codegen_ir.GenTuStruct)
                             assert base_type.name.name != sub.name.name

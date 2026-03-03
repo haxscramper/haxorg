@@ -777,7 +777,7 @@ def run_common(
     if path_pprint:
         pprint_to_file(file, pass_path(path_pprint), width=200)
 
-    log(CAT).info(pass_path(path_genhtml))
+    # log(CAT).info(pass_path(path_genhtml))
     if path_genhtml:
         html_out_dir = pass_path(path_genhtml)
         for code_in in cmd.files.keys():

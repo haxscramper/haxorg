@@ -36,12 +36,12 @@ class PyhaxorgTypeFieldGroup:
 
 @beartype
 def collect_type_field_groups(types: List[tu.GenTuStruct],
-                              base_map: tu.GenTypeMap) -> PyhaxorgTypeFieldGroup:
+                              type_map: tu.GenTypeMap) -> PyhaxorgTypeFieldGroup:
 
     def aux(t: tu.GenTuStruct) -> List[tu.GenTuField]:
         result: List[tu.GenTuField] = []
         for base in t.bases:
-            base_type = base_map.get_one_type_for_name(base.name)
+            base_type = type_map.get_one_type_for_name(base.name)
             if base_type:
                 assert isinstance(base_type, tu.GenTuStruct)
                 result += aux(base_type)
@@ -138,7 +138,7 @@ def gen_pyhaxorg_shared_iteration_macros(
 @beartype
 def gen_pyhaxorg_field_iteration_macros(
     types: List[tu.GenTuStruct],
-    base_map: tu.GenTypeMap,
+    type_map: tu.GenTypeMap,
     ast: cpp.ASTBuilder,
     macro_namespace: str,
 ) -> List[tu.GenTuPass]:
@@ -149,7 +149,7 @@ def gen_pyhaxorg_field_iteration_macros(
 
     result: List[tu.GenTuPass] = []
 
-    field_groups = collect_type_field_groups(types, base_map=base_map)
+    field_groups = collect_type_field_groups(types, type_map=type_map)
 
     for group in field_groups.types:
         for with_base_fields in [True, False]:

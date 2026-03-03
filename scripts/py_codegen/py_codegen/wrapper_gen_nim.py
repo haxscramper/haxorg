@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import Callable, List, NewType, Optional, Set, Tuple, Union
 import py_codegen.astbuilder_nim as nim
+from py_codegen.astbuilder_nim_config import NimAstbuilderConfig
 from py_codegen.codegen_ir import (
     GenTuEnum,
     GenTuEnumField,
@@ -23,57 +24,6 @@ from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 from py_scriptutils.files import file_relpath
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
-
-
-class WrapRenameRule(BaseModel):
-    original: str = Field(description="Regex pattern for input text matching")
-    renamed: str = Field(description="Replacement pattern")
-
-
-class NimOptions(BaseModel):
-    function_renames: List[WrapRenameRule] = Field(
-        default=[], description="List of renaming rules for generated wrappers")
-    universal_import: List[str] = Field(default=[],
-                                        description="Import added to all generated files")
-
-    common_function_pragmas: List[str] = Field(
-        default=[],
-        description="List of pragma annotations added to every function",
-    )
-
-    with_header_imports: bool = Field(
-        default=True,
-        description="Add header pragma annotations to generated entry wraps",
-    )
-
-    is_cpp_wrap: bool = Field(
-        default=False,
-        description="Generating wrappers for C++ or C code",
-    )
-
-    importx_structs: bool = Field(
-        default=True, description="Generate 'importcpp' or 'import' for structures")
-
-    def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
-        return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
-
-    path_resolution_impl: Optional[Callable[[Path], str]] = None
-
-    def get_header_str_for_path(self, path: Path) -> str:
-        if self.path_resolution_impl:
-            return self.path_resolution_impl(path)
-
-        else:
-            return str(path)
-
-
-@beartype
-def apply_rename(name: str, renames: List[WrapRenameRule]) -> str:
-    for rule in renames:
-        if re.match(rule.original, name):
-            return re.sub(rule.original, rule.renamed, name)
-
-    return name
 
 
 @beartype
@@ -387,7 +337,6 @@ def field_to_nim(
     b: nim.ASTBuilder,
     f: GenTuField,
     rec: GenTuStruct,
-    conf: NimOptions,
 ) -> Tuple[nim.IdentParams, Optional[ConvRes]]:
     decl: Optional[ConvRes] = None
     if f.isTypeDecl:
@@ -395,7 +344,7 @@ def field_to_nim(
             name=f"{rec.name.name}_{f.name}_field"))
         match f.decl:
             case GenTuStruct():
-                decl = struct_to_nim(b, replace(f.decl, name=DeclType), conf)
+                decl = struct_to_nim(b, replace(f.decl, name=DeclType))
 
             case GenTuEnum():
                 decl = enum_to_nim(b, replace(f.decl, name=DeclType))
@@ -420,16 +369,15 @@ def field_to_nim(
 
 
 @beartype
-def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> ConvRes:
+def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
     pragmas: List[nim.PragmaParams] = []
 
-    if conf.with_header_imports:
+    if b.conf.opts.with_header_imports:
         pragmas.append(
-            nim.PragmaParams("header",
-                             [b.Lit(conf.get_header_str_for_path(rec.original))]))
+            nim.PragmaParams("header", [b.Lit(b.conf.getHeaderStrForPath(rec.original))]))
 
-    if conf.importx_structs:
-        if conf.is_cpp_wrap:
+    if b.conf.opts.importx_structs:
+        if b.conf.opts.is_cpp_wrap:
             pragmas.append(nim.PragmaParams("importcpp"))
 
         else:
@@ -444,7 +392,7 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
     FieldDecls: List[nim.IdentParams] = []
     SubConvs: List[ConvRes] = []
     for f in rec.fields:
-        Ident, Decls = field_to_nim(b, f, rec=rec, conf=conf)
+        Ident, Decls = field_to_nim(b, f, rec=rec)
         if Decls:
             SubConvs.append(Decls)
 
@@ -452,7 +400,7 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
 
     NestedTypes = list(itertools.chain(*[Sub.types for Sub in SubConvs]))
     Procs = list(
-        itertools.chain(*[function_to_nim(b, meth, conf).procs
+        itertools.chain(*[function_to_nim(b, meth).procs
                           for meth in rec.methods])) + list(
                               itertools.chain(*[Sub.procs for Sub in SubConvs]))
 
@@ -475,9 +423,9 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 
 
 @beartype
-def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) -> ConvRes:
+def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
     arguments: List[nim.IdentParams] = []
-    if conf.is_cpp_wrap:
+    if b.conf.opts.is_cpp_wrap:
         arguments.append(nim.IdentParams("self", type_to_nim(b, func.parentClass.name)))
 
     for Arg in func.arguments:
@@ -485,21 +433,21 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
 
     pragmas: List[nim.PragmaParams] = []
 
-    pragmas += conf.get_function_pragmas(func)
-    if conf.is_cpp_wrap:
+    pragmas += b.conf.getFunctionPragmas(func)
+    if b.conf.opts.is_cpp_wrap:
         pragmas.append(nim.PragmaParams("importcpp", [b.Lit(f"#.{func.name}(@)")]))
 
     else:
         pragmas.append(nim.PragmaParams("importc", [b.Lit(func.name)]))
 
-    if conf.with_header_imports:
+    if b.conf.opts.with_header_imports:
         pragmas.append(
             nim.PragmaParams("header",
-                             [b.Lit(conf.get_header_str_for_path(func.original))]))
+                             [b.Lit(b.conf.getHeaderStrForPath(func.original))]))
 
     return ConvRes(procs=[
         nim.FunctionParams(
-            Name=nim.sanitize_name(apply_rename(func.name, conf.function_renames)),
+            Name=b.conf.getFunctionIdent(func.name),
             ReturnTy=type_to_nim(b, func.result),
             Pragmas=pragmas,
             Arguments=arguments,
@@ -508,20 +456,19 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
 
 
 @beartype
-def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion,
-                    conf: NimOptions) -> ConvRes:
+def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion) -> ConvRes:
     match decl:
         case GenTuEnum():
             return enum_to_nim(builder, decl)
 
         case GenTuStruct():
-            return struct_to_nim(builder, decl, conf)
+            return struct_to_nim(builder, decl)
 
         case GenTuTypedef():
             return typedef_to_nim(builder, decl)
 
         case GenTuFunction():
-            return function_to_nim(builder, decl, conf)
+            return function_to_nim(builder, decl)
 
         case _:
             assert False
@@ -538,19 +485,19 @@ class GenNimResult:
 def to_nim(
     graph: GenGraph,
     sub: GenGraph.Sub,
-    conf: NimOptions,
     get_out_path: Callable[[Path], Path],
     output_directory: Path,
+    conf: NimAstbuilderConfig,
 ) -> GenNimResult:
     t = TextLayout()
-    builder = nim.ASTBuilder(t)
+    builder = nim.ASTBuilder(t, conf)
 
     types: List[BlockId] = []
     procs: List[BlockId] = []
     header: List[BlockId] = []
     depend_on: List[nim.ImportParams] = []
 
-    for imp in sorted(conf.universal_import):
+    for imp in sorted(builder.conf.opts.universal_import):
         gen = gen_file_import(get_out_path(sub.original), output_directory.joinpath(imp))
         if gen is not None:
             depend_on.append(gen)
@@ -562,7 +509,7 @@ def to_nim(
     collected_conv_res: List[ConvRes] = []
 
     for _id in sub.nodes:
-        conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id], conf)
+        conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id])
 
         collected_conv_res.append(conv)
 

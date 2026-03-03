@@ -1189,7 +1189,7 @@ def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
 
 
 @beartype
-def get_base_map(expanded: Sequence[GenTuUnion]) -> GenTypeMap:
+def get_type_map(expanded: Sequence[GenTuUnion]) -> GenTypeMap:
     return GenTypeMap.FromTypes(expanded)
 
 
@@ -1211,15 +1211,15 @@ def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
 @beartype
 def get_type_base_fields(
     value: GenTuStruct,
-    base_map: GenTypeMap,
+    type_map: GenTypeMap,
 ) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(
+        base: Optional[GenTuStruct] = type_map.get_one_type_for_name(
             base_sym.name)  # type: ignore
         if base:
             fields.extend(base.fields)
-            fields.extend(get_type_base_fields(base, base_map))
+            fields.extend(get_type_base_fields(base, type_map))
 
     return fields
 
@@ -1227,13 +1227,13 @@ def get_type_base_fields(
 @beartype
 def get_base_list(
     value: GenTuStruct,
-    base_map: GenTypeMap,
+    type_map: GenTypeMap,
 ) -> List[QualType]:
     fields = []
 
     def aux(typ: QualType) -> List[QualType]:
         result: List[QualType] = [typ]
-        base: Optional[GenTuStruct] = base_map.get_one_type_for_name(
+        base: Optional[GenTuStruct] = type_map.get_one_type_for_name(
             typ.name)  # type: ignore
         if base:
             for it in base.bases:
