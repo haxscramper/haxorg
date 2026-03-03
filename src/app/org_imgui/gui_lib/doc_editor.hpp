@@ -1,5 +1,6 @@
 #pragma once
 
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <org_imgui/gui_lib/block_graph.hpp>
 #include <org_imgui/gui_lib/node_grid_graph.hpp>
 #include <org_imgui/gui_lib/imgui_utils.hpp>

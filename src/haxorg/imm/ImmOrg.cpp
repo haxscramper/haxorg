@@ -1518,26 +1518,6 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     return result;
 }
 
-#define __DEFINE_VALUE_READ_FIELD(                                        \
-    __FIELD_TYPE,                                                         \
-    __FIELD_NAME,                                                         \
-    __FIELD_UPPERCASE,                                                    \
-    __PARENT_TYPE,                                                        \
-    __PARENT_KIND)                                                        \
-    BOOST_PP_REMOVE_PARENS(__FIELD_TYPE)                                  \
-    const&                                                                \
-        org::imm::Imm##__PARENT_KIND##ValueRead::get##__FIELD_UPPERCASE() \
-            const {                                                       \
-        return this->ptr->__FIELD_NAME;                                   \
-    }
-
-#define __DEFINE_VALUE_READ_TYPE(__KIND)                                  \
-    EACH_IMM_ORG_Imm##__KIND##_FIELD_WITH_BASE_FIELDS(                    \
-        __DEFINE_VALUE_READ_FIELD);
-
-
-EACH_SEM_ORG_KIND(__DEFINE_VALUE_READ_TYPE)
-
 std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
     const org::imm::ImmReflPathItemBase& it) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;

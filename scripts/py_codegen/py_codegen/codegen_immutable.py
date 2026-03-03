@@ -241,58 +241,43 @@ def rewrite_to_immutable(
 
 
 @beartype
+def get_adapter_field_getter(ast: cpp.ASTBuilder,
+                             f: codegen_ir.GenTuField) -> codegen_ir.GenTuFunction:
+    "Generate getter function for immutable data access for adapter specialization"
+    field_access = ast.Dot(ast.XCallPtr(
+        ast.string("this"),
+        "value",
+    ), ast.string(f.name))
+
+    field_type = rewrite_field_to_immutable(f).type
+
+    # Unwrap first level of immer boxing for more convenient API
+    if field_type.name == "ImmBox":
+        field_type = field_type.par0()
+        field_access = ast.XCallRef(field_access, "get")
+
+    return codegen_ir.GenTuFunction(name=f"get{astbuilder_utils.pascal_case(f.name)}",
+                                    isConst=True,
+                                    result=field_type.asConstRef(),
+                                    impl=ast.Return(field_access))
+
+
+@beartype
 def generate_adapter_specializations(
-    ast: cpp.ASTBuilder, types: List[codegen_ir.GenTuStruct]
-) -> Tuple[List[codegen_ir.GenTuStruct], List[codegen_ir.GenTuStruct]]:
+        ast: cpp.ASTBuilder,
+        types: List[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
     """
     Create value reader types and explicit instantiations of the adapter template structures.
     """
     adapters: List[codegen_ir.GenTuStruct] = list()
-    readers: List[codegen_ir.GenTuStruct] = list()
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
 
     def for_final_type(sem_base: codegen_ir.GenTuStruct):
         "Create immutable AST adapter specialization for sem struct"
         derived_base: str = sem_base.name.name
         Derived = QualType(name=f"Imm{derived_base}", Spaces=imm_space)
-        DerivedValueRead = QualType(name=f"Imm{derived_base}ValueRead", Spaces=imm_space)
         Api = QualType(name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
         Base = QualType(name="ImmAdapterTBase", Spaces=imm_space, Parameters=[Derived])
-
-        readers.append(
-            codegen_ir.GenTuStruct(
-                name=DerivedValueRead.withoutAllScopeQualifiers(),
-                reflectionParams=codegen_ir.GenTuReflParams(default_constructor=True),
-                methods=[
-                    codegen_ir.GenTuFunction(
-                        name=f"get{astbuilder_utils.pascal_case(f.name)}",
-                        isConst=True,
-                        result=rewrite_field_to_immutable(f).type.asConstRef(),
-                    ) for f in sem_base.fields if not f.isStatic
-                ] + [
-                    codegen_ir.GenTuFunction(
-                        IsConstructor=True,
-                        name=DerivedValueRead.name,
-                        arguments=[
-                            codegen_ir.GenTuIdent(
-                                name="ptr",
-                                type=Derived.asConstPtr(),
-                            )
-                        ],
-                        InitList=[
-                            ast.XConstructObj(ast.string("ptr"), [
-                                ast.XCall("const_cast", [ast.string("ptr")],
-                                          Params=[
-                                              Derived.asPtr(1),
-                                          ])
-                            ])
-                        ])
-                ],
-                fields=[
-                    codegen_ir.GenTuField(name="ptr",
-                                          type=Derived.asPtr(1),
-                                          isExposedForDescribe=False)
-                ]))
 
         adapters.append(
             codegen_ir.GenTuStruct(
@@ -331,24 +316,17 @@ def generate_adapter_specializations(
                             ),
                             ast.Literal(derived_base),
                             ast.XCallRef(ast.string("other"), "getKind"),
-                        ])),
-                    codegen_ir.GenTuFunction(
-                        isConst=True,
-                        name="getValue",
-                        result=DerivedValueRead,
-                        impl=ast.Return(
-                            ast.XConstructObj(
-                                DerivedValueRead,
-                                [ast.Addr(ast.XCallPtr(
-                                    ast.string("this"),
-                                    "value",
-                                ))]))),
+                        ])), *[
+                            get_adapter_field_getter(ast, f)
+                            for f in sem_base.fields
+                            if not f.isStatic
+                        ]
                 ]))
 
     for t in types:
         for_final_type(t)
 
-    return adapters, readers
+    return adapters
 
 
 @beartype

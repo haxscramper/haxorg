@@ -278,6 +278,7 @@ def gen_pyhaxorg_python_wrappers(
                 [
                     GenTuPass("#undef slots"),
                     *NB_INCLUDE_LIST,
+                    GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrg.hpp", True),
                     GenTuInclude("pyhaxorg_manual_impl.hpp", False),
                     GenTuPass(res.build_bind(ast)),
@@ -479,12 +480,11 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                 "{base}/imm/ImmOrgAdapterGenerated.hpp",
                 [
                     GenTuPass("#pragma once"),
+                    GenTuPass("#define HAXORG_IMM_ORG_ADAPTER_GENERATED_INCLUDED"),
                     GenTuPass(
                         "#pragma clang diagnostic ignored \"-Wextra-qualification\""),
                     GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
-                    GenTuNamespace(
-                        n_imm(),
-                        groups.reader_accessors + groups.adapter_specializations),
+                    GenTuNamespace(n_imm(), groups.adapter_specializations),
                 ],
             )),
     ])

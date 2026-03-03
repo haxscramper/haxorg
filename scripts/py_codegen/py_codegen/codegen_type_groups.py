@@ -318,8 +318,6 @@ class PyhaxorgTypeGroups():
     shared_types: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     expanded: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     immutable: List[codegen_ir.GenTuStruct] = field(default_factory=list)
-    reader_accessors: List[codegen_ir.GenTuStruct] = field(default_factory=list)
-    "Proxy objects wrapping around pointer to the immutable AST node value."
     adapter_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     conv_tu: ConvTu = field(default_factory=lambda: ConvTu())
     type_map: codegen_ir.GenTypeMap = field(
@@ -368,9 +366,8 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
     res = PyhaxorgTypeGroups()
     res.shared_types = expand_type_groups(ast, org_data.get_shared_sem_types())
     res.expanded = expand_type_groups(ast, org_data.get_types())
-    (adapters, readers) = gen_imm.generate_adapter_specializations(ast, res.expanded)
+    adapters = gen_imm.generate_adapter_specializations(ast, res.expanded)
     res.adapter_specializations = adapters
-    res.reader_accessors = readers
     res.immutable = expand_type_groups(ast,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
