@@ -195,6 +195,18 @@ class QualType(BaseModel, extra="forbid"):
     def flatQualName(self) -> List[str]:
         return self.flatSpaceNames() + [self.name]
 
+    def flatQualNameWithParams(self) -> List:
+        """
+        Generate recursively nested list of the type names for spaces and parameters:
+
+        ```
+        std::optional<T> -> ["std", "optional", ["T"]]
+        std::unordered_map<int, std::map<int, char>> -> ["std", "unordered", [["int"], ["std", "map", [["int"], ["char"]]]]
+        ```
+        """
+        return self.flatQualName() + [[P.flatQualNameWithParams()]
+                                      for P in self.Parameters]
+
     def asSpaceFor(self, other: "QualType") -> "QualType":
         "Use the current type as a wrapper space for other type"
         return other.model_copy(update=dict(
@@ -1153,6 +1165,11 @@ def n_imm() -> QualType:
         meta=dict(isSemNamespace=True),
         Spaces=[n_org()],
     )
+
+
+@beartype
+def n_org_imm() -> List[QualType]:
+    return [n_org(), n_imm()]
 
 
 @beartype

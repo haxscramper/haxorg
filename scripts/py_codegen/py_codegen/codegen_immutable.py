@@ -3,11 +3,15 @@ from dataclasses import replace
 
 from beartype import beartype
 from beartype.typing import Any, List, Sequence, Tuple
+
 from py_codegen import codegen_ir
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import GenTuFunction, QualType
+from py_codegen.codegen_ir import GenTuFunction, QualType, n_org
 from py_haxorg.astbuilder import astbuilder_utils
 from py_scriptutils.algorithm import iterate_object_tree
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -241,8 +245,8 @@ def rewrite_to_immutable(
 
 
 @beartype
-def get_adapter_field_getter(ast: cpp.ASTBuilder,
-                             f: codegen_ir.GenTuField) -> codegen_ir.GenTuFunction:
+def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
+                             T: codegen_ir.GenTuStruct) -> codegen_ir.GenTuFunction:
     "Generate getter function for immutable data access for adapter specialization"
     field_access = ast.Dot(ast.XCallPtr(
         ast.string("this"),
@@ -251,14 +255,51 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder,
 
     field_type = rewrite_field_to_immutable(f).type
 
-    # Unwrap first level of immer boxing for more convenient API
-    if field_type.name == "ImmBox":
-        field_type = field_type.par0()
-        field_access = ast.XCallRef(field_access, "get")
+    log(CAT).info(
+        f"{T.name.name}::{f.name} {field_type.flatQualNameWithParams()} {field_type}")
+
+    def use_get_adapter_field(field_par0: QualType, is_specialization: bool) -> QualType:
+        nonlocal field_access
+        field_access = ast.XCall("org::imm::get_adapter_field", [
+            ast.string("this"),
+            ast.Addr(ast.Scoped(field_par0, ast.string(f.name))),
+        ])
+
+        if is_specialization:
+            return QualType(name="ImmAdapterT",
+                            Spaces=codegen_ir.n_org_imm(),
+                            Parameters=[field_par0])
+
+        else:
+            return QualType(name="ImmAdapter", Spaces=codegen_ir.n_org_imm())
+
+    match field_type.flatQualNameWithParams():
+        case [["org", "imm", "ImmIdT", _]]:
+            result_type = codegen_ir.t_opt(use_get_adapter_field(field_type.par0(), True))
+
+        case [["org", "imm", "ImmId"]]:
+            result_type = codegen_ir.t_opt(use_get_adapter_field(
+                field_type.par0(), False))
+
+        case ["hstd", "ext", "ImmBox", [["hstd", "Opt", [["org", "imm", "ImmIdT", _]]]]]:
+            result_type = codegen_ir.t_opt(
+                use_get_adapter_field(field_type.par0().par0(), True))
+
+        case ["hstd", "ext", "ImmBox", [["hstd", "Opt", [["org", "imm", "ImmId"]]]]]:
+            result_type = codegen_ir.t_opt(use_get_adapter_field(
+                field_type.par0(), False))
+
+        case ["hstd", "ext", "ImmBox", _]:
+            # Unwrap first level of immer boxing for more convenient API
+            result_type = field_type.par0().asConstRef()
+            field_access = ast.XCallRef(field_access, "get")
+
+        case _:
+            result_type = field_type
 
     return codegen_ir.GenTuFunction(name=f"get{astbuilder_utils.pascal_case(f.name)}",
                                     isConst=True,
-                                    result=field_type.asConstRef(),
+                                    result=result_type,
                                     impl=ast.Return(field_access))
 
 
@@ -317,7 +358,7 @@ def generate_adapter_specializations(
                             ast.Literal(derived_base),
                             ast.XCallRef(ast.string("other"), "getKind"),
                         ])), *[
-                            get_adapter_field_getter(ast, f)
+                            get_adapter_field_getter(ast, f, sem_base)
                             for f in sem_base.fields
                             if not f.isStatic
                         ]

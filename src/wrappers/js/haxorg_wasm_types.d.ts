@@ -4419,14 +4419,14 @@ export interface ImmAdapterT {
   getTreeId(): haxorg_wasm.Optional<string>;
   getTodo(): haxorg_wasm.Optional<string>;
   getCompletion(): haxorg_wasm.Optional<SubtreeCompletion>;
-  getDescription(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
+  getDescription(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
   getTags(): haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>;
   getTitle(): haxorg_wasm.ImmIdT<ImmParagraph>;
   getLogbook(): haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmSubtreeLog>>;
   getProperties(): haxorg_wasm.ImmVec<NamedProperty>;
-  getClosed(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>;
-  getDeadline(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>;
-  getScheduled(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmTime>>;
+  getClosed(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmTime>>>;
+  getDeadline(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmTime>>>;
+  getScheduled(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmTime>>>;
   getIsComment(): boolean;
   getIsArchived(): boolean;
   getPriority(): haxorg_wasm.Optional<string>;
@@ -4538,7 +4538,7 @@ export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getHead(): SubtreeLogHead;
-  getDesc(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmStmtList>>;
+  getDesc(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmStmtList>>>;
 }
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT { ImmAdapterT(other: ImmAdapter): void; }
@@ -4583,7 +4583,7 @@ export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getCheckbox(): CheckboxState;
-  getHeader(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
+  getHeader(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
   getBullet(): haxorg_wasm.Optional<string>;
 }
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
@@ -4604,11 +4604,11 @@ export interface ImmAdapterT {
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
-  getTitle(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
-  getAuthor(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
-  getCreator(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
+  getTitle(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+  getAuthor(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
+  getCreator(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
   getFiletags(): haxorg_wasm.ImmVec<haxorg_wasm.ImmIdT<ImmHashTag>>;
-  getEmail(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmRawText>>;
+  getEmail(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmRawText>>>;
   getLanguage(): haxorg_wasm.ImmVec<string>;
   getOptions(): haxorg_wasm.ImmIdT<ImmDocumentOptions>;
   getExportFileName(): haxorg_wasm.Optional<string>;
@@ -4785,7 +4785,7 @@ export interface ImmAdapterT {
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
-  getDescription(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmParagraph>>;
+  getDescription(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmParagraph>>>;
   getTarget(): LinkTarget;
 }
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
@@ -4803,7 +4803,7 @@ export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT {
   ImmAdapterT(other: ImmAdapter): void;
   getTag(): string;
-  getDefinition(): haxorg_wasm.Optional<haxorg_wasm.ImmIdT<ImmOrg>>;
+  getDefinition(): haxorg_wasm.Optional<ImmAdapterT<haxorg_wasm.ImmIdT<ImmOrg>>>;
 }
 export interface ImmAdapterTConstructor { new(): ImmAdapterT; }
 export interface ImmAdapterT { ImmAdapterT(other: ImmAdapter): void; }

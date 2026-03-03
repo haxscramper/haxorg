@@ -81,6 +81,8 @@ class MethodDefParams:
     Params: FunctionParams
     Class: QualType
     IsConst: bool = False
+    IsLine: bool = False
+    "Render method definition on line line"
 
 
 @beartype
@@ -760,24 +762,30 @@ class ASTBuilder(base.AstbuilderBase):
                 ]), field.doc), field.access)
 
     def MethodDef(self, m: MethodDefParams) -> BlockId:
-        return self.WithTemplate(
-            m.Params.Template,
-            self.b.stack([
-                self.b.line([
-                    *([] if m.Params.ResultTy is None else
-                      [self.Type(m.Params.ResultTy),
-                       self.string(" ")]),
-                    self.Type(m.Class),
-                    self.string("::"),
-                    self.string(m.Params.Name),
-                    self.Arguments(m.Params),
-                    self.string("const " if m.IsConst else " "),
-                    self.InitList(m.Params),
-                    self.string("{"),
-                ]),
-                self.b.indent(2, self.b.stack(m.Params.Body)),
-                self.string("}")
-            ]))
+        "Convert method definition parameters to layout block"
+        head = self.b.line([
+            *([] if m.Params.ResultTy is None else
+              [self.Type(m.Params.ResultTy),
+               self.string(" ")]),
+            self.Type(m.Class),
+            self.string("::"),
+            self.string(m.Params.Name),
+            self.Arguments(m.Params),
+            self.string(" const" if m.IsConst else ""),
+            self.InitList(m.Params),
+            self.string(" {"),
+        ])
+
+        if m.IsLine:
+            body = self.b.line([head, self.b.line(m.Params.Body), self.string("}")])
+
+        else:
+            body = self.b.stack(
+                [head,
+                 self.b.indent(2, self.b.stack(m.Params.Body)),
+                 self.string("}")])
+
+        return self.WithTemplate(m.Params.Template, body)
 
     def MethodDecl(self, method: MethodDeclParams) -> BlockId:
         head = self.b.line([
