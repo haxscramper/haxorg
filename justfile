@@ -27,10 +27,6 @@ run_custom_docs_gen:
   {{workflow_run}} --task build_custom_docs \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
 
-run_docker_release_ci:
-  {{workflow_run}} --task run_docker_release_test \
-    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_docker_ci.json
-
 # RE-generate haxorg sources without running any dependent tasks
 run_haxorg_only_source_generation:
   {{workflow_run}} --task generate_haxorg_sources \
