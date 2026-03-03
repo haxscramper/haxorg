@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from symtable import Class
 
 from beartype import beartype
 from beartype.typing import List
@@ -6,6 +7,9 @@ from py_codegen import codegen_cpp, codegen_ir
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -15,14 +19,18 @@ class GenConverter:
     Convert from codegen IR structure to the CPP backend-specific types.
     """
     ast: cpp.ASTBuilder
-    isSource: bool = False
+    isHeader: bool = False
+    "Generating source code for source/header?"
+    isSplitHeaderSource: bool = False
+    "Translation unit is split into source and header, or it is only one file?"
     pendingToplevel: List[BlockId] = field(default_factory=list)
     context: List[QualType] = field(default_factory=list)
 
     def convertFunctionBlock(self, func: cpp.FunctionParams) -> BlockId:
         return self.ast.Function(func)
 
-    def convertFunction(self, func: codegen_ir.GenTuFunction) -> cpp.FunctionParams:
+    def convertFunction(self, func: codegen_ir.GenTuFunction,
+                        inline_impl: bool) -> cpp.FunctionParams:
         """
         Map codegen IR free function to common CPP codegen function parameters.
         """
@@ -30,14 +38,14 @@ class GenConverter:
             ResultTy=func.result,
             Name=func.name,
             doc=self.convertDoc(func.doc),
-            InitList=func.InitList,
+            InitList=func.InitList if inline_impl else [],
             IsConstructor=func.IsConstructor,
             Template=func.params,
         )
 
-        if func.impl is not None:
+        if func.impl is not None and inline_impl:
             if isinstance(func.impl, str):
-                decl.Body = [self.ast.string(str) for str in func.impl.split("\n")]
+                decl.Body = [self.ast.string(s) for s in func.impl.split("\n")]
             else:
                 decl.Body = [func.impl]
 
@@ -70,16 +78,27 @@ class GenConverter:
         return self.ast.Using(
             cpp.UsingParams(newName=typedef.name.name, baseType=typedef.base))
 
-    def convertMethod(self, method: codegen_ir.GenTuFunction) -> cpp.MethodDeclParams:
-        return cpp.MethodDeclParams(
-            Params=self.convertFunction(method),
-            isStatic=method.isStatic,
-            isConst=method.isConst,
-            isVirtual=method.isVirtual,
-            isOverride=method.isOverride,
-        )
+    def convertMethod(self, method: codegen_ir.GenTuFunction, Class: QualType,
+                      inline_methods: bool) -> cpp.MethodDeclParams | cpp.MethodDefParams:
+        "nodoc"
+        if self.isHeader:
+            return cpp.MethodDeclParams(
+                Params=self.convertFunction(method, inline_impl=inline_methods),
+                isStatic=method.isStatic,
+                isConst=method.isConst,
+                isVirtual=method.isVirtual,
+                isOverride=method.isOverride,
+            )
+        else:
+            return cpp.MethodDefParams(
+                Params=self.convertFunction(method, inline_impl=True),
+                Class=Class,
+                IsConst=method.isConst,
+            )
 
-    def convertStruct(self, record: codegen_ir.GenTuStruct) -> BlockId:
+    def convertStructDeclaration(self, record: codegen_ir.GenTuStruct,
+                                 inline_methods: bool) -> BlockId:
+        "nodoc"
         params = cpp.RecordParams(
             name=record.declarationQualName()
             if record.IsExplicitInstantiation else record.name,
@@ -110,7 +129,10 @@ class GenConverter:
                     ))
 
             for method in record.methods:
-                params.members.append(self.convertMethod(method))
+                params.members.append(
+                    self.convertMethod(method,
+                                       Class=record.declarationQualName(),
+                                       inline_methods=inline_methods))
 
             for nested in record.nested:
                 assert not isinstance(nested, codegen_ir.GenTuTypeGroup)
@@ -132,9 +154,9 @@ class GenConverter:
             if record.GenDescribeFields or record.GenDescribeMethods:
                 if record.GenDescribeFields:
                     described_fields = [
-                        self.ast.string(f.name)
-                        for f in record.fields
-                        if f.isExposedForDescribe
+                        self.ast.string(rf.name)
+                        for rf in record.fields
+                        if rf.isExposedForDescribe
                     ]
                 else:
                     described_fields = []
@@ -167,7 +189,43 @@ class GenConverter:
 
         return self.ast.Record(params)
 
+    def convertStruct(self, record: codegen_ir.GenTuStruct) -> BlockId:
+        "nodoc"
+        if self.isHeader:
+            if record.ExposeHeaderDeclaration:
+                # Structure is exposed in public API, but the implementation
+                # might be split into the source file.
+                return self.convertStructDeclaration(
+                    record, inline_methods=not self.isSplitHeaderSource)
+
+            else:
+                # Generating header but structure is not exposed
+                return self.ast.string("")
+
+        else:
+            # Structure has already been generated in the header file, adding implementation
+            # for direct and nested methods.
+            if record.ExposeHeaderDeclaration:
+                definitions = [
+                    self.ast.MethodDef(
+                        self.convertMethod(m,
+                                           Class=record.declarationQualName(),
+                                           inline_methods=True)) for m in record.methods
+                ]
+
+                for n in record.nested:
+                    if isinstance(n, (codegen_ir.GenTuStruct,)):
+                        definitions.extend(self.convert(n))
+
+                return self.ast.stack(*definitions)
+
+            else:
+                # Structure is not exposed publicly, generating full definition and declaration
+                # in the source code file.
+                return self.convertStructDeclaration(record, inline_methods=True)
+
     def convertEnum(self, entry: codegen_ir.GenTuEnum) -> BlockId:
+        "nodoc"
         FromParams = cpp.FunctionParams(
             Name="from_string",
             doc=cpp.DocParams(""),
@@ -188,65 +246,64 @@ class GenConverter:
                 isToplevel = False
                 break
 
-        if self.isSource:
+        if not self.isHeader:
             return self.ast.string("")
 
+        params = cpp.EnumParams(name=entry.name.name,
+                                doc=self.convertDoc(entry.doc),
+                                base=entry.base,
+                                IsLine=not any([F.doc.brief for F in entry.fields]))
+
+        for _field in entry.fields:
+            params.fields.append(
+                cpp.EnumParams.Field(
+                    doc=cpp.DocParams(brief=_field.doc.brief, full=_field.doc.full),
+                    name=_field.name,
+                    value=str(_field.value) if _field.value else "None",
+                ))
+
+        if isToplevel:
+            Describe = []
+            Describe.append(
+                self.ast.line([
+                    self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
+                    self.ast.pars(self.ast.Type(entry.name)),
+                ]))
+
+            for field in entry.fields:
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
+                        self.ast.pars(
+                            self.ast.csv([
+                                self.ast.Type(entry.name),
+                                self.ast.string(field.name),
+                            ]))
+                    ]))
+
+            Describe.append(
+                self.ast.line([
+                    self.ast.string("BOOST_DESCRIBE_ENUM_END"),
+                    self.ast.pars(self.ast.Type(entry.name)),
+                ]))
+
+            FromDefinition = FromParams
+            ToDefininition = ToParams
+
+            res = self.ast.b.stack([
+                self.ast.Enum(params),
+                self.ast.stack(Describe),
+            ])
+
+            return res
         else:
-            params = cpp.EnumParams(name=entry.name.name,
-                                    doc=self.convertDoc(entry.doc),
-                                    base=entry.base,
-                                    IsLine=not any([F.doc.brief for F in entry.fields]))
+            arguments = [self.ast.string(entry.name.name)
+                        ] + [self.ast.string(Field.name) for Field in entry.fields]
 
-            for _field in entry.fields:
-                params.fields.append(
-                    cpp.EnumParams.Field(
-                        doc=cpp.DocParams(brief=_field.doc.brief, full=_field.doc.full),
-                        name=_field.name,
-                        value=str(_field.value) if _field.value else "None",
-                    ))
-
-            if isToplevel:
-                Describe = []
-                Describe.append(
-                    self.ast.line([
-                        self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
-                        self.ast.pars(self.ast.Type(entry.name)),
-                    ]))
-
-                for field in entry.fields:
-                    Describe.append(
-                        self.ast.line([
-                            self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
-                            self.ast.pars(
-                                self.ast.csv([
-                                    self.ast.Type(entry.name),
-                                    self.ast.string(field.name),
-                                ]))
-                        ]))
-
-                Describe.append(
-                    self.ast.line([
-                        self.ast.string("BOOST_DESCRIBE_ENUM_END"),
-                        self.ast.pars(self.ast.Type(entry.name)),
-                    ]))
-
-                FromDefinition = FromParams
-                ToDefininition = ToParams
-
-                res = self.ast.b.stack([
-                    self.ast.Enum(params),
-                    self.ast.stack(Describe),
-                ])
-
-                return res
-            else:
-                arguments = [self.ast.string(entry.name.name)
-                            ] + [self.ast.string(Field.name) for Field in entry.fields]
-
-                return self.ast.b.stack([
-                    self.ast.Enum(params),
-                    self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments),
-                ])
+            return self.ast.b.stack([
+                self.ast.Enum(params),
+                self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments),
+            ])
 
     def convertNamespace(self, space: codegen_ir.GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
@@ -281,6 +338,7 @@ class GenConverter:
         return decls
 
     def convert(self, entry: codegen_ir.GenTuEntry) -> List[BlockId]:
+        "Generate C++ code for the IR entry"
         decls: List[BlockId] = []
 
         match entry:
@@ -291,7 +349,10 @@ class GenConverter:
                 decls.append(self.convertEnum(entry))
 
             case codegen_ir.GenTuFunction():
-                decls.append(self.convertFunctionBlock(self.convertFunction(entry)))
+                decls.append(
+                    self.convertFunctionBlock(
+                        self.convertFunction(entry,
+                                             inline_impl=not self.isSplitHeaderSource)))
 
             case codegen_ir.GenTuStruct():
                 decls.append(self.convertStruct(entry))

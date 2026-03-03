@@ -9,7 +9,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmNoNode> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmNoNode)
   using api_type = org::imm::ImmAdapterNoNodeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterNoNodeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNoNode>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "NoNode", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -17,8 +17,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorItem> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmErrorItem)
   using api_type = org::imm::ImmAdapterErrorItemAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorItemAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorItem>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorItem", other.getKind()) }
-  org::sem::OrgDiagnostics const& getDiag() const { return this->value().diag; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::OrgDiagnostics const& getDiag() const;
 };
 
 template <>
@@ -26,8 +26,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorGroup> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmErrorGroup)
   using api_type = org::imm::ImmAdapterErrorGroupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorGroupAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorGroup>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorGroup", other.getKind()) }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> const& getDiagnostics() const { return this->value().diagnostics; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> const& getDiagnostics() const;
 };
 
 template <>
@@ -35,8 +35,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmStmt> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmStmt)
   using api_type = org::imm::ImmAdapterStmtAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterStmtAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmt>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Stmt", other.getKind()) }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getAttached() const { return this->value().attached; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getAttached() const;
 };
 
 template <>
@@ -44,7 +44,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmInline> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmInline)
   using api_type = org::imm::ImmAdapterInlineAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterInlineAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInline>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Inline", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -52,7 +52,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmStmtList> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmStmtList)
   using api_type = org::imm::ImmAdapterStmtListAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterStmtListAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmtList>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "StmtList", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -60,7 +60,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmEmpty> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmEmpty)
   using api_type = org::imm::ImmAdapterEmptyAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterEmptyAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEmpty>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Empty", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -68,8 +68,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmd> : public org::imm::ImmAdapterTBas
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmd)
   using api_type = org::imm::ImmAdapterCmdAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmd>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Cmd", other.getKind()) }
-  org::sem::AttrGroup const& getAttrs() const { return this->value().attrs; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::AttrGroup const& getAttrs() const;
 };
 
 template <>
@@ -77,7 +77,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlock> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlock)
   using api_type = org::imm::ImmAdapterBlockAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlock>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Block", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -85,7 +85,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmLineCommand> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmLineCommand)
   using api_type = org::imm::ImmAdapterLineCommandAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterLineCommandAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLineCommand>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "LineCommand", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -93,7 +93,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmAttached> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmAttached)
   using api_type = org::imm::ImmAdapterAttachedAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterAttachedAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAttached>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Attached", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -101,8 +101,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmLeaf> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmLeaf)
   using api_type = org::imm::ImmAdapterLeafAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterLeafAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLeaf>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Leaf", other.getKind()) }
-  hstd::Str const& getText() const { return this->value().text.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getText() const;
 };
 
 template <>
@@ -110,8 +110,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCaption> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCaption)
   using api_type = org::imm::ImmAdapterCmdCaptionAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCaptionAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCaption>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCaption", other.getKind()) }
-  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const { return this->value().text; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
 };
 
 template <>
@@ -119,8 +119,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCreator> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCreator)
   using api_type = org::imm::ImmAdapterCmdCreatorAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCreatorAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCreator>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCreator", other.getKind()) }
-  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const { return this->value().text; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
 };
 
 template <>
@@ -128,8 +128,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdAuthor> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdAuthor)
   using api_type = org::imm::ImmAdapterCmdAuthorAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdAuthorAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAuthor>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdAuthor", other.getKind()) }
-  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const { return this->value().text; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
 };
 
 template <>
@@ -137,8 +137,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdEmail> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdEmail)
   using api_type = org::imm::ImmAdapterCmdEmailAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdEmailAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdEmail>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdEmail", other.getKind()) }
-  hstd::Str const& getText() const { return this->value().text.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getText() const;
 };
 
 template <>
@@ -146,8 +146,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdLanguage> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdLanguage)
   using api_type = org::imm::ImmAdapterCmdLanguageAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdLanguageAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdLanguage>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdLanguage", other.getKind()) }
-  hstd::Str const& getText() const { return this->value().text.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getText() const;
 };
 
 template <>
@@ -155,8 +155,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdColumns> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdColumns)
   using api_type = org::imm::ImmAdapterCmdColumnsAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdColumnsAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdColumns>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdColumns", other.getKind()) }
-  org::sem::ColumnView const& getView() const { return this->value().view; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::ColumnView const& getView() const;
 };
 
 template <>
@@ -164,8 +164,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdName> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdName)
   using api_type = org::imm::ImmAdapterCmdNameAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdNameAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdName>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdName", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
 };
 
 template <>
@@ -173,9 +173,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs> : public org::imm::ImmA
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCustomArgs)
   using api_type = org::imm::ImmAdapterCmdCustomArgsAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomArgsAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomArgs>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomArgs", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  bool const& getIsAttached() const { return this->value().isAttached; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  bool const& getIsAttached() const;
 };
 
 template <>
@@ -183,10 +183,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCustomRaw)
   using api_type = org::imm::ImmAdapterCmdCustomRawAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomRawAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomRaw>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomRaw", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  bool const& getIsAttached() const { return this->value().isAttached; }
-  hstd::Str const& getText() const { return this->value().text.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  bool const& getIsAttached() const;
+  hstd::Str const& getText() const;
 };
 
 template <>
@@ -194,10 +194,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomText> : public org::imm::ImmA
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCustomText)
   using api_type = org::imm::ImmAdapterCmdCustomTextAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomTextAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomText>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomText", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  bool const& getIsAttached() const { return this->value().isAttached; }
-  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const { return this->value().text; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  bool const& getIsAttached() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getText() const;
 };
 
 template <>
@@ -205,13 +205,13 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCall> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdCall)
   using api_type = org::imm::ImmAdapterCmdCallAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCallAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCall>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCall", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  hstd::Opt<hstd::Str> const& getFileName() const { return this->value().fileName.get(); }
-  org::sem::AttrGroup const& getInsideHeaderAttrs() const { return this->value().insideHeaderAttrs; }
-  org::sem::AttrGroup const& getCallAttrs() const { return this->value().callAttrs; }
-  org::sem::AttrGroup const& getEndHeaderAttrs() const { return this->value().endHeaderAttrs; }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const { return this->value().result; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  hstd::Opt<hstd::Str> const& getFileName() const;
+  org::sem::AttrGroup const& getInsideHeaderAttrs() const;
+  org::sem::AttrGroup const& getCallAttrs() const;
+  org::sem::AttrGroup const& getEndHeaderAttrs() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const;
 };
 
 template <>
@@ -219,8 +219,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdTblfm> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdTblfm)
   using api_type = org::imm::ImmAdapterCmdTblfmAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdTblfmAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdTblfm>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdTblfm", other.getKind()) }
-  org::sem::Tblfm const& getExpr() const { return this->value().expr; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::Tblfm const& getExpr() const;
 };
 
 template <>
@@ -228,8 +228,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmHashTag> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmHashTag)
   using api_type = org::imm::ImmAdapterHashTagAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterHashTagAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmHashTag>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "HashTag", other.getKind()) }
-  org::sem::HashTagText const& getText() const { return this->value().text; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::HashTagText const& getText() const;
 };
 
 template <>
@@ -237,9 +237,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmInlineFootnote> : public org::imm::Imm
   USE_IMM_ADAPTER_BASE(org::imm::ImmInlineFootnote)
   using api_type = org::imm::ImmAdapterInlineFootnoteAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterInlineFootnoteAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineFootnote>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "InlineFootnote", other.getKind()) }
-  hstd::Str const& getTag() const { return this->value().tag.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>> const& getDefinition() const { return this->value().definition.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getTag() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>> const& getDefinition() const;
 };
 
 template <>
@@ -247,9 +247,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmInlineExport> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmInlineExport)
   using api_type = org::imm::ImmAdapterInlineExportAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterInlineExportAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineExport>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "InlineExport", other.getKind()) }
-  hstd::Str const& getExporter() const { return this->value().exporter.get(); }
-  hstd::Str const& getContent() const { return this->value().content.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getExporter() const;
+  hstd::Str const& getContent() const;
 };
 
 template <>
@@ -257,9 +257,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmTime> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmTime)
   using api_type = org::imm::ImmAdapterTimeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTimeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTime>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Time", other.getKind()) }
-  bool const& getIsActive() const { return this->value().isActive; }
-  org::imm::ImmTime::TimeVariant const& getTime() const { return this->value().time; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  bool const& getIsActive() const;
+  org::imm::ImmTime::TimeVariant const& getTime() const;
 };
 
 template <>
@@ -267,9 +267,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmTimeRange> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmTimeRange)
   using api_type = org::imm::ImmAdapterTimeRangeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTimeRangeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TimeRange", other.getKind()) }
-  org::imm::ImmIdT<org::imm::ImmTime> const& getFrom() const { return this->value().from; }
-  org::imm::ImmIdT<org::imm::ImmTime> const& getTo() const { return this->value().to; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::imm::ImmIdT<org::imm::ImmTime> const& getFrom() const;
+  org::imm::ImmIdT<org::imm::ImmTime> const& getTo() const;
 };
 
 template <>
@@ -277,9 +277,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmMacro> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmMacro)
   using api_type = org::imm::ImmAdapterMacroAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterMacroAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMacro>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Macro", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  org::sem::AttrGroup const& getAttrs() const { return this->value().attrs; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  org::sem::AttrGroup const& getAttrs() const;
 };
 
 template <>
@@ -287,10 +287,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmSymbol> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmSymbol)
   using api_type = org::imm::ImmAdapterSymbolAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSymbolAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymbol>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Symbol", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> const& getParameters() const { return this->value().parameters; }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getPositional() const { return this->value().positional; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> const& getParameters() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> const& getPositional() const;
 };
 
 template <>
@@ -298,7 +298,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmEscaped> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmEscaped)
   using api_type = org::imm::ImmAdapterEscapedAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterEscapedAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEscaped>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Escaped", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -306,7 +306,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmNewline> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmNewline)
   using api_type = org::imm::ImmAdapterNewlineAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterNewlineAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNewline>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Newline", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -314,7 +314,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmSpace> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmSpace)
   using api_type = org::imm::ImmAdapterSpaceAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSpaceAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSpace>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Space", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -322,7 +322,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmWord> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmWord)
   using api_type = org::imm::ImmAdapterWordAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterWordAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmWord>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Word", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -330,7 +330,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmAtMention> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmAtMention)
   using api_type = org::imm::ImmAdapterAtMentionAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterAtMentionAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAtMention>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "AtMention", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -338,7 +338,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmRawText> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmRawText)
   using api_type = org::imm::ImmAdapterRawTextAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterRawTextAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRawText>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "RawText", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -346,7 +346,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmPunctuation> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmPunctuation)
   using api_type = org::imm::ImmAdapterPunctuationAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterPunctuationAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPunctuation>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Punctuation", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -354,7 +354,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmPlaceholder> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmPlaceholder)
   using api_type = org::imm::ImmAdapterPlaceholderAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterPlaceholderAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPlaceholder>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Placeholder", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -362,7 +362,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBigIdent> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmBigIdent)
   using api_type = org::imm::ImmAdapterBigIdentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBigIdentAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBigIdent>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BigIdent", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -370,7 +370,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmTextTarget> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmTextTarget)
   using api_type = org::imm::ImmAdapterTextTargetAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTextTargetAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextTarget>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TextTarget", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -378,7 +378,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken> : public org::imm::Imm
   USE_IMM_ADAPTER_BASE(org::imm::ImmErrorSkipToken)
   using api_type = org::imm::ImmAdapterErrorSkipTokenAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorSkipTokenAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipToken>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorSkipToken", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -386,8 +386,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup> : public org::imm::Imm
   USE_IMM_ADAPTER_BASE(org::imm::ImmErrorSkipGroup)
   using api_type = org::imm::ImmAdapterErrorSkipGroupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorSkipGroupAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipGroup>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorSkipGroup", other.getKind()) }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const& getSkipped() const { return this->value().skipped; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> const& getSkipped() const;
 };
 
 template <>
@@ -395,7 +395,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmMarkup> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmMarkup)
   using api_type = org::imm::ImmAdapterMarkupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterMarkupAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkup>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Markup", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -403,7 +403,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBold> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmBold)
   using api_type = org::imm::ImmAdapterBoldAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBoldAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBold>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Bold", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -411,7 +411,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmUnderline> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmUnderline)
   using api_type = org::imm::ImmAdapterUnderlineAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterUnderlineAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmUnderline>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Underline", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -419,7 +419,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmMonospace> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmMonospace)
   using api_type = org::imm::ImmAdapterMonospaceAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterMonospaceAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMonospace>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Monospace", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -427,7 +427,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmMarkQuote> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmMarkQuote)
   using api_type = org::imm::ImmAdapterMarkQuoteAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterMarkQuoteAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkQuote>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "MarkQuote", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -435,7 +435,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmVerbatim> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmVerbatim)
   using api_type = org::imm::ImmAdapterVerbatimAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterVerbatimAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmVerbatim>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Verbatim", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -443,7 +443,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmItalic> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmItalic)
   using api_type = org::imm::ImmAdapterItalicAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterItalicAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmItalic>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Italic", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -451,7 +451,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmStrike> : public org::imm::ImmAdapterT
   USE_IMM_ADAPTER_BASE(org::imm::ImmStrike)
   using api_type = org::imm::ImmAdapterStrikeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterStrikeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStrike>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Strike", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -459,7 +459,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmPar> : public org::imm::ImmAdapterTBas
   USE_IMM_ADAPTER_BASE(org::imm::ImmPar)
   using api_type = org::imm::ImmAdapterParAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterParAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPar>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Par", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -467,8 +467,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmRadioTarget> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmRadioTarget)
   using api_type = org::imm::ImmAdapterRadioTargetAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterRadioTargetAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRadioTarget>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "RadioTarget", other.getKind()) }
-  hstd::ext::ImmVec<hstd::Str> const& getWords() const { return this->value().words; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<hstd::Str> const& getWords() const;
 };
 
 template <>
@@ -476,7 +476,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmLatex> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmLatex)
   using api_type = org::imm::ImmAdapterLatexAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterLatexAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLatex>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Latex", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -484,9 +484,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmLink> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmLink)
   using api_type = org::imm::ImmAdapterLinkAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterLinkAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLink>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Link", other.getKind()) }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getDescription() const { return this->value().description.get(); }
-  org::sem::LinkTarget const& getTarget() const { return this->value().target; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getDescription() const;
+  org::sem::LinkTarget const& getTarget() const;
 };
 
 template <>
@@ -494,7 +494,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockCenter> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCenter)
   using api_type = org::imm::ImmAdapterBlockCenterAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCenterAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCenter", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -502,7 +502,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockQuote> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockQuote)
   using api_type = org::imm::ImmAdapterBlockQuoteAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockQuoteAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockQuote", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -510,7 +510,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockComment> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockComment)
   using api_type = org::imm::ImmAdapterBlockCommentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCommentAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockComment", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -518,7 +518,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockVerse> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockVerse)
   using api_type = org::imm::ImmAdapterBlockVerseAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockVerseAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockVerse", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -526,8 +526,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback> : public org::im
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockDynamicFallback)
   using api_type = org::imm::ImmAdapterBlockDynamicFallbackAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockDynamicFallbackAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockDynamicFallback", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
 };
 
 template <>
@@ -535,7 +535,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockExample> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExample)
   using api_type = org::imm::ImmAdapterBlockExampleAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExampleAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockExample", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -543,9 +543,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockExport> : public org::imm::ImmAda
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExport)
   using api_type = org::imm::ImmAdapterBlockExportAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExportAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockExport", other.getKind()) }
-  hstd::Str const& getExporter() const { return this->value().exporter.get(); }
-  hstd::Str const& getContent() const { return this->value().content.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getExporter() const;
+  hstd::Str const& getContent() const;
 };
 
 template <>
@@ -553,7 +553,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition> : public org::imm::Im
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockAdmonition)
   using api_type = org::imm::ImmAdapterBlockAdmonitionAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockAdmonitionAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockAdmonition", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -561,9 +561,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult> : public org::imm
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCodeEvalResult)
   using api_type = org::imm::ImmAdapterBlockCodeEvalResultAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeEvalResultAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCodeEvalResult", other.getKind()) }
-  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> const& getRaw() const { return this->value().raw; }
-  org::imm::ImmIdT<org::imm::ImmOrg> const& getNode() const { return this->value().node; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> const& getRaw() const;
+  org::imm::ImmIdT<org::imm::ImmOrg> const& getNode() const;
 };
 
 template <>
@@ -571,11 +571,11 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockCode> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCode)
   using api_type = org::imm::ImmAdapterBlockCodeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCode", other.getKind()) }
-  hstd::Opt<hstd::Str> const& getLang() const { return this->value().lang.get(); }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const { return this->value().result; }
-  hstd::ext::ImmVec<org::sem::BlockCodeLine> const& getLines() const { return this->value().lines; }
-  org::sem::AttrGroup const& getSwitches() const { return this->value().switches; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Opt<hstd::Str> const& getLang() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> const& getResult() const;
+  hstd::ext::ImmVec<org::sem::BlockCodeLine> const& getLines() const;
+  org::sem::AttrGroup const& getSwitches() const;
 };
 
 template <>
@@ -583,9 +583,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmSubtreeLog> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmSubtreeLog)
   using api_type = org::imm::ImmAdapterSubtreeLogAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSubtreeLogAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtreeLog>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "SubtreeLog", other.getKind()) }
-  org::sem::SubtreeLogHead const& getHead() const { return this->value().head; }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>> const& getDesc() const { return this->value().desc.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::sem::SubtreeLogHead const& getHead() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>> const& getDesc() const;
 };
 
 template <>
@@ -593,22 +593,22 @@ struct org::imm::ImmAdapterT<org::imm::ImmSubtree> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmSubtree)
   using api_type = org::imm::ImmAdapterSubtreeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSubtreeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtree>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Subtree", other.getKind()) }
-  int const& getLevel() const { return this->value().level; }
-  hstd::Opt<hstd::Str> const& getTreeId() const { return this->value().treeId.get(); }
-  hstd::Opt<hstd::Str> const& getTodo() const { return this->value().todo.get(); }
-  hstd::Opt<org::sem::SubtreeCompletion> const& getCompletion() const { return this->value().completion.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getDescription() const { return this->value().description.get(); }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getTags() const { return this->value().tags; }
-  org::imm::ImmIdT<org::imm::ImmParagraph> const& getTitle() const { return this->value().title; }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const& getLogbook() const { return this->value().logbook; }
-  hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const { return this->value().properties; }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getClosed() const { return this->value().closed.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getDeadline() const { return this->value().deadline.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getScheduled() const { return this->value().scheduled.get(); }
-  bool const& getIsComment() const { return this->value().isComment; }
-  bool const& getIsArchived() const { return this->value().isArchived; }
-  hstd::Opt<hstd::Str> const& getPriority() const { return this->value().priority.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  int const& getLevel() const;
+  hstd::Opt<hstd::Str> const& getTreeId() const;
+  hstd::Opt<hstd::Str> const& getTodo() const;
+  hstd::Opt<org::sem::SubtreeCompletion> const& getCompletion() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getDescription() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getTags() const;
+  org::imm::ImmIdT<org::imm::ImmParagraph> const& getTitle() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> const& getLogbook() const;
+  hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getClosed() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getDeadline() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>> const& getScheduled() const;
+  bool const& getIsComment() const;
+  bool const& getIsArchived() const;
+  hstd::Opt<hstd::Str> const& getPriority() const;
 };
 
 template <>
@@ -616,8 +616,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCell> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmCell)
   using api_type = org::imm::ImmAdapterCellAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCellAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCell>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Cell", other.getKind()) }
-  bool const& getIsBlock() const { return this->value().isBlock; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  bool const& getIsBlock() const;
 };
 
 template <>
@@ -625,9 +625,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmRow> : public org::imm::ImmAdapterTBas
   USE_IMM_ADAPTER_BASE(org::imm::ImmRow)
   using api_type = org::imm::ImmAdapterRowAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterRowAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRow>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Row", other.getKind()) }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> const& getCells() const { return this->value().cells; }
-  bool const& getIsBlock() const { return this->value().isBlock; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> const& getCells() const;
+  bool const& getIsBlock() const;
 };
 
 template <>
@@ -635,9 +635,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmTable> : public org::imm::ImmAdapterTB
   USE_IMM_ADAPTER_BASE(org::imm::ImmTable)
   using api_type = org::imm::ImmAdapterTableAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTableAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTable>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Table", other.getKind()) }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> const& getRows() const { return this->value().rows; }
-  bool const& getIsBlock() const { return this->value().isBlock; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> const& getRows() const;
+  bool const& getIsBlock() const;
 };
 
 template <>
@@ -645,7 +645,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmParagraph> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmParagraph)
   using api_type = org::imm::ImmAdapterParagraphAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterParagraphAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmParagraph>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Paragraph", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -653,7 +653,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmColonExample> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmColonExample)
   using api_type = org::imm::ImmAdapterColonExampleAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterColonExampleAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmColonExample>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ColonExample", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -661,8 +661,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdAttr> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdAttr)
   using api_type = org::imm::ImmAdapterCmdAttrAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdAttrAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAttr>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdAttr", other.getKind()) }
-  hstd::Str const& getTarget() const { return this->value().target.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getTarget() const;
 };
 
 template <>
@@ -670,9 +670,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdExport> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdExport)
   using api_type = org::imm::ImmAdapterCmdExportAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdExportAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdExport>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdExport", other.getKind()) }
-  hstd::Str const& getExporter() const { return this->value().exporter.get(); }
-  hstd::Str const& getContent() const { return this->value().content.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getExporter() const;
+  hstd::Str const& getContent() const;
 };
 
 template <>
@@ -680,10 +680,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmCall> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmCall)
   using api_type = org::imm::ImmAdapterCallAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCallAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCall>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Call", other.getKind()) }
-  hstd::Str const& getName() const { return this->value().name.get(); }
-  org::sem::AttrGroup const& getAttrs() const { return this->value().attrs; }
-  bool const& getIsCommand() const { return this->value().isCommand; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getName() const;
+  org::sem::AttrGroup const& getAttrs() const;
+  bool const& getIsCommand() const;
 };
 
 template <>
@@ -691,7 +691,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmList> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmList)
   using api_type = org::imm::ImmAdapterListAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterListAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmList>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "List", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -699,10 +699,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmListItem> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmListItem)
   using api_type = org::imm::ImmAdapterListItemAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterListItemAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmListItem>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ListItem", other.getKind()) }
-  CheckboxState const& getCheckbox() const { return this->value().checkbox; }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getHeader() const { return this->value().header.get(); }
-  hstd::Opt<hstd::Str> const& getBullet() const { return this->value().bullet.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  CheckboxState const& getCheckbox() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getHeader() const;
+  hstd::Opt<hstd::Str> const& getBullet() const;
 };
 
 template <>
@@ -710,18 +710,18 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentOptions> : public org::imm::Im
   USE_IMM_ADAPTER_BASE(org::imm::ImmDocumentOptions)
   using api_type = org::imm::ImmAdapterDocumentOptionsAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentOptionsAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentOptions>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentOptions", other.getKind()) }
-  InitialSubtreeVisibility const& getInitialVisibility() const { return this->value().initialVisibility; }
-  hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const { return this->value().properties; }
-  org::sem::DocumentExportConfig const& getExportConfig() const { return this->value().exportConfig; }
-  hstd::Opt<bool> const& getFixedWidthSections() const { return this->value().fixedWidthSections.get(); }
-  hstd::Opt<bool> const& getStartupIndented() const { return this->value().startupIndented.get(); }
-  hstd::Opt<hstd::Str> const& getCategory() const { return this->value().category.get(); }
-  hstd::Opt<hstd::Str> const& getSetupfile() const { return this->value().setupfile.get(); }
-  hstd::Opt<int> const& getMaxSubtreeLevelExport() const { return this->value().maxSubtreeLevelExport.get(); }
-  hstd::Opt<org::sem::ColumnView> const& getColumns() const { return this->value().columns.get(); }
-  hstd::ext::ImmVec<org::sem::TodoKeyword> const& getTodoKeywords() const { return this->value().todoKeywords; }
-  hstd::ext::ImmVec<org::sem::TodoKeyword> const& getDoneKeywords() const { return this->value().doneKeywords; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  InitialSubtreeVisibility const& getInitialVisibility() const;
+  hstd::ext::ImmVec<org::sem::NamedProperty> const& getProperties() const;
+  org::sem::DocumentExportConfig const& getExportConfig() const;
+  hstd::Opt<bool> const& getFixedWidthSections() const;
+  hstd::Opt<bool> const& getStartupIndented() const;
+  hstd::Opt<hstd::Str> const& getCategory() const;
+  hstd::Opt<hstd::Str> const& getSetupfile() const;
+  hstd::Opt<int> const& getMaxSubtreeLevelExport() const;
+  hstd::Opt<org::sem::ColumnView> const& getColumns() const;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> const& getTodoKeywords() const;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> const& getDoneKeywords() const;
 };
 
 template <>
@@ -729,9 +729,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentFragment> : public org::imm::I
   USE_IMM_ADAPTER_BASE(org::imm::ImmDocumentFragment)
   using api_type = org::imm::ImmAdapterDocumentFragmentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentFragmentAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentFragment>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentFragment", other.getKind()) }
-  int const& getBaseLine() const { return this->value().baseLine; }
-  int const& getBaseCol() const { return this->value().baseCol; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  int const& getBaseLine() const;
+  int const& getBaseCol() const;
 };
 
 template <>
@@ -739,8 +739,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmCriticMarkup> : public org::imm::ImmAd
   USE_IMM_ADAPTER_BASE(org::imm::ImmCriticMarkup)
   using api_type = org::imm::ImmAdapterCriticMarkupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCriticMarkupAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCriticMarkup>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CriticMarkup", other.getKind()) }
-  org::imm::ImmCriticMarkup::Kind const& getKind() const { return this->value().kind; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  org::imm::ImmCriticMarkup::Kind const& getKind() const;
 };
 
 template <>
@@ -748,15 +748,15 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocument> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmDocument)
   using api_type = org::imm::ImmAdapterDocumentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocument>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Document", other.getKind()) }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getTitle() const { return this->value().title.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getAuthor() const { return this->value().author.get(); }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getCreator() const { return this->value().creator.get(); }
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getFiletags() const { return this->value().filetags; }
-  hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>> const& getEmail() const { return this->value().email.get(); }
-  hstd::ext::ImmVec<hstd::Str> const& getLanguage() const { return this->value().language; }
-  org::imm::ImmIdT<org::imm::ImmDocumentOptions> const& getOptions() const { return this->value().options; }
-  hstd::Opt<hstd::Str> const& getExportFileName() const { return this->value().exportFileName.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getTitle() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getAuthor() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>> const& getCreator() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> const& getFiletags() const;
+  hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>> const& getEmail() const;
+  hstd::ext::ImmVec<hstd::Str> const& getLanguage() const;
+  org::imm::ImmIdT<org::imm::ImmDocumentOptions> const& getOptions() const;
+  hstd::Opt<hstd::Str> const& getExportFileName() const;
 };
 
 template <>
@@ -764,13 +764,13 @@ struct org::imm::ImmAdapterT<org::imm::ImmFileTarget> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmFileTarget)
   using api_type = org::imm::ImmAdapterFileTargetAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterFileTargetAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFileTarget>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "FileTarget", other.getKind()) }
-  hstd::Str const& getPath() const { return this->value().path.get(); }
-  hstd::Opt<int> const& getLine() const { return this->value().line.get(); }
-  hstd::Opt<hstd::Str> const& getSearchTarget() const { return this->value().searchTarget.get(); }
-  bool const& getRestrictToHeadlines() const { return this->value().restrictToHeadlines; }
-  hstd::Opt<hstd::Str> const& getTargetId() const { return this->value().targetId.get(); }
-  hstd::Opt<hstd::Str> const& getRegexp() const { return this->value().regexp.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getPath() const;
+  hstd::Opt<int> const& getLine() const;
+  hstd::Opt<hstd::Str> const& getSearchTarget() const;
+  bool const& getRestrictToHeadlines() const;
+  hstd::Opt<hstd::Str> const& getTargetId() const;
+  hstd::Opt<hstd::Str> const& getRegexp() const;
 };
 
 template <>
@@ -778,7 +778,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmTextSeparator> : public org::imm::ImmA
   USE_IMM_ADAPTER_BASE(org::imm::ImmTextSeparator)
   using api_type = org::imm::ImmAdapterTextSeparatorAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTextSeparatorAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextSeparator>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TextSeparator", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -786,7 +786,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentGroup> : public org::imm::ImmA
   USE_IMM_ADAPTER_BASE(org::imm::ImmDocumentGroup)
   using api_type = org::imm::ImmAdapterDocumentGroupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentGroupAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentGroup>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentGroup", other.getKind()) }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
 };
 
 template <>
@@ -794,10 +794,10 @@ struct org::imm::ImmAdapterT<org::imm::ImmFile> : public org::imm::ImmAdapterTBa
   USE_IMM_ADAPTER_BASE(org::imm::ImmFile)
   using api_type = org::imm::ImmAdapterFileAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterFileAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFile>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "File", other.getKind()) }
-  hstd::Str const& getRelPath() const { return this->value().relPath.get(); }
-  hstd::Str const& getAbsPath() const { return this->value().absPath.get(); }
-  org::imm::ImmFile::Data const& getData() const { return this->value().data; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getRelPath() const;
+  hstd::Str const& getAbsPath() const;
+  org::imm::ImmFile::Data const& getData() const;
 };
 
 template <>
@@ -805,9 +805,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmDirectory> : public org::imm::ImmAdapt
   USE_IMM_ADAPTER_BASE(org::imm::ImmDirectory)
   using api_type = org::imm::ImmAdapterDirectoryAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDirectoryAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDirectory>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Directory", other.getKind()) }
-  hstd::Str const& getRelPath() const { return this->value().relPath.get(); }
-  hstd::Str const& getAbsPath() const { return this->value().absPath.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getRelPath() const;
+  hstd::Str const& getAbsPath() const;
 };
 
 template <>
@@ -815,9 +815,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmSymlink> : public org::imm::ImmAdapter
   USE_IMM_ADAPTER_BASE(org::imm::ImmSymlink)
   using api_type = org::imm::ImmAdapterSymlinkAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSymlinkAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymlink>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Symlink", other.getKind()) }
-  bool const& getIsDirectory() const { return this->value().isDirectory; }
-  hstd::Str const& getAbsPath() const { return this->value().absPath.get(); }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  bool const& getIsDirectory() const;
+  hstd::Str const& getAbsPath() const;
 };
 
 template <>
@@ -825,11 +825,11 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdInclude> : public org::imm::ImmAdap
   USE_IMM_ADAPTER_BASE(org::imm::ImmCmdInclude)
   using api_type = org::imm::ImmAdapterCmdIncludeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdIncludeAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>{other} { LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdInclude", other.getKind()) }
-  hstd::Str const& getPath() const { return this->value().path.get(); }
-  hstd::Opt<int> const& getFirstLine() const { return this->value().firstLine.get(); }
-  hstd::Opt<int> const& getLastLine() const { return this->value().lastLine.get(); }
-  org::imm::ImmCmdInclude::Data const& getData() const { return this->value().data; }
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+  hstd::Str const& getPath() const;
+  hstd::Opt<int> const& getFirstLine() const;
+  hstd::Opt<int> const& getLastLine() const;
+  org::imm::ImmCmdInclude::Data const& getData() const;
 };
 
 }

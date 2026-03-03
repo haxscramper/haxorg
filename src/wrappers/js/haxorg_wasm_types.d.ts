@@ -1542,7 +1542,7 @@ export interface ParseSourceLoc {
 }
 export interface OrgJsonConstructor { new(): OrgJson; }
 export interface OrgJson {
-  getKind(): OrgJsonKind;
+  getKind(): number;
   getJsonString(): string;
   atIndex(idx: number): OrgJson;
   atField(name: string): OrgJson;
@@ -1556,12 +1556,12 @@ export interface OrgJson {
 }
 export interface OrgConstructor { new(): Org; }
 export interface Org {
-  getKind(): OrgSemKind;
+  getKind(): number;
   push_back(sub: Org): void;
   size(): number;
   insert(pos: number, node: Org): void;
   at(idx: number): Org;
-  is(kind: OrgSemKind): boolean;
+  is(kind: number): boolean;
   loc: haxorg_wasm.Optional<ParseSourceLoc>
   subnodes: haxorg_wasm.HstdVec<Org>
 }
@@ -1587,10 +1587,10 @@ export interface ParseOrgParseFragment {
 }
 export interface OrgParseParametersConstructor { new(): OrgParseParameters; }
 export interface OrgParseParameters {
-  baseTokenTracePath: haxorg_wasm.Optional<string>
-  tokenTracePath: haxorg_wasm.Optional<string>
-  parseTracePath: haxorg_wasm.Optional<string>
-  semTracePath: haxorg_wasm.Optional<string>
+  baseTokenTracePath: number
+  tokenTracePath: number
+  parseTracePath: number
+  semTracePath: number
 }
 export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
 export interface OrgDirectoryParseParameters {  }
@@ -1602,16 +1602,16 @@ export interface ParseContext {
   parseFile(file: string): Org;
   parseString(text: string, file_name: string): Org;
   parseStringOpts(text: string, file_name: string, opts: OrgParseParameters): Org;
-  parseDirectory(path: string): haxorg_wasm.Optional<Org>;
-  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
+  parseDirectory(path: string): number;
+  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): number;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
   collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.HstdVec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
 }
 export interface ImmIdConstructor { new(): ImmId; }
 export interface ImmId {
-  getKind(): OrgSemKind;
-  is(kind: OrgSemKind): boolean;
+  getKind(): number;
+  is(kind: number): boolean;
   getNodeIndex(): ImmIdNodeIdxT;
   getReadableId(): string;
 }
@@ -1623,7 +1623,7 @@ export interface ImmPathConstructor { new(): ImmPath; }
 export interface ImmPath {
   empty(): boolean;
   root: ImmId
-  path: ImmPathStore
+  path: number
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
@@ -1647,19 +1647,19 @@ export interface ImmAdapter {
   size(): number;
   isNil(): boolean;
   isRoot(): boolean;
-  getKind(): OrgSemKind;
+  getKind(): number;
   uniq(): ImmUniqId;
   treeReprString(): string;
   treeReprStringOpts(conf: ImmAdapterTreeReprConf): string;
   isDirectParentOf(other: ImmAdapter): boolean;
   isIndirectParentOf(other: ImmAdapter): boolean;
   isSubnodeOf(other: ImmAdapter): boolean;
-  getParent(): haxorg_wasm.Optional<ImmAdapter>;
+  getParent(): number;
   getSelfIndex(): number;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.HstdVec<number>, withPath: boolean): ImmAdapter;
-  is(kind: OrgSemKind): boolean;
+  is(kind: number): boolean;
   sub(withPath: boolean): haxorg_wasm.HstdVec<ImmAdapter>;
 }
 export interface ImmAdapterTreeReprConfConstructor { new(): ImmAdapterTreeReprConf; }
@@ -1667,7 +1667,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
-  withFieldSubset: HstdSet<StdPair<OrgSemKind, ImmReflFieldId>>
+  withFieldSubset: number
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
@@ -1722,20 +1722,20 @@ export interface AstTrackingGroupSingle { node: Org }
 export interface AstTrackingGroupTrackedHashtagConstructor { new(): AstTrackingGroupTrackedHashtag; }
 export interface AstTrackingGroupTrackedHashtag {
   tag: Org
-  targets: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingPath>
+  targets: number
 }
 export interface AstTrackingMapConstructor { new(): AstTrackingMap; }
 export interface AstTrackingMap {
-  getIdPath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getNamePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getAnchorTarget(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getFootnotePath(id: string): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  footnotes: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
-  subtrees: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
-  names: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
-  anchorTargets: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
-  radioTargets: haxorg_wasm.HstdMap<string, AstTrackingAlternatives>
-  hashtagDefinitions: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingAlternatives>
+  getIdPath(id: string): number;
+  getNamePath(id: string): number;
+  getAnchorTarget(id: string): number;
+  getFootnotePath(id: string): number;
+  footnotes: number
+  subtrees: number
+  names: number
+  anchorTargets: number
+  radioTargets: number
+  hashtagDefinitions: number
 }
 export interface SequenceSegmentConstructor { new(): SequenceSegment; }
 export interface SequenceSegment {
@@ -1780,8 +1780,8 @@ export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
 export interface GraphMapNodeProp {
   getAdapter(context: ImmAstContext): ImmAdapter;
-  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<string>;
-  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<string>;
+  getSubtreeId(context: ImmAstContext): number;
+  getFootnoteName(context: ImmAstContext): number;
   id: ImmUniqId
   unresolved: haxorg_wasm.HstdVec<GraphMapLink>
 }
@@ -1836,7 +1836,7 @@ export interface GraphMapGraphState {
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
   addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
   getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.HstdVec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
+  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): number;
   graph: GraphMapGraph
   ast: ImmAstContext
 }
@@ -4272,7 +4272,7 @@ export interface ImmAdapterCallAPI {  }
 export interface ImmAdapterFileAPIConstructor { new(): ImmAdapterFileAPI; }
 export interface ImmAdapterFileAPI {  }
 export interface ImmAdapterDirectoryAPIConstructor { new(): ImmAdapterDirectoryAPI; }
-export interface ImmAdapterDirectoryAPI { getFsSubnode(name: string, withPath: boolean): haxorg_wasm.Optional<ImmAdapter>; }
+export interface ImmAdapterDirectoryAPI { getFsSubnode(name: string, withPath: boolean): number; }
 export interface ImmAdapterSymlinkAPIConstructor { new(): ImmAdapterSymlinkAPI; }
 export interface ImmAdapterSymlinkAPI {  }
 export interface ImmAdapterDocumentFragmentAPIConstructor { new(): ImmAdapterDocumentFragmentAPI; }

@@ -680,11 +680,14 @@ class GenTuDoc:
 @beartype
 @dataclass
 class GenTuTypedef:
+    "IR for typedef/using mapping"
     name: QualType
     base: QualType
     original: Optional[Path] = None
     OriginName: Optional[str] = None
     reflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
+    ExposeHeaderDeclaration: bool = True
+    "When generating header source files, the structure would be exposed for public API"
 
 
 @beartype
@@ -699,6 +702,7 @@ class GenTuEnumField:
 @beartype
 @dataclass
 class GenTuEnum:
+    "IR for enum"
     name: QualType
     doc: GenTuDoc
     fields: List[GenTuEnumField]
@@ -709,6 +713,9 @@ class GenTuEnum:
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
     IsDescribedEnum: bool = False
+
+    ExposeHeaderDeclaration: bool = True
+    "When generating header source files, the enum would be exposed for public API"
 
     def __str__(self) -> str:
         return f"GenTuEnum({self.name.format()})"
@@ -770,6 +777,12 @@ class GenTuFunction:
 
     reflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     "Additional reflection parameters for the function wrapping"
+
+    ExposeHeaderDeclaration: bool = True
+    """
+    When generating header source files, the function would be exposed for public API.
+    For methods the behavior is inherited from the parent structure
+    """
 
     def get_full_qualified_name(self) -> QualType:
         "Get a single type with the fully qualified spaces and function name"
@@ -873,6 +886,8 @@ class GenTuStruct():
     "For structs from reflection parser -- is there a boost describe annotation in code"
     TemplateParams: Optional[GenTuTemplateParams] = None
     "Template parameters for the structure"
+    ExposeHeaderDeclaration: bool = True
+    "When generating header source files, the structure would be exposed for public API"
 
     def __str__(self) -> str:
         return f"GenTuStruct({self.name.format()})"
@@ -1074,7 +1089,7 @@ class GenTu:
 
 
 @beartype
-@dataclass
+@dataclass(kw_only=True)
 class GenUnit:
     header: GenTu
     source: Optional[GenTu] = None

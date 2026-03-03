@@ -110,10 +110,11 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
 
 
 # TODO Make compiled reflection generation build optional
-@haxorg_task(dependencies=[build_and_setup_text_layout_lib, generate_reflection_snapshot])
+@haxorg_task(dependencies=[generate_reflection_snapshot])
 def generate_haxorg_sources(ctx: TaskContext) -> None:
     """Update auto-generated source files"""
     assert not ctx.config.emscripten.build, "Codegen is not supported for the EMCC build"
+    ctx.run(build_and_setup_text_layout_lib)
     from py_codegen.codegen import run_codegen_task
 
     for task in CODEGEN_TASKS:

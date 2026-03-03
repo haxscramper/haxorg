@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from sqlalchemy.testing import eq_clause_element
 
 from py_codegen import codegen_cpp, refl_read, codegen_ir
 import py_codegen.astbuilder_cpp as cpp
@@ -221,23 +222,21 @@ def gen_adaptagrams_wrappers(
         )
 
         return GenFiles([
-            GenUnit(
-                GenTu(
-                    "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                    [GenTuPass(res.build_typedef(pyast))],
-                    clangFormatGuard=False,
-                )),
-            GenUnit(
-                GenTu(
-                    "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
-                    [
-                        GenTuPass("#undef slots"),
-                        GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
-                        GenTuInclude("py_libs/nanobind_utils.hpp", True),
-                        *NB_INCLUDE_LIST,
-                        GenTuPass(res.build_bind(ast)),
-                    ],
-                )),
+            GenUnit(header=GenTu(
+                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
+                [GenTuPass(res.build_typedef(pyast))],
+                clangFormatGuard=False,
+            )),
+            GenUnit(header=GenTu(
+                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
+                [
+                    GenTuPass("#undef slots"),
+                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
+                    GenTuInclude("py_libs/nanobind_utils.hpp", True),
+                    *NB_INCLUDE_LIST,
+                    GenTuPass(res.build_bind(ast)),
+                ],
+            )),
         ])
 
 
@@ -266,24 +265,22 @@ def gen_pyhaxorg_python_wrappers(
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
     return GenFiles([
-        GenUnit(
-            GenTu(
-                "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                [GenTuPass(res.build_typedef(pyast))],
-                clangFormatGuard=False,
-            )),
-        GenUnit(
-            GenTu(
-                "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
-                [
-                    GenTuPass("#undef slots"),
-                    *NB_INCLUDE_LIST,
-                    GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                    GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                    GenTuPass(res.build_bind(ast)),
-                ],
-            )),
+        GenUnit(header=GenTu(
+            "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
+            [GenTuPass(res.build_typedef(pyast))],
+            clangFormatGuard=False,
+        )),
+        GenUnit(header=GenTu(
+            "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
+            [
+                GenTuPass("#undef slots"),
+                *NB_INCLUDE_LIST,
+                GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrg.hpp", True),
+                GenTuInclude("pyhaxorg_manual_impl.hpp", False),
+                GenTuPass(res.build_bind(ast)),
+            ],
+        )),
     ])
 
 
@@ -298,6 +295,7 @@ def gen_pyhaxorg_napi_wrappers(
     ast: cpp.ASTBuilder,
     type_map: GenTypeMap,
 ) -> GenFiles:
+    "Generate embind wrappers"
 
     cpp_builder = cpp.ASTBuilder(ast.b)
 
@@ -322,14 +320,12 @@ def gen_pyhaxorg_napi_wrappers(
     res.add_decl(napi.WasmBindPass(ast.string("haxorg_wasm_manual_register();")))
 
     return GenFiles([
-        GenUnit(
-            GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
-                GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
-            ])),
-        GenUnit(
-            GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
-                GenTuPass(res.build_typedef(ast=ast)),
-            ])),
+        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
+            GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
+        ])),
+        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
+            GenTuPass(res.build_typedef(ast=ast)),
+        ])),
     ])
 
 
@@ -350,15 +346,14 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
     )
 
     return GenFiles([
+        GenUnit(header=GenTu("{base}/serde/SemOrgProto.proto", [
+            GenTuPass('syntax = "proto3";'),
+            GenTuPass("package orgproto;"),
+            GenTuPass('import "SemOrgProtoManual.proto";'),
+            GenTuPass(protobuf),
+        ])),
         GenUnit(
-            GenTu("{base}/serde/SemOrgProto.proto", [
-                GenTuPass('syntax = "proto3";'),
-                GenTuPass("package orgproto;"),
-                GenTuPass('import "SemOrgProtoManual.proto";'),
-                GenTuPass(protobuf),
-            ])),
-        GenUnit(
-            GenTu(
+            header=GenTu(
                 "{base}/serde/SemOrgSerdeDeclarations.hpp",
                 [
                     GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
@@ -372,7 +367,7 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     GenTuPass("#endif"),
                 ],
             ),
-            GenTu(
+            source=GenTu(
                 "{base}/serde/SemOrgSerdeDefinitions.cpp",
                 [
                     GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
@@ -386,26 +381,23 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                 ],
             ),
         ),
+        GenUnit(header=GenTu(
+            "{base}/exporters/Exporter.tcc",
+            get_exporter_methods(False, groups.shared_types, type_map=groups.type_map) +
+            get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
+        ),),
+        GenUnit(header=GenTu(
+            "{base}/imm/ImmOrgSerde.tcc",
+            gen_imm.get_imm_serde(types=groups.expanded,
+                                  ast=ast,
+                                  type_map=groups.type_map),
+        ),),
+        GenUnit(header=GenTu(
+            "{base}/exporters/ExporterMethods.tcc",
+            get_exporter_methods(True, groups.shared_types, type_map=groups.type_map) +
+            get_exporter_methods(True, groups.expanded, type_map=groups.type_map))),
         GenUnit(
-            GenTu(
-                "{base}/exporters/Exporter.tcc",
-                get_exporter_methods(False, groups.shared_types, type_map=groups.type_map)
-                + get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
-            ),),
-        GenUnit(
-            GenTu(
-                "{base}/imm/ImmOrgSerde.tcc",
-                gen_imm.get_imm_serde(types=groups.expanded,
-                                      ast=ast,
-                                      type_map=groups.type_map),
-            ),),
-        GenUnit(
-            GenTu(
-                "{base}/exporters/ExporterMethods.tcc",
-                get_exporter_methods(True, groups.shared_types, type_map=groups.type_map)
-                + get_exporter_methods(True, groups.expanded, type_map=groups.type_map))),
-        GenUnit(
-            GenTu(
+            header=GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api(
                     gen_pyhaxorg_shared_iteration_macros(groups.shared_types) +
@@ -422,61 +414,58 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     macro_namespace="IMM",
                 ) + groups.full_enums,
             ),
-            GenTu(
+            source=GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
                 [GenTuPass('#include "SemOrgEnums.hpp"')] +
                 groups.full_enums,  # type: ignore
             ),
         ),
+        GenUnit(header=GenTu(
+            "{base}/sem/SemOrgSharedTypes.hpp",
+            [
+                GenTuPass("#pragma once"),
+                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                GenTuInclude("hstd/stdlib/Vec.hpp", True),
+                GenTuInclude("hstd/stdlib/Variant.hpp", True),
+                GenTuInclude("hstd/stdlib/Time.hpp", True),
+                GenTuInclude("hstd/stdlib/Opt.hpp", True),
+                GenTuInclude("hstd/stdlib/Str.hpp", True),
+                GenTuInclude("boost/describe.hpp", True),
+                GenTuInclude("hstd/system/macros.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrgBaseSharedTypes.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                GenTuNamespace(n_sem(), groups.shared_types),
+            ],
+        )),
+        GenUnit(header=GenTu(
+            "{base}/sem/SemOrgTypes.hpp",
+            [
+                GenTuPass("#pragma once"),
+                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                GenTuInclude("hstd/stdlib/Vec.hpp", True),
+                GenTuInclude("hstd/stdlib/Variant.hpp", True),
+                GenTuInclude("hstd/stdlib/Time.hpp", True),
+                GenTuInclude("hstd/stdlib/Opt.hpp", True),
+                GenTuInclude("hstd/stdlib/Str.hpp", True),
+                GenTuInclude("haxorg/parse/OrgTypes.hpp", True),
+                GenTuInclude("boost/describe.hpp", True),
+                GenTuInclude("hstd/system/macros.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrgSharedTypes.hpp", True),
+                GenTuNamespace(n_sem(), groups.expanded),
+            ],
+        )),
+        GenUnit(header=GenTu(
+            "{base}/imm/ImmOrgTypes.hpp",
+            [
+                GenTuPass("#pragma once"),
+                GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
+                GenTuNamespace(n_imm(), groups.immutable),
+            ],
+        )),
         GenUnit(
-            GenTu(
-                "{base}/sem/SemOrgSharedTypes.hpp",
-                [
-                    GenTuPass("#pragma once"),
-                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuInclude("hstd/stdlib/Vec.hpp", True),
-                    GenTuInclude("hstd/stdlib/Variant.hpp", True),
-                    GenTuInclude("hstd/stdlib/Time.hpp", True),
-                    GenTuInclude("hstd/stdlib/Opt.hpp", True),
-                    GenTuInclude("hstd/stdlib/Str.hpp", True),
-                    GenTuInclude("boost/describe.hpp", True),
-                    GenTuInclude("hstd/system/macros.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrgBaseSharedTypes.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace(n_sem(), groups.shared_types),
-                ],
-            )),
-        GenUnit(
-            GenTu(
-                "{base}/sem/SemOrgTypes.hpp",
-                [
-                    GenTuPass("#pragma once"),
-                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuInclude("hstd/stdlib/Vec.hpp", True),
-                    GenTuInclude("hstd/stdlib/Variant.hpp", True),
-                    GenTuInclude("hstd/stdlib/Time.hpp", True),
-                    GenTuInclude("hstd/stdlib/Opt.hpp", True),
-                    GenTuInclude("hstd/stdlib/Str.hpp", True),
-                    GenTuInclude("haxorg/parse/OrgTypes.hpp", True),
-                    GenTuInclude("boost/describe.hpp", True),
-                    GenTuInclude("hstd/system/macros.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuInclude("haxorg/sem/SemOrgSharedTypes.hpp", True),
-                    GenTuNamespace(n_sem(), groups.expanded),
-                ],
-            )),
-        GenUnit(
-            GenTu(
-                "{base}/imm/ImmOrgTypes.hpp",
-                [
-                    GenTuPass("#pragma once"),
-                    GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
-                    GenTuNamespace(n_imm(), groups.immutable),
-                ],
-            )),
-        GenUnit(
-            GenTu(
+            header=GenTu(
                 "{base}/imm/ImmOrgAdapterGenerated.hpp",
                 [
                     GenTuPass("#pragma once"),
@@ -486,8 +475,64 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
                     GenTuNamespace(n_imm(), groups.adapter_specializations),
                 ],
-            )),
+            ),
+            source=GenTu(
+                "{base}/imm/ImmOrgAdapterGenerated.cpp",
+                [
+                    GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
+                    GenTuInclude("haxorg/imm/ImmOrgAdapterGenerated.hpp", True),
+                ] + groups.adapter_specializations,
+            ),
+        ),
     ])
+
+
+@beartype
+def gen_unit(
+    define: GenTu,
+    builder: cpp.ASTBuilder,
+    t: TextLayout,
+    tmp: bool,
+    isHeader: bool,
+    isSplitHeaderSource: bool,
+):
+    """
+    Generate code for source/header of the translation unit component
+    """
+    out_root = Path("/tmp") if tmp else get_haxorg_repo_root_path()
+
+    path = define.path.format(base=out_root.joinpath("src/haxorg"), root=out_root)
+
+    with ExceptionContextNote(f"Path: {define.path}"):
+        result = builder.TranslationUnit([
+            codegen_cpp.GenConverter(
+                builder, isHeader=isHeader,
+                isSplitHeaderSource=isSplitHeaderSource).convertTu(define)
+        ])
+
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        log(CAT).info(f"Created dir for {path}")
+
+    opts = TextOptions()
+    opts.rightMargin = 160
+    newCode = t.toString(result, opts)
+
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            oldCode = f.read()
+
+        if oldCode != newCode:
+            with open(path, "w") as out:
+                out.write(newCode)
+            log(CAT).info(f"[red]Updated code[/red] in {define.path}")
+        else:
+            log(CAT).info(f"[green]No changes[/green] on {define.path}")
+    else:
+        with open(path, "w") as out:
+            out.write(newCode)
+        log(CAT).info(f"[red]Wrote[/red] to {define.path}")
 
 
 def gen_description_files(
@@ -496,50 +541,22 @@ def gen_description_files(
     t: TextLayout,
     tmp: bool,
 ) -> None:
+    "Generate all translation unit files"
     for tu in description.files:
-        for i in range(2):
-            if i == 1 and not tu.source:
-                continue
+        if tu.source:
+            gen_unit(tu.source,
+                     builder,
+                     t,
+                     tmp,
+                     isHeader=False,
+                     isSplitHeaderSource=bool(tu.source and tu.header))
 
-            isHeader = i == 0
-            define = tu.header if isHeader else tu.source
-            if not define:
-                continue
-
-            out_root = Path("/tmp") if tmp else get_haxorg_repo_root_path()
-
-            path = define.path.format(base=out_root.joinpath("src/haxorg"), root=out_root)
-
-            result = builder.TranslationUnit([
-                codegen_cpp.GenConverter(builder, isSource=not isHeader).convertTu(
-                    tu.header if isHeader else tu.source)  # type: ignore
-            ])
-
-            directory = os.path.dirname(path)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-                log(CAT).info(f"Created dir for {path}")
-
-            opts = TextOptions()
-            opts.rightMargin = 160
-            newCode = t.toString(result, opts)
-
-            # continue
-
-            if os.path.exists(path):
-                with open(path, "r") as f:
-                    oldCode = f.read()
-
-                if oldCode != newCode:
-                    with open(path, "w") as out:
-                        out.write(newCode)
-                    log(CAT).info(f"[red]Updated code[/red] in {define.path}")
-                else:
-                    log(CAT).info(f"[green]No changes[/green] on {define.path}")
-            else:
-                with open(path, "w") as out:
-                    out.write(newCode)
-                log(CAT).info(f"[red]Wrote[/red] to {define.path}")
+        gen_unit(tu.header,
+                 builder,
+                 t,
+                 tmp,
+                 isHeader=True,
+                 isSplitHeaderSource=bool(tu.source and tu.header))
 
 
 from py_scriptutils.toml_config_profiler import (
