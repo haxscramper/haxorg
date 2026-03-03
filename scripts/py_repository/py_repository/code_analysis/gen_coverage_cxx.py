@@ -1151,7 +1151,7 @@ def get_annotated_file_for_session(
 
     with GlobCompleteEvent("Annotate sequence", "cov"):
         token_segmented = org.annotateSequence(
-            groups=org.VecOfSequenceSegmentGroupVec(groups),
+            groups=org.HstdVecOfSequenceSegmentGroup(groups),
             first=0,
             last=len(file_full_content),
         )

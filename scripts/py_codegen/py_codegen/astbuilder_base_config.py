@@ -71,13 +71,15 @@ class AstbulderConfig(abc.ABC):
                 ("hstd", "SharedPtrApi"),
                 ("org", "imm", "ImmAdapterT"),
                 ("org", "algo", "Exporter"),
+                ("org", "imm", "ImmAdapterTBase"),
+                ("org", "imm", "ImmIdT"),
             }:
                 return False
 
             case _:
                 return 0 < len(t.Parameters)
 
-    def getBindName(self, t: QualType, withParams: bool = False) -> str:
+    def getBindName(self, t: QualType, withParams: bool = True) -> str:
         """
         Get name of the wrapped type for backend.
         """

@@ -7,11 +7,13 @@ import py_haxorg.pyhaxorg_wrap as org
 
 @beartype
 def evalCode(node: org.Org, debug: Optional[Path] = None) -> org.Org:
+    "nodoc"
 
     def callback_impl(
         input: org.OrgCodeEvalInput
-    ) -> org.VecOfOrgCodeEvalOutputVec:  # type: ignore[name-defined]
-        result = org.VecOfOrgCodeEvalOutputVec()  # type: ignore
+    ) -> org.HstdVecOfOrgCodeEvalOutput:  # type: ignore[name-defined]
+        "nodoc"
+        result = org.HstdVecOfOrgCodeEvalOutput()  # type: ignore
 
         match input.language:
             case "plantuml":

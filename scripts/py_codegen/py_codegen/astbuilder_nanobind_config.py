@@ -4,14 +4,17 @@ from py_codegen import codegen_ir
 
 
 class NanobindAstbuilderConfig(AstbulderConfig):
+    "Configuration for the nanobind wrapper generators"
 
-    # def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
-    #     match tuple(t.flatQualName()):
-    #         case ("std", "variant"):
-    #             return False
-    #
-    #         case _:
-    #             return super().isUnwrappedTemplateInstantiation(t)
+    def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
+        "Exclude nanobind-specific templates from instantiations"
+        match tuple(t.flatQualName()):
+        # nanobind has explicit casters for this
+            case ("std", "variant") | ("std", "pair"):
+                return False
+
+            case _:
+                return super().isUnwrappedTemplateInstantiation(t)
 
     def getSanitizedIdent(self, s: str) -> str:
         """

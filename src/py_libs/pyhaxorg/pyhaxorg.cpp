@@ -21,16 +21,276 @@
 #include <nanobind/ndarray.h>
 #include <haxorg/sem/SemOrg.hpp>
 #include "pyhaxorg_manual_impl.hpp"
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
+NB_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
+NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
+NB_MAKE_OPAQUE(hstd::Vec<int>)
+NB_MAKE_OPAQUE(std::vector<int>)
+NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
+NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
+NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
+NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
+NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
+NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmUniqId>)
+NB_MAKE_OPAQUE(std::vector<org::imm::ImmUniqId>)
+NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
+NB_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
+NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
+NB_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
+NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
+NB_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
+NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
+NB_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Expr>)
+NB_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Expr>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign::Flag>)
+NB_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign::Flag>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue::DimensionSpan>)
+NB_MAKE_OPAQUE(std::vector<org::sem::AttrValue::DimensionSpan>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::Str>)
+NB_MAKE_OPAQUE(std::vector<hstd::Str>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::HashTagFlat>)
+NB_MAKE_OPAQUE(std::vector<org::sem::HashTagFlat>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::HashTagText>)
+NB_MAKE_OPAQUE(std::vector<org::sem::HashTagText>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue>)
+NB_MAKE_OPAQUE(std::vector<org::sem::AttrValue>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::sem::AttrList>)
+NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::sem::AttrList>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalInput::Var>)
+NB_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalInput::Var>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::ColumnView::Column>)
+NB_MAKE_OPAQUE(std::vector<org::sem::ColumnView::Column>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine::Part>)
+NB_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine::Part>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
+NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
+NB_MAKE_OPAQUE(std::vector<org::sem::Time::Repeat>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
+NB_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorSkipToken>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SubtreePeriod>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SubtreePeriod>)
+NB_MAKE_OPAQUE(hstd::IntSet<org::sem::SubtreePeriod::Kind>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::NamedProperty>)
+NB_MAKE_OPAQUE(std::vector<org::sem::NamedProperty>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::HashTag>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::SubtreeLog>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::TodoKeyword>)
+NB_MAKE_OPAQUE(std::vector<org::sem::TodoKeyword>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Str>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmTime::Repeat>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmSymbol::Param>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<hstd::Str>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<hstd::Str>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::NamedProperty>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<bool>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<int>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::TodoKeyword>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreePath>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::UserTime>)
+NB_MAKE_OPAQUE(std::vector<hstd::UserTime>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Cell>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Cell>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalOutput>)
+NB_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalOutput>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
+NB_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Row>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Row>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::BlockCodeLine>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 NB_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotation>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
+NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
 NB_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  org::bind::python::bind_hstdVec<org::AstTrackingGroup>(m, "HstdVec", type_registry_guard);
-  org::bind::python::bind_stdvector<org::AstTrackingGroup>(m, "StdVec", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceAnnotation>(m, "HstdVec", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceAnnotation>(m, "StdVec", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::OrgJson>(m, "StdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Org>>(m, "StdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::ext::Report>(m, "HstdVecOfReport", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
+  org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceAnnotationTag>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::imm::ImmUniqId>(m, "HstdVecOfImmUniqId", type_registry_guard);
+  org::bind::python::bind_stdvector<org::imm::ImmUniqId>(m, "StdVecOfImmUniqId", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::graph::MapLink>(m, "HstdVecOfGraphMapLink", type_registry_guard);
+  org::bind::python::bind_stdvector<org::graph::MapLink>(m, "StdVecOfGraphMapLink", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::graph::MapNode>(m, "HstdVecOfGraphMapNode", type_registry_guard);
+  org::bind::python::bind_stdvector<org::graph::MapNode>(m, "StdVecOfGraphMapNode", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::graph::MapEdge>(m, "HstdVecOfGraphMapEdge", type_registry_guard);
+  org::bind::python::bind_stdvector<org::graph::MapEdge>(m, "StdVecOfGraphMapEdge", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "HstdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "StdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "HstdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "StdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "HstdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "StdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::Tblfm::Assign>(m, "StdVecOfTblfmAssign", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::Tblfm::Expr>(m, "HstdVecOfTblfmExpr", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::Tblfm::Expr>(m, "StdVecOfTblfmExpr", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign::Flag>(m, "HstdVecOfTblfmAssignFlag", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::Tblfm::Assign::Flag>(m, "StdVecOfTblfmAssignFlag", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::AttrValue::DimensionSpan>(m, "HstdVecOfAttrValueDimensionSpan", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::AttrValue::DimensionSpan>(m, "StdVecOfAttrValueDimensionSpan", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::Str>(m, "HstdVecOfStr", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::Str>(m, "StdVecOfStr", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::HashTagFlat>(m, "HstdVecOfHashTagFlat", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::HashTagFlat>(m, "StdVecOfHashTagFlat", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::HashTagText>(m, "HstdVecOfHashTagText", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::HashTagText>(m, "StdVecOfHashTagText", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::AttrValue>(m, "HstdVecOfAttrValue", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::AttrValue>(m, "StdVecOfAttrValue", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::sem::AttrList>(m, "HstdMapOfStrAttrList", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd::Str, org::sem::AttrList>(m, "StdMapOfStrAttrList", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::OrgCodeEvalInput::Var>(m, "HstdVecOfOrgCodeEvalInputVar", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::OrgCodeEvalInput::Var>(m, "StdVecOfOrgCodeEvalInputVar", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::ColumnView::Column>(m, "HstdVecOfColumnViewColumn", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::ColumnView::Column>(m, "StdVecOfColumnViewColumn", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::BlockCodeLine::Part>(m, "HstdVecOfBlockCodeLinePart", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::BlockCodeLine::Part>(m, "StdVecOfBlockCodeLinePart", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "HstdMapOfStrStr", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd::Str, hstd::Str>(m, "StdMapOfStrStr", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "HstdVecOfSemIdOfErrorItem", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorItem>>(m, "StdVecOfSemIdOfErrorItem", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::Time::Repeat>(m, "HstdVecOfTimeRepeat", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::Time::Repeat>(m, "StdVecOfTimeRepeat", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::Symbol::Param>(m, "HstdVecOfSymbolParam", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::Symbol::Param>(m, "StdVecOfSymbolParam", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorSkipToken>>(m, "HstdVecOfSemIdOfErrorSkipToken", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorSkipToken>>(m, "StdVecOfSemIdOfErrorSkipToken", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SubtreePeriod>(m, "HstdVecOfSubtreePeriod", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SubtreePeriod>(m, "StdVecOfSubtreePeriod", type_registry_guard);
+  org::bind::python::bind_hstdIntSet<org::sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::NamedProperty>(m, "HstdVecOfNamedProperty", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::NamedProperty>(m, "StdVecOfNamedProperty", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::HashTag>>(m, "HstdVecOfSemIdOfHashTag", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::HashTag>>(m, "StdVecOfSemIdOfHashTag", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::SubtreeLog>>(m, "HstdVecOfSemIdOfSubtreeLog", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::SubtreeLog>>(m, "StdVecOfSemIdOfSubtreeLog", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::TodoKeyword>(m, "HstdVecOfTodoKeyword", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::TodoKeyword>(m, "StdVecOfTodoKeyword", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmVecOfImmIdTOfImmErrorItem", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmVecOfImmIdTOfImmOrg", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmTime::Repeat>(m, "ImmVecOfImmTimeRepeat", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>(m, "ImmBoxOfOptOfImmTimeRepeat", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmSymbol::Param>(m, "ImmVecOfImmSymbolParam", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<hstd::Str>>(m, "ImmBoxOfOptOfStr", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmVecOfImmIdTOfImmErrorSkipToken", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<hstd::Str>(m, "ImmVecOfStr", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptOfImmIdTOfImmStmtList", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreeCompletion>>(m, "ImmBoxOfOptOfSubtreeCompletion", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptOfImmIdTOfImmParagraph", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmVecOfImmIdTOfImmHashTag", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmVecOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::sem::NamedProperty>(m, "ImmVecOfNamedProperty", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTOfImmTime", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<bool>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<int>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::ColumnView>>(m, "ImmBoxOfOptOfColumnView", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::sem::TodoKeyword>(m, "ImmVecOfTodoKeyword", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptOfImmIdTOfImmRawText", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreePath>>(m, "ImmBoxOfOptOfSubtreePath", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "HstdVecOfSemIdOfBigIdent", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::BigIdent>>(m, "StdVecOfSemIdOfBigIdent", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::UserTime>(m, "HstdVecOfUserTime", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::UserTime>(m, "StdVecOfUserTime", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "HstdVecOfSemIdOfTime", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Time>>(m, "StdVecOfSemIdOfTime", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfOptOfImmIdTOfImmOrg", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Cell>>(m, "HstdVecOfSemIdOfCell", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Cell>>(m, "StdVecOfSemIdOfCell", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmVecOfImmIdTOfImmCell", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::OrgCodeEvalOutput>(m, "HstdVecOfOrgCodeEvalOutput", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::OrgCodeEvalOutput>(m, "StdVecOfOrgCodeEvalOutput", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "HstdVecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "StdVecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::BlockCodeLine>(m, "HstdVecOfBlockCodeLine", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::BlockCodeLine>(m, "StdVecOfBlockCodeLine", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Row>>(m, "HstdVecOfSemIdOfRow", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Row>>(m, "StdVecOfSemIdOfRow", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::sem::OrgCodeEvalOutput>(m, "ImmVecOfOrgCodeEvalOutput", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmVecOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::sem::BlockCodeLine>(m, "ImmVecOfBlockCodeLine", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmVecOfImmIdTOfImmRow", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::AstTrackingGroup>(m, "HstdVecOfAstTrackingGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<org::AstTrackingGroup>(m, "StdVecOfAstTrackingGroup", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceAnnotation>(m, "HstdVecOfSequenceAnnotation", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceAnnotation>(m, "StdVecOfSequenceAnnotation", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceSegmentGroup>(m, "HstdVecOfSequenceSegmentGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceSegmentGroup>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
   nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def("__init__",
          [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) {

@@ -463,7 +463,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     flat_group = cov.get_coverage_group(flat_segments)
 
     direct_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([flat_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([flat_group]),
         first=0,
         last=len(code) - 1,
     )
@@ -482,7 +482,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     file_text = "\n".join([it.Text for it in file.Lines])
 
     line_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([line_group]),
         first=0,
         last=len(code),
     )
@@ -507,7 +507,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     assert len(line_segmented) == 5
 
     join_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([line_group, flat_group]),
         first=0,
         last=len(code),
     )
@@ -543,8 +543,8 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     )
 
     token_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group,
-                                                     token_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup(
+            [line_group, flat_group, token_group]),
         first=0,
         last=len(code),
     )

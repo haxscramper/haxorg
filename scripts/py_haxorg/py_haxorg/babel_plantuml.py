@@ -9,9 +9,9 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
-def babel_eval(
-        input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:  # type: ignore
-    res = org.VecOfOrgCodeEvalOutputVec()  # type: ignore
+def babel_eval(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:
+    "Evaluate babel code for plantuml"
+    res = org.HstdVecOfOrgCodeEvalOutput()
 
     try:
         cmd = local["plantuml"]

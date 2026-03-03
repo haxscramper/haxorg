@@ -21,6 +21,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
+#include <hstd/ext/immer.hpp>
 
 namespace org::bind::python {
 
@@ -101,13 +102,14 @@ void bind_hstdIntSet(
     }
 }
 
+/// \brief Bind immer box
 template <typename T>
-void bind_immerbox(
+void bind_hstdextImmBox(
     nb::module_&         m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
 
-    auto name = std::string(PyNameType) + "ImmBox";
+    auto name = std::string(PyNameType);
     if (!guard.contains(name)) {
         guard.incl(name);
         nb::class_<immer::box<T>>(m, name.c_str())
@@ -121,13 +123,14 @@ void bind_immerbox(
     }
 }
 
+/// \brief Shared logic to bind immer vector classes
 template <typename T, typename VT>
 void bind_imm_vector_base(
     nb::module_&         m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
 
-    auto name = std::string(PyNameType) + "ImmVec";
+    auto name = std::string(PyNameType);
     if (!guard.contains(name)) {
         guard.incl(name);
         nb::class_<VT>(m, name.c_str())
@@ -165,6 +168,17 @@ void bind_immerflex_vector(
     return bind_imm_vector_base<T, immer::flex_vector<T>>(
         m, PyNameType, guard);
 }
+
+/// "nodoc"
+template <typename T>
+void bind_hstdextImmVec(
+    nb::module_&         m,
+    const char*          PyNameType,
+    PyTypeRegistryGuard& guard) {
+    return bind_imm_vector_base<T, hstd::ext::ImmVec<T>>(
+        m, PyNameType, guard);
+}
+
 
 /// \brief Bind specialization of the std vector map for use in python
 template <typename T>
@@ -268,11 +282,14 @@ nb::class_<Set> bind_set(nb::module_& m, const char* PyNameType) {
     nb::class_<Set> cls(m, PyNameType);
     cls.def(nb::init<>())
         .def(nb::init<const Set&>())
-        .def(nb::init([](nb::iterable it) {
-            Set result;
-            for (nb::handle h : it) { result.insert(nb::cast<Value>(h)); }
-            return result;
-        }))
+        .def(
+            "__init__",
+            [](Set* result, nb::iterable it) {
+                new (result) Set();
+                for (nb::handle h : it) {
+                    result->insert(nb::cast<Value>(h));
+                }
+            })
         .def("__len__", [](const Set& s) { return s.size(); })
         .def("__bool__", [](const Set& s) { return !s.empty(); })
         .def(

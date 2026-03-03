@@ -18,8 +18,9 @@ content
     conf = org.PyCodeEvalParameters()
     buf: List[org.OrgCodeEvalInput] = []
 
-    def eval_block(input: org.OrgCodeEvalInput) -> org.VecOfOrgCodeEvalOutputVec:
-        result = org.VecOfOrgCodeEvalOutputVec()
+    def eval_block(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:
+        "nodoc"
+        result = org.HstdVecOfOrgCodeEvalOutput()
         item = org.OrgCodeEvalOutput()
         item.stdoutText = "*bold*"
         result.append(item)
