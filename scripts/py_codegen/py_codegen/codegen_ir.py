@@ -1168,11 +1168,6 @@ def n_imm() -> QualType:
 
 
 @beartype
-def n_org_imm() -> List[QualType]:
-    return [n_org(), n_imm()]
-
-
-@beartype
 def t_org(name: str) -> QualType:
     return QualType(
         name=name,

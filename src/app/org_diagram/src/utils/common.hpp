@@ -219,7 +219,7 @@ hstd::outcome::result<T, std::string> getStructuredProperty(
     std::string const&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
         property,
-        node.getProperty("customsubtreejson", kind),
+        node.getPropertyByKind("customsubtreejson", kind),
         hstd::fmt("Property :prop_json:{}: not found", kind));
 
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeJson);

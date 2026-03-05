@@ -55,20 +55,20 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmLeaf>::getText() const {
 org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCaption>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCaption", other.getKind())
 }
-org::imm::ImmIdT<org::imm::ImmParagraph> org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText() const {
-  return this->value().text;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmCmdCaption::text);
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCreator>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCreator", other.getKind())
 }
-org::imm::ImmIdT<org::imm::ImmParagraph> org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText() const {
-  return this->value().text;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmCmdCreator::text);
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAuthor>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdAuthor", other.getKind())
 }
-org::imm::ImmIdT<org::imm::ImmParagraph> org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText() const {
-  return this->value().text;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmCmdAuthor::text);
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdEmail>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdEmail", other.getKind())
@@ -124,8 +124,8 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName() co
 bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached() const {
   return this->value().isAttached;
 }
-org::imm::ImmIdT<org::imm::ImmParagraph> org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText() const {
-  return this->value().text;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmCmdCustomText::text);
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdCall>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCall>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCall", other.getKind())
@@ -166,8 +166,8 @@ org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::ImmAdapterT(org::imm::ImmAda
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag() const {
   return this->value().tag.get();
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>> org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmOrg>::definition);
+hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmInlineFootnote::definition);
 }
 org::imm::ImmAdapterT<org::imm::ImmInlineExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineExport>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "InlineExport", other.getKind())
@@ -190,11 +190,11 @@ org::imm::ImmTime::TimeVariant org::imm::ImmAdapterT<org::imm::ImmTime>::getTime
 org::imm::ImmAdapterT<org::imm::ImmTimeRange>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TimeRange", other.getKind())
 }
-org::imm::ImmIdT<org::imm::ImmTime> org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom() const {
-  return this->value().from;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmTimeRange::from);
 }
-org::imm::ImmIdT<org::imm::ImmTime> org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo() const {
-  return this->value().to;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmTimeRange::to);
 }
 org::imm::ImmAdapterT<org::imm::ImmMacro>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMacro>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Macro", other.getKind())
@@ -295,8 +295,8 @@ org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT(org::imm::ImmAdapter cons
 org::imm::ImmAdapterT<org::imm::ImmLink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLink>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Link", other.getKind())
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::description);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmLink::description);
 }
 org::sem::LinkTarget org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget() const {
   return this->value().target;
@@ -340,8 +340,8 @@ org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ImmAdapterT(org::imm::I
 hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw() const {
   return this->value().raw;
 }
-org::imm::ImmIdT<org::imm::ImmOrg> org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode() const {
-  return this->value().node;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmBlockCodeEvalResult::node);
 }
 org::imm::ImmAdapterT<org::imm::ImmBlockCode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCode", other.getKind())
@@ -364,8 +364,8 @@ org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::ImmAdapterT(org::imm::ImmAdapter
 org::sem::SubtreeLogHead org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead() const {
   return this->value().head;
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmStmtList>::desc);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtreeLog::desc);
 }
 org::imm::ImmAdapterT<org::imm::ImmSubtree>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtree>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Subtree", other.getKind())
@@ -382,14 +382,14 @@ hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo
 hstd::Opt<org::sem::SubtreeCompletion> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion() const {
   return this->value().completion.get();
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::description);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::description);
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags() const {
   return this->value().tags;
 }
-org::imm::ImmIdT<org::imm::ImmParagraph> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle() const {
-  return this->value().title;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::title);
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook() const {
   return this->value().logbook;
@@ -397,14 +397,14 @@ hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> org::imm::ImmAdapte
 hstd::ext::ImmVec<org::sem::NamedProperty> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties() const {
   return this->value().properties;
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmTime>::closed);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::closed);
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmTime>::deadline);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::deadline);
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmTime>::scheduled);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::scheduled);
 }
 bool org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment() const {
   return this->value().isComment;
@@ -481,8 +481,8 @@ org::imm::ImmAdapterT<org::imm::ImmListItem>::ImmAdapterT(org::imm::ImmAdapter c
 CheckboxState org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox() const {
   return this->value().checkbox;
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::header);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmListItem::header);
 }
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet() const {
   return this->value().bullet.get();
@@ -541,26 +541,26 @@ org::imm::ImmCriticMarkup::Kind org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>
 org::imm::ImmAdapterT<org::imm::ImmDocument>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocument>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Document", other.getKind())
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::title);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmDocument::title);
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::author);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmDocument::author);
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmParagraph>::creator);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmDocument::creator);
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags() const {
   return this->value().filetags;
 }
-hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail() const {
-  return org::imm::get_adapter_field(this, &org::imm::ImmIdT<org::imm::ImmRawText>::email);
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmDocument::email);
 }
 hstd::ext::ImmVec<hstd::Str> org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage() const {
   return this->value().language;
 }
-org::imm::ImmIdT<org::imm::ImmDocumentOptions> org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions() const {
-  return this->value().options;
+org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions() const {
+  return org::imm::get_adapter_field(this, &org::imm::ImmDocument::options);
 }
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName() const {
   return this->value().exportFileName.get();

@@ -34,6 +34,13 @@ NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<int>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
 NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
+NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
@@ -46,6 +53,12 @@ NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
+NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
@@ -125,10 +138,6 @@ NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Cell>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Cell>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>)
-NB_MAKE_OPAQUE(org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>)
-NB_MAKE_OPAQUE(org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>)
-NB_MAKE_OPAQUE(org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>)
-NB_MAKE_OPAQUE(org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalOutput>)
 NB_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalOutput>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
@@ -141,7 +150,6 @@ NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::BlockCodeLine>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>)
-NB_MAKE_OPAQUE(org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
 NB_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotation>)
@@ -162,6 +170,13 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
   org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
   org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
@@ -174,6 +189,12 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<org::graph::MapNode>(m, "StdVecOfGraphMapNode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::graph::MapEdge>(m, "HstdVecOfGraphMapEdge", type_registry_guard);
   org::bind::python::bind_stdvector<org::graph::MapEdge>(m, "StdVecOfGraphMapEdge", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "HstdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "StdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "HstdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "StdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "HstdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "StdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
@@ -253,10 +274,6 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Cell>>(m, "HstdVecOfSemIdOfCell", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Cell>>(m, "StdVecOfSemIdOfCell", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmVecOfImmIdTOfImmCell", type_registry_guard);
-  org::bind::python::bind_orgorgimmImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>(m, "ImmAdapterTOfImmIdTOfImmParagraph", type_registry_guard);
-  org::bind::python::bind_orgorgimmImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>(m, "ImmAdapterTOfImmIdTOfImmTime", type_registry_guard);
-  org::bind::python::bind_orgorgimmImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>(m, "ImmAdapterTOfImmIdTOfImmStmtList", type_registry_guard);
-  org::bind::python::bind_orgorgimmImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>(m, "ImmAdapterTOfImmIdTOfImmRawText", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::OrgCodeEvalOutput>(m, "HstdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::OrgCodeEvalOutput>(m, "StdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "HstdVecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
@@ -269,7 +286,6 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmVecOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::BlockCodeLine>(m, "ImmVecOfBlockCodeLine", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmVecOfImmIdTOfImmRow", type_registry_guard);
-  org::bind::python::bind_orgorgimmImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmAdapterTOfImmIdTOfImmOrg", type_registry_guard);
   org::bind::python::bind_hstdVec<org::AstTrackingGroup>(m, "HstdVecOfAstTrackingGroup", type_registry_guard);
   org::bind::python::bind_stdvector<org::AstTrackingGroup>(m, "StdVecOfAstTrackingGroup", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceAnnotation>(m, "HstdVecOfSequenceAnnotation", type_registry_guard);
@@ -348,7 +364,7 @@ NB_MODULE(pyhaxorg, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getKind", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
+    .def("getKind", static_cast<OrgJsonKind(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
     .def("getJsonString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getJsonString))
     .def("at",
          static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::at),
@@ -379,12 +395,6 @@ NB_MODULE(pyhaxorg, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Org>(m, "Org")
-    .def("__init__",
-         [](org::sem::Org* result, nanobind::kwargs const& kwargs) {
-         new(result) org::sem::Org();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
     .def_rw("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
     .def_rw("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
 
@@ -392,7 +402,7 @@ Some of the derived nodes don't make the use of subnode list
 (word, punctuation etc), but it was left on the top level of the
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
-    .def("getKind", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
+    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
     .def("push_back",
          static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
          nanobind::arg("sub"))
@@ -405,16 +415,8 @@ node can have subnodes.)RAW")
          static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
          nanobind::arg("idx"))
     .def("is_",
-         static_cast<bool(org::sem::Org::*)(int) const>(&org::sem::Org::is),
+         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
          nanobind::arg("kind"))
-    .def("__repr__", [](org::sem::Org const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::Org const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
     .def("__getitem__",
          static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
          nanobind::arg("idx"))
@@ -544,10 +546,10 @@ node can have subnodes.)RAW")
          nanobind::arg("file_name"),
          nanobind::arg("opts"))
     .def("parseDirectory",
-         static_cast<int(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
          nanobind::arg("path"))
     .def("parseDirectoryOpts",
-         static_cast<int(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
          nanobind::arg("path"),
          nanobind::arg("opts"))
     .def("parseFileWithIncludes",
@@ -577,9 +579,9 @@ node can have subnodes.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getKind", static_cast<int(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
     .def("is_",
-         static_cast<bool(org::imm::ImmId::*)(int) const>(&org::imm::ImmId::is),
+         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
          nanobind::arg("kind"))
     .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
 node must not be nil)RAW")
@@ -594,20 +596,6 @@ node must not be nil)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
-    .def("__init__",
-         [](org::imm::ImmOrg* result, nanobind::kwargs const& kwargs) {
-         new(result) org::imm::ImmOrg();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmOrg const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmOrg const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
     .def("__init__",
@@ -742,7 +730,7 @@ field subset.)RAW")
     .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
     .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
     .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
-    .def("getKind", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
     .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
     .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
     .def("treeReprStringOpts",
@@ -757,7 +745,7 @@ field subset.)RAW")
     .def("isSubnodeOf",
          static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
          nanobind::arg("other"))
-    .def("getParent", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
+    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
     .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
@@ -771,7 +759,7 @@ field subset.)RAW")
          nanobind::arg("path"),
          nanobind::arg("withPath") = true)
     .def("is_",
-         static_cast<bool(org::imm::ImmAdapter::*)(int) const>(&org::imm::ImmAdapter::is),
+         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
          nanobind::arg("kind"))
     .def("sub",
          static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
@@ -961,16 +949,16 @@ field subset.)RAW")
     .def_rw("radioTargets", &org::AstTrackingMap::radioTargets)
     .def_rw("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
     .def("getIdPath",
-         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
          nanobind::arg("id"))
     .def("getNamePath",
-         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
          nanobind::arg("id"))
     .def("getAnchorTarget",
-         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
          nanobind::arg("id"))
     .def("getFootnotePath",
-         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
          nanobind::arg("id"))
     .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1154,10 +1142,10 @@ list items, this field contains a newly created statment list)RAW")
          static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter),
          nanobind::arg("context"))
     .def("getSubtreeId",
-         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
+         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
          nanobind::arg("context"))
     .def("getFootnoteName",
-         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
+         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
          nanobind::arg("context"))
     .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1353,7 +1341,7 @@ ingoing elements.)RAW")
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("getUnresolvedLink",
-         static_cast<int(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
@@ -1411,19 +1399,19 @@ ingoing elements.)RAW")
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
          nanobind::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitLeafField",
@@ -1435,18 +1423,18 @@ ingoing elements.)RAW")
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setSelf",
          static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
          nanobind::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setNewAnyOrgRes",
@@ -1466,18 +1454,18 @@ ingoing elements.)RAW")
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
          nanobind::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitAnyHookCb",
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
          nanobind::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(org::bind::python::ExporterPython::*)(int, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("print_trace",
@@ -7041,7 +7029,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterDirectoryAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDirectoryAPI")
     .def("getFsSubnode",
-         static_cast<int(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
+         static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
          nanobind::arg("name"),
          nanobind::arg("withPath") = true)
     ;
@@ -7231,14 +7219,14 @@ ingoing elements.)RAW")
     .def("getTreeId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId))
     .def("getTodo", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo))
     .def("getCompletion", static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion))
-    .def("getDescription", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
+    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
     .def("getTags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags))
-    .def("getTitle", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
+    .def("getTitle", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
     .def("getLogbook", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook))
     .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties))
-    .def("getClosed", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
-    .def("getDeadline", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
-    .def("getScheduled", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
+    .def("getClosed", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
+    .def("getDeadline", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
+    .def("getScheduled", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
     .def("getIsComment", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment))
     .def("getIsArchived", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived))
     .def("getPriority", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority))
@@ -7283,8 +7271,8 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterTimeRangeAPI>(m, "ImmTimeRangeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getFrom", static_cast<org::imm::ImmIdT<org::imm::ImmTime>(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
-    .def("getTo", static_cast<org::imm::ImmIdT<org::imm::ImmTime>(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
+    .def("getFrom", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
+    .def("getTo", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmAdapterMacroAPI>(m, "ImmMacroAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7348,7 +7336,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterSubtreeLogAPI>(m, "ImmSubtreeLogAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getHead", static_cast<org::sem::SubtreeLogHead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead))
-    .def("getDesc", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
+    .def("getDesc", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterColonExampleAPI>(m, "ImmColonExampleAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7387,7 +7375,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterListItemAPI>(m, "ImmListItemAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getCheckbox", static_cast<CheckboxState(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox))
-    .def("getHeader", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
+    .def("getHeader", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
     .def("getBullet", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterDocumentOptionsAPI>(m, "ImmDocumentOptionsAdapter")
@@ -7406,13 +7394,13 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterDocumentAPI>(m, "ImmDocumentAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getTitle", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
-    .def("getAuthor", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
-    .def("getCreator", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
+    .def("getTitle", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
+    .def("getAuthor", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
+    .def("getCreator", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
     .def("getFiletags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags))
-    .def("getEmail", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
+    .def("getEmail", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
     .def("getLanguage", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage))
-    .def("getOptions", static_cast<org::imm::ImmIdT<org::imm::ImmDocumentOptions>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
+    .def("getOptions", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
     .def("getExportFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterFileTargetAPI>(m, "ImmFileTargetAdapter")
@@ -7648,11 +7636,11 @@ ingoing elements.)RAW")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName))
     .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached))
-    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
+    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterLinkAPI>(m, "ImmLinkAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDescription", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
+    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
     .def("getTarget", static_cast<org::sem::LinkTarget(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterBlockCommentAPI>(m, "ImmBlockCommentAdapter")
@@ -7671,7 +7659,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmAdapterInlineFootnoteAPI>(m, "ImmInlineFootnoteAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getTag", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag))
-    .def("getDefinition", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition))
+    .def("getDefinition", static_cast<hstd::Opt<org::imm::ImmAdapter>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmAdapterEscapedAPI>(m, "ImmEscapedAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7851,11 +7839,11 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, org::imm::ImmAdapterCmdCreatorAPI>(m, "ImmCmdCreatorAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText))
+    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, org::imm::ImmAdapterCmdAuthorAPI>(m, "ImmCmdAuthorAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText))
+    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, org::imm::ImmAdapterCmdEmailAPI>(m, "ImmCmdEmailAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7957,7 +7945,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterBlockCodeEvalResultAPI>(m, "ImmBlockCodeEvalResultAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getRaw", static_cast<hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw))
-    .def("getNode", static_cast<org::imm::ImmIdT<org::imm::ImmOrg>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
+    .def("getNode", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterBlockCodeAPI>(m, "ImmBlockCodeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7973,7 +7961,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterCmdCaptionAPI>(m, "ImmCmdCaptionAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText))
+    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmAdapterCmdColumnsAPI>(m, "ImmCmdColumnsAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())

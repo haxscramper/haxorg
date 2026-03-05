@@ -1301,16 +1301,32 @@ struct [[refl]] ImmAdapterVirtualBase {
 
     virtual ~ImmAdapterVirtualBase() {}
 
+    /// \brief Cast `this` of the derived adapter to the specific kind.
     template <typename T>
     ImmAdapterT<T> getThisT() const {
         return getThis()->as<T>();
     }
 
+    /// \brief create a new adapter pointing to the sub-element of the
+    /// current one
     template <typename T>
     ImmAdapterT<T> pass(ImmIdT<T> const& id, ImmPathStep const& step)
         const {
         return ImmAdapterT<T>{
             id, getThis()->ctx, getThis()->path.add(step)};
+    }
+
+    /// \brief create a new adapter pointing to the sub-element of the
+    /// current one
+    ImmAdapter pass(ImmIdT<ImmOrg> const& id, ImmPathStep const& step)
+        const {
+        return ImmAdapter{id, getThis()->ctx, getThis()->path.add(step)};
+    }
+
+    /// \brief create a new adapter pointing to the sub-element of the
+    /// current one
+    ImmAdapter pass(ImmId const& id, ImmPathStep const& step) const {
+        return ImmAdapter{id, getThis()->ctx, getThis()->path.add(step)};
     }
 };
 
@@ -1337,14 +1353,18 @@ struct [[refl]] ImmAdapterCmdAPI : ImmAdapterStmtAPI {
         hstd::Str const& kind) const override;
 };
 
+/// \brief Base for the API injection for the
 struct [[refl]] ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     hstd::Vec<org::sem::SubtreePeriod> getTimePeriods(
         hstd::IntSet<org::sem::SubtreePeriod::Kind> kinds,
         bool                                        withPath = true) const;
-    hstd::Vec<org::sem::NamedProperty> getProperties(
+    /// \brief Get all subtree properties matching given name and optional
+    /// subkind
+    hstd::Vec<org::sem::NamedProperty> getPropertiesByKind(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
-    hstd::Opt<org::sem::NamedProperty> getProperty(
+    /// \brief Get subtree property by its name and optional subkind
+    hstd::Opt<org::sem::NamedProperty> getPropertyByKind(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 
@@ -1481,11 +1501,15 @@ struct [[refl]] ImmAdapterListItemAPI : ImmAdapterOrgAPI {
     hstd::Opt<hstd::Str>  getCleanHeader() const;
 };
 
+/// \brief Base for API injection to the document options node.
 struct [[refl]] ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
-    hstd::Vec<sem::NamedProperty> getProperties(
+    /// \brief Get all document properties matching given name and optional
+    /// subkind
+    hstd::Vec<sem::NamedProperty> getPropertiesByKind(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
-    hstd::Opt<sem::NamedProperty> getProperty(
+    /// \brief Get document property by its name and optional subkind
+    hstd::Opt<sem::NamedProperty> getPropertyByKind(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 };
@@ -1503,6 +1527,85 @@ struct [[refl]] ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
 struct [[refl]] ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
+
+
+/// \brief Generate adapter accessing the node field
+template <typename T>
+ImmAdapter get_adapter_field(
+    ImmAdapterT<T> const* self,
+    ImmId T::* field_ptr) {
+    return self->ImmAdapterVirtualBase::pass(
+        self->value().*field_ptr,
+        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+}
+
+/// \brief Generate adapter accessing the node field
+template <typename T>
+hstd::Opt<ImmAdapter> get_adapter_field(
+    ImmAdapterT<T> const*               self,
+    hstd::ext::ImmBox<hstd::Opt<ImmId>> T::* field_ptr) {
+    auto const& field = self->value().*field_ptr;
+    if (field.get().has_value()) {
+        return self->ImmAdapterVirtualBase::pass(
+            field.get().value(),
+            ImmPathStep::Field(
+                imm::ImmReflFieldId::FromTypeField(field_ptr)));
+    } else {
+        return std::nullopt;
+    }
+}
+
+/// \brief Generate adapter accessing the node field
+template <typename T, typename F>
+ImmAdapterT<F> get_adapter_field(
+    ImmAdapterT<T> const* self,
+    ImmIdT<F> T::* field_ptr) {
+    return self->ImmAdapterVirtualBase::pass(
+        self->value().*field_ptr,
+        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+}
+
+/// \brief Generate adapter accessing the node field
+template <typename T, typename F>
+hstd::Opt<ImmAdapterT<F>> get_adapter_field(
+    ImmAdapterT<T> const*                   self,
+    hstd::ext::ImmBox<hstd::Opt<ImmIdT<F>>> T::* field_ptr) {
+    auto const& field = self->value().*field_ptr;
+    if (field.get().has_value()) {
+        return self->ImmAdapterVirtualBase::pass(
+            field.get().value(),
+            ImmPathStep::Field(
+                imm::ImmReflFieldId::FromTypeField(field_ptr)));
+    } else {
+        return std::nullopt;
+    }
+}
+
+/// \brief Generate adapter accessing the node field
+template <typename T>
+ImmAdapter get_adapter_field(
+    ImmAdapterT<T> const* self,
+    ImmIdT<ImmOrg> T::* field_ptr) {
+    return self->ImmAdapterVirtualBase::pass(
+        self->value().*field_ptr,
+        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+}
+
+/// \brief Generate adapter accessing the node field
+template <typename T>
+hstd::Opt<ImmAdapter> get_adapter_field(
+    ImmAdapterT<T> const*                        self,
+    hstd::ext::ImmBox<hstd::Opt<ImmIdT<ImmOrg>>> T::* field_ptr) {
+    auto const& field = self->value().*field_ptr;
+    if (field.get().has_value()) {
+        return self->ImmAdapterVirtualBase::pass(
+            field.get().value(),
+            ImmPathStep::Field(
+                imm::ImmReflFieldId::FromTypeField(field_ptr)));
+    } else {
+        return std::nullopt;
+    }
+}
 
 
 } // namespace org::imm

@@ -11,26 +11,45 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdoptional_bind<org::parse::SourceLoc>(g, "StdOptionalOfParseSourceLoc");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>(g, "HstdVecOfSemIdOfOrg");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Org>>(g, "StdVecOfSemIdOfOrg");
+  org::bind::js::stdoptional_bind<org::sem::SemId<org::sem::Org>>(g, "StdOptionalOfSemIdOfOrg");
   org::bind::js::hstdVec_bind<hstd::ext::Report>(g, "HstdVecOfReport");
   org::bind::js::stdvector_bind<hstd::ext::Report>(g, "StdVecOfReport");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "HstdVecOfSemIdOfErrorGroup");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "StdVecOfSemIdOfErrorGroup");
+  org::bind::js::stdoptional_bind<org::imm::ImmAdapter>(g, "StdOptionalOfImmAdapter");
   org::bind::js::hstdVec_bind<int>(g, "HstdVecOfInt");
   org::bind::js::stdvector_bind<int>(g, "StdVecOfInt");
   org::bind::js::hstdVec_bind<org::imm::ImmAdapter>(g, "HstdVecOfImmAdapter");
   org::bind::js::stdvector_bind<org::imm::ImmAdapter>(g, "StdVecOfImmAdapter");
+  org::bind::js::hstdUnorderedSet_bind<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(g, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId");
+  org::bind::js::stdpair_bind<OrgSemKind, org::imm::ImmReflFieldId>(g, "StdPairOfOrgSemKindImmReflFieldId");
+  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingPath>(g, "HstdMapOfHashTagFlatAstTrackingPath");
+  org::bind::js::stdunordered_map_bind<org::sem::HashTagFlat, org::AstTrackingPath>(g, "StdMapOfHashTagFlatAstTrackingPath");
+  org::bind::js::stdoptional_bind<org::AstTrackingAlternatives>(g, "StdOptionalOfAstTrackingAlternatives");
+  org::bind::js::hstdUnorderedMap_bind<hstd::Str, org::AstTrackingAlternatives>(g, "HstdMapOfStrAstTrackingAlternatives");
+  org::bind::js::stdunordered_map_bind<hstd::Str, org::AstTrackingAlternatives>(g, "StdMapOfStrAstTrackingAlternatives");
+  org::bind::js::hstdUnorderedMap_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>(g, "HstdMapOfHashTagFlatAstTrackingAlternatives");
+  org::bind::js::stdunordered_map_bind<org::sem::HashTagFlat, org::AstTrackingAlternatives>(g, "StdMapOfHashTagFlatAstTrackingAlternatives");
   org::bind::js::hstdVec_bind<hstd::SequenceSegment>(g, "HstdVecOfSequenceSegment");
   org::bind::js::stdvector_bind<hstd::SequenceSegment>(g, "StdVecOfSequenceSegment");
   org::bind::js::hstdVec_bind<hstd::SequenceAnnotationTag>(g, "HstdVecOfSequenceAnnotationTag");
   org::bind::js::stdvector_bind<hstd::SequenceAnnotationTag>(g, "StdVecOfSequenceAnnotationTag");
   org::bind::js::hstdVec_bind<org::imm::ImmUniqId>(g, "HstdVecOfImmUniqId");
   org::bind::js::stdvector_bind<org::imm::ImmUniqId>(g, "StdVecOfImmUniqId");
+  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
   org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "HstdVecOfGraphMapLink");
   org::bind::js::stdvector_bind<org::graph::MapLink>(g, "StdVecOfGraphMapLink");
   org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "HstdVecOfGraphMapNode");
   org::bind::js::stdvector_bind<org::graph::MapNode>(g, "StdVecOfGraphMapNode");
   org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "HstdVecOfGraphMapEdge");
   org::bind::js::stdvector_bind<org::graph::MapEdge>(g, "StdVecOfGraphMapEdge");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "HstdMapOfGraphMapNodeGraphMapNodeProp");
+  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "StdMapOfGraphMapNodeGraphMapNodeProp");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "HstdMapOfGraphMapEdgeGraphMapEdgeProp");
+  org::bind::js::stdunordered_map_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "StdMapOfGraphMapEdgeGraphMapEdgeProp");
+  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "HstdMapOfGraphMapNodeGraphAdjNodesList");
+  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "StdMapOfGraphMapNodeGraphAdjNodesList");
+  org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
   org::bind::js::stdvariant_bind<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>(g, "StdVariantOfLispCodeCallLispCodeListLispCodeKeyValueLispCodeNumberLispCodeTextLispCodeIdentLispCodeBooleanLispCodeReal");
   org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "HstdVecOfLispCode");
   org::bind::js::stdvector_bind<org::sem::LispCode>(g, "StdVecOfLispCode");
@@ -86,6 +105,9 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "HstdVecOfSemIdOfErrorItem");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "StdVecOfSemIdOfErrorItem");
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::LispValue>(g, "OptOfAttrValueLispValue");
+}
+
+void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::Kind>(g, "OptOfAttrValueKind");
   org::bind::js::stdvariant_bind<org::sem::Time::Static, org::sem::Time::Dynamic>(g, "StdVariantOfTimeStaticTimeDynamic");
   org::bind::js::hstdVec_bind<org::sem::Time::Repeat>(g, "HstdVecOfTimeRepeat");
@@ -105,9 +127,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdOpt_bind<org::sem::NamedProperty>(g, "OptOfNamedProperty");
   org::bind::js::hstdOpt_bind<org::sem::SubtreeCompletion>(g, "OptOfSubtreeCompletion");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::Paragraph>>(g, "OptOfSemIdOfParagraph");
-}
-
-void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::HashTag>>(g, "HstdVecOfSemIdOfHashTag");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::HashTag>>(g, "StdVecOfSemIdOfHashTag");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::SubtreeLog>>(g, "HstdVecOfSemIdOfSubtreeLog");
@@ -162,14 +181,10 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Cell>>(g, "HstdVecOfSemIdOfCell");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Cell>>(g, "StdVecOfSemIdOfCell");
   org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmCell>>(g, "ImmVecOfImmIdTOfImmCell");
-  org::bind::js::hstdOpt_bind<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(g, "OptOfImmAdapterTOfImmIdTOfImmParagraph");
-  org::bind::js::orgorgimmImmAdapterT_bind<org::imm::ImmIdT<org::imm::ImmParagraph>>(g, "ImmAdapterTOfImmIdTOfImmParagraph");
-  org::bind::js::hstdOpt_bind<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(g, "OptOfImmAdapterTOfImmIdTOfImmTime");
-  org::bind::js::orgorgimmImmAdapterT_bind<org::imm::ImmIdT<org::imm::ImmTime>>(g, "ImmAdapterTOfImmIdTOfImmTime");
-  org::bind::js::hstdOpt_bind<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>>(g, "OptOfImmAdapterTOfImmIdTOfImmStmtList");
-  org::bind::js::orgorgimmImmAdapterT_bind<org::imm::ImmIdT<org::imm::ImmStmtList>>(g, "ImmAdapterTOfImmIdTOfImmStmtList");
-  org::bind::js::hstdOpt_bind<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>>(g, "OptOfImmAdapterTOfImmIdTOfImmRawText");
-  org::bind::js::orgorgimmImmAdapterT_bind<org::imm::ImmIdT<org::imm::ImmRawText>>(g, "ImmAdapterTOfImmIdTOfImmRawText");
+  org::bind::js::hstdOpt_bind<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(g, "OptOfImmAdapterTOfImmParagraph");
+  org::bind::js::hstdOpt_bind<org::imm::ImmAdapterT<org::imm::ImmTime>>(g, "OptOfImmAdapterTOfImmTime");
+  org::bind::js::hstdOpt_bind<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(g, "OptOfImmAdapterTOfImmStmtList");
+  org::bind::js::hstdOpt_bind<org::imm::ImmAdapterT<org::imm::ImmRawText>>(g, "OptOfImmAdapterTOfImmRawText");
   org::bind::js::hstdVec_bind<org::sem::OrgCodeEvalOutput>(g, "HstdVecOfOrgCodeEvalOutput");
   org::bind::js::stdvector_bind<org::sem::OrgCodeEvalOutput>(g, "StdVecOfOrgCodeEvalOutput");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::BlockCodeEvalResult>>(g, "HstdVecOfSemIdOfBlockCodeEvalResult");
@@ -182,8 +197,7 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(g, "ImmVecOfImmIdTOfImmBlockCodeEvalResult");
   org::bind::js::hstdextImmVec_bind<org::sem::BlockCodeLine>(g, "ImmVecOfBlockCodeLine");
   org::bind::js::hstdextImmVec_bind<org::imm::ImmIdT<org::imm::ImmRow>>(g, "ImmVecOfImmIdTOfImmRow");
-  org::bind::js::hstdOpt_bind<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>>(g, "OptOfImmAdapterTOfImmIdTOfImmOrg");
-  org::bind::js::orgorgimmImmAdapterT_bind<org::imm::ImmIdT<org::imm::ImmOrg>>(g, "ImmAdapterTOfImmIdTOfImmOrg");
+  org::bind::js::hstdOpt_bind<org::imm::ImmAdapter>(g, "OptOfImmAdapter");
   org::bind::js::hstdVec_bind<org::AstTrackingGroup>(g, "HstdVecOfAstTrackingGroup");
   org::bind::js::stdvector_bind<org::AstTrackingGroup>(g, "StdVecOfAstTrackingGroup");
   org::bind::js::hstdVec_bind<hstd::SequenceAnnotation>(g, "HstdVecOfSequenceAnnotation");
@@ -215,7 +229,7 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgJson>("OrgJson")
-    .function("getKind", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
+    .function("getKind", static_cast<OrgJsonKind(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
     .function("getJsonString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getJsonString))
     .function("atIndex", static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::at))
     .function("atField", static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::at))
@@ -232,14 +246,16 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .smart_ptr<org::sem::SemId<org::sem::Org>>("Org")
     .property("loc", &org::sem::Org::loc)
     .property("subnodes", &org::sem::Org::subnodes)
-    .function("getKind", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::getKind))
+    .function("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), emscripten::pure_virtual())
     .function("push_back", static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back))
     .function("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
     .function("insert", static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert))
     .function("at", static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at))
-    .function("is", static_cast<bool(org::sem::Org::*)(int) const>(&org::sem::Org::is))
-    .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Org>>)
+    .function("is", static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is))
     ;
+}
+
+void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<hstd::OperationsTracer>("OperationsTracer")
     .property("TraceState", &hstd::OperationsTracer::TraceState)
     .property("traceToFile", &hstd::OperationsTracer::traceToFile)
@@ -280,22 +296,21 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("parseFile", static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile))
     .function("parseString", static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::string const&)>(&org::parse::ParseContext::parseString))
     .function("parseStringOpts", static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const, std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseStringOpts))
-    .function("parseDirectory", static_cast<int(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory))
-    .function("parseDirectoryOpts", static_cast<int(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts))
+    .function("parseDirectory", static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory))
+    .function("parseDirectoryOpts", static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts))
     .function("parseFileWithIncludes", static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes))
     .function("collectDiagnostics", static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics))
     .function("collectErrorNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes))
     .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::parse::ParseContext>>)
     ;
   emscripten::class_<org::imm::ImmId>("ImmId")
-    .function("getKind", static_cast<int(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
-    .function("is", static_cast<bool(org::imm::ImmId::*)(int) const>(&org::imm::ImmId::is))
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .function("is", static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is))
     .function("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex))
     .function("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmOrg>("ImmOrg")
-    .constructor<>()
     ;
   emscripten::class_<org::imm::ImmPathStep>("ImmPathStep")
     .constructor<>()
@@ -325,26 +340,23 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
     .constructor<>()
     ;
-}
-
-void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapter>("ImmAdapter")
     .function("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
     .function("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
     .function("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
-    .function("getKind", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
+    .function("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
     .function("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
     .function("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
     .function("treeReprStringOpts", static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts))
     .function("isDirectParentOf", static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf))
     .function("isIndirectParentOf", static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isIndirectParentOf))
     .function("isSubnodeOf", static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf))
-    .function("getParent", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
+    .function("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .function("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
     .function("atField", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at))
     .function("atIndex", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at))
     .function("atPath", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at))
-    .function("is", static_cast<bool(org::imm::ImmAdapter::*)(int) const>(&org::imm::ImmAdapter::is))
+    .function("is", static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is))
     .function("sub", static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub))
     ;
   emscripten::class_<org::imm::ImmAdapter::TreeReprConf>("ImmAdapterTreeReprConf")
@@ -418,10 +430,10 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("anchorTargets", &org::AstTrackingMap::anchorTargets)
     .property("radioTargets", &org::AstTrackingMap::radioTargets)
     .property("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
-    .function("getIdPath", static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath))
-    .function("getNamePath", static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath))
-    .function("getAnchorTarget", static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget))
-    .function("getFootnotePath", static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath))
+    .function("getIdPath", static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath))
+    .function("getNamePath", static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath))
+    .function("getAnchorTarget", static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget))
+    .function("getFootnotePath", static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath))
     .constructor<>()
     ;
   emscripten::class_<hstd::SequenceSegment>("SequenceSegment")
@@ -470,8 +482,8 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("id", &org::graph::MapNodeProp::id)
     .property("unresolved", &org::graph::MapNodeProp::unresolved)
     .function("getAdapter", static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter))
-    .function("getSubtreeId", static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
-    .function("getFootnoteName", static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
+    .function("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
+    .function("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
     .constructor<>()
     ;
   emscripten::class_<org::graph::MapEdgeProp>("GraphMapEdgeProp")
@@ -533,7 +545,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("addNode", static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode))
     .function("addNodeRec", static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec))
     .function("getUnresolvedSubtreeLinks", static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks))
-    .function("getUnresolvedLink", static_cast<int(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
+    .function("getUnresolvedLink", static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
     ;
   emscripten::class_<org::sem::LispCode>("LispCode")
     .property("data", &org::sem::LispCode::data)
@@ -971,6 +983,9 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Kind>("SubtreeLogHeadKind");
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeCompletion>("SubtreeCompletion")
     .property("done", &org::sem::SubtreeCompletion::done)
     .property("full", &org::sem::SubtreeCompletion::full)
@@ -1071,9 +1086,6 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::sem::ColumnView::Summary::MathAggregate::Kind>("ColumnViewSummaryMathAggregateKind");
   org::bind::js::bind_enum<org::sem::ColumnView::Summary::Kind>("ColumnViewSummaryKind");
   emscripten::class_<org::sem::ColumnView::Column>("ColumnViewColumn")
@@ -1728,6 +1740,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::DocumentFragment::*)() const>(&org::sem::DocumentFragment::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::DocumentFragment>>)
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CriticMarkup, emscripten::base<org::sem::Org>>("CriticMarkup")
     .smart_ptr<org::sem::SemId<org::sem::CriticMarkup>>("CriticMarkup")
     .property("kind", &org::sem::CriticMarkup::kind)
@@ -1840,9 +1855,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getIncludeKind", static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getIncludeKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::CmdInclude>>)
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CmdInclude::IncludeBase>("CmdIncludeIncludeBase")
     .constructor<>()
     ;
@@ -2109,6 +2121,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmDocument>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2162,9 +2177,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmStmtList::*)(org::imm::ImmStmtList const&) const>(&org::imm::ImmStmtList::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmEmpty, emscripten::base<org::imm::ImmOrg>>("ImmEmpty")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmEmpty::*)() const>(&org::imm::ImmEmpty::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmEmpty::*)(org::imm::ImmEmpty const&) const>(&org::imm::ImmEmpty::operator==))
@@ -2723,6 +2735,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmNewline::*)(org::imm::ImmNewline const&) const>(&org::imm::ImmNewline::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmSpace, emscripten::base<org::imm::ImmLeaf>>("ImmSpace")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmSpace::*)() const>(&org::imm::ImmSpace::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmSpace::*)(org::imm::ImmSpace const&) const>(&org::imm::ImmSpace::operator==))
@@ -2793,9 +2808,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmVerbatim::*)(org::imm::ImmVerbatim const&) const>(&org::imm::ImmVerbatim::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmItalic, emscripten::base<org::imm::ImmMarkup>>("ImmItalic")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmItalic::*)() const>(&org::imm::ImmItalic::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmItalic::*)(org::imm::ImmItalic const&) const>(&org::imm::ImmItalic::operator==))
@@ -2860,7 +2872,7 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterFileAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterFileAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterDirectoryAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterDirectoryAPI")
-    .function("getFsSubnode", static_cast<int(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode))
+    .function("getFsSubnode", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode))
     ;
   emscripten::class_<org::imm::ImmAdapterSymlinkAPI, emscripten::base<org::imm::ImmAdapterOrgAPI>>("ImmAdapterSymlinkAPI")
     ;
@@ -3016,14 +3028,14 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("getTreeId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId))
     .function("getTodo", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo))
     .function("getCompletion", static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion))
-    .function("getDescription", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
+    .function("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
     .function("getTags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags))
-    .function("getTitle", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
+    .function("getTitle", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
     .function("getLogbook", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook))
     .function("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties))
-    .function("getClosed", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
-    .function("getDeadline", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
-    .function("getScheduled", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmTime>>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
+    .function("getClosed", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
+    .function("getDeadline", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
+    .function("getScheduled", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
     .function("getIsComment", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment))
     .function("getIsArchived", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived))
     .function("getPriority", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority))
@@ -3058,8 +3070,8 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("getTime", static_cast<org::imm::ImmTime::TimeVariant(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getTime))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, emscripten::base<org::imm::ImmAdapterTimeRangeAPI>>("ImmAdapterT")
-    .function("getFrom", static_cast<org::imm::ImmIdT<org::imm::ImmTime>(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
-    .function("getTo", static_cast<org::imm::ImmIdT<org::imm::ImmTime>(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
+    .function("getFrom", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
+    .function("getTo", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, emscripten::base<org::imm::ImmAdapterMacroAPI>>("ImmAdapterT")
     .function("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getName))
@@ -3080,6 +3092,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterAtMentionAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterAtMentionAPI")
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterRawTextAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterRawTextAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterPunctuationAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterPunctuationAPI")
@@ -3109,9 +3124,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterStrikeAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterStrikeAPI")
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterParAPI, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterParAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMarkup>, emscripten::base<org::imm::ImmAdapterMarkupAPI>>("ImmAdapterT")
@@ -3120,7 +3132,7 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, emscripten::base<org::imm::ImmAdapterSubtreeLogAPI>>("ImmAdapterT")
     .function("getHead", static_cast<org::sem::SubtreeLogHead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead))
-    .function("getDesc", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmStmtList>>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
+    .function("getDesc", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, emscripten::base<org::imm::ImmAdapterColonExampleAPI>>("ImmAdapterT")
     ;
@@ -3151,7 +3163,7 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, emscripten::base<org::imm::ImmAdapterListItemAPI>>("ImmAdapterT")
     .function("getCheckbox", static_cast<CheckboxState(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox))
-    .function("getHeader", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
+    .function("getHeader", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
     .function("getBullet", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, emscripten::base<org::imm::ImmAdapterDocumentOptionsAPI>>("ImmAdapterT")
@@ -3168,13 +3180,13 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("getDoneKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, emscripten::base<org::imm::ImmAdapterDocumentAPI>>("ImmAdapterT")
-    .function("getTitle", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
-    .function("getAuthor", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
-    .function("getCreator", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
+    .function("getTitle", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
+    .function("getAuthor", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
+    .function("getCreator", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
     .function("getFiletags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags))
-    .function("getEmail", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmRawText>>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
+    .function("getEmail", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
     .function("getLanguage", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage))
-    .function("getOptions", static_cast<org::imm::ImmIdT<org::imm::ImmDocumentOptions>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
+    .function("getOptions", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
     .function("getExportFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, emscripten::base<org::imm::ImmAdapterFileTargetAPI>>("ImmAdapterT")
@@ -3356,10 +3368,10 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, emscripten::base<org::imm::ImmAdapterCmdCustomTextAPI>>("ImmAdapterT")
     .function("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName))
     .function("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached))
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
+    .function("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, emscripten::base<org::imm::ImmAdapterLinkAPI>>("ImmAdapterT")
-    .function("getDescription", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmParagraph>>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
+    .function("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
     .function("getTarget", static_cast<org::sem::LinkTarget(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, emscripten::base<org::imm::ImmAdapterBlockCommentAPI>>("ImmAdapterT")
@@ -3373,7 +3385,7 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, emscripten::base<org::imm::ImmAdapterInlineFootnoteAPI>>("ImmAdapterT")
     .function("getTag", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag))
-    .function("getDefinition", static_cast<hstd::Opt<org::org::imm::ImmAdapterT<org::imm::ImmIdT<org::imm::ImmOrg>>>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition))
+    .function("getDefinition", static_cast<hstd::Opt<org::imm::ImmAdapter>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, emscripten::base<org::imm::ImmAdapterEscapedAPI>>("ImmAdapterT")
     ;
@@ -3474,6 +3486,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdName::*)(org::imm::ImmCmdName const&) const>(&org::imm::ImmCmdName::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdCall, emscripten::base<org::imm::ImmAttached>>("ImmCmdCall")
     .property("name", &org::imm::ImmCmdCall::name)
     .property("fileName", &org::imm::ImmCmdCall::fileName)
@@ -3507,10 +3522,10 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, emscripten::base<org::imm::ImmAdapterCmdCreatorAPI>>("ImmAdapterT")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText))
+    .function("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, emscripten::base<org::imm::ImmAdapterCmdAuthorAPI>>("ImmAdapterT")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText))
+    .function("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, emscripten::base<org::imm::ImmAdapterCmdEmailAPI>>("ImmAdapterT")
     .function("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getText))
@@ -3527,9 +3542,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterBlockVerseAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockVerseAPI")
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterBlockExampleAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterBlockExampleAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterInlineExportAPI, emscripten::base<org::imm::ImmAdapterBlockAPI>>("ImmAdapterInlineExportAPI")
@@ -3598,7 +3610,7 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, emscripten::base<org::imm::ImmAdapterBlockCodeEvalResultAPI>>("ImmAdapterT")
     .function("getRaw", static_cast<hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw))
-    .function("getNode", static_cast<org::imm::ImmIdT<org::imm::ImmOrg>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
+    .function("getNode", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, emscripten::base<org::imm::ImmAdapterBlockCodeAPI>>("ImmAdapterT")
     .function("getLang", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang))
@@ -3611,7 +3623,7 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     .function("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, emscripten::base<org::imm::ImmAdapterCmdCaptionAPI>>("ImmAdapterT")
-    .function("getText", static_cast<org::imm::ImmIdT<org::imm::ImmParagraph>(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText))
+    .function("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText))
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, emscripten::base<org::imm::ImmAdapterCmdColumnsAPI>>("ImmAdapterT")
     .function("getView", static_cast<org::sem::ColumnView(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getView))

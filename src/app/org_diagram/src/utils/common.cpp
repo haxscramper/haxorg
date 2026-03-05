@@ -409,7 +409,7 @@ hstd::ColText printModelTree(
 bool hasProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
     std::string const&                                 kind) {
-    return node.getProperty(kind).has_value();
+    return node.getPropertyByKind(kind).has_value();
 }
 
 hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
@@ -417,7 +417,7 @@ hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
     const std::string&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
         property,
-        node.getProperty(kind),
+        node.getPropertyByKind(kind),
         hstd::fmt("Property '{}' not found", kind));
     BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeFlags);
     return &json_data.value;
@@ -426,13 +426,13 @@ hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
 bool hasJsonProperty(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
     const std::string&                                 kind) {
-    return node.getProperty("propjson", kind).has_value();
+    return node.getPropertyByKind("propjson", kind).has_value();
 }
 
 bool hasArgsProperty(
     const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
     const std::string&                                 kind) {
-    return node.getProperty("propargs", kind).has_value();
+    return node.getPropertyByKind("propargs", kind).has_value();
 }
 
 

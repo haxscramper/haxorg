@@ -233,7 +233,7 @@ also known as a human-readable alias
     imm::ImmAdapterT<imm::ImmSubtree>
         treeAdapter = t1.as<imm::ImmSubtree>();
 
-    Vec<sem::NamedProperty> radioAliases = treeAdapter.getProperties(
+    Vec<sem::NamedProperty> radioAliases = treeAdapter.getPropertiesByKind(
         "radio_id");
 
     EXPECT_EQ(radioAliases.size(), 3);
