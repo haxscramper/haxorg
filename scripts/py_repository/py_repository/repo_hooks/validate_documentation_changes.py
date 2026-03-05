@@ -264,7 +264,7 @@ def _node_text(src_bytes: bytes, node) -> str:
 def _find_first_identifier(node, src_bytes: bytes) -> Optional[str]:
     "Attempt to find name of the documentable cxx entry"
     for n in _walk_ts(node):
-        if n.type in ("identifier", "field_identifier", "type_identifier",
+        if n.Type in ("identifier", "field_identifier", "type_identifier",
                       "namespace_identifier"):
             return _node_text(src_bytes, n)
     return None
@@ -313,7 +313,7 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
         return n
 
     for n in _walk_ts(root):
-        if n.type == "function_definition":
+        if n.Type == "function_definition":
             decl = n.child_by_field_name("declarator")
             name = _find_first_identifier(decl, src_bytes) if decl else None
             name = name or "<anonymous>"
@@ -324,11 +324,11 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             entries.append(
                 Entry("function", name, path, Range(start_line, end_line), documented))
 
-        elif n.type in ("declaration", "field_declaration"):
+        elif n.Type in ("declaration", "field_declaration"):
             decl = n.child_by_field_name("declarator")
             if decl is None:
                 continue
-            is_func_decl = any(x.type == "function_declarator" for x in _walk_ts(decl))
+            is_func_decl = any(x.Type == "function_declarator" for x in _walk_ts(decl))
             if not is_func_decl:
                 continue
             name = _find_first_identifier(decl, src_bytes) or "<anonymous>"
@@ -339,19 +339,19 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             entries.append(
                 Entry("function", name, path, Range(start_line, end_line), documented))
 
-        elif n.type in ("class_specifier", "struct_specifier", "union_specifier"):
+        elif n.Type in ("class_specifier", "struct_specifier", "union_specifier"):
             name_node = n.child_by_field_name("name")
             name = _node_text(src_bytes, name_node) if name_node else "<anonymous>"
             dn = doc_anchor_node(n)
             start_line = dn.start_point[0] + 1
             end_line = dn.end_point[0] + 1
             documented = _has_leading_comment(lines, start_line)
-            kind = "class" if n.type == "class_specifier" else (
-                "struct" if n.type == "struct_specifier" else "union")
+            kind = "class" if n.Type == "class_specifier" else (
+                "struct" if n.Type == "struct_specifier" else "union")
             entries.append(
                 Entry(kind, name, path, Range(start_line, end_line), documented))
 
-        elif n.type in ("enum_specifier", "enum_class_specifier"):
+        elif n.Type in ("enum_specifier", "enum_class_specifier"):
             name_node = n.child_by_field_name("name")
             name = _node_text(src_bytes, name_node) if name_node else "<anonymous>"
             dn = doc_anchor_node(n)

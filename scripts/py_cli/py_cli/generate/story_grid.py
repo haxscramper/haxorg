@@ -93,11 +93,11 @@ def rec_node(node: org.Org) -> List[Header]:
             for prop in node.properties:
                 match prop.getName():
                     case "story_polarity_shift":
-                        plain = str(prop.getCustomRaw().value).strip()
+                        plain = str(prop.getCustomRaw().Value).strip()
                         header.shift = plain.split("/")  # type: ignore
 
                     case "story_duration":
-                        plain = str(prop.getCustomRaw().value).strip()
+                        plain = str(prop.getCustomRaw().Value).strip()
                         header.duration = plain
 
                     case _:
@@ -718,7 +718,7 @@ def add_typ_nodes(
                                     radius=ast.litPt(2),
                                     inset=ast.litPt(2),
                                 ),  # type: ignore
-                                body=[ast.string(cell.field.name)],
+                                body=[ast.string(cell.field.Name)],
                                 isLine=True,
                             )),
                         dx=0,

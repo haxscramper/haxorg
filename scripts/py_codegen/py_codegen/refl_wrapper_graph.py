@@ -38,9 +38,9 @@ def get_declared_types_rec(
 
     match decl:
         case GenTuStruct():
-            add(decl.name)
+            add(decl.Name)
 
-            for _nested in decl.nested:
+            for _nested in decl.Nested:
                 result.extend(
                     get_declared_types_rec(
                         _nested,  # type: ignore
@@ -48,10 +48,10 @@ def get_declared_types_rec(
                     ))
 
         case GenTuTypedef():
-            add(decl.name)
+            add(decl.Name)
 
         case GenTuEnum():
-            add(decl.name)
+            add(decl.Name)
 
         case ConvTu():
             for it in decl.get_all():
@@ -79,31 +79,31 @@ def get_used_types_rec(
 
     match decl:
         case GenTuStruct():
-            for base in decl.bases:
+            for base in decl.Bases:
                 add(base)
 
-            for _field in decl.fields:
-                if _field.isTypeDecl:
+            for _field in decl.Fields:
+                if _field.IsTypeDecl:
                     result += get_used_types_rec(
-                        _field.decl,  # type: ignore
+                        _field.Decl,  # type: ignore
                         expanded_use=expanded_use,
                     )
 
                 else:
-                    assert _field.type, _field
-                    add(_field.type)
+                    assert _field.Type, _field
+                    add(_field.Type)
 
         case GenTuFunction():
-            for arg in decl.arguments:
-                assert arg.type, arg
-                add(arg.type)
+            for arg in decl.Args:
+                assert arg.Type, arg
+                add(arg.Type)
 
-            assert decl.result, decl
-            add(decl.result)
+            assert decl.ReturnType, decl
+            add(decl.ReturnType)
 
         case GenTuTypedef():
-            assert decl.base, decl
-            add(decl.base)
+            assert decl.Base, decl
+            add(decl.Base)
 
         case ConvTu():
             for it in decl.get_all():
@@ -134,18 +134,18 @@ def hash_qual_type(
     parts: List[str | int] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
-            assert t.func
-            if t.func.ReturnTy:
+            assert t.Func
+            if t.Func.ReturnType:
                 parts.append(
                     hash_qual_type(
-                        t.func.ReturnTy,
+                        t.Func.ReturnType,
                         with_namespace=with_namespace,
                     ))
 
             else:
                 parts.append(0)
 
-            for T in t.func.Args:
+            for T in t.Func.Args:
                 parts.append(hash_qual_type(
                     T,
                     with_namespace=with_namespace,
@@ -155,7 +155,7 @@ def hash_qual_type(
             pass
 
         case QualTypeKind.RegularType:
-            parts.append(hash(t.name))
+            parts.append(hash(t.Name))
 
             for space in t.Spaces:
                 parts.append(hash_qual_type(
@@ -163,7 +163,7 @@ def hash_qual_type(
                     with_namespace=with_namespace,
                 ))
 
-            for param in t.Parameters:
+            for param in t.Params:
                 parts.append(hash_qual_type(
                     param,
                     with_namespace=with_namespace,
@@ -259,7 +259,7 @@ class GenGraph:
                 matching.append(sub)
 
         assert len(matching) <= 1, [
-            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}"  # type: ignore
+            f"{m.Name}, {m.OriginalPath}, id: {_id}, entry: {self.id_to_entry[_id].format()}"  # type: ignore
             for m in matching
         ]
         if len(matching) == 1:
@@ -287,21 +287,21 @@ class GenGraph:
         """Get ID from the entry declartion"""
         match entry:
             case GenTuStruct():
-                return self.id_from_hash(hash_qual_type(entry.name))
+                return self.id_from_hash(hash_qual_type(entry.Name))
 
             case GenTuEnum():
-                return self.id_from_hash(hash_qual_type(entry.name))
+                return self.id_from_hash(hash_qual_type(entry.Name))
 
             case GenTuTypedef():
-                return self.id_from_hash(hash_qual_type(entry.name))
+                return self.id_from_hash(hash_qual_type(entry.Name))
 
             case GenTuFunction():
                 return self.id_from_hash(
                     hash(
                         tuple([
-                            hash_qual_type(entry.result),
-                            hash(entry.name),
-                        ] + [hash_qual_type(t.type) for t in entry.arguments])))
+                            hash_qual_type(entry.ReturnType),
+                            hash(entry.Name),
+                        ] + [hash_qual_type(t.Type) for t in entry.Args])))
 
             case _:
                 assert False
@@ -311,8 +311,8 @@ class GenGraph:
         if _type == len(self.graph.vs):
             self.graph.add_vertex()
             self.graph.vs[_type]["label"] = Type.format()
-            self.graph.vs[_type]["dbg_origin"] = Type.dbg_origin
-            self.graph.vs[_type]["is_builtin"] = Type.isBuiltin or Type.name in [
+            self.graph.vs[_type]["dbg_origin"] = Type.DbgOrigin
+            self.graph.vs[_type]["is_builtin"] = Type.IsBuiltin or Type.Name in [
                 "size_t", "uint32_t", "uint16_t", "int32_t"
             ]
 
@@ -329,9 +329,9 @@ class GenGraph:
         return get_used_types_rec(decl)
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct) -> None:
-        stored_fields = set([f.name for f in stored.fields])
+        stored_fields = set([f.Name for f in stored.fields])
         for _field in added.fields:
-            if _field.name not in stored_fields:
+            if _field.Name not in stored_fields:
                 stored.fields.append(deepcopy(_field))
 
         stored.IsForwardDecl = stored.IsForwardDecl and added.IsForwardDecl
@@ -370,7 +370,7 @@ class GenGraph:
                     # New subgraph properly introduces type definition and it should contain
                     # the content instead.
                     sub.nodes.add(_id)
-                    olddef.original = entry.original
+                    olddef.OriginalPath = entry.OriginalPath
 
                 elif not olddef.IsForwardDecl and entry.IsForwardDecl:
                     # Newly introduced type is a forward declaration and should not be added to a new subgraph
@@ -407,8 +407,8 @@ class GenGraph:
         merge: GenTuStruct = self.id_to_entry[_id]  # type: ignore
         self.merge_structs(merge, struct)
 
-        self.graph.vs[_id]["label"] = struct.name.format()
-        self.graph.vs[_id]["dbg_origin"] = struct.name.dbg_origin
+        self.graph.vs[_id]["label"] = struct.Name.format()
+        self.graph.vs[_id]["dbg_origin"] = struct.Name.DbgOrigin
         self.graph.vs[_id]["color"] = "green"
 
     def add_enum(self, enum: GenTuEnum, sub: Sub) -> None:
@@ -417,8 +417,8 @@ class GenGraph:
         merge: GenTuEnum = self.id_to_entry[_id]  # type: ignore
         self.merge_enums(merge, enum)
 
-        self.graph.vs[_id]["label"] = enum.name.format()
-        self.graph.vs[_id]["dbg_origin"] = enum.name.dbg_origin
+        self.graph.vs[_id]["label"] = enum.Name.format()
+        self.graph.vs[_id]["dbg_origin"] = enum.Name.DbgOrigin
         self.graph.vs[_id]["color"] = "red"
 
     def add_typedef(self, typedef: GenTuTypedef, sub: Sub) -> None:
@@ -426,7 +426,7 @@ class GenGraph:
         merge = self.id_to_entry[_id]
 
         self.graph.vs[_id]["label"] = typedef.name.format()
-        self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
+        self.graph.vs[_id]["dbg_origin"] = typedef.name.DbgOrigin
         self.graph.vs[_id]["color"] = "blue"
 
     def add_function(self, func: GenTuFunction, sub: Sub) -> None:
@@ -529,7 +529,7 @@ class GenGraph:
 
         new_grouped: List[GenGraph.Sub] = []
         for group in grouped_sets.values():
-            result = GenGraph.Sub(original=group[0].original, name=group[0].name)
+            result = GenGraph.Sub(original=group[0].OriginalPath, name=group[0].Name)
             for item in group:
                 result.nodes = result.nodes.union(item.nodes)
 
@@ -538,7 +538,8 @@ class GenGraph:
             if 1 < len(group):
                 log("refl.cli.read").info(
                     "Merging strongly connected files %s" % (", ".join([
-                        f"[green]{g.original.name}[/green]" for g in group if g.original
+                        f"[green]{g.OriginalPath.Name}[/green]" for g in group
+                        if g.OriginalPath
                     ])))
 
         self.subgraphs = new_grouped + ungrouped_sets
@@ -549,7 +550,7 @@ class GenGraph:
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             match decl:
-                case GenTuEnum(name=name) | GenTuStruct(name=name) | GenTuTypedef(
+                case GenTuEnum(Name=name) | GenTuStruct(Name=name) | GenTuTypedef(
                     name=name):
                     result.Defines.append(name)
 
@@ -634,13 +635,13 @@ class GenGraph:
             for node in sub.nodes:
                 if is_accepted_node(node):
                     target.node(
-                        f'{sub.name}_{node}',
+                        f'{sub.Name}_{node}',
                         **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
                     added_nodes.add(node)
                     if node in parent_tus and 1 < len(parent_tus[node]):
                         for target in parent_tus[node]:
-                            if target != sub.name:
-                                dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
+                            if target != sub.Name:
+                                dot.edge(f"{target}_{node}", f"{sub.Name}_{node}")
 
         # Add nodes to subgraphs
         for sub in self.subgraphs:

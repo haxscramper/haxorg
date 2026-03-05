@@ -48,7 +48,7 @@ def test_primitive_type(stable_test_dir: Path, stable_unique_test_name: str,
         preamble=[],
         typ=type_name,
     )
-    assert t.name == type_name
+    assert t.Name == type_name
     assert t.isPrimitive() == True
 
 
@@ -60,10 +60,10 @@ def test_primitive_type_const(stable_test_dir: Path, stable_unique_test_name: st
         preamble=[],
         typ="int const",
     )
-    assert t.name == "int"
+    assert t.Name == "int"
     assert t.isPrimitive() == True
-    assert t.isConst == True
-    assert t.ptrCount == 0
+    assert t.IsConst == True
+    assert t.PtrCount == 0
 
 
 @pytest.mark.test_release
@@ -74,10 +74,10 @@ def test_primitive_type_const_ptr(stable_test_dir: Path, stable_unique_test_name
         preamble=[],
         typ="int const*",
     )
-    assert t.name == "int"
+    assert t.Name == "int"
     assert t.isPrimitive() == True
-    assert t.isConst == True
-    assert t.ptrCount == 1
+    assert t.IsConst == True
+    assert t.PtrCount == 1
 
 
 @pytest.mark.test_release
@@ -88,7 +88,7 @@ def test_user_defined(stable_test_dir: Path, stable_unique_test_name: str):
         preamble=["struct UserDefined{};"],
         typ="UserDefined",
     )
-    assert t.name == "UserDefined"
+    assert t.Name == "UserDefined"
     assert t.isPrimitive() == False
 
 
@@ -100,9 +100,9 @@ def test_user_defined_template(stable_test_dir: Path, stable_unique_test_name: s
         preamble=["template <typename T> struct Templ{};"],
         typ="Templ<int>",
     )
-    assert t.name == "Templ"
-    assert len(t.Parameters) == 1
-    assert t.par0().name == "int"
+    assert t.Name == "Templ"
+    assert len(t.Params) == 1
+    assert t.par0().Name == "int"
     assert t.par0().isPrimitive() == True
 
 
@@ -115,7 +115,7 @@ def test_enum_class(stable_test_dir: Path, stable_unique_test_name: str):
         typ="TestEnum",
     )
 
-    assert t.name == "TestEnum"
+    assert t.Name == "TestEnum"
 
 
 @pytest.mark.test_release
@@ -131,10 +131,10 @@ namespace ns {
         typ="ns::UserDefined",
     )
 
-    assert t.name == "UserDefined"
+    assert t.Name == "UserDefined"
     assert t.isPrimitive() == False
-    assert [s.name for s in t.Spaces] == ["ns"]
-    assert [s.isNamespace for s in t.Spaces] == [True]
+    assert [s.Name for s in t.Spaces] == ["ns"]
+    assert [s.IsNamespace for s in t.Spaces] == [True]
 
 
 @pytest.mark.test_release
@@ -152,9 +152,9 @@ namespace n2 {
         typ="n1::n2::DeepType",
     )
 
-    assert t.name == "DeepType"
-    assert [s.name for s in t.Spaces] == ["n1", "n2"]
-    assert [s.isNamespace for s in t.Spaces] == [True, True]
+    assert t.Name == "DeepType"
+    assert [s.Name for s in t.Spaces] == ["n1", "n2"]
+    assert [s.IsNamespace for s in t.Spaces] == [True, True]
 
 
 @pytest.mark.test_release
@@ -173,9 +173,9 @@ namespace alias_ns = real_ns;
         typ="alias_ns::AliasTarget",
     )
 
-    assert t.name == "AliasTarget"
-    assert [s.name for s in t.Spaces] == ["real_ns"]
-    assert [s.isNamespace for s in t.Spaces] == [True]
+    assert t.Name == "AliasTarget"
+    assert [s.Name for s in t.Spaces] == ["real_ns"]
+    assert [s.IsNamespace for s in t.Spaces] == [True]
 
 
 @pytest.mark.test_release
@@ -191,9 +191,9 @@ struct Outer {
         typ="Outer::Inner",
     )
 
-    assert t.name == "Inner"
-    assert [s.name for s in t.Spaces] == ["Outer"]
-    assert [s.isNamespace for s in t.Spaces] == [False]
+    assert t.Name == "Inner"
+    assert [s.Name for s in t.Spaces] == ["Outer"]
+    assert [s.IsNamespace for s in t.Spaces] == [False]
 
 
 @pytest.mark.test_release
@@ -212,10 +212,10 @@ namespace tpl_ns {
         typ="tpl_ns::Box<int>",
     )
 
-    assert t.name == "Box"
-    assert [s.name for s in t.Spaces] == ["tpl_ns"]
-    assert len(t.Parameters) == 1
-    assert t.par0().name == "int"
+    assert t.Name == "Box"
+    assert [s.Name for s in t.Spaces] == ["tpl_ns"]
+    assert len(t.Params) == 1
+    assert t.par0().Name == "int"
     assert t.par0().isPrimitive() == True
 
 
@@ -232,8 +232,8 @@ namespace top {
         typ="::top::GlobalRef",
     )
 
-    assert t.name == "GlobalRef"
-    assert [s.name for s in t.Spaces] == ["top"]
+    assert t.Name == "GlobalRef"
+    assert [s.Name for s in t.Spaces] == ["top"]
 
 
 @pytest.mark.test_release
@@ -246,11 +246,11 @@ def test_fixed_size_array_type(stable_test_dir: Path, stable_unique_test_name: s
     )
 
     assert t.Kind == QualTypeKind.Array
-    assert t.name == "ConstantArray"
-    assert len(t.Parameters) == 2
-    assert t.par0().name == "int"
+    assert t.Name == "ConstantArray"
+    assert len(t.Params) == 2
+    assert t.par0().Name == "int"
     assert t.par0().Kind == QualTypeKind.RegularType
-    assert t.par1().expr == "8"
+    assert t.par1().Expr == "8"
     assert t.par1().Kind == QualTypeKind.TypeExpr
 
 
@@ -264,14 +264,14 @@ def test_multidim_array_type(stable_test_dir: Path, stable_unique_test_name: str
     )
 
     assert t.Kind == QualTypeKind.Array
-    assert len(t.Parameters) == 2
+    assert len(t.Params) == 2
 
-    assert t.par1().expr == "2"
+    assert t.par1().Expr == "2"
     inner = t.par0()
     assert inner.Kind == QualTypeKind.Array
-    assert len(inner.Parameters) == 2
-    assert inner.par0().name == "float"
-    assert inner.par1().expr == "4"
+    assert len(inner.Params) == 2
+    assert inner.par0().Name == "float"
+    assert inner.par1().Expr == "4"
 
 
 @pytest.mark.test_release
@@ -284,10 +284,10 @@ def test_function_pointer_type(stable_test_dir: Path, stable_unique_test_name: s
     )
 
     assert t.Kind == QualTypeKind.FunctionPtr
-    assert len(t.Parameters) == 0
-    assert t.func.ReturnTy.name == "int"
-    assert len(t.func.Args) == 2
-    assert t.func.Args[0].name == "double"
-    assert t.func.Args[1].name == "char"
-    assert t.func.Args[1].ptrCount == 1
-    assert t.func.Args[1].isConst == True
+    assert len(t.Params) == 0
+    assert t.Func.ReturnType.Name == "int"
+    assert len(t.Func.Args) == 2
+    assert t.Func.Args[0].Name == "double"
+    assert t.Func.Args[1].Name == "char"
+    assert t.Func.Args[1].PtrCount == 1
+    assert t.Func.Args[1].IsConst == True

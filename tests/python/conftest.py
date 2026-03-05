@@ -133,7 +133,7 @@ def trace_module(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
 
 @pytest.fixture(autouse=True)
 def trace_test(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
-    test_name = request.node.name
+    test_name = request.node.Name
     get_trace_collector().push_complete_event(test_name, "test")
     yield
     get_trace_collector().pop_complete_event()
@@ -362,11 +362,11 @@ def get_test_dir(
     base_dir = test_dir_root / rel_path
 
     # Add test function name
-    test_name = request.node.name
+    test_name = request.node.Name
 
     # Handle parametrized tests
-    if hasattr(request.node, "callspec") and request.node.callspec.params:
-        params_items = sorted(request.node.callspec.params.items())
+    if hasattr(request.node, "callspec") and request.node.callspec.Params:
+        params_items = sorted(request.node.callspec.Params.items())
         params_str = "_".join(f"{k}={v}" for k, v in params_items)
 
         if len(params_str) <= 32:
@@ -421,7 +421,7 @@ def cpp_debugger(request: Any) -> dict[str, bool]:
     @beartype
     def run_under_lldb() -> None:
         test_path = str(request.node.fspath)
-        test_name = request.node.name
+        test_name = request.node.Name
 
         lldb_script_content = """breakpoint set -E C++
 breakpoint set -n __cxa_throw

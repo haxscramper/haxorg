@@ -75,15 +75,14 @@ class NanobindAstbuilderConfig(AstbulderConfig):
             ]
 
             if flat == ["std", "shared_ptr"] and 1 == len(
-                    Typ.Parameters) and self.type_map.is_known_type(
-                        Typ.Parameters[0]) and self.type_map.get_one_type_for_qual_name(
-                            Typ.Parameters[0]
-                        ).reflectionParams.backend.python.holder_type == "shared":
-                return self.getBackendType(Typ.Parameters[0])
+                    Typ.Params) and self.type_map.is_known_type(
+                        Typ.Params[0]) and self.type_map.get_one_type_for_qual_name(
+                            Typ.Params[0]
+                        ).ReflectionParams.backend.python.holder_type == "shared":
+                return self.getBackendType(Typ.Params[0])
 
             elif flat == ["ImmIdT"]:
-                return QualType(name="ImmIdT" +
-                                Typ.Parameters[0].name.replace("Imm", "", 1))
+                return QualType(Name="ImmIdT" + Typ.Params[0].Name.replace("Imm", "", 1))
 
             match flat:
                 case ["Vec"]:
@@ -112,12 +111,12 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     name = "str"
 
                 case ["SemId"]:
-                    name = Typ.Parameters[0].name
+                    name = Typ.Params[0].Name
 
-                case "Bool":
+                case ["Bool"]:
                     name = "bool"
 
-                case "double":
+                case ["double"]:
                     name = "float"
 
                 case ["void"]:
@@ -127,7 +126,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     name = "bytes"
 
                 case ["nanobind", "callable"] | [*_, "PyFunc"]:
-                    name = "function"
+                    name = "Callable"
 
                 case ["py", "object"] | ["nanobind", "object"]:
                     name = "object"
@@ -135,17 +134,20 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case ["UnorderedMap"]:
                     name = "Dict"
 
+                case ["int64_t"]:
+                    name = "int"
+
                 case _:
                     name = "".join(flat)
 
         struct = self.type_map.get_struct_for_qual_name(Typ)
-        if not struct or struct.reflectionParams.wrapper_has_params:
-            res = QualType(name=name)
-            if Typ.name != "SemId":
-                for param in Typ.Parameters:
-                    res.Parameters.append(self.getBackendType(param))
+        if not struct or struct.ReflectionParams.wrapper_has_params:
+            res = QualType(Name=name)
+            if Typ.Name != "SemId":
+                for param in Typ.Params:
+                    res.Params.append(self.getBackendType(param))
 
             return res
 
         else:
-            return QualType(name=name)
+            return QualType(Name=name)

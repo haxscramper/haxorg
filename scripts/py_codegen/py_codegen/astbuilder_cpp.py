@@ -25,7 +25,7 @@ class DocParams:
 class ParmVarParams:
     type: 'QualType'
     name: str
-    isConst: bool = False
+    IsConst: bool = False
     storage: StorageClass = StorageClass.None_
     defArg: Optional[BlockId] = None
 
@@ -89,16 +89,16 @@ class MethodDefParams:
 @dataclass
 class MethodDeclParams:
     Params: FunctionParams
-    isConst: bool = False
-    isStatic: bool = False
-    isVirtual: bool = False
-    isPureVirtual: bool = False
-    isOverride: bool = False
+    IsConst: bool = False
+    IsStatic: bool = False
+    IsVirtual: bool = False
+    IsPureVirtual: bool = False
+    IsOverride: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
     def asMethodDef(self, Class: QualType) -> MethodDefParams:
         return MethodDefParams(
-            IsConst=self.isConst,
+            IsConst=self.IsConst,
             Class=Class,
             Params=copy(self.Params),
         )
@@ -677,7 +677,7 @@ class ASTBuilder(base.AstbuilderBase):
         return self.b.line([
             self.Type(p.type),
             self.string(" "),
-            self.string("const " if p.isConst else ""),
+            self.string("const " if p.IsConst else ""),
             self.string(p.name), *([self.string(" = "), p.defArg] if p.defArg else []),
             self.string(";")
         ])
@@ -721,7 +721,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.b.add_at(definition, self.string(line + "  \\"))
 
         arguments = [
-            self.string(line.name if not line.isEllipsis else "...")
+            self.string(line.Name if not line.isEllipsis else "...")
             for line in params.params
         ]
 
@@ -789,17 +789,17 @@ class ASTBuilder(base.AstbuilderBase):
 
     def MethodDecl(self, method: MethodDeclParams) -> BlockId:
         head = self.b.line([
-            self.string("static " if method.isStatic else ""),
-            self.string("virtual " if method.isVirtual else ""),
+            self.string("static " if method.IsStatic else ""),
+            self.string("virtual " if method.IsVirtual else ""),
             *([] if method.Params.ResultTy is None else [
                 self.Type(method.Params.ResultTy),
                 self.string(" "),
             ]),
             self.string(method.Params.Name),
             self.Arguments(method.Params),
-            self.string(" const" if method.isConst else ""),
-            self.string(" override" if method.isOverride else ""),
-            self.string(" = 0" if method.isPureVirtual else ""),
+            self.string(" const" if method.IsConst else ""),
+            self.string(" override" if method.IsOverride else ""),
+            self.string(" = 0" if method.IsPureVirtual else ""),
             self.InitList(method.Params),
         ])
 
@@ -857,7 +857,7 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.b.line([
             self.string("struct "),
             self.Type(params.name)
-            if params.IsTemplateSpecialization else self.string(params.name.name),
+            if params.IsTemplateSpecialization else self.string(params.name.Name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")),
                 self.string("<"), self.string(">")), bases or self.string(""),
@@ -1000,10 +1000,10 @@ class ASTBuilder(base.AstbuilderBase):
 
         else:
             qualifiers = ""
-            if type_.isConst:
+            if type_.IsConst:
                 qualifiers += " const"
 
-            qualifiers += "*" * type_.ptrCount
+            qualifiers += "*" * type_.PtrCount
             match type_.RefKind:
                 case codegen_ir.ReferenceKind.LValue:
                     qualifiers += "&"
@@ -1012,8 +1012,8 @@ class ASTBuilder(base.AstbuilderBase):
                     qualifiers += "&&"
 
         def get_dbg_str() -> str:
-            if codegen_ir.DEBUG_TYPE_ORIGIN and type_.dbg_origin:
-                return f" /* {type_.dbg_origin} */"
+            if codegen_ir.DEBUG_TYPE_ORIGIN and type_.DbgOrigin:
+                return f" /* {type_.DbgOrigin} */"
 
             else:
                 return ""
@@ -1023,28 +1023,28 @@ class ASTBuilder(base.AstbuilderBase):
 
         match type_.Kind:
             case codegen_ir.QualTypeKind.FunctionPtr:
-                assert type_.func
-                pointer_type = [self.Type(type_.func.Class),
-                                self.string("::")] if type_.func.Class else []
+                assert type_.Func
+                pointer_type = [self.Type(type_.Func.Class),
+                                self.string("::")] if type_.Func.Class else []
 
                 return self.b.line([
-                    self.Type(type_.func.ReturnTy)
-                    if type_.func.ReturnTy else self.string("void"),
+                    self.Type(type_.Func.ReturnType)
+                    if type_.Func.ReturnType else self.string("void"),
                     self.pars(self.b.line(pointer_type + [self.string("*")])),
-                    self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
-                    self.string(" const" if type_.func.IsConst else ""),
+                    self.pars(self.csv([self.Type(T) for T in type_.Func.Args])),
+                    self.string(" const" if type_.Func.IsConst else ""),
                     get_dbg(),
                 ])
 
             case codegen_ir.QualTypeKind.TypeExpr:
-                assert type_.expr
-                return self.string(type_.expr + get_dbg_str())
+                assert type_.Expr
+                return self.string(type_.Expr + get_dbg_str())
 
             case codegen_ir.QualTypeKind.Array:
                 return self.b.line([
-                    self.Type(type_.Parameters[0]),
+                    self.Type(type_.Params[0]),
                     self.string("["),
-                    self.Type(type_.Parameters[1]),
+                    self.Type(type_.Params[1]),
                     self.string("]"),
                     self.string(qualifiers),
                     get_dbg(),
@@ -1052,16 +1052,16 @@ class ASTBuilder(base.AstbuilderBase):
 
             case codegen_ir.QualTypeKind.RegularType:
                 type_scopes: List[BlockId] = []
-                if type_.isGlobalNamespace:
+                if type_.IsGlobalNamespace:
                     # Double colon is added by join later on
                     type_scopes.append(self.string(""))
 
                 for Space in type_.Spaces:
                     type_scopes.append(self.Type(Space, noQualifiers=noQualifiers))
 
-                type_scopes.append(self.string(type_.name))
+                type_scopes.append(self.string(type_.Name))
 
-                if len(type_.Parameters) == 0:
+                if len(type_.Params) == 0:
                     template_parameters = self.string("")
 
                 else:
@@ -1070,10 +1070,10 @@ class ASTBuilder(base.AstbuilderBase):
                         self.b.join(
                             [
                                 self.Type(in_, noQualifiers=noQualifiers)
-                                for in_ in type_.Parameters
+                                for in_ in type_.Params
                             ],
                             self.string(", "),
-                            not type_.verticalParamList,
+                            not type_.VerticalParamList,
                         ),
                         self.string(">")
                     ])

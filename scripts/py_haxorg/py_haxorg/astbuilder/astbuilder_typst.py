@@ -261,13 +261,13 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.string(str(value))
 
             case RawLiteral():
-                return self.string(value.value)
+                return self.string(value.Value)
 
             case RawStr():
-                return self.string(value.value)
+                return self.string(value.Value)
 
             case RawBlock():
-                return self.string(value.value)
+                return self.string(value.Value)
 
             case str():
                 return self.b.wrap_quote(self.escape_str_lit(value))

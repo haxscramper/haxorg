@@ -55,12 +55,12 @@ def get_exporter_methods(
             scope_full: List[GenTuStruct] = [
                 scope for scope in iterate_tree_context if isinstance(scope, GenTuStruct)
             ]
-            scope_names: List[str] = [scope.name.name for scope in scope_full]
-            name: str = value.name.name
+            scope_names: List[str] = [scope.Name.Name for scope in scope_full]
+            name: str = value.Name.Name
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
                 field for field in (value.fields + get_type_base_fields(value, type_map))
-                if field.isExposedForWrap
+                if field.IsExposedForWrap
             ]
 
             scoped_target = t_cr(
@@ -80,18 +80,18 @@ def get_exporter_methods(
                             QualType.ForName("void"),
                             f"{decl_scope}visit",
                             GenTuDoc(""),
-                            params=t_params,
-                            arguments=[
+                            Params=t_params,
+                            Args=[
                                 GenTuIdent(
                                     QualType.ForName("R", RefKind=ReferenceKind.LValue),
                                     "res"),
                                 GenTuIdent(
-                                    t_cr(field.type)
-                                    if field.type else QualType.ForName("void"),
+                                    t_cr(field.Type)
+                                    if field.Type else QualType.ForName("void"),
                                     "object",
                                 ),
                             ],
-                            impl=None if forward else
+                            Body=None if forward else
                             f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{kindGetter}(object), object);",
                         ))
 
@@ -100,22 +100,22 @@ def get_exporter_methods(
                     QualType.ForName("void"),
                     f"{decl_scope}visit{name}",
                     GenTuDoc(""),
-                    params=t_params,
-                    arguments=[
+                    Params=t_params,
+                    Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
                                    "res"),
                         GenTuIdent(
-                            QualType.ForName(
-                                "In", Parameters=[QualType.ForName(f"sem::{name}")]),
+                            QualType.ForName("In",
+                                             Params=[QualType.ForName(f"sem::{name}")]),
                             "object"),
                     ],
-                    impl=cond(
+                    Body=cond(
                         forward,
                         None,
                         "auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));\n{}"
                         .format(
                             "\n".join([
-                                f"__org_field(res, object, {a.name});" for a in fields
+                                f"__org_field(res, object, {a.Name});" for a in fields
                             ]),),
                     ),
                 )
@@ -124,14 +124,14 @@ def get_exporter_methods(
                     QualType.ForName("void"),
                     f"{decl_scope}visit",
                     GenTuDoc(""),
-                    params=t_params,
-                    arguments=[
+                    Params=t_params,
+                    Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
                                    "res"),
                         GenTuIdent(scoped_target, "object"),
                     ],
-                    impl=None if forward else "\n".join(
-                        [f"__obj_field(res, object, {a.name});" for a in fields]),
+                    Body=None if forward else "\n".join(
+                        [f"__obj_field(res, object, {a.Name});" for a in fields]),
                 )
 
             methods += variant_methods + [method]
@@ -251,7 +251,7 @@ def gen_pyhaxorg_python_wrappers(
     res = NbModule("pyhaxorg", conf)
 
     for decl in groups.get_entries_for_wrapping():
-        if decl.reflectionParams.isAcceptedBackend("python"):
+        if decl.ReflectionParams.isAcceptedBackend("python"):
             res.add_decl(decl, ast=ast)
 
     res.add_type_specializations(
@@ -309,7 +309,7 @@ def gen_pyhaxorg_napi_wrappers(
     )
 
     for decl in groups.get_entries_for_wrapping():
-        if decl.reflectionParams.isAcceptedBackend("wasm"):
+        if decl.ReflectionParams.isAcceptedBackend("wasm"):
             res.add_decl(decl)
 
     res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))

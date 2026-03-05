@@ -15,9 +15,9 @@ def test_function_extract_0_args(stable_test_dir: Path) -> None:
         "int get_something();",
         stable_test_dir=stable_test_dir,
     )
-    assert func.name == "get_something"
-    assert len(func.arguments) == 0
-    assert func.result.name == "int"
+    assert func.Name == "get_something"
+    assert len(func.Args) == 0
+    assert func.ReturnType.Name == "int"
 
 
 @pytest.mark.test_release
@@ -27,13 +27,13 @@ def test_function_extract_args(stable_test_dir: Path) -> None:
         "int do_something(int first, char second);",
         stable_test_dir=stable_test_dir,
     )
-    assert func.name == "do_something"
-    assert len(func.arguments) == 2
-    assert func.result.name == "int"
-    assert func.arguments[0].type.name == "int"
-    assert func.arguments[1].type.name == "char"
-    assert func.arguments[0].name == "first"
-    assert func.arguments[1].name == "second"
+    assert func.Name == "do_something"
+    assert len(func.Args) == 2
+    assert func.ReturnType.Name == "int"
+    assert func.Args[0].Type.Name == "int"
+    assert func.Args[1].Type.Name == "char"
+    assert func.Args[0].Name == "first"
+    assert func.Args[1].Name == "second"
 
 
 @pytest.mark.test_release
@@ -44,10 +44,10 @@ def test_function_const_ref(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    assert func.name == "enable_file_trace"
-    t = func.arguments[0].type
-    assert t.name == "int"
-    assert t.isConst
+    assert func.Name == "enable_file_trace"
+    t = func.Args[0].Type
+    assert t.Name == "int"
+    assert t.IsConst
     assert t.RefKind == ReferenceKind.LValue
 
 
@@ -59,12 +59,12 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    assert len(struct.methods) == 1
-    func = struct.methods[0]
-    assert func.name == "enable_file_trace"
-    t = func.arguments[0].type
-    assert t.name == "int"
-    assert t.isConst
+    assert len(struct.Methods) == 1
+    func = struct.Methods[0]
+    assert func.Name == "enable_file_trace"
+    t = func.Args[0].Type
+    assert t.Name == "int"
+    assert t.IsConst
     assert t.RefKind == ReferenceKind.LValue
 
     ast = cpp.ASTBuilder(in_b=TextLayout())
@@ -73,6 +73,6 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
     wrap.InitDefault(ast, wrap.Fields)
     lyt = TextLayout()
     builder = cpp.ASTBuilder(lyt)
-    bind = wrap.Methods[0].build_bind(struct.name, builder)
+    bind = wrap.Methods[0].build_bind(struct.Name, builder)
     assert "static_cast<void(S::*)(int const&)>(&S::enable_file_trace)" in lyt.toString(
         bind, TextOptions())

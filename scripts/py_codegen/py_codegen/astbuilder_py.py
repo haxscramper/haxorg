@@ -79,16 +79,16 @@ class ASTBuilder(base.AstbuilderBase):
         return self.b.line([self.string("@"), self.string(p.Name)])
 
     def Type(self, p: QualType) -> BlockId:
-        if p.Parameters:
+        if p.Params:
             return self.b.line([
-                self.string(p.name),
+                self.string(p.Name),
                 self.string("["),
-                self.csv([self.Type(T) for T in p.Parameters]),
+                self.csv([self.Type(T) for T in p.Params]),
                 self.string("]")
             ])
 
         else:
-            return self.string(p.name)
+            return self.string(p.Name)
 
     def Arg(self, p: IdentParams) -> BlockId:
         return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])

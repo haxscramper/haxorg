@@ -108,7 +108,7 @@ class FunctionKind(Enum):
 class FunctionParams:
     Name: str
     Exported: bool = True
-    ReturnTy: Type = field(default_factory=lambda: Type("void"))
+    ReturnType: Type = field(default_factory=lambda: Type("void"))
     Arguments: List[IdentParams] = field(default_factory=list)
     Pragmas: List[PragmaParams] = field(default_factory=list)
     Implementation: Optional[BlockId] = None
@@ -225,7 +225,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         with self.Line():
             self.Item(": ")
-            self.Item(self.Type(func.ReturnTy))
+            self.Item(self.Type(func.ReturnType))
             self.Item(self.Pragmas(func.Pragmas))
 
             if func.Implementation:

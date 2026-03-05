@@ -40,8 +40,8 @@ def collect_type_field_groups(types: List[tu.GenTuStruct],
 
     def aux(t: tu.GenTuStruct) -> List[tu.GenTuField]:
         result: List[tu.GenTuField] = []
-        for base in t.bases:
-            base_type = type_map.get_one_type_for_name(base.name)
+        for base in t.Bases:
+            base_type = type_map.get_one_type_for_name(base.Name)
             if base_type:
                 assert isinstance(base_type, tu.GenTuStruct)
                 result += aux(base_type)
@@ -49,7 +49,7 @@ def collect_type_field_groups(types: List[tu.GenTuStruct],
         return result
 
     def filter_fields(f: List[tu.GenTuField]) -> List[tu.GenTuField]:
-        return [it for it in f if not it.isStatic]
+        return [it for it in f if not it.IsStatic]
 
     result = PyhaxorgTypeFieldGroup()
 
@@ -57,9 +57,9 @@ def collect_type_field_groups(types: List[tu.GenTuStruct],
         group = PyhaxorgTypeDesc(
             fields=filter_fields(t.fields),
             parent_fields=filter_fields(aux(t)),
-            bases=list(t.bases),
-            name=t.name.name,
-            typ=t.name,
+            bases=list(t.Bases),
+            name=t.Name.Name,
+            typ=t.Name,
         )
 
         result.types.append(group)
@@ -76,9 +76,9 @@ def collect_pyhaxorg_typename_groups(
            ) -> None:
         match it:
             case tu.GenTuStruct() | tu.GenTuEnum():
-                flat = it.name.flatQualScope() + [it.name.withoutAllScopeQualifiers()]
+                flat = it.Name.flatQualScope() + [it.Name.withoutAllScopeQualifiers()]
                 without_namespaces = [
-                    i for i in range(len(flat)) if not flat[i].isNamespace
+                    i for i in range(len(flat)) if not flat[i].IsNamespace
                 ]
                 # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
                 name_start = without_namespaces[0]
@@ -86,9 +86,9 @@ def collect_pyhaxorg_typename_groups(
                     parent = flat[name_start]
                     nested = flat[without_namespaces[1]:]
                     value = (
-                        parent.name,
-                        "::".join(it.name for it in nested),
-                        "({})".format(", ".join(it.name for it in nested)),
+                        parent.Name,
+                        "::".join(it.Name for it in nested),
+                        "({})".format(", ".join(it.Name for it in nested)),
                     )
                     if isinstance(it, tu.GenTuStruct):
                         res.nested_records.append(value)
@@ -98,8 +98,8 @@ def collect_pyhaxorg_typename_groups(
 
                 if isinstance(it, tu.GenTuStruct):
                     res.all_records.append((
-                        "::".join(it.name for it in flat[name_start:]),
-                        "({})".format(", ".join(it.name for it in flat[name_start:])),
+                        "::".join(it.Name for it in flat[name_start:]),
+                        "({})".format(", ".join(it.Name for it in flat[name_start:])),
                     ))
 
     iterate_object_tree(types, [], pre_visit=aux)
@@ -179,12 +179,12 @@ def gen_pyhaxorg_field_iteration_macros(
                             "__IMPL_FIELD",
                             [
                                 # Type of the field
-                                ast.pars(ast.Type(field.type)) if field.type else
+                                ast.pars(ast.Type(field.Type)) if field.Type else
                                 ast.string("void"),  # type: ignore[arg-type]
                                 # field name without changes
-                                ast.string(field.name),
+                                ast.string(field.Name),
                                 # field name for `getField` etc.
-                                ast.string(pascal_case(field.name)),
+                                ast.string(pascal_case(field.Name)),
                                 # Parent type for field, in case you need to define methods for
                                 # each field outside of the class body.
                                 ast.pars(ast.Type(group.typ)),
@@ -226,18 +226,18 @@ def gen_pyhaxorg_iteration_macros(types: List[tu.GenTuStruct]) -> List[tu.GenTuP
     result: List[tu.GenTuPass] = gen_iteration_macros(res, "SEM")
     result.append(
         tu.GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
-            [f"    __IMPL({struct.name.name})"
+            [f"    __IMPL({struct.Name.Name})"
              for struct in get_concrete_types(types)]))))
 
     result.append(
         tu.GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.name.name}, {struct.bases[0].name})"
+            f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})"
             for struct in get_concrete_types(types)
         ]))))
 
     result.append(
         tu.GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.name.name}, {struct.bases[0].name})" for struct in types
+            f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})" for struct in types
         ]))))
 
     return result

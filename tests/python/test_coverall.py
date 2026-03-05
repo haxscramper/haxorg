@@ -1174,7 +1174,7 @@ def test_total_representation() -> None:
 
         for class_predicate_id, cover in class_preciate_map.items():
             for cov in cover:
-                for field_check in cov.fields:
+                for field_check in cov.Fields:
                     if field_check.field in unknown_fields:
                         unknown_fields.remove(field_check.field)
 
@@ -1192,7 +1192,7 @@ def test_total_representation() -> None:
             if any(cov.is_matching() for cov in cover):
                 field_cover_tree: Dict[Tuple[str, str], List[FieldCheckResult]] = dict()
                 for cov in cover:
-                    for field_check in cov.fields:
+                    for field_check in cov.Fields:
                         key = (field_check.field, field_check.field_predicate_id)
                         if key not in field_cover_tree:
                             field_cover_tree[key] = []

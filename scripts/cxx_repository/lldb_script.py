@@ -69,7 +69,7 @@ def format_frame(frame: Any, unused: Any, **kwargs: Any) -> str:
         else:
             return f"\033[{value}m"
 
-    start = f"{fmt_color(35)}{frame.idx:>2}{fmt_color(0)}: {simplify_name(frame.name)}"
+    start = f"{fmt_color(35)}{frame.idx:>2}{fmt_color(0)}: {simplify_name(frame.Name)}"
     # 'A read only property that returns the 1 based line number for this
     # line entry, a return value of zero indicates that no line information
     # is available.' -- looks like '4294967295' also indicates something,
@@ -85,11 +85,11 @@ def format_frame(frame: Any, unused: Any, **kwargs: Any) -> str:
 
 def should_skip_frame(frame: Any) -> bool:
     return any([
-        "___lldb_unnamed_symbol" in frame.name,
-        "Catch" in frame.name,
-        "__gnu" in frame.name,
-        "__libc" in frame.name,
-        "___lldb_unnamed" in frame.name,
+        "___lldb_unnamed_symbol" in frame.Name,
+        "Catch" in frame.Name,
+        "__gnu" in frame.Name,
+        "__libc" in frame.Name,
+        "___lldb_unnamed" in frame.Name,
         (frame.line_entry.file.basename and
          ("std_function" in frame.line_entry.file.basename or
           "invoke.h" in frame.line_entry.file.basename)),

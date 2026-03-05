@@ -138,17 +138,17 @@ def _find_module_prefix(
 def _freeze(node: _ModuleAcc) -> ModuleNode:
     "Create fixed pydantic object from the module accessor"
     submodules = [
-        _freeze(ch) for ch in sorted(node.children.values(), key=lambda x: x.name)
+        _freeze(ch) for ch in sorted(node.children.values(), key=lambda x: x.Name)
     ]
     return ModuleNode(
         name=node.name,
         full_name=node.full_name,
         meta=node.meta,
         submodules=submodules,
-        functions=sorted(node.functions.values(), key=lambda x: x.name),
-        classes=sorted(node.classes.values(), key=lambda x: x.name),
-        exceptions=sorted(node.exceptions.values(), key=lambda x: x.name),
-        data=sorted(node.data.values(), key=lambda x: x.name),
+        functions=sorted(node.functions.values(), key=lambda x: x.Name),
+        classes=sorted(node.classes.values(), key=lambda x: x.Name),
+        exceptions=sorted(node.exceptions.values(), key=lambda x: x.Name),
+        data=sorted(node.data.values(), key=lambda x: x.Name),
     )
 
 

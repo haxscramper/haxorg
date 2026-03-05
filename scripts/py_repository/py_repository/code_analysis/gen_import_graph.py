@@ -184,7 +184,7 @@ def gen_import_graph(ctx: TaskContext) -> ImportGraph:
 
     for pkg_name, src_path in packages:
         pkg_modules = [
-            d.name
+            d.Name
             for d in src_path.iterdir()
             if d.is_dir() and (d / "__init__.py").exists()
         ]

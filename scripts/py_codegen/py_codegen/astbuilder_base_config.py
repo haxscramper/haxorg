@@ -77,7 +77,7 @@ class AstbulderConfig(abc.ABC):
                 return False
 
             case _:
-                return 0 < len(t.Parameters)
+                return 0 < len(t.Params)
 
     def getBindName(self, t: QualType, withParams: bool = True) -> str:
         """
@@ -131,13 +131,12 @@ class AstbulderConfig(abc.ABC):
                     for N in t.Spaces:
                         res += self.getBindName(N, withParams=withParams)
 
-                    if t.name not in codegen_ir.IGNORED_NAMESPACES:
-                        res += pascal_case(t.name)
+                    if t.Name not in codegen_ir.IGNORED_NAMESPACES:
+                        res += pascal_case(t.Name)
 
-        if withParams and 0 < len(t.Parameters):
+        if withParams and 0 < len(t.Params):
             res += "Of"
-            res += "".join(
-                [self.getBindName(T, withParams=withParams) for T in t.Parameters])
+            res += "".join([self.getBindName(T, withParams=withParams) for T in t.Params])
 
         return res
 
@@ -148,14 +147,14 @@ class AstbulderConfig(abc.ABC):
         """
 
         def get_base(spaces: List[str], name: str, params: List[QualType]) -> QualType:
-            return QualType(name=name,
-                            Spaces=[QualType(name=S, isNamespace=True) for S in spaces],
-                            Parameters=params)
+            return QualType(Name=name,
+                            Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
+                            Params=params)
 
         def get_base_par0(spaces: List[str], name: str) -> QualType:
-            return QualType(name=name,
-                            Spaces=[QualType(name=S, isNamespace=True) for S in spaces],
-                            Parameters=[derived.par0()])
+            return QualType(Name=name,
+                            Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
+                            Params=[derived.par0()])
 
         match derived.flatQualName():
             case ["hstd", "Vec"]:

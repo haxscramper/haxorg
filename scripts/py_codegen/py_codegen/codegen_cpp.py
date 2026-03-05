@@ -35,21 +35,21 @@ class GenConverter:
         Map codegen IR free function to common CPP codegen function parameters.
         """
         decl = cpp.FunctionParams(
-            ResultTy=func.result,
-            Name=func.name,
-            doc=self.convertDoc(func.doc),
+            ResultTy=func.ReturnType,
+            Name=func.Name,
+            doc=self.convertDoc(func.Doc),
             InitList=func.InitList if inline_impl else [],
             IsConstructor=func.IsConstructor,
-            Template=func.params,
+            Template=func.Params,
         )
 
-        if func.impl is not None and inline_impl:
-            if isinstance(func.impl, str):
-                decl.Body = [self.ast.string(s) for s in func.impl.split("\n")]
+        if func.Body is not None and inline_impl:
+            if isinstance(func.Body, str):
+                decl.Body = [self.ast.string(s) for s in func.Body.split("\n")]
             else:
-                decl.Body = [func.impl]
+                decl.Body = [func.Body]
 
-        decl.Args = [self.convertIdent(parm) for parm in func.arguments]
+        decl.Args = [self.convertIdent(parm) for parm in func.Args]
 
         return decl
 
@@ -58,9 +58,9 @@ class GenConverter:
 
     def convertIdent(self, ident: codegen_ir.GenTuIdent) -> cpp.ParmVarParams:
         return cpp.ParmVarParams(
-            name=ident.name,
-            type=ident.type,
-            defArg=self.ast.string(ident.value) if ident.value else None)
+            name=ident.Name,
+            type=ident.Type,
+            defArg=self.ast.string(ident.Value) if ident.Value else None)
 
     def convertTu(self, tu: codegen_ir.GenTu) -> BlockId:
         decls: List[BlockId] = []
@@ -76,7 +76,7 @@ class GenConverter:
 
     def convertTypedef(self, typedef: codegen_ir.GenTuTypedef) -> BlockId:
         return self.ast.Using(
-            cpp.UsingParams(newName=typedef.name.name, baseType=typedef.base))
+            cpp.UsingParams(newName=typedef.name.Name, baseType=typedef.base))
 
     def convertMethod(self, method: codegen_ir.GenTuFunction, Class: QualType,
                       inline_methods: bool) -> cpp.MethodDeclParams | cpp.MethodDefParams:
@@ -84,16 +84,16 @@ class GenConverter:
         if self.isHeader:
             return cpp.MethodDeclParams(
                 Params=self.convertFunction(method, inline_impl=inline_methods),
-                isStatic=method.isStatic,
-                isConst=method.isConst,
-                isVirtual=method.isVirtual,
-                isOverride=method.isOverride,
+                IsStatic=method.IsStatic,
+                IsConst=method.IsConst,
+                IsVirtual=method.IsVirtual,
+                IsOverride=method.IsOverride,
             )
         else:
             return cpp.MethodDefParams(
                 Params=self.convertFunction(method, inline_impl=True),
                 Class=Class,
-                IsConst=method.isConst,
+                IsConst=method.IsConst,
             )
 
     def convertStructDeclaration(self, record: codegen_ir.GenTuStruct,
@@ -101,15 +101,15 @@ class GenConverter:
         "nodoc"
         params = cpp.RecordParams(
             name=record.declarationQualName()
-            if record.IsExplicitInstantiation else record.name,
-            doc=self.convertDoc(record.doc),
-            bases=record.bases,
+            if record.IsExplicitInstantiation else record.Name,
+            doc=self.convertDoc(record.Doc),
+            bases=record.Bases,
             IsTemplateSpecialization=record.IsExplicitInstantiation,
             Template=record.TemplateParams,
         )
 
-        with codegen_cpp.GenConverterWithContext(self, record.name):
-            for nest_type in record.nested:
+        with codegen_cpp.GenConverterWithContext(self, record.Name):
+            for nest_type in record.Nested:
                 for sub in self.convert(nest_type):
                     params.nested.append(sub)
 
@@ -117,44 +117,46 @@ class GenConverter:
                 params.members.append(
                     cpp.RecordField(
                         params=cpp.ParmVarParams(
-                            type=member.type if member.type else QualType.ForName("void"),
-                            name=member.name,
-                            isConst=member.isConst,
-                            defArg=(self.ast.string(member.value) if isinstance(
-                                member.value, str) else member.value)
-                            if member.value else None,
+                            type=member.Type if member.Type else QualType.ForName("void"),
+                            name=member.Name,
+                            IsConst=member.IsConst,
+                            defArg=(self.ast.string(member.Value) if isinstance(
+                                member.Value, str) else member.Value)
+                            if member.Value else None,
                         ),
-                        doc=cpp.DocParams(brief=member.doc.brief, full=member.doc.full),
-                        isStatic=member.isStatic,
+                        doc=cpp.DocParams(brief=member.Doc.brief, full=member.Doc.full),
+                        isStatic=member.IsStatic,
                     ))
 
-            for method in record.methods:
+            for method in record.Methods:
                 params.members.append(
                     self.convertMethod(method,
                                        Class=record.declarationQualName(),
                                        inline_methods=inline_methods))
 
-            for nested in record.nested:
+            for nested in record.Nested:
                 assert not isinstance(nested, codegen_ir.GenTuTypeGroup)
 
-            fields = [self.ast.string(field.name) for field in record.fields]
+            fields = [self.ast.string(field.Name) for field in record.fields]
             methods = [
                 self.ast.b.line([
                     self.ast.string("("),
-                    self.ast.Type(method.result),
+                    self.ast.Type(method.ReturnType),
                     self.ast.pars(
-                        self.ast.csv(
-                            [self.ast.Type(ident.type) for ident in method.arguments])),
-                    self.ast.string(" const" if method.isConst else ""),
+                        self.ast.csv([self.ast.Type(ident.Type)
+                                      for ident in method.Args])),
+                    self.ast.string(" const" if method.IsConst else ""),
                     self.ast.string(") "),
-                    self.ast.string(method.name),
-                ]) for method in record.methods if method.result is not None
+                    self.ast.string(method.Name),
+                ])
+                for method in record.Methods
+                if method.ReturnType is not None
             ]
 
             if record.GenDescribeFields or record.GenDescribeMethods:
                 if record.GenDescribeFields:
                     described_fields = [
-                        self.ast.string(rf.name)
+                        self.ast.string(rf.Name)
                         for rf in record.fields
                         if rf.isExposedForDescribe
                     ]
@@ -173,9 +175,9 @@ class GenConverter:
                     self.ast.XCall(
                         "BOOST_DESCRIBE_CLASS",
                         [
-                            self.ast.string(record.name.name),
+                            self.ast.string(record.Name.Name),
                             self.ast.pars(
-                                self.ast.csv([B.name for B in record.bases],
+                                self.ast.csv([B.Name for B in record.Bases],
                                              LineParameters)),
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(self.ast.string("")),
@@ -210,10 +212,10 @@ class GenConverter:
                     self.ast.MethodDef(
                         self.convertMethod(m,
                                            Class=record.declarationQualName(),
-                                           inline_methods=True)) for m in record.methods
+                                           inline_methods=True)) for m in record.Methods
                 ]
 
-                for n in record.nested:
+                for n in record.Nested:
                     if isinstance(n, (codegen_ir.GenTuStruct,)):
                         definitions.extend(self.convert(n))
 
@@ -229,37 +231,37 @@ class GenConverter:
         FromParams = cpp.FunctionParams(
             Name="from_string",
             doc=cpp.DocParams(""),
-            ResultTy=codegen_ir.t_opt(entry.name),
-            Args=[cpp.ParmVarParams(type=QualType(name="std::string"), name="value")],
+            ResultTy=codegen_ir.t_opt(entry.Name),
+            Args=[cpp.ParmVarParams(type=QualType(Name="std::string"), name="value")],
         )
 
         ToParams = cpp.FunctionParams(
             Name="to_string",
             doc=cpp.DocParams(""),
-            ResultTy=QualType(name="std::string"),
-            Args=[cpp.ParmVarParams(type=entry.name, name="value")],
+            ResultTy=QualType(Name="std::string"),
+            Args=[cpp.ParmVarParams(type=entry.Name, name="value")],
         )
 
         isToplevel = True
         for ctx in self.context:
-            if not ctx.isNamespace:
+            if not ctx.IsNamespace:
                 isToplevel = False
                 break
 
         if not self.isHeader:
             return self.ast.string("")
 
-        params = cpp.EnumParams(name=entry.name.name,
-                                doc=self.convertDoc(entry.doc),
-                                base=entry.base,
-                                IsLine=not any([F.doc.brief for F in entry.fields]))
+        params = cpp.EnumParams(name=entry.Name.Name,
+                                doc=self.convertDoc(entry.Doc),
+                                base=entry.Base,
+                                IsLine=not any([F.Doc.brief for F in entry.Fields]))
 
-        for _field in entry.fields:
+        for _field in entry.Fields:
             params.fields.append(
                 cpp.EnumParams.Field(
-                    doc=cpp.DocParams(brief=_field.doc.brief, full=_field.doc.full),
-                    name=_field.name,
-                    value=str(_field.value) if _field.value else "None",
+                    doc=cpp.DocParams(brief=_field.Doc.brief, full=_field.Doc.full),
+                    name=_field.Name,
+                    value=str(_field.Value) if _field.Value else "None",
                 ))
 
         if isToplevel:
@@ -267,24 +269,24 @@ class GenConverter:
             Describe.append(
                 self.ast.line([
                     self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
-                    self.ast.pars(self.ast.Type(entry.name)),
+                    self.ast.pars(self.ast.Type(entry.Name)),
                 ]))
 
-            for field in entry.fields:
+            for field in entry.Fields:
                 Describe.append(
                     self.ast.line([
                         self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
                         self.ast.pars(
                             self.ast.csv([
-                                self.ast.Type(entry.name),
-                                self.ast.string(field.name),
+                                self.ast.Type(entry.Name),
+                                self.ast.string(field.Name),
                             ]))
                     ]))
 
             Describe.append(
                 self.ast.line([
                     self.ast.string("BOOST_DESCRIBE_ENUM_END"),
-                    self.ast.pars(self.ast.Type(entry.name)),
+                    self.ast.pars(self.ast.Type(entry.Name)),
                 ]))
 
             FromDefinition = FromParams
@@ -297,8 +299,8 @@ class GenConverter:
 
             return res
         else:
-            arguments = [self.ast.string(entry.name.name)
-                        ] + [self.ast.string(Field.name) for Field in entry.fields]
+            arguments = [self.ast.string(entry.Name.Name)
+                        ] + [self.ast.string(Field.Name) for Field in entry.Fields]
 
             return self.ast.b.stack([
                 self.ast.Enum(params),

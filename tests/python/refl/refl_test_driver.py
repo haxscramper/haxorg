@@ -297,7 +297,7 @@ def get_type(*,
     )
 
     assert len(struct.fields) == 1
-    return struct.fields[0].type
+    return struct.fields[0].Type
 
 
 @beartype

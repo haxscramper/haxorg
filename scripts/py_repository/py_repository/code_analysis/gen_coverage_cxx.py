@@ -371,7 +371,7 @@ class CovFileContextModel(BaseModel, extra="forbid"):
         description="Segment ID to the coverage segment information")
 
 
-class AnnotatedFile(BaseModel, extra="forbid"):
+class AnnotatedFile(BaseModel):
     "Source code file and associated test run segments"
     Lines: List[AnnotatedLine] = Field(default_factory=list)
     "Full set of file lines"
@@ -395,6 +395,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     )
 
     class Config:
+        extra = "forbid"
         orm_mode = True
         arbitrary_types_allowed = True
 

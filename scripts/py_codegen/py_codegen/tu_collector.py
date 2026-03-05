@@ -90,7 +90,7 @@ def run_wrap_for_config(
     with wrap_time_trace.complete_event("Write wrapper output", "write"):
         for sub in graph.subgraphs:
             with wrap_time_trace.complete_event("Single file wrap", "write",
-                                                {"original": str(sub.original)}):
+                                                {"original": str(sub.OriginalPath)}):
                 code: Optional[str] = gen_nim.to_nim(
                     graph=graph,
                     sub=sub,
@@ -102,21 +102,21 @@ def run_wrap_for_config(
                 ).content
 
                 if code:
-                    result = get_out_path(sub.original)
+                    result = get_out_path(sub.OriginalPath)
                     with open(str(result), "w") as file:
                         file.write(code)
 
                 else:
-                    log().warning(f"No declarations found for {sub.original}")
+                    log().warning(f"No declarations found for {sub.OriginalPath}")
 
     with wrap_time_trace.complete_event("Write translation unit information", "write"):
         for sub in graph.subgraphs:
             with wrap_time_trace.complete_event("Write subgraph information", "write",
-                                                {"original": str(sub.original)}):
+                                                {"original": str(sub.OriginalPath)}):
                 with wrap_time_trace.complete_event("Collect declaration info", "write"):
                     info = graph.to_decl_info(sub)
 
-                result = get_out_path(sub.original)
+                result = get_out_path(sub.OriginalPath)
                 result = result.with_stem(result.stem + "-tu").with_suffix(".json")
 
                 with wrap_time_trace.complete_event("Write JSON information for file",

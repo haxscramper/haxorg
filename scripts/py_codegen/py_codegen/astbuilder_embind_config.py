@@ -24,17 +24,17 @@ class EmbindAstbuilderConfig(AstbulderConfig):
 
         if flat == [
                 "std", "shared_ptr"
-        ] and 1 == len(Typ.Parameters) and self.type_map.is_known_type(
+        ] and 1 == len(Typ.Params) and self.type_map.is_known_type(
                 par0) and self.type_map.get_one_type_for_qual_name(  # type: ignore
                     par0
-                ).reflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
+                ).ReflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
             assert par0
             return self.getBackendType(par0)
 
         elif wrapper_override:
             name = wrapper_override
 
-        elif Typ.name == "char" and Typ.isConst and Typ.ptrCount == 1:
+        elif Typ.Name == "char" and Typ.IsConst and Typ.PtrCount == 1:
             name = "string"
 
         else:
@@ -70,11 +70,11 @@ class EmbindAstbuilderConfig(AstbulderConfig):
                     name = self.getBindName(Typ, withParams=False)
 
         struct = self.type_map.get_struct_for_qual_name(Typ)
-        if not struct or struct.reflectionParams.wrapper_has_params:
+        if not struct or struct.ReflectionParams.wrapper_has_params:
             return QualType(
-                name=name,
-                Parameters=[self.getBackendType(P) for P in Typ.Parameters],
+                Name=name,
+                Params=[self.getBackendType(P) for P in Typ.Params],
             )
 
         else:
-            return QualType(name=name)
+            return QualType(Name=name)

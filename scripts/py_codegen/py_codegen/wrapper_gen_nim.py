@@ -38,21 +38,21 @@ class ConvRes:
 
 @beartype
 def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
-    if t.func:
+    if t.Func:
         return nim.Type(Name="",
                         Kind=nim.TypeKind.Function,
-                        Parameters=[
-                            type_to_nim(b, t.func.ReturnTy),
-                        ] + [type_to_nim(b, arg) for arg in t.func.Args])
-    elif t.name == "char" and t.isConst and t.ptrCount == 1:
+                        Params=[
+                            type_to_nim(b, t.Func.ReturnType),
+                        ] + [type_to_nim(b, arg) for arg in t.Func.Args])
+    elif t.Name == "char" and t.IsConst and t.PtrCount == 1:
         return nim.Type("cstring")
 
-    elif t.name == "char" and t.ptrCount == 2:
+    elif t.Name == "char" and t.PtrCount == 2:
         return nim.Type("cstringArray")
 
-    elif t.name == "void" and 1 <= t.ptrCount:
+    elif t.Name == "void" and 1 <= t.PtrCount:
         result = nim.Type("pointer")
-        for i in range(t.ptrCount - 1):
+        for i in range(t.PtrCount - 1):
             result = nim.Type("ptr", Parameters=[result])
 
         return result
@@ -60,17 +60,17 @@ def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
     elif t.Kind == QualTypeKind.Array:
         return nim.Type("array",
                         Parameters=[
-                            type_to_nim(b, t.Parameters[1]),
-                            type_to_nim(b, t.Parameters[0]),
+                            type_to_nim(b, t.Params[1]),
+                            type_to_nim(b, t.Params[0]),
                         ])
 
     elif t.Kind == QualTypeKind.TypeExpr:
-        return nim.Type("", Kind=nim.TypeKind.Expr, Expr=b.string(t.expr))
+        return nim.Type("", Kind=nim.TypeKind.Expr, Expr=b.string(t.Expr))
 
     else:
         assert (t.Kind == QualTypeKind.RegularType)
-        t_map = t.name
-        match t.name:
+        t_map = t.Name
+        match t.Name:
             case "int":
                 t_map = "cint"
             case "short":
@@ -134,7 +134,7 @@ def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
 
         result = nim.Type(Name=t_map)
 
-        for i in range(t.ptrCount):
+        for i in range(t.PtrCount):
             result = nim.Type(Name="ptr", Parameters=[result])
 
         return result
@@ -179,37 +179,37 @@ def to_nim_imports(graph: GenGraph, sub: GenGraph.Sub,
 @beartype
 def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
     result = ConvRes()
-    c_name = "c_" + enum.name.name
+    c_name = "c_" + enum.Name.Name
 
     def f_name(f: GenTuEnumField) -> str:
-        return nim.sanitize_name(f.name)
+        return nim.sanitize_name(f.Name)
 
     def c_enum_field(idx: int, f: GenTuEnumField) -> nim.EnumFieldParams:
-        if f.value == idx:
-            value = str(f.value)
+        if f.Value == idx:
+            value = str(f.Value)
 
-        elif f.value == 0:
+        elif f.Value == 0:
             value = "0 shl 0"
 
-        elif 0 < f.value and math.log2(f.value).is_integer():
-            value = f"1 shl {int(math.log2(f.value))}"
+        elif 0 < f.Value and math.log2(f.Value).is_integer():
+            value = f"1 shl {int(math.log2(f.Value))}"
 
         else:
-            value = str(f.value)
+            value = str(f.Value)
 
         return nim.EnumFieldParams(Name="c_" + f_name(f), Value=b.string(value))
 
     fields: List[GenTuEnumField] = []
 
     for key, group in itertools.groupby(
-            sorted(enum.fields, key=lambda f: f.value),
-            key=lambda f: f.value,
+            sorted(enum.Fields, key=lambda f: f.Value),
+            key=lambda f: f.Value,
     ):
         group: List[GenTuEnumField] = list(group)
         fields.append(group[0])
         if 1 < len(group):
             log("refl.nim").debug(
-                f"More than one enum field for value {key}: [{[it.name for it in group]}]"
+                f"More than one enum field for value {key}: [{[it.Name for it in group]}]"
             )
 
     to_cint_name = "toCInt"
@@ -218,10 +218,10 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
     for config in [
             dict(kind=nim.FunctionKind.CONVERTER,
                  in_name=c_name,
-                 out_name=enum.name.name,
+                 out_name=enum.Name.Name,
                  is_c=True),
             dict(kind=nim.FunctionKind.PROC,
-                 in_name=enum.name.name,
+                 in_name=enum.Name.Name,
                  out_name=c_name,
                  is_c=False),
     ]:
@@ -230,7 +230,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                 Kind=config["kind"],
                 Name="to_" + config["out_name"],
                 Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(config["in_name"]))],
-                ReturnTy=nim.Type(config["out_name"]),
+                ReturnType=nim.Type(config["out_name"]),
                 Implementation=b.stack([
                     b.string("case arg:"),
                     b.indent(
@@ -248,14 +248,14 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
             # Implicit conversion of the C enum value to cint type
         ("cint(ord(arg))", c_name),
             # Implicit conversion of the Nim enum values to the cint type
-        (f"cint(ord(to_{c_name}(arg)))", enum.name.name),
+        (f"cint(ord(to_{c_name}(arg)))", enum.Name.Name),
     ]:
         result.procs.append(
             nim.FunctionParams(
                 Kind=nim.FunctionKind.CONVERTER,
                 Name=to_cint_name,
                 Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(name))],
-                ReturnTy=nim.Type("cint"),
+                ReturnType=nim.Type("cint"),
                 Implementation=b.string(expr),
                 OneLineImpl=True,
             ))
@@ -268,9 +268,9 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
             Arguments=[
                 nim.IdentParams(Name="args",
                                 Type=nim.Type("set",
-                                              Parameters=[nim.Type(enum.name.name)]))
+                                              Parameters=[nim.Type(enum.Name.Name)]))
             ],
-            ReturnTy=nim.Type("cint"),
+            ReturnType=nim.Type("cint"),
             Implementation=b.stack(
                 b.string("for value in items(args):"),
                 b.indent(
@@ -279,7 +279,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                     b.indent(
                         2, *[
                             b.string(
-                                f"of {f_name(f).ljust(w)}: result = cint(result or {f.value})"
+                                f"of {f_name(f).ljust(w)}: result = cint(result or {f.Value})"
                             ) for f in fields
                         ]),
                 ),
@@ -302,7 +302,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                     Kind=nim.FunctionKind.FUNC,
                     Name=op,
                     Arguments=arguments,
-                    ReturnTy=nim.Type(c_name),
+                    ReturnType=nim.Type(c_name),
                     Implementation=b.string(f"cast[{c_name}](ord(arg) {op} offset)"),
                     OneLineImpl=True,
                 ))
@@ -321,7 +321,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
 
     result.types.append(
         nim.EnumParams(
-            Name=enum.name.name,
+            Name=enum.Name.Name,
             Exported=True,
             Fields=[
                 nim.EnumFieldParams(Name=f_name(f), Value=b.string(str(idx)))
@@ -339,31 +339,31 @@ def field_to_nim(
     rec: GenTuStruct,
 ) -> Tuple[nim.IdentParams, Optional[ConvRes]]:
     decl: Optional[ConvRes] = None
-    if f.isTypeDecl:
-        DeclType = f.decl.name.model_copy(update=dict(
-            name=f"{rec.name.name}_{f.name}_field"))
-        match f.decl:
+    if f.IsTypeDecl:
+        DeclType = f.Decl.Name.model_copy(update=dict(
+            name=f"{rec.Name.Name}_{f.Name}_field"))
+        match f.Decl:
             case GenTuStruct():
-                decl = struct_to_nim(b, replace(f.decl, name=DeclType))
+                decl = struct_to_nim(b, replace(f.Decl, name=DeclType))
 
             case GenTuEnum():
-                decl = enum_to_nim(b, replace(f.decl, name=DeclType))
+                decl = enum_to_nim(b, replace(f.Decl, name=DeclType))
 
         result = nim.IdentParams(
-            Name=nim.sanitize_name(f.name),
+            Name=nim.sanitize_name(f.Name),
             Exported=True,
             Type=type_to_nim(b, DeclType),
         )
 
     else:
         result = nim.IdentParams(
-            Name=nim.sanitize_name(f.name),
+            Name=nim.sanitize_name(f.Name),
             Exported=True,
-            Type=type_to_nim(b, f.type),
+            Type=type_to_nim(b, f.Type),
         )
 
-    if result.Name != f.name:
-        result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
+    if result.Name != f.Name:
+        result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.Name)]))
 
     return (result, decl)
 
@@ -401,12 +401,12 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
     NestedTypes = list(itertools.chain(*[Sub.types for Sub in SubConvs]))
     Procs = list(
         itertools.chain(*[function_to_nim(b, meth).procs
-                          for meth in rec.methods])) + list(
+                          for meth in rec.Methods])) + list(
                               itertools.chain(*[Sub.procs for Sub in SubConvs]))
 
     return ConvRes(
         types=[nim.ObjectParams(
-            Name=rec.name.name,
+            Name=rec.Name.Name,
             Pragmas=pragmas,
             Fields=FieldDecls,
         )] + NestedTypes,
@@ -418,7 +418,7 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
 def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
     return ConvRes(types=[
         nim.TypedefParams(
-            Name=typdef.name.name, Exported=True, Base=type_to_nim(b, typdef.base))
+            Name=typdef.name.Name, Exported=True, Base=type_to_nim(b, typdef.base))
     ])
 
 
@@ -426,29 +426,29 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
     arguments: List[nim.IdentParams] = []
     if b.conf.opts.is_cpp_wrap:
-        arguments.append(nim.IdentParams("self", type_to_nim(b, func.parentClass.name)))
+        arguments.append(nim.IdentParams("self", type_to_nim(b, func.ParentClass.Name)))
 
-    for Arg in func.arguments:
-        arguments.append(nim.IdentParams(Arg.name, type_to_nim(b, Arg.type)))
+    for Arg in func.Args:
+        arguments.append(nim.IdentParams(Arg.Name, type_to_nim(b, Arg.Type)))
 
     pragmas: List[nim.PragmaParams] = []
 
     pragmas += b.conf.getFunctionPragmas(func)
     if b.conf.opts.is_cpp_wrap:
-        pragmas.append(nim.PragmaParams("importcpp", [b.Lit(f"#.{func.name}(@)")]))
+        pragmas.append(nim.PragmaParams("importcpp", [b.Lit(f"#.{func.Name}(@)")]))
 
     else:
-        pragmas.append(nim.PragmaParams("importc", [b.Lit(func.name)]))
+        pragmas.append(nim.PragmaParams("importc", [b.Lit(func.Name)]))
 
     if b.conf.opts.with_header_imports:
         pragmas.append(
             nim.PragmaParams("header",
-                             [b.Lit(b.conf.getHeaderStrForPath(func.original))]))
+                             [b.Lit(b.conf.getHeaderStrForPath(func.OriginalPath))]))
 
     return ConvRes(procs=[
         nim.FunctionParams(
-            Name=b.conf.getFunctionIdent(func.name),
-            ReturnTy=type_to_nim(b, func.result),
+            Name=b.conf.getFunctionIdent(func.Name),
+            ReturnType=type_to_nim(b, func.ReturnType),
             Pragmas=pragmas,
             Arguments=arguments,
         )
@@ -498,7 +498,8 @@ def to_nim(
     depend_on: List[nim.ImportParams] = []
 
     for imp in sorted(builder.conf.opts.universal_import):
-        gen = gen_file_import(get_out_path(sub.original), output_directory.joinpath(imp))
+        gen = gen_file_import(get_out_path(sub.OriginalPath),
+                              output_directory.joinpath(imp))
         if gen is not None:
             depend_on.append(gen)
 

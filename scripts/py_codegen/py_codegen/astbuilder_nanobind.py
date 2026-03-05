@@ -55,11 +55,11 @@ class NbFunction:
         "Get type stub for the wrapper"
         return pya.FunctionDefParams(
             Name=self.conf.getSanitizedIdent(self.PyName),
-            ResultTy=self.conf.getBackendType(self.Func.result)
-            if self.Func.result else None,
+            ResultTy=self.conf.getBackendType(self.Func.ReturnType)
+            if self.Func.ReturnType else None,
             Args=[
-                pya.IdentParams(self.conf.getBackendType(Arg.type), Arg.name)
-                for Arg in self.Func.arguments
+                pya.IdentParams(self.conf.getBackendType(Arg.Type), Arg.Name)
+                for Arg in self.Func.Args
             ],
             IsStub=True,
         )
@@ -77,11 +77,11 @@ class NbFunction:
         if PyName:
             name = PyName
 
-        elif Func.reflectionParams.wrapper_name:
-            name = Func.reflectionParams.wrapper_name
+        elif Func.ReflectionParams.wrapper_name:
+            name = Func.ReflectionParams.wrapper_name
 
         else:
-            name = conf.getSanitizedIdent(Func.name + ("Static" if Func.isStatic else ""))
+            name = conf.getSanitizedIdent(Func.Name + ("Static" if Func.IsStatic else ""))
 
         self.PyName = name
         self.Body = Body
@@ -96,19 +96,19 @@ class NbFunction:
         b = ast.b
 
         for Arg in Args:
-            if Arg.type.name == "kwargs":
+            if Arg.Type.Name == "kwargs":
                 continue
 
-            elif Arg.value is None:
+            elif Arg.Value is None:
                 argument_binder.append(ast.XCall("nanobind::arg",
-                                                 [ast.Literal(Arg.name)]))
+                                                 [ast.Literal(Arg.Name)]))
 
             else:
                 argument_binder.append(
                     ast.line([
-                        ast.XCall("nanobind::arg", [ast.Literal(Arg.name)]),
+                        ast.XCall("nanobind::arg", [ast.Literal(Arg.Name)]),
                         b.text(" = "),
-                        b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value
+                        b.text(Arg.Value) if isinstance(Arg.Value, str) else Arg.Value
                     ]))
 
         return argument_binder
@@ -134,16 +134,16 @@ class NbFunction:
         else:
             return ast.Lambda(
                 cpp.LambdaParams(
-                    ResultTy=self.Func.result,
-                    Args=[cpp.ParmVarParams(Arg.type, Arg.name) for Arg in Args],
+                    ResultTy=self.Func.ReturnType,
+                    Args=[cpp.ParmVarParams(Arg.Type, Arg.Name) for Arg in Args],
                     Body=self.Body,
                     IsLine=False,
                 ))
 
     def build_doc_comment(self, ast: cpp.ASTBuilder) -> list[BlockId]:
         "Create python docstring"
-        if self.Func.doc.brief:
-            return [ast.StringLiteral(self.Func.doc.brief, forceRawStr=True)]
+        if self.Func.Doc.brief:
+            return [ast.StringLiteral(self.Func.Doc.brief, forceRawStr=True)]
 
         else:
             return []
@@ -152,11 +152,11 @@ class NbFunction:
         "Return nanobind block wrapping the C++ function"
         if self.Func.spaces:
             full_name = ast.Scoped(
-                QualType(name=self.Func.spaces[-1].name, Spaces=self.Func.spaces[:-1]),
-                ast.string(self.Func.name))
+                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                ast.string(self.Func.Name))
 
         else:
-            full_name = ast.string(self.Func.name)
+            full_name = ast.string(self.Func.Name)
 
         return ast.XCall(
             "m.def",
@@ -164,14 +164,14 @@ class NbFunction:
                 ast.Literal(self.PyName),
                 self.build_call_pass(
                     ast,
-                    self.Func.arguments,
+                    self.Func.Args,
                     FunctionQualName=full_name,
                 ),
-                *self.build_argument_binder(self.Func.arguments, ast),
+                *self.build_argument_binder(self.Func.Args, ast),
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Func.arguments) == 0,
+            Line=len(self.Func.Args) == 0,
             Stmt=True,
         )
 
@@ -204,14 +204,15 @@ class NbMethod(NbFunction):
         return pya.MethodParams(Func=pya.FunctionDefParams(
             Name="__init__" if self.Func.IsConstructor else self.conf.
             getSanitizedIdent(self.PyName),
-            ResultTy=self.Func.result and self.conf.getBackendType(self.Func.result),
+            ResultTy=self.Func.ReturnType and
+            self.conf.getBackendType(self.Func.ReturnType),
             Args=[
-                pya.IdentParams(self.conf.getBackendType(Arg.type), Arg.name)
-                for Arg in self.Func.arguments
+                pya.IdentParams(self.conf.getBackendType(Arg.Type), Arg.Name)
+                for Arg in self.Func.Args
             ],
             IsStub=True,
             Decorators=[
-                *maybe_splice(self.Func.isStatic, pya.DecoratorParams("staticmethod")),
+                *maybe_splice(self.Func.IsStatic, pya.DecoratorParams("staticmethod")),
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
             ]))
 
@@ -224,31 +225,30 @@ class NbMethod(NbFunction):
             pass
 
         elif self.Body:
-            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
+            Args = [GenTuIdent(Type=Class.asConstRef(), Name="_self")]
 
-        Args += self.Func.arguments
+        Args += self.Func.Args
 
         if self.Func.IsConstructor and not self.Body:
             call_pass = ast.XCall("nanobind::init",
-                                  Params=[t.type for t in self.Func.arguments])
+                                  Params=[t.Type for t in self.Func.Args])
             argument_binder = []
 
         else:
             call_pass = self.build_call_pass(
                 ast,
-                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
-                Class=None if self.Func.isStatic else Class,
-                IsConst=self.Func.isConst,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.Name)),
+                Class=None if self.Func.IsStatic else Class,
+                IsConst=self.Func.IsConst,
                 Args=Args,
             )
 
             if self.HasExplicitClassParam and not self.Func.IsConstructor:
-                argument_binder = self.build_argument_binder(self.Func.arguments[1:],
-                                                             ast=ast)
+                argument_binder = self.build_argument_binder(self.Func.Args[1:], ast=ast)
             else:
-                argument_binder = self.build_argument_binder(self.Func.arguments, ast=ast)
+                argument_binder = self.build_argument_binder(self.Func.Args, ast=ast)
 
-        if self.Func.isStatic and not self.Func.IsConstructor:
+        if self.Func.IsStatic and not self.Func.IsConstructor:
             bind_head = ".def_static"
 
         else:
@@ -273,7 +273,7 @@ class NbMethod(NbFunction):
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Func.arguments) == 0,
+            Line=len(self.Func.Args) == 0,
         )
 
 
@@ -293,15 +293,15 @@ class NbEnumField:
         Field: codegen_ir.GenTuEnumField,
         pyNameOverride: Optional[str] = None,
     ):
-        self.PyName = Field.name if pyNameOverride is None else pyNameOverride
-        self.CxxName = Field.name
-        self.Doc = Field.doc
+        self.PyName = Field.Name if pyNameOverride is None else pyNameOverride
+        self.CxxName = Field.Name
+        self.Doc = Field.Doc
 
     def build_bind(self, Enum: 'NbEnum', ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for enum field"
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
-            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.name]))
+            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.Name]))
         ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 
@@ -317,11 +317,11 @@ class NbEnum:
     def __init__(self, Enum: codegen_ir.GenTuEnum,
                  conf: NanobindAstbuilderConfig) -> None:
         self.Enum = Enum
-        self.Fields = [NbEnumField(F) for F in Enum.fields]
+        self.Fields = [NbEnumField(F) for F in Enum.Fields]
         self.conf = conf
 
     def getPyName(self) -> str:
-        return self.conf.getBackendType(self.Enum.name).name
+        return self.conf.getBackendType(self.Enum.Name).Name
 
     def build_typedef(self) -> pya.EnumParams:
         count = 0
@@ -338,8 +338,8 @@ class NbEnum:
         "Generate wrapped enum binding"
         b = ast.b
         iter_type = QualType(
-            name="PyEnumIterator",
-            Parameters=[self.Enum.name],
+            Name="PyEnumIterator",
+            Params=[self.Enum.Name],
             Spaces=[
                 codegen_ir.n_org(),
                 codegen_ir.t_namespace("bind"),
@@ -354,13 +354,13 @@ class NbEnum:
                     ast.Literal(self.getPyName()),
                     ast.string("type_registry_guard"),
                 ],
-                Params=[self.Enum.name],
+                Params=[self.Enum.Name],
                 Stmt=True,
             ),
             ast.XCall(
                 "nanobind::enum_",
                 [b.text("m"), ast.Literal(self.getPyName())],
-                Params=[self.Enum.name],
+                Params=[self.Enum.Name],
             ),
             b.indent(
                 2,
@@ -368,53 +368,53 @@ class NbEnum:
                     NbMethod(
                         conf=self.conf,
                         PyName="__iter__",
-                        Func=GenTuFunction(name="", result=iter_type),
+                        Func=GenTuFunction(Name="", ReturnType=iter_type),
                         Body=[
                             ast.Return(ast.b.line([ast.Type(iter_type),
                                                    ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
                         conf=self.conf,
                         PyName="__int__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="int"),
+                            Name="",
+                            ReturnType=QualType(Name="int"),
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
                                           args=[ast.string("_self")],
                                           Params=[
-                                              QualType(name="int"),
+                                              QualType(Name="int"),
                                           ]))
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
                         conf=self.conf,
                         PyName="__index__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="int"),
+                            Name="",
+                            ReturnType=QualType(Name="int"),
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
                                           args=[ast.string("_self")],
                                           Params=[
-                                              QualType(name="int"),
+                                              QualType(Name="int"),
                                           ]))
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
                         conf=self.conf,
                         PyName="__eq__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="bool"),
-                            arguments=[
-                                GenTuIdent(self.Enum.name, "lhs"),
-                                GenTuIdent(self.Enum.name, "rhs"),
+                            Name="",
+                            ReturnType=QualType(Name="bool"),
+                            Args=[
+                                GenTuIdent(self.Enum.Name, "lhs"),
+                                GenTuIdent(self.Enum.Name, "rhs"),
                             ],
                         ),
                         Body=[
@@ -423,21 +423,21 @@ class NbEnum:
                                                  ast.string("rhs")])),
                         ],
                         HasExplicitClassParam=True,
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
                         conf=self.conf,
                         PyName="__hash__",
                         Func=GenTuFunction(
-                            result=QualType(name="int"),
-                            arguments=[GenTuIdent(self.Enum.name, "it")],
+                            ReturnType=QualType(Name="int"),
+                            Args=[GenTuIdent(self.Enum.Name, "it")],
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast", [ast.string("it")],
-                                          Params=[QualType(name="int")])),
+                                          Params=[QualType(Name="int")])),
                         ],
                         HasExplicitClassParam=True,
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                 ] + [b.text(";")]),
             )
         ])
@@ -457,7 +457,7 @@ class Py11Field:
     "Optional body for the setter callback for the field"
 
     def getPyName(self) -> str:
-        return self.conf.getSanitizedIdent(self.Field.name)
+        return self.conf.getSanitizedIdent(self.Field.Name)
 
     def __init__(self,
                  Field: codegen_ir.GenTuField,
@@ -471,9 +471,9 @@ class Py11Field:
         self.SetImpl = SetImpl
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
-        if self.Field.type is None:
-            raise ValueError(f"Field {self.Field.name} has no type")
-        return pya.FieldParams(self.conf.getBackendType(self.Field.type),
+        if self.Field.Type is None:
+            raise ValueError(f"Field {self.Field.Name} has no type")
+        return pya.FieldParams(self.conf.getBackendType(self.Field.Type),
                                self.getPyName())
 
     def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
@@ -481,23 +481,23 @@ class Py11Field:
         b = ast.b
         _self = id_self(Class)
         if self.GetImpl and self.SetImpl:
-            assert self.Field.type
+            assert self.Field.Type
             return ast.XCall(
                 ".def_prop_rw",
                 [
                     ast.Literal(self.getPyName()),
                     ast.Lambda(
                         cpp.LambdaParams(
-                            ResultTy=self.Field.type,
+                            ResultTy=self.Field.Type,
                             Body=self.GetImpl,
                             Args=[_self],
                         )),
                     ast.Lambda(
                         cpp.LambdaParams(
                             ResultTy=None,
-                            Body=[b.text(f"{_self.name}->{self.Field.name} = _arg;")],
+                            Body=[b.text(f"{_self.name}->{self.Field.Name} = _arg;")],
                             Args=[_self,
-                                  cpp.ParmVarParams(self.Field.type, "_arg")],
+                                  cpp.ParmVarParams(self.Field.Type, "_arg")],
                         )),
                 ],
                 Line=False,
@@ -509,8 +509,8 @@ class Py11Field:
                     b.text("&"),
                     ast.Type(Class),
                     b.text("::"),
-                    b.text(self.Field.name)
-                ]), *maybe_list(get_doc_literal(ast, self.Field.doc))
+                    b.text(self.Field.Name)
+                ]), *maybe_list(get_doc_literal(ast, self.Field.Doc))
             ])
 
 
@@ -528,8 +528,8 @@ class NbClass:
 
     def getPyName(self) -> str:
         "Get python name for the wrapped C++ class"
-        return self.Struct.reflectionParams.wrapper_name or self.conf.getBackendType(
-            self.Struct.name).name
+        return self.Struct.ReflectionParams.wrapper_name or self.conf.getBackendType(
+            self.Struct.Name).Name
 
     def getCxxName(self) -> QualType:
         "Get original C++ name"
@@ -543,18 +543,18 @@ class NbClass:
         self.InitImpls = []
         self.conf = conf
 
-        for meth in value.methods:
-            if meth.isExposedForWrap:
+        for meth in value.Methods:
+            if meth.IsExposedForWrap:
                 if meth.IsConstructor:
                     self.InitImpls.append(NbMethod(meth, conf))
                 else:
                     self.Methods.append(NbMethod(meth, conf))
 
-        for _field in value.fields:
-            if _field.isExposedForWrap:
+        for _field in value.Fields:
+            if _field.IsExposedForWrap:
                 self.Fields.append(Py11Field(_field, conf))
 
-        if not value.IsAbstract and value.reflectionParams.default_constructor:
+        if not value.IsAbstract and value.ReflectionParams.default_constructor:
             self.InitDefault(ast, filter_init_fields(self.Fields))
 
         self.InitMagicMethods(ast=ast)
@@ -589,14 +589,14 @@ class NbClass:
                     PyName="",
                     conf=self.conf,
                     Func=GenTuFunction(
-                        name="",
-                        arguments=[
+                        Name="",
+                        Args=[
                             GenTuIdent(result_type.asPtr(), "result"),
                             GenTuIdent(
                                 QualType(
-                                    name="kwargs",
+                                    Name="kwargs",
                                     Spaces=[QualType.ForName("nanobind")],
-                                    isConst=True,
+                                    IsConst=True,
                                     RefKind=codegen_ir.ReferenceKind.LValue,
                                 ), "kwargs")
                         ],
@@ -620,8 +620,8 @@ class NbClass:
                         conf=self.conf,
                         PyName="__repr__",
                         Func=GenTuFunction(
-                            name="",
-                            result=str_type,
+                            Name="",
+                            ReturnType=str_type,
                         ),
                         Body=[
                             ast.Return(
@@ -635,9 +635,9 @@ class NbClass:
                         PyName="__getattr__",
                         conf=self.conf,
                         Func=GenTuFunction(
-                            name="",
-                            result=pyobj_type,
-                            arguments=[GenTuIdent(str_type.asConstRef(), "name")],
+                            Name="",
+                            ReturnType=pyobj_type,
+                            Args=[GenTuIdent(str_type.asConstRef(), "name")],
                         ),
                         Body=[
                             ast.Return(
@@ -653,27 +653,27 @@ class NbClass:
 
         getitem_list = []
         for m in self.Methods:
-            if m.Func.reflectionParams and m.Func.reflectionParams.function_api and m.Func.reflectionParams.function_api.is_get_item:
+            if m.Func.ReflectionParams and m.Func.ReflectionParams.function_api and m.Func.ReflectionParams.function_api.is_get_item:
                 getitem_list.append(replace(m, PyName="__getitem__", conf=m.conf))
 
         self.Methods += getitem_list
 
-        if self.Struct.reflectionParams.type_api and self.Struct.reflectionParams.type_api.has_begin_end_iteration:
+        if self.Struct.ReflectionParams.type_api and self.Struct.ReflectionParams.type_api.has_begin_end_iteration:
             self.Methods.append(
                 NbMethod(
                     PyName="__iter__",
                     conf=self.conf,
                     Func=GenTuFunction(
-                        name="at",
-                        result=QualType.ForName("auto"),
-                        arguments=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
+                        Name="at",
+                        ReturnType=QualType.ForName("auto"),
+                        Args=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
                     ),
                     Body=[
                         ast.Return(
                             ast.XCall(
                                 "nanobind::make_iterator",
                                 [
-                                    ast.XCall("nanobind::type", Params=[self.Struct.name
+                                    ast.XCall("nanobind::type", Params=[self.Struct.Name
                                                                        ]),
                                     ast.Literal(self.getPyName() + "__iter__"),
                                     ast.string("node.begin()"),
@@ -691,13 +691,13 @@ class NbClass:
         """
         res: List[NbMethod] = []
         for key, _group in itertools.groupby(self.Methods, lambda M:
-                                             (M.Func.name, M.Func.arguments)):
+                                             (M.Func.Name, M.Func.Args)):
             group: List[NbMethod] = list(_group)
             if len(group) == 1:
                 res.append(group[0])
 
-            elif len(group) == 2 and group[1].Func.arguments == group[0].Func.arguments:
-                res.append(group[0 if group[1].Func.isConst else 1])
+            elif len(group) == 2 and group[1].Func.Args == group[0].Func.Args:
+                res.append(group[0 if group[1].Func.IsConst else 1])
 
             else:
                 print(len(group))
@@ -711,8 +711,8 @@ class NbClass:
             Name=self.getPyName(),
             Bases=[
                 self.conf.getBackendType(T)
-                for T in self.Struct.bases
-                if T.name not in ["SharedPtrApi"]
+                for T in self.Struct.Bases
+                if T.Name not in ["SharedPtrApi"]
             ],
         )
 
@@ -720,13 +720,13 @@ class NbClass:
             PyName="__init__",
             conf=self.conf,
             Func=GenTuFunction(
-                name="",
-                result=QualType.ForName("None"),
-                arguments=[
+                Name="",
+                ReturnType=QualType.ForName("None"),
+                Args=[
                     GenTuIdent(
-                        name=it.getPyName(),
-                        type=it.Field.type,  # type: ignore
-                        value=ast.b.text("None")) for it in self.Fields
+                        Name=it.getPyName(),
+                        Type=it.Field.Type,  # type: ignore
+                        Value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
         )
@@ -760,7 +760,7 @@ class NbClass:
             sub.append(Field.build_bind(self.getCxxName(), ast))
 
         for Meth in self.dedup_methods():
-            if Meth.Func.result is None:
+            if Meth.Func.ReturnType is None:
                 # do not bind constructors as function pointers
                 pass
 
@@ -774,7 +774,7 @@ class NbClass:
                 "nanobind::class_",
                 [b.text("m"), ast.Literal(self.getPyName())],
                 Params=[self.getCxxName()] +
-                [B for B in self.Struct.bases if self.conf.isKnownClass(B)],
+                [B for B in self.Struct.Bases if self.conf.isKnownClass(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -808,7 +808,7 @@ Py11Entry = Union[NbEnum, NbClass, NbBindPass, NbTypedefPass, NbFunction]
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Field.type.name not in ["SemId"]]  # type: ignore
+    return [F for F in Fields if F.Field.Type.Name not in ["SemId"]]  # type: ignore
 
 
 @beartype
@@ -855,7 +855,7 @@ class NbModule:
         ]
 
         for spec in specializations:
-            if spec.used_type.name in ["Opt", "optional"]:
+            if spec.used_type.Name in ["Opt", "optional"]:
                 continue
 
             opaque_declarations.append(
@@ -869,7 +869,7 @@ class NbModule:
                         ast.StringLiteral(spec.bind_name),
                         ast.string("type_registry_guard"),
                     ],
-                    Params=spec.used_type.Parameters,
+                    Params=spec.used_type.Params,
                     Stmt=True,
                 ))
 
@@ -887,11 +887,11 @@ class NbModule:
             match d:
                 case NbClass():
                     name = d.getPyName()
-                    orig_name = d.Struct.name
+                    orig_name = d.Struct.Name
 
                 case NbEnum():
                     name = d.getPyName()
-                    orig_name = d.Enum.name
+                    orig_name = d.Enum.Name
 
             if name:
                 # assert name not in self.nameTrack, f"{name} is already registered for the module for {self.nameTrack[name]}, attempting to map{orig_name} to the same name"
@@ -910,7 +910,8 @@ class NbModule:
                 def codegenConstructCallback(value: Any) -> None:
                     "nodoc"
                     if isinstance(value, codegen_ir.GenTuStruct):
-                        if value.reflectionParams.type_api and value.reflectionParams.type_api.is_org_ast_value and value.name.name.startswith(
+                        value: codegen_ir.GenTuStruct
+                        if value.ReflectionParams.type_api and value.ReflectionParams.type_api.is_org_ast_value and value.name.Name.startswith(
                                 "Imm"):
                             pass
 
@@ -926,7 +927,7 @@ class NbModule:
                 def tree_visit_repr(value: Any, context: List[Any]) -> str:
                     match value:
                         case codegen_ir.GenTuStruct():
-                            return str(value.name)
+                            return str(value.Name)
 
                         case _:
                             return ""

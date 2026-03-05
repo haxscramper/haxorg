@@ -40,28 +40,28 @@ def collect_type_specializations(
         for spec in conf.getBaseClassSpecializations(T):
             visit_type(spec)
 
-        for P in T.Parameters:
+        for P in T.Params:
             visit_type_rec(P)
 
     def visit_entry(entry: codegen_ir.GenTuUnion | codegen_ir.GenTuField):
         match entry:
             case codegen_ir.GenTuField():
-                if entry.isExposedForWrap:
-                    visit_type_rec(entry.type)
+                if entry.IsExposedForWrap:
+                    visit_type_rec(entry.Type)
 
             case codegen_ir.GenTuFunction():
-                if entry.isExposedForWrap:
-                    visit_type_rec(entry.result)
-                    list(map(lambda it: visit_type_rec(it.type), entry.arguments))
+                if entry.IsExposedForWrap:
+                    visit_type_rec(entry.ReturnType)
+                    list(map(lambda it: visit_type_rec(it.Type), entry.Args))
 
             case codegen_ir.GenTuStruct():
-                list(map(visit_entry, entry.methods))
-                list(map(visit_entry, entry.fields))
-                list(map(visit_entry, entry.nested))
-                list(map(visit_entry, entry.bases))
+                list(map(visit_entry, entry.Methods))
+                list(map(visit_entry, entry.Fields))
+                list(map(visit_entry, entry.Nested))
+                list(map(visit_entry, entry.Bases))
 
             case codegen_ir.GenTuTypedef():
-                visit_entry(entry.base)
+                visit_entry(entry.Base)
 
             case codegen_ir.GenTuEnum() | codegen_ir.GenTuPass():
                 pass
