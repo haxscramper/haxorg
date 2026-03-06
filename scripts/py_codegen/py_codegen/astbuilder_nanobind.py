@@ -800,8 +800,8 @@ class NbTypedefPass:
     def __init__(self, typedef: codegen_ir.GenTuTypedef,
                  conf: NanobindAstbuilderConfig) -> None:
         self.conf = conf
-        self.name = self.conf.getBackendType(typedef.name)
-        self.base = self.conf.getBackendType(typedef.base)
+        self.name = self.conf.getBackendType(typedef.Name)
+        self.base = self.conf.getBackendType(typedef.Base)
 
 
 Py11Entry = Union[NbEnum, NbClass, NbBindPass, NbTypedefPass, NbFunction]
@@ -911,7 +911,7 @@ class NbModule:
                     "nodoc"
                     if isinstance(value, codegen_ir.GenTuStruct):
                         value: codegen_ir.GenTuStruct
-                        if value.ReflectionParams.type_api and value.ReflectionParams.type_api.is_org_ast_value and value.name.Name.startswith(
+                        if value.ReflectionParams.type_api and value.ReflectionParams.type_api.is_org_ast_value and value.Name.Name.startswith(
                                 "Imm"):
                             pass
 

@@ -93,11 +93,11 @@ def rec_node(node: org.Org) -> List[Header]:
             for prop in node.properties:
                 match prop.getName():
                     case "story_polarity_shift":
-                        plain = str(prop.getCustomRaw().Value).strip()
+                        plain = str(prop.getCustomRaw().value).strip()
                         header.shift = plain.split("/")  # type: ignore
 
                     case "story_duration":
-                        plain = str(prop.getCustomRaw().Value).strip()
+                        plain = str(prop.getCustomRaw().value).strip()
                         header.duration = plain
 
                     case _:

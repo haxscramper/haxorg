@@ -43,11 +43,11 @@ class ProtoBuilder():
         def find_enums(obj: Any) -> None:
             if isinstance(obj, codegen_ir.GenTuEnum):
                 filter = codegen_ir.filter_walk_scope(context)
-                self.enum_type_list.append(obj.name)
+                self.enum_type_list.append(obj.Name)
 
             elif isinstance(obj, codegen_ir.GenTuTypedef):
-                if obj.base.Name == "variant":
-                    self.variant_type_list[tuple(obj.name.flatQualName())] = obj
+                if obj.Base.Name == "variant":
+                    self.variant_type_list[tuple(obj.Name.flatQualName())] = obj
 
         iterate_object_tree(self.types_list, context, pre_visit=find_enums)
 
@@ -118,7 +118,7 @@ class ProtoBuilder():
             match it:
                 case codegen_ir.GenTuStruct():
                     return braced(
-                        "message " + it.Name.name,
+                        "message " + it.Name.Name,
                         itertools.chain(
                             drop_none(
                                 aux_item(sub, indent=indent + 1) for sub in it.Nested),
@@ -136,7 +136,7 @@ class ProtoBuilder():
                                 ]))
 
                 case codegen_ir.GenTuEnum():
-                    return braced("enum " + it.Name.name, [
+                    return braced("enum " + it.Name.Name, [
                         aux_enum(it, sub, idx, indent)
                         for idx, sub in enumerate(it.Fields)
                     ])
@@ -147,7 +147,7 @@ class ProtoBuilder():
                 case codegen_ir.GenTuTypedef():
                     match it.Base:
                         case QualType(Name="variant"):
-                            return braced("message " + it.Name.name, [
+                            return braced("message " + it.Name.Name, [
                                 braced(
                                     "oneof kind",
                                     aux_field_list(
@@ -272,22 +272,22 @@ class ProtoBuilder():
                 else:
                     wrap_type = "RepeatedPtrField"
 
-                return typ.model_copy(update=dict(
-                    Parameters=aux_parameters(typ),
-                    name=wrap_type,
+                return typ.copy_update(
+                    Params=aux_parameters(typ),
+                    Name=wrap_type,
                     Spaces=[QualType.ForName("google"),
                             QualType.ForName("protobuf")],
-                    isGlobalNamespace=True,
-                ))
+                    IsGlobalNamespace=True,
+                )
 
             case QualType(Name="UnorderedMap"):
-                return typ.model_copy(update=dict(
-                    Parameters=aux_parameters(typ),
-                    name="Map",
+                return typ.copy_update(
+                    Params=aux_parameters(typ),
+                    Name="Map",
                     Spaces=[QualType.ForName("google"),
                             QualType.ForName("protobuf")],
-                    isGlobalNamespace=True,
-                ))
+                    IsGlobalNamespace=True,
+                )
 
             case _:
                 if codegen_ir.in_type_list(typ, self.enum_type_list):
@@ -299,16 +299,16 @@ class ProtoBuilder():
                 # when adding new data shared between cxx and protobuf type
                 # definitions.
                 elif typ.Name == "SourceLoc":
-                    result = typ.model_copy(update=dict(Parameters=aux_parameters(typ),
-                                                        Spaces=[
-                                                            QualType.ForName("orgproto"),
-                                                            QualType.ForName("org_parse"),
-                                                        ]))
+                    result = typ.copy_update(Params=aux_parameters(typ),
+                                             Spaces=[
+                                                 QualType.ForName("orgproto"),
+                                                 QualType.ForName("org_parse"),
+                                             ])
 
                     return result
 
                 else:
-                    result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
+                    result = typ.copy_update(Params=aux_parameters(typ))
                     if "sem" in result.flatSpaceNames() or typ.Name in ["UserTime"]:
                         result = result.withoutSpace("sem").withoutSpace(
                             "org").withExtraSpace("orgproto")
@@ -514,7 +514,7 @@ class ProtoBuilder():
                 "variant", "Variant", "Var"
         ]:
             is_typedef = flat in self.variant_type_list
-            variant = self.variant_type_list[flat].base if is_typedef else field.Type
+            variant = self.variant_type_list[flat].Base if is_typedef else field.Type
             assert variant is not None, "Variant type must not be None"
             if is_typedef:
                 reader_switch = cpp.SwitchStmtParams(Expr=self.ast.XCallRef(

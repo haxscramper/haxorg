@@ -195,13 +195,13 @@ struct [[refl(R"({
     },
     "wasm": {
       "holder-type": {
-        "name": "SemId",
+        "Name": "SemId",
         "Spaces": [
           {
-            "name": "org"
+            "Name": "org"
           },
           {
-            "name": "sem"
+            "Name": "sem"
           }
         ]
       }

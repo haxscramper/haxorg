@@ -59,7 +59,7 @@ def get_exporter_methods(
             name: str = value.Name.Name
             full_scoped_name: List[str] = scope_names + [name]
             fields: List[GenTuField] = [
-                field for field in (value.fields + get_type_base_fields(value, type_map))
+                field for field in (value.Fields + get_type_base_fields(value, type_map))
                 if field.IsExposedForWrap
             ]
 
@@ -95,7 +95,7 @@ def get_exporter_methods(
                             f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{kindGetter}(object), object);",
                         ))
 
-            if value.name.isOrgType() and len(scope_full) == 0:
+            if value.Name.isOrgType() and len(scope_full) == 0:
                 method = GenTuFunction(
                     QualType.ForName("void"),
                     f"{decl_scope}visit{name}",

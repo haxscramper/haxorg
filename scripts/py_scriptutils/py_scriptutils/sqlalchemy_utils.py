@@ -106,7 +106,7 @@ def format_rich_table(
     metadata = MetaData()
     table = SATable(table_name, metadata, autoload_with=engine)
 
-    columns_to_fetch = [c for c in table.columns if c.Name not in excluded_columns]
+    columns_to_fetch = [c for c in table.columns if c.name not in excluded_columns]
 
     with engine.connect() as connection:
         result = connection.execute(select(*columns_to_fetch))

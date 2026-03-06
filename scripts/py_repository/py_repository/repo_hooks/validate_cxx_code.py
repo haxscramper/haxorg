@@ -21,7 +21,7 @@ def find_debug_calls(source_code: bytes, filename: str) -> list[tuple[int, int, 
 
     def visit(node):
         # Match call_expression nodes
-        if node.Type == "call_expression":
+        if node.type == "call_expression":
             # First child is the function being called
             func_node = node.child_by_field_name("function")
             if func_node:

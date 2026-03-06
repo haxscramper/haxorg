@@ -425,8 +425,8 @@ class GenGraph:
         _id = self.add_entry(typedef, sub)
         merge = self.id_to_entry[_id]
 
-        self.graph.vs[_id]["label"] = typedef.name.format()
-        self.graph.vs[_id]["dbg_origin"] = typedef.name.DbgOrigin
+        self.graph.vs[_id]["label"] = typedef.Name.format()
+        self.graph.vs[_id]["dbg_origin"] = typedef.Name.DbgOrigin
         self.graph.vs[_id]["color"] = "blue"
 
     def add_function(self, func: GenTuFunction, sub: Sub) -> None:
@@ -551,7 +551,7 @@ class GenGraph:
             decl = self.id_to_entry[_id]
             match decl:
                 case GenTuEnum(Name=name) | GenTuStruct(Name=name) | GenTuTypedef(
-                    name=name):
+                    Name=name):
                     result.Defines.append(name)
 
         return result

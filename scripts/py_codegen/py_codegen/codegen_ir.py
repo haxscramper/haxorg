@@ -116,6 +116,16 @@ class QualType(BaseModel, extra="forbid"):
     VerticalParamList: bool = Field(default=False, exclude=True)
     "Generate the qual type source by vertically stacking params (only relevant for codegen)"
 
+    @beartype
+    def copy_update(self, **kwargs: Any) -> "QualType":
+        current_data = {
+            field_name: getattr(self, field_name)
+            for field_name in self.model_fields.keys()
+        }
+
+        current_data.update(kwargs)
+        return self.__class__(**current_data)
+
     def par0(self) -> Optional["QualType"]:
         if 0 < len(self.Params):
             return self.Params[0]
@@ -145,19 +155,19 @@ class QualType(BaseModel, extra="forbid"):
         return QualType(Expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
     def flatten(self) -> "QualType":
-        return self.model_copy(update=dict(Spaces=self.flatQualScope()))
+        return self.copy_update(Spaces=self.flatQualScope())
 
     def withDbgOrigin(self, msg: str) -> "QualType":
-        return self.model_copy(update=dict(dbg_origin=self.DbgOrigin + msg))
+        return self.copy_update(DbgOrigin=self.DbgOrigin + msg)
 
     def asConstRef(self) -> "QualType":
-        return self.model_copy(update=dict(IsConst=True, RefKind=ReferenceKind.LValue))
+        return self.copy_update(IsConst=True, RefKind=ReferenceKind.LValue)
 
     def asConstPtr(self) -> "QualType":
-        return self.model_copy(update=dict(IsConst=True, ptrCount=1))
+        return self.copy_update(IsConst=True, ptrCount=1)
 
     def asRef(self) -> "QualType":
-        return self.model_copy(update=dict(IsConst=False, RefKind=ReferenceKind.LValue))
+        return self.copy_update(IsConst=False, RefKind=ReferenceKind.LValue)
 
     def flatQualScope(self) -> List["QualType"]:
         "Flatten fully qualified name for the type"
@@ -176,10 +186,10 @@ class QualType(BaseModel, extra="forbid"):
         return [it for it in self.flatQualScope() if not it.IsNamespace]
 
     def asPtr(self, ptrCount: int = 1) -> "QualType":
-        return self.model_copy(update=dict(ptrCount=ptrCount))
+        return self.copy_update(PtrCount=ptrCount)
 
     def withGlobalSpace(self) -> "QualType":
-        return self.model_copy(update=dict(isGlobalNamespace=True))
+        return self.copy_update(IsGlobalNamespace=True)
 
     def flatSpaceNames(self) -> List[str]:
         "Get flat list of names for fully qualified type"
@@ -210,70 +220,66 @@ class QualType(BaseModel, extra="forbid"):
 
     def asSpaceFor(self, other: "QualType") -> "QualType":
         "Use the current type as a wrapper space for other type"
-        return other.model_copy(update=dict(
-            Spaces=self.Spaces +
-            [self.model_copy(update=dict(
+        return other.copy_update(
+            Spaces=self.Spaces + [self.copy_update(
                 Spaces=[],
-                isGlobalNamespace=False,
-            ))],
-            isGlobalNamespace=self.IsGlobalNamespace,
-        ))
+                IsGlobalNamespace=False,
+            )],
+            IsGlobalNamespace=self.IsGlobalNamespace,
+        )
 
     def withTemplateParams(self, Params: List["QualType"]) -> "QualType":
-        return self.model_copy(update=dict(Parameters=Params))
+        return self.copy_update(Params=Params)
 
     def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
         if isinstance(name, str):
             return QualType(Name=name, Params=[self])
 
         else:
-            return name.model_copy(update=dict(Parameters=[self]))
+            return name.copy_update(Params=[self])
 
     def withExtraSpace(self, name: Union["QualType", str]) -> "QualType":
         "Return copy with prepended space"
         flat = self.flatten()
         added: QualType = QualType(Name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
+        return flat.copy_update(Spaces=[added] + flat.Spaces)
 
     def withoutCVRef(self) -> "QualType":
-        return self.model_copy(update=dict(
+        return self.copy_update(
             IsConst=False,
             RefKind=ReferenceKind.NotRef,
-        ))
+        )
 
     def withoutCVRefRec(self) -> "QualType":
         "Recursively remove all CV-qualifiers from the qualified type"
         base_override = dict(
             IsConst=False,
             RefKind=ReferenceKind.NotRef,
-            ptrCount=0,
-            isNamespace=False,
-            meta=dict(),
+            PtrCount=0,
+            IsNamespace=False,
+            Meta=dict(),
         )
 
         match self.Kind:
             case QualTypeKind.RegularType | QualTypeKind.Array:
-                return self.model_copy(
-                    update={
-                        "Spaces": [S.withoutCVRefRec() for S in self.Spaces],
-                        "Params": [P.withoutCVRefRec() for P in self.Params],
-                        **base_override,
-                    })
+                return self.copy_update(
+                    Spaces=[S.withoutCVRefRec() for S in self.Spaces],
+                    Params=[P.withoutCVRefRec() for P in self.Params],
+                    **base_override,
+                )
 
             case QualTypeKind.FunctionPtr | QualTypeKind.MethodPtr:
-                return self.model_copy(
-                    update={
-                        "func":
-                            QualType.Function(
-                                ReturnType=self.Func.ReturnType.withoutCVRef(),
-                                Args=[A.withoutCVRefRec() for A in self.Func.Args],
-                                IsConst=False,
-                                Class=self.Func.Class.withoutCVRefRec() if self.Func.
-                                Class else None,
-                            ),
-                        **base_override,
-                    })
+                return self.copy_update(
+                    func=QualType.Function(
+                        ReturnType=self.Func.ReturnType.withoutCVRef(),
+                        Args=[A.withoutCVRefRec() for A in self.Func.Args],
+                        IsConst=False,
+                        Class=self.Func.Class.withoutCVRefRec()
+                        if self.Func.Class else None,
+                    ),
+                    **base_override,
+                )
 
             case QualTypeKind.TypeExpr:
                 return self.model_copy()
@@ -281,19 +287,18 @@ class QualType(BaseModel, extra="forbid"):
     def withoutSpace(self, name: str) -> "QualType":
         "Return the type excluding all the spaces with the provided `name`"
         flat = self.flatten()
-        return flat.model_copy(update=dict(
-            Spaces=[S for S in flat.Spaces if S.Name != name]))
+        return flat.copy_update(Spaces=[S for S in flat.Spaces if S.Name != name])
 
     def withoutAllScopeQualifiers(self) -> "QualType":
         "Return the type with no parent spaces"
-        return self.model_copy(update=dict(Spaces=[]))
+        return self.copy_update(Spaces=[])
 
     def withChangedSpace(self, name: Union["QualType", str]) -> "QualType":
         """Change the namespace of the qualified type from the current list to the [name]
         Resulting type will have only [name] as the space"""
         added: QualType = QualType(Name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return self.flatten().model_copy(update=dict(Spaces=[added]))
+        return self.flatten().copy_update(Spaces=[added])
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
@@ -693,9 +698,9 @@ class GenTuDoc:
 @dataclass
 class GenTuTypedef:
     "IR for typedef/using mapping"
-    name: QualType
-    base: QualType
-    original: Optional[Path] = None
+    Name: QualType
+    Base: QualType
+    Original: Optional[Path] = None
     OriginName: Optional[str] = None
     ReflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
     ExposeHeaderDeclaration: bool = True
@@ -904,7 +909,7 @@ class GenTuStruct():
         return f"GenTuStruct({self.Name.format()})"
 
     def declarationQualName(self) -> QualType:
-        return self.Name.model_copy(update=dict(Parameters=self.ExplicitTemplateParams))
+        return self.Name.copy_update(Params=self.ExplicitTemplateParams)
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.Name.format(dbgOrigin=dbgOrigin)
@@ -1176,16 +1181,16 @@ def t_org(name: str) -> QualType:
 
 
 @beartype
-def t(
-    name: str | QualType,
-    namespaces: List[QualType] = [],
-    isOrgType: bool = False,
-) -> QualType:
+def t(name: str | QualType,
+      namespaces: List[QualType] = [],
+      isOrgType: bool = False,
+      DbgOrigin: str = "") -> QualType:
     if isinstance(name, QualType):
-        return name.model_copy(update=dict(Spaces=namespaces))
+        return name.copy_update(Spaces=namespaces,
+                                DbgOrigin=name.DbgOrigin + " " + DbgOrigin)
 
     else:
-        return QualType(Name=name, Spaces=namespaces)
+        return QualType(Name=name, Spaces=namespaces, DbgOrigin=DbgOrigin)
 
 
 @beartype
@@ -1196,7 +1201,7 @@ def t_namespace(name: str | QualType) -> QualType:
 @beartype
 def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
     if isinstance(name, QualType):
-        return name.model_copy(update=dict(Spaces=Spaces))
+        return name.copy_update(Spaces=Spaces)
     else:
         return QualType(Name=name, Spaces=Spaces)
 
@@ -1244,7 +1249,7 @@ def get_type_base_fields(
         base: Optional[GenTuStruct] = type_map.get_one_type_for_name(
             base_sym.Name)  # type: ignore
         if base:
-            fields.extend(base.fields)
+            fields.extend(base.Fields)
             fields.extend(get_type_base_fields(base, type_map))
 
     return fields

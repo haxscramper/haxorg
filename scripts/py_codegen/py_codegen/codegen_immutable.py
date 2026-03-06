@@ -64,8 +64,7 @@ def rewrite_type_to_immutable(obj: QualType) -> QualType:
                                 obj,
                                 Spaces=[
                                     codegen_ir.n_imm(),
-                                    rest[0].model_copy(update=dict(name="Imm" +
-                                                                   rest[0].Name)),
+                                    rest[0].copy_update(Name="Imm" + rest[0].Name),
                                     *reuse_spaces,
                                 ],
                             )
@@ -88,7 +87,7 @@ def rewrite_ident_to_immutable(obj: codegen_ir.GenTuIdent) -> codegen_ir.GenTuId
 @beartype
 def rewrite_field_to_immutable(obj: codegen_ir.GenTuField) -> codegen_ir.GenTuField:
     "Convert sem org AST field to immutable version"
-    IMM_BOX = codegen_ir.t("ImmBox", [codegen_ir.n_hstd_ext()])
+    IMM_BOX = codegen_ir.t("ImmBox", [codegen_ir.n_hstd_ext()], DbgOrigin="rewrite_field")
     match obj:
         case codegen_ir.GenTuField(Type=QualType(Name="SemId", Params=[])):
             new_type = rewrite_type_to_immutable(obj.Type)
@@ -255,8 +254,8 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
 
     field_type = rewrite_field_to_immutable(f).Type
 
-    log(CAT).info(
-        f"{T.Name}::{f.Name} {field_type.flatQualNameWithParams()} {field_type}")
+    # log(CAT).info(
+    #     f"{T.Name}::{f.Name} {field_type.flatQualNameWithParams()} {field_type}")
 
     def use_get_adapter_field(field_par0: QualType) -> QualType:
         is_specialization = field_par0.Name != "ImmOrg"
@@ -268,7 +267,7 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         ])
 
         if is_specialization:
-            log(CAT).info(f"field_par0 = {field_par0}")
+            # log(CAT).info(f"field_par0 = {field_par0}")
             return QualType(Name="ImmAdapterT",
                             Spaces=[codegen_ir.n_imm()],
                             Params=[field_par0])
@@ -394,7 +393,7 @@ def get_imm_serde(
                 ]
                 respace[0].Name = "Imm" + respace[0].Name
                 respace = [codegen_ir.n_imm()] + respace
-                imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
+                imm_type = respace[-1].copy_update(Spaces=respace[:-1])
 
                 writer_body: List[BlockId] = [
                     ast.line(
@@ -458,7 +457,7 @@ def get_imm_serde(
                         base_type = type_map.get_one_type_for_name(base.Name)
                         if base_type:
                             assert isinstance(base_type, codegen_ir.GenTuStruct)
-                            assert base_type.Name.name != sub.Name.Name
+                            assert base_type.Name.Name != sub.Name.Name
                             field_aux(base_type)
 
                 # sys.setrecursionlimit(32)

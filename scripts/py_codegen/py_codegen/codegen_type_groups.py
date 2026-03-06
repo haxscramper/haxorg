@@ -124,7 +124,7 @@ def rec_expand_type(ast: cpp.ASTBuilder,
 
     result = replace(
         typ,
-        # name=typ.name.model_copy(update=dict(Spaces=context)),
+        # name=typ.name.copy_update(Spaces=context),
         Nested=converted,
         Methods=typ.Methods + methods,
         Fields=typ.Fields + fields,
@@ -171,8 +171,8 @@ def rec_expand_group(
         variant_type = record.variantName
         result.append(
             codegen_ir.GenTuTypedef(
-                name=variant_type,
-                base=QualType(
+                Name=variant_type,
+                Base=QualType(
                     Name="variant",
                     Spaces=[QualType.ForName("std")],
                     Params=typeNames,
@@ -209,10 +209,10 @@ def rec_expand_group(
                     codegen_ir.GenTuFunction(
                         Doc=codegen_ir.GenTuDoc(""),
                         Name="get" + kindName,
-                        ReturnType=T.model_copy(update=dict(
+                        ReturnType=T.copy_update(
                             RefKind=codegen_ir.ReferenceKind.LValue,
                             IsConst=IsConst,
-                        )),
+                        ),
                         ReflectionParams=codegen_ir.GenTuReflParams(
                             unique_name="get" + kindName +
                             ("Const" if IsConst else "Mut")),

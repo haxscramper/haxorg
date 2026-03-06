@@ -340,8 +340,7 @@ def field_to_nim(
 ) -> Tuple[nim.IdentParams, Optional[ConvRes]]:
     decl: Optional[ConvRes] = None
     if f.IsTypeDecl:
-        DeclType = f.Decl.Name.model_copy(update=dict(
-            name=f"{rec.Name.Name}_{f.Name}_field"))
+        DeclType = f.Decl.Name.copy_update(Name=f"{rec.Name.Name}_{f.Name}_field")
         match f.Decl:
             case GenTuStruct():
                 decl = struct_to_nim(b, replace(f.Decl, name=DeclType))
@@ -418,7 +417,7 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
 def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
     return ConvRes(types=[
         nim.TypedefParams(
-            Name=typdef.name.Name, Exported=True, Base=type_to_nim(b, typdef.base))
+            Name=typdef.Name.Name, Exported=True, Base=type_to_nim(b, typdef.Base))
     ])
 
 

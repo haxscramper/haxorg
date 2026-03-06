@@ -76,7 +76,7 @@ class GenConverter:
 
     def convertTypedef(self, typedef: codegen_ir.GenTuTypedef) -> BlockId:
         return self.ast.Using(
-            cpp.UsingParams(newName=typedef.name.Name, baseType=typedef.base))
+            cpp.UsingParams(newName=typedef.Name.Name, baseType=typedef.Base))
 
     def convertMethod(self, method: codegen_ir.GenTuFunction, Class: QualType,
                       inline_methods: bool) -> cpp.MethodDeclParams | cpp.MethodDefParams:
@@ -113,7 +113,7 @@ class GenConverter:
                 for sub in self.convert(nest_type):
                     params.nested.append(sub)
 
-            for member in record.fields:
+            for member in record.Fields:
                 params.members.append(
                     cpp.RecordField(
                         params=cpp.ParmVarParams(
@@ -137,7 +137,7 @@ class GenConverter:
             for nested in record.Nested:
                 assert not isinstance(nested, codegen_ir.GenTuTypeGroup)
 
-            fields = [self.ast.string(field.Name) for field in record.fields]
+            fields = [self.ast.string(field.Name) for field in record.Fields]
             methods = [
                 self.ast.b.line([
                     self.ast.string("("),
@@ -157,8 +157,8 @@ class GenConverter:
                 if record.GenDescribeFields:
                     described_fields = [
                         self.ast.string(rf.Name)
-                        for rf in record.fields
-                        if rf.isExposedForDescribe
+                        for rf in record.Fields
+                        if rf.IsExposedForDescribe
                     ]
                 else:
                     described_fields = []

@@ -68,7 +68,7 @@ def t_osk() -> QualType:
 
 @beartype
 def t_cr(arg: QualType) -> QualType:
-    return arg.model_copy(update=dict(RefKind=ReferenceKind.LValue, IsConst=True))
+    return arg.copy_update(RefKind=ReferenceKind.LValue, IsConst=True)
 
 
 def t_var(*args: QualType) -> QualType:

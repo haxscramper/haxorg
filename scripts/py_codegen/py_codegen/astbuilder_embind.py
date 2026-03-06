@@ -73,9 +73,9 @@ class WasmTypedef:
         return [
             ast.line([
                 ast.string("export type "),
-                ast.Type(self.conf.getBackendType(self.Def.name)),
+                ast.Type(self.conf.getBackendType(self.Def.Name)),
                 ast.string(" = "),
-                ast.Type(self.conf.getBackendType(self.Def.base)),
+                ast.Type(self.conf.getBackendType(self.Def.Base)),
                 ast.string(";"),
             ])
         ]
@@ -305,7 +305,7 @@ class WasmClass():
         for Meth in self.Record.Methods:
             body.extend(WasmMethod(Meth, self.conf).get_typedef(ast))
 
-        for Field in self.Record.fields:
+        for Field in self.Record.Fields:
             if Field.IsStatic:
                 continue
 
@@ -357,7 +357,7 @@ class WasmClass():
                     args=[ast.StringLiteral(self.getWasmName())],
                 ))
 
-        for Field in self.Record.fields:
+        for Field in self.Record.Fields:
             if Field.IsStatic:
                 continue
 

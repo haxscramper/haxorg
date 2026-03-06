@@ -133,7 +133,7 @@ def trace_module(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
 
 @pytest.fixture(autouse=True)
 def trace_test(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
-    test_name = request.node.Name
+    test_name = request.node.name
     get_trace_collector().push_complete_event(test_name, "test")
     yield
     get_trace_collector().pop_complete_event()
@@ -362,7 +362,7 @@ def get_test_dir(
     base_dir = test_dir_root / rel_path
 
     # Add test function name
-    test_name = request.node.Name
+    test_name = request.node.name
 
     # Handle parametrized tests
     if hasattr(request.node, "callspec") and request.node.callspec.Params:

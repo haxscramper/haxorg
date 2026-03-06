@@ -192,8 +192,8 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
         if IsConstructor:
             if result.IsExplicitInstantiation:
-                final_result = result.Name.model_copy(update=dict(
-                    Parameters=result.ExplicitTemplateParams))
+                final_result = result.Name.copy_update(
+                    Parameters=result.ExplicitTemplateParams)
             else:
                 final_result = result.Name
         else:
@@ -283,9 +283,9 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
 @beartype
 def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypedef:
     return GenTuTypedef(
-        name=conv_proto_type(rec.name),
-        base=conv_proto_type(rec.base_type),
-        original=original,
+        Name=conv_proto_type(rec.name),
+        Base=conv_proto_type(rec.base_type),
+        Original=original,
         OriginName="refl",
     )
 

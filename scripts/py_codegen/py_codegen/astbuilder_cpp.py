@@ -721,7 +721,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.b.add_at(definition, self.string(line + "  \\"))
 
         arguments = [
-            self.string(line.Name if not line.isEllipsis else "...")
+            self.string(line.name if not line.isEllipsis else "...")
             for line in params.params
         ]
 

@@ -55,7 +55,7 @@ def collect_type_field_groups(types: List[tu.GenTuStruct],
 
     for t in types:
         group = PyhaxorgTypeDesc(
-            fields=filter_fields(t.fields),
+            fields=filter_fields(t.Fields),
             parent_fields=filter_fields(aux(t)),
             bases=list(t.Bases),
             name=t.Name.Name,
