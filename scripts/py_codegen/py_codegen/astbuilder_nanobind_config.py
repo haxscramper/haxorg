@@ -84,48 +84,50 @@ class NanobindAstbuilderConfig(AstbulderConfig):
             name = wrapper_override
 
         else:
-            flat = [
-                N for N in Type.flatQualName() if N not in codegen_ir.IGNORED_NAMESPACES
-            ]
+            match Type.flatQualNameWithParams():
+                case ["std", "shared_ptr", _] if self.isKnownClass(Type.par0()):
+                    return self.getBackendType(Type.par0())
 
-            if flat == ["std", "shared_ptr"] and 1 == len(
-                    Type.Params) and self.type_map.is_known_type(Type.Params[0]):
-                return self.getBackendType(Type.Params[0])
+                case ["org", "imm", "ImmIdT", _]:
+                    return QualType(Name="ImmIdT" +
+                                    Type.par0().Name.replace("Imm", "", 1))
 
-            elif flat == ["ImmIdT"]:
-                return QualType(Name="ImmIdT" + Type.Params[0].Name.replace("Imm", "", 1))
+                case ["org", "imm", "ImmAdapterT", _]:
+                    return QualType(Name=Type.par0().Name + "Adapter")
 
-            elif flat == ["ImmAdapterT"]:
-                return QualType(Name=Type.par0().Name + "Adapter")
-
-            match flat:
-                case ["Vec"]:
+                case ["hstd", "Vec", _]:
                     name = "list"
 
-                case ["Opt"] | ["std", "optional"]:
+                case ["hstd", "Opt", _] | ["std", "optional", _]:
                     name = "Optional"
 
-                case ["std", "variant"] | ["Var"]:
+                case ["std", "variant"] | ["hstd", "Var"]:
                     name = "Union"
 
-                case ["immer", "box"]:
+                case ["std", "pair", _, _]:
+                    name = "tuple"
+
+                case ["hstd", "Pair", _, _]:
+                    name = "tuple"
+
+                case ["immer", "box", _]:
                     name = "ImmBox"
 
-                case ["immer", "flex_vector"]:
+                case ["immer", "flex_vector", _]:
                     name = "ImmFlexVector"
 
-                case ["immer", "vector"]:
+                case ["immer", "vector", _]:
                     name = "ImmVector"
 
-                case ["immer", "map"]:
+                case ["immer", "map", _, _]:
                     name = "ImmMap"
 
-                case ["Str"] | ["string"] | ["std", "string"] | ["basic_string" \
+                case ["hstd", "Str"] | ["string"] | ["std", "string"] | ["basic_string" \
                                                                  ] | ["std", "basic_string"]:
                     name = "str"
 
-                case ["SemId"]:
-                    name = Type.Params[0].Name
+                case ["org", "sem", "SemId"]:
+                    name = Type.par0().Name
 
                 case ["Bool"]:
                     name = "bool"
@@ -145,7 +147,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case ["py", "object"] | ["nanobind", "object"]:
                     name = "object"
 
-                case ["UnorderedMap"]:
+                case ["hstd", "UnorderedMap", _, _]:
                     name = "Dict"
 
                 case ["int64_t"]:
@@ -155,7 +157,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     name = "str"
 
                 case _:
-                    name = "".join(flat)
+                    name = self.getBindName(Type, withParams=False)
 
         struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:

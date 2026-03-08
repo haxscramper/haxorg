@@ -159,14 +159,19 @@ class AstbulderConfig(abc.ABC):
 
                 case _:
                     for N in t.Spaces:
-                        res += self.getBindName(N, withParams=withParams)
+                        res += pascal_case(self.getBindName(N, withParams=withParams))
 
-                    if t.Name not in codegen_ir.IGNORED_NAMESPACES:
+                    if t.Name in ["bool", "int", "char", "float"]:
+                        res += t.Name
+
+                    elif t.Name not in codegen_ir.IGNORED_NAMESPACES:
                         res += pascal_case(t.Name)
 
         if withParams and 0 < len(t.Params):
             res += "Of"
-            res += "".join([self.getBindName(T, withParams=withParams) for T in t.Params])
+            res += "".join([
+                pascal_case(self.getBindName(T, withParams=withParams)) for T in t.Params
+            ])
 
         return res
 

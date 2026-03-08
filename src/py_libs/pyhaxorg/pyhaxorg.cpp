@@ -337,7 +337,7 @@ NB_MODULE(pyhaxorg, m) {
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::SourceFileId>(m, "parseSourceFileId")
+  nanobind::class_<org::parse::SourceFileId>(m, "ParseSourceFileId")
     .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -347,7 +347,7 @@ NB_MODULE(pyhaxorg, m) {
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::SourceLoc>(m, "parseSourceLoc")
+  nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
     .def("__init__",
          [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) {
          new(result) org::parse::SourceLoc();
@@ -472,7 +472,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<hstd::ext::Cache>(m, "Cache")
     ;
-  nanobind::class_<org::parse::OrgParseFragment>(m, "parseOrgParseFragment")
+  nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
     .def("__init__",
          [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) {
          new(result) org::parse::OrgParseFragment();
@@ -1087,7 +1087,7 @@ and a segment kind.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink::Link>(m, "graphMapLinkLink")
+  nanobind::class_<org::graph::MapLink::Link>(m, "GraphMapLinkLink")
     .def("__init__",
          [](org::graph::MapLink::Link* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapLink::Link();
@@ -1108,7 +1108,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink::Radio>(m, "graphMapLinkRadio")
+  nanobind::class_<org::graph::MapLink::Radio>(m, "GraphMapLinkRadio")
     .def("__init__",
          [](org::graph::MapLink::Radio* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapLink::Radio();
@@ -1125,7 +1125,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink>(m, "graphMapLink")
+  nanobind::class_<org::graph::MapLink>(m, "GraphMapLink")
     .def("__init__",
          [](org::graph::MapLink* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapLink();
@@ -1146,7 +1146,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapNodeProp>(m, "graphMapNodeProp")
+  nanobind::class_<org::graph::MapNodeProp>(m, "GraphMapNodeProp")
     .def("__init__",
          [](org::graph::MapNodeProp* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapNodeProp();
@@ -1173,7 +1173,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapEdgeProp>(m, "graphMapEdgeProp")
+  nanobind::class_<org::graph::MapEdgeProp>(m, "GraphMapEdgeProp")
     .def("__init__",
          [](org::graph::MapEdgeProp* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapEdgeProp();
@@ -1190,7 +1190,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapNode>(m, "graphMapNode")
+  nanobind::class_<org::graph::MapNode>(m, "GraphMapNode")
     .def("__init__",
          [](org::graph::MapNode* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapNode();
@@ -1213,7 +1213,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapEdge>(m, "graphMapEdge")
+  nanobind::class_<org::graph::MapEdge>(m, "GraphMapEdge")
     .def("__init__",
          [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapEdge();
@@ -1231,7 +1231,7 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapGraph>(m, "graphMapGraph")
+  nanobind::class_<org::graph::MapGraph>(m, "GraphMapGraph")
     .def("__init__",
          [](org::graph::MapGraph* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapGraph();
@@ -1316,7 +1316,7 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapConfig>(m, "graphMapConfig")
+  nanobind::class_<org::graph::MapConfig>(m, "GraphMapConfig")
     .def("__init__",
          [](org::graph::MapConfig* result, nanobind::kwargs const& kwargs) {
          new(result) org::graph::MapConfig();
@@ -1333,7 +1333,7 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapGraphState>(m, "graphMapGraphState")
+  nanobind::class_<org::graph::MapGraphState>(m, "GraphMapGraphState")
     .def_rw("graph", &org::graph::MapGraphState::graph)
     .def_rw("ast", &org::graph::MapGraphState::ast)
     .def("getGraph", static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph))
@@ -8749,8 +8749,8 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<org::graph::MapLink::Kind>(m, "graphMapLinkKind", type_registry_guard);
-  nanobind::enum_<org::graph::MapLink::Kind>(m, "graphMapLinkKind")
+  bind_enum_iterator<org::graph::MapLink::Kind>(m, "GraphMapLinkKind", type_registry_guard);
+  nanobind::enum_<org::graph::MapLink::Kind>(m, "GraphMapLinkKind")
     .value("Radio", org::graph::MapLink::Kind::Radio)
     .value("Link", org::graph::MapLink::Kind::Link)
     .def("__iter__", [](org::graph::MapLink::Kind const& _self) -> org::bind::python::PyEnumIterator<org::graph::MapLink::Kind> {
