@@ -343,10 +343,10 @@ def field_to_nim(
         DeclType = f.Decl.Name.copy_update(Name=f"{rec.Name.Name}_{f.Name}_field")
         match f.Decl:
             case GenTuStruct():
-                decl = struct_to_nim(b, replace(f.Decl, name=DeclType))
+                decl = struct_to_nim(b, replace(f.Decl, Name=DeclType))
 
             case GenTuEnum():
-                decl = enum_to_nim(b, replace(f.Decl, name=DeclType))
+                decl = enum_to_nim(b, replace(f.Decl, Name=DeclType))
 
         result = nim.IdentParams(
             Name=nim.sanitize_name(f.Name),
@@ -373,7 +373,8 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
 
     if b.conf.opts.with_header_imports:
         pragmas.append(
-            nim.PragmaParams("header", [b.Lit(b.conf.getHeaderStrForPath(rec.original))]))
+            nim.PragmaParams("header",
+                             [b.Lit(b.conf.getHeaderStrForPath(rec.OriginalPath))]))
 
     if b.conf.opts.importx_structs:
         if b.conf.opts.is_cpp_wrap:
@@ -390,7 +391,7 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
 
     FieldDecls: List[nim.IdentParams] = []
     SubConvs: List[ConvRes] = []
-    for f in rec.fields:
+    for f in rec.Fields:
         Ident, Decls = field_to_nim(b, f, rec=rec)
         if Decls:
             SubConvs.append(Decls)

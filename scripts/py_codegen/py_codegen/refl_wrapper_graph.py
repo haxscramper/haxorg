@@ -329,14 +329,14 @@ class GenGraph:
         return get_used_types_rec(decl)
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct) -> None:
-        stored_fields = set([f.Name for f in stored.fields])
-        for _field in added.fields:
+        stored_fields = set([f.Name for f in stored.Fields])
+        for _field in added.Fields:
             if _field.Name not in stored_fields:
-                stored.fields.append(deepcopy(_field))
+                stored.Fields.append(deepcopy(_field))
 
         stored.IsForwardDecl = stored.IsForwardDecl and added.IsForwardDecl
         if stored.IsForwardDecl and not added.IsForwardDecl:
-            stored.original = copy(added.original)
+            stored.OriginalPath = copy(added.OriginalPath)
 
     def merge_enums(self, stored: GenTuEnum, added: GenTuEnum) -> None:
         pass
@@ -529,7 +529,7 @@ class GenGraph:
 
         new_grouped: List[GenGraph.Sub] = []
         for group in grouped_sets.values():
-            result = GenGraph.Sub(original=group[0].OriginalPath, name=group[0].Name)
+            result = GenGraph.Sub(original=group[0].original, name=group[0].name)
             for item in group:
                 result.nodes = result.nodes.union(item.nodes)
 
@@ -538,8 +538,7 @@ class GenGraph:
             if 1 < len(group):
                 log("refl.cli.read").info(
                     "Merging strongly connected files %s" % (", ".join([
-                        f"[green]{g.OriginalPath.Name}[/green]" for g in group
-                        if g.OriginalPath
+                        f"[green]{g.original.name}[/green]" for g in group if g.original
                     ])))
 
         self.subgraphs = new_grouped + ungrouped_sets
@@ -635,13 +634,13 @@ class GenGraph:
             for node in sub.nodes:
                 if is_accepted_node(node):
                     target.node(
-                        f'{sub.Name}_{node}',
+                        f'{sub.name}_{node}',
                         **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
                     added_nodes.add(node)
                     if node in parent_tus and 1 < len(parent_tus[node]):
                         for target in parent_tus[node]:
-                            if target != sub.Name:
-                                dot.edge(f"{target}_{node}", f"{sub.Name}_{node}")
+                            if target != sub.name:
+                                dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
 
         # Add nodes to subgraphs
         for sub in self.subgraphs:

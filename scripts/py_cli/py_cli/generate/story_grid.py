@@ -718,7 +718,7 @@ def add_typ_nodes(
                                     radius=ast.litPt(2),
                                     inset=ast.litPt(2),
                                 ),  # type: ignore
-                                body=[ast.string(cell.field.Name)],
+                                body=[ast.string(cell.field.name)],
                                 isLine=True,
                             )),
                         dx=0,

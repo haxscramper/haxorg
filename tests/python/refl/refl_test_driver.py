@@ -296,8 +296,8 @@ def get_type(*,
         **kwargs,
     )
 
-    assert len(struct.fields) == 1
-    return struct.fields[0].Type
+    assert len(struct.Fields) == 1
+    return struct.Fields[0].Type
 
 
 @beartype

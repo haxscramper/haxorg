@@ -365,8 +365,8 @@ def get_test_dir(
     test_name = request.node.name
 
     # Handle parametrized tests
-    if hasattr(request.node, "callspec") and request.node.callspec.Params:
-        params_items = sorted(request.node.callspec.Params.items())
+    if hasattr(request.node, "callspec") and request.node.callspec.params:
+        params_items = sorted(request.node.callspec.params.items())
         params_str = "_".join(f"{k}={v}" for k, v in params_items)
 
         if len(params_str) <= 32:

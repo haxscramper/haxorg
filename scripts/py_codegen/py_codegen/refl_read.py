@@ -146,10 +146,10 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     result.IsExplicitInstantiation = record.is_explicit_instantiation
     result.IsTemplateRecord = record.is_template_record
-    result.original = copy(original)
+    result.OriginalPath = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
-    result.has_name = record.has_name
+    result.HasName = record.has_name
     result.IsDescribedRecord = record.is_described_record
 
     for arg in record.explicit_template_params:
@@ -157,7 +157,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     for _field in record.fields:
         if _field.is_type_decl:
-            result.fields.append(
+            result.Fields.append(
                 GenTuField(
                     Type=None,
                     Name=_field.name,

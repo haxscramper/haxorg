@@ -15,7 +15,7 @@ def test_simple_structure_registration(stable_test_dir: Path) -> None:
     )
     assert struct.Name.Name == "Test"
     assert len(struct.Methods) == 0
-    assert len(struct.fields) == 0
+    assert len(struct.Fields) == 0
 
 
 @pytest.mark.test_release
@@ -25,8 +25,8 @@ def test_structure_field_registration(stable_test_dir: Path) -> None:
         "struct Test { int field; };",
         stable_test_dir=stable_test_dir,
     )
-    assert len(struct.fields) == 1
-    field = struct.fields[0]
+    assert len(struct.Fields) == 1
+    field = struct.Fields[0]
     assert field.Name == "field"
     assert field.Type.Name == "int"
 
@@ -40,10 +40,10 @@ def test_anon_structure_fields(stable_test_dir: Path) -> None:
     )
     assert len(struct.Nested) == 1
     union: refl_test_driver.GenTuStruct = struct.Nested[0]
-    assert not union.has_name
-    assert len(union.fields) == 2
-    field1 = union.fields[0]
-    field2 = union.fields[1]
+    assert not union.HasName
+    assert len(union.Fields) == 2
+    field1 = union.Fields[0]
+    field2 = union.Fields[1]
     assert field1.Name == "int_field"
     assert field2.Name == "char_field"
     assert field1.Type.Name == "int"
@@ -66,8 +66,8 @@ def test_field_with_std_import(stable_test_dir: Path) -> None:
     assert len(tu.typedefs) == 0
     struct = tu.structs[0]
     assert struct.Name.Name == "Content"
-    assert len(struct.fields) == 1
-    field = struct.fields[0]
+    assert len(struct.Fields) == 1
+    field = struct.Fields[0]
     assert field.Name == "items"
     assert field.Type.Name == "vector"
     assert len(field.Type.Spaces) == 1
@@ -87,9 +87,9 @@ def test_anon_struct_for_field(stable_test_dir: Path) -> None:
 
     assert struct.Name.Name == "Main"
     assert len(struct.Nested) == 0
-    assert len(struct.fields) == 1
+    assert len(struct.Fields) == 1
     assert len(struct.Methods) == 0
-    field = struct.fields[0]
+    field = struct.Fields[0]
     assert field.IsTypeDecl
     assert field.Name == "field"
     decl = field.Decl
@@ -107,10 +107,10 @@ def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
 
     assert struct.Name.Name == "Main"
     assert len(struct.Nested) == 1
-    assert len(struct.fields) == 1
+    assert len(struct.Fields) == 1
     assert len(struct.Methods) == 0
     nested = struct.Nested[0]
-    field = struct.fields[0]
+    field = struct.Fields[0]
 
     assert nested.Name.Name == "Named"
     assert field.Name == "field"
@@ -126,7 +126,7 @@ def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
         "test_namespace_extraction_for_nested_struct",
         stable_test_dir=stable_test_dir,
     )
-    field = struct.fields[0]
+    field = struct.Fields[0]
     assert len(field.Type.Spaces) == 1
     assert field.Type.Spaces[0].Name == "Main"
 
@@ -140,7 +140,7 @@ def test_namespace_extraction(stable_test_dir: Path) -> None:
     )
 
     struct: refl_test_driver.GenTuStruct = entires[1]
-    field = struct.fields[0]
+    field = struct.Fields[0]
     assert len(field.Type.Spaces) == 1
     assert field.Type.Name == "Nest"
     assert field.Type.Spaces[0].Name == "Space"
@@ -211,8 +211,8 @@ def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     assert s.Name.Name == "Test"
     assert len(s.Methods) == 1
     assert s.Methods[0].Name == "run_method"
-    assert len(s.fields) == 1
-    assert s.fields[0].Type.Name == "int"
+    assert len(s.Fields) == 1
+    assert s.Fields[0].Type.Name == "int"
     assert s.Methods[0].ReturnType.Name == "int"
 
     formatted = refl_test_driver.format_nim_code(value)
@@ -260,9 +260,9 @@ struct [[refl]] PartiallyAnnotatedFields {
     assert tu.structs[1].Name.Name == "PartiallyAnnotatedFields"
 
     part_a = tu.structs[1]
-    assert len(part_a.fields) == 2
-    assert part_a.fields[0].Name == "field1"
-    assert part_a.fields[1].Name == "field2"
+    assert len(part_a.Fields) == 2
+    assert part_a.Fields[0].Name == "field1"
+    assert part_a.Fields[1].Name == "field2"
 
     assert len(tu.functions) == 1
     assert tu.functions[0].Name == "function_with_annotation"
@@ -358,15 +358,15 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     )
 
     assert len(value.wraps) == 2
-    a = first_true(value.wraps, pred=lambda it: it.Name == "a")
-    b = first_true(value.wraps, pred=lambda it: it.Name == "b")
+    a = first_true(value.wraps, pred=lambda it: it.name == "a")
+    b = first_true(value.wraps, pred=lambda it: it.name == "b")
     assert a
     assert b
     assert a.name == "a"
     assert b.name == "b"
 
-    assert all([it.original == code_dir.joinpath("a.hpp") for it in a.tu.structs])
-    assert all([it.original == code_dir.joinpath("b.hpp") for it in b.tu.structs])
+    assert all([it.OriginalPath == code_dir.joinpath("a.hpp") for it in a.tu.structs])
+    assert all([it.OriginalPath == code_dir.joinpath("b.hpp") for it in b.tu.structs])
 
     assert len(a.tu.functions) == 0
     assert len(b.tu.functions) == 0

@@ -117,7 +117,7 @@ def format_rich_table(
     )
 
     for column in columns_to_fetch:
-        rich_table.add_column(str(column.Name),
+        rich_table.add_column(str(column.name),
                               no_wrap=True,
                               overflow="ignore",
                               width=None,
@@ -252,7 +252,7 @@ def dump_flat_table(
     engine = _map_engine_or_session(engine_or_session)
 
     table = SATable(table_name, metadata, autoload_with=engine)
-    columns_to_fetch = [c for c in table.columns if c.Name not in excluded_columns]
+    columns_to_fetch = [c for c in table.columns if c.name not in excluded_columns]
 
     with engine.connect() as connection:
         if dict_primary_key is None:
@@ -269,11 +269,11 @@ def dump_flat_table(
             for row in selection:
                 row_dict = {}
                 for c, r in zip(columns_to_fetch, row):
-                    if c.Name != dict_primary_key:
-                        row_dict[c.Name] = r
+                    if c.name != dict_primary_key:
+                        row_dict[c.name] = r
 
                 key_value = [
-                    r for c, r in zip(columns_to_fetch, row) if c.Name == dict_primary_key
+                    r for c, r in zip(columns_to_fetch, row) if c.name == dict_primary_key
                 ]
 
                 assert len(key_value) == 1
