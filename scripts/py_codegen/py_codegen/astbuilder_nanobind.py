@@ -222,7 +222,7 @@ class NbMethod(NbFunction):
         if self.Func.Name == "operator==":
             def_params.Args[0].Type = QualType(Name="object")
 
-        return pya.MethodParams(Func=def_params)
+        return pya.MethodParams(Func=def_params, IsStatic=self.Func.IsStatic)
 
     def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for C++ method"
@@ -720,7 +720,7 @@ class NbClass:
             Bases=[
                 self.conf.getBackendType(T)
                 for T in self.Struct.Bases
-                if T.Name not in ["SharedPtrApi"]
+                if self.conf.isRegisteredForBacked(T)
             ],
         )
 
@@ -974,11 +974,11 @@ T = TypeVar("T")
 class ImmBox[T]():
     def get(self) -> T: ...
 
-class ImmFlexVector[T]():
+class ImmFlexVec[T]():
     def at(self, idx: int) -> T: ...
     def __len__(self) -> int: ...
 
-class ImmVector[T]():
+class ImmVec[T]():
     def at(self, idx: int) -> T: ...
     def __len__(self) -> int: ...
 

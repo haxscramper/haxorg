@@ -247,11 +247,16 @@ def gen_adaptagrams_wrappers(
 
 
 class HaxorgNanobindWrapper(NanobindAstbuilderConfig):
+    "Override some nanobind generation options for haxorg-specific types"
 
     def isRegisteredForBacked(self, Type: codegen_cpp.QualType) -> bool:
+        "nodoc"
         match Type.flatQualNameWithParams():
             case ["org", "sem", "SemId", _]:
                 return True
+
+            case ["org", "imm", "ImmAdapterTBase", _]:
+                return False
 
             case ["org", "imm", *rest]:
                 return True

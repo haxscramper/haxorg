@@ -151,6 +151,9 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case ["int64_t"]:
                     name = "int"
 
+                case ["char"] if Type.PtrCount == 1:
+                    name = "str"
+
                 case _:
                     name = "".join(flat)
 

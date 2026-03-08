@@ -338,12 +338,6 @@ NB_MODULE(pyhaxorg, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::parse::SourceFileId>(m, "parseSourceFileId")
-    .def("__init__",
-         [](org::parse::SourceFileId* result, nanobind::kwargs const& kwargs) {
-         new(result) org::parse::SourceFileId();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
     .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

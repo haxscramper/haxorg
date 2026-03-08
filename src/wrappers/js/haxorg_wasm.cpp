@@ -222,7 +222,6 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   emscripten::class_<org::parse::SourceFileId>("ParseSourceFileId")
-    .constructor<>()
     ;
   emscripten::class_<org::parse::SourceLoc>("ParseSourceLoc")
     .property("line", &org::parse::SourceLoc::line)

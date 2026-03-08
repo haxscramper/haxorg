@@ -37,6 +37,8 @@ class FunctionDefParams:
 @dataclass
 class MethodParams:
     Func: FunctionDefParams
+    IsStatic: bool = False
+    "Don't add `self` for static method generation"
 
 
 @beartype
@@ -127,7 +129,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Method(self, p: MethodParams) -> BlockId:
         b = self.b
 
-        def_head = self.FuncHead(p.Func, withSelf=True)
+        def_head = self.FuncHead(p.Func, withSelf=not p.IsStatic)
 
         if p.Func.IsStub:
             def_head.append(b.text(" ..."))

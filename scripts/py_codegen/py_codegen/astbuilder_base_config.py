@@ -46,7 +46,7 @@ class AstbulderConfig(abc.ABC):
                 return True
 
             case ["hstd", "SharedPtrApi", _]:
-                return True
+                return False
 
             case ["std", "shared_ptr", _]:
                 return self.isRegisteredForBacked(Type.par0())

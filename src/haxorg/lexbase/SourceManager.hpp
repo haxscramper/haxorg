@@ -11,7 +11,7 @@ DECL_ID_TYPE_MASKED_WITH_ATTR(
     SourceFileId,
     hstd::u32,
     0,
-    [[refl]]);
+    [[refl(R"({"default-constructor": false})")]]);
 
 struct SourceFile {
     using id_type = SourceFileId;
