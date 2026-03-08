@@ -1303,9 +1303,6 @@ class TypeSpecialization():
         return "".join(self.used_type.flatQualName())
 
 
-IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python", "imm"]
-
-
 @beartype
 def sanitize_ident(
     name: str,

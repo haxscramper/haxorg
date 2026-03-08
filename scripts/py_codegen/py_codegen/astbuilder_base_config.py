@@ -82,6 +82,11 @@ class AstbulderConfig(abc.ABC):
         else:
             return None
 
+    def getReflectionParams(self, Type: QualType) -> codegen_ir.GenTuReflParams:
+        result = self.getTypeDefinition(Type)
+        assert result, f"Type {Type} is not mapped to the known type"
+        return result.ReflectionParams
+
     def getUnderlyingType(self, Type: QualType) -> Optional[QualType]:
         "Resolve typedef"
         return self.type_map.get_underlying_type(Type)
@@ -111,7 +116,9 @@ class AstbulderConfig(abc.ABC):
 
     def getBindName(self, t: QualType, withParams: bool = True) -> str:
         """
-        Get name of the wrapped type for backend.
+        Get name of the wrapped type for backend. Default name generation logic
+        for all backends. Some backends might overwrite this for a more fitting
+        name construction.
         """
         res = ""
         wrapper = self.type_map.get_wrapper_type(t)
@@ -164,7 +171,17 @@ class AstbulderConfig(abc.ABC):
                     if t.Name in ["bool", "int", "char", "float"]:
                         res += t.Name
 
-                    elif t.Name not in codegen_ir.IGNORED_NAMESPACES:
+                    # Skip verbose namespaces for name generation
+                    elif t.Name not in [
+                            "sem",
+                            "org",
+                            "hstd",
+                            "ext",
+                            "algo",
+                            "bind",
+                            "python",
+                            "imm",
+                    ]:
                         res += pascal_case(t.Name)
 
         if withParams and 0 < len(t.Params):
