@@ -62,31 +62,45 @@ class NanobindAstbuilderConfig(AstbulderConfig):
 
         return codegen_ir.sanitize_ident(s, python_keywords)
 
-    def getBackendType(self, Typ: QualType) -> QualType:
+    def isRegisteredForBacked(self, Type: QualType) -> bool:
+        match Type.flatQualNameWithParams():
+            case l if l in []:
+                return True
+
+            case ["nanobind", *rest]:
+                return True
+
+            case ["std", "variant", *rest]:
+                return all(self.isRegisteredForBacked(P) for P in Type.Params)
+
+            case _:
+                return super().isRegisteredForBacked(Type)
+
+    def getBackendType(self, Type: QualType) -> QualType:
         "Map C++ type to the python"
-        wrapper_override = self.type_map.get_wrapper_type(Typ)
+        wrapper_override = self.type_map.get_wrapper_type(Type)
 
         if wrapper_override:
             name = wrapper_override
 
         else:
             flat = [
-                N for N in Typ.flatQualName() if N not in codegen_ir.IGNORED_NAMESPACES
+                N for N in Type.flatQualName() if N not in codegen_ir.IGNORED_NAMESPACES
             ]
 
             if flat == ["std", "shared_ptr"] and 1 == len(
-                    Typ.Params) and self.type_map.is_known_type(
-                        Typ.Params[0]) and self.type_map.get_one_type_for_qual_name(
-                            Typ.Params[0]
-                        ).ReflectionParams.backend.python.holder_type == "shared":
-                return self.getBackendType(Typ.Params[0])
+                    Type.Params) and self.type_map.is_known_type(Type.Params[0]):
+                return self.getBackendType(Type.Params[0])
 
             elif flat == ["ImmIdT"]:
-                return QualType(Name="ImmIdT" + Typ.Params[0].Name.replace("Imm", "", 1))
+                return QualType(Name="ImmIdT" + Type.Params[0].Name.replace("Imm", "", 1))
+
+            elif flat == ["ImmAdapterT"]:
+                return QualType(Name=Type.par0().Name + "Adapter")
 
             match flat:
                 case ["Vec"]:
-                    name = "List"
+                    name = "list"
 
                 case ["Opt"] | ["std", "optional"]:
                     name = "Optional"
@@ -111,7 +125,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     name = "str"
 
                 case ["SemId"]:
-                    name = Typ.Params[0].Name
+                    name = Type.Params[0].Name
 
                 case ["Bool"]:
                     name = "bool"
@@ -140,11 +154,11 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case _:
                     name = "".join(flat)
 
-        struct = self.type_map.get_struct_for_qual_name(Typ)
+        struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:
             res = QualType(Name=name)
-            if Typ.Name != "SemId":
-                for param in Typ.Params:
+            if Type.Name != "SemId":
+                for param in Type.Params:
                     res.Params.append(self.getBackendType(param))
 
             return res

@@ -1402,7 +1402,7 @@ def get_sem_subtree() -> List[GenTuStruct]:
     ]
 
 
-def get_shared_sem_enums() -> Sequence[GenTuEnum]:
+def get_shared_sem_enums() -> List[GenTuEnum]:
     return [
         d_simple_enum(
             t("CheckboxState"),

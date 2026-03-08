@@ -226,11 +226,12 @@ struct [[nodiscard]] Id {
 };
 
 
-#define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
+#define DECL_ID_TYPE_MASKED_WITH_ATTR(                                    \
+    __value, __name, __type, __mask, __attr)                              \
     struct __value;                                                       \
     using __name##BaseId = ::hstd::dod::                                  \
         Id<__type, __type, std::integral_constant<__type, __mask>>;       \
-    struct [[nodiscard]] __name : public __name##BaseId {                 \
+    struct [[nodiscard]] __attr __name : public __name##BaseId {          \
         BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());       \
         using value_type = __value;                                       \
                                                                           \
@@ -250,6 +251,11 @@ struct [[nodiscard]] Id {
                                                                           \
         explicit __name(__type arg) : __name##BaseId(arg) {}              \
     };
+
+#define EMPTY()
+
+#define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
+    DECL_ID_TYPE_MASKED_WITH_ATTR(__value, __name, __type, __mask, EMPTY())
 
 
 /// Declare new ID type, derived from the `dod::Id` with specified \arg

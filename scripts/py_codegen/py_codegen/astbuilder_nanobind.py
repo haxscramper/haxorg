@@ -10,6 +10,9 @@ from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_ir import GenTuDoc, GenTuFunction, GenTuIdent, QualType
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import maybe_splice
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -201,9 +204,9 @@ class NbMethod(NbFunction):
         is_overload: bool = False,
     ) -> pya.MethodParams:
         "Generate typedef for C++ method"
-        return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name="__init__" if self.Func.IsConstructor else self.conf.
-            getSanitizedIdent(self.PyName),
+        def_params = pya.FunctionDefParams(
+            Name="__init__"
+            if self.Func.IsConstructor else self.conf.getSanitizedIdent(self.PyName),
             ResultTy=self.Func.ReturnType and
             self.conf.getBackendType(self.Func.ReturnType),
             Args=[
@@ -214,7 +217,12 @@ class NbMethod(NbFunction):
             Decorators=[
                 *maybe_splice(self.Func.IsStatic, pya.DecoratorParams("staticmethod")),
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
-            ]))
+            ])
+
+        if self.Func.Name == "operator==":
+            def_params.Args[0].Type = QualType(Name="object")
+
+        return pya.MethodParams(Func=def_params)
 
     def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for C++ method"
@@ -946,7 +954,11 @@ class NbModule:
                 append_decl(NbEnum(decl, self.conf))
 
             case codegen_ir.GenTuTypedef():
+                log(CAT).debug(f"typedef {decl.Name} = {decl.Base}")
                 append_decl(NbTypedefPass(decl, self.conf))
+
+            case _:
+                raise TypeError(f"Unhandled top-level type {type(decl)}")
 
     def build_typedef(self, ast: pya.ASTBuilder) -> BlockId:
         "Generate full typedef list"
@@ -968,6 +980,9 @@ class ImmFlexVector[T]():
 
 class ImmVector[T]():
     def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class IntSet[T]():
     def __len__(self) -> int: ...
 
 class ImmAdapterTBase[T](ImmAdapter):

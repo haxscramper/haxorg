@@ -21,25 +21,55 @@ class AstbulderConfig(abc.ABC):
         self.type_map = type_map
 
     @abc.abstractmethod
-    def getBackendType(self, t: QualType) -> QualType:
+    def getBackendType(self, Type: QualType) -> QualType:
         "Rewrite the IR type to the backend-specific counterpart"
         ...
 
-    def isKnownClass(self, t: QualType) -> bool:
+    def isRegisteredForBacked(self, Type: QualType) -> bool:
+        """
+        Check if the specific type was registered for wrapping for backend -- either as
+        an explicit class to be wrapped, or as a backend-specific type that is already
+        present by default
+        """
+        match Type.flatQualNameWithParams():
+            case l if l in [
+                # Universally registered types -- if some backend does not expose them,
+                # it can override the method to return false.
+                ["std", "string"],
+                ["hstd", "Str"],
+                ["int"],
+                ["int64_t"],
+                ["char"],
+                ["bool"],
+                ["void"],
+            ]:
+                return True
+
+            case ["hstd", "SharedPtrApi", _]:
+                return True
+
+            case ["std", "shared_ptr", _]:
+                return self.isRegisteredForBacked(Type.par0())
+
+            case _:
+                return self.isKnownClass(Type)
+
+    def isKnownClass(self, Type: QualType) -> bool:
         "Check if type name refers to registered entry"
-        return self.type_map.is_known_type(t)
+        return self.type_map.is_known_type(Type)
 
-    def isTypedef(self, t: QualType) -> bool:
+    def isTypedef(self, Type: QualType) -> bool:
         "Check if a type is a typedef alias"
-        return self.type_map.is_typedef(t)
+        return self.type_map.is_typedef(Type)
 
-    def getResolvedType(self, t: QualType) -> "QualType":
+    def getResolvedType(self, Type: QualType) -> "QualType":
         "Resolve all type aliases"
-        if self.isTypedef(t):
-            return self.getResolvedType(self.getUnderlyingType(t))
+        if self.isTypedef(Type):
+            assert self.getUnderlyingType(Type)
+            return self.getResolvedType(self.getUnderlyingType(Type))
 
         else:
-            return t
+            return Type
 
     def getTypeDefinition(
             self, t: QualType) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct]:
@@ -52,9 +82,9 @@ class AstbulderConfig(abc.ABC):
         else:
             return None
 
-    def getUnderlyingType(self, t: QualType) -> QualType:
+    def getUnderlyingType(self, Type: QualType) -> Optional[QualType]:
         "Resolve typedef"
-        return self.type_map.get_underlying_type(t)
+        return self.type_map.get_underlying_type(Type)
 
     def getSanitizedIdent(self, s: str) -> str:
         return s

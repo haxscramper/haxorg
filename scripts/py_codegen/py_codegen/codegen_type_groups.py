@@ -10,9 +10,10 @@ import py_codegen.astbuilder_cpp as cpp
 import py_codegen.codegen_immutable as gen_imm
 from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_ir import QualType
+from py_codegen.astbuilder_base_config import AstbulderConfig
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, ExceptionContextNote
 
 CAT = __name__
 
@@ -55,6 +56,11 @@ def topological_sort_entries(
                 entry_hash = entry.Name.qual_hash()
                 if entry.Base.qual_hash() in entry_by_hash:
                     graph[entry_hash] = {entry.Base.qual_hash()}
+
+                else:
+                    # typedef might refer to the specialization of the
+                    # standard type
+                    graph[entry_hash] = {}
 
     ts = TopologicalSorter(graph)
     try:
@@ -306,8 +312,8 @@ def rec_expand_group(
 
 @beartype
 def expand_type_groups(
-    ast: cpp.ASTBuilder, types: Sequence[codegen_ir.GenTuStruct]
-) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
+        ast: cpp.ASTBuilder,
+        types: Sequence[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
     return [rec_expand_type(ast, T) for T in types]
 
 
@@ -336,7 +342,7 @@ class PyhaxorgTypeGroups():
             match e:
                 case codegen_ir.GenTuStruct():
                     log(CAT).info(
-                        f"{'  ' * ind}{e.Name.name} {e.Name} wrapper:{e.ReflectionParams.wrapper_name} py:{py_type(e.Name, self.type_map)}"
+                        f"{'  ' * ind}{e.Name.Name} {e.Name} wrapper:{e.ReflectionParams.wrapper_name} py:{py_type(e.Name, self.type_map)}"
                     )
                     for sub in e.Nested:
                         aux(sub, ind + 1)
@@ -357,6 +363,74 @@ class PyhaxorgTypeGroups():
 
 
 @beartype
+def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderConfig,
+                      specializations: Sequence[codegen_ir.TypeSpecialization]):
+    specialization_map: Dict[int, codegen_ir.TypeSpecialization] = dict()
+
+    for spec in specializations:
+        specialization_map[spec.used_type.qual_hash()] = spec
+
+    def aux(entry: codegen_ir.GenTuEntry | codegen_ir.GenTuField | codegen_ir.QualType |
+            codegen_ir.GenTuIdent | None):
+        match entry:
+            case None:
+                pass
+
+            case codegen_ir.GenTuIdent():
+                aux(entry.Type)
+
+            case codegen_ir.QualType():
+                if not conf.isRegisteredForBacked(entry) and entry.qual_hash(
+                ) not in specialization_map:
+                    raise ValueError(
+                        f"Type {entry} is not registered in the the API map or the list of specializations. "
+                        f"List match is {entry.flatQualNameWithParams()}.")
+
+            case codegen_ir.GenTuField():
+                if entry.Type:
+                    with ExceptionContextNote(f"Field {entry.Name}"):
+                        aux(entry.Type)
+
+            case codegen_ir.GenTuStruct():
+                with ExceptionContextNote(f"Struct {entry.Name}"):
+                    with ExceptionContextNote("Nested elements"):
+                        list(map(aux, entry.Nested))
+
+                    with ExceptionContextNote("Methods"):
+                        list(map(aux, entry.Methods))
+
+                    # Note: bases are not verified as they are not mandatory
+                    # for wrapping on the backends -- the final type can be
+                    # treated as an opaque structure without knowing all of
+                    # its base classes.
+
+            case codegen_ir.GenTuFunction():
+                with ExceptionContextNote(f"Function '{entry.Name}'"):
+                    for arg in entry.Args:
+                        with ExceptionContextNote(f"Argument {arg.Name}"):
+                            aux(arg)
+
+                    with ExceptionContextNote("Return type"):
+                        aux(entry.ReturnType)
+
+            case codegen_ir.GenTuTypedef():
+                with ExceptionContextNote(f"Typedef {entry.Name}"):
+                    aux(entry.Base)
+
+            case codegen_ir.GenTuEnum():
+                with ExceptionContextNote(f"Enum {entry.Name}"):
+                    aux(entry.Name)
+
+            case codegen_ir.GenTuPass():
+                pass
+
+            case _:
+                raise TypeError(f"Unexpected entry type {type(entry)}")
+
+    list(map(aux, entries))
+
+
+@beartype
 def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                              reflection_path: Path) -> PyhaxorgTypeGroups:
     """
@@ -372,18 +446,14 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
     res.conv_tu = refl_read.conv_proto_file(reflection_path)
-    res.type_map = codegen_ir.get_type_map(
-        res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
-        res.conv_tu.structs + res.conv_tu.typedefs,)
 
     res.full_enums = org_data.get_shared_sem_enums() + org_data.get_enums() + [
         get_osk_enum(res.expanded)
     ]
 
-    # res.specializations = collect_type_specializations(
-    #     res.get_entries_for_wrapping(),
-    #     type_map=res,
-    # )
+    res.type_map = codegen_ir.get_type_map(
+        res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
+        res.conv_tu.structs + res.conv_tu.typedefs + res.full_enums,)
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
     for sem_base in res.expanded:

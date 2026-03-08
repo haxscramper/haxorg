@@ -10,6 +10,9 @@ import re
 from beartype import beartype
 from py_codegen.codegen_ir import *
 import py_codegen.proto_lib.reflection_defs as pb
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype

@@ -17,7 +17,7 @@ from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_iteration_macros,
     gen_pyhaxorg_shared_iteration_macros,
 )
-from py_codegen.codegen_type_groups import get_pyhaxorg_type_groups, PyhaxorgTypeGroups
+from py_codegen.codegen_type_groups import get_pyhaxorg_type_groups, PyhaxorgTypeGroups, verify_type_usage
 from py_codegen.org_codegen_data import *
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_repository.repo_tasks.config import get_tmpdir
@@ -25,6 +25,12 @@ from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log
 import yaml
+from py_scriptutils.toml_config_profiler import (
+    apply_options,
+    get_context,
+    options_from_model,
+)
+import rich_click as click
 
 CAT = "codegen"
 
@@ -240,6 +246,27 @@ def gen_adaptagrams_wrappers(
         ])
 
 
+class HaxorgNanobindWrapper(NanobindAstbuilderConfig):
+
+    def isRegisteredForBacked(self, Type: codegen_cpp.QualType) -> bool:
+        match Type.flatQualNameWithParams():
+            case ["org", "sem", "SemId", _]:
+                return True
+
+            case ["org", "imm", *rest]:
+                return True
+
+            case n if n in [
+                ["org", "imm", "ImmId", "NodeIdxT"],
+                ["org", "bind", "python", "ExporterPython", "PyFunc"],
+                ["org", "bind", "python", "ExporterPython", "Res"],
+            ]:
+                return True
+
+            case _:
+                return super().isRegisteredForBacked(Type)
+
+
 @beartype
 def gen_pyhaxorg_python_wrappers(
     groups: PyhaxorgTypeGroups,
@@ -247,20 +274,21 @@ def gen_pyhaxorg_python_wrappers(
     pyast: pya.ASTBuilder,
 ) -> GenFiles:
     "Generate haxorg python wrappers"
-    conf = NanobindAstbuilderConfig(groups.type_map)
+    conf = HaxorgNanobindWrapper(groups.type_map)
     res = NbModule("pyhaxorg", conf)
 
     for decl in groups.get_entries_for_wrapping():
         if decl.ReflectionParams.isAcceptedBackend("python"):
             res.add_decl(decl, ast=ast)
 
-    res.add_type_specializations(
-        ast,
-        specializations=collect_type_specializations(
-            groups.get_entries_for_wrapping(),
-            conf,
-        ),
+    specializations = collect_type_specializations(
+        groups.get_entries_for_wrapping(),
+        conf,
     )
+
+    verify_type_usage(groups.get_entries_for_wrapping(), conf, specializations)
+
+    res.add_type_specializations(ast, specializations=specializations)
 
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
@@ -557,14 +585,6 @@ def gen_description_files(
                  tmp,
                  isHeader=True,
                  isSplitHeaderSource=bool(tu.source and tu.header))
-
-
-from py_scriptutils.toml_config_profiler import (
-    apply_options,
-    get_context,
-    options_from_model,
-)
-import rich_click as click
 
 
 class CodegenOptions(BaseModel):

@@ -3,6 +3,7 @@ import * as haxorg_wasm from "./haxorg_utility_types";
 export interface haxorg_wasm_module_auto {
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
+  ParseSourceFileId: ParseSourceFileIdConstructor;
   ParseSourceLoc: ParseSourceLocConstructor;
   OrgJson: OrgJsonConstructor;
   Org: OrgConstructor;
@@ -12,6 +13,7 @@ export interface haxorg_wasm_module_auto {
   OrgParseParameters: OrgParseParametersConstructor;
   OrgDirectoryParseParameters: OrgDirectoryParseParametersConstructor;
   ParseContext: ParseContextConstructor;
+  ImmReflFieldId: ImmReflFieldIdConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
   ImmPathStep: ImmPathStepConstructor;
@@ -1533,6 +1535,8 @@ export interface UserTime {
   getTimeDeltaSeconds(other: UserTime): Int64_t;
   toUnixTimestamp(): Int64_t;
 }
+export interface ParseSourceFileIdConstructor { new(): ParseSourceFileId; }
+export interface ParseSourceFileId {  }
 export interface ParseSourceLocConstructor { new(): ParseSourceLoc; }
 export interface ParseSourceLoc {
   line: number
@@ -1608,6 +1612,8 @@ export interface ParseContext {
   collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.HstdVec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
 }
+export interface ImmReflFieldIdConstructor { new(): ImmReflFieldId; }
+export interface ImmReflFieldId { getName(): string; }
 export interface ImmIdConstructor { new(): ImmId; }
 export interface ImmId {
   getKind(): OrgSemKind;
@@ -1656,6 +1662,7 @@ export interface ImmAdapter {
   isSubnodeOf(other: ImmAdapter): boolean;
   getParent(): haxorg_wasm.Optional<ImmAdapter>;
   getSelfIndex(): number;
+  atPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.HstdVec<number>, withPath: boolean): ImmAdapter;
@@ -1840,6 +1847,10 @@ export interface GraphMapGraphState {
   graph: GraphMapGraph
   ast: ImmAstContext
 }
+export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
+export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
+export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;
+export type GraphAdjList = haxorg_wasm.HstdMap<GraphMapNode, GraphAdjNodesList>;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   __eq__(other: LispCode): boolean;

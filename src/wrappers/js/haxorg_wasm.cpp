@@ -221,6 +221,9 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
     .constructor<>()
     ;
+  emscripten::class_<org::parse::SourceFileId>("ParseSourceFileId")
+    .constructor<>()
+    ;
   emscripten::class_<org::parse::SourceLoc>("ParseSourceLoc")
     .property("line", &org::parse::SourceLoc::line)
     .property("column", &org::parse::SourceLoc::column)
@@ -242,6 +245,9 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("dump", static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump))
     .constructor<>()
     ;
+}
+
+void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Org>("Org")
     .smart_ptr<org::sem::SemId<org::sem::Org>>("Org")
     .property("loc", &org::sem::Org::loc)
@@ -253,9 +259,6 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
     .function("at", static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at))
     .function("is", static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is))
     ;
-}
-
-void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<hstd::OperationsTracer>("OperationsTracer")
     .property("TraceState", &hstd::OperationsTracer::TraceState)
     .property("traceToFile", &hstd::OperationsTracer::traceToFile)
@@ -302,6 +305,10 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("collectDiagnostics", static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics))
     .function("collectErrorNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes))
     .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::parse::ParseContext>>)
+    ;
+  emscripten::class_<org::imm::ImmReflFieldId>("ImmReflFieldId")
+    .function("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
+    .constructor<>()
     ;
   emscripten::class_<org::imm::ImmId>("ImmId")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
@@ -353,6 +360,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("isSubnodeOf", static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf))
     .function("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .function("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .function("atPathStep", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at))
     .function("atField", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at))
     .function("atIndex", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at))
     .function("atPath", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at))
@@ -978,14 +986,14 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Tag::*)(org::sem::SubtreeLogHead::Tag const&) const>(&org::sem::SubtreeLogHead::Tag::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeLogHead::Unknown>("SubtreeLogHeadUnknown")
     .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Unknown::*)(org::sem::SubtreeLogHead::Unknown const&) const>(&org::sem::SubtreeLogHead::Unknown::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Kind>("SubtreeLogHeadKind");
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeCompletion>("SubtreeCompletion")
     .property("done", &org::sem::SubtreeCompletion::done)
     .property("full", &org::sem::SubtreeCompletion::full)
@@ -1715,6 +1723,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::ListItem>>)
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::DocumentOptions, emscripten::base<org::sem::Org>>("DocumentOptions")
     .smart_ptr<org::sem::SemId<org::sem::DocumentOptions>>("DocumentOptions")
     .property("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
@@ -1740,9 +1751,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::DocumentFragment::*)() const>(&org::sem::DocumentFragment::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::DocumentFragment>>)
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CriticMarkup, emscripten::base<org::sem::Org>>("CriticMarkup")
     .smart_ptr<org::sem::SemId<org::sem::CriticMarkup>>("CriticMarkup")
     .property("kind", &org::sem::CriticMarkup::kind)
@@ -2115,15 +2123,15 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmDocumentOptions>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmDocumentFragment>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmDocument>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2725,6 +2733,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmInlineExport::*)(org::imm::ImmInlineExport const&) const>(&org::imm::ImmInlineExport::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmEscaped, emscripten::base<org::imm::ImmLeaf>>("ImmEscaped")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmEscaped::*)() const>(&org::imm::ImmEscaped::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmEscaped::*)(org::imm::ImmEscaped const&) const>(&org::imm::ImmEscaped::operator==))
@@ -2735,9 +2746,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmNewline::*)(org::imm::ImmNewline const&) const>(&org::imm::ImmNewline::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmSpace, emscripten::base<org::imm::ImmLeaf>>("ImmSpace")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmSpace::*)() const>(&org::imm::ImmSpace::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmSpace::*)(org::imm::ImmSpace const&) const>(&org::imm::ImmSpace::operator==))
@@ -3088,13 +3096,13 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterSpaceAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterSpaceAPI")
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterWordAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterWordAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterAtMentionAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterAtMentionAPI")
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterRawTextAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterRawTextAPI")
     ;
   emscripten::class_<org::imm::ImmAdapterPunctuationAPI, emscripten::base<org::imm::ImmAdapterLeafAPI>>("ImmAdapterPunctuationAPI")
@@ -3474,6 +3482,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdCaption::*)(org::imm::ImmCmdCaption const&) const>(&org::imm::ImmCmdCaption::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdColumns, emscripten::base<org::imm::ImmAttached>>("ImmCmdColumns")
     .property("view", &org::imm::ImmCmdColumns::view)
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmCmdColumns::*)() const>(&org::imm::ImmCmdColumns::getKind))
@@ -3486,9 +3497,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdName::*)(org::imm::ImmCmdName const&) const>(&org::imm::ImmCmdName::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdCall, emscripten::base<org::imm::ImmAttached>>("ImmCmdCall")
     .property("name", &org::imm::ImmCmdCall::name)
     .property("fileName", &org::imm::ImmCmdCall::fileName)

@@ -337,6 +337,22 @@ NB_MODULE(pyhaxorg, m) {
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::parse::SourceFileId>(m, "parseSourceFileId")
+    .def("__init__",
+         [](org::parse::SourceFileId* result, nanobind::kwargs const& kwargs) {
+         new(result) org::parse::SourceFileId();
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::SourceFileId const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
   nanobind::class_<org::parse::SourceLoc>(m, "parseSourceLoc")
     .def("__init__",
          [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) {
@@ -572,6 +588,9 @@ node can have subnodes.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::imm::ImmReflFieldId>(m, "ImmReflFieldId")
+    .def("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
+    ;
   nanobind::class_<org::imm::ImmId>(m, "ImmId")
     .def("__init__",
          [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) {
@@ -747,6 +766,10 @@ field subset.)RAW")
          nanobind::arg("other"))
     .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+         nanobind::arg("id"),
+         nanobind::arg("idx"))
     .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
          nanobind::arg("field"))

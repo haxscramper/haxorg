@@ -126,19 +126,22 @@ class QualType(BaseModel, extra="forbid"):
         current_data.update(kwargs)
         return self.__class__(**current_data)
 
-    def par0(self) -> Optional["QualType"]:
+    def par0(self) -> "QualType":
         if 0 < len(self.Params):
             return self.Params[0]
 
         else:
-            return None
+            raise IndexError("Type does not have parameters")
 
     def par1(self) -> Optional["QualType"]:
         if 1 < len(self.Params):
             return self.Params[1]
 
         else:
-            return None
+            raise IndexError(f"Type has {len(self.Params)} parameters")
+
+    def parLen(self) -> int:
+        return len(self.Params)
 
     def test(self, met: str) -> bool:
         return bool(self.Meta.get(met, False))
@@ -1056,15 +1059,11 @@ class GenTypeMap:
             case GenTuStruct():
                 qual_name = typ.declarationQualName()
 
-                # if typ.ReflectionParams.wrapper_name:
-                #     log(CAT).info(f"{qual_name} has explicit wrapper")
-
             case GenTuEnum():
                 qual_name = typ.Name.model_copy()
 
             case GenTuTypedef():
                 qual_name = typ.Name.model_copy()
-                # log(CAT).info(f"Adding typedef for {qual_name}")
 
             case _:
                 raise ValueError(f"{type(typ)} is not a type definition")
@@ -1089,6 +1088,9 @@ class GenTypeMap:
             nonlocal result
             match obj:
                 case GenTuStruct() | GenTuTypedef():
+                    result.add_type(obj)
+
+                case GenTuEnum():
                     result.add_type(obj)
 
         context: List[Any] = []

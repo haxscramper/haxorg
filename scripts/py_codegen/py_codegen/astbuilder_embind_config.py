@@ -12,19 +12,19 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             "function",
         })
 
-    def getBackendType(self, Typ: QualType) -> QualType:
-        flat = [N for N in Typ.flatQualName() if N not in codegen_ir.IGNORED_NAMESPACES]
+    def getBackendType(self, Type: QualType) -> QualType:
+        flat = [N for N in Type.flatQualName() if N not in codegen_ir.IGNORED_NAMESPACES]
 
-        wrapper_override = self.type_map.get_wrapper_type(Typ)
+        wrapper_override = self.type_map.get_wrapper_type(Type)
 
-        par0 = Typ.par0()
+        par0 = Type.par0() if 0 < Type.parLen() else None
 
         if flat == ["std", "shared_ptr"]:
-            assert par0, Typ
+            assert par0, Type
 
         if flat == [
                 "std", "shared_ptr"
-        ] and 1 == len(Typ.Params) and self.type_map.is_known_type(
+        ] and 1 == len(Type.Params) and self.type_map.is_known_type(
                 par0) and self.type_map.get_one_type_for_qual_name(  # type: ignore
                     par0
                 ).ReflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
@@ -34,7 +34,7 @@ class EmbindAstbuilderConfig(AstbulderConfig):
         elif wrapper_override:
             name = wrapper_override
 
-        elif Typ.Name == "char" and Typ.IsConst and Typ.PtrCount == 1:
+        elif Type.Name == "char" and Type.IsConst and Type.PtrCount == 1:
             name = "string"
 
         else:
@@ -64,16 +64,16 @@ class EmbindAstbuilderConfig(AstbulderConfig):
                 ] | ["UnorderedMap"] | ["std", "variant"] | ["hstd", "Variant"] | [ \
                          "ImmBox" \
                          ] | ["ImmVec"] | ["hstd", "IntSet"] | ["IntSet"]:
-                    name = GEN + "." + self.getBindName(Typ, withParams=False)
+                    name = GEN + "." + self.getBindName(Type, withParams=False)
 
                 case _:
-                    name = self.getBindName(Typ, withParams=False)
+                    name = self.getBindName(Type, withParams=False)
 
-        struct = self.type_map.get_struct_for_qual_name(Typ)
+        struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:
             return QualType(
                 Name=name,
-                Params=[self.getBackendType(P) for P in Typ.Params],
+                Params=[self.getBackendType(P) for P in Type.Params],
             )
 
         else:

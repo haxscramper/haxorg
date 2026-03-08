@@ -88,6 +88,9 @@ def rewrite_ident_to_immutable(obj: codegen_ir.GenTuIdent) -> codegen_ir.GenTuId
 def rewrite_field_to_immutable(obj: codegen_ir.GenTuField) -> codegen_ir.GenTuField:
     "Convert sem org AST field to immutable version"
     IMM_BOX = codegen_ir.t("ImmBox", [codegen_ir.n_hstd_ext()], DbgOrigin="rewrite_field")
+    if obj.Type is None:
+        return obj
+
     match obj:
         case codegen_ir.GenTuField(Type=QualType(Name="SemId", Params=[])):
             new_type = rewrite_type_to_immutable(obj.Type)
@@ -196,7 +199,8 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
 
 @beartype
 def rewrite_any_to_immutable(
-    it: codegen_ir.GenTuUnion | codegen_ir.GenTuTypeGroup | QualType | list | None
+    it: codegen_ir.GenTuUnion | codegen_ir.GenTuTypeGroup | QualType | list | None |
+    codegen_ir.GenTuTypeGroup
 ) -> Any:
     """
     Recursively rewrite any input item to the immutable AST version
@@ -238,7 +242,7 @@ def rewrite_any_to_immutable(
 
 @beartype
 def rewrite_to_immutable(
-        recs: List[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
+        recs: Sequence[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
     "Rewrite collection of structures to immutable AST"
     return [rewrite_struct_to_immutable(rec) for rec in recs]
 
@@ -253,6 +257,7 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
     ), ast.string(f.Name))
 
     field_type = rewrite_field_to_immutable(f).Type
+    assert field_type
 
     # log(CAT).info(
     #     f"{T.Name}::{f.Name} {field_type.flatQualNameWithParams()} {field_type}")

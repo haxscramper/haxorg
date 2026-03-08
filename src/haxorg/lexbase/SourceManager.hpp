@@ -6,7 +6,12 @@
 
 namespace org::parse {
 
-DECL_ID_TYPE(SourceFile, SourceFileId, hstd::u32);
+DECL_ID_TYPE_MASKED_WITH_ATTR(
+    SourceFile,
+    SourceFileId,
+    hstd::u32,
+    0,
+    [[refl]]);
 
 struct SourceFile {
     using id_type = SourceFileId;

@@ -129,6 +129,7 @@ def rec_node(node: org.Org) -> List[Header]:
                 elif isinstance(sub, org.List):
                     if sub.isDescriptionList():
                         for item in sub:
+                            # item: org.ListItem
                             tag = [
                                 w.text
                                 for w in rec_filter_subnodes(item.header, [
