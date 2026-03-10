@@ -2,13 +2,12 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import Union, List, Optional, Dict
+from beartype.typing import Union, List, Optional, Dict, Any
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId
-from py_haxorg.astbuilder.astbuilder_base import pascal_case
 
 
 @beartype
@@ -296,6 +295,24 @@ class WasmClass():
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
 
+    def getEntryForName(self, name: str) -> Any:
+        result = list()
+        for Meth in self.Record.Methods:
+            if Meth.IsConstructor or Meth.Name.startswith("sub_variant_get"):
+                continue
+
+            else:
+                m = WasmMethod(Meth, self.conf)
+                if m.getWasmName() == name:
+                    result.append(m)
+
+        for Field in self.Record.Fields:
+            f = WasmField(Field, self.conf)
+            if f.Field.Name == name:
+                result.append(f)
+
+        return result
+
     def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [ast.string(f"{self.getWasmName()}: {self.getWasmName()}Constructor;")]
 
@@ -448,6 +465,12 @@ class WasmModule():
             match e:
                 case WasmBindPass():
                     pass
+
+                case WasmClass():
+                    if e.getWasmName() == name:
+                        result.append(e)
+
+                    result.extend(e.getEntryForName(name))
 
                 case _:
                     if e.getWasmName() == name:

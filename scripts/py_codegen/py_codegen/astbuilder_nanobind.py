@@ -84,7 +84,8 @@ class NbFunction:
             name = Func.ReflectionParams.wrapper_name
 
         else:
-            name = conf.getSanitizedIdent(Func.Name + ("Static" if Func.IsStatic else ""))
+            name = conf.getSanitizedIdent(Func.Name + (
+                ("_static" if "_" in Func.Name else "Static") if Func.IsStatic else ""))
 
         self.PyName = name
         self.Body = Body

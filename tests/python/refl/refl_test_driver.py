@@ -26,7 +26,7 @@ from py_codegen.refl_read import (
 from py_codegen.refl_wrapper_graph import TuWrap, GenGraph
 import py_codegen.wrapper_gen_nim as gen_nim
 from py_codegen import astbuilder_nim
-from py_scriptutils.script_logging import log, pprint_to_file
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
 from py_haxorg.layout.wrap import TextLayout
 
@@ -464,5 +464,7 @@ def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
         result.embind.append(embind_module)
 
     pprint_to_file(result, stable_test_dir.joinpath("result.py"), width=120)
+    stable_test_dir.joinpath("result.json").write_text(
+        json.dumps(to_debug_json(result), indent=2))
 
     return result
