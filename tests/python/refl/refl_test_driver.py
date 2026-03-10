@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+import itertools
+from dataclasses import dataclass, field
 import enum
 import json
 from pathlib import Path
@@ -7,6 +8,9 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 from plumbum import CommandNotFound, local
 import py_codegen.refl_extract as ex
+from py_codegen import astbuilder_cpp
+from py_codegen.astbuilder_nanobind import NbModule, Py11Entry
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
 from py_codegen.codegen_ir import GenTypeMap
 from py_codegen.refl_read import (
@@ -17,10 +21,12 @@ from py_codegen.refl_read import (
     GenTuUnion,
     QualType,
 )
-from py_codegen.refl_wrapper_graph import TuWrap
+from py_codegen.refl_wrapper_graph import TuWrap, GenGraph
 import py_codegen.wrapper_gen_nim as gen_nim
-from py_scriptutils.script_logging import log
+from py_codegen import astbuilder_nim
+from py_scriptutils.script_logging import log, pprint_to_file
 from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
+from py_haxorg.layout.wrap import TextLayout
 
 
 @beartype
@@ -369,7 +375,7 @@ def compile_nim_code(code_dir: Path, files: Dict[str, str]) -> None:
 
 @beartype
 def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
-                    test_text: str) -> Tuple[int, str, str]:
+                    test_text: str) -> tuple[int, str, str]:
     compile_nim_code(code_dir=code_dir,
                      files={
                          file: res.content for file, res in formatted.items()
@@ -380,3 +386,69 @@ def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
     binary = local[str(code_dir.joinpath("main.bin"))]
     retcode, stdout, stderr = binary.run()
     return (retcode, stdout, stderr)
+
+
+@beartype
+@dataclass
+class AllCodeWrappers():
+    nim: list[gen_nim.GenNimResult] = field(default_factory=list)
+    python: list[NbModule] = field(default_factory=list)
+
+    def getNimEntries(self, name: str) -> list[astbuilder_nim.NimEntryParams]:
+        return list(itertools.chain(*[gen.get_entry_for_name(name) for gen in self.nim]))
+
+    def getPythonEntries(self, name: str) -> list[Py11Entry]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.python]))
+
+
+@beartype
+def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
+                 **kwargs: Any) -> AllCodeWrappers:
+    wraps = run_reflection_tool_provider(
+        text,
+        Path(stable_test_dir),
+        output_dir=stable_test_dir,
+        only_annotated=True,
+        **kwargs,
+    )
+
+    result = AllCodeWrappers()
+    type_map = GenTypeMap()
+
+    gen_graph = GenGraph()
+    for sub in wraps.wraps:
+        gen_graph.add_unit(sub)
+
+        for entry in sub.tu.structs + sub.tu.enums:
+            type_map.add_type(entry)
+
+    t = TextLayout()
+    nb_ast = astbuilder_cpp.ASTBuilder(t)
+
+    for sub in gen_graph.subgraphs:
+
+        def get_out_path(in_path: Path) -> Path:
+            return stable_test_dir.joinpath(in_path.stem)
+
+        nim_conf = NimAstbuilderConfig(type_map=type_map)
+
+        result.nim.append(
+            gen_nim.to_nim(
+                gen_graph,
+                sub,
+                get_out_path=get_out_path,
+                conf=nim_conf,
+                output_directory=stable_test_dir.joinpath("nim"),
+            ))
+
+        py_conf = NanobindAstbuilderConfig(type_map=type_map)
+        nb_module = NbModule(sub.original.name, py_conf)
+
+        for e in gen_graph.get_entries(sub):
+            nb_module.add_decl(e, nb_ast)
+
+        result.python.append(nb_module)
+
+    pprint_to_file(result, stable_test_dir.joinpath("result.py"), width=120)
+
+    return result

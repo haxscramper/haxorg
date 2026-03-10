@@ -543,6 +543,19 @@ class NbClass:
         "Get original C++ name"
         return self.Struct.declarationQualName()
 
+    def getEntryForName(self, name: str) -> Any:
+        result = list()
+
+        for m in self.Methods:
+            if m.PyName == name:
+                result.append(m)
+
+        for f in self.Fields:
+            if f.getPyName() == name:
+                result.append(f)
+
+        return result
+
     def __init__(self, ast: cpp.ASTBuilder, value: codegen_ir.GenTuStruct,
                  conf: NanobindAstbuilderConfig) -> None:
         self.Struct = value
@@ -835,6 +848,33 @@ class NbModule:
 
     nameTrack: Dict[str, QualType] = field(default_factory=dict)
     "Map python name to the original declaration"
+
+    def getEntryForName(self, name: str) -> list[Py11Entry]:
+        result = list()
+
+        for e in self.Decls:
+            match e:
+                case NbFunction() | NbMethod():
+                    if e.PyName == name:
+                        result.append(e)
+
+                case NbEnum():
+                    if e.getPyName() == name:
+                        result.append(e)
+
+                case NbClass():
+                    if e.getPyName() == name:
+                        result.append(e)
+
+                    result.extend(e.getEntryForName(name))
+
+                case NbTypedefPass() | NbBindPass():
+                    pass
+
+                case _:
+                    raise TypeError(str(type(e)))
+
+        return result
 
     def add_all(self, decls: List[codegen_ir.GenTuUnion], ast: cpp.ASTBuilder) -> None:
         for decl in decls:

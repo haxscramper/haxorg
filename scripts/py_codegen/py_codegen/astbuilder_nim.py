@@ -116,6 +116,9 @@ class FunctionParams:
     OneLineImpl: bool = False
 
 
+type NimEntryParams = EnumParams | ObjectParams | TypedefParams | FunctionParams
+
+
 @beartype
 def sanitize_name(name: str) -> str:
     name = re.sub("^_+", "", name)

@@ -8,6 +8,7 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
+      // "tests/python/refl/test_wrapper_generation.py"
       // "tests/python/test_adaptagrams.py::test_align_axis_multi_separate_equal_sizes"
       // "tests/python/refl/test_record_reflection.py"
       // "tests/python/test_coverall.py::test_run_typst_construction"

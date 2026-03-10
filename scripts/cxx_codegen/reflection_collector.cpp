@@ -1631,7 +1631,6 @@ bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
                 Decl->getLocation(), Ctx->getSourceManager()));
         applyNamespaces(
             def->mutable_name(), getNamespaces(Decl, Decl->getLocation()));
-        HSLOG_TRACE("Visit typedef decl {}", def->mutable_name());
 
         add_debug(def->mutable_basetype(), " Typedef Decl Visit");
 

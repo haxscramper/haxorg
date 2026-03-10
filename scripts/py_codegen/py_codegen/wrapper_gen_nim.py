@@ -35,6 +35,14 @@ class ConvRes:
     types: List[Union[nim.EnumParams, nim.ObjectParams,
                       nim.TypedefParams]] = field(default_factory=list)
 
+    def get_entry_for_name(self, name: str) -> list[nim.NimEntryParams]:
+        result = list()
+        for e in self.types + self.procs:
+            if e.Name == name:
+                result.append(e)
+
+        return result
+
 
 @beartype
 def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
@@ -480,6 +488,14 @@ class GenNimResult:
     content: Optional[str]
     conv: List[ConvRes]
 
+    def get_entry_for_name(self, name: str) -> list[nim.NimEntryParams]:
+        result = list()
+
+        for c in self.conv:
+            result.extend(c.get_entry_for_name(name))
+
+        return result
+
 
 @beartype
 def to_nim(
@@ -498,8 +514,7 @@ def to_nim(
     depend_on: List[nim.ImportParams] = []
 
     for imp in sorted(builder.conf.opts.universal_import):
-        gen = gen_file_import(get_out_path(sub.OriginalPath),
-                              output_directory.joinpath(imp))
+        gen = gen_file_import(get_out_path(sub.original), output_directory.joinpath(imp))
         if gen is not None:
             depend_on.append(gen)
 

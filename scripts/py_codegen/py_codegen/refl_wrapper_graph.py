@@ -555,6 +555,9 @@ class GenGraph:
 
         return result
 
+    def get_entries(self, sub: Sub) -> list[GenTuUnion]:
+        return [self.id_to_entry[_id] for _id in sub.nodes]
+
     def to_csv(self, node_file: str, edge_file: str) -> None:
         """
         Export an igraph graph to CSV files for nodes and edges.

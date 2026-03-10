@@ -13,9 +13,9 @@ from py_scriptutils.algorithm import iterate_object_tree
 @beartype
 @dataclass
 class PyhaxorgTypenameGroups:
-    nested_records: List[Tuple[str, str, str]] = field(default_factory=list)
-    nested_enums: List[Tuple[str, str, str]] = field(default_factory=list)
-    all_records: List[Tuple[str, str]] = field(default_factory=list)
+    nested_records: list[tuple[str, str, str]] = field(default_factory=list)
+    nested_enums: list[tuple[str, str, str]] = field(default_factory=list)
+    all_records: list[tuple[str, str]] = field(default_factory=list)
 
 
 @beartype

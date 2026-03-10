@@ -7,13 +7,14 @@ from beartype.typing import Any, cast, Dict, List, Optional
 from py_codegen.refl_extract import (
     CompileCommand,
     expand_input,
-    GenGraph,
     PathMapping,
     read_compile_cmmands,
     run_reflection_tool_for_path,
     TuOptions,
     TuWrap,
 )
+
+from py_codegen.refl_wrapper_graph import GenGraph
 import py_codegen.wrapper_gen_nim as gen_nim
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -90,7 +91,7 @@ def run_wrap_for_config(
     with wrap_time_trace.complete_event("Write wrapper output", "write"):
         for sub in graph.subgraphs:
             with wrap_time_trace.complete_event("Single file wrap", "write",
-                                                {"original": str(sub.OriginalPath)}):
+                                                {"original": str(sub.original)}):
                 code: Optional[str] = gen_nim.to_nim(
                     graph=graph,
                     sub=sub,
@@ -102,21 +103,21 @@ def run_wrap_for_config(
                 ).content
 
                 if code:
-                    result = get_out_path(sub.OriginalPath)
+                    result = get_out_path(sub.original)
                     with open(str(result), "w") as file:
                         file.write(code)
 
                 else:
-                    log().warning(f"No declarations found for {sub.OriginalPath}")
+                    log().warning(f"No declarations found for {sub.original}")
 
     with wrap_time_trace.complete_event("Write translation unit information", "write"):
         for sub in graph.subgraphs:
             with wrap_time_trace.complete_event("Write subgraph information", "write",
-                                                {"original": str(sub.OriginalPath)}):
+                                                {"original": str(sub.original)}):
                 with wrap_time_trace.complete_event("Collect declaration info", "write"):
                     info = graph.to_decl_info(sub)
 
-                result = get_out_path(sub.OriginalPath)
+                result = get_out_path(sub.original)
                 result = result.with_stem(result.stem + "-tu").with_suffix(".json")
 
                 with wrap_time_trace.complete_event("Write JSON information for file",
