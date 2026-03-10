@@ -6,9 +6,11 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
+from fontTools.cffLib.transforms import remove_unused_subroutines
 from plumbum import CommandNotFound, local
 import py_codegen.refl_extract as ex
-from py_codegen import astbuilder_cpp
+from py_codegen import astbuilder_cpp, astbuilder_embind
+from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.astbuilder_nanobind import NbModule, Py11Entry
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
@@ -393,12 +395,16 @@ def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
 class AllCodeWrappers():
     nim: list[gen_nim.GenNimResult] = field(default_factory=list)
     python: list[NbModule] = field(default_factory=list)
+    embind: list[astbuilder_embind.WasmModule] = field(default_factory=list)
 
     def getNimEntries(self, name: str) -> list[astbuilder_nim.NimEntryParams]:
         return list(itertools.chain(*[gen.get_entry_for_name(name) for gen in self.nim]))
 
     def getPythonEntries(self, name: str) -> list[Py11Entry]:
         return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.python]))
+
+    def getWasmEntries(self, name: str) -> list[astbuilder_embind.WasmUnion]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.embind]))
 
 
 @beartype
@@ -423,7 +429,7 @@ def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
             type_map.add_type(entry)
 
     t = TextLayout()
-    nb_ast = astbuilder_cpp.ASTBuilder(t)
+    cpp_ast = astbuilder_cpp.ASTBuilder(t)
 
     for sub in gen_graph.subgraphs:
 
@@ -445,9 +451,17 @@ def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
         nb_module = NbModule(sub.original.name, py_conf)
 
         for e in gen_graph.get_entries(sub):
-            nb_module.add_decl(e, nb_ast)
+            nb_module.add_decl(e, cpp_ast)
 
         result.python.append(nb_module)
+
+        em_conf = EmbindAstbuilderConfig(type_map=type_map)
+        embind_module = astbuilder_embind.WasmModule(sub.original.name, em_conf)
+
+        for e in gen_graph.get_entries(sub):
+            embind_module.add_decl(e)
+
+        result.embind.append(embind_module)
 
     pprint_to_file(result, stable_test_dir.joinpath("result.py"), width=120)
 

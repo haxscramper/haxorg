@@ -441,6 +441,20 @@ class WasmModule():
     items: List[WasmUnion] = field(default_factory=list)
     Header: List[WasmBindPass] = field(default_factory=list)
 
+    def getEntryForName(self, name: str) -> list[WasmUnion]:
+        result = list()
+
+        for e in self.items:
+            match e:
+                case WasmBindPass():
+                    pass
+
+                case _:
+                    if e.getWasmName() == name:
+                        result.append(e)
+
+        return result
+
     def add_specializations(
         self,
         b: cpp.ASTBuilder,
