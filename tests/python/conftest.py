@@ -34,7 +34,13 @@ trace_collector: TraceCollector = None
 
 def pytest_configure(config: Any) -> None:
     "nodoc"
-    for logger_name in ["plumbum.local", "matplotlib.font_manager"]:
+    for logger_name in [
+            "plumbum.local",
+            "matplotlib.font_manager",
+            "graphviz._tools",
+            "matplotlib",
+            "asyncio",
+    ]:
         logger = logging.getLogger(logger_name)
         logger.disabled = True
 
@@ -109,10 +115,10 @@ def trace_session() -> Generator[None, Any, Any]:
     if coverage_env:
         coverage = Path(coverage_env)
         summary = summarize_cookies(coverage)
-        log(CAT).info(
-            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions"
-        )
         respath = coverage.joinpath("test-summary.json")
+        log(CAT).info(
+            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions, writing to {respath}"
+        )
         respath.parent.mkdir(parents=True, exist_ok=True)
         respath.write_text(summary.model_dump_json(indent=2))
 
@@ -393,6 +399,15 @@ def stable_test_dir(request: pytest.FixtureRequest) -> Path:
 
 
 @pytest.fixture
+def stable_unique_test_name(request: pytest.FixtureRequest) -> str:
+    """
+    Test fixture to provide stable unique string to each test run.
+    """
+    final_dir = get_test_dir(request, Path("/"))
+    return str(final_dir).replace("/", "_")
+
+
+@pytest.fixture
 def cached_test_dir(request: pytest.FixtureRequest) -> Path:
     import platformdirs
     return get_test_dir(
@@ -406,7 +421,7 @@ def cpp_debugger(request: Any) -> dict[str, bool]:
     @beartype
     def run_under_lldb() -> None:
         test_path = str(request.node.fspath)
-        test_name = request.node.name
+        test_name = request.node.Name
 
         lldb_script_content = """breakpoint set -E C++
 breakpoint set -n __cxa_throw

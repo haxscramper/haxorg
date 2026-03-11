@@ -936,31 +936,39 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
         llvm::raw_fd_ostream Output(tmp_path, EC, llvm::sys::fs::OF_None);
 
         if (EC) {
-            throw std::domain_error(
+            throw hstd::domain_error::init(
                 std::format(
                     "Error while creating output stream {}",
                     EC.message()));
         }
 
         if (llvm::Error E = Writer.write(Output)) {
-            throw std::domain_error(
+            throw hstd::domain_error::init(
                 std::format("Failed write: {}", toString(std::move(E))));
         }
     }
 
-    LOGIC_ASSERTION_CHECK_FMT(fs::exists(tmp_path), "{}", tmp_path);
+    LOGIC_ASSERTION_CHECK_FMT(
+        fs::exists(tmp_path),
+        "profdata path does not exist: '{}'",
+        tmp_path);
 
     {
         __perf_trace("llvm", "Load coverage profile data");
         auto FS = llvm::vfs::getRealFileSystem();
+        LOGIC_ASSERTION_CHECK_FMT(
+            fs::exists(binary_path),
+            "Binary path does not exist: '{}'",
+            binary_path);
+
         llvm::Expected<std::shared_ptr<CoverageMapping>>
             mapping_or_err = CoverageMapping::load(
                 ObjectFilenames, tmp_path, *FS);
 
         if (llvm::Error E = mapping_or_err.takeError()) {
-            throw std::domain_error(
+            throw hstd::domain_error::init(
                 std::format(
-                    "Failed to load profdata {} from {}",
+                    "Failed to load profdata {} from '{}'",
                     toString(std::move(E)),
                     tmp_path));
         }

@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from pathlib import Path
 
 from beartype import beartype
@@ -37,6 +38,33 @@ def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
     return ProfdataFullProfile(runs=_get_cookie_list())
 
 
+@contextmanager
+def WithBinaryCoverageTest(
+    test_binary: str,
+    uniq_name: str,
+    parameter_desc: Optional[dict] = None,
+    coverage_out_dir: Optional[Path] = None,
+):
+    "Execute code block "
+    if coverage_out_dir:
+        profraw = get_profraw_path(coverage_out_dir, test_name=uniq_name)
+        cookie = ProfdataCookie(
+            test_binary=test_binary,
+            test_class=None,
+            test_name=uniq_name,
+            test_profile=str(profraw),
+            test_params=parameter_desc,
+        )
+
+        if profraw.exists():
+            profraw.unlink()
+
+        yield profraw
+
+        assert profraw.exists()
+        _get_cookie_list().append(cookie)
+
+
 @beartype
 def runtest(
     test: Path,
@@ -48,6 +76,9 @@ def runtest(
     parameter_desc: Optional[dict] = None,
     coverage_out_dir: Optional[Path] = None,
 ) -> tuple[int, str, str]:
+    """
+    Execute GTest/QTest wrapped in pytest interface.
+    """
     global cookie_list
 
     env = run_env or {}
@@ -77,9 +108,9 @@ def runtest(
 
         result = run(dict(**env, LLVM_PROFILE_FILE=str(profraw)))
         _get_cookie_list().append(cookie)
-        log(CAT).info(
-            f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
-        )
+        # log(CAT).info(
+        #     f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
+        # )
         return result
 
     else:

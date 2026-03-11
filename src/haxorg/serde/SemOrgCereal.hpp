@@ -1,7 +1,6 @@
 #pragma once
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 #if ORG_BUILD_WITH_MSGPACK
 namespace org::imm {

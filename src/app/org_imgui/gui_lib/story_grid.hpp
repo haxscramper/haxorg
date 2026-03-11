@@ -16,6 +16,7 @@
 #include <org_imgui/gui_lib/node_grid_graph.hpp>
 #include <org_imgui/gui_lib/imgui_utils.hpp>
 #include <boost/bimap.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 
 DECL_ID_TYPE_MASKED(StoryNode, StoryNodeId, std::size_t, 8);
 struct StoryGridConfig;

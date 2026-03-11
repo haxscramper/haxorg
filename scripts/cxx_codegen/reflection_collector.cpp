@@ -460,6 +460,8 @@ void ReflASTVisitor::applyNamespaces(
                         _new->dbgorigin());
                 }
                 _old->set_name(_new->name());
+                _old->set_isglobalnamespace(_new->isglobalnamespace());
+                _old->set_isnamespace(_new->isnamespace());
             }
 
 
@@ -475,7 +477,8 @@ void ReflASTVisitor::applyNamespaces(
             //            }
 
             auto space = Out->add_spaces();
-            space->set_isnamespace(true);
+            space->set_isnamespace(newSpace.isnamespace());
+            space->set_isglobalnamespace(newSpace.isglobalnamespace());
             add_debug(
                 space,
                 std::format(
@@ -598,6 +601,7 @@ void ReflASTVisitor::log_visit(
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     const c::ElaboratedType*                elab,
     const std::optional<c::SourceLocation>& Loc) {
+    HSLOG_TRACE("Get namespace for elaborated type specifier");
     if (const c::NestedNameSpecifier* nns = elab->getQualifier()) {
         // Iterate through the Nested Name Specifier, collect them and
         // reverse order
@@ -609,6 +613,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
         std::reverse(spaces.begin(), spaces.end());
         std::vector<QualType> result;
+        bool                  is_global_namespace = false;
         for (auto const* nns : spaces) {
             c::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
             switch (kind) {
@@ -625,6 +630,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                 }
 
                 case c::NestedNameSpecifier::Namespace: {
+                    HSLOG_TRACE("Visit namespace specifier");
                     auto space = &result.emplace_back();
                     auto name  = nns->getAsNamespace()->getNameAsString();
                     add_debug(
@@ -632,7 +638,15 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                         std::format("Elaborated type namespace {}", name));
                     space->set_isnamespace(true);
                     space->set_name(name);
+                    space->set_isglobalnamespace(is_global_namespace);
+                    is_global_namespace = false;
                     assert(!space->name().empty());
+                    break;
+                }
+
+                case c::NestedNameSpecifier::Global: {
+                    HSLOG_TRACE("Visit global namespace specifier");
+                    is_global_namespace = true;
                     break;
                 }
 
@@ -650,6 +664,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                     auto name   = record->getNameAsString();
                     add_debug(space, std::format("type spec '{}'", name));
                     space->set_isnamespace(true);
+                    space->set_isglobalnamespace(is_global_namespace);
+                    is_global_namespace = false;
                     space->set_name(name);
                     auto spaces = getNamespaces(record, Loc);
                     result.insert(
@@ -974,6 +990,7 @@ void ReflASTVisitor::fillType(
     QualType*                               Out,
     const c::QualType&                      In,
     const std::optional<c::SourceLocation>& Loc) {
+    HSLOG_TRACE("Fill type");
     if (Loc) {
         add_debug(
             Out,
@@ -1075,6 +1092,7 @@ void ReflASTVisitor::fillFieldDecl(
                                        ->getAs<c::RecordType>();
 
     HSLOG_DEPTH_SCOPE_ANON();
+    HSLOG_TRACE("Visit field decl");
 
     log_visit(
         field,
@@ -1124,6 +1142,7 @@ void ReflASTVisitor::fillParmVarDecl(
     }
 }
 
+// nodoc
 void ReflASTVisitor::fillMethodDecl(
     Record::Method*         sub,
     c::CXXMethodDecl const* method) {
@@ -1136,6 +1155,7 @@ void ReflASTVisitor::fillMethodDecl(
     sub->set_isconst(method->isConst());
     sub->set_isstatic(method->isStatic());
     sub->set_isvirtual(method->isVirtual());
+    sub->set_ispurevirtual(method->isPureVirtual());
     sub->set_isimplicit(method->isImplicit());
     sub->set_isoperator(method->getNameAsString().starts_with("operator"));
     if (sub->isoperator()) {

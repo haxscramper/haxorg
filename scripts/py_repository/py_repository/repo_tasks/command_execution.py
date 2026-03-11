@@ -109,12 +109,6 @@ def _consume_execution_fail(
 
 
 @beartype
-def _capture_all(log_level: HaxorgLogLevel, print_output: bool) -> bool:
-    return log_level == HaxorgLogLevel.QUIET or (not print_output and
-                                                 log_level == HaxorgLogLevel.NORMAL)
-
-
-@beartype
 def run_command_in_docker(
     container: docker.models.containers.Container,
     cmd: str,
@@ -210,7 +204,7 @@ def run_command_on_host(
         return CommandResult(retcode=0, stdout="", stderr="")
 
     else:
-        if _capture_all(log_level, print_output):
+        if not print_output:
             retcode, stdout, stderr = run.run(list(args), retcode=None)
 
         else:
@@ -336,6 +330,13 @@ cmd:  {cmd}
             stderr=result.stderr,
             allow_fail=allow_fail,
         )
+
+    elif ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+        if stdout_debug and result.stdout:
+            log(CAT).debug(f"Wrote stdout to {stdout_debug}")
+
+        if stderr_debug and result.stderr:
+            log(CAT).debug(f"Wrote stderr to {stderr_debug}")
 
     return (result.retcode, result.stdout, result.stderr)
 
@@ -547,8 +548,14 @@ def get_uv_develop_sync_flags(ctx: TaskContext) -> List[str]:
     if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
         result.append("--verbose")
 
-    result.append("-C")
-    result.append("HAXORG_PY_SOURCE_DISTRIBUTION=1")
+    result.extend(["-C", "HAXORG_PY_SOURCE_DISTRIBUTION=1"])
+
+    if ctx.config.debug:
+        result.extend(["-C", "cmake.build-type=RelWithDebInfo"])
+        result.extend(["-C", "cmake.define.NB_DEBUG=ON"])
+
+    else:
+        result.extend(["-C", "cmake.build-type=Release"])
 
     for package in ["py_haxorg"]:
         result.extend(["--reinstall-package", package])

@@ -2,12 +2,17 @@ from dataclasses import dataclass, field, replace
 import itertools
 
 from beartype import beartype
-from beartype.typing import List, Optional
+from beartype.typing import Any, Dict, List, Optional, Union
+from py_codegen import codegen_ir
+import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_py as pya
-from py_codegen.gen_tu_cpp import *
-from py_codegen.gen_tu_cpp import GenTuDoc, GenTuFunction, GenTuIdent, QualType
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
+from py_codegen.codegen_ir import GenTuDoc, GenTuFunction, GenTuIdent, QualType
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import maybe_splice
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -19,105 +24,7 @@ def maybe_list(it: Any) -> Any:
 
 
 @beartype
-def flat_scope(Typ: QualType) -> List[str]:
-    res: List[str] = []
-    for S in Typ.Spaces:
-        res += flat_scope(S)
-
-    res += [Typ.name]
-    return res
-
-
-@beartype
-def py_type(Typ: QualType, base_map: GenTypeMap) -> pya.PyType:
-    "Map C++ type to the python"
-    is_target = "ImmAdapterT" in Typ.name
-    wrapper_override = base_map.get_wrapper_type(Typ)
-
-    if wrapper_override:
-        name = wrapper_override
-
-    else:
-        flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
-
-        if flat == ["std", "shared_ptr"] and 1 == len(
-                Typ.Parameters) and base_map.is_known_type(
-                    Typ.Parameters[0]) and base_map.get_one_type_for_qual_name(
-                        Typ.Parameters[0]
-                    ).reflectionParams.backend.python.holder_type == "shared":
-            return py_type(Typ.Parameters[0], base_map=base_map)
-
-        elif flat == ["ImmIdT"]:
-            return pya.PyType("ImmIdT" + Typ.Parameters[0].name.replace("Imm", "", 1))
-
-        match flat:
-            case ["Vec"]:
-                name = "List"
-
-            case ["Opt"] | ["std", "optional"]:
-                name = "Optional"
-
-            case ["std", "variant"] | ["Var"]:
-                name = "Union"
-
-            case ["immer", "box"]:
-                name = "ImmBox"
-
-            case ["immer", "flex_vector"]:
-                name = "ImmFlexVector"
-
-            case ["immer", "vector"]:
-                name = "ImmVector"
-
-            case ["immer", "map"]:
-                name = "ImmMap"
-
-            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string" \
-                                                             ] | ["std", "basic_string"]:
-                name = "str"
-
-            case ["SemId"]:
-                name = Typ.Parameters[0].name
-
-            case "Bool":
-                name = "bool"
-
-            case "double":
-                name = "float"
-
-            case ["void"]:
-                name = "None"
-
-            case ["nanobind", "bytes"]:
-                name = "bytes"
-
-            case ["nanobind", "callable"] | [*_, "PyFunc"]:
-                name = "function"
-
-            case ["py", "object"] | ["nanobind", "object"]:
-                name = "object"
-
-            case ["UnorderedMap"]:
-                name = "Dict"
-
-            case _:
-                name = "".join(flat)
-
-    struct = base_map.get_struct_for_qual_name(Typ)
-    if not struct or struct.reflectionParams.wrapper_has_params:
-        res = pya.PyType(name)
-        if Typ.name != "SemId":
-            for param in Typ.Parameters:
-                res.Params.append(py_type(param, base_map=base_map))
-
-        return res
-
-    else:
-        return pya.PyType(name)
-
-
-@beartype
-def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
+def get_doc_literal(ast: cpp.ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
     if doc.brief == "" and doc.full == "":
         return None
     else:
@@ -127,56 +34,8 @@ def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
 
 
 @beartype
-def py_ident(name: str) -> str:
-    """
-    Convert C++ identifiers to valid Python identifiers.
-    Handles keywords, operator overloads, and special characters.
-    """
-    # Python keywords that need to be escaped
-    python_keywords = {
-        "and",
-        "as",
-        "assert",
-        "async",
-        "await",
-        "break",
-        "class",
-        "continue",
-        "def",
-        "del",
-        "elif",
-        "else",
-        "except",
-        "False",
-        "finally",
-        "for",
-        "from",
-        "global",
-        "if",
-        "import",
-        "in",
-        "is",
-        "lambda",
-        "None",
-        "nonlocal",
-        "not",
-        "or",
-        "pass",
-        "raise",
-        "return",
-        "True",
-        "try",
-        "while",
-        "with",
-        "yield",
-    }
-
-    return sanitize_ident(name, python_keywords)
-
-
-@beartype
-def id_self(Typ: QualType) -> ParmVarParams:
-    return ParmVarParams(Typ, "_self")
+def id_self(Typ: QualType) -> cpp.ParmVarParams:
+    return cpp.ParmVarParams(Typ, "_self")
 
 
 @beartype
@@ -195,16 +54,15 @@ class NbFunction:
     DefParams: Optional[List[BlockId]] = None
     "Additional parameters for the `.def` call in nanobind module"
 
-    def build_typedef(self, ast: pya.ASTBuilder,
-                      base_map: GenTypeMap) -> pya.FunctionDefParams:
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FunctionDefParams:
         "Get type stub for the wrapper"
         return pya.FunctionDefParams(
-            Name=py_ident(self.PyName),
-            ResultTy=py_type(self.Func.result, base_map=base_map)
-            if self.Func.result else None,
+            Name=self.conf.getSanitizedIdent(self.PyName),
+            ResultTy=self.conf.getBackendType(self.Func.ReturnType)
+            if self.Func.ReturnType else None,
             Args=[
-                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
-                for Arg in self.Func.arguments
+                pya.IdentParams(self.conf.getBackendType(Arg.Type), Arg.Name)
+                for Arg in self.Func.Args
             ],
             IsStub=True,
         )
@@ -212,6 +70,7 @@ class NbFunction:
     def __init__(
         self,
         Func: GenTuFunction,
+        conf: NanobindAstbuilderConfig,
         Body: Optional[List[BlockId]] = None,
         PyName: Optional[str] = None,
         DefParams: Optional[List[BlockId]] = None,
@@ -221,44 +80,46 @@ class NbFunction:
         if PyName:
             name = PyName
 
-        elif Func.reflectionParams.wrapper_name:
-            name = Func.reflectionParams.wrapper_name
+        elif Func.ReflectionParams.wrapper_name:
+            name = Func.ReflectionParams.wrapper_name
 
         else:
-            name = py_ident(Func.name + ("Static" if Func.isStatic else ""))
+            name = conf.getSanitizedIdent(Func.Name + (
+                ("_static" if "_" in Func.Name else "Static") if Func.IsStatic else ""))
 
         self.PyName = name
         self.Body = Body
         self.Func = Func
         self.DefParams = DefParams
+        self.conf = conf
 
     def build_argument_binder(self, Args: List[GenTuIdent],
-                              ast: ASTBuilder) -> list[BlockId]:
+                              ast: cpp.ASTBuilder) -> list[BlockId]:
         "Generate nanobind wrapper block exposing the original function arguments"
         argument_binder: list[BlockId] = []
         b = ast.b
 
         for Arg in Args:
-            if Arg.type.name == "kwargs":
+            if Arg.Type.Name == "kwargs":
                 continue
 
-            elif Arg.value is None:
+            elif Arg.Value is None:
                 argument_binder.append(ast.XCall("nanobind::arg",
-                                                 [ast.Literal(Arg.name)]))
+                                                 [ast.Literal(Arg.Name)]))
 
             else:
                 argument_binder.append(
                     ast.line([
-                        ast.XCall("nanobind::arg", [ast.Literal(Arg.name)]),
+                        ast.XCall("nanobind::arg", [ast.Literal(Arg.Name)]),
                         b.text(" = "),
-                        b.text(Arg.value) if isinstance(Arg.value, str) else Arg.value
+                        b.text(Arg.Value) if isinstance(Arg.Value, str) else Arg.Value
                     ]))
 
         return argument_binder
 
     def build_call_pass(
         self,
-        ast: ASTBuilder,
+        ast: cpp.ASTBuilder,
         Args: List[GenTuIdent],
         FunctionQualName: BlockId,
         Class: Optional[QualType] = None,
@@ -276,30 +137,30 @@ class NbFunction:
 
         else:
             return ast.Lambda(
-                LambdaParams(
-                    ResultTy=self.Func.result,
-                    Args=[ParmVarParams(Arg.type, Arg.name) for Arg in Args],
+                cpp.LambdaParams(
+                    ResultTy=self.Func.ReturnType,
+                    Args=[cpp.ParmVarParams(Arg.Type, Arg.Name) for Arg in Args],
                     Body=self.Body,
                     IsLine=False,
                 ))
 
-    def build_doc_comment(self, ast: ASTBuilder) -> list[BlockId]:
+    def build_doc_comment(self, ast: cpp.ASTBuilder) -> list[BlockId]:
         "Create python docstring"
-        if self.Func.doc.brief:
-            return [ast.StringLiteral(self.Func.doc.brief, forceRawStr=True)]
+        if self.Func.Doc.brief:
+            return [ast.StringLiteral(self.Func.Doc.brief, forceRawStr=True)]
 
         else:
             return []
 
-    def build_bind(self, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Return nanobind block wrapping the C++ function"
         if self.Func.spaces:
             full_name = ast.Scoped(
-                QualType(name=self.Func.spaces[-1].name, Spaces=self.Func.spaces[:-1]),
-                ast.string(self.Func.name))
+                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                ast.string(self.Func.Name))
 
         else:
-            full_name = ast.string(self.Func.name)
+            full_name = ast.string(self.Func.Name)
 
         return ast.XCall(
             "m.def",
@@ -307,14 +168,14 @@ class NbFunction:
                 ast.Literal(self.PyName),
                 self.build_call_pass(
                     ast,
-                    self.Func.arguments,
+                    self.Func.Args,
                     FunctionQualName=full_name,
                 ),
-                *self.build_argument_binder(self.Func.arguments, ast),
+                *self.build_argument_binder(self.Func.Args, ast),
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Func.arguments) == 0,
+            Line=len(self.Func.Args) == 0,
             Stmt=True,
         )
 
@@ -329,36 +190,42 @@ class NbMethod(NbFunction):
     def __init__(
         self,
         Func: GenTuFunction,
+        conf: NanobindAstbuilderConfig,
         Body: Optional[List[BlockId]] = None,
         PyName: Optional[str] = None,
         HasExplicitClassParam: bool = False,
         DefParams: Optional[List[BlockId]] = None,
     ):
-        super().__init__(Func, Body, PyName, DefParams=DefParams)
+        super().__init__(Func, conf, Body, PyName, DefParams=DefParams)
         self.HasExplicitClassParam = HasExplicitClassParam
 
     def build_typedef(  # type: ignore[override]
         self,
         ast: pya.ASTBuilder,
-        base_map: GenTypeMap,
         is_overload: bool = False,
     ) -> pya.MethodParams:
         "Generate typedef for C++ method"
-        return pya.MethodParams(Func=pya.FunctionDefParams(
-            Name="__init__" if self.Func.IsConstructor else py_ident(self.PyName),
-            ResultTy=self.Func.result and
-            py_type(self.Func.result, base_map),  # type: ignore
+        def_params = pya.FunctionDefParams(
+            Name="__init__"
+            if self.Func.IsConstructor else self.conf.getSanitizedIdent(self.PyName),
+            ResultTy=self.Func.ReturnType and
+            self.conf.getBackendType(self.Func.ReturnType),
             Args=[
-                pya.IdentParams(py_type(Arg.type, base_map=base_map), Arg.name)
-                for Arg in self.Func.arguments
+                pya.IdentParams(self.conf.getBackendType(Arg.Type), Arg.Name)
+                for Arg in self.Func.Args
             ],
             IsStub=True,
             Decorators=[
-                *maybe_splice(self.Func.isStatic, pya.DecoratorParams("staticmethod")),
+                *maybe_splice(self.Func.IsStatic, pya.DecoratorParams("staticmethod")),
                 *maybe_splice(is_overload, pya.DecoratorParams("overload")),
-            ]))
+            ])
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        if self.Func.Name == "operator==":
+            def_params.Args[0].Type = QualType(Name="object")
+
+        return pya.MethodParams(Func=def_params, IsStatic=self.Func.IsStatic)
+
+    def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for C++ method"
         b = ast.b
 
@@ -367,31 +234,30 @@ class NbMethod(NbFunction):
             pass
 
         elif self.Body:
-            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
+            Args = [GenTuIdent(Type=Class.asConstRef(), Name="_self")]
 
-        Args += self.Func.arguments
+        Args += self.Func.Args
 
         if self.Func.IsConstructor and not self.Body:
             call_pass = ast.XCall("nanobind::init",
-                                  Params=[t.type for t in self.Func.arguments])
+                                  Params=[t.Type for t in self.Func.Args])
             argument_binder = []
 
         else:
             call_pass = self.build_call_pass(
                 ast,
-                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
-                Class=None if self.Func.isStatic else Class,
-                IsConst=self.Func.isConst,
+                FunctionQualName=ast.Scoped(Class, ast.string(self.Func.Name)),
+                Class=None if self.Func.IsStatic else Class,
+                IsConst=self.Func.IsConst,
                 Args=Args,
             )
 
             if self.HasExplicitClassParam and not self.Func.IsConstructor:
-                argument_binder = self.build_argument_binder(self.Func.arguments[1:],
-                                                             ast=ast)
+                argument_binder = self.build_argument_binder(self.Func.Args[1:], ast=ast)
             else:
-                argument_binder = self.build_argument_binder(self.Func.arguments, ast=ast)
+                argument_binder = self.build_argument_binder(self.Func.Args, ast=ast)
 
-        if self.Func.isStatic and not self.Func.IsConstructor:
+        if self.Func.IsStatic and not self.Func.IsConstructor:
             bind_head = ".def_static"
 
         else:
@@ -416,7 +282,7 @@ class NbMethod(NbFunction):
                 *self.build_doc_comment(ast),
                 *(self.DefParams if self.DefParams else []),
             ],
-            Line=len(self.Func.arguments) == 0,
+            Line=len(self.Func.Args) == 0,
         )
 
 
@@ -433,18 +299,18 @@ class NbEnumField:
 
     def __init__(
         self,
-        Field: GenTuEnumField,
+        Field: codegen_ir.GenTuEnumField,
         pyNameOverride: Optional[str] = None,
     ):
-        self.PyName = Field.name if pyNameOverride is None else pyNameOverride
-        self.CxxName = Field.name
-        self.Doc = Field.doc
+        self.PyName = Field.Name if pyNameOverride is None else pyNameOverride
+        self.CxxName = Field.Name
+        self.Doc = Field.Doc
 
-    def build_bind(self, Enum: 'NbEnum', ast: ASTBuilder) -> BlockId:
+    def build_bind(self, Enum: 'NbEnum', ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for enum field"
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
-            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.name]))
+            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum.Name]))
         ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 
@@ -452,22 +318,24 @@ class NbEnumField:
 @dataclass
 class NbEnum:
     "Wrapped C++ enum"
-    Enum: GenTuEnum
+    Enum: codegen_ir.GenTuEnum
     "Original C++ enum"
     Fields: List[NbEnumField]
     "Wrapped enum fields"
 
-    def __init__(self, Enum: GenTuEnum) -> None:
+    def __init__(self, Enum: codegen_ir.GenTuEnum,
+                 conf: NanobindAstbuilderConfig) -> None:
         self.Enum = Enum
-        self.Fields = [NbEnumField(F) for F in Enum.fields]
+        self.Fields = [NbEnumField(F) for F in Enum.Fields]
+        self.conf = conf
 
-    def getPyName(self, base_map: GenTypeMap) -> str:
-        return py_type(self.Enum.name, base_map=base_map).Name
+    def getPyName(self) -> str:
+        return self.conf.getBackendType(self.Enum.Name).Name
 
-    def build_typedef(self, base_map: GenTypeMap) -> pya.EnumParams:
+    def build_typedef(self) -> pya.EnumParams:
         count = 0
         return pya.EnumParams(
-            Name=self.getPyName(base_map),
+            Name=self.getPyName(),
             Fields=[
                 pya.EnumFieldParams(
                     ("_" +
@@ -475,80 +343,87 @@ class NbEnum:
                     str(count := count + 1)) for F in self.Fields
             ])
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Generate wrapped enum binding"
         b = ast.b
         iter_type = QualType(
-            name="PyEnumIterator",
-            Parameters=[self.Enum.name],
-            Spaces=[n_org(), t_namespace("bind"),
-                    t_namespace("python")],
+            Name="PyEnumIterator",
+            Params=[self.Enum.Name],
+            Spaces=[
+                codegen_ir.n_org(),
+                codegen_ir.t_namespace("bind"),
+                codegen_ir.t_namespace("python")
+            ],
         )
         return b.stack([
             ast.XCall(
                 "bind_enum_iterator",
                 args=[
                     b.text("m"),
-                    ast.Literal(self.getPyName(base_map)),
+                    ast.Literal(self.getPyName()),
                     ast.string("type_registry_guard"),
                 ],
-                Params=[self.Enum.name],
+                Params=[self.Enum.Name],
                 Stmt=True,
             ),
             ast.XCall(
                 "nanobind::enum_",
-                [b.text("m"), ast.Literal(self.getPyName(base_map))],
-                Params=[self.Enum.name],
+                [b.text("m"), ast.Literal(self.getPyName())],
+                Params=[self.Enum.Name],
             ),
             b.indent(
                 2,
                 b.stack([Field.build_bind(self, ast) for Field in self.Fields] + [
                     NbMethod(
+                        conf=self.conf,
                         PyName="__iter__",
-                        Func=GenTuFunction(name="", result=iter_type),
+                        Func=GenTuFunction(Name="", ReturnType=iter_type),
                         Body=[
                             ast.Return(ast.b.line([ast.Type(iter_type),
                                                    ast.string("()")])),
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
+                        conf=self.conf,
                         PyName="__int__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="int"),
+                            Name="",
+                            ReturnType=QualType(Name="int"),
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
                                           args=[ast.string("_self")],
                                           Params=[
-                                              QualType(name="int"),
+                                              QualType(Name="int"),
                                           ]))
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
+                        conf=self.conf,
                         PyName="__index__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="int"),
+                            Name="",
+                            ReturnType=QualType(Name="int"),
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast",
                                           args=[ast.string("_self")],
                                           Params=[
-                                              QualType(name="int"),
+                                              QualType(Name="int"),
                                           ]))
                         ],
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
+                        conf=self.conf,
                         PyName="__eq__",
                         Func=GenTuFunction(
-                            name="",
-                            result=QualType(name="bool"),
-                            arguments=[
-                                GenTuIdent(self.Enum.name, "lhs"),
-                                GenTuIdent(self.Enum.name, "rhs"),
+                            Name="",
+                            ReturnType=QualType(Name="bool"),
+                            Args=[
+                                GenTuIdent(self.Enum.Name, "lhs"),
+                                GenTuIdent(self.Enum.Name, "rhs"),
                             ],
                         ),
                         Body=[
@@ -557,20 +432,21 @@ class NbEnum:
                                                  ast.string("rhs")])),
                         ],
                         HasExplicitClassParam=True,
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                     NbMethod(
+                        conf=self.conf,
                         PyName="__hash__",
                         Func=GenTuFunction(
-                            result=QualType(name="int"),
-                            arguments=[GenTuIdent(self.Enum.name, "it")],
+                            ReturnType=QualType(Name="int"),
+                            Args=[GenTuIdent(self.Enum.Name, "it")],
                         ),
                         Body=[
                             ast.Return(
                                 ast.XCall("static_cast", [ast.string("it")],
-                                          Params=[QualType(name="int")])),
+                                          Params=[QualType(Name="int")])),
                         ],
                         HasExplicitClassParam=True,
-                    ).build_bind(self.Enum.name, ast),
+                    ).build_bind(self.Enum.Name, ast),
                 ] + [b.text(";")]),
             )
         ])
@@ -582,7 +458,7 @@ class Py11Field:
     """
     Wrapped C++ class field
     """
-    Field: GenTuField
+    Field: codegen_ir.GenTuField
     "Original C++ class field"
     GetImpl: Optional[List[BlockId]] = None
     "Optional body for the getter callback for the field"
@@ -590,44 +466,47 @@ class Py11Field:
     "Optional body for the setter callback for the field"
 
     def getPyName(self) -> str:
-        return py_ident(self.Field.name)
+        return self.conf.getSanitizedIdent(self.Field.Name)
 
     def __init__(self,
-                 Field: GenTuField,
+                 Field: codegen_ir.GenTuField,
+                 conf: NanobindAstbuilderConfig,
                  GetImpl: Optional[List[BlockId]] = None,
                  SetImpl: Optional[List[BlockId]] = None):
 
+        self.conf = conf
         self.Field = Field
         self.GetImpl = GetImpl
         self.SetImpl = SetImpl
 
-    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.FieldParams:
-        if self.Field.type is None:
-            raise ValueError(f"Field {self.Field.name} has no type")
-        return pya.FieldParams(py_type(self.Field.type, base_map=base_map),
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
+        if self.Field.Type is None:
+            raise ValueError(f"Field {self.Field.Name} has no type")
+        return pya.FieldParams(self.conf.getBackendType(self.Field.Type),
                                self.getPyName())
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+    def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for field"
         b = ast.b
         _self = id_self(Class)
         if self.GetImpl and self.SetImpl:
-            assert self.Field.type
+            assert self.Field.Type
             return ast.XCall(
                 ".def_prop_rw",
                 [
                     ast.Literal(self.getPyName()),
                     ast.Lambda(
-                        LambdaParams(
-                            ResultTy=self.Field.type,
+                        cpp.LambdaParams(
+                            ResultTy=self.Field.Type,
                             Body=self.GetImpl,
                             Args=[_self],
                         )),
                     ast.Lambda(
-                        LambdaParams(
+                        cpp.LambdaParams(
                             ResultTy=None,
-                            Body=[b.text(f"{_self.name}->{self.Field.name} = _arg;")],
-                            Args=[_self, ParmVarParams(self.Field.type, "_arg")],
+                            Body=[b.text(f"{_self.name}->{self.Field.Name} = _arg;")],
+                            Args=[_self,
+                                  cpp.ParmVarParams(self.Field.Type, "_arg")],
                         )),
                 ],
                 Line=False,
@@ -639,15 +518,15 @@ class Py11Field:
                     b.text("&"),
                     ast.Type(Class),
                     b.text("::"),
-                    b.text(self.Field.name)
-                ]), *maybe_list(get_doc_literal(ast, self.Field.doc))
+                    b.text(self.Field.Name)
+                ]), *maybe_list(get_doc_literal(ast, self.Field.Doc))
             ])
 
 
 @beartype
 class NbClass:
     "C++ class wrapped for the binding generation"
-    Struct: GenTuStruct
+    Struct: codegen_ir.GenTuStruct
     "Original C++ class/structure/union"
     Fields: List[Py11Field]
     "Wrapped fields"
@@ -656,38 +535,53 @@ class NbClass:
     InitImpls: List[NbMethod]
     "Constructor implementations"
 
-    def getPyName(self, base_map: GenTypeMap) -> str:
+    def getPyName(self) -> str:
         "Get python name for the wrapped C++ class"
-        return self.Struct.reflectionParams.wrapper_name or py_type(
-            self.Struct.name, base_map=base_map).Name
+        return self.Struct.ReflectionParams.wrapper_name or self.conf.getBackendType(
+            self.Struct.Name).Name
 
     def getCxxName(self) -> QualType:
         "Get original C++ name"
         return self.Struct.declarationQualName()
 
-    def __init__(self, ast: ASTBuilder, value: GenTuStruct, base_map: GenTypeMap) -> None:
+    def getEntryForName(self, name: str) -> Any:
+        result = list()
+
+        for m in self.Methods:
+            if m.PyName == name:
+                result.append(m)
+
+        for f in self.Fields:
+            if f.getPyName() == name:
+                result.append(f)
+
+        return result
+
+    def __init__(self, ast: cpp.ASTBuilder, value: codegen_ir.GenTuStruct,
+                 conf: NanobindAstbuilderConfig) -> None:
         self.Struct = value
         self.Fields = []
         self.Methods = []
         self.InitImpls = []
+        self.conf = conf
 
-        for meth in value.methods:
-            if meth.isExposedForWrap and not meth.isPureVirtual:
+        for meth in value.Methods:
+            if meth.IsExposedForWrap:
                 if meth.IsConstructor:
-                    self.InitImpls.append(NbMethod(meth))
+                    self.InitImpls.append(NbMethod(meth, conf))
                 else:
-                    self.Methods.append(NbMethod(meth))
+                    self.Methods.append(NbMethod(meth, conf))
 
-        for _field in value.fields:
-            if _field.isExposedForWrap:
-                self.Fields.append(Py11Field(_field))
+        for _field in value.Fields:
+            if _field.IsExposedForWrap:
+                self.Fields.append(Py11Field(_field, conf))
 
-        if not value.IsAbstract and value.reflectionParams.default_constructor:
+        if not value.IsAbstract and value.ReflectionParams.default_constructor:
             self.InitDefault(ast, filter_init_fields(self.Fields))
 
-        self.InitMagicMethods(ast=ast, base_map=base_map)
+        self.InitMagicMethods(ast=ast)
 
-    def InitDefault(self, ast: ASTBuilder, Fields: List[Py11Field]) -> None:
+    def InitDefault(self, ast: cpp.ASTBuilder, Fields: List[Py11Field]) -> None:
         "Generate default constructor for the class"
         # FIXME Undocumented logic affecting the code generation
         # features -- the type can be marked as a reflection target
@@ -715,16 +609,17 @@ class NbClass:
             self.InitImpls.append(
                 NbMethod(
                     PyName="",
+                    conf=self.conf,
                     Func=GenTuFunction(
-                        name="",
-                        arguments=[
+                        Name="",
+                        Args=[
                             GenTuIdent(result_type.asPtr(), "result"),
                             GenTuIdent(
                                 QualType(
-                                    name="kwargs",
+                                    Name="kwargs",
                                     Spaces=[QualType.ForName("nanobind")],
-                                    isConst=True,
-                                    RefKind=ReferenceKind.LValue,
+                                    IsConst=True,
+                                    RefKind=codegen_ir.ReferenceKind.LValue,
                                 ), "kwargs")
                         ],
                         IsConstructor=True,
@@ -733,7 +628,7 @@ class NbClass:
                     HasExplicitClassParam=True,
                 ))
 
-    def InitMagicMethods(self, ast: ASTBuilder, base_map: GenTypeMap) -> None:
+    def InitMagicMethods(self, ast: cpp.ASTBuilder) -> None:
         """
         Init magic methods for `__repr__`, `__getattr__` etc.
         """
@@ -744,10 +639,11 @@ class NbClass:
             if self.Struct.IsDescribedRecord:
                 self.Methods.append(
                     NbMethod(
+                        conf=self.conf,
                         PyName="__repr__",
                         Func=GenTuFunction(
-                            name="",
-                            result=str_type,
+                            Name="",
+                            ReturnType=str_type,
                         ),
                         Body=[
                             ast.Return(
@@ -759,10 +655,11 @@ class NbClass:
                 self.Methods.append(
                     NbMethod(
                         PyName="__getattr__",
+                        conf=self.conf,
                         Func=GenTuFunction(
-                            name="",
-                            result=pyobj_type,
-                            arguments=[GenTuIdent(str_type.asConstRef(), "name")],
+                            Name="",
+                            ReturnType=pyobj_type,
+                            Args=[GenTuIdent(str_type.asConstRef(), "name")],
                         ),
                         Body=[
                             ast.Return(
@@ -778,29 +675,29 @@ class NbClass:
 
         getitem_list = []
         for m in self.Methods:
-            if m.Func.reflectionParams and m.Func.reflectionParams.function_api and m.Func.reflectionParams.function_api.is_get_item:
-                getitem_list.append(replace(m, PyName="__getitem__"))
+            if m.Func.ReflectionParams and m.Func.ReflectionParams.function_api and m.Func.ReflectionParams.function_api.is_get_item:
+                getitem_list.append(replace(m, PyName="__getitem__", conf=m.conf))
 
         self.Methods += getitem_list
 
-        if self.Struct.reflectionParams.type_api and self.Struct.reflectionParams.type_api.has_begin_end_iteration:
+        if self.Struct.ReflectionParams.type_api and self.Struct.ReflectionParams.type_api.has_begin_end_iteration:
             self.Methods.append(
                 NbMethod(
                     PyName="__iter__",
+                    conf=self.conf,
                     Func=GenTuFunction(
-                        name="at",
-                        result=QualType.ForName("auto"),
-                        arguments=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
+                        Name="at",
+                        ReturnType=QualType.ForName("auto"),
+                        Args=[GenTuIdent(self.getCxxName().asConstRef(), "node")],
                     ),
                     Body=[
                         ast.Return(
                             ast.XCall(
                                 "nanobind::make_iterator",
                                 [
-                                    ast.XCall("nanobind::type", Params=[self.Struct.name
+                                    ast.XCall("nanobind::type", Params=[self.Struct.Name
                                                                        ]),
-                                    ast.Literal(
-                                        self.getPyName(base_map=base_map) + "__iter__"),
+                                    ast.Literal(self.getPyName() + "__iter__"),
                                     ast.string("node.begin()"),
                                     ast.string("node.end()"),
                                 ],
@@ -816,13 +713,13 @@ class NbClass:
         """
         res: List[NbMethod] = []
         for key, _group in itertools.groupby(self.Methods, lambda M:
-                                             (M.Func.name, M.Func.arguments)):
+                                             (M.Func.Name, M.Func.Args)):
             group: List[NbMethod] = list(_group)
             if len(group) == 1:
                 res.append(group[0])
 
-            elif len(group) == 2 and group[1].Func.arguments == group[0].Func.arguments:
-                res.append(group[0 if group[1].Func.isConst else 1])
+            elif len(group) == 2 and group[1].Func.Args == group[0].Func.Args:
+                res.append(group[0 if group[1].Func.IsConst else 1])
 
             else:
                 print(len(group))
@@ -830,32 +727,33 @@ class NbClass:
 
         return res
 
-    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> pya.ClassParams:
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
         "Generate type definition stub"
         res = pya.ClassParams(
-            Name=self.getPyName(base_map=base_map),
+            Name=self.getPyName(),
             Bases=[
-                py_type(T, base_map=base_map)
-                for T in self.Struct.bases
-                if T.name not in ["SharedPtrApi"]
+                self.conf.getBackendType(T)
+                for T in self.Struct.Bases
+                if self.conf.isRegisteredForBacked(T)
             ],
         )
 
         Init = NbMethod(
             PyName="__init__",
+            conf=self.conf,
             Func=GenTuFunction(
-                name="",
-                result=QualType.ForName("None"),
-                arguments=[
+                Name="",
+                ReturnType=QualType.ForName("None"),
+                Args=[
                     GenTuIdent(
-                        name=it.getPyName(),
-                        type=it.Field.type,  # type: ignore
-                        value=ast.b.text("None")) for it in self.Fields
+                        Name=it.getPyName(),
+                        Type=it.Field.Type,  # type: ignore
+                        Value=ast.b.text("None")) for it in self.Fields
                 ],
             ),
         )
 
-        res.Methods.append(Init.build_typedef(ast, base_map=base_map))
+        res.Methods.append(Init.build_typedef(ast))
 
         method_names = [M.PyName for M in self.dedup_methods()]
 
@@ -863,16 +761,15 @@ class NbClass:
             res.Methods.append(
                 Meth.build_typedef(
                     ast,
-                    base_map=base_map,
                     is_overload=1 < method_names.count(Meth.PyName),
                 ))
 
         for Field in self.Fields:
-            res.Fields.append(Field.build_typedef(ast, base_map=base_map))
+            res.Fields.append(Field.build_typedef(ast))
 
         return res
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Generate code binding logic"
         b = ast.b
 
@@ -885,7 +782,7 @@ class NbClass:
             sub.append(Field.build_bind(self.getCxxName(), ast))
 
         for Meth in self.dedup_methods():
-            if Meth.Func.result is None:
+            if Meth.Func.ReturnType is None:
                 # do not bind constructors as function pointers
                 pass
 
@@ -897,9 +794,9 @@ class NbClass:
         return b.stack([
             ast.XCall(
                 "nanobind::class_",
-                [b.text("m"), ast.Literal(self.getPyName(base_map=base_map))],
+                [b.text("m"), ast.Literal(self.getPyName())],
                 Params=[self.getCxxName()] +
-                [B for B in self.Struct.bases if base_map.is_known_type(B)],
+                [B for B in self.Struct.Bases if self.conf.isKnownClass(B)],
             ),
             b.indent(2, b.stack(sub))
         ])
@@ -917,21 +814,23 @@ class NbBindPass:
 @dataclass
 class NbTypedefPass:
     "Pass the typedef alias to python"
-    name: pya.PyType
+    name: QualType
     "Newly declared name"
-    base: pya.PyType
+    base: QualType
     "Original underlying type"
 
-    def __init__(self, typedef: GenTuTypedef, base_map: GenTypeMap) -> None:
-        self.name = py_type(typedef.name, base_map)
-        self.base = py_type(typedef.base, base_map)
+    def __init__(self, typedef: codegen_ir.GenTuTypedef,
+                 conf: NanobindAstbuilderConfig) -> None:
+        self.conf = conf
+        self.name = self.conf.getBackendType(typedef.Name)
+        self.base = self.conf.getBackendType(typedef.Base)
 
 
 Py11Entry = Union[NbEnum, NbClass, NbBindPass, NbTypedefPass, NbFunction]
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
-    return [F for F in Fields if F.Field.type.name not in ["SemId"]]  # type: ignore
+    return [F for F in Fields if F.Field.Type.Name not in ["SemId"]]  # type: ignore
 
 
 @beartype
@@ -939,6 +838,7 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
 class NbModule:
     "Full wrapper object for the nanobind module"
     PyName: str
+    conf: NanobindAstbuilderConfig
     "Name of the final python module"
     Decls: List[Py11Entry] = field(default_factory=list)
     "Wrapped declarations in the module"
@@ -950,15 +850,41 @@ class NbModule:
     nameTrack: Dict[str, QualType] = field(default_factory=dict)
     "Map python name to the original declaration"
 
-    def add_all(self, decls: List[GenTuUnion], ast: ASTBuilder,
-                base_map: GenTypeMap) -> None:
+    def getEntryForName(self, name: str) -> list[Py11Entry | Py11Field]:
+        result = list()
+
+        for e in self.Decls:
+            match e:
+                case NbFunction() | NbMethod():
+                    if e.PyName == name:
+                        result.append(e)
+
+                case NbEnum():
+                    if e.getPyName() == name:
+                        result.append(e)
+
+                case NbClass():
+                    if e.getPyName() == name:
+                        result.append(e)
+
+                    result.extend(e.getEntryForName(name))
+
+                case NbTypedefPass() | NbBindPass():
+                    pass
+
+                case _:
+                    raise TypeError(str(type(e)))
+
+        return result
+
+    def add_all(self, decls: List[codegen_ir.GenTuUnion], ast: cpp.ASTBuilder) -> None:
         for decl in decls:
-            self.add_decl(decl, ast=ast, base_map=base_map)
+            self.add_decl(decl, ast=ast)
 
     def add_type_specializations(
         self,
-        ast: ASTBuilder,
-        specializations: List[TypeSpecialization],
+        ast: cpp.ASTBuilder,
+        specializations: List[codegen_ir.TypeSpecialization],
     ) -> None:
         "Register used type specializations in the module"
 
@@ -978,25 +904,21 @@ class NbModule:
         ]
 
         for spec in specializations:
-            if spec.used_type.name in ["Opt", "optional"]:
+            if spec.used_type.Name in ["Opt", "optional"]:
                 continue
-
-            if spec.std_type:
-                opaque_declarations.append(
-                    ast.XCall("NB_MAKE_OPAQUE", [ast.Type(spec.std_type)]))
 
             opaque_declarations.append(
                 ast.XCall("NB_MAKE_OPAQUE", [ast.Type(spec.used_type)]))
 
             specialization_calls.append(
                 ast.XCall(
-                    f"bind_{spec.getFlatUsed()}",
+                    f"org::bind::python::bind_{spec.getFlatUsed()}",
                     [
                         ast.string("m"),
                         ast.StringLiteral(spec.bind_name),
                         ast.string("type_registry_guard"),
                     ],
-                    Params=spec.used_type.Parameters,
+                    Params=spec.used_type.Params,
                     Stmt=True,
                 ))
 
@@ -1005,7 +927,7 @@ class NbModule:
 
         self.Decls = [NbBindPass(D) for D in specialization_calls] + self.Decls
 
-    def add_decl(self, decl: GenTuUnion, ast: ASTBuilder, base_map: GenTypeMap) -> None:
+    def add_decl(self, decl: codegen_ir.GenTuUnion, ast: cpp.ASTBuilder) -> None:
         "Add extra declaration to the module"
 
         def append_decl(d: Py11Entry) -> None:
@@ -1013,12 +935,12 @@ class NbModule:
             name = None
             match d:
                 case NbClass():
-                    name = d.getPyName(base_map=base_map)
-                    orig_name = d.Struct.name
+                    name = d.getPyName()
+                    orig_name = d.Struct.Name
 
                 case NbEnum():
-                    name = d.getPyName(base_map=base_map)
-                    orig_name = d.Enum.name
+                    name = d.getPyName()
+                    orig_name = d.Enum.Name
 
             if name:
                 # assert name not in self.nameTrack, f"{name} is already registered for the module for {self.nameTrack[name]}, attempting to map{orig_name} to the same name"
@@ -1031,35 +953,35 @@ class NbModule:
                 self.Decls.append(d)
 
         match decl:
-            case GenTuStruct():
+            case codegen_ir.GenTuStruct():
                 visit_context: List[Any] = []
 
                 def codegenConstructCallback(value: Any) -> None:
                     "nodoc"
-                    if isinstance(value, GenTuStruct):
-                        if value.reflectionParams.type_api and value.reflectionParams.type_api.is_org_ast_value and value.name.name.startswith(
+                    if isinstance(value, codegen_ir.GenTuStruct):
+                        value: codegen_ir.GenTuStruct
+                        if value.ReflectionParams.type_api and value.ReflectionParams.type_api.is_org_ast_value and value.Name.Name.startswith(
                                 "Imm"):
                             pass
 
                         else:
-                            # log(CAT).info(f"{'  ' * len(visit_context)} {value.name}")
-                            append_decl(NbClass(ast=ast, value=value, base_map=base_map))
+                            append_decl(NbClass(ast=ast, value=value, conf=self.conf))
 
-                    elif isinstance(value, GenTuEnum):
-                        append_decl(NbEnum(value))
+                    elif isinstance(value, codegen_ir.GenTuEnum):
+                        append_decl(NbEnum(value, self.conf))
 
-                    elif isinstance(value, GenTuTypedef):
-                        append_decl(NbTypedefPass(value, base_map))
+                    elif isinstance(value, codegen_ir.GenTuTypedef):
+                        append_decl(NbTypedefPass(value, self.conf))
 
                 def tree_visit_repr(value: Any, context: List[Any]) -> str:
                     match value:
-                        case GenTuStruct():
-                            return str(value.name)
+                        case codegen_ir.GenTuStruct():
+                            return str(value.Name)
 
                         case _:
                             return ""
 
-                iterate_object_tree(
+                codegen_ir.iterate_object_tree(
                     decl,
                     visit_context,
                     post_visit=codegenConstructCallback,
@@ -1067,15 +989,19 @@ class NbModule:
                 )
 
             case GenTuFunction():
-                append_decl(NbFunction(decl))
+                append_decl(NbFunction(decl, self.conf))
 
-            case GenTuEnum():
-                append_decl(NbEnum(decl))
+            case codegen_ir.GenTuEnum():
+                append_decl(NbEnum(decl, self.conf))
 
-            case GenTuTypedef():
-                append_decl(NbTypedefPass(decl, base_map=base_map))
+            case codegen_ir.GenTuTypedef():
+                log(CAT).debug(f"typedef {decl.Name} = {decl.Base}")
+                append_decl(NbTypedefPass(decl, self.conf))
 
-    def build_typedef(self, ast: pya.ASTBuilder, base_map: GenTypeMap) -> BlockId:
+            case _:
+                raise TypeError(f"Unhandled top-level type {type(decl)}")
+
+    def build_typedef(self, ast: pya.ASTBuilder) -> BlockId:
         "Generate full typedef list"
         passes: List[BlockId] = []
 
@@ -1089,12 +1015,15 @@ T = TypeVar("T")
 class ImmBox[T]():
     def get(self) -> T: ...
 
-class ImmFlexVector[T]():
+class ImmFlexVec[T]():
     def at(self, idx: int) -> T: ...
     def __len__(self) -> int: ...
 
-class ImmVector[T]():
+class ImmVec[T]():
     def at(self, idx: int) -> T: ...
+    def __len__(self) -> int: ...
+
+class IntSet[T]():
     def __len__(self) -> int: ...
 
 class ImmAdapterTBase[T](ImmAdapter):
@@ -1104,16 +1033,15 @@ class ImmAdapterTBase[T](ImmAdapter):
         for item in self.Decls:
             match item:
                 case NbEnum():
-                    passes.append(ast.Enum(item.build_typedef(base_map=base_map)))
+                    passes.append(ast.Enum(item.build_typedef()))
                     passes.append(ast.string(""))
 
                 case NbClass():
-                    passes.append(ast.Class(item.build_typedef(ast, base_map)))
+                    passes.append(ast.Class(item.build_typedef(ast)))
                     passes.append(ast.string(""))
 
                 case NbFunction():
-                    passes.append(ast.Function(item.build_typedef(ast,
-                                                                  base_map=base_map)))
+                    passes.append(ast.Function(item.build_typedef(ast)))
                     passes.append(ast.string(""))
 
                 case NbTypedefPass():
@@ -1132,7 +1060,7 @@ class ImmAdapterTBase[T](ImmAdapter):
 
         return ast.b.stack(passes)
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Generate full binding for the module"
         b = ast.b
 
@@ -1144,10 +1072,10 @@ class ImmAdapterTBase[T](ImmAdapter):
                     passes.append(entry.Id)
 
                 case NbClass():
-                    passes.append(entry.build_bind(ast, base_map=base_map))
+                    passes.append(entry.build_bind(ast))
 
                 case NbEnum():
-                    passes.append(entry.build_bind(ast, base_map=base_map))
+                    passes.append(entry.build_bind(ast))
 
                 case NbFunction():
                     passes.append(entry.build_bind(ast))

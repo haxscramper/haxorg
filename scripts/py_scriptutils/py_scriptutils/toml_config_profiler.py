@@ -69,10 +69,10 @@ def merge_cli_model(
         elif isinstance(value, list) or isinstance(value, tuple) and 0 < len(value) and (
                 isinstance(value[0], DefaultWrapperValue)):
             if value[0].is_provided:
-                on_cli[param] = [it.value for it in value]
+                on_cli[param] = [it.Value for it in value]
 
             else:
-                on_default[param] = [it.value for it in value]
+                on_default[param] = [it.Value for it in value]
 
     for d in [on_default, file_config, on_cli]:
         for k, v in d.items():

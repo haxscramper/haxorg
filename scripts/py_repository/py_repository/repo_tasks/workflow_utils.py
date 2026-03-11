@@ -6,12 +6,13 @@ from graphlib import TopologicalSorter
 import inspect
 from pathlib import Path
 
+import plumbum
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional, Set
 import docker
 import docker.models.containers
 import igraph as ig
-from py_repository.repo_tasks.config import HaxorgConfig
+from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
@@ -181,6 +182,21 @@ class TaskGraph:
 
 
 @beartype
+def ui_notify(message: str, is_ok: bool = True) -> None:
+    try:
+        cmd = plumbum.local["notify-send"]
+        cmd.run(
+            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
+
+    except Exception:
+        if is_ok:
+            log(CAT).info(message)
+
+        else:
+            log(CAT).error(message)
+
+
+@beartype
 @dataclass
 class TaskContext():
     graph: TaskGraph
@@ -219,15 +235,16 @@ class TaskContext():
         return result
 
     def get_task_debug_streams(self, cmd: str, args: Any) -> tuple[Path, Path]:
+        """
+        Get unique stderr, stdout pair of files for the command to write output to.
+        """
         import hashlib
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
-            Path(
-                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"
-            ),
-            Path(
-                f"/tmp/haxorg/run_command/{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"
-            ),
+            get_tmpdir("run_command").joinpath(
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
+            get_tmpdir("run_command").joinpath(
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
         )
 
         result[0].parent.mkdir(parents=True, exist_ok=True)
@@ -269,12 +286,21 @@ args: {args}
                 log(CAT).info(f"Skipping [cyan]{task_id}[/cyan], already executed")
                 continue
 
+            def run_op():
+                try:
+                    op.python_callable(ctx=self)
+                    log(CAT).info(f"Done {task_id}")
+                    ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
+                except Exception as e:
+                    log(CAT).info(f"Failed {task_id}")
+                    ui_notify(f"FAIL {task_id:<40}", is_ok=False)
+                    raise e from None
+
             if operation and not self.config.use_unchanged_tasks:
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):
                     if operation.should_run(self.stamp_root, *args, **kwargs):
                         log(CAT).info(f"Running [green]{task_id}[/green], should run")
-                        op.python_callable(ctx=self)
-                        log(CAT).info(f"Done {task_id}")
+                        run_op()
 
                     else:
                         log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
@@ -283,8 +309,7 @@ args: {args}
 
             else:
                 log(CAT).info(f"Running [yellow]{task_id}[/yellow]")
-                op.python_callable(ctx=self)
-                log(CAT).info(f"Done {task_id}")
+                run_op()
 
             self.track_task_completion(task_id)
 

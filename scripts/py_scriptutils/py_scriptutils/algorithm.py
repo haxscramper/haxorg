@@ -174,6 +174,11 @@ def iterate_object_tree(
                         depth + 2,
                     )
 
+            elif hasattr(tree, "__slots__"):
+                for slot_name in tree.__slots__:
+                    value = getattr(tree, slot_name)
+                    aux(value, context, depth + 2)
+
             else:
                 print(f"??? {type(tree)}")
 

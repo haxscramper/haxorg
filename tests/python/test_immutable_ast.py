@@ -32,9 +32,9 @@ def test_immutable_ast_mind_map() -> None:
     initial_context = org.initImmutableAstContext()
     version = initial_context.addRoot(node)
 
-    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
+    graph_state: org.GraphMapGraphState = org.GraphMapGraphState.FromAstContextStatic(
         version.getContext())
-    conf = org.graphMapConfig()
+    conf = org.GraphMapConfig()
     root = version.getRootAdapter()
 
     # print(root.treeReprString())
@@ -73,10 +73,10 @@ def test_mind_map_from_directory() -> None:
     initial_version = org.initImmutableAstContext()
     version = initial_version.addRoot(node)
 
-    graph_state: org.graphMapGraphState = org.graphMapGraphState.FromAstContextStatic(
+    graph_state: org.GraphMapGraphState = org.GraphMapGraphState.FromAstContextStatic(
         version.getContext())
 
-    conf = org.graphMapConfig()
+    conf = org.GraphMapConfig()
     root = version.getRootAdapter()
 
     graph_state.addNodeRec(version.getContext(), root, conf)

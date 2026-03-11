@@ -81,7 +81,7 @@ class NumericEnum(TypeDecorator):
         if isinstance(value, int):
             return value
 
-        return value.value
+        return value.Value
 
     def process_result_value(self, value: Any, dialect: Any) -> Any:
         return self._enumtype(value)
@@ -259,7 +259,7 @@ def dump_flat_table(
             table_list: List[Dict] = []
             selection = connection.execute(select(*columns_to_fetch))
             for row in selection:
-                table_list.append({c.name: r for c, r in zip(columns_to_fetch, row)})
+                table_list.append({c.Name: r for c, r in zip(columns_to_fetch, row)})
 
             return table_list
 

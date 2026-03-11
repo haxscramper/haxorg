@@ -10,11 +10,11 @@ from beartype.typing import Any, cast, Dict, List, Optional, Tuple
 from plumbum import local
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_codegen.refl_wrapper_graph import TuWrap
-import py_codegen.wrapper_gen_nim as gen_nim
-from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
+
+CAT = __name__
 
 
 class TuOptions(BaseModel):
@@ -91,7 +91,6 @@ class TuOptions(BaseModel):
         "Directory to dump debug information about failed translation unit converter runs"
     )
 
-    nim: Optional[gen_nim.NimOptions] = None
     print_reflection_run_fail_to_stdout: bool = Field(
         description="If reflection tool run fails, write the error report to stdout",
         default=False)
@@ -190,22 +189,32 @@ def get_compile_commands(conf: TuOptions) -> Path:
 @beartype
 @dataclass
 class CollectorRunResult:
+    "Reflection tool run conversion result"
     conv_tu: Optional[ConvTu]
+    "Converted translation unit"
     pb_path: Optional[Path]
+    "Conversion protobuf path"
     success: bool
+    "If the conversion was successful"
     res_stdout: str
+    "Tool stdout"
     res_stderr: str
+    "Tool stderr"
     flags: dict = field(default_factory=dict)
+    "Extra configuration options for the reflection tool"
 
 
 @beartype
-def run_collector(
+def run_reflection_tool(
     conf: TuOptions,
     input: Path,
     output: Path,
+    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> CollectorRunResult:
-    # Execute reflection data collector binary, producing a new converted translation
-    # unit or an empty result of conversion has failed.
+    """
+    Execute reflection data collector binary, producing a new converted translation
+    unit or an empty result of conversion has failed.
+    """
     assert input.exists()
     if not output.parent.exists():
         output.parent.mkdir(parents=True)
@@ -230,10 +239,13 @@ def run_collector(
 
     tool = local[conf.indexing_tool]
 
+    if reflection_tool_profraw_path:
+        tool = tool.with_env(LLVM_PROFILE_FILE=str(reflection_tool_profraw_path))
+
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
-        log("refl.cli").info(
-            f"Explicitly provided reflection file {conf.binary_collection_file}")
+        # log("refl.cli").info(
+        #     f"Explicitly provided reflection file {conf.binary_collection_file}")
     else:
         # Create a temporary list of files content will be added to the dumped translation
         # unit.
@@ -257,7 +269,6 @@ def run_collector(
 
     if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
                                                    tmp_output):
-        log("refl.cli.read").info(f"Running collector on {input}")
 
         res_code, res_stdout, res_stderr = cast(
             Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None))
@@ -315,6 +326,7 @@ def write_run_result_information(
     path: Path,
     commands: List[CompileCommand],
 ) -> None:
+    "Write reflection collector run result"
     debug_dir = Path(conf.convert_failure_log_dir)
     # if debug_dir.exists():
     #     shutil.rmtree(str(debug_dir))
@@ -324,9 +336,12 @@ def write_run_result_information(
 
     if not tu.success or conf.reflection_run_verbose:
         if not conf.print_reflection_run_fail_to_stdout:
-            log().warning(
-                f"{'Executed' if tu.success else 'Failed to run'} conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
-            )
+            text = f"{'Executed' if tu.success else 'Failed to run'} conversion for '{path}', wrote to {debug_dir}/{sanitized}"
+            if conf.reflection_run_verbose:
+                log().debug(text)
+
+            else:
+                log().error(text)
 
     def write_reflection_stats(file: io.TextIOWrapper) -> None:
 
@@ -385,16 +400,22 @@ def remove_dbgOrigin(json_str: str) -> str:
 
 
 @beartype
-def run_collector_for_path(
+def run_reflection_tool_for_path(
     conf: TuOptions,
     mapping: PathMapping,
     commands: List[CompileCommand],
+    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> Optional[TuWrap]:
     """
     Run reflection data collector for input path
     """
     path = mapping.path
-    tu: CollectorRunResult = run_collector(conf, path, path.with_suffix(".py"))
+    tu: CollectorRunResult = run_reflection_tool(
+        conf,
+        path,
+        path.with_suffix(".py"),
+        reflection_tool_profraw_path=reflection_tool_profraw_path,
+    )
     if tu.success:
         relative = Path(conf.output_directory).joinpath(path.relative_to(mapping.root))
 

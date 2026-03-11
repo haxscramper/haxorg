@@ -886,12 +886,12 @@ Opt<int> imm::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBre
 Opt<int> imm::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
 Str imm::ImmAdapterSubtreeAPI::getCleanTitle() const { return org::getCleanText(getThis()->as<imm::ImmSubtree>().getTitle()); }
-Opt<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
-Vec<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertyByKind(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertiesByKind(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> imm::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<imm::ImmSubtree>(), kinds, withPath); }
 
-Vec<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
-Opt<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertiesByKind(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertyByKind(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
 Vec<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(getThis()->as<imm::ImmDocument>(), kind, subkind); }
 Opt<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(getThis()->as<imm::ImmDocument>(), kind, subkind); }
 
@@ -1110,7 +1110,7 @@ Opt<sem::NamedProperty> getPropertyValue(
     CR<Str>                kind,
     CR<Opt<Str>>           sub) {
     if (auto tree = org.asOpt<imm::ImmSubtree>()) {
-        return tree->getProperty(kind, sub);
+        return tree->getPropertyByKind(kind, sub);
     } else if (auto doc = org.asOpt<imm::ImmDocument>()) {
         return doc->getProperty(kind, sub);
     } else {

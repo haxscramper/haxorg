@@ -8,8 +8,11 @@ from pathlib import Path
 import re
 
 from beartype import beartype
-from py_codegen.gen_tu_cpp import *
+from py_codegen.codegen_ir import *
 import py_codegen.proto_lib.reflection_defs as pb
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -81,51 +84,53 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
 
 @beartype
 def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
-    res: QualType = QualType(name=typ.name)
-    res.dbg_origin = typ.dbg_origin
+    res: QualType = QualType(Name=typ.name)
+    res.DbgOrigin = typ.dbg_origin
 
     for space in typ.spaces:
         res.Spaces.append(conv_proto_type(space))
 
     match typ.kind:
         case pb.TypeKind.RegularType:
-            res.isBuiltin = typ.is_builtin
+            res.IsBuiltin = typ.is_builtin
             for param in typ.parameters:
-                res.Parameters.append(conv_proto_type(param))
+                res.Params.append(conv_proto_type(param))
 
             # if not is_anon_name:
             #     assert res.name != "", typ
 
         case pb.TypeKind.FunctionPtr:
             res.Kind = QualTypeKind.FunctionPtr
-            res.func = QualType.Function(
-                ReturnTy=conv_proto_type(typ.parameters[0]),
+            res.Func = QualType.Function(
+                ReturnType=conv_proto_type(typ.parameters[0]),
                 Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
                 if 1 < len(typ.parameters) else [])
 
         case pb.TypeKind.Array:
             res.Kind = QualTypeKind.Array
-            res.Parameters = [conv_proto_type(t) for t in typ.parameters]
+            res.Params = [conv_proto_type(t) for t in typ.parameters]
 
         case pb.TypeKind.TypeExpr:
             res.Kind = QualTypeKind.TypeExpr
-            res.expr = typ.type_value.value
+            res.Expr = typ.type_value.value
 
-    res.isConst = any([it.is_const for it in typ.qualifiers])
-    res.isNamespace = typ.is_namespace
+    res.IsConst = any([it.is_const for it in typ.qualifiers])
+    res.IsNamespace = typ.is_namespace
+    res.IsGlobalNamespace = typ.is_global_namespace
     res.RefKind = {
         pb.ReferenceKind.NotRef: ReferenceKind.NotRef,
         pb.ReferenceKind.LValue: ReferenceKind.LValue,
         pb.ReferenceKind.RValue: ReferenceKind.RValue,
     }[typ.ref_kind]
 
-    res.ptrCount = len([it for it in typ.qualifiers if it.is_pointer])
+    res.PtrCount = len([it for it in typ.qualifiers if it.is_pointer])
 
     return res
 
 
 @beartype
 def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
+    "Convert reflection tool protobuf record to codgen IR struct"
     result = GenTuStruct(
         conv_proto_type(record.name, is_anon_name=not record.has_name),
         GenTuDoc(""),
@@ -133,21 +138,21 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     if record.reflection_params:
         try:
-            result.reflectionParams = GenTuReflParams.model_validate_json(
+            result.ReflectionParams = GenTuReflParams.model_validate_json(
                 record.reflection_params)
 
         except json.JSONDecodeError as e:
-            e.add_note(f"While parsing reflection parameters for {result.name.format()}")
+            e.add_note(f"While parsing reflection parameters for {result.Name.format()}")
             e.add_note(f"Original text is '{record.reflection_params}'")
 
             raise e from None
 
     result.IsExplicitInstantiation = record.is_explicit_instantiation
     result.IsTemplateRecord = record.is_template_record
-    result.original = copy(original)
+    result.OriginalPath = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.IsAbstract = record.is_abstract
-    result.has_name = record.has_name
+    result.HasName = record.has_name
     result.IsDescribedRecord = record.is_described_record
 
     for arg in record.explicit_template_params:
@@ -155,27 +160,27 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     for _field in record.fields:
         if _field.is_type_decl:
-            result.fields.append(
+            result.Fields.append(
                 GenTuField(
-                    type=None,
-                    name=_field.name,
-                    doc=conv_doc_comment(_field.doc),
-                    isTypeDecl=True,
-                    decl=conv_proto_record(_field.type_decl, original),
+                    Type=None,
+                    Name=_field.name,
+                    Doc=conv_doc_comment(_field.doc),
+                    IsTypeDecl=True,
+                    Decl=conv_proto_record(_field.type_decl, original),
                     OriginName="refl",
                 ))
 
         else:
-            result.fields.append(
+            result.Fields.append(
                 GenTuField(
-                    type=conv_proto_type(_field.type),
-                    name=_field.name,
-                    doc=conv_doc_comment(_field.doc),
+                    Type=conv_proto_type(_field.type),
+                    Name=_field.name,
+                    Doc=conv_doc_comment(_field.doc),
                     OriginName="refl",
                 ))
 
     for base in record.bases:
-        result.bases.append(conv_proto_type(base.name))
+        result.Bases.append(conv_proto_type(base.name))
 
     for meth in record.methods:
         # if meth.kind != pb.RecordMethodKind.Base:
@@ -190,37 +195,39 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
         if IsConstructor:
             if result.IsExplicitInstantiation:
-                final_result = result.name.model_copy(update=dict(
-                    Parameters=result.ExplicitTemplateParams))
+                final_result = result.Name.copy_update(
+                    Params=result.ExplicitTemplateParams)
             else:
-                final_result = result.name
+                final_result = result.Name
         else:
             final_result = conv_proto_type(meth.return_ty)
 
         func = GenTuFunction(
-            result=final_result,
-            name=meth.name,
-            doc=conv_doc_comment(meth.doc),
-            isConst=meth.is_const,
-            isStatic=meth.is_static,
-            original=original,
-            arguments=[conv_proto_arg(arg) for arg in meth.args],
-            parentClass=result,
+            ReturnType=final_result,
+            Name=meth.name,
+            Doc=conv_doc_comment(meth.doc),
+            IsConst=meth.is_const,
+            IsStatic=meth.is_static,
+            OriginalPath=original,
+            Args=[conv_proto_arg(arg) for arg in meth.args],
+            ParentClass=result,
             OriginName="refl",
             IsConstructor=IsConstructor,
+            IsVirtual=meth.is_virtual,
+            IsPureVirtual=meth.is_pure_virtual,
         )
 
         if meth.reflection_params:
-            func.reflectionParams = GenTuReflParams.model_validate_json(
+            func.ReflectionParams = GenTuReflParams.model_validate_json(
                 meth.reflection_params)
 
-        result.methods.append(func)
+        result.Methods.append(func)
 
     for record in record.nested_rec:
-        result.nested.append(conv_proto_record(record, original))
+        result.Nested.append(conv_proto_record(record, original))
 
     for _enum in record.nested_enum:
-        result.nested.append(conv_proto_enum(_enum, original))
+        result.Nested.append(conv_proto_enum(_enum, original))
 
     return result
 
@@ -229,19 +236,19 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
-    result.original = copy(original)
+    result.OriginalPath = copy(original)
     result.IsDescribedEnum = en.is_described_enum
     for _field in en.fields:
-        result.fields.append(
+        result.Fields.append(
             GenTuEnumField(
                 _field.name,
                 GenTuDoc(""),
-                value=_field.value,
+                Value=_field.value,
                 OriginName="refl",
             ))
 
     if en.reflection_params:
-        result.reflectionParams = GenTuReflParams.model_validate_json(
+        result.ReflectionParams = GenTuReflParams.model_validate_json(
             en.reflection_params)
 
     return result
@@ -250,9 +257,9 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
 @beartype
 def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
     return GenTuIdent(
-        name=arg.name,
-        type=conv_proto_type(arg.type),
-        value=conv_proto_default(arg.default),
+        Name=arg.name,
+        Type=conv_proto_type(arg.type),
+        Value=conv_proto_default(arg.default),
         OriginName="refl",
     )
 
@@ -260,17 +267,17 @@ def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
 @beartype
 def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunction:
     result = GenTuFunction(
-        result=conv_proto_type(rec.result_ty),
-        name=rec.name,
-        arguments=[conv_proto_arg(arg) for arg in rec.arguments],
-        doc=GenTuDoc(""),
-        original=copy(original),
+        ReturnType=conv_proto_type(rec.result_ty),
+        Name=rec.name,
+        Args=[conv_proto_arg(arg) for arg in rec.arguments],
+        Doc=GenTuDoc(""),
+        OriginalPath=copy(original),
         spaces=[conv_proto_type(T) for T in rec.spaces],
         OriginName="refl",
     )
 
     if rec.reflection_params:
-        result.reflectionParams = GenTuReflParams.model_validate_json(
+        result.ReflectionParams = GenTuReflParams.model_validate_json(
             rec.reflection_params)
 
     return result
@@ -279,9 +286,9 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
 @beartype
 def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypedef:
     return GenTuTypedef(
-        name=conv_proto_type(rec.name),
-        base=conv_proto_type(rec.base_type),
-        original=original,
+        Name=conv_proto_type(rec.name),
+        Base=conv_proto_type(rec.base_type),
+        Original=original,
         OriginName="refl",
     )
 

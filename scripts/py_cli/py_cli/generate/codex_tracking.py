@@ -56,6 +56,7 @@ def _format_list(items: List[org.Org]) -> Tuple[str, ...]:
 
 
 def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
+    "Main entry point for the codex tracking logic"
     assert ctx.opts.generate
     assert ctx.opts.generate.codex_tracking
     target_node = haxorg_cli.parseCachedFile(ctx,
@@ -66,7 +67,7 @@ def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
     ]
 
     tracking: org.AstTrackingMap = org.getAstTrackingMap(
-        org.VecOfSemIdOfOrgVec([target_node] + codex_nodes))
+        org.HstdVecOfSemIdOfOrg([target_node] + codex_nodes))
 
     radio_entries: List[RadioEntry] = list()
 

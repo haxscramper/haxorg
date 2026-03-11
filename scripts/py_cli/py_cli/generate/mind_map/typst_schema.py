@@ -182,7 +182,7 @@ class TypstGenerator:
 
         # Add named arguments
         for arg in named:
-            parts.append(f"{arg.name}: {self._generate_expression(arg.value)}")
+            parts.append(f"{arg.Name}: {self._generate_expression(arg.Value)}")
 
         return ", ".join(parts)
 

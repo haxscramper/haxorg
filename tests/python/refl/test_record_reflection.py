@@ -13,9 +13,9 @@ def test_simple_structure_registration(stable_test_dir: Path) -> None:
         "struct Test {};",
         stable_test_dir=stable_test_dir,
     )
-    assert struct.name.name == "Test"
-    assert len(struct.methods) == 0
-    assert len(struct.fields) == 0
+    assert struct.Name.Name == "Test"
+    assert len(struct.Methods) == 0
+    assert len(struct.Fields) == 0
 
 
 @pytest.mark.test_release
@@ -25,10 +25,10 @@ def test_structure_field_registration(stable_test_dir: Path) -> None:
         "struct Test { int field; };",
         stable_test_dir=stable_test_dir,
     )
-    assert len(struct.fields) == 1
-    field = struct.fields[0]
-    assert field.name == "field"
-    assert field.type.name == "int"
+    assert len(struct.Fields) == 1
+    field = struct.Fields[0]
+    assert field.Name == "field"
+    assert field.Type.Name == "int"
 
 
 @pytest.mark.test_release
@@ -38,23 +38,23 @@ def test_anon_structure_fields(stable_test_dir: Path) -> None:
         "struct Main { union { int int_field; char char_field; }; };",
         stable_test_dir=stable_test_dir,
     )
-    assert len(struct.nested) == 1
-    union: refl_test_driver.GenTuStruct = struct.nested[0]
-    assert not union.has_name
-    assert len(union.fields) == 2
-    field1 = union.fields[0]
-    field2 = union.fields[1]
-    assert field1.name == "int_field"
-    assert field2.name == "char_field"
-    assert field1.type.name == "int"
-    assert field2.type.name == "char"
+    assert len(struct.Nested) == 1
+    union: refl_test_driver.GenTuStruct = struct.Nested[0]
+    assert not union.HasName
+    assert len(union.Fields) == 2
+    field1 = union.Fields[0]
+    field2 = union.Fields[1]
+    assert field1.Name == "int_field"
+    assert field2.Name == "char_field"
+    assert field1.Type.Name == "int"
+    assert field2.Type.Name == "char"
 
 
 @pytest.mark.test_release
 def test_field_with_std_import(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
     code_dir = Path(stable_test_dir)
-    tu = refl_test_driver.run_provider(
+    tu = refl_test_driver.run_reflection_tool_provider(
         "#include <vector>\nstruct Content { std::vector<int> items; };",
         code_dir,
         output_dir=stable_test_dir,
@@ -65,15 +65,15 @@ def test_field_with_std_import(stable_test_dir: Path) -> None:
     assert len(tu.functions) == 0
     assert len(tu.typedefs) == 0
     struct = tu.structs[0]
-    assert struct.name.name == "Content"
-    assert len(struct.fields) == 1
-    field = struct.fields[0]
-    assert field.name == "items"
-    assert field.type.name == "vector"
-    assert len(field.type.Spaces) == 1
-    assert field.type.Spaces[0].name == "std"
-    assert len(field.type.Parameters) == 1
-    assert field.type.Parameters[0].name == "int"
+    assert struct.Name.Name == "Content"
+    assert len(struct.Fields) == 1
+    field = struct.Fields[0]
+    assert field.Name == "items"
+    assert field.Type.Name == "vector"
+    assert len(field.Type.Spaces) == 1
+    assert field.Type.Spaces[0].Name == "std"
+    assert len(field.Type.Params) == 1
+    assert field.Type.Params[0].Name == "int"
 
 
 @pytest.mark.test_release
@@ -85,16 +85,16 @@ def test_anon_struct_for_field(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    assert struct.name.name == "Main"
-    assert len(struct.nested) == 0
-    assert len(struct.fields) == 1
-    assert len(struct.methods) == 0
-    field = struct.fields[0]
-    assert field.isTypeDecl
-    assert field.name == "field"
-    decl = field.decl
-    assert len(decl.fields) == 1
-    assert decl.fields[0].name == "nested"
+    assert struct.Name.Name == "Main"
+    assert len(struct.Nested) == 0
+    assert len(struct.Fields) == 1
+    assert len(struct.Methods) == 0
+    field = struct.Fields[0]
+    assert field.IsTypeDecl
+    assert field.Name == "field"
+    decl = field.Decl
+    assert len(decl.Fields) == 1
+    assert decl.Fields[0].Name == "nested"
 
 
 @pytest.mark.test_release
@@ -105,16 +105,16 @@ def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    assert struct.name.name == "Main"
-    assert len(struct.nested) == 1
-    assert len(struct.fields) == 1
-    assert len(struct.methods) == 0
-    nested = struct.nested[0]
-    field = struct.fields[0]
+    assert struct.Name.Name == "Main"
+    assert len(struct.Nested) == 1
+    assert len(struct.Fields) == 1
+    assert len(struct.Methods) == 0
+    nested = struct.Nested[0]
+    field = struct.Fields[0]
 
-    assert nested.name.name == "Named"
-    assert field.name == "field"
-    assert field.type.name == "Named"
+    assert nested.Name.Name == "Named"
+    assert field.Name == "field"
+    assert field.Type.Name == "Named"
 
 
 @pytest.mark.test_release
@@ -126,9 +126,9 @@ def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
         "test_namespace_extraction_for_nested_struct",
         stable_test_dir=stable_test_dir,
     )
-    field = struct.fields[0]
-    assert len(field.type.Spaces) == 1
-    assert field.type.Spaces[0].name == "Main"
+    field = struct.Fields[0]
+    assert len(field.Type.Spaces) == 1
+    assert field.Type.Spaces[0].Name == "Main"
 
 
 @pytest.mark.test_release
@@ -140,10 +140,10 @@ def test_namespace_extraction(stable_test_dir: Path) -> None:
     )
 
     struct: refl_test_driver.GenTuStruct = entires[1]
-    field = struct.fields[0]
-    assert len(field.type.Spaces) == 1
-    assert field.type.name == "Nest"
-    assert field.type.Spaces[0].name == "Space"
+    field = struct.Fields[0]
+    assert len(field.Type.Spaces) == 1
+    assert field.Type.Name == "Nest"
+    assert field.Type.Spaces[0].Name == "Space"
 
 
 @pytest.mark.test_release
@@ -186,7 +186,7 @@ def test_nim_record_field_conversion(stable_test_dir: Path) -> None:
 def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
     code_dir = stable_test_dir
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         {
             "file.hpp":
                 """
@@ -208,12 +208,12 @@ def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     assert len(tu.enums) == 0
     assert len(tu.typedefs) == 0
     s = tu.structs[0]
-    assert s.name.name == "Test"
-    assert len(s.methods) == 1
-    assert s.methods[0].name == "run_method"
-    assert len(s.fields) == 1
-    assert s.fields[0].type.name == "int"
-    assert s.methods[0].result.name == "int"
+    assert s.Name.Name == "Test"
+    assert len(s.Methods) == 1
+    assert s.Methods[0].Name == "run_method"
+    assert len(s.Fields) == 1
+    assert s.Fields[0].Type.Name == "int"
+    assert s.Methods[0].ReturnType.Name == "int"
 
     formatted = refl_test_driver.format_nim_code(value)
     if refl_test_driver.has_nim_installed():
@@ -233,7 +233,7 @@ echo "method field", value.run_method()
 @pytest.mark.test_release
 def test_annotated_declaration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         """
 struct NotAnnotatedStruct {};
 struct [[refl]] AnnotatedStruct {};
@@ -256,16 +256,89 @@ struct [[refl]] PartiallyAnnotatedFields {
     tu = value.wraps[0].tu
 
     assert len(tu.structs) == 2
-    assert tu.structs[0].name.name == "AnnotatedStruct"
-    assert tu.structs[1].name.name == "PartiallyAnnotatedFields"
+    assert tu.structs[0].Name.Name == "AnnotatedStruct"
+    assert tu.structs[1].Name.Name == "PartiallyAnnotatedFields"
 
     part_a = tu.structs[1]
-    assert len(part_a.fields) == 2
-    assert part_a.fields[0].name == "field1"
-    assert part_a.fields[1].name == "field2"
+    assert len(part_a.Fields) == 2
+    assert part_a.Fields[0].Name == "field1"
+    assert part_a.Fields[1].Name == "field2"
 
     assert len(tu.functions) == 1
-    assert tu.functions[0].name == "function_with_annotation"
+    assert tu.functions[0].Name == "function_with_annotation"
+
+
+@pytest.mark.test_release
+def test_reflection_bases(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    value = refl_test_driver.get_struct(
+        """
+        struct A {};
+        struct B {};
+        template <typename T1, typename T2> struct C {};
+        struct [[refl]] Derived : public A, public B, public C<int, float> {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+    )
+
+    assert value.Name.Name == "Derived"
+    assert len(value.Bases) == 3
+    assert value.Bases[0].Name == "A"
+    assert value.Bases[1].Name == "B"
+    assert value.Bases[2].Name == "C"
+    assert value.Bases[2].Params[0].Name == "int"
+    assert value.Bases[2].Params[1].Name == "float"
+
+
+@pytest.mark.test_release
+def test_trivial_method_reflection(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    value = refl_test_driver.get_struct(
+        """
+        struct [[refl]] Derived {
+            [[refl]] int test1();
+            [[refl]] void test2();
+            [[refl]] virtual int test3() const = 0;
+            [[refl]] virtual int test4() const;
+            [[refl]] int test5(int default_value = 5);
+            [[refl]] static int test6();
+        };
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+    )
+
+    assert value.Name.Name == "Derived"
+    assert len(value.Methods) == 6
+    m = value.Methods
+    assert m[0].Name == "test1"
+    assert m[0].ReturnType.Name == "int"
+
+    assert m[1].Name == "test2"
+    assert m[1].ReturnType.Name == "void"
+
+    assert m[2].Name == "test3"
+    assert m[2].ReturnType.Name == "int"
+    assert m[2].IsConst == True
+    assert m[2].IsVirtual == True
+    assert m[2].IsPureVirtual == True
+
+    assert m[3].Name == "test4"
+    assert m[3].ReturnType.Name == "int"
+    assert m[3].IsConst == True
+    assert m[3].IsVirtual == True
+
+    assert m[4].Name == "test5"
+    assert m[4].ReturnType.Name == "int"
+    assert len(m[4].Args) == 1
+    assert m[4].Args[0].Type.Name == "int"
+    assert m[4].Args[0].Value == "5"
+    assert m[4].Args[0].Name == "default_value"
+
+    assert m[5].Name == "test6"
+    assert m[5].ReturnType.Name == "int"
+    assert m[5].IsStatic == True
 
 
 @pytest.mark.test_release
@@ -275,7 +348,7 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     code_dir = stable_test_dir
-    value = refl_test_driver.run_provider(
+    value = refl_test_driver.run_reflection_tool_provider(
         {
             "a.hpp": "struct B; struct A { B* field; };",
             "b.hpp": "struct A; struct B { A* field; };"
@@ -292,8 +365,8 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     assert a.name == "a"
     assert b.name == "b"
 
-    assert all([it.original == code_dir.joinpath("a.hpp") for it in a.tu.structs])
-    assert all([it.original == code_dir.joinpath("b.hpp") for it in b.tu.structs])
+    assert all([it.OriginalPath == code_dir.joinpath("a.hpp") for it in a.tu.structs])
+    assert all([it.OriginalPath == code_dir.joinpath("b.hpp") for it in b.tu.structs])
 
     assert len(a.tu.functions) == 0
     assert len(b.tu.functions) == 0
@@ -301,8 +374,8 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     assert len(b.tu.structs) == 2
     assert a.tu.structs[0].IsForwardDecl
     assert b.tu.structs[0].IsForwardDecl
-    assert a.tu.structs[0].name.name == "B", [s.name.name for s in a.tu.structs]
-    assert b.tu.structs[0].name.name == "A", [s.name.name for s in b.tu.structs]
+    assert a.tu.structs[0].Name.Name == "B", [s.Name.Name for s in a.tu.structs]
+    assert b.tu.structs[0].Name.Name == "A", [s.Name.Name for s in b.tu.structs]
 
     formatted = refl_test_driver.format_nim_code(value)
     assert "a.nim" in formatted

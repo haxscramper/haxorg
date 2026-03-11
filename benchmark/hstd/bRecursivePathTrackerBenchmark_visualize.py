@@ -245,7 +245,8 @@ class BenchmarkVisualizer:
         # logger.info(f"{(operation, implementation, param1, param2)}")
         return operation, implementation, param1, param2
 
-    def _convert_to_ms(self, time_value: float, time_unit: str) -> float:
+    def _convert_to_ms(self, time_value: float | None | int,
+                       time_unit: str | None) -> float:
         if time_value is None:
             return 0
         elif time_unit == "ns":

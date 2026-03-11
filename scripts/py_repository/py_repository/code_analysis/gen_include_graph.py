@@ -11,8 +11,7 @@ import dominate.util
 import graphviz
 import igraph
 from py_ci.data_build import get_deps_install_config
-from py_codegen.astbuilder_cpp import QualType, QualTypeKind
-from py_codegen.gen_tu_cpp import GenTuInclude
+from py_codegen.codegen_ir import GenTuInclude, QualTypeKind, QualType
 import py_codegen.proto_lib.reflection_defs as pb
 from py_codegen.refl_read import conv_proto_file, ConvTu
 from py_codegen.refl_wrapper_graph import (
@@ -298,9 +297,9 @@ def _types_match(type1: QualType, type2: QualType, verbose: bool = False) -> boo
 
     match type1.Kind:
         case QualTypeKind.RegularType:
-            if type1.name != type2.name:
+            if type1.Name != type2.Name:
                 if verbose:
-                    log(CAT).debug(f"  {type1.name} != {type2.name}")
+                    log(CAT).debug(f"  {type1.Name} != {type2.Name}")
 
                 return False
 
@@ -332,7 +331,7 @@ def _is_type_declared_in_target(
         if _types_match(qual_type, target_type, verbose=verbose):
             return True
 
-    for param in qual_type.Parameters:
+    for param in qual_type.Params:
         if _is_type_declared_in_target(param, target_declared_types, verbose=verbose):
             return True
 

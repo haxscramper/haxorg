@@ -7,6 +7,7 @@ from py_repository.repo_tasks.command_execution import (
     get_uv_develop_sync_flags,
     run_command,
 )
+from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import get_tmpdir
 from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
@@ -24,6 +25,9 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues.
     """
+
+    for file in get_build_root(ctx).rglob("*.gcda"):
+        file.unlink()
 
     args = arg
     env = dict()
@@ -64,12 +68,15 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         "--disable-warnings",
     ]
 
-    if not ctx.config.py_test_conf.use_valgrind:
+    if not ctx.config.py_test_conf.use_valgrind and not ctx.config.py_test_conf.use_lldb:
         pytest_cmd += [
             "--cov=scripts",
             "--cov-report=html",
             "--cov-context=test",
         ]
+
+    if ctx.config.py_test_conf.use_valgrind and ctx.config.py_test_conf.use_lldb:
+        raise RuntimeError("`use_lldb` and `use_valgrind` are mutually exclusive")
 
     if ctx.config.py_test_conf.use_valgrind:
         env["DEBUGINFOD_URLS"] = "https://debuginfod.archlinux.org"
@@ -80,6 +87,24 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
             "--show-leak-kinds=definite",
             f"--suppressions={str(ctx.config.py_test_conf.valgrind_suppression)}",
             "--log-file=" + str(get_tmpdir().joinpath("valgrind-out.txt")),
+            "python",
+            "-m",
+            *pytest_cmd,
+        ]
+    elif ctx.config.py_test_conf.use_lldb:
+        env["DEBUGINFOD_URLS"] = "https://debuginfod.archlinux.org"
+        uv_cmd_args = [
+            "lldb",
+            "--batch",
+            "-o",
+            "breakpoint set -n __cxa_call_terminate",
+            "-o",
+            "breakpoint set -n std::terminate",
+            "-o",
+            "run",
+            "-o",
+            "thread backtrace all",
+            "--",
             "python",
             "-m",
             *pytest_cmd,
@@ -101,8 +126,8 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         allow_fail=True,
         env=env,
         print_output=ctx.config.py_test_conf.real_time_output_print,
-        stderr_debug=get_tmpdir().joinpath("test_stderr.txt"),
-        stdout_debug=get_tmpdir().joinpath("test_stdout.txt"),
+        stderr_debug=get_tmpdir().joinpath("test_stderr.log"),
+        stdout_debug=get_tmpdir().joinpath("test_stdout.log"),
     )
 
     if not ctx.config.py_test_conf.real_time_output_print:

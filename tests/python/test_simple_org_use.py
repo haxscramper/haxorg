@@ -219,13 +219,13 @@ def test_segment_tree() -> None:
     segments = [
         org.SequenceSegmentGroup(
             kind=1,
-            segments=org.VecOfSequenceSegmentVec(
+            segments=org.HstdVecOfSequenceSegment(
                 [org.SequenceSegment(kind=2, first=0, last=2)]),
         )
     ]
 
     annotations: List[org.SequenceAnnotation] = org.annotateSequence(
-        org.VecOfSequenceSegmentGroupVec(segments), 0, 2)
+        org.HstdVecOfSequenceSegmentGroup(segments), 0, 2)
 
     assert len(annotations) == 1
     assert annotations[0].first == 0

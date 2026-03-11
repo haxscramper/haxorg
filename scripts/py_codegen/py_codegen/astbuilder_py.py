@@ -4,20 +4,14 @@ from typing import NewType, TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import List, Optional
 import py_haxorg.astbuilder.astbuilder_base as base
+from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
 @beartype
 @dataclass
-class PyType:
-    Name: str
-    Params: List['PyType'] = field(default_factory=list)
-
-
-@beartype
-@dataclass
 class IdentParams:
-    Type: PyType
+    Type: QualType
     Name: str
 
 
@@ -31,7 +25,7 @@ class DecoratorParams:
 @dataclass
 class FunctionDefParams:
     Name: str
-    ResultTy: Optional[PyType]
+    ResultTy: Optional[QualType]
     Args: List[IdentParams] = field(default_factory=list)
     Decorators: List[DecoratorParams] = field(default_factory=list)
     Doc: str = ""
@@ -43,12 +37,14 @@ class FunctionDefParams:
 @dataclass
 class MethodParams:
     Func: FunctionDefParams
+    IsStatic: bool = False
+    "Don't add `self` for static method generation"
 
 
 @beartype
 @dataclass
 class FieldParams:
-    Type: PyType
+    Type: QualType
     Name: str
 
 
@@ -57,7 +53,7 @@ class FieldParams:
 class ClassParams:
     Name: str
     Methods: List[MethodParams] = field(default_factory=list)
-    Bases: List[PyType] = field(default_factory=list)
+    Bases: List[QualType] = field(default_factory=list)
     Fields: List[FieldParams] = field(default_factory=list)
 
 
@@ -84,7 +80,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Decorator(self, p: DecoratorParams) -> BlockId:
         return self.b.line([self.string("@"), self.string(p.Name)])
 
-    def Type(self, p: PyType) -> BlockId:
+    def Type(self, p: QualType) -> BlockId:
         if p.Params:
             return self.b.line([
                 self.string(p.Name),
@@ -133,7 +129,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Method(self, p: MethodParams) -> BlockId:
         b = self.b
 
-        def_head = self.FuncHead(p.Func, withSelf=True)
+        def_head = self.FuncHead(p.Func, withSelf=not p.IsStatic)
 
         if p.Func.IsStub:
             def_head.append(b.text(" ..."))

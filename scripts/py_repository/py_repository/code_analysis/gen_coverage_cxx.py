@@ -5,13 +5,11 @@
 ## Coverage generator uses database structure produced in the `profdata_merger.cpp`
 from collections import defaultdict
 from dataclasses import dataclass, field
-import enum
 import functools
 import itertools
 import json
 from pathlib import Path
 from typing import Type
-import weakref
 
 from beartype import beartype
 from beartype.typing import (
@@ -29,19 +27,12 @@ from beartype.typing import (
 )
 from dominate import document
 import dominate.tags as tags
-import more_itertools
 import py_haxorg.pyhaxorg_wrap as org
 from py_repository.code_analysis.gen_coverage_cookies import *
 import py_repository.repo_docgen.gen_coverage_data as docdata
 from py_repository.repo_docgen.gen_coverage_utils import abbreviate_token_name
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.rich_utils import render_rich_pprint
-from py_scriptutils.script_logging import (
-    ExceptionContextNote,
-    log,
-    pprint_to_file,
-    to_debug_json,
-)
+from py_scriptutils.script_logging import (ExceptionContextNote, log)
 from py_scriptutils.sqlalchemy_utils import (
     BoolColumn,
     ForeignId,
@@ -68,15 +59,15 @@ CoverageSchema: Type = declarative_base()
 
 class CovFunction(CoverageSchema):
     """
-    @brief Naming information for the covered function
+    Naming information for the covered function
     """
     __tablename__ = "CovFunction"
     Id = IdColumn()
-    ## @brief Original symbol for the function
+    "Original symbol for the function"
     Mangled = StrColumn()
-    ## @brief Demangled signature of the function
+    "Demangled signature of the function"
     Demangled = StrColumn()
-    ## @brief Function signature parsed using LLVM demangler
+    "Function signature parsed using LLVM demangler"
     Parsed = Column(JSON)
 
 
@@ -87,7 +78,7 @@ class CovContextKind(enum.Enum):
 
 class CovContext(CoverageSchema):
     """
-    @brief Where the test coverage information comes from
+    Where the test coverage information comes from
 
     Profile data merger aggregates several coverage runs into a single database, this table
     helps to differentiate between various sources of the data
@@ -97,9 +88,9 @@ class CovContext(CoverageSchema):
     Name = StrColumn()
     Parent = StrColumn(nullable=True)
     Profile = StrColumn()
-    ## @brief Extra metadata about path, precise location of the test definition in the code etc.
+    "Extra metadata about path, precise location of the test definition in the code etc."
     Params = Column(JSON)
-    ## @brief Path to executable file with the test
+    "Path to executable file with the test"
     Binary = StrColumn()
 
     def getKind(self) -> CovContextKind:
@@ -380,12 +371,15 @@ class CovFileContextModel(BaseModel, extra="forbid"):
         description="Segment ID to the coverage segment information")
 
 
-class AnnotatedFile(BaseModel, extra="forbid"):
+class AnnotatedFile(BaseModel):
+    "Source code file and associated test run segments"
     Lines: List[AnnotatedLine] = Field(default_factory=list)
-    # Mapping from execution segment ID to the coverage context for the execution
+    "Full set of file lines"
     SegmentRunContexts: Dict[int, GenCovSegmentContext] = Field(
         default_factory=dict,
         exclude=True,
+        description=
+        "Mapping from execution segment ID to the coverage context for the execution",
     )
 
     SegmentFunctions: Dict[int, CovFunction] = Field(
@@ -401,6 +395,7 @@ class AnnotatedFile(BaseModel, extra="forbid"):
     )
 
     class Config:
+        extra = "forbid"
         orm_mode = True
         arbitrary_types_allowed = True
 
@@ -430,14 +425,14 @@ class AnnotatedFile(BaseModel, extra="forbid"):
 
         @beartype
         def cmpSegment(lhs_idx: int, rhs_idx: int) -> bool:
-            # Taking first original ID index because all runs for a given segment will have the same size.
+            "Taking first original ID index because all runs for a given segment will have the same size."
             lhs = get1(self.SegmentList[lhs_idx].OriginalId[0])
             rhs = get1(self.SegmentList[rhs_idx].OriginalId[0])
 
-            if lhs == None:
+            if lhs is None:
                 return True
 
-            elif rhs == None:
+            elif rhs is None:
                 return False
 
             elif lhs.Segment.startLoc() != rhs.Segment.startLoc():
@@ -1053,8 +1048,8 @@ def get_annotated_file_for_session(
     run_contexts: Dict[int, GenCovSegmentContext] = dict()
     run_functions: Dict[int, CovFunction] = dict()
 
-    if file_cov != None:
-        log(CAT).info(f"Has file coverage for {abs_path}")
+    if file_cov is not None:
+        # log(CAT).debug(f"Has file coverage for {abs_path}")
         with ExceptionContextNote(f"root_path={root_path} abs_path={abs_path}"):
             with GlobCompleteEvent("Get flat coverage", "cov"):
                 # Get all segments applicable for this file and group them into `(First, Last) -> Data`
@@ -1157,7 +1152,7 @@ def get_annotated_file_for_session(
 
     with GlobCompleteEvent("Annotate sequence", "cov"):
         token_segmented = org.annotateSequence(
-            groups=org.VecOfSequenceSegmentGroupVec(groups),
+            groups=org.HstdVecOfSequenceSegmentGroup(groups),
             first=0,
             last=len(file_full_content),
         )
@@ -1378,10 +1373,10 @@ def get_file_annotation_html(file: AnnotatedFile) -> FileAnnotationData:
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.css")
 
 js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/repo_docgen/gen_documentation.js")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.js")
 
 
 @beartype

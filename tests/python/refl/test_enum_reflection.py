@@ -12,10 +12,10 @@ def test_enum_field_extract(stable_test_dir: Path) -> None:
         "enum CEnum { Member1, Member2 };",
         stable_test_dir=stable_test_dir,
     )
-    assert enum.name.name == "CEnum"
-    assert len(enum.fields) == 2
-    assert enum.fields[0].name == "Member1"
-    assert enum.fields[1].name == "Member2"
+    assert enum.Name.Name == "CEnum"
+    assert len(enum.Fields) == 2
+    assert enum.Fields[0].Name == "Member1"
+    assert enum.Fields[1].Name == "Member2"
 
 
 @pytest.mark.test_release
@@ -25,9 +25,9 @@ def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
         "namespace Space { enum Enum { member1 }; }",
         stable_test_dir=stable_test_dir,
     )
-    assert enum.name.name == "Enum"
-    assert len(enum.name.Spaces) == 1
-    assert enum.name.Spaces[0].name == "Space"
+    assert enum.Name.Name == "Enum"
+    assert len(enum.Name.Spaces) == 1
+    assert enum.Name.Spaces[0].Name == "Space"
 
 
 @pytest.mark.test_release
@@ -64,7 +64,7 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
 
     assert nim_set_to_cint
     assert len(nim_set_to_cint.Arguments) == 1
-    assert nim_set_to_cint.ReturnTy.Name == "cint"
+    assert nim_set_to_cint.ReturnType.Name == "cint"
     assert nim_set_to_cint.Arguments[0].Type.Parameters[0].Name == "En"
     assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
 
@@ -76,7 +76,7 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
 
     assert c_en_to_cint
     assert len(c_en_to_cint.Arguments) == 1
-    assert c_en_to_cint.ReturnTy.Name == "cint"
+    assert c_en_to_cint.ReturnType.Name == "cint"
     assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
 
     # Convert nim enum to cint value
@@ -87,17 +87,17 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
 
     assert en_to_cint
     assert len(en_to_cint.Arguments) == 1
-    assert en_to_cint.ReturnTy.Name == "cint"
+    assert en_to_cint.ReturnType.Name == "cint"
     assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
 
     nim_to_c = first_true(con.procs, default=None, pred=lambda it: it.Name == "to_c_En")
     assert nim_to_c
     assert len(nim_to_c.Arguments) == 1
     assert nim_to_c.Arguments[0].Type.Name == "En"
-    assert nim_to_c.ReturnTy.Name == "c_En"
+    assert nim_to_c.ReturnType.Name == "c_En"
 
     c_to_nim = first_true(con.procs, default=None, pred=lambda it: it.Name == "to_En")
     assert c_to_nim
     assert len(c_to_nim.Arguments) == 1
     assert c_to_nim.Arguments[0].Type.Name == "c_En"
-    assert c_to_nim.ReturnTy.Name == "En"
+    assert c_to_nim.ReturnType.Name == "En"

@@ -2,134 +2,52 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import Union
+from beartype.typing import Union, List, Optional, Dict, Any
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.gen_tu_cpp import *
-from py_haxorg.astbuilder.astbuilder_base import pascal_case
+from py_codegen import codegen_ir
+from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
+from py_codegen.codegen_ir import QualType
+from py_haxorg.layout.wrap import BlockId
 
 
 @beartype
-def js_ident(name: str) -> str:
-    return sanitize_ident(name, {
-        "function",
-    })
+def get_function_wasm_name(Func: codegen_ir.GenTuFunction,
+                           conf: EmbindAstbuilderConfig) -> str:
+    if Func.ReflectionParams.unique_name:
+        return Func.ReflectionParams.unique_name
 
-
-@beartype
-def get_function_wasm_name(Func: GenTuFunction) -> str:
-    if Func.reflectionParams.unique_name:
-        return Func.reflectionParams.unique_name
-
-    elif Func.reflectionParams.wrapper_name:
-        return Func.reflectionParams.wrapper_name
+    elif Func.ReflectionParams.wrapper_name:
+        return Func.ReflectionParams.wrapper_name
 
     else:
-        return js_ident(Func.name)
-
-
-GEN = "haxorg_wasm"
-
-
-@beartype
-def ts_type(Typ: QualType, base_map: GenTypeMap) -> QualType:
-    flat = [N for N in Typ.flatQualName() if N not in IGNORED_NAMESPACES]
-
-    wrapper_override = base_map.get_wrapper_type(Typ)
-
-    par0 = Typ.par0()
-
-    if flat == ["std", "shared_ptr"]:
-        assert par0, Typ
-
-    if flat == ["std", "shared_ptr"] and 1 == len(
-            Typ.Parameters) and base_map.is_known_type(
-                par0) and base_map.get_one_type_for_qual_name(  # type: ignore
-                    par0
-                ).reflectionParams.backend.wasm.holder_type == "shared":  # type: ignore
-        assert par0
-        return ts_type(par0, base_map=base_map)
-
-    elif wrapper_override:
-        name = wrapper_override
-
-    elif Typ.name == "char" and Typ.isConst and Typ.ptrCount == 1:
-        name = "string"
-
-    else:
-        match flat:
-            case ["int"] | ["float"] | ["double"]:
-                name = "number"
-
-            case ["bool"]:
-                name = "boolean"
-
-            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
-                                                            ] | ["std", "basic_string"]:
-                name = "string"
-
-            case ["void"]:
-                name = flat[0]
-
-            case ["SemId"]:
-                assert par0
-                return ts_type(par0, base_map)
-
-            case ["Opt"] | ["std", "optional"]:
-                name = GEN + ".Optional"
-
-            case ["Vec"] | ["immer", "box"] | ["ImmIdT"] | ["immer", "flex_vector"] | [
-                "hstd", "UnorderedMap"
-            ] | ["UnorderedMap"] | ["std", "variant"] | ["hstd", "Variant"] | [
-                "ImmBox"
-            ] | ["ImmVec"] | ["hstd", "IntSet"] | ["IntSet"]:
-                name = GEN + "." + Typ.getBindName(
-                    ignored_spaces=IGNORED_NAMESPACES,
-                    withParams=False,
-                )
-
-            case _:
-                name = Typ.getBindName(
-                    ignored_spaces=IGNORED_NAMESPACES,
-                    withParams=False,
-                )
-
-    struct = base_map.get_struct_for_qual_name(Typ)
-    if not struct or struct.reflectionParams.wrapper_has_params:
-        return QualType(
-            name=name,
-            Parameters=[ts_type(
-                P,
-                base_map=base_map,
-            ) for P in Typ.Parameters],
-        )
-
-    else:
-        return QualType(name=name)
+        return conf.getSanitizedIdent(Func.Name)
 
 
 @beartype
 class WasmField():
-    Field: GenTuField
+    Field: codegen_ir.GenTuField
 
-    def __init__(self, Field: GenTuField) -> None:
+    def __init__(self, Field: codegen_ir.GenTuField,
+                 conf: EmbindAstbuilderConfig) -> None:
         self.Field = Field
+        self.conf = conf
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [
             ast.line([
-                ast.string(self.Field.name),
+                ast.string(self.Field.Name),
                 ast.string(": "),
-                ast.Type(ts_type(self.Field.type, base_map))
-                if self.Field.type else ast.string("any"),
+                ast.Type(self.conf.getBackendType(self.Field.Type))
+                if self.Field.Type else ast.string("any"),
             ])
         ]
 
-    def build_bind(self, ast: ASTBuilder, Class: QualType) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder, Class: QualType) -> BlockId:
         return ast.XCall(
             ".property",
             args=[
-                ast.StringLiteral(self.Field.name),
-                ast.Addr(ast.Scoped(Class, ast.string(self.Field.name))),
+                ast.StringLiteral(self.Field.Name),
+                ast.Addr(ast.Scoped(Class, ast.string(self.Field.Name))),
             ],
         )
 
@@ -142,77 +60,85 @@ class WasmBindPass:
 
 @beartype
 class WasmTypedef:
-    Def: GenTuTypedef
+    Def: codegen_ir.GenTuTypedef
+    conf: EmbindAstbuilderConfig
 
-    def __init__(self, Def: GenTuTypedef) -> None:
+    def __init__(self, Def: codegen_ir.GenTuTypedef,
+                 conf: EmbindAstbuilderConfig) -> None:
         self.Def = Def
+        self.conf = conf
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [
             ast.line([
                 ast.string("export type "),
-                ast.Type(ts_type(self.Def.name, base_map)),
+                ast.Type(self.conf.getBackendType(self.Def.Name)),
                 ast.string(" = "),
-                ast.Type(ts_type(self.Def.base, base_map)),
+                ast.Type(self.conf.getBackendType(self.Def.Base)),
                 ast.string(";"),
             ])
         ]
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def build_bind(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return []
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return []
 
 
 @beartype
 class WasmFunction():
-    Func: GenTuFunction
+    conf: EmbindAstbuilderConfig
+    Func: codegen_ir.GenTuFunction
     Body: List[BlockId] = []
 
     def getWasmName(self) -> str:
-        return get_function_wasm_name(self.Func)
+        return get_function_wasm_name(self.Func, self.conf)
 
-    def __init__(self, Func: GenTuFunction, Body: List[BlockId] = []) -> None:
+    def __init__(self,
+                 Func: codegen_ir.GenTuFunction,
+                 conf: EmbindAstbuilderConfig,
+                 Body: List[BlockId] = []) -> None:
         self.Func = Func
         self.Body = Body
+        self.conf = conf
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
-        return self.get_typedef(ast, base_map)
+    def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
+        return self.get_typedef(ast)
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [
             ast.line([
                 ast.string(self.getWasmName()),
                 ast.pars(
                     ast.csv([
                         ast.line([
-                            ast.string(js_ident(F.name)),
+                            ast.string(self.conf.getSanitizedIdent(F.Name)),
                             ast.string(": "),
-                            ast.Type(ts_type(F.type, base_map)),
-                        ]) for F in self.Func.arguments
+                            ast.Type(self.conf.getBackendType(F.Type)),
+                        ]) for F in self.Func.Args
                     ])),
                 ast.string(": "),
-                ast.Type(ts_type(self.Func.result, base_map))
-                if self.Func.result else ast.string("void"),
+                ast.Type(self.conf.getBackendType(self.Func.ReturnType))
+                if self.Func.ReturnType else ast.string("void"),
                 ast.string(";"),
             ])
         ]
 
     def build_call_pass(
         self,
-        ast: ASTBuilder,
-        Args: List[GenTuIdent],
+        ast: cpp.ASTBuilder,
+        Args: List[codegen_ir.GenTuIdent],
         FunctionQualName: BlockId,
         Class: Optional[QualType] = None,
         IsConst: bool = False,
     ) -> BlockId:
         if self.Body:
             return ast.Lambda(
-                LambdaParams(
-                    ResultTy=self.Func.result,
+                cpp.LambdaParams(
+                    ResultTy=self.Func.ReturnType,
                     Args=[
-                        ParmVarParams(Arg.type, Arg.name) for Arg in self.Func.arguments
+                        cpp.ParmVarParams(Arg.Type, Arg.Name) for Arg in self.Func.Args
                     ],
                     Body=self.Body,
                     IsLine=False,
@@ -227,15 +153,15 @@ class WasmFunction():
                 Params=[function_type],
             )
 
-    def build_bind(self, b: ASTBuilder) -> BlockId:
+    def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
 
         if self.Func.spaces:
             full_name = b.Scoped(
-                QualType(name=self.Func.spaces[-1].name, Spaces=self.Func.spaces[:-1]),
-                b.string(self.Func.name))
+                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                b.string(self.Func.Name))
 
         else:
-            full_name = b.string(self.Func.name)
+            full_name = b.string(self.Func.Name)
 
         return b.XCall(
             "emscripten::function",
@@ -243,7 +169,7 @@ class WasmFunction():
                 b.Literal(self.getWasmName()),
                 self.build_call_pass(
                     b,
-                    self.Func.arguments,
+                    self.Func.Args,
                     FunctionQualName=full_name,
                 ),
             ],
@@ -253,33 +179,35 @@ class WasmFunction():
 
 @beartype
 class WasmEnum():
-    Enum: GenTuEnum
+    Enum: codegen_ir.GenTuEnum
+    conf: EmbindAstbuilderConfig
 
-    def __init__(self, Enum: GenTuEnum) -> None:
+    def __init__(self, Enum: codegen_ir.GenTuEnum, conf: EmbindAstbuilderConfig) -> None:
         self.Enum = Enum
+        self.conf = conf
 
     def getWasmName(self) -> str:
-        return self.Enum.name.getBindName(ignored_spaces=IGNORED_NAMESPACES)
+        return self.conf.getBindName(self.Enum.Name)
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [
             ast.block(head=ast.string(f"{self.getWasmName()}:"),
                       content=[
-                          ast.string(f"{F.name}: {self.getWasmName()},")
-                          for F in self.Enum.fields
+                          ast.string(f"{F.Name}: {self.getWasmName()},")
+                          for F in self.Enum.Fields
                       ]),
             ast.string(
                 f"format_{self.getWasmName()}(value: {self.getWasmName()}): string;")
         ]
 
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
+    def get_typedef(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         body = []
-        for field in self.Enum.fields:
-            if field.value:
-                body.append(ast.string(f"{field.name} = {field.value},"))
+        for field in self.Enum.Fields:
+            if field.Value:
+                body.append(ast.string(f"{field.Name} = {field.Value},"))
 
             else:
-                body.append(ast.string(f"{field.name},"))
+                body.append(ast.string(f"{field.Name},"))
 
         return [
             ast.block(
@@ -288,13 +216,13 @@ class WasmEnum():
             )
         ]
 
-    def build_bind(self, b: ASTBuilder) -> BlockId:
+    def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
         return b.Call(
             func=b.string("org::bind::js::bind_enum"),
             Params=[
-                self.Enum.name,
+                self.Enum.Name,
             ],
-            Args=[b.StringLiteral(self.Enum.name.getBindName())],
+            Args=[b.StringLiteral(self.conf.getBindName(self.Enum.Name))],
             Stmt=True,
         )
 
@@ -306,29 +234,30 @@ class WasmMethod(WasmFunction):
 
     def __init__(
         self,
-        Func: GenTuFunction,
+        Func: codegen_ir.GenTuFunction,
+        conf: EmbindAstbuilderConfig,
         ExplicitClassParam: bool = False,
     ):
-        super().__init__(Func)
+        super().__init__(Func, conf)
         self.ExplicitClassParam = ExplicitClassParam
 
-    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:  # type: ignore
+    def build_bind(self, Class: QualType, ast: cpp.ASTBuilder) -> BlockId:
         b = ast.b
 
-        Args: List[GenTuIdent] = []
+        Args: List[codegen_ir.GenTuIdent] = []
         if self.Func.IsConstructor or self.ExplicitClassParam:
             pass
 
-        elif self.Func.impl:
-            Args = [GenTuIdent(type=Class.asConstRef(), name="_self")]
+        elif self.Func.Body:
+            Args = [codegen_ir.GenTuIdent(Type=Class.asConstRef(), Name="_self")]
 
-        Args += self.Func.arguments
+        Args += self.Func.Args
 
         call_pass = self.build_call_pass(
             ast,
-            FunctionQualName=ast.Scoped(Class, ast.string(self.Func.name)),
-            Class=None if self.Func.isStatic else Class,
-            IsConst=self.Func.isConst,
+            FunctionQualName=ast.Scoped(Class, ast.string(self.Func.Name)),
+            Class=None if self.Func.IsStatic else Class,
+            IsConst=self.Func.IsConst,
             Args=Args,
         )
 
@@ -341,10 +270,10 @@ class WasmMethod(WasmFunction):
 
         def_args.append(call_pass)
 
-        if self.Func.isPureVirtual:
+        if self.Func.IsPureVirtual:
             def_args.append(ast.XCall("emscripten::pure_virtual"))
 
-        if self.Func.isStatic:
+        if self.Func.IsStatic:
             return ast.XCall(".class_function", def_args, Line=True)
 
         else:
@@ -353,35 +282,52 @@ class WasmMethod(WasmFunction):
 
 @beartype
 class WasmClass():
+    conf: EmbindAstbuilderConfig
 
-    def __init__(self, Record: GenTuStruct) -> None:
+    def __init__(self, Record: codegen_ir.GenTuStruct,
+                 conf: EmbindAstbuilderConfig) -> None:
         self.Record = Record
+        self.conf = conf
 
     def getWasmName(self) -> str:
-        if self.Record.reflectionParams.wrapper_name:
-            return self.Record.reflectionParams.wrapper_name
-
-        else:
-            return self.Record.name.getBindName(ignored_spaces=IGNORED_NAMESPACES)
+        return self.conf.getBindName(self.Record.Name)
 
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
 
-    def get_module_use(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
-        return [ast.string(f"{self.getWasmName()}: {self.getWasmName()}Constructor;")]
-
-    def get_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> List[BlockId]:
-        body = []
-
-        for Meth in self.Record.methods:
-            body.extend(WasmMethod(Meth).get_typedef(ast, base_map=base_map))
-
-        for Field in self.Record.fields:
-            if Field.isStatic:
+    def getEntryForName(self, name: str) -> Any:
+        result = list()
+        for Meth in self.Record.Methods:
+            if Meth.IsConstructor or Meth.Name.startswith("sub_variant_get"):
                 continue
 
             else:
-                body.extend(WasmField(Field).get_typedef(ast, base_map=base_map))
+                m = WasmMethod(Meth, self.conf)
+                if m.getWasmName() == name:
+                    result.append(m)
+
+        for Field in self.Record.Fields:
+            f = WasmField(Field, self.conf)
+            if f.Field.Name == name:
+                result.append(f)
+
+        return result
+
+    def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
+        return [ast.string(f"{self.getWasmName()}: {self.getWasmName()}Constructor;")]
+
+    def get_typedef(self, ast: cpp.ASTBuilder) -> List[BlockId]:
+        body = []
+
+        for Meth in self.Record.Methods:
+            body.extend(WasmMethod(Meth, self.conf).get_typedef(ast))
+
+        for Field in self.Record.Fields:
+            if Field.IsStatic:
+                continue
+
+            else:
+                body.extend(WasmField(Field, self.conf).get_typedef(ast))
 
         return [
             ast.block(
@@ -394,17 +340,17 @@ class WasmClass():
             )
         ]
 
-    def build_bind(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         b = ast.b
 
         sub: List[BlockId] = []
 
         HolderType = None
 
-        if self.Record.reflectionParams:
-            match self.Record.reflectionParams.backend.wasm.holder_type:
+        if self.Record.ReflectionParams:
+            match self.Record.ReflectionParams.backend.wasm.holder_type:
                 case QualType():
-                    HolderType = self.Record.reflectionParams.backend.wasm.holder_type.withTemplateParams(
+                    HolderType = self.Record.ReflectionParams.backend.wasm.holder_type.withTemplateParams(
                         [self.getCxxName()])
 
                 case "shared":
@@ -428,15 +374,15 @@ class WasmClass():
                     args=[ast.StringLiteral(self.getWasmName())],
                 ))
 
-        for Field in self.Record.fields:
-            if Field.isStatic:
+        for Field in self.Record.Fields:
+            if Field.IsStatic:
                 continue
 
             else:
-                sub.append(WasmField(Field).build_bind(ast, self.getCxxName()))
+                sub.append(WasmField(Field, self.conf).build_bind(ast, self.getCxxName()))
 
         has_constructor = False
-        for Meth in self.Record.methods:
+        for Meth in self.Record.Methods:
             # Skip explicit wrapping of default constructors
             if Meth.IsConstructor:
                 if HolderType:
@@ -447,24 +393,25 @@ class WasmClass():
                                 ast.Addr(
                                     ast.Type(
                                         QualType(
-                                            name="org::bind::js::holder_type_constructor",
-                                            Parameters=[
+                                            Name="org::bind::js::holder_type_constructor",
+                                            Params=[
                                                 self.getCxxName(),
-                                            ] + [M.type for M in Meth.arguments])))
+                                            ] + [M.Type for M in Meth.Args])))
                             ]))
 
                     has_constructor = True
 
-            elif Meth.name.startswith("sub_variant_get"):
+            elif Meth.Name.startswith("sub_variant_get"):
                 continue
 
             else:
-                sub.append(WasmMethod(Meth).build_bind(self.getCxxName(), ast=ast))
+                sub.append(
+                    WasmMethod(Meth, self.conf).build_bind(self.getCxxName(), ast=ast))
 
         if not has_constructor and not self.Record.IsAbstract:
             # If the type has non-default holder type, `new` in JS will still create a raw pointer
             # to the type, to fix this it necessary to provide own implementation for the constructor
-            if self.Record.reflectionParams.default_constructor:
+            if self.Record.ReflectionParams.default_constructor:
                 if HolderType:
                     sub.append(
                         ast.XCall(
@@ -473,8 +420,8 @@ class WasmClass():
                                 ast.Addr(
                                     ast.Type(
                                         QualType(
-                                            name="org::bind::js::holder_type_constructor",
-                                            Parameters=[
+                                            Name="org::bind::js::holder_type_constructor",
+                                            Params=[
                                                 HolderType,
                                             ])))
                             ]))
@@ -491,9 +438,9 @@ class WasmClass():
                 "emscripten::class_",
                 [ast.Literal(self.getWasmName())],
                 Params=[self.getCxxName()] + [
-                    QualType(name="emscripten::base", Parameters=[B])
-                    for B in self.Record.bases
-                    if base_map.is_known_type(B)
+                    QualType(Name="emscripten::base", Params=[B])
+                    for B in self.Record.Bases
+                    if self.conf.isKnownClass(B)
                 ],
             ),
             b.indent(2, b.stack(sub))
@@ -507,20 +454,41 @@ WasmUnion = Union[WasmClass, WasmBindPass, WasmFunction, WasmEnum, WasmTypedef]
 @dataclass
 class WasmModule():
     name: str
+    conf: EmbindAstbuilderConfig
     items: List[WasmUnion] = field(default_factory=list)
     Header: List[WasmBindPass] = field(default_factory=list)
+
+    def getEntryForName(self, name: str) -> list[WasmUnion]:
+        result = list()
+
+        for e in self.items:
+            match e:
+                case WasmBindPass():
+                    pass
+
+                case WasmClass():
+                    if e.getWasmName() == name:
+                        result.append(e)
+
+                    result.extend(e.getEntryForName(name))
+
+                case _:
+                    if e.getWasmName() == name:
+                        result.append(e)
+
+        return result
 
     def add_specializations(
         self,
         b: cpp.ASTBuilder,
-        specializations: List[TypeSpecialization],
+        specializations: List[codegen_ir.TypeSpecialization],
     ) -> None:
         for spec in specializations:
             self.items.append(
                 WasmBindPass(
                     b.Call(
                         func=b.string("org::bind::js::" + spec.getFlatUsed() + "_bind"),
-                        Params=spec.used_type.Parameters,
+                        Params=spec.used_type.Params,
                         Args=[
                             b.string("g"),
                             b.StringLiteral(spec.bind_name),
@@ -529,44 +497,44 @@ class WasmModule():
                     )))
 
     def add_decl(
-        self, item: GenTuUnion | WasmBindPass | GenTuEnum | GenTuTypedef | GenTuFunction |
-        GenTuStruct
+        self, item: codegen_ir.GenTuUnion | WasmBindPass | codegen_ir.GenTuEnum |
+        codegen_ir.GenTuTypedef | codegen_ir.GenTuFunction | codegen_ir.GenTuStruct
     ) -> None:
         match item:
-            case GenTuStruct():
-                self.items.append(WasmClass(item))
+            case codegen_ir.GenTuStruct():
+                self.items.append(WasmClass(item, self.conf))
 
-                for nested in item.nested:
-                    if not isinstance(nested, GenTuPass):
+                for nested in item.Nested:
+                    if not isinstance(nested, codegen_ir.GenTuPass):
                         self.add_decl(nested)  # type: ignore
 
-            case GenTuEnum():
-                self.items.append(WasmEnum(item))
+            case codegen_ir.GenTuEnum():
+                self.items.append(WasmEnum(item, self.conf))
 
-            case GenTuFunction():
-                self.items.append(WasmFunction(item))
+            case codegen_ir.GenTuFunction():
+                self.items.append(WasmFunction(item, self.conf))
 
             case WasmBindPass():
                 self.items.append(item)
 
-            case GenTuTypedef():
-                self.items.append(WasmTypedef(item))
+            case codegen_ir.GenTuTypedef():
+                self.items.append(WasmTypedef(item, self.conf))
 
             case _:
                 raise ValueError(f"Unhandled declaration type {type(item)}")
 
-    def build_typedef(self, ast: ASTBuilder, base_map: GenTypeMap) -> BlockId:
+    def build_typedef(self, ast: cpp.ASTBuilder) -> BlockId:
         body = []
         iface = []
 
         for item in self.items:
             match item:
                 case WasmClass() | WasmEnum() | WasmTypedef():
-                    iface.extend(item.get_module_use(ast, base_map=base_map))
-                    body.extend(item.get_typedef(ast, base_map=base_map))
+                    iface.extend(item.get_module_use(ast))
+                    body.extend(item.get_typedef(ast))
 
                 case WasmFunction():
-                    iface.extend(item.get_typedef(ast, base_map=base_map))
+                    iface.extend(item.get_typedef(ast))
 
         return ast.stack([
             ast.string("import * as haxorg_wasm from \"./haxorg_utility_types\";"),
@@ -580,8 +548,7 @@ class WasmModule():
             *body,
         ])
 
-    def build_bind(self, ast: ASTBuilder, b: cpp.ASTBuilder,
-                   base_map: GenTypeMap) -> BlockId:
+    def build_bind(self, ast: cpp.ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
         Result = b.b.stack()
 
         Body = []
@@ -600,13 +567,13 @@ class WasmModule():
             b.b.add_at(
                 Result,
                 ast.Function(
-                    FunctionParams(
+                    cpp.FunctionParams(
                         Name=f"subdivide_{subivide_count}",
                         Args=[
-                            ParmVarParams(
+                            cpp.ParmVarParams(
                                 type=QualType(
-                                    name="org::bind::js::type_registration_guard",
-                                    RefKind=ReferenceKind.LValue,
+                                    Name="org::bind::js::type_registration_guard",
+                                    RefKind=codegen_ir.ReferenceKind.LValue,
                                 ),
                                 name="g",
                             )
@@ -633,7 +600,7 @@ class WasmModule():
         for item in self.items:
             match item:
                 case WasmClass():
-                    add_binding_statement(item.build_bind(ast=ast, base_map=base_map))
+                    add_binding_statement(item.build_bind(ast=ast))
 
                 case WasmFunction():
                     overload_counts[item.getWasmName()] += 1
@@ -656,7 +623,7 @@ class WasmModule():
 
         for key, value in overload_counts.items():
             if 1 < value:
-                log(CAT).warning(
+                raise ValueError(
                     f"{key} is overloaded without unique name, has {value} overloads")
 
         b.b.add_at(

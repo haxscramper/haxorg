@@ -1,12 +1,20 @@
-from dataclasses import dataclass
+import itertools
+from dataclasses import dataclass, field
 import enum
 import json
 from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
+from fontTools.cffLib.transforms import remove_unused_subroutines
 from plumbum import CommandNotFound, local
 import py_codegen.refl_extract as ex
+from py_codegen import astbuilder_cpp, astbuilder_embind
+from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
+from py_codegen.astbuilder_nanobind import NbModule, Py11Entry, Py11Field
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
+from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
+from py_codegen.codegen_ir import GenTypeMap
 from py_codegen.refl_read import (
     ConvTu,
     GenTuEnum,
@@ -15,10 +23,12 @@ from py_codegen.refl_read import (
     GenTuUnion,
     QualType,
 )
-from py_codegen.refl_wrapper_graph import TuWrap
+from py_codegen.refl_wrapper_graph import TuWrap, GenGraph
 import py_codegen.wrapper_gen_nim as gen_nim
-from py_scriptutils.script_logging import log
+from py_codegen import astbuilder_nim
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
+from py_haxorg.layout.wrap import TextLayout
 
 
 @beartype
@@ -113,13 +123,18 @@ class ReflProviderRunResult:
 
 
 @beartype
-def run_provider(
+def run_reflection_tool_provider(
     text: Union[str, Dict[str, str]],
     code_dir: Path,
     output_dir: Path,
     only_annotated: bool = False,
+    reflection_run_verbose: bool = False,
     print_reflection_run_fail_to_stdout: bool = False,
+    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> ReflProviderRunResult:
+    """
+    Run reflection data provider
+    """
     if not code_dir.exists():
         code_dir.mkdir(parents=True)
 
@@ -148,7 +163,7 @@ def run_provider(
 
     conf.cache_collector_runs = False
     conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
-    conf.reflection_run_verbose = True
+    conf.reflection_run_verbose = reflection_run_verbose
     conf.reflection_run_serialize = True
 
     compile_commands_content = [
@@ -160,7 +175,7 @@ def run_provider(
         ) for file in text.keys()
     ]
 
-    log().info(compile_commands_content)
+    # log().info(compile_commands_content)
 
     compile_commands.write_text(
         json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
@@ -184,7 +199,12 @@ def run_provider(
                        mapping.path,
                    )
 
-        wrap = ex.run_collector_for_path(conf, mapping, commands)
+        wrap = ex.run_reflection_tool_for_path(
+            conf,
+            mapping,
+            commands,
+            reflection_tool_profraw_path=reflection_tool_profraw_path,
+        )
         wraps.append(wrap)
         assert wrap
 
@@ -199,7 +219,7 @@ def get_struct(
     **kwargs: Any,
 ) -> GenTuStruct:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         code_dir_override or Path(code_dir),
         output_dir=stable_test_dir,
@@ -212,7 +232,7 @@ def get_struct(
 @beartype
 def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUnion]:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -224,7 +244,7 @@ def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUn
 @beartype
 def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -237,7 +257,7 @@ def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
 @beartype
 def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFunction:
     code_dir = stable_test_dir
-    tu = run_provider(
+    tu = run_reflection_tool_provider(
         text,
         Path(code_dir),
         output_dir=stable_test_dir,
@@ -249,10 +269,50 @@ def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFuncti
 
 
 @beartype
+def get_type(*,
+             preamble: List[str],
+             stable_test_dir: Path,
+             typ: str = "",
+             struct_header: str = "struct [[refl]] test",
+             field_decl: Optional[str] = None,
+             **kwargs: Any) -> QualType:
+    """
+    Parse the `typ` parameter to qualified type and return result.
+
+    :param preamble: List of extra definitions to insert before the type parsing
+    :param typ: text of the type to parse
+    :param stable_test_dir: Temporary directory to put the text for parsing
+    :param struct_header: Temporary structure wrapping around type usage
+    :param field_decl: Override standard field declaration block
+    """
+    assert not (typ and field_decl), "Declare either typ or field_decl, but not both"
+
+    if field_decl:
+        type_use = field_decl
+
+    else:
+        type_use = f"[[refl]] {typ} field;"
+
+    struct = get_struct(
+        "\n".join(preamble) + f"""
+{struct_header} {{
+    {type_use}
+}};
+""",
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        **kwargs,
+    )
+
+    assert len(struct.Fields) == 1
+    return struct.Fields[0].Type
+
+
+@beartype
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
-    builder = gen_nim.nim.ASTBuilder(t)
-    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())
+    builder = gen_nim.nim.ASTBuilder(t, conf=NimAstbuilderConfig(type_map=GenTypeMap()))
+    return gen_nim.conv_res_to_nim(builder, content)
 
 
 @beartype
@@ -274,10 +334,11 @@ def format_nim_code(refl: ReflProviderRunResult,
         code = gen_nim.to_nim(
             graph=graph,
             sub=sub,
-            conf=gen_nim.NimOptions(
-                with_header_imports=with_header_imports,
-                is_cpp_wrap=is_cpp_wrap,
-            ),
+            conf=NimAstbuilderConfig(type_map=GenTypeMap(),
+                                     opts=NimAstbuilderStaticConfig(
+                                         with_header_imports=with_header_imports,
+                                         is_cpp_wrap=is_cpp_wrap,
+                                     )),
             output_directory=refl.code_dir,
             get_out_path=get_out_path,
         )
@@ -316,7 +377,7 @@ def compile_nim_code(code_dir: Path, files: Dict[str, str]) -> None:
 
 @beartype
 def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
-                    test_text: str) -> Tuple[int, str, str]:
+                    test_text: str) -> tuple[int, str, str]:
     compile_nim_code(code_dir=code_dir,
                      files={
                          file: res.content for file, res in formatted.items()
@@ -327,3 +388,85 @@ def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
     binary = local[str(code_dir.joinpath("main.bin"))]
     retcode, stdout, stderr = binary.run()
     return (retcode, stdout, stderr)
+
+
+@beartype
+@dataclass
+class AllCodeWrappers():
+    nim: list[gen_nim.GenNimResult] = field(default_factory=list)
+    python: list[NbModule] = field(default_factory=list)
+    embind: list[astbuilder_embind.WasmModule] = field(default_factory=list)
+
+    def getNimEntries(
+            self, name: str
+    ) -> list[astbuilder_nim.NimEntryParams | astbuilder_nim.IdentParams]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.nim]))
+
+    def getPythonEntries(self, name: str) -> list[Py11Entry | Py11Field]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.python]))
+
+    def getWasmEntries(self, name: str) -> list[astbuilder_embind.WasmUnion]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.embind]))
+
+
+@beartype
+def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
+                 **kwargs: Any) -> AllCodeWrappers:
+    wraps = run_reflection_tool_provider(
+        text,
+        Path(stable_test_dir),
+        output_dir=stable_test_dir,
+        only_annotated=True,
+        **kwargs,
+    )
+
+    result = AllCodeWrappers()
+    type_map = GenTypeMap()
+
+    gen_graph = GenGraph()
+    for sub in wraps.wraps:
+        gen_graph.add_unit(sub)
+
+        for entry in sub.tu.structs + sub.tu.enums:
+            type_map.add_type(entry)
+
+    t = TextLayout()
+    cpp_ast = astbuilder_cpp.ASTBuilder(t)
+
+    for sub in gen_graph.subgraphs:
+
+        def get_out_path(in_path: Path) -> Path:
+            return stable_test_dir.joinpath(in_path.stem)
+
+        nim_conf = NimAstbuilderConfig(type_map=type_map)
+
+        result.nim.append(
+            gen_nim.to_nim(
+                gen_graph,
+                sub,
+                get_out_path=get_out_path,
+                conf=nim_conf,
+                output_directory=stable_test_dir.joinpath("nim"),
+            ))
+
+        py_conf = NanobindAstbuilderConfig(type_map=type_map)
+        nb_module = NbModule(sub.original.name, py_conf)
+
+        for e in gen_graph.get_entries(sub):
+            nb_module.add_decl(e, cpp_ast)
+
+        result.python.append(nb_module)
+
+        em_conf = EmbindAstbuilderConfig(type_map=type_map)
+        embind_module = astbuilder_embind.WasmModule(sub.original.name, em_conf)
+
+        for e in gen_graph.get_entries(sub):
+            embind_module.add_decl(e)
+
+        result.embind.append(embind_module)
+
+    pprint_to_file(result, stable_test_dir.joinpath("result.py"), width=120)
+    stable_test_dir.joinpath("result.json").write_text(
+        json.dumps(to_debug_json(result), indent=2))
+
+    return result

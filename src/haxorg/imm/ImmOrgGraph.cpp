@@ -1,5 +1,6 @@
 #include "ImmOrgGraph.hpp"
 #include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
@@ -952,6 +953,16 @@ hstd::Opt<Str> MapNodeProp::getFootnoteName(
     if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
         par && par->isFootnoteDefinition()) {
         return par->getFootnoteName();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::Opt<Str> MapNodeProp::getSubtreeId(
+    const std::shared_ptr<imm::ImmAstContext>& context) const {
+    if (auto tree = getAdapter(context).asOpt<org::imm::ImmSubtree>();
+        tree && tree.value()->treeId.get()) {
+        return tree.value()->treeId->value();
     } else {
         return std::nullopt;
     }

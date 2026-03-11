@@ -463,7 +463,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     flat_group = cov.get_coverage_group(flat_segments)
 
     direct_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([flat_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([flat_group]),
         first=0,
         last=len(code) - 1,
     )
@@ -482,7 +482,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     file_text = "\n".join([it.Text for it in file.Lines])
 
     line_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([line_group]),
         first=0,
         last=len(code),
     )
@@ -507,7 +507,7 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     assert len(line_segmented) == 5
 
     join_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup([line_group, flat_group]),
         first=0,
         last=len(code),
     )
@@ -543,8 +543,8 @@ def test_coverage_annotation_single_run(stable_test_dir: Path) -> None:
     )
 
     token_segmented = cov.org.annotateSequence(
-        groups=cov.org.VecOfSequenceSegmentGroupVec([line_group, flat_group,
-                                                     token_group]),
+        groups=cov.org.HstdVecOfSequenceSegmentGroup(
+            [line_group, flat_group, token_group]),
         first=0,
         last=len(code),
     )
@@ -633,10 +633,10 @@ def test_coverage_annotation_multiple_run_single_segment(stable_test_dir: Path) 
 
 
 css_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.css")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.css")
 
 js_path = get_haxorg_repo_root_path().joinpath(
-    "scripts/py_repository/py_repository/gen_documentation.js")
+    "scripts/py_repository/py_repository/repo_docgen/gen_coverage.js")
 
 
 @pytest.mark.test_release
@@ -777,7 +777,7 @@ def run_common(
     if path_pprint:
         pprint_to_file(file, pass_path(path_pprint), width=200)
 
-    log(CAT).info(pass_path(path_genhtml))
+    # log(CAT).info(pass_path(path_genhtml))
     if path_genhtml:
         html_out_dir = pass_path(path_genhtml)
         for code_in in cmd.files.keys():

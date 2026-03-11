@@ -549,3 +549,4 @@ gradlew.bat
 CMakeUserPresets.json
 !scripts/build
 -b
+.qtcreator

@@ -75,6 +75,7 @@ message QualType {
     TypeTag Tag = 10;
     bool IsBuiltin = 11;
     bool IsTypedef = 12;
+    bool IsGlobalNamespace = 13;
 }
 
 enum AccessSpecifier {

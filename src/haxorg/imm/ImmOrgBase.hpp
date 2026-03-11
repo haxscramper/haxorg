@@ -34,8 +34,8 @@ struct ImmReflPathTag {
 using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
 
-struct ImmReflFieldId {
-    hstd::Str getName() const {
+struct [[refl]] ImmReflFieldId {
+    [[refl]] hstd::Str getName() const {
         if (typeId.has_value()) {
             return hstd::get_registered_field_name(typeId.value(), index);
         } else {
