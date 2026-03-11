@@ -11,8 +11,7 @@ import dominate.util
 import graphviz
 import igraph
 from py_ci.data_build import get_deps_install_config
-from py_codegen.astbuilder_cpp import QualType, QualTypeKind
-from py_codegen.codegen_ir import GenTuInclude
+from py_codegen.codegen_ir import GenTuInclude, QualTypeKind, QualType
 import py_codegen.proto_lib.reflection_defs as pb
 from py_codegen.refl_read import conv_proto_file, ConvTu
 from py_codegen.refl_wrapper_graph import (

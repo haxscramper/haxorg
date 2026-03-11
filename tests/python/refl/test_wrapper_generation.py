@@ -192,10 +192,31 @@ def test_structure_with_multiple_fields(stable_test_dir: Path):
     struct_nim = cast(astbuilder_nim.ObjectParams, wraps.getNimEntries("MultiField")[0])
     assert struct_nim
     assert len(struct_nim.Fields) == 2
+    f1_nim = cast(astbuilder_nim.IdentParams, wraps.getNimEntries("field1")[0])
+    assert f1_nim
+    assert f1_nim.Name == "field1"
+    assert f1_nim.Type.Name == "cint"
+
+    f2_nim = cast(astbuilder_nim.IdentParams, wraps.getNimEntries("field2")[0])
+    assert f2_nim
+    assert f2_nim.Name == "field2"
+    assert f2_nim.Type.Name == "cfloat"
 
     struct_py = cast(astbuilder_nanobind.NbClass, wraps.getPythonEntries("MultiField")[0])
     assert struct_py
     assert len(struct_py.Fields) == 2
+
+    f1_py = cast(astbuilder_nanobind.Py11Field, wraps.getPythonEntries("field1")[0])
+    assert f1_py
+    assert f1_py.getPyName() == "field1"
+    assert f1_py.Field.Type
+    assert f1_py.Field.Type.Name == "int"
+
+    f2_py = cast(astbuilder_nanobind.Py11Field, wraps.getPythonEntries("field2")[0])
+    assert f2_py
+    assert f2_py.getPyName() == "field2"
+    assert f2_py.Field.Type
+    assert f2_py.Field.Type.Name == "float"
 
     struct_em = cast(astbuilder_embind.WasmClass, wraps.getWasmEntries("MultiField")[0])
     assert struct_em
@@ -239,11 +260,17 @@ def test_structure_with_static_methods(stable_test_dir: Path):
 
     struct_py = cast(astbuilder_nanobind.NbClass, wraps.getPythonEntries("WithStatic")[0])
     assert struct_py
+    assert len(struct_py.Methods) == 1
+
     method_py = cast(astbuilder_nanobind.NbMethod,
                      wraps.getPythonEntries("methStatic")[0])
     assert method_py
 
     struct_em = cast(astbuilder_embind.WasmClass, wraps.getWasmEntries("WithStatic")[0])
     assert struct_em
+    assert len(struct_em.Record.Methods) == 1
+
     method_em = cast(astbuilder_embind.WasmMethod, wraps.getWasmEntries("meth")[0])
     assert method_em
+    assert method_em.Func.Name == "meth"
+    assert method_em.Func.IsStatic == True

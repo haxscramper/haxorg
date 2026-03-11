@@ -196,7 +196,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         if IsConstructor:
             if result.IsExplicitInstantiation:
                 final_result = result.Name.copy_update(
-                    Parameters=result.ExplicitTemplateParams)
+                    Params=result.ExplicitTemplateParams)
             else:
                 final_result = result.Name
         else:

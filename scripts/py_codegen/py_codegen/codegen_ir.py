@@ -441,7 +441,7 @@ class QualType(BaseModel, extra="forbid"):
                         ]
 
                     result = "{spaces}{name}{args}{cvref}".format(
-                        Name=Typ.Name or "?",
+                        name=Typ.Name or "?",
                         args="<{}>".format(", ".join(params_format))
                         if params_format else "",
                         cvref=cvref,

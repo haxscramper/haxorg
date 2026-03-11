@@ -11,7 +11,7 @@ from plumbum import CommandNotFound, local
 import py_codegen.refl_extract as ex
 from py_codegen import astbuilder_cpp, astbuilder_embind
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
-from py_codegen.astbuilder_nanobind import NbModule, Py11Entry
+from py_codegen.astbuilder_nanobind import NbModule, Py11Entry, Py11Field
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
 from py_codegen.codegen_ir import GenTypeMap
@@ -397,10 +397,12 @@ class AllCodeWrappers():
     python: list[NbModule] = field(default_factory=list)
     embind: list[astbuilder_embind.WasmModule] = field(default_factory=list)
 
-    def getNimEntries(self, name: str) -> list[astbuilder_nim.NimEntryParams]:
-        return list(itertools.chain(*[gen.get_entry_for_name(name) for gen in self.nim]))
+    def getNimEntries(
+            self, name: str
+    ) -> list[astbuilder_nim.NimEntryParams | astbuilder_nim.IdentParams]:
+        return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.nim]))
 
-    def getPythonEntries(self, name: str) -> list[Py11Entry]:
+    def getPythonEntries(self, name: str) -> list[Py11Entry | Py11Field]:
         return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.python]))
 
     def getWasmEntries(self, name: str) -> list[astbuilder_embind.WasmUnion]:

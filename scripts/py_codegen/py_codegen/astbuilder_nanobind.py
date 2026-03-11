@@ -850,7 +850,7 @@ class NbModule:
     nameTrack: Dict[str, QualType] = field(default_factory=dict)
     "Map python name to the original declaration"
 
-    def getEntryForName(self, name: str) -> list[Py11Entry]:
+    def getEntryForName(self, name: str) -> list[Py11Entry | Py11Field]:
         result = list()
 
         for e in self.Decls:

@@ -35,11 +35,18 @@ class ConvRes:
     types: List[Union[nim.EnumParams, nim.ObjectParams,
                       nim.TypedefParams]] = field(default_factory=list)
 
-    def get_entry_for_name(self, name: str) -> list[nim.NimEntryParams]:
+    def getEntryForName(self, name: str) -> list[nim.NimEntryParams | nim.IdentParams]:
         result = list()
         for e in self.types + self.procs:
             if e.Name == name:
                 result.append(e)
+
+        for t in self.types:
+            match t:
+                case nim.ObjectParams():
+                    for f in t.Fields:
+                        if f.Name == name:
+                            result.append(f)
 
         return result
 
@@ -488,11 +495,11 @@ class GenNimResult:
     content: Optional[str]
     conv: List[ConvRes]
 
-    def get_entry_for_name(self, name: str) -> list[nim.NimEntryParams]:
+    def getEntryForName(self, name: str) -> list[nim.NimEntryParams | nim.IdentParams]:
         result = list()
 
         for c in self.conv:
-            result.extend(c.get_entry_for_name(name))
+            result.extend(c.getEntryForName(name))
 
         return result
 

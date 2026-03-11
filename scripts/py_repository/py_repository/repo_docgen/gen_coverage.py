@@ -376,7 +376,7 @@ def _generate_html_for_directory(
         ]
 
         for future in futures:
-            py_scriptutils.tracer.GlobAddEvents(future.ReturnType().trace)
+            py_scriptutils.tracer.GlobAddEvents(future.result().trace)
 
 
 @beartype
