@@ -1,5 +1,8 @@
 #pragma once
 
+#undef emit
+#undef slots
+
 #include "reflection_config.hpp"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/FrontendActions.h>

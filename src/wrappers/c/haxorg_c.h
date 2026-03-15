@@ -1,6 +1,14 @@
 /* clang-format off */
 #include <wrappers/c/haxorg_c_api.h>
-struct haxorg_UserTimeBreakdown_vtable {};
+struct haxorg_UserTimeBreakdown_vtable {
+  haxorg_StdOptionalOfInt const*(*)() get_year;
+  haxorg_StdOptionalOfInt const*(*)() get_month;
+  haxorg_StdOptionalOfInt const*(*)() get_day;
+  haxorg_StdOptionalOfInt const*(*)() get_hour;
+  haxorg_StdOptionalOfInt const*(*)() get_minute;
+  haxorg_StdOptionalOfInt const*(*)() get_second;
+  haxorg_StdOptionalOfStdString const*(*)() get_zone;
+};
 
 /// \brief {{REC:(hstd)}::REC:(UserTimeBreakdown)}
 struct haxorg_UserTimeBreakdown {
@@ -27,7 +35,12 @@ struct haxorg_ParseSourceFileId {
 };
 
 void haxorg_destroy_ParseSourceFileId(haxorg_ParseSourceFileId* obj);
-struct haxorg_ParseSourceLoc_vtable {};
+struct haxorg_ParseSourceLoc_vtable {
+  int const*(*)() get_line;
+  int const*(*)() get_column;
+  int const*(*)() get_pos;
+  haxorg_ParseSourceFileId const*(*)() get_file_id;
+};
 
 /// \brief {{REC:(org)}::{REC:(parse)}::REC:(SourceLoc)}
 struct haxorg_ParseSourceLoc {
@@ -45,7 +58,10 @@ struct haxorg_OrgJson {
 };
 
 void haxorg_destroy_OrgJson(haxorg_OrgJson* obj);
-struct haxorg_Org_vtable {};
+struct haxorg_Org_vtable {
+  haxorg_StdOptionalOfParseSourceLoc const*(*)() get_loc;
+  haxorg_CHstdVec const*(*)() get_subnodes;
+};
 
 /// \brief {{REC:(org)}::{REC:(sem)}::REC:(Org)}
 struct haxorg_Org {
@@ -54,7 +70,15 @@ struct haxorg_Org {
 };
 
 void haxorg_destroy_Org(haxorg_Org* obj);
-struct haxorg_OperationsTracer_vtable {};
+struct haxorg_OperationsTracer_vtable {
+  bool const*(*)() get_TraceState;
+  bool const*(*)() get_traceToFile;
+  bool const*(*)() get_traceToBuffer;
+  bool const*(*)() get_traceStructured;
+  bool const*(*)() get_traceColored;
+  int const*(*)() get_activeLevel;
+  haxorg_StdString const*(*)() get_traceBuffer;
+};
 
 /// \brief {{REC:(hstd)}::REC:(OperationsTracer)}
 struct haxorg_OperationsTracer {
@@ -72,7 +96,11 @@ struct haxorg_Cache {
 };
 
 void haxorg_destroy_Cache(haxorg_Cache* obj);
-struct haxorg_ParseOrgParseFragment_vtable {};
+struct haxorg_ParseOrgParseFragment_vtable {
+  int const*(*)() get_baseLine;
+  int const*(*)() get_baseCol;
+  haxorg_StdString const*(*)() get_text;
+};
 
 /// \brief {{REC:(org)}::{REC:(parse)}::REC:(OrgParseFragment)}
 struct haxorg_ParseOrgParseFragment {
@@ -81,7 +109,12 @@ struct haxorg_ParseOrgParseFragment {
 };
 
 void haxorg_destroy_ParseOrgParseFragment(haxorg_ParseOrgParseFragment* obj);
-struct haxorg_OrgParseParameters_vtable {};
+struct haxorg_OrgParseParameters_vtable {
+  haxorg_StdOptionalOfStdString const*(*)() get_baseTokenTracePath;
+  haxorg_StdOptionalOfStdString const*(*)() get_tokenTracePath;
+  haxorg_StdOptionalOfStdString const*(*)() get_parseTracePath;
+  haxorg_StdOptionalOfStdString const*(*)() get_semTracePath;
+};
 
 /// \brief {{REC:(org)}::{REC:(parse)}::REC:(OrgParseParameters)}
 struct haxorg_OrgParseParameters {
@@ -144,7 +177,10 @@ struct haxorg_ImmPathStep {
 };
 
 void haxorg_destroy_ImmPathStep(haxorg_ImmPathStep* obj);
-struct haxorg_ImmPath_vtable {};
+struct haxorg_ImmPath_vtable {
+  haxorg_ImmId const*(*)() get_root;
+  haxorg_ImmPathStore const*(*)() get_path;
+};
 
 /// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmPath)}
 struct haxorg_ImmPath {
@@ -207,7 +243,13 @@ struct haxorg_ImmAdapterVirtualBase {
 };
 
 void haxorg_destroy_ImmAdapterVirtualBase(haxorg_ImmAdapterVirtualBase* obj);
-struct haxorg_OrgYamlExportOpts_vtable {};
+struct haxorg_OrgYamlExportOpts_vtable {
+  bool const*(*)() get_skipNullFields;
+  bool const*(*)() get_skipFalseFields;
+  bool const*(*)() get_skipZeroFields;
+  bool const*(*)() get_skipLocation;
+  bool const*(*)() get_skipId;
+};
 
 /// \brief {{REC:(org)}::REC:(OrgYamlExportOpts)}
 struct haxorg_OrgYamlExportOpts {
@@ -216,7 +258,15 @@ struct haxorg_OrgYamlExportOpts {
 };
 
 void haxorg_destroy_OrgYamlExportOpts(haxorg_OrgYamlExportOpts* obj);
-struct haxorg_OrgTreeExportOpts_vtable {};
+struct haxorg_OrgTreeExportOpts_vtable {
+  bool const*(*)() get_withLineCol;
+  bool const*(*)() get_withOriginalId;
+  bool const*(*)() get_withSubnodeIdx;
+  bool const*(*)() get_skipEmptyFields;
+  int const*(*)() get_startLevel;
+  bool const*(*)() get_withColor;
+  int const*(*)() get_maxDepth;
+};
 
 /// \brief {{REC:(org)}::REC:(OrgTreeExportOpts)}
 struct haxorg_OrgTreeExportOpts {
@@ -225,7 +275,9 @@ struct haxorg_OrgTreeExportOpts {
 };
 
 void haxorg_destroy_OrgTreeExportOpts(haxorg_OrgTreeExportOpts* obj);
-struct haxorg_AstTrackingPath_vtable {};
+struct haxorg_AstTrackingPath_vtable {
+  haxorg_CHstdVec const*(*)() get_path;
+};
 
 /// \brief {{REC:(org)}::REC:(AstTrackingPath)}
 struct haxorg_AstTrackingPath {
@@ -252,7 +304,14 @@ struct haxorg_AstTrackingGroup {
 };
 
 void haxorg_destroy_AstTrackingGroup(haxorg_AstTrackingGroup* obj);
-struct haxorg_AstTrackingMap_vtable {};
+struct haxorg_AstTrackingMap_vtable {
+  haxorg_HstdMapOfStrAstTrackingAlternatives const*(*)() get_footnotes;
+  haxorg_HstdMapOfStrAstTrackingAlternatives const*(*)() get_subtrees;
+  haxorg_HstdMapOfStrAstTrackingAlternatives const*(*)() get_names;
+  haxorg_HstdMapOfStrAstTrackingAlternatives const*(*)() get_anchorTargets;
+  haxorg_HstdMapOfStrAstTrackingAlternatives const*(*)() get_radioTargets;
+  haxorg_HstdMapOfHashTagFlatAstTrackingAlternatives const*(*)() get_hashtagDefinitions;
+};
 
 /// \brief {{REC:(org)}::REC:(AstTrackingMap)}
 struct haxorg_AstTrackingMap {
@@ -261,7 +320,11 @@ struct haxorg_AstTrackingMap {
 };
 
 void haxorg_destroy_AstTrackingMap(haxorg_AstTrackingMap* obj);
-struct haxorg_SequenceSegment_vtable {};
+struct haxorg_SequenceSegment_vtable {
+  int const*(*)() get_kind;
+  int const*(*)() get_first;
+  int const*(*)() get_last;
+};
 
 /// \brief {{REC:(hstd)}::REC:(SequenceSegment)}
 struct haxorg_SequenceSegment {
@@ -270,7 +333,10 @@ struct haxorg_SequenceSegment {
 };
 
 void haxorg_destroy_SequenceSegment(haxorg_SequenceSegment* obj);
-struct haxorg_SequenceSegmentGroup_vtable {};
+struct haxorg_SequenceSegmentGroup_vtable {
+  int const*(*)() get_kind;
+  haxorg_CHstdVec const*(*)() get_segments;
+};
 
 /// \brief {{REC:(hstd)}::REC:(SequenceSegmentGroup)}
 struct haxorg_SequenceSegmentGroup {
@@ -279,7 +345,10 @@ struct haxorg_SequenceSegmentGroup {
 };
 
 void haxorg_destroy_SequenceSegmentGroup(haxorg_SequenceSegmentGroup* obj);
-struct haxorg_SequenceAnnotationTag_vtable {};
+struct haxorg_SequenceAnnotationTag_vtable {
+  int const*(*)() get_groupKind;
+  haxorg_CHstdVec const*(*)() get_segmentKinds;
+};
 
 /// \brief {{REC:(hstd)}::REC:(SequenceAnnotationTag)}
 struct haxorg_SequenceAnnotationTag {
@@ -288,7 +357,11 @@ struct haxorg_SequenceAnnotationTag {
 };
 
 void haxorg_destroy_SequenceAnnotationTag(haxorg_SequenceAnnotationTag* obj);
-struct haxorg_SequenceAnnotation_vtable {};
+struct haxorg_SequenceAnnotation_vtable {
+  int const*(*)() get_first;
+  int const*(*)() get_last;
+  haxorg_CHstdVec const*(*)() get_annotations;
+};
 
 /// \brief {{REC:(hstd)}::REC:(SequenceAnnotation)}
 struct haxorg_SequenceAnnotation {
@@ -306,7 +379,10 @@ struct haxorg_GraphMapLink {
 };
 
 void haxorg_destroy_GraphMapLink(haxorg_GraphMapLink* obj);
-struct haxorg_GraphMapNodeProp_vtable {};
+struct haxorg_GraphMapNodeProp_vtable {
+  haxorg_ImmUniqId const*(*)() get_id;
+  haxorg_CHstdVec const*(*)() get_unresolved;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapNodeProp)}
 struct haxorg_GraphMapNodeProp {
@@ -315,7 +391,9 @@ struct haxorg_GraphMapNodeProp {
 };
 
 void haxorg_destroy_GraphMapNodeProp(haxorg_GraphMapNodeProp* obj);
-struct haxorg_GraphMapEdgeProp_vtable {};
+struct haxorg_GraphMapEdgeProp_vtable {
+  haxorg_GraphMapLink const*(*)() get_link;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapEdgeProp)}
 struct haxorg_GraphMapEdgeProp {
@@ -324,7 +402,9 @@ struct haxorg_GraphMapEdgeProp {
 };
 
 void haxorg_destroy_GraphMapEdgeProp(haxorg_GraphMapEdgeProp* obj);
-struct haxorg_GraphMapNode_vtable {};
+struct haxorg_GraphMapNode_vtable {
+  haxorg_ImmUniqId const*(*)() get_id;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapNode)}
 struct haxorg_GraphMapNode {
@@ -333,7 +413,10 @@ struct haxorg_GraphMapNode {
 };
 
 void haxorg_destroy_GraphMapNode(haxorg_GraphMapNode* obj);
-struct haxorg_GraphMapEdge_vtable {};
+struct haxorg_GraphMapEdge_vtable {
+  haxorg_GraphMapNode const*(*)() get_source;
+  haxorg_GraphMapNode const*(*)() get_target;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapEdge)}
 struct haxorg_GraphMapEdge {
@@ -342,7 +425,12 @@ struct haxorg_GraphMapEdge {
 };
 
 void haxorg_destroy_GraphMapEdge(haxorg_GraphMapEdge* obj);
-struct haxorg_GraphMapGraph_vtable {};
+struct haxorg_GraphMapGraph_vtable {
+  haxorg_GraphNodeProps const*(*)() get_nodeProps;
+  haxorg_GraphEdgeProps const*(*)() get_edgeProps;
+  haxorg_GraphAdjList const*(*)() get_adjList;
+  haxorg_GraphAdjList const*(*)() get_adjListIn;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapGraph)}
 struct haxorg_GraphMapGraph {
@@ -351,7 +439,9 @@ struct haxorg_GraphMapGraph {
 };
 
 void haxorg_destroy_GraphMapGraph(haxorg_GraphMapGraph* obj);
-struct haxorg_GraphMapConfig_vtable {};
+struct haxorg_GraphMapConfig_vtable {
+  haxorg_OperationsTracer const*(*)() get_dbg;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapConfig)}
 struct haxorg_GraphMapConfig {
@@ -360,7 +450,10 @@ struct haxorg_GraphMapConfig {
 };
 
 void haxorg_destroy_GraphMapConfig(haxorg_GraphMapConfig* obj);
-struct haxorg_GraphMapGraphState_vtable {};
+struct haxorg_GraphMapGraphState_vtable {
+  haxorg_GraphMapGraph const*(*)() get_graph;
+  haxorg_ImmAstContext const*(*)() get_ast;
+};
 
 /// \brief {{REC:(org)}::{REC:(graph)}::REC:(MapGraphState)}
 struct haxorg_GraphMapGraphState {
@@ -369,25 +462,9 @@ struct haxorg_GraphMapGraphState {
 };
 
 void haxorg_destroy_GraphMapGraphState(haxorg_GraphMapGraphState* obj);
-struct haxorg_PyCodeEvalParameters_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(bind)}::{REC:(python)}::REC:(PyCodeEvalParameters)}
-struct haxorg_PyCodeEvalParameters {
-  haxorg_PyCodeEvalParameters_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
+struct haxorg_LispCode_vtable {
+  haxorg_LispCodeData const*(*)() get_data;
 };
-
-void haxorg_destroy_PyCodeEvalParameters(haxorg_PyCodeEvalParameters* obj);
-struct haxorg_ExporterPython_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(bind)}::{REC:(python)}::REC:(ExporterPython)}
-struct haxorg_ExporterPython {
-  haxorg_ExporterPython_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ExporterPython(haxorg_ExporterPython* obj);
-struct haxorg_LispCode_vtable {};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(LispCode)}
 struct haxorg_LispCode {
@@ -396,7 +473,9 @@ struct haxorg_LispCode {
 };
 
 void haxorg_destroy_LispCode(haxorg_LispCode* obj);
-struct haxorg_Tblfm_vtable {};
+struct haxorg_Tblfm_vtable {
+  haxorg_CHstdVec const*(*)() get_exprs;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Tblfm)}
 struct haxorg_Tblfm {
@@ -405,7 +484,13 @@ struct haxorg_Tblfm {
 };
 
 void haxorg_destroy_Tblfm(haxorg_Tblfm* obj);
-struct haxorg_AttrValue_vtable {};
+struct haxorg_AttrValue_vtable {
+  haxorg_OptOfStr const*(*)() get_name;
+  haxorg_OptOfStr const*(*)() get_varname;
+  haxorg_CHstdVec const*(*)() get_span;
+  bool const*(*)() get_isQuoted;
+  haxorg_AttrValueDataVariant const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(AttrValue)}
 struct haxorg_AttrValue {
@@ -414,7 +499,9 @@ struct haxorg_AttrValue {
 };
 
 void haxorg_destroy_AttrValue(haxorg_AttrValue* obj);
-struct haxorg_HashTagFlat_vtable {};
+struct haxorg_HashTagFlat_vtable {
+  haxorg_CHstdVec const*(*)() get_tags;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(HashTagFlat)}
 struct haxorg_HashTagFlat {
@@ -423,7 +510,12 @@ struct haxorg_HashTagFlat {
 };
 
 void haxorg_destroy_HashTagFlat(haxorg_HashTagFlat* obj);
-struct haxorg_TodoKeyword_vtable {};
+struct haxorg_TodoKeyword_vtable {
+  haxorg_Str const*(*)() get_name;
+  haxorg_OptOfStr const*(*)() get_shortcut;
+  haxorg_TodoKeywordTransition const*(*)() get_onEnter;
+  haxorg_TodoKeywordTransition const*(*)() get_onLeave;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(TodoKeyword)}
 struct haxorg_TodoKeyword {
@@ -432,7 +524,10 @@ struct haxorg_TodoKeyword {
 };
 
 void haxorg_destroy_TodoKeyword(haxorg_TodoKeyword* obj);
-struct haxorg_HashTagText_vtable {};
+struct haxorg_HashTagText_vtable {
+  haxorg_Str const*(*)() get_head;
+  haxorg_CHstdVec const*(*)() get_subtags;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(HashTagText)}
 struct haxorg_HashTagText {
@@ -441,7 +536,9 @@ struct haxorg_HashTagText {
 };
 
 void haxorg_destroy_HashTagText(haxorg_HashTagText* obj);
-struct haxorg_SubtreePath_vtable {};
+struct haxorg_SubtreePath_vtable {
+  haxorg_CHstdVec const*(*)() get_path;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(SubtreePath)}
 struct haxorg_SubtreePath {
@@ -450,7 +547,9 @@ struct haxorg_SubtreePath {
 };
 
 void haxorg_destroy_SubtreePath(haxorg_SubtreePath* obj);
-struct haxorg_LinkTarget_vtable {};
+struct haxorg_LinkTarget_vtable {
+  haxorg_LinkTargetData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(LinkTarget)}
 struct haxorg_LinkTarget {
@@ -459,7 +558,9 @@ struct haxorg_LinkTarget {
 };
 
 void haxorg_destroy_LinkTarget(haxorg_LinkTarget* obj);
-struct haxorg_SubtreeLogHead_vtable {};
+struct haxorg_SubtreeLogHead_vtable {
+  haxorg_SubtreeLogHeadLogEntry const*(*)() get_log;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(SubtreeLogHead)}
 struct haxorg_SubtreeLogHead {
@@ -468,7 +569,11 @@ struct haxorg_SubtreeLogHead {
 };
 
 void haxorg_destroy_SubtreeLogHead(haxorg_SubtreeLogHead* obj);
-struct haxorg_SubtreeCompletion_vtable {};
+struct haxorg_SubtreeCompletion_vtable {
+  int const*(*)() get_done;
+  int const*(*)() get_full;
+  bool const*(*)() get_isPercent;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(SubtreeCompletion)}
 struct haxorg_SubtreeCompletion {
@@ -477,7 +582,9 @@ struct haxorg_SubtreeCompletion {
 };
 
 void haxorg_destroy_SubtreeCompletion(haxorg_SubtreeCompletion* obj);
-struct haxorg_AttrList_vtable {};
+struct haxorg_AttrList_vtable {
+  haxorg_CHstdVec const*(*)() get_items;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(AttrList)}
 struct haxorg_AttrList {
@@ -486,7 +593,10 @@ struct haxorg_AttrList {
 };
 
 void haxorg_destroy_AttrList(haxorg_AttrList* obj);
-struct haxorg_AttrGroup_vtable {};
+struct haxorg_AttrGroup_vtable {
+  haxorg_AttrList const*(*)() get_positional;
+  haxorg_HstdMapOfStrAttrList const*(*)() get_named;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(AttrGroup)}
 struct haxorg_AttrGroup {
@@ -495,7 +605,16 @@ struct haxorg_AttrGroup {
 };
 
 void haxorg_destroy_AttrGroup(haxorg_AttrGroup* obj);
-struct haxorg_OrgCodeEvalInput_vtable {};
+struct haxorg_OrgCodeEvalInput_vtable {
+  haxorg_AttrGroup const*(*)() get_blockAttrs;
+  haxorg_Str const*(*)() get_tangledCode;
+  haxorg_OptOfStr const*(*)() get_exportType;
+  haxorg_OrgCodeEvalInputResultType const*(*)() get_resultType;
+  haxorg_OrgCodeEvalInputResultFormat const*(*)() get_resultFormat;
+  haxorg_OrgCodeEvalInputResultHandling const*(*)() get_resultHandling;
+  haxorg_Str const*(*)() get_language;
+  haxorg_CHstdVec const*(*)() get_argList;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(OrgCodeEvalInput)}
 struct haxorg_OrgCodeEvalInput {
@@ -504,7 +623,15 @@ struct haxorg_OrgCodeEvalInput {
 };
 
 void haxorg_destroy_OrgCodeEvalInput(haxorg_OrgCodeEvalInput* obj);
-struct haxorg_OrgCodeEvalOutput_vtable {};
+struct haxorg_OrgCodeEvalOutput_vtable {
+  haxorg_Str const*(*)() get_stdoutText;
+  haxorg_Str const*(*)() get_stderrText;
+  int const*(*)() get_code;
+  haxorg_OptOfStr const*(*)() get_cmd;
+  haxorg_CHstdVec const*(*)() get_args;
+  haxorg_Str const*(*)() get_cwd;
+  haxorg_AttrGroup const*(*)() get_appliedHeaderArg;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(OrgCodeEvalOutput)}
 struct haxorg_OrgCodeEvalOutput {
@@ -513,7 +640,9 @@ struct haxorg_OrgCodeEvalOutput {
 };
 
 void haxorg_destroy_OrgCodeEvalOutput(haxorg_OrgCodeEvalOutput* obj);
-struct haxorg_ColumnView_vtable {};
+struct haxorg_ColumnView_vtable {
+  haxorg_CHstdVec const*(*)() get_columns;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(ColumnView)}
 struct haxorg_ColumnView {
@@ -522,7 +651,9 @@ struct haxorg_ColumnView {
 };
 
 void haxorg_destroy_ColumnView(haxorg_ColumnView* obj);
-struct haxorg_BlockCodeLine_vtable {};
+struct haxorg_BlockCodeLine_vtable {
+  haxorg_CHstdVec const*(*)() get_parts;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(BlockCodeLine)}
 struct haxorg_BlockCodeLine {
@@ -531,7 +662,42 @@ struct haxorg_BlockCodeLine {
 };
 
 void haxorg_destroy_BlockCodeLine(haxorg_BlockCodeLine* obj);
-struct haxorg_DocumentExportConfig_vtable {};
+struct haxorg_DocumentExportConfig_vtable {
+  haxorg_OptOfBool const*(*)() get_inlinetasks;
+  haxorg_OptOfBool const*(*)() get_footnotes;
+  haxorg_OptOfBool const*(*)() get_clock;
+  haxorg_OptOfBool const*(*)() get_author;
+  haxorg_OptOfBool const*(*)() get_emphasis;
+  haxorg_OptOfBool const*(*)() get_specialStrings;
+  haxorg_OptOfBool const*(*)() get_propertyDrawers;
+  haxorg_OptOfBool const*(*)() get_statisticsCookies;
+  haxorg_OptOfBool const*(*)() get_todoText;
+  haxorg_OptOfBool const*(*)() get_smartQuotes;
+  haxorg_OptOfBool const*(*)() get_fixedWidth;
+  haxorg_OptOfBool const*(*)() get_timestamps;
+  haxorg_OptOfBool const*(*)() get_preserveBreaks;
+  haxorg_OptOfBool const*(*)() get_subSuperscripts;
+  haxorg_OptOfBool const*(*)() get_expandLinks;
+  haxorg_OptOfBool const*(*)() get_creator;
+  haxorg_OptOfBool const*(*)() get_drawers;
+  haxorg_OptOfBool const*(*)() get_date;
+  haxorg_OptOfBool const*(*)() get_entities;
+  haxorg_OptOfBool const*(*)() get_email;
+  haxorg_OptOfBool const*(*)() get_sectionNumbers;
+  haxorg_OptOfBool const*(*)() get_planning;
+  haxorg_OptOfBool const*(*)() get_priority;
+  haxorg_OptOfBool const*(*)() get_latex;
+  haxorg_OptOfBool const*(*)() get_timestamp;
+  haxorg_OptOfBool const*(*)() get_title;
+  haxorg_OptOfBool const*(*)() get_tables;
+  haxorg_OptOfInt const*(*)() get_headlineLevels;
+  haxorg_DocumentExportConfigBrokenLinks const*(*)() get_brokenLinks;
+  haxorg_DocumentExportConfigTocExport const*(*)() get_tocExport;
+  haxorg_DocumentExportConfigTagExport const*(*)() get_tagExport;
+  haxorg_DocumentExportConfigTaskFiltering const*(*)() get_taskFiltering;
+  haxorg_DocumentExportConfigArchivedTrees const*(*)() get_archivedTrees;
+  haxorg_DocumentExportConfigTocExport const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(DocumentExportConfig)}
 struct haxorg_DocumentExportConfig {
@@ -540,7 +706,11 @@ struct haxorg_DocumentExportConfig {
 };
 
 void haxorg_destroy_DocumentExportConfig(haxorg_DocumentExportConfig* obj);
-struct haxorg_SubtreePeriod_vtable {};
+struct haxorg_SubtreePeriod_vtable {
+  haxorg_SubtreePeriodKind const*(*)() get_kind;
+  haxorg_UserTime const*(*)() get_from;
+  haxorg_OptOfUserTime const*(*)() get_to;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(SubtreePeriod)}
 struct haxorg_SubtreePeriod {
@@ -549,7 +719,9 @@ struct haxorg_SubtreePeriod {
 };
 
 void haxorg_destroy_SubtreePeriod(haxorg_SubtreePeriod* obj);
-struct haxorg_NamedProperty_vtable {};
+struct haxorg_NamedProperty_vtable {
+  haxorg_NamedPropertyData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(NamedProperty)}
 struct haxorg_NamedProperty {
@@ -558,7 +730,9 @@ struct haxorg_NamedProperty {
 };
 
 void haxorg_destroy_NamedProperty(haxorg_NamedProperty* obj);
-struct haxorg_OrgDiagnostics_vtable {};
+struct haxorg_OrgDiagnostics_vtable {
+  haxorg_OrgDiagnosticsData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(OrgDiagnostics)}
 struct haxorg_OrgDiagnostics {
@@ -567,798 +741,6 @@ struct haxorg_OrgDiagnostics {
 };
 
 void haxorg_destroy_OrgDiagnostics(haxorg_OrgDiagnostics* obj);
-struct haxorg_ImmAdapterTBaseOfImmNoNode_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmNoNode)}>)}
-struct haxorg_ImmAdapterTBaseOfImmNoNode {
-  haxorg_ImmAdapterTBaseOfImmNoNode_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmNoNode(haxorg_ImmAdapterTBaseOfImmNoNode* obj);
-struct haxorg_ImmAdapterTBaseOfImmErrorItem_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmErrorItem)}>)}
-struct haxorg_ImmAdapterTBaseOfImmErrorItem {
-  haxorg_ImmAdapterTBaseOfImmErrorItem_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmErrorItem(haxorg_ImmAdapterTBaseOfImmErrorItem* obj);
-struct haxorg_ImmAdapterTBaseOfImmErrorGroup_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmErrorGroup)}>)}
-struct haxorg_ImmAdapterTBaseOfImmErrorGroup {
-  haxorg_ImmAdapterTBaseOfImmErrorGroup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmErrorGroup(haxorg_ImmAdapterTBaseOfImmErrorGroup* obj);
-struct haxorg_ImmAdapterTBaseOfImmStmt_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmStmt)}>)}
-struct haxorg_ImmAdapterTBaseOfImmStmt {
-  haxorg_ImmAdapterTBaseOfImmStmt_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmStmt(haxorg_ImmAdapterTBaseOfImmStmt* obj);
-struct haxorg_ImmAdapterTBaseOfImmInline_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmInline)}>)}
-struct haxorg_ImmAdapterTBaseOfImmInline {
-  haxorg_ImmAdapterTBaseOfImmInline_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmInline(haxorg_ImmAdapterTBaseOfImmInline* obj);
-struct haxorg_ImmAdapterTBaseOfImmStmtList_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmStmtList)}>)}
-struct haxorg_ImmAdapterTBaseOfImmStmtList {
-  haxorg_ImmAdapterTBaseOfImmStmtList_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmStmtList(haxorg_ImmAdapterTBaseOfImmStmtList* obj);
-struct haxorg_ImmAdapterTBaseOfImmEmpty_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmEmpty)}>)}
-struct haxorg_ImmAdapterTBaseOfImmEmpty {
-  haxorg_ImmAdapterTBaseOfImmEmpty_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmEmpty(haxorg_ImmAdapterTBaseOfImmEmpty* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmd_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmd)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmd {
-  haxorg_ImmAdapterTBaseOfImmCmd_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmd(haxorg_ImmAdapterTBaseOfImmCmd* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlock_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlock)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlock {
-  haxorg_ImmAdapterTBaseOfImmBlock_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlock(haxorg_ImmAdapterTBaseOfImmBlock* obj);
-struct haxorg_ImmAdapterTBaseOfImmLineCommand_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmLineCommand)}>)}
-struct haxorg_ImmAdapterTBaseOfImmLineCommand {
-  haxorg_ImmAdapterTBaseOfImmLineCommand_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmLineCommand(haxorg_ImmAdapterTBaseOfImmLineCommand* obj);
-struct haxorg_ImmAdapterTBaseOfImmAttached_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmAttached)}>)}
-struct haxorg_ImmAdapterTBaseOfImmAttached {
-  haxorg_ImmAdapterTBaseOfImmAttached_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmAttached(haxorg_ImmAdapterTBaseOfImmAttached* obj);
-struct haxorg_ImmAdapterTBaseOfImmLeaf_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmLeaf)}>)}
-struct haxorg_ImmAdapterTBaseOfImmLeaf {
-  haxorg_ImmAdapterTBaseOfImmLeaf_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmLeaf(haxorg_ImmAdapterTBaseOfImmLeaf* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCaption_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCaption)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCaption {
-  haxorg_ImmAdapterTBaseOfImmCmdCaption_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCaption(haxorg_ImmAdapterTBaseOfImmCmdCaption* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCreator_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCreator)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCreator {
-  haxorg_ImmAdapterTBaseOfImmCmdCreator_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCreator(haxorg_ImmAdapterTBaseOfImmCmdCreator* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdAuthor_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdAuthor)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdAuthor {
-  haxorg_ImmAdapterTBaseOfImmCmdAuthor_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdAuthor(haxorg_ImmAdapterTBaseOfImmCmdAuthor* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdEmail_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdEmail)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdEmail {
-  haxorg_ImmAdapterTBaseOfImmCmdEmail_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdEmail(haxorg_ImmAdapterTBaseOfImmCmdEmail* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdLanguage_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdLanguage)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdLanguage {
-  haxorg_ImmAdapterTBaseOfImmCmdLanguage_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdLanguage(haxorg_ImmAdapterTBaseOfImmCmdLanguage* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdColumns_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdColumns)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdColumns {
-  haxorg_ImmAdapterTBaseOfImmCmdColumns_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdColumns(haxorg_ImmAdapterTBaseOfImmCmdColumns* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdName_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdName)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdName {
-  haxorg_ImmAdapterTBaseOfImmCmdName_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdName(haxorg_ImmAdapterTBaseOfImmCmdName* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomArgs_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCustomArgs)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomArgs {
-  haxorg_ImmAdapterTBaseOfImmCmdCustomArgs_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCustomArgs(haxorg_ImmAdapterTBaseOfImmCmdCustomArgs* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomRaw_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCustomRaw)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomRaw {
-  haxorg_ImmAdapterTBaseOfImmCmdCustomRaw_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCustomRaw(haxorg_ImmAdapterTBaseOfImmCmdCustomRaw* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomText_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCustomText)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCustomText {
-  haxorg_ImmAdapterTBaseOfImmCmdCustomText_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCustomText(haxorg_ImmAdapterTBaseOfImmCmdCustomText* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdCall_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdCall)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdCall {
-  haxorg_ImmAdapterTBaseOfImmCmdCall_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdCall(haxorg_ImmAdapterTBaseOfImmCmdCall* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdTblfm_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdTblfm)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdTblfm {
-  haxorg_ImmAdapterTBaseOfImmCmdTblfm_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdTblfm(haxorg_ImmAdapterTBaseOfImmCmdTblfm* obj);
-struct haxorg_ImmAdapterTBaseOfImmHashTag_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmHashTag)}>)}
-struct haxorg_ImmAdapterTBaseOfImmHashTag {
-  haxorg_ImmAdapterTBaseOfImmHashTag_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmHashTag(haxorg_ImmAdapterTBaseOfImmHashTag* obj);
-struct haxorg_ImmAdapterTBaseOfImmInlineFootnote_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmInlineFootnote)}>)}
-struct haxorg_ImmAdapterTBaseOfImmInlineFootnote {
-  haxorg_ImmAdapterTBaseOfImmInlineFootnote_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmInlineFootnote(haxorg_ImmAdapterTBaseOfImmInlineFootnote* obj);
-struct haxorg_ImmAdapterTBaseOfImmInlineExport_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmInlineExport)}>)}
-struct haxorg_ImmAdapterTBaseOfImmInlineExport {
-  haxorg_ImmAdapterTBaseOfImmInlineExport_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmInlineExport(haxorg_ImmAdapterTBaseOfImmInlineExport* obj);
-struct haxorg_ImmAdapterTBaseOfImmTime_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmTime)}>)}
-struct haxorg_ImmAdapterTBaseOfImmTime {
-  haxorg_ImmAdapterTBaseOfImmTime_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmTime(haxorg_ImmAdapterTBaseOfImmTime* obj);
-struct haxorg_ImmAdapterTBaseOfImmTimeRange_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmTimeRange)}>)}
-struct haxorg_ImmAdapterTBaseOfImmTimeRange {
-  haxorg_ImmAdapterTBaseOfImmTimeRange_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmTimeRange(haxorg_ImmAdapterTBaseOfImmTimeRange* obj);
-struct haxorg_ImmAdapterTBaseOfImmMacro_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmMacro)}>)}
-struct haxorg_ImmAdapterTBaseOfImmMacro {
-  haxorg_ImmAdapterTBaseOfImmMacro_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmMacro(haxorg_ImmAdapterTBaseOfImmMacro* obj);
-struct haxorg_ImmAdapterTBaseOfImmSymbol_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmSymbol)}>)}
-struct haxorg_ImmAdapterTBaseOfImmSymbol {
-  haxorg_ImmAdapterTBaseOfImmSymbol_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmSymbol(haxorg_ImmAdapterTBaseOfImmSymbol* obj);
-struct haxorg_ImmAdapterTBaseOfImmEscaped_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmEscaped)}>)}
-struct haxorg_ImmAdapterTBaseOfImmEscaped {
-  haxorg_ImmAdapterTBaseOfImmEscaped_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmEscaped(haxorg_ImmAdapterTBaseOfImmEscaped* obj);
-struct haxorg_ImmAdapterTBaseOfImmNewline_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmNewline)}>)}
-struct haxorg_ImmAdapterTBaseOfImmNewline {
-  haxorg_ImmAdapterTBaseOfImmNewline_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmNewline(haxorg_ImmAdapterTBaseOfImmNewline* obj);
-struct haxorg_ImmAdapterTBaseOfImmSpace_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmSpace)}>)}
-struct haxorg_ImmAdapterTBaseOfImmSpace {
-  haxorg_ImmAdapterTBaseOfImmSpace_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmSpace(haxorg_ImmAdapterTBaseOfImmSpace* obj);
-struct haxorg_ImmAdapterTBaseOfImmWord_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmWord)}>)}
-struct haxorg_ImmAdapterTBaseOfImmWord {
-  haxorg_ImmAdapterTBaseOfImmWord_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmWord(haxorg_ImmAdapterTBaseOfImmWord* obj);
-struct haxorg_ImmAdapterTBaseOfImmAtMention_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmAtMention)}>)}
-struct haxorg_ImmAdapterTBaseOfImmAtMention {
-  haxorg_ImmAdapterTBaseOfImmAtMention_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmAtMention(haxorg_ImmAdapterTBaseOfImmAtMention* obj);
-struct haxorg_ImmAdapterTBaseOfImmRawText_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmRawText)}>)}
-struct haxorg_ImmAdapterTBaseOfImmRawText {
-  haxorg_ImmAdapterTBaseOfImmRawText_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmRawText(haxorg_ImmAdapterTBaseOfImmRawText* obj);
-struct haxorg_ImmAdapterTBaseOfImmPunctuation_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmPunctuation)}>)}
-struct haxorg_ImmAdapterTBaseOfImmPunctuation {
-  haxorg_ImmAdapterTBaseOfImmPunctuation_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmPunctuation(haxorg_ImmAdapterTBaseOfImmPunctuation* obj);
-struct haxorg_ImmAdapterTBaseOfImmPlaceholder_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmPlaceholder)}>)}
-struct haxorg_ImmAdapterTBaseOfImmPlaceholder {
-  haxorg_ImmAdapterTBaseOfImmPlaceholder_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmPlaceholder(haxorg_ImmAdapterTBaseOfImmPlaceholder* obj);
-struct haxorg_ImmAdapterTBaseOfImmBigIdent_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBigIdent)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBigIdent {
-  haxorg_ImmAdapterTBaseOfImmBigIdent_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBigIdent(haxorg_ImmAdapterTBaseOfImmBigIdent* obj);
-struct haxorg_ImmAdapterTBaseOfImmTextTarget_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmTextTarget)}>)}
-struct haxorg_ImmAdapterTBaseOfImmTextTarget {
-  haxorg_ImmAdapterTBaseOfImmTextTarget_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmTextTarget(haxorg_ImmAdapterTBaseOfImmTextTarget* obj);
-struct haxorg_ImmAdapterTBaseOfImmErrorSkipToken_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmErrorSkipToken)}>)}
-struct haxorg_ImmAdapterTBaseOfImmErrorSkipToken {
-  haxorg_ImmAdapterTBaseOfImmErrorSkipToken_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmErrorSkipToken(haxorg_ImmAdapterTBaseOfImmErrorSkipToken* obj);
-struct haxorg_ImmAdapterTBaseOfImmErrorSkipGroup_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmErrorSkipGroup)}>)}
-struct haxorg_ImmAdapterTBaseOfImmErrorSkipGroup {
-  haxorg_ImmAdapterTBaseOfImmErrorSkipGroup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmErrorSkipGroup(haxorg_ImmAdapterTBaseOfImmErrorSkipGroup* obj);
-struct haxorg_ImmAdapterTBaseOfImmMarkup_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmMarkup)}>)}
-struct haxorg_ImmAdapterTBaseOfImmMarkup {
-  haxorg_ImmAdapterTBaseOfImmMarkup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmMarkup(haxorg_ImmAdapterTBaseOfImmMarkup* obj);
-struct haxorg_ImmAdapterTBaseOfImmBold_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBold)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBold {
-  haxorg_ImmAdapterTBaseOfImmBold_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBold(haxorg_ImmAdapterTBaseOfImmBold* obj);
-struct haxorg_ImmAdapterTBaseOfImmUnderline_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmUnderline)}>)}
-struct haxorg_ImmAdapterTBaseOfImmUnderline {
-  haxorg_ImmAdapterTBaseOfImmUnderline_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmUnderline(haxorg_ImmAdapterTBaseOfImmUnderline* obj);
-struct haxorg_ImmAdapterTBaseOfImmMonospace_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmMonospace)}>)}
-struct haxorg_ImmAdapterTBaseOfImmMonospace {
-  haxorg_ImmAdapterTBaseOfImmMonospace_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmMonospace(haxorg_ImmAdapterTBaseOfImmMonospace* obj);
-struct haxorg_ImmAdapterTBaseOfImmMarkQuote_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmMarkQuote)}>)}
-struct haxorg_ImmAdapterTBaseOfImmMarkQuote {
-  haxorg_ImmAdapterTBaseOfImmMarkQuote_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmMarkQuote(haxorg_ImmAdapterTBaseOfImmMarkQuote* obj);
-struct haxorg_ImmAdapterTBaseOfImmVerbatim_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmVerbatim)}>)}
-struct haxorg_ImmAdapterTBaseOfImmVerbatim {
-  haxorg_ImmAdapterTBaseOfImmVerbatim_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmVerbatim(haxorg_ImmAdapterTBaseOfImmVerbatim* obj);
-struct haxorg_ImmAdapterTBaseOfImmItalic_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmItalic)}>)}
-struct haxorg_ImmAdapterTBaseOfImmItalic {
-  haxorg_ImmAdapterTBaseOfImmItalic_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmItalic(haxorg_ImmAdapterTBaseOfImmItalic* obj);
-struct haxorg_ImmAdapterTBaseOfImmStrike_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmStrike)}>)}
-struct haxorg_ImmAdapterTBaseOfImmStrike {
-  haxorg_ImmAdapterTBaseOfImmStrike_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmStrike(haxorg_ImmAdapterTBaseOfImmStrike* obj);
-struct haxorg_ImmAdapterTBaseOfImmPar_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmPar)}>)}
-struct haxorg_ImmAdapterTBaseOfImmPar {
-  haxorg_ImmAdapterTBaseOfImmPar_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmPar(haxorg_ImmAdapterTBaseOfImmPar* obj);
-struct haxorg_ImmAdapterTBaseOfImmRadioTarget_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmRadioTarget)}>)}
-struct haxorg_ImmAdapterTBaseOfImmRadioTarget {
-  haxorg_ImmAdapterTBaseOfImmRadioTarget_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmRadioTarget(haxorg_ImmAdapterTBaseOfImmRadioTarget* obj);
-struct haxorg_ImmAdapterTBaseOfImmLatex_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmLatex)}>)}
-struct haxorg_ImmAdapterTBaseOfImmLatex {
-  haxorg_ImmAdapterTBaseOfImmLatex_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmLatex(haxorg_ImmAdapterTBaseOfImmLatex* obj);
-struct haxorg_ImmAdapterTBaseOfImmLink_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmLink)}>)}
-struct haxorg_ImmAdapterTBaseOfImmLink {
-  haxorg_ImmAdapterTBaseOfImmLink_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmLink(haxorg_ImmAdapterTBaseOfImmLink* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockCenter_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockCenter)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockCenter {
-  haxorg_ImmAdapterTBaseOfImmBlockCenter_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockCenter(haxorg_ImmAdapterTBaseOfImmBlockCenter* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockQuote_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockQuote)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockQuote {
-  haxorg_ImmAdapterTBaseOfImmBlockQuote_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockQuote(haxorg_ImmAdapterTBaseOfImmBlockQuote* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockComment_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockComment)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockComment {
-  haxorg_ImmAdapterTBaseOfImmBlockComment_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockComment(haxorg_ImmAdapterTBaseOfImmBlockComment* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockVerse_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockVerse)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockVerse {
-  haxorg_ImmAdapterTBaseOfImmBlockVerse_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockVerse(haxorg_ImmAdapterTBaseOfImmBlockVerse* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockDynamicFallback_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockDynamicFallback)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockDynamicFallback {
-  haxorg_ImmAdapterTBaseOfImmBlockDynamicFallback_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockDynamicFallback(haxorg_ImmAdapterTBaseOfImmBlockDynamicFallback* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockExample_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockExample)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockExample {
-  haxorg_ImmAdapterTBaseOfImmBlockExample_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockExample(haxorg_ImmAdapterTBaseOfImmBlockExample* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockExport_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockExport)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockExport {
-  haxorg_ImmAdapterTBaseOfImmBlockExport_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockExport(haxorg_ImmAdapterTBaseOfImmBlockExport* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockAdmonition_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockAdmonition)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockAdmonition {
-  haxorg_ImmAdapterTBaseOfImmBlockAdmonition_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockAdmonition(haxorg_ImmAdapterTBaseOfImmBlockAdmonition* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockCodeEvalResult_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockCodeEvalResult)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockCodeEvalResult {
-  haxorg_ImmAdapterTBaseOfImmBlockCodeEvalResult_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockCodeEvalResult(haxorg_ImmAdapterTBaseOfImmBlockCodeEvalResult* obj);
-struct haxorg_ImmAdapterTBaseOfImmBlockCode_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmBlockCode)}>)}
-struct haxorg_ImmAdapterTBaseOfImmBlockCode {
-  haxorg_ImmAdapterTBaseOfImmBlockCode_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmBlockCode(haxorg_ImmAdapterTBaseOfImmBlockCode* obj);
-struct haxorg_ImmAdapterTBaseOfImmSubtreeLog_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmSubtreeLog)}>)}
-struct haxorg_ImmAdapterTBaseOfImmSubtreeLog {
-  haxorg_ImmAdapterTBaseOfImmSubtreeLog_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmSubtreeLog(haxorg_ImmAdapterTBaseOfImmSubtreeLog* obj);
-struct haxorg_ImmAdapterTBaseOfImmSubtree_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmSubtree)}>)}
-struct haxorg_ImmAdapterTBaseOfImmSubtree {
-  haxorg_ImmAdapterTBaseOfImmSubtree_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmSubtree(haxorg_ImmAdapterTBaseOfImmSubtree* obj);
-struct haxorg_ImmAdapterTBaseOfImmCell_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCell)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCell {
-  haxorg_ImmAdapterTBaseOfImmCell_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCell(haxorg_ImmAdapterTBaseOfImmCell* obj);
-struct haxorg_ImmAdapterTBaseOfImmRow_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmRow)}>)}
-struct haxorg_ImmAdapterTBaseOfImmRow {
-  haxorg_ImmAdapterTBaseOfImmRow_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmRow(haxorg_ImmAdapterTBaseOfImmRow* obj);
-struct haxorg_ImmAdapterTBaseOfImmTable_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmTable)}>)}
-struct haxorg_ImmAdapterTBaseOfImmTable {
-  haxorg_ImmAdapterTBaseOfImmTable_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmTable(haxorg_ImmAdapterTBaseOfImmTable* obj);
-struct haxorg_ImmAdapterTBaseOfImmParagraph_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmParagraph)}>)}
-struct haxorg_ImmAdapterTBaseOfImmParagraph {
-  haxorg_ImmAdapterTBaseOfImmParagraph_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmParagraph(haxorg_ImmAdapterTBaseOfImmParagraph* obj);
-struct haxorg_ImmAdapterTBaseOfImmColonExample_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmColonExample)}>)}
-struct haxorg_ImmAdapterTBaseOfImmColonExample {
-  haxorg_ImmAdapterTBaseOfImmColonExample_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmColonExample(haxorg_ImmAdapterTBaseOfImmColonExample* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdAttr_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdAttr)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdAttr {
-  haxorg_ImmAdapterTBaseOfImmCmdAttr_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdAttr(haxorg_ImmAdapterTBaseOfImmCmdAttr* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdExport_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdExport)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdExport {
-  haxorg_ImmAdapterTBaseOfImmCmdExport_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdExport(haxorg_ImmAdapterTBaseOfImmCmdExport* obj);
-struct haxorg_ImmAdapterTBaseOfImmCall_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCall)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCall {
-  haxorg_ImmAdapterTBaseOfImmCall_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCall(haxorg_ImmAdapterTBaseOfImmCall* obj);
-struct haxorg_ImmAdapterTBaseOfImmList_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmList)}>)}
-struct haxorg_ImmAdapterTBaseOfImmList {
-  haxorg_ImmAdapterTBaseOfImmList_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmList(haxorg_ImmAdapterTBaseOfImmList* obj);
-struct haxorg_ImmAdapterTBaseOfImmListItem_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmListItem)}>)}
-struct haxorg_ImmAdapterTBaseOfImmListItem {
-  haxorg_ImmAdapterTBaseOfImmListItem_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmListItem(haxorg_ImmAdapterTBaseOfImmListItem* obj);
-struct haxorg_ImmAdapterTBaseOfImmDocumentOptions_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmDocumentOptions)}>)}
-struct haxorg_ImmAdapterTBaseOfImmDocumentOptions {
-  haxorg_ImmAdapterTBaseOfImmDocumentOptions_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmDocumentOptions(haxorg_ImmAdapterTBaseOfImmDocumentOptions* obj);
-struct haxorg_ImmAdapterTBaseOfImmDocumentFragment_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmDocumentFragment)}>)}
-struct haxorg_ImmAdapterTBaseOfImmDocumentFragment {
-  haxorg_ImmAdapterTBaseOfImmDocumentFragment_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmDocumentFragment(haxorg_ImmAdapterTBaseOfImmDocumentFragment* obj);
-struct haxorg_ImmAdapterTBaseOfImmCriticMarkup_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCriticMarkup)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCriticMarkup {
-  haxorg_ImmAdapterTBaseOfImmCriticMarkup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCriticMarkup(haxorg_ImmAdapterTBaseOfImmCriticMarkup* obj);
-struct haxorg_ImmAdapterTBaseOfImmDocument_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmDocument)}>)}
-struct haxorg_ImmAdapterTBaseOfImmDocument {
-  haxorg_ImmAdapterTBaseOfImmDocument_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmDocument(haxorg_ImmAdapterTBaseOfImmDocument* obj);
-struct haxorg_ImmAdapterTBaseOfImmFileTarget_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmFileTarget)}>)}
-struct haxorg_ImmAdapterTBaseOfImmFileTarget {
-  haxorg_ImmAdapterTBaseOfImmFileTarget_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmFileTarget(haxorg_ImmAdapterTBaseOfImmFileTarget* obj);
-struct haxorg_ImmAdapterTBaseOfImmTextSeparator_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmTextSeparator)}>)}
-struct haxorg_ImmAdapterTBaseOfImmTextSeparator {
-  haxorg_ImmAdapterTBaseOfImmTextSeparator_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmTextSeparator(haxorg_ImmAdapterTBaseOfImmTextSeparator* obj);
-struct haxorg_ImmAdapterTBaseOfImmDocumentGroup_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmDocumentGroup)}>)}
-struct haxorg_ImmAdapterTBaseOfImmDocumentGroup {
-  haxorg_ImmAdapterTBaseOfImmDocumentGroup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmDocumentGroup(haxorg_ImmAdapterTBaseOfImmDocumentGroup* obj);
-struct haxorg_ImmAdapterTBaseOfImmFile_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmFile)}>)}
-struct haxorg_ImmAdapterTBaseOfImmFile {
-  haxorg_ImmAdapterTBaseOfImmFile_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmFile(haxorg_ImmAdapterTBaseOfImmFile* obj);
-struct haxorg_ImmAdapterTBaseOfImmDirectory_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmDirectory)}>)}
-struct haxorg_ImmAdapterTBaseOfImmDirectory {
-  haxorg_ImmAdapterTBaseOfImmDirectory_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmDirectory(haxorg_ImmAdapterTBaseOfImmDirectory* obj);
-struct haxorg_ImmAdapterTBaseOfImmSymlink_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmSymlink)}>)}
-struct haxorg_ImmAdapterTBaseOfImmSymlink {
-  haxorg_ImmAdapterTBaseOfImmSymlink_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmSymlink(haxorg_ImmAdapterTBaseOfImmSymlink* obj);
-struct haxorg_ImmAdapterTBaseOfImmCmdInclude_vtable {};
-
-/// \brief {{REC:(org)}::{REC:(imm)}::REC:(ImmAdapterTBase<{{REC:(org)}::{REC:(imm)}::REC:(ImmCmdInclude)}>)}
-struct haxorg_ImmAdapterTBaseOfImmCmdInclude {
-  haxorg_ImmAdapterTBaseOfImmCmdInclude_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapterTBaseOfImmCmdInclude(haxorg_ImmAdapterTBaseOfImmCmdInclude* obj);
 struct haxorg_NoNode_vtable {};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(NoNode)}
@@ -1368,7 +750,9 @@ struct haxorg_NoNode {
 };
 
 void haxorg_destroy_NoNode(haxorg_NoNode* obj);
-struct haxorg_ErrorItem_vtable {};
+struct haxorg_ErrorItem_vtable {
+  haxorg_OrgDiagnostics const*(*)() get_diag;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(ErrorItem)}
 struct haxorg_ErrorItem {
@@ -1377,7 +761,9 @@ struct haxorg_ErrorItem {
 };
 
 void haxorg_destroy_ErrorItem(haxorg_ErrorItem* obj);
-struct haxorg_ErrorGroup_vtable {};
+struct haxorg_ErrorGroup_vtable {
+  haxorg_CHstdVec const*(*)() get_diagnostics;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(ErrorGroup)}
 struct haxorg_ErrorGroup {
@@ -1386,7 +772,9 @@ struct haxorg_ErrorGroup {
 };
 
 void haxorg_destroy_ErrorGroup(haxorg_ErrorGroup* obj);
-struct haxorg_Stmt_vtable {};
+struct haxorg_Stmt_vtable {
+  haxorg_CHstdVec const*(*)() get_attached;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Stmt)}
 struct haxorg_Stmt {
@@ -1422,7 +810,9 @@ struct haxorg_Empty {
 };
 
 void haxorg_destroy_Empty(haxorg_Empty* obj);
-struct haxorg_Leaf_vtable {};
+struct haxorg_Leaf_vtable {
+  haxorg_Str const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Leaf)}
 struct haxorg_Leaf {
@@ -1431,7 +821,10 @@ struct haxorg_Leaf {
 };
 
 void haxorg_destroy_Leaf(haxorg_Leaf* obj);
-struct haxorg_Time_vtable {};
+struct haxorg_Time_vtable {
+  bool const*(*)() get_isActive;
+  haxorg_TimeTimeVariant const*(*)() get_time;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Time)}
 struct haxorg_Time {
@@ -1440,7 +833,10 @@ struct haxorg_Time {
 };
 
 void haxorg_destroy_Time(haxorg_Time* obj);
-struct haxorg_TimeRange_vtable {};
+struct haxorg_TimeRange_vtable {
+  haxorg_SemId const*(*)() get_from;
+  haxorg_SemId const*(*)() get_to;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(TimeRange)}
 struct haxorg_TimeRange {
@@ -1449,7 +845,10 @@ struct haxorg_TimeRange {
 };
 
 void haxorg_destroy_TimeRange(haxorg_TimeRange* obj);
-struct haxorg_Macro_vtable {};
+struct haxorg_Macro_vtable {
+  haxorg_Str const*(*)() get_name;
+  haxorg_AttrGroup const*(*)() get_attrs;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Macro)}
 struct haxorg_Macro {
@@ -1458,7 +857,11 @@ struct haxorg_Macro {
 };
 
 void haxorg_destroy_Macro(haxorg_Macro* obj);
-struct haxorg_Symbol_vtable {};
+struct haxorg_Symbol_vtable {
+  haxorg_Str const*(*)() get_name;
+  haxorg_CHstdVec const*(*)() get_parameters;
+  haxorg_CHstdVec const*(*)() get_positional;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Symbol)}
 struct haxorg_Symbol {
@@ -1467,7 +870,9 @@ struct haxorg_Symbol {
 };
 
 void haxorg_destroy_Symbol(haxorg_Symbol* obj);
-struct haxorg_ErrorSkipGroup_vtable {};
+struct haxorg_ErrorSkipGroup_vtable {
+  haxorg_CHstdVec const*(*)() get_skipped;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(ErrorSkipGroup)}
 struct haxorg_ErrorSkipGroup {
@@ -1485,7 +890,9 @@ struct haxorg_Markup {
 };
 
 void haxorg_destroy_Markup(haxorg_Markup* obj);
-struct haxorg_RadioTarget_vtable {};
+struct haxorg_RadioTarget_vtable {
+  haxorg_CHstdVec const*(*)() get_words;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(RadioTarget)}
 struct haxorg_RadioTarget {
@@ -1503,7 +910,10 @@ struct haxorg_Latex {
 };
 
 void haxorg_destroy_Latex(haxorg_Latex* obj);
-struct haxorg_SubtreeLog_vtable {};
+struct haxorg_SubtreeLog_vtable {
+  haxorg_SubtreeLogHead const*(*)() get_head;
+  haxorg_OptOfSemIdOfStmtList const*(*)() get_desc;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(SubtreeLog)}
 struct haxorg_SubtreeLog {
@@ -1512,7 +922,23 @@ struct haxorg_SubtreeLog {
 };
 
 void haxorg_destroy_SubtreeLog(haxorg_SubtreeLog* obj);
-struct haxorg_Subtree_vtable {};
+struct haxorg_Subtree_vtable {
+  int const*(*)() get_level;
+  haxorg_OptOfStr const*(*)() get_treeId;
+  haxorg_OptOfStr const*(*)() get_todo;
+  haxorg_OptOfSubtreeCompletion const*(*)() get_completion;
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_description;
+  haxorg_CHstdVec const*(*)() get_tags;
+  haxorg_SemId const*(*)() get_title;
+  haxorg_CHstdVec const*(*)() get_logbook;
+  haxorg_CHstdVec const*(*)() get_properties;
+  haxorg_OptOfSemIdOfTime const*(*)() get_closed;
+  haxorg_OptOfSemIdOfTime const*(*)() get_deadline;
+  haxorg_OptOfSemIdOfTime const*(*)() get_scheduled;
+  bool const*(*)() get_isComment;
+  bool const*(*)() get_isArchived;
+  haxorg_OptOfStr const*(*)() get_priority;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Subtree)}
 struct haxorg_Subtree {
@@ -1530,7 +956,11 @@ struct haxorg_ColonExample {
 };
 
 void haxorg_destroy_ColonExample(haxorg_ColonExample* obj);
-struct haxorg_Call_vtable {};
+struct haxorg_Call_vtable {
+  haxorg_Str const*(*)() get_name;
+  haxorg_AttrGroup const*(*)() get_attrs;
+  bool const*(*)() get_isCommand;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Call)}
 struct haxorg_Call {
@@ -1539,7 +969,11 @@ struct haxorg_Call {
 };
 
 void haxorg_destroy_Call(haxorg_Call* obj);
-struct haxorg_ListItem_vtable {};
+struct haxorg_ListItem_vtable {
+  haxorg_CheckboxState const*(*)() get_checkbox;
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_header;
+  haxorg_OptOfStr const*(*)() get_bullet;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(ListItem)}
 struct haxorg_ListItem {
@@ -1548,7 +982,19 @@ struct haxorg_ListItem {
 };
 
 void haxorg_destroy_ListItem(haxorg_ListItem* obj);
-struct haxorg_DocumentOptions_vtable {};
+struct haxorg_DocumentOptions_vtable {
+  haxorg_InitialSubtreeVisibility const*(*)() get_initialVisibility;
+  haxorg_CHstdVec const*(*)() get_properties;
+  haxorg_DocumentExportConfig const*(*)() get_exportConfig;
+  haxorg_OptOfBool const*(*)() get_fixedWidthSections;
+  haxorg_OptOfBool const*(*)() get_startupIndented;
+  haxorg_OptOfStr const*(*)() get_category;
+  haxorg_OptOfStr const*(*)() get_setupfile;
+  haxorg_OptOfInt const*(*)() get_maxSubtreeLevelExport;
+  haxorg_OptOfColumnView const*(*)() get_columns;
+  haxorg_CHstdVec const*(*)() get_todoKeywords;
+  haxorg_CHstdVec const*(*)() get_doneKeywords;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(DocumentOptions)}
 struct haxorg_DocumentOptions {
@@ -1557,7 +1003,10 @@ struct haxorg_DocumentOptions {
 };
 
 void haxorg_destroy_DocumentOptions(haxorg_DocumentOptions* obj);
-struct haxorg_DocumentFragment_vtable {};
+struct haxorg_DocumentFragment_vtable {
+  int const*(*)() get_baseLine;
+  int const*(*)() get_baseCol;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(DocumentFragment)}
 struct haxorg_DocumentFragment {
@@ -1566,7 +1015,9 @@ struct haxorg_DocumentFragment {
 };
 
 void haxorg_destroy_DocumentFragment(haxorg_DocumentFragment* obj);
-struct haxorg_CriticMarkup_vtable {};
+struct haxorg_CriticMarkup_vtable {
+  haxorg_CriticMarkupKind const*(*)() get_kind;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CriticMarkup)}
 struct haxorg_CriticMarkup {
@@ -1575,7 +1026,16 @@ struct haxorg_CriticMarkup {
 };
 
 void haxorg_destroy_CriticMarkup(haxorg_CriticMarkup* obj);
-struct haxorg_Document_vtable {};
+struct haxorg_Document_vtable {
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_title;
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_author;
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_creator;
+  haxorg_CHstdVec const*(*)() get_filetags;
+  haxorg_OptOfSemIdOfRawText const*(*)() get_email;
+  haxorg_CHstdVec const*(*)() get_language;
+  haxorg_SemId const*(*)() get_options;
+  haxorg_OptOfStr const*(*)() get_exportFileName;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Document)}
 struct haxorg_Document {
@@ -1584,7 +1044,14 @@ struct haxorg_Document {
 };
 
 void haxorg_destroy_Document(haxorg_Document* obj);
-struct haxorg_FileTarget_vtable {};
+struct haxorg_FileTarget_vtable {
+  haxorg_Str const*(*)() get_path;
+  haxorg_OptOfInt const*(*)() get_line;
+  haxorg_OptOfStr const*(*)() get_searchTarget;
+  bool const*(*)() get_restrictToHeadlines;
+  haxorg_OptOfStr const*(*)() get_targetId;
+  haxorg_OptOfStr const*(*)() get_regexp;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(FileTarget)}
 struct haxorg_FileTarget {
@@ -1611,7 +1078,11 @@ struct haxorg_DocumentGroup {
 };
 
 void haxorg_destroy_DocumentGroup(haxorg_DocumentGroup* obj);
-struct haxorg_File_vtable {};
+struct haxorg_File_vtable {
+  haxorg_Str const*(*)() get_relPath;
+  haxorg_Str const*(*)() get_absPath;
+  haxorg_FileData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(File)}
 struct haxorg_File {
@@ -1620,7 +1091,10 @@ struct haxorg_File {
 };
 
 void haxorg_destroy_File(haxorg_File* obj);
-struct haxorg_Directory_vtable {};
+struct haxorg_Directory_vtable {
+  haxorg_Str const*(*)() get_relPath;
+  haxorg_Str const*(*)() get_absPath;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Directory)}
 struct haxorg_Directory {
@@ -1629,7 +1103,10 @@ struct haxorg_Directory {
 };
 
 void haxorg_destroy_Directory(haxorg_Directory* obj);
-struct haxorg_Symlink_vtable {};
+struct haxorg_Symlink_vtable {
+  bool const*(*)() get_isDirectory;
+  haxorg_Str const*(*)() get_absPath;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Symlink)}
 struct haxorg_Symlink {
@@ -1638,7 +1115,12 @@ struct haxorg_Symlink {
 };
 
 void haxorg_destroy_Symlink(haxorg_Symlink* obj);
-struct haxorg_CmdInclude_vtable {};
+struct haxorg_CmdInclude_vtable {
+  haxorg_Str const*(*)() get_path;
+  haxorg_OptOfInt const*(*)() get_firstLine;
+  haxorg_OptOfInt const*(*)() get_lastLine;
+  haxorg_CmdIncludeData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdInclude)}
 struct haxorg_CmdInclude {
@@ -2448,7 +1930,9 @@ struct haxorg_ImmNoNode {
 };
 
 void haxorg_destroy_ImmNoNode(haxorg_ImmNoNode* obj);
-struct haxorg_ImmErrorItem_vtable {};
+struct haxorg_ImmErrorItem_vtable {
+  haxorg_OrgDiagnostics const*(*)() get_diag;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmErrorItem)}
 struct haxorg_ImmErrorItem {
@@ -2457,7 +1941,9 @@ struct haxorg_ImmErrorItem {
 };
 
 void haxorg_destroy_ImmErrorItem(haxorg_ImmErrorItem* obj);
-struct haxorg_ImmErrorGroup_vtable {};
+struct haxorg_ImmErrorGroup_vtable {
+  haxorg_ImmVecOfImmIdTOfImmErrorItem const*(*)() get_diagnostics;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmErrorGroup)}
 struct haxorg_ImmErrorGroup {
@@ -2466,7 +1952,9 @@ struct haxorg_ImmErrorGroup {
 };
 
 void haxorg_destroy_ImmErrorGroup(haxorg_ImmErrorGroup* obj);
-struct haxorg_ImmStmt_vtable {};
+struct haxorg_ImmStmt_vtable {
+  haxorg_ImmVecOfImmIdTOfImmOrg const*(*)() get_attached;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmStmt)}
 struct haxorg_ImmStmt {
@@ -2502,7 +1990,9 @@ struct haxorg_ImmEmpty {
 };
 
 void haxorg_destroy_ImmEmpty(haxorg_ImmEmpty* obj);
-struct haxorg_ImmLeaf_vtable {};
+struct haxorg_ImmLeaf_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmLeaf)}
 struct haxorg_ImmLeaf {
@@ -2511,7 +2001,10 @@ struct haxorg_ImmLeaf {
 };
 
 void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj);
-struct haxorg_ImmTime_vtable {};
+struct haxorg_ImmTime_vtable {
+  bool const*(*)() get_isActive;
+  haxorg_ImmTimeTimeVariant const*(*)() get_time;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmTime)}
 struct haxorg_ImmTime {
@@ -2520,7 +2013,10 @@ struct haxorg_ImmTime {
 };
 
 void haxorg_destroy_ImmTime(haxorg_ImmTime* obj);
-struct haxorg_ImmTimeRange_vtable {};
+struct haxorg_ImmTimeRange_vtable {
+  haxorg_ImmIdTOfImmTime const*(*)() get_from;
+  haxorg_ImmIdTOfImmTime const*(*)() get_to;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmTimeRange)}
 struct haxorg_ImmTimeRange {
@@ -2529,7 +2025,10 @@ struct haxorg_ImmTimeRange {
 };
 
 void haxorg_destroy_ImmTimeRange(haxorg_ImmTimeRange* obj);
-struct haxorg_ImmMacro_vtable {};
+struct haxorg_ImmMacro_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  haxorg_AttrGroup const*(*)() get_attrs;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmMacro)}
 struct haxorg_ImmMacro {
@@ -2538,7 +2037,11 @@ struct haxorg_ImmMacro {
 };
 
 void haxorg_destroy_ImmMacro(haxorg_ImmMacro* obj);
-struct haxorg_ImmSymbol_vtable {};
+struct haxorg_ImmSymbol_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  haxorg_ImmVecOfImmSymbolParam const*(*)() get_parameters;
+  haxorg_ImmVecOfImmIdTOfImmOrg const*(*)() get_positional;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmSymbol)}
 struct haxorg_ImmSymbol {
@@ -2547,7 +2050,9 @@ struct haxorg_ImmSymbol {
 };
 
 void haxorg_destroy_ImmSymbol(haxorg_ImmSymbol* obj);
-struct haxorg_ImmErrorSkipGroup_vtable {};
+struct haxorg_ImmErrorSkipGroup_vtable {
+  haxorg_ImmVecOfImmIdTOfImmErrorSkipToken const*(*)() get_skipped;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmErrorSkipGroup)}
 struct haxorg_ImmErrorSkipGroup {
@@ -2565,7 +2070,9 @@ struct haxorg_ImmMarkup {
 };
 
 void haxorg_destroy_ImmMarkup(haxorg_ImmMarkup* obj);
-struct haxorg_ImmRadioTarget_vtable {};
+struct haxorg_ImmRadioTarget_vtable {
+  haxorg_ImmVecOfStr const*(*)() get_words;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmRadioTarget)}
 struct haxorg_ImmRadioTarget {
@@ -2583,7 +2090,10 @@ struct haxorg_ImmLatex {
 };
 
 void haxorg_destroy_ImmLatex(haxorg_ImmLatex* obj);
-struct haxorg_ImmSubtreeLog_vtable {};
+struct haxorg_ImmSubtreeLog_vtable {
+  haxorg_SubtreeLogHead const*(*)() get_head;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmStmtList const*(*)() get_desc;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmSubtreeLog)}
 struct haxorg_ImmSubtreeLog {
@@ -2592,7 +2102,23 @@ struct haxorg_ImmSubtreeLog {
 };
 
 void haxorg_destroy_ImmSubtreeLog(haxorg_ImmSubtreeLog* obj);
-struct haxorg_ImmSubtree_vtable {};
+struct haxorg_ImmSubtree_vtable {
+  int const*(*)() get_level;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_treeId;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_todo;
+  haxorg_ImmBoxOfOptOfSubtreeCompletion const*(*)() get_completion;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_description;
+  haxorg_ImmVecOfImmIdTOfImmHashTag const*(*)() get_tags;
+  haxorg_ImmIdTOfImmParagraph const*(*)() get_title;
+  haxorg_ImmVecOfImmIdTOfImmSubtreeLog const*(*)() get_logbook;
+  haxorg_ImmVecOfNamedProperty const*(*)() get_properties;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmTime const*(*)() get_closed;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmTime const*(*)() get_deadline;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmTime const*(*)() get_scheduled;
+  bool const*(*)() get_isComment;
+  bool const*(*)() get_isArchived;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_priority;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmSubtree)}
 struct haxorg_ImmSubtree {
@@ -2610,7 +2136,11 @@ struct haxorg_ImmColonExample {
 };
 
 void haxorg_destroy_ImmColonExample(haxorg_ImmColonExample* obj);
-struct haxorg_ImmCall_vtable {};
+struct haxorg_ImmCall_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  haxorg_AttrGroup const*(*)() get_attrs;
+  bool const*(*)() get_isCommand;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCall)}
 struct haxorg_ImmCall {
@@ -2619,7 +2149,11 @@ struct haxorg_ImmCall {
 };
 
 void haxorg_destroy_ImmCall(haxorg_ImmCall* obj);
-struct haxorg_ImmListItem_vtable {};
+struct haxorg_ImmListItem_vtable {
+  haxorg_CheckboxState const*(*)() get_checkbox;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_header;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_bullet;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmListItem)}
 struct haxorg_ImmListItem {
@@ -2628,7 +2162,19 @@ struct haxorg_ImmListItem {
 };
 
 void haxorg_destroy_ImmListItem(haxorg_ImmListItem* obj);
-struct haxorg_ImmDocumentOptions_vtable {};
+struct haxorg_ImmDocumentOptions_vtable {
+  haxorg_InitialSubtreeVisibility const*(*)() get_initialVisibility;
+  haxorg_ImmVecOfNamedProperty const*(*)() get_properties;
+  haxorg_DocumentExportConfig const*(*)() get_exportConfig;
+  haxorg_ImmBoxOfOptOfBool const*(*)() get_fixedWidthSections;
+  haxorg_ImmBoxOfOptOfBool const*(*)() get_startupIndented;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_category;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_setupfile;
+  haxorg_ImmBoxOfOptOfInt const*(*)() get_maxSubtreeLevelExport;
+  haxorg_ImmBoxOfOptOfColumnView const*(*)() get_columns;
+  haxorg_ImmVecOfTodoKeyword const*(*)() get_todoKeywords;
+  haxorg_ImmVecOfTodoKeyword const*(*)() get_doneKeywords;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmDocumentOptions)}
 struct haxorg_ImmDocumentOptions {
@@ -2637,7 +2183,10 @@ struct haxorg_ImmDocumentOptions {
 };
 
 void haxorg_destroy_ImmDocumentOptions(haxorg_ImmDocumentOptions* obj);
-struct haxorg_ImmDocumentFragment_vtable {};
+struct haxorg_ImmDocumentFragment_vtable {
+  int const*(*)() get_baseLine;
+  int const*(*)() get_baseCol;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmDocumentFragment)}
 struct haxorg_ImmDocumentFragment {
@@ -2646,7 +2195,9 @@ struct haxorg_ImmDocumentFragment {
 };
 
 void haxorg_destroy_ImmDocumentFragment(haxorg_ImmDocumentFragment* obj);
-struct haxorg_ImmCriticMarkup_vtable {};
+struct haxorg_ImmCriticMarkup_vtable {
+  haxorg_ImmCriticMarkupKind const*(*)() get_kind;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCriticMarkup)}
 struct haxorg_ImmCriticMarkup {
@@ -2655,7 +2206,16 @@ struct haxorg_ImmCriticMarkup {
 };
 
 void haxorg_destroy_ImmCriticMarkup(haxorg_ImmCriticMarkup* obj);
-struct haxorg_ImmDocument_vtable {};
+struct haxorg_ImmDocument_vtable {
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_title;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_author;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_creator;
+  haxorg_ImmVecOfImmIdTOfImmHashTag const*(*)() get_filetags;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmRawText const*(*)() get_email;
+  haxorg_ImmVecOfStr const*(*)() get_language;
+  haxorg_ImmIdTOfImmDocumentOptions const*(*)() get_options;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_exportFileName;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmDocument)}
 struct haxorg_ImmDocument {
@@ -2664,7 +2224,14 @@ struct haxorg_ImmDocument {
 };
 
 void haxorg_destroy_ImmDocument(haxorg_ImmDocument* obj);
-struct haxorg_ImmFileTarget_vtable {};
+struct haxorg_ImmFileTarget_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_path;
+  haxorg_ImmBoxOfOptOfInt const*(*)() get_line;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_searchTarget;
+  bool const*(*)() get_restrictToHeadlines;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_targetId;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_regexp;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmFileTarget)}
 struct haxorg_ImmFileTarget {
@@ -2691,7 +2258,11 @@ struct haxorg_ImmDocumentGroup {
 };
 
 void haxorg_destroy_ImmDocumentGroup(haxorg_ImmDocumentGroup* obj);
-struct haxorg_ImmFile_vtable {};
+struct haxorg_ImmFile_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_relPath;
+  haxorg_ImmBoxOfStr const*(*)() get_absPath;
+  haxorg_ImmFileData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmFile)}
 struct haxorg_ImmFile {
@@ -2700,7 +2271,10 @@ struct haxorg_ImmFile {
 };
 
 void haxorg_destroy_ImmFile(haxorg_ImmFile* obj);
-struct haxorg_ImmDirectory_vtable {};
+struct haxorg_ImmDirectory_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_relPath;
+  haxorg_ImmBoxOfStr const*(*)() get_absPath;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmDirectory)}
 struct haxorg_ImmDirectory {
@@ -2709,7 +2283,10 @@ struct haxorg_ImmDirectory {
 };
 
 void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj);
-struct haxorg_ImmSymlink_vtable {};
+struct haxorg_ImmSymlink_vtable {
+  bool const*(*)() get_isDirectory;
+  haxorg_ImmBoxOfStr const*(*)() get_absPath;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmSymlink)}
 struct haxorg_ImmSymlink {
@@ -2718,7 +2295,12 @@ struct haxorg_ImmSymlink {
 };
 
 void haxorg_destroy_ImmSymlink(haxorg_ImmSymlink* obj);
-struct haxorg_ImmCmdInclude_vtable {};
+struct haxorg_ImmCmdInclude_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_path;
+  haxorg_ImmBoxOfOptOfInt const*(*)() get_firstLine;
+  haxorg_ImmBoxOfOptOfInt const*(*)() get_lastLine;
+  haxorg_ImmCmdIncludeData const*(*)() get_data;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdInclude)}
 struct haxorg_ImmCmdInclude {
@@ -2736,7 +2318,9 @@ struct haxorg_ImmAdapterOrgAPI {
 };
 
 void haxorg_destroy_ImmAdapterOrgAPI(haxorg_ImmAdapterOrgAPI* obj);
-struct haxorg_Cmd_vtable {};
+struct haxorg_Cmd_vtable {
+  haxorg_AttrGroup const*(*)() get_attrs;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Cmd)}
 struct haxorg_Cmd {
@@ -2745,7 +2329,11 @@ struct haxorg_Cmd {
 };
 
 void haxorg_destroy_Cmd(haxorg_Cmd* obj);
-struct haxorg_CmdCustomRaw_vtable {};
+struct haxorg_CmdCustomRaw_vtable {
+  haxorg_Str const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+  haxorg_Str const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCustomRaw)}
 struct haxorg_CmdCustomRaw {
@@ -2754,7 +2342,11 @@ struct haxorg_CmdCustomRaw {
 };
 
 void haxorg_destroy_CmdCustomRaw(haxorg_CmdCustomRaw* obj);
-struct haxorg_CmdCustomText_vtable {};
+struct haxorg_CmdCustomText_vtable {
+  haxorg_Str const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+  haxorg_SemId const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCustomText)}
 struct haxorg_CmdCustomText {
@@ -2763,7 +2355,10 @@ struct haxorg_CmdCustomText {
 };
 
 void haxorg_destroy_CmdCustomText(haxorg_CmdCustomText* obj);
-struct haxorg_Link_vtable {};
+struct haxorg_Link_vtable {
+  haxorg_OptOfSemIdOfParagraph const*(*)() get_description;
+  haxorg_LinkTarget const*(*)() get_target;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Link)}
 struct haxorg_Link {
@@ -2799,7 +2394,9 @@ struct haxorg_List {
 };
 
 void haxorg_destroy_List(haxorg_List* obj);
-struct haxorg_HashTag_vtable {};
+struct haxorg_HashTag_vtable {
+  haxorg_HashTagText const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(HashTag)}
 struct haxorg_HashTag {
@@ -2808,7 +2405,10 @@ struct haxorg_HashTag {
 };
 
 void haxorg_destroy_HashTag(haxorg_HashTag* obj);
-struct haxorg_InlineFootnote_vtable {};
+struct haxorg_InlineFootnote_vtable {
+  haxorg_Str const*(*)() get_tag;
+  haxorg_OptOfSemIdOfOrg const*(*)() get_definition;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(InlineFootnote)}
 struct haxorg_InlineFootnote {
@@ -2817,7 +2417,10 @@ struct haxorg_InlineFootnote {
 };
 
 void haxorg_destroy_InlineFootnote(haxorg_InlineFootnote* obj);
-struct haxorg_InlineExport_vtable {};
+struct haxorg_InlineExport_vtable {
+  haxorg_Str const*(*)() get_exporter;
+  haxorg_Str const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(InlineExport)}
 struct haxorg_InlineExport {
@@ -2997,7 +2600,9 @@ struct haxorg_Par {
 };
 
 void haxorg_destroy_Par(haxorg_Par* obj);
-struct haxorg_ImmCmd_vtable {};
+struct haxorg_ImmCmd_vtable {
+  haxorg_AttrGroup const*(*)() get_attrs;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmd)}
 struct haxorg_ImmCmd {
@@ -3006,7 +2611,11 @@ struct haxorg_ImmCmd {
 };
 
 void haxorg_destroy_ImmCmd(haxorg_ImmCmd* obj);
-struct haxorg_ImmCmdCustomRaw_vtable {};
+struct haxorg_ImmCmdCustomRaw_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+  haxorg_ImmBoxOfStr const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCustomRaw)}
 struct haxorg_ImmCmdCustomRaw {
@@ -3015,7 +2624,11 @@ struct haxorg_ImmCmdCustomRaw {
 };
 
 void haxorg_destroy_ImmCmdCustomRaw(haxorg_ImmCmdCustomRaw* obj);
-struct haxorg_ImmCmdCustomText_vtable {};
+struct haxorg_ImmCmdCustomText_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+  haxorg_ImmIdTOfImmParagraph const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCustomText)}
 struct haxorg_ImmCmdCustomText {
@@ -3024,7 +2637,10 @@ struct haxorg_ImmCmdCustomText {
 };
 
 void haxorg_destroy_ImmCmdCustomText(haxorg_ImmCmdCustomText* obj);
-struct haxorg_ImmLink_vtable {};
+struct haxorg_ImmLink_vtable {
+  haxorg_ImmBoxOfOptOfImmIdTOfImmParagraph const*(*)() get_description;
+  haxorg_LinkTarget const*(*)() get_target;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmLink)}
 struct haxorg_ImmLink {
@@ -3060,7 +2676,9 @@ struct haxorg_ImmList {
 };
 
 void haxorg_destroy_ImmList(haxorg_ImmList* obj);
-struct haxorg_ImmHashTag_vtable {};
+struct haxorg_ImmHashTag_vtable {
+  haxorg_HashTagText const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmHashTag)}
 struct haxorg_ImmHashTag {
@@ -3069,7 +2687,10 @@ struct haxorg_ImmHashTag {
 };
 
 void haxorg_destroy_ImmHashTag(haxorg_ImmHashTag* obj);
-struct haxorg_ImmInlineFootnote_vtable {};
+struct haxorg_ImmInlineFootnote_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_tag;
+  haxorg_ImmBoxOfOptOfImmIdTOfImmOrg const*(*)() get_definition;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmInlineFootnote)}
 struct haxorg_ImmInlineFootnote {
@@ -3078,7 +2699,10 @@ struct haxorg_ImmInlineFootnote {
 };
 
 void haxorg_destroy_ImmInlineFootnote(haxorg_ImmInlineFootnote* obj);
-struct haxorg_ImmInlineExport_vtable {};
+struct haxorg_ImmInlineExport_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_exporter;
+  haxorg_ImmBoxOfStr const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmInlineExport)}
 struct haxorg_ImmInlineExport {
@@ -3591,7 +3215,9 @@ struct haxorg_LineCommand {
 };
 
 void haxorg_destroy_LineCommand(haxorg_LineCommand* obj);
-struct haxorg_CmdCreator_vtable {};
+struct haxorg_CmdCreator_vtable {
+  haxorg_SemId const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCreator)}
 struct haxorg_CmdCreator {
@@ -3600,7 +3226,9 @@ struct haxorg_CmdCreator {
 };
 
 void haxorg_destroy_CmdCreator(haxorg_CmdCreator* obj);
-struct haxorg_CmdAuthor_vtable {};
+struct haxorg_CmdAuthor_vtable {
+  haxorg_SemId const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdAuthor)}
 struct haxorg_CmdAuthor {
@@ -3609,7 +3237,9 @@ struct haxorg_CmdAuthor {
 };
 
 void haxorg_destroy_CmdAuthor(haxorg_CmdAuthor* obj);
-struct haxorg_CmdEmail_vtable {};
+struct haxorg_CmdEmail_vtable {
+  haxorg_Str const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdEmail)}
 struct haxorg_CmdEmail {
@@ -3618,7 +3248,9 @@ struct haxorg_CmdEmail {
 };
 
 void haxorg_destroy_CmdEmail(haxorg_CmdEmail* obj);
-struct haxorg_CmdLanguage_vtable {};
+struct haxorg_CmdLanguage_vtable {
+  haxorg_Str const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdLanguage)}
 struct haxorg_CmdLanguage {
@@ -3627,7 +3259,10 @@ struct haxorg_CmdLanguage {
 };
 
 void haxorg_destroy_CmdLanguage(haxorg_CmdLanguage* obj);
-struct haxorg_CmdCustomArgs_vtable {};
+struct haxorg_CmdCustomArgs_vtable {
+  haxorg_Str const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCustomArgs)}
 struct haxorg_CmdCustomArgs {
@@ -3636,7 +3271,9 @@ struct haxorg_CmdCustomArgs {
 };
 
 void haxorg_destroy_CmdCustomArgs(haxorg_CmdCustomArgs* obj);
-struct haxorg_CmdTblfm_vtable {};
+struct haxorg_CmdTblfm_vtable {
+  haxorg_Tblfm const*(*)() get_expr;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdTblfm)}
 struct haxorg_CmdTblfm {
@@ -3645,7 +3282,9 @@ struct haxorg_CmdTblfm {
 };
 
 void haxorg_destroy_CmdTblfm(haxorg_CmdTblfm* obj);
-struct haxorg_Cell_vtable {};
+struct haxorg_Cell_vtable {
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Cell)}
 struct haxorg_Cell {
@@ -3654,7 +3293,10 @@ struct haxorg_Cell {
 };
 
 void haxorg_destroy_Cell(haxorg_Cell* obj);
-struct haxorg_Row_vtable {};
+struct haxorg_Row_vtable {
+  haxorg_CHstdVec const*(*)() get_cells;
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Row)}
 struct haxorg_Row {
@@ -3681,7 +3323,9 @@ struct haxorg_ImmLineCommand {
 };
 
 void haxorg_destroy_ImmLineCommand(haxorg_ImmLineCommand* obj);
-struct haxorg_ImmCmdCreator_vtable {};
+struct haxorg_ImmCmdCreator_vtable {
+  haxorg_ImmIdTOfImmParagraph const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCreator)}
 struct haxorg_ImmCmdCreator {
@@ -3690,7 +3334,9 @@ struct haxorg_ImmCmdCreator {
 };
 
 void haxorg_destroy_ImmCmdCreator(haxorg_ImmCmdCreator* obj);
-struct haxorg_ImmCmdAuthor_vtable {};
+struct haxorg_ImmCmdAuthor_vtable {
+  haxorg_ImmIdTOfImmParagraph const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdAuthor)}
 struct haxorg_ImmCmdAuthor {
@@ -3699,7 +3345,9 @@ struct haxorg_ImmCmdAuthor {
 };
 
 void haxorg_destroy_ImmCmdAuthor(haxorg_ImmCmdAuthor* obj);
-struct haxorg_ImmCmdEmail_vtable {};
+struct haxorg_ImmCmdEmail_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdEmail)}
 struct haxorg_ImmCmdEmail {
@@ -3708,7 +3356,9 @@ struct haxorg_ImmCmdEmail {
 };
 
 void haxorg_destroy_ImmCmdEmail(haxorg_ImmCmdEmail* obj);
-struct haxorg_ImmCmdLanguage_vtable {};
+struct haxorg_ImmCmdLanguage_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdLanguage)}
 struct haxorg_ImmCmdLanguage {
@@ -3717,7 +3367,10 @@ struct haxorg_ImmCmdLanguage {
 };
 
 void haxorg_destroy_ImmCmdLanguage(haxorg_ImmCmdLanguage* obj);
-struct haxorg_ImmCmdCustomArgs_vtable {};
+struct haxorg_ImmCmdCustomArgs_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  bool const*(*)() get_isAttached;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCustomArgs)}
 struct haxorg_ImmCmdCustomArgs {
@@ -3726,7 +3379,9 @@ struct haxorg_ImmCmdCustomArgs {
 };
 
 void haxorg_destroy_ImmCmdCustomArgs(haxorg_ImmCmdCustomArgs* obj);
-struct haxorg_ImmCmdTblfm_vtable {};
+struct haxorg_ImmCmdTblfm_vtable {
+  haxorg_Tblfm const*(*)() get_expr;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdTblfm)}
 struct haxorg_ImmCmdTblfm {
@@ -3735,7 +3390,9 @@ struct haxorg_ImmCmdTblfm {
 };
 
 void haxorg_destroy_ImmCmdTblfm(haxorg_ImmCmdTblfm* obj);
-struct haxorg_ImmCell_vtable {};
+struct haxorg_ImmCell_vtable {
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCell)}
 struct haxorg_ImmCell {
@@ -3744,7 +3401,10 @@ struct haxorg_ImmCell {
 };
 
 void haxorg_destroy_ImmCell(haxorg_ImmCell* obj);
-struct haxorg_ImmRow_vtable {};
+struct haxorg_ImmRow_vtable {
+  haxorg_ImmVecOfImmIdTOfImmCell const*(*)() get_cells;
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmRow)}
 struct haxorg_ImmRow {
@@ -4329,7 +3989,9 @@ struct haxorg_BlockVerse {
 };
 
 void haxorg_destroy_BlockVerse(haxorg_BlockVerse* obj);
-struct haxorg_BlockDynamicFallback_vtable {};
+struct haxorg_BlockDynamicFallback_vtable {
+  haxorg_Str const*(*)() get_name;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(BlockDynamicFallback)}
 struct haxorg_BlockDynamicFallback {
@@ -4347,7 +4009,10 @@ struct haxorg_BlockExample {
 };
 
 void haxorg_destroy_BlockExample(haxorg_BlockExample* obj);
-struct haxorg_BlockExport_vtable {};
+struct haxorg_BlockExport_vtable {
+  haxorg_Str const*(*)() get_exporter;
+  haxorg_Str const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(BlockExport)}
 struct haxorg_BlockExport {
@@ -4365,7 +4030,10 @@ struct haxorg_BlockAdmonition {
 };
 
 void haxorg_destroy_BlockAdmonition(haxorg_BlockAdmonition* obj);
-struct haxorg_BlockCodeEvalResult_vtable {};
+struct haxorg_BlockCodeEvalResult_vtable {
+  haxorg_CHstdVec const*(*)() get_raw;
+  haxorg_SemId const*(*)() get_node;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(BlockCodeEvalResult)}
 struct haxorg_BlockCodeEvalResult {
@@ -4374,7 +4042,12 @@ struct haxorg_BlockCodeEvalResult {
 };
 
 void haxorg_destroy_BlockCodeEvalResult(haxorg_BlockCodeEvalResult* obj);
-struct haxorg_BlockCode_vtable {};
+struct haxorg_BlockCode_vtable {
+  haxorg_OptOfStr const*(*)() get_lang;
+  haxorg_CHstdVec const*(*)() get_result;
+  haxorg_CHstdVec const*(*)() get_lines;
+  haxorg_AttrGroup const*(*)() get_switches;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(BlockCode)}
 struct haxorg_BlockCode {
@@ -4383,7 +4056,10 @@ struct haxorg_BlockCode {
 };
 
 void haxorg_destroy_BlockCode(haxorg_BlockCode* obj);
-struct haxorg_Table_vtable {};
+struct haxorg_Table_vtable {
+  haxorg_CHstdVec const*(*)() get_rows;
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(Table)}
 struct haxorg_Table {
@@ -4428,7 +4104,9 @@ struct haxorg_ImmBlockVerse {
 };
 
 void haxorg_destroy_ImmBlockVerse(haxorg_ImmBlockVerse* obj);
-struct haxorg_ImmBlockDynamicFallback_vtable {};
+struct haxorg_ImmBlockDynamicFallback_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmBlockDynamicFallback)}
 struct haxorg_ImmBlockDynamicFallback {
@@ -4446,7 +4124,10 @@ struct haxorg_ImmBlockExample {
 };
 
 void haxorg_destroy_ImmBlockExample(haxorg_ImmBlockExample* obj);
-struct haxorg_ImmBlockExport_vtable {};
+struct haxorg_ImmBlockExport_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_exporter;
+  haxorg_ImmBoxOfStr const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmBlockExport)}
 struct haxorg_ImmBlockExport {
@@ -4464,7 +4145,10 @@ struct haxorg_ImmBlockAdmonition {
 };
 
 void haxorg_destroy_ImmBlockAdmonition(haxorg_ImmBlockAdmonition* obj);
-struct haxorg_ImmBlockCodeEvalResult_vtable {};
+struct haxorg_ImmBlockCodeEvalResult_vtable {
+  haxorg_ImmVecOfOrgCodeEvalOutput const*(*)() get_raw;
+  haxorg_ImmIdTOfImmOrg const*(*)() get_node;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmBlockCodeEvalResult)}
 struct haxorg_ImmBlockCodeEvalResult {
@@ -4473,7 +4157,12 @@ struct haxorg_ImmBlockCodeEvalResult {
 };
 
 void haxorg_destroy_ImmBlockCodeEvalResult(haxorg_ImmBlockCodeEvalResult* obj);
-struct haxorg_ImmBlockCode_vtable {};
+struct haxorg_ImmBlockCode_vtable {
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_lang;
+  haxorg_ImmVecOfImmIdTOfImmBlockCodeEvalResult const*(*)() get_result;
+  haxorg_ImmVecOfBlockCodeLine const*(*)() get_lines;
+  haxorg_AttrGroup const*(*)() get_switches;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmBlockCode)}
 struct haxorg_ImmBlockCode {
@@ -4482,7 +4171,10 @@ struct haxorg_ImmBlockCode {
 };
 
 void haxorg_destroy_ImmBlockCode(haxorg_ImmBlockCode* obj);
-struct haxorg_ImmTable_vtable {};
+struct haxorg_ImmTable_vtable {
+  haxorg_ImmVecOfImmIdTOfImmRow const*(*)() get_rows;
+  bool const*(*)() get_isBlock;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmTable)}
 struct haxorg_ImmTable {
@@ -4842,7 +4534,9 @@ struct haxorg_ImmParAdapter {
 };
 
 void haxorg_destroy_ImmParAdapter(haxorg_ImmParAdapter* obj);
-struct haxorg_CmdCaption_vtable {};
+struct haxorg_CmdCaption_vtable {
+  haxorg_SemId const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCaption)}
 struct haxorg_CmdCaption {
@@ -4851,7 +4545,9 @@ struct haxorg_CmdCaption {
 };
 
 void haxorg_destroy_CmdCaption(haxorg_CmdCaption* obj);
-struct haxorg_CmdColumns_vtable {};
+struct haxorg_CmdColumns_vtable {
+  haxorg_ColumnView const*(*)() get_view;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdColumns)}
 struct haxorg_CmdColumns {
@@ -4860,7 +4556,9 @@ struct haxorg_CmdColumns {
 };
 
 void haxorg_destroy_CmdColumns(haxorg_CmdColumns* obj);
-struct haxorg_CmdName_vtable {};
+struct haxorg_CmdName_vtable {
+  haxorg_Str const*(*)() get_name;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdName)}
 struct haxorg_CmdName {
@@ -4869,7 +4567,14 @@ struct haxorg_CmdName {
 };
 
 void haxorg_destroy_CmdName(haxorg_CmdName* obj);
-struct haxorg_CmdCall_vtable {};
+struct haxorg_CmdCall_vtable {
+  haxorg_Str const*(*)() get_name;
+  haxorg_OptOfStr const*(*)() get_fileName;
+  haxorg_AttrGroup const*(*)() get_insideHeaderAttrs;
+  haxorg_AttrGroup const*(*)() get_callAttrs;
+  haxorg_AttrGroup const*(*)() get_endHeaderAttrs;
+  haxorg_CHstdVec const*(*)() get_result;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdCall)}
 struct haxorg_CmdCall {
@@ -4878,7 +4583,9 @@ struct haxorg_CmdCall {
 };
 
 void haxorg_destroy_CmdCall(haxorg_CmdCall* obj);
-struct haxorg_CmdAttr_vtable {};
+struct haxorg_CmdAttr_vtable {
+  haxorg_Str const*(*)() get_target;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdAttr)}
 struct haxorg_CmdAttr {
@@ -4887,7 +4594,10 @@ struct haxorg_CmdAttr {
 };
 
 void haxorg_destroy_CmdAttr(haxorg_CmdAttr* obj);
-struct haxorg_CmdExport_vtable {};
+struct haxorg_CmdExport_vtable {
+  haxorg_Str const*(*)() get_exporter;
+  haxorg_Str const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(sem)}::REC:(CmdExport)}
 struct haxorg_CmdExport {
@@ -4896,7 +4606,9 @@ struct haxorg_CmdExport {
 };
 
 void haxorg_destroy_CmdExport(haxorg_CmdExport* obj);
-struct haxorg_ImmCmdCaption_vtable {};
+struct haxorg_ImmCmdCaption_vtable {
+  haxorg_ImmIdTOfImmParagraph const*(*)() get_text;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCaption)}
 struct haxorg_ImmCmdCaption {
@@ -4905,7 +4617,9 @@ struct haxorg_ImmCmdCaption {
 };
 
 void haxorg_destroy_ImmCmdCaption(haxorg_ImmCmdCaption* obj);
-struct haxorg_ImmCmdColumns_vtable {};
+struct haxorg_ImmCmdColumns_vtable {
+  haxorg_ColumnView const*(*)() get_view;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdColumns)}
 struct haxorg_ImmCmdColumns {
@@ -4914,7 +4628,9 @@ struct haxorg_ImmCmdColumns {
 };
 
 void haxorg_destroy_ImmCmdColumns(haxorg_ImmCmdColumns* obj);
-struct haxorg_ImmCmdName_vtable {};
+struct haxorg_ImmCmdName_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdName)}
 struct haxorg_ImmCmdName {
@@ -4923,7 +4639,14 @@ struct haxorg_ImmCmdName {
 };
 
 void haxorg_destroy_ImmCmdName(haxorg_ImmCmdName* obj);
-struct haxorg_ImmCmdCall_vtable {};
+struct haxorg_ImmCmdCall_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_name;
+  haxorg_ImmBoxOfOptOfStr const*(*)() get_fileName;
+  haxorg_AttrGroup const*(*)() get_insideHeaderAttrs;
+  haxorg_AttrGroup const*(*)() get_callAttrs;
+  haxorg_AttrGroup const*(*)() get_endHeaderAttrs;
+  haxorg_ImmVecOfImmIdTOfImmBlockCodeEvalResult const*(*)() get_result;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdCall)}
 struct haxorg_ImmCmdCall {
@@ -4932,7 +4655,9 @@ struct haxorg_ImmCmdCall {
 };
 
 void haxorg_destroy_ImmCmdCall(haxorg_ImmCmdCall* obj);
-struct haxorg_ImmCmdAttr_vtable {};
+struct haxorg_ImmCmdAttr_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_target;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdAttr)}
 struct haxorg_ImmCmdAttr {
@@ -4941,7 +4666,10 @@ struct haxorg_ImmCmdAttr {
 };
 
 void haxorg_destroy_ImmCmdAttr(haxorg_ImmCmdAttr* obj);
-struct haxorg_ImmCmdExport_vtable {};
+struct haxorg_ImmCmdExport_vtable {
+  haxorg_ImmBoxOfStr const*(*)() get_exporter;
+  haxorg_ImmBoxOfStr const*(*)() get_content;
+};
 
 /// \brief {{{REC:(org)}::REC:(imm)}::REC:(ImmCmdExport)}
 struct haxorg_ImmCmdExport {
