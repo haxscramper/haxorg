@@ -766,7 +766,7 @@ class ASTBuilder(base.AstbuilderBase):
     def MethodDef(self, m: MethodDefParams) -> BlockId:
         "Convert method definition parameters to layout block"
         head = self.b.line([
-            *([] if m.Params.ResultTy is None else
+            *([] if m.Params.IsConstructor else
               [self.Type(m.Params.ResultTy),
                self.string(" ")]),
             self.Type(m.Class),

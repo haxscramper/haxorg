@@ -401,11 +401,11 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder) -> Ge
     return GenFiles([
         GenUnit(
             header=GenTu("{root}/src/wrappers/c/haxorg_c.h", [
-                GenTuInclude("haxorg/wrappers/c/haxorg_c_api.h", True),
+                GenTuInclude("wrappers/c/haxorg_c_api.h", True),
             ] + standalone_funcs),
             source=GenTu("{root}/src/wrappers/c/haxorg_c.cpp", [
-                GenTuInclude("haxorg/wrappers/c/haxorg_c.h", True),
-                GenTuInclude("haxorg/wrappers/c/haxorg_c_utils.hpp", True),
+                GenTuInclude("wrappers/c/haxorg_c.h", True),
+                GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
             ] + standalone_funcs),
         )
     ])

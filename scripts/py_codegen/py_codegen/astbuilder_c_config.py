@@ -12,12 +12,16 @@ class CAstbuilderConfig(AstbulderConfig):
         return super().getTypeBindName(Type, withParams)
 
     def getBackendType(self, Type: QualType) -> QualType:
+        prefix = "haxorg_"
         match Type.flatQualNameWithParams():
             case ["hstd", "Vec", _]:
-                return QualType(Name="haxorg_CHstdVec")
+                return QualType(Name=prefix + "CHstdVec")
 
             case ["hstd", "UnorderedMap", _]:
-                return QualType(Name="haxorg_CHstdUnorderedMap")
+                return QualType(Name=prefix + "CHstdUnorderedMap")
+
+            case ["org", "sem", "SemId", _]:
+                return QualType(Name=prefix + "SemId")
 
             case [builtin] if builtin in {
                 "void",
@@ -29,5 +33,4 @@ class CAstbuilderConfig(AstbulderConfig):
                 return Type
 
             case _:
-                return QualType(Name="haxorg_" +
-                                self.getTypeBindName(Type, withParams=True))
+                return QualType(Name=prefix + self.getTypeBindName(Type, withParams=True))
