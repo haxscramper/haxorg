@@ -204,7 +204,6 @@ class TaskContext():
     config: HaxorgConfig
     current_task: Optional[Callable] = None
     run_cache: Set[tuple[str, str]] = field(default_factory=set)
-    docker_container: Optional[docker.models.containers.Container] = None
     repo_root: Path = field(default_factory=lambda: get_haxorg_repo_root_path())
 
     def with_temp_config(self, config: HaxorgConfig) -> "TaskContext":

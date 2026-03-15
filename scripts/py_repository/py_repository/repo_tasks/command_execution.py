@@ -288,29 +288,17 @@ cmd:  {cmd}
 
     str_cwd = str(cwd) if cwd else None
 
-    if ctx.docker_container is not None:
-        result = run_command_in_docker(
-            container=ctx.docker_container,
-            cmd=str(cmd),
-            args=str_args,
-            env=env,
-            cwd=str_cwd,
-            print_output=print_output,
-            log_level=ctx.config.log_level,
-        )
-
-    else:
-        result = run_command_on_host(
-            cmd=str(cmd),
-            args=str_args,
-            env=env,
-            cwd=str_cwd,
-            run_mode=run_mode,
-            print_output=print_output,
-            log_level=ctx.config.log_level,
-            stdout_debug=stdout_debug,
-            stderr_debug=stderr_debug,
-        )
+    result = run_command_on_host(
+        cmd=str(cmd),
+        args=str_args,
+        env=env,
+        cwd=str_cwd,
+        run_mode=run_mode,
+        print_output=print_output,
+        log_level=ctx.config.log_level,
+        stdout_debug=stdout_debug,
+        stderr_debug=stderr_debug,
+    )
 
     _write_debug_outputs(
         result=result,

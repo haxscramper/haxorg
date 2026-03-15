@@ -38,7 +38,6 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     log(CAT).info(f"Using protoc plugin path '{python_path}'")
     protoc_plugin = Path(python_path).joinpath("bin/protoc-gen-python_betterproto")
 
-    log(CAT).debug(f"Has docker container? {ctx.docker_container}")
     if not check_is_file(ctx, protoc_plugin):
         raise RuntimeError(
             f"Protoc plugin for better python is not installed correctly, {protoc_plugin} does not exist"
