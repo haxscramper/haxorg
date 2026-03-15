@@ -1,6 +1,9 @@
 #pragma once
 #include <optional>
 
+#undef emit
+#undef slots
+
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
@@ -105,10 +108,6 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     std::string dump(clang::Decl const* Decl, int head = -1);
 
     /// Fill in information about namespaces used in elaborated type
-    std::vector<QualType> getNamespaces(
-        clang::ElaboratedType const*                elab,
-        std::optional<clang::SourceLocation> const& Loc);
-
     std::vector<QualType> getNamespaces(
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);

@@ -498,6 +498,9 @@ struct [[refl(
     },
     "wasm": {
       "holder-type": "shared"
+    },
+    "c": {
+      "holder-type": "shared"
     }
   }
 })")]] ImmAstReplaceEpoch : hstd::SharedPtrApi<ImmAstReplaceEpoch> {
@@ -600,6 +603,9 @@ struct
       "holder-type": "shared"
     },
     "wasm": {
+      "holder-type": "shared"
+    },
+    "c": {
       "holder-type": "shared"
     }
   }
@@ -1049,10 +1055,10 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         const hstd::Opt<ImmPath>& rootPath,
         bool                      withPath = true) const;
     hstd::Vec<ImmAdapter> getAllSubnodesDFS(
-        const hstd::Opt<ImmPath>&                      rootPath,
-        bool                                           withPath     = true,
-        const hstd::Opt<hstd::Func<bool(ImmAdapter)>>& acceptFilter = std::
-            nullopt) const;
+        const hstd::Opt<ImmPath>& rootPath,
+        bool                      withPath = true,
+        const hstd::Opt<hstd::Func<bool(ImmAdapter)>>&
+            acceptFilter = std::nullopt) const;
 
     hstd::Vec<ImmPathStep> getRelativeSubnodePaths(
         ImmId const& subnode) const;

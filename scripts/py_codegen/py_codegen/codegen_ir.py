@@ -157,6 +157,18 @@ class QualType(BaseModel, extra="forbid"):
     def ForExpr(expr: str, **args: Any) -> "QualType":
         return QualType(Expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
+    @staticmethod
+    def ForFunction(ReturnType: "QualType", Args: list["QualType"],
+                    **args: Any) -> "QualType":
+        return QualType(
+            Func=QualType.Function(
+                ReturnType=ReturnType,
+                Args=Args,
+            ),
+            Kind=QualTypeKind.FunctionPtr,
+            **args,
+        )
+
     def flatten(self) -> "QualType":
         return self.copy_update(Spaces=self.flatQualScope())
 
@@ -167,7 +179,7 @@ class QualType(BaseModel, extra="forbid"):
         return self.copy_update(IsConst=True, RefKind=ReferenceKind.LValue)
 
     def asConstPtr(self) -> "QualType":
-        return self.copy_update(IsConst=True, ptrCount=1)
+        return self.copy_update(IsConst=True, PtrCount=1)
 
     def asRef(self) -> "QualType":
         return self.copy_update(IsConst=False, RefKind=ReferenceKind.LValue)
@@ -614,6 +626,15 @@ class GenTuBackendWasmParams(BaseModel, extra="forbid"):
 
 
 @beartype
+class GenTuBackendCParams(BaseModel, extra="forbid"):
+    "Extra parameters for C backend"
+    holder_type: Optional[Literal["shared"] | str | QualType] = Field(
+        alias="holder-type",
+        default=None,
+        description="Which type to use as a holder type for C")
+
+
+@beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     """
     Optional parameters for the backend generation config.
@@ -626,6 +647,8 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
     wasm: GenTuBackendWasmParams = Field(
         default_factory=GenTuBackendWasmParams,
         description="Additional wrapper options for WASM backend")
+    c: GenTuBackendCParams = Field(default_factory=GenTuBackendCParams,
+                                   description="Additional wrapper options for C backend")
     target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
@@ -745,16 +768,51 @@ class GenTuEnum:
 
 @beartype
 @dataclass
+class GenTuAnnotation():
+    "Any extra annotation on the entry"
+
+    @beartype
+    @dataclass
+    class Freeform:
+        "Fully free-form prefix for the annotation"
+        Body: str | BlockId
+
+    @beartype
+    @dataclass
+    class StandardAttribute:
+        "Standard-compliant attribute syntax with `[[xyz]]`"
+        Name: QualType
+        "Qualified name of the attribute like `clang::abc`"
+        Args: List[str | BlockId] = field(default_factory=list)
+
+    @beartype
+    @dataclass
+    class CompilerSpecificAttribute:
+        "Compiler-specific attribute annotation"
+        DeclStart: str | BlockId
+        "Start of the custom attribute syntax, `__attribute__((` -- without closing part"
+        DeclEnd: str | BlockId
+        "Closing part of the attribute syntax, `))` -- complementing the start"
+        DeclName: str
+        "First entry in the attribute syntax"
+        Args: List[str | BlockId] = field(default_factory=list)
+        "Optional list of additional attribute argument"
+
+    Attribute: Freeform | StandardAttribute | CompilerSpecificAttribute
+
+
+@beartype
+@dataclass
 class GenTuFunction:
     """
     Intermediate representation for the callable entry: function, lambda or method in the C++ code.
     Whether specific function entry is considered either of those depends on the parent context --
     if it is placed in class it is a method, if it is a toplevel it is a function etc.
     """
-    ReturnType: Optional[QualType] = None
-    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Name: str = ""
     "Non-demangled function name as seen in the source file"
+    ReturnType: QualType = field(default_factory=lambda: QualType(Name="void"))
+    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     "Documentation comment above the function"
     Params: Optional[GenTuTemplateParams] = field(default=None)
@@ -783,7 +841,7 @@ class GenTuFunction:
     """
     OriginalPath: Optional[Path] = None
     "Path to the file where function was declared"
-    spaces: List[QualType] = field(default_factory=list)
+    Spaces: List[QualType] = field(default_factory=list)
     "Fully qualified namespace for the function declaration"
     IsExposedForWrap: bool = True
     "Whether function is exposed for the public wrap interface"
@@ -793,6 +851,10 @@ class GenTuFunction:
     "Is function a constructor"
     InitList: List[BlockId] = field(default_factory=list)
     "Init list for the constructor definition"
+    Linkage: Optional[str] = None
+    "Linkage annotation for the parsed/generated function"
+    Annotations: List[GenTuAnnotation] = field(default_factory=list)
+    "Additional annotation, attributes or prefixes for the function declaration"
 
     ReflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     "Additional reflection parameters for the function wrapping"
@@ -805,7 +867,7 @@ class GenTuFunction:
 
     def get_full_qualified_name(self) -> QualType:
         "Get a single type with the fully qualified spaces and function name"
-        return QualType(Name=self.Name, Spaces=self.spaces)
+        return QualType(Name=self.Name, Spaces=self.Spaces)
 
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
         "Get a qualified type for the function signature"

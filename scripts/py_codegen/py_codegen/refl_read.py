@@ -272,7 +272,7 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         Args=[conv_proto_arg(arg) for arg in rec.arguments],
         Doc=GenTuDoc(""),
         OriginalPath=copy(original),
-        spaces=[conv_proto_type(T) for T in rec.spaces],
+        Spaces=[conv_proto_type(T) for T in rec.spaces],
         OriginName="refl",
     )
 

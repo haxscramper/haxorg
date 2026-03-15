@@ -154,9 +154,9 @@ class NbFunction:
 
     def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Return nanobind block wrapping the C++ function"
-        if self.Func.spaces:
+        if self.Func.Spaces:
             full_name = ast.Scoped(
-                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                QualType(Name=self.Func.Spaces[-1].Name, Spaces=self.Func.Spaces[:-1]),
                 ast.string(self.Func.Name))
 
         else:
@@ -995,7 +995,6 @@ class NbModule:
                 append_decl(NbEnum(decl, self.conf))
 
             case codegen_ir.GenTuTypedef():
-                log(CAT).debug(f"typedef {decl.Name} = {decl.Base}")
                 append_decl(NbTypedefPass(decl, self.conf))
 
             case _:

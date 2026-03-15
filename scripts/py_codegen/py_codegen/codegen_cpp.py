@@ -41,6 +41,8 @@ class GenConverter:
             InitList=func.InitList if inline_impl else [],
             IsConstructor=func.IsConstructor,
             Template=func.Params,
+            Linkage=func.Linkage,
+            Annotations=func.Annotations if self.isHeader else [],
         )
 
         if func.Body is not None and inline_impl:
@@ -169,7 +171,7 @@ class GenConverter:
                 else:
                     described_methods = []
 
-                LineParameters = len(described_fields) < 4 and len(described_methods) < 1
+                LineParameters = len(described_fields) < 6 and len(described_methods) < 3
 
                 params.nested.append(
                     self.ast.XCall(
@@ -183,7 +185,7 @@ class GenConverter:
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(
                                 self.ast.csv(described_fields + described_methods,
-                                             len(fields) < 6 and len(methods) < 2)),
+                                             LineParameters)),
                         ],
                         Stmt=True,
                         LineParameters=LineParameters,
@@ -351,10 +353,11 @@ class GenConverter:
                 decls.append(self.convertEnum(entry))
 
             case codegen_ir.GenTuFunction():
+                inline = (self.isHeader and
+                          not self.isSplitHeaderSource) or (not self.isHeader)
                 decls.append(
                     self.convertFunctionBlock(
-                        self.convertFunction(entry,
-                                             inline_impl=not self.isSplitHeaderSource)))
+                        self.convertFunction(entry, inline_impl=inline)))
 
             case codegen_ir.GenTuStruct():
                 decls.append(self.convertStruct(entry))

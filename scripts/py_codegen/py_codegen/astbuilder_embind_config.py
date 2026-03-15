@@ -1,11 +1,15 @@
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
+from beartype.typing import Optional
 
 GEN = "haxorg_wasm"
 
 
 class EmbindAstbuilderConfig(AstbulderConfig):
+
+    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
+        return not params or params.isAcceptedBackend("wasm")
 
     def getSanitizedIdent(self, s: str) -> str:
         return codegen_ir.sanitize_ident(s, {
@@ -58,10 +62,10 @@ class EmbindAstbuilderConfig(AstbulderConfig):
                 ["org", "imm", "ImmBox", _] | \
                 ["org", "imm", "ImmVec", _] | \
                 ["hstd", "IntSet", _]:
-                name = GEN + "." + self.getBindName(Type, withParams=False)
+                name = GEN + "." + self.getTypeBindName(Type, withParams=False)
 
             case _:
-                name = self.getBindName(Type, withParams=False)
+                name = self.getTypeBindName(Type, withParams=False)
 
         struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:

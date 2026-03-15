@@ -7,6 +7,8 @@ scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi
 src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp
 src/wrappers/js/haxorg_wasm.cpp
 src/wrappers/js/haxorg_wasm_types.d.ts
+src/wrappers/c/haxorg_c.h
+src/wrappers/c/haxorg_c.cpp
 scripts/py_haxorg/py_haxorg/pyhaxorg.pyi
 src/py_libs/pyhaxorg/pyhaxorg.cpp
 src/haxorg/serde/SemOrgProto.proto

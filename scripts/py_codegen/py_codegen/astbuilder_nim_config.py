@@ -67,6 +67,9 @@ class NimAstbuilderConfig(AstbulderConfig):
     def getHeaderStrForPath(self, path: Path) -> str:
         return str(path)
 
+    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
+        return not params or params.isAcceptedBackend("nim")
+
     def getBackendType(self, t: QualType) -> QualType:
         pass
 

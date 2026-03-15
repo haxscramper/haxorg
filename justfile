@@ -48,6 +48,8 @@ run_github_ci:
 
 run_haxorg_codegen_and_tests: run_haxorg_only_source_generation run_py_tests
 
+run_haxorg_codegen_and_build: run_haxorg_only_source_generation build_haxorg
+
 run_haxorg_builder_codegen_and_tests: build_haxorg run_haxorg_reflection_snapshot_generation run_haxorg_only_source_generation run_py_tests
 
 run_haxorg_builder_and_tests: build_haxorg run_haxorg_only_source_generation run_py_tests

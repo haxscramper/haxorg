@@ -155,9 +155,9 @@ class WasmFunction():
 
     def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
 
-        if self.Func.spaces:
+        if self.Func.Spaces:
             full_name = b.Scoped(
-                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                QualType(Name=self.Func.Spaces[-1].Name, Spaces=self.Func.Spaces[:-1]),
                 b.string(self.Func.Name))
 
         else:
@@ -187,7 +187,7 @@ class WasmEnum():
         self.conf = conf
 
     def getWasmName(self) -> str:
-        return self.conf.getBindName(self.Enum.Name)
+        return self.conf.getTypeBindName(self.Enum.Name)
 
     def get_module_use(self, ast: cpp.ASTBuilder) -> List[BlockId]:
         return [
@@ -222,7 +222,7 @@ class WasmEnum():
             Params=[
                 self.Enum.Name,
             ],
-            Args=[b.StringLiteral(self.conf.getBindName(self.Enum.Name))],
+            Args=[b.StringLiteral(self.conf.getTypeBindName(self.Enum.Name))],
             Stmt=True,
         )
 
@@ -290,7 +290,7 @@ class WasmClass():
         self.conf = conf
 
     def getWasmName(self) -> str:
-        return self.conf.getBindName(self.Record.Name)
+        return self.conf.getTypeBindName(self.Record.Name)
 
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
