@@ -21,7 +21,7 @@ class AstbulderConfig(abc.ABC):
         self.type_map = type_map
 
     @abc.abstractmethod
-    def isAcceptedByBackend(self, params: codegen_ir.GenTuReflParams) -> bool:
+    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
         "Check if the entry with these reflection params is accepted for the backend"
         ...
 

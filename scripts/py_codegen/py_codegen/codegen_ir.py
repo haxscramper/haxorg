@@ -157,6 +157,18 @@ class QualType(BaseModel, extra="forbid"):
     def ForExpr(expr: str, **args: Any) -> "QualType":
         return QualType(Expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
+    @staticmethod
+    def ForFunction(ReturnType: "QualType", Args: list["QualType"],
+                    **args: Any) -> "QualType":
+        return QualType(
+            Func=QualType.Function(
+                ReturnType=ReturnType,
+                Args=Args,
+            ),
+            Kind=QualTypeKind.FunctionPtr,
+            **args,
+        )
+
     def flatten(self) -> "QualType":
         return self.copy_update(Spaces=self.flatQualScope())
 
@@ -167,7 +179,7 @@ class QualType(BaseModel, extra="forbid"):
         return self.copy_update(IsConst=True, RefKind=ReferenceKind.LValue)
 
     def asConstPtr(self) -> "QualType":
-        return self.copy_update(IsConst=True, ptrCount=1)
+        return self.copy_update(IsConst=True, PtrCount=1)
 
     def asRef(self) -> "QualType":
         return self.copy_update(IsConst=False, RefKind=ReferenceKind.LValue)
@@ -614,6 +626,15 @@ class GenTuBackendWasmParams(BaseModel, extra="forbid"):
 
 
 @beartype
+class GenTuBackendCParams(BaseModel, extra="forbid"):
+    "Extra parameters for C backend"
+    holder_type: Optional[Literal["shared"] | str | QualType] = Field(
+        alias="holder-type",
+        default=None,
+        description="Which type to use as a holder type for C")
+
+
+@beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     """
     Optional parameters for the backend generation config.
@@ -626,6 +647,8 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
     wasm: GenTuBackendWasmParams = Field(
         default_factory=GenTuBackendWasmParams,
         description="Additional wrapper options for WASM backend")
+    c: GenTuBackendCParams = Field(default_factory=GenTuBackendCParams,
+                                   description="Additional wrapper options for C backend")
     target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",

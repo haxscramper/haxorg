@@ -1,13 +1,14 @@
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
+from beartype.typing import Optional
 
 
 class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
 
-    def isAcceptedByBackend(self, params: codegen_ir.GenTuReflParams) -> bool:
-        return params.isAcceptedBackend("python")
+    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
+        return not params or params.isAcceptedBackend("python")
 
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"

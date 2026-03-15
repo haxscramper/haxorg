@@ -129,6 +129,9 @@ struct [[refl(
     },
     "wasm": {
       "holder-type": "shared"
+    },
+    "c": {
+      "holder-type": "shared"
     }
   }
 })")]] MapGraph : hstd::SharedPtrApi<MapGraph> {
@@ -387,6 +390,9 @@ struct [[refl(
       "holder-type": "shared"
     },
     "wasm": {
+      "holder-type": "shared"
+    },
+    "c": {
       "holder-type": "shared"
     }
   }

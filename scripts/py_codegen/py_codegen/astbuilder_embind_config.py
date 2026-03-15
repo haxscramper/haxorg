@@ -1,14 +1,15 @@
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
+from beartype.typing import Optional
 
 GEN = "haxorg_wasm"
 
 
 class EmbindAstbuilderConfig(AstbulderConfig):
 
-    def isAcceptedByBackend(self, params: codegen_ir.GenTuReflParams) -> bool:
-        return params.isAcceptedBackend("wasm")
+    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
+        return not params or params.isAcceptedBackend("wasm")
 
     def getSanitizedIdent(self, s: str) -> str:
         return codegen_ir.sanitize_ident(s, {
