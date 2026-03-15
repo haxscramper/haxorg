@@ -745,6 +745,41 @@ class GenTuEnum:
 
 @beartype
 @dataclass
+class GenTuAnnotation():
+    "Any extra annotation on the entry"
+
+    @beartype
+    @dataclass
+    class Freeform:
+        "Fully free-form prefix for the annotation"
+        Body: str | BlockId
+
+    @beartype
+    @dataclass
+    class StandardAttribute:
+        "Standard-compliant attribute syntax with `[[xyz]]`"
+        Name: QualType
+        "Qualified name of the attribute like `clang::abc`"
+        Args: List[str | BlockId] = field(default_factory=list)
+
+    @beartype
+    @dataclass
+    class CompilerSpecificAttribute:
+        "Compiler-specific attribute annotation"
+        DeclStart: str | BlockId
+        "Start of the custom attribute syntax, `__attribute__((` -- without closing part"
+        DeclEnd: str | BlockId
+        "Closing part of the attribute syntax, `))` -- complementing the start"
+        DeclName: str
+        "First entry in the attribute syntax"
+        Args: List[str | BlockId] = field(default_factory=list)
+        "Optional list of additional attribute argument"
+
+    Attribute: Freeform | StandardAttribute | CompilerSpecificAttribute
+
+
+@beartype
+@dataclass
 class GenTuFunction:
     """
     Intermediate representation for the callable entry: function, lambda or method in the C++ code.
@@ -783,7 +818,7 @@ class GenTuFunction:
     """
     OriginalPath: Optional[Path] = None
     "Path to the file where function was declared"
-    spaces: List[QualType] = field(default_factory=list)
+    Spaces: List[QualType] = field(default_factory=list)
     "Fully qualified namespace for the function declaration"
     IsExposedForWrap: bool = True
     "Whether function is exposed for the public wrap interface"
@@ -793,6 +828,10 @@ class GenTuFunction:
     "Is function a constructor"
     InitList: List[BlockId] = field(default_factory=list)
     "Init list for the constructor definition"
+    Linkage: Optional[str] = None
+    "Linkage annotation for the parsed/generated function"
+    Annotations: List[GenTuAnnotation] = field(default_factory=list)
+    "Additional annotation, attributes or prefixes for the function declaration"
 
     ReflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     "Additional reflection parameters for the function wrapping"
@@ -805,7 +844,7 @@ class GenTuFunction:
 
     def get_full_qualified_name(self) -> QualType:
         "Get a single type with the fully qualified spaces and function name"
-        return QualType(Name=self.Name, Spaces=self.spaces)
+        return QualType(Name=self.Name, Spaces=self.Spaces)
 
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
         "Get a qualified type for the function signature"

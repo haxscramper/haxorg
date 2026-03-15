@@ -48,6 +48,8 @@ class FunctionParams:
     InitList: List[BlockId] = field(default_factory=list)
     AllowOneLine: bool = True
     IsConstructor: bool = False
+    Linkage: Optional[str] = None
+    Annotations: List[codegen_ir.GenTuAnnotation] = field(default_factory=list)
 
 
 @beartype
@@ -972,20 +974,52 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return self.b.text("")
 
+    def Attribute(self, Attr: codegen_ir.GenTuAnnotation) -> BlockId:
+        It = Attr.Attribute
+        match It:
+            case codegen_ir.GenTuAnnotation.Freeform():
+                return self.ToBlockId(It.Body)
+
+            case codegen_ir.GenTuAnnotation.StandardAttribute():
+                return self.line([
+                    self.string("[["),
+                    self.csv([self.Type(It.Name)] + [self.ToBlockId(a) for a in It.Args]),
+                ])
+
+            case codegen_ir.GenTuAnnotation.CompilerSpecificAttribute():
+                return self.line([
+                    self.ToBlockId(It.DeclStart),
+                    self.csv([
+                        self.string(It.DeclName),
+                    ] + [self.ToBlockId(a) for a in It.Args]),
+                    self.ToBlockId(It.DeclEnd),
+                ])
+
     def Function(self, p: FunctionParams) -> BlockId:
-        head = self.b.line([
-            *([] if p.ResultTy is None else [self.Type(p.ResultTy),
-                                             self.string(" ")]),
-            self.string(p.Name),
-            self.Arguments(p)
-        ])
+        head = []
 
-        self.b.add_at(head, self.InitList(p))
+        for attr in p.Annotations:
+            head.append(self.Attribute(attr))
+            head.append(self.string(" "))
 
-        return self.WithTemplate(
-            p.Template,
-            self.block(head, p.Body, True, allowOneLine=p.AllowOneLine)
-            if p.Body else self.b.line([head, self.string(";")]))
+        if p.Linkage:
+            head.append(self.string(f"extern \"{p.Linkage}\" "))
+
+        if p.ResultTy is not None:
+            head.append(self.Type(p.ResultTy))
+            head.append(self.string(" "))
+
+        head.append(self.string(p.Name))
+        head.append(self.Arguments(p))
+        head.append(self.InitList(p))
+
+        if p.Body:
+            return self.WithTemplate(
+                p.Template,
+                self.block(self.line(head), p.Body, True, allowOneLine=p.AllowOneLine))
+
+        else:
+            return self.WithTemplate(p.Template, self.b.line(head + [self.string(";")]))
 
     def Arguments(self, p: Union[FunctionParams, LambdaParams]) -> BlockId:
         return self.b.line([

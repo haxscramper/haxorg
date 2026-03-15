@@ -155,9 +155,9 @@ class WasmFunction():
 
     def build_bind(self, b: cpp.ASTBuilder) -> BlockId:
 
-        if self.Func.spaces:
+        if self.Func.Spaces:
             full_name = b.Scoped(
-                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                QualType(Name=self.Func.Spaces[-1].Name, Spaces=self.Func.Spaces[:-1]),
                 b.string(self.Func.Name))
 
         else:

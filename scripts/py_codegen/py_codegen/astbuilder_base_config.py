@@ -21,6 +21,11 @@ class AstbulderConfig(abc.ABC):
         self.type_map = type_map
 
     @abc.abstractmethod
+    def isAcceptedByBackend(self, params: codegen_ir.GenTuReflParams) -> bool:
+        "Check if the entry with these reflection params is accepted for the backend"
+        ...
+
+    @abc.abstractmethod
     def getBackendType(self, Type: QualType) -> QualType:
         "Rewrite the IR type to the backend-specific counterpart"
         ...
@@ -114,20 +119,20 @@ class AstbulderConfig(abc.ABC):
             case _:
                 return 0 < len(t.Params)
 
-    def getTypeBindName(self, t: QualType, withParams: bool = True) -> str:
+    def getTypeBindName(self, Type: QualType, withParams: bool = True) -> str:
         """
         Get name of the wrapped type for backend. Default name generation logic
         for all backends. Some backends might overwrite this for a more fitting
         name construction.
         """
         res = ""
-        wrapper = self.type_map.get_wrapper_type(t)
+        wrapper = self.type_map.get_wrapper_type(Type)
 
         if wrapper:
             res += wrapper
 
         else:
-            match t.flatQualName():
+            match Type.flatQualName():
                 case ["immer", "box"] | ["hstd", "ImmBox"]:
                     res += "ImmBox"
 
@@ -165,14 +170,14 @@ class AstbulderConfig(abc.ABC):
                     res += "HstdSortedSet"
 
                 case _:
-                    for N in t.Spaces:
+                    for N in Type.Spaces:
                         res += pascal_case(self.getTypeBindName(N, withParams=withParams))
 
-                    if t.Name in ["bool", "int", "char", "float"]:
-                        res += t.Name
+                    if Type.Name in ["bool", "int", "char", "float"]:
+                        res += Type.Name
 
                     # Skip verbose namespaces for name generation
-                    elif t.Name not in [
+                    elif Type.Name not in [
                             "sem",
                             "org",
                             "hstd",
@@ -182,13 +187,13 @@ class AstbulderConfig(abc.ABC):
                             "python",
                             "imm",
                     ]:
-                        res += pascal_case(t.Name)
+                        res += pascal_case(Type.Name)
 
-        if withParams and 0 < len(t.Params):
+        if withParams and 0 < len(Type.Params):
             res += "Of"
             res += "".join([
                 pascal_case(self.getTypeBindName(T, withParams=withParams))
-                for T in t.Params
+                for T in Type.Params
             ])
 
         return res

@@ -323,6 +323,10 @@ if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
 endif()
 
+if(NOT ${ORG_BUILD_EMCC})
+  add_subdirectory(src/wrappers/c)
+endif()
+
 if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
   add_subdirectory(src/app/org_diagram)

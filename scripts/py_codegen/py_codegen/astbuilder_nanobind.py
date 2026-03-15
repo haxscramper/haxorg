@@ -154,9 +154,9 @@ class NbFunction:
 
     def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Return nanobind block wrapping the C++ function"
-        if self.Func.spaces:
+        if self.Func.Spaces:
             full_name = ast.Scoped(
-                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                QualType(Name=self.Func.Spaces[-1].Name, Spaces=self.Func.Spaces[:-1]),
                 ast.string(self.Func.Name))
 
         else:

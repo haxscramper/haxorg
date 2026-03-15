@@ -6,6 +6,9 @@ from py_codegen import codegen_ir
 class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
 
+    def isAcceptedByBackend(self, params: codegen_ir.GenTuReflParams) -> bool:
+        return params.isAcceptedBackend("python")
+
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"
         match tuple(t.flatQualName()):

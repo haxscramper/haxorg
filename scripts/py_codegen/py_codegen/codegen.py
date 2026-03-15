@@ -357,21 +357,56 @@ def gen_pyhaxorg_napi_wrappers(
 
 @beartype
 def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder) -> GenFiles:
-    cpp_builder = cpp.ASTBuilder(ast.b)
     conf = CAstbuilderConfig(type_map=groups.type_map)
 
     standalone_funcs: List[codegen_ir.GenTuFunction] = list()
 
     for func in groups.get_entries_for_wrapping():
         if isinstance(func, codegen_ir.GenTuFunction):
+            impl_call = ast.XCall(
+                "convert_cpp_execution",
+                args=[
+                    ast.Addr(ast.Type(func.get_full_qualified_name())),
+                    ast.string("org_context"),
+                ] + [ast.string(a.Name) for a in func.Args],
+                Params=[conf.getBackendType(func.ReturnType)] +
+                [conf.getBackendType(arg.Type) for arg in func.Args],
+            )
+
+            if func.ReturnType != "void":
+                impl_call = ast.Return(impl_call)
+
             standalone_funcs.append(
-                codegen_ir.GenTuFunction(ReturnType=conf.getBackendType(
-                    func.ReturnType),))
+                codegen_ir.GenTuFunction(
+                    ReturnType=conf.getBackendType(func.ReturnType),
+                    Name=func.Name,
+                    Args=[
+                        codegen_ir.GenTuIdent(
+                            Type=conf.getBackendType(arg.Type),
+                            Name=arg.Name,
+                        ) for arg in func.Args
+                    ] + [
+                        codegen_ir.GenTuIdent(
+                            Type=QualType(Name="OrgContext", PtrCount=1),
+                            Name="org_context",
+                        )
+                    ],
+                    Body=ast.stack([impl_call]),
+                    Annotations=[
+                        codegen_ir.GenTuAnnotation(
+                            Attribute=codegen_ir.GenTuAnnotation.Freeform(
+                                Body="HAXORG_C_API_LINKAGE"))
+                    ]))
 
     return GenFiles([
         GenUnit(
-            header=GenTu("{root}/src/wrappers/c/haxorg_c.h", []),
-            source=GenTu("{root}/src/wrappers/c/haxorg_c.cpp", []),
+            header=GenTu("{root}/src/wrappers/c/haxorg_c.h", [
+                GenTuInclude("haxorg/wrappers/c/haxorg_c_api.h", True),
+            ] + standalone_funcs),
+            source=GenTu("{root}/src/wrappers/c/haxorg_c.cpp", [
+                GenTuInclude("haxorg/wrappers/c/haxorg_c.h", True),
+                GenTuInclude("haxorg/wrappers/c/haxorg_c_utils.hpp", True),
+            ] + standalone_funcs),
         )
     ])
 

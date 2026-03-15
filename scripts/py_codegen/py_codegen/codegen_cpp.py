@@ -41,6 +41,8 @@ class GenConverter:
             InitList=func.InitList if inline_impl else [],
             IsConstructor=func.IsConstructor,
             Template=func.Params,
+            Linkage=func.Linkage,
+            Annotations=func.Annotations if self.isHeader else [],
         )
 
         if func.Body is not None and inline_impl:
@@ -351,10 +353,11 @@ class GenConverter:
                 decls.append(self.convertEnum(entry))
 
             case codegen_ir.GenTuFunction():
+                inline = (self.isHeader and
+                          not self.isSplitHeaderSource) or (not self.isHeader)
                 decls.append(
                     self.convertFunctionBlock(
-                        self.convertFunction(entry,
-                                             inline_impl=not self.isSplitHeaderSource)))
+                        self.convertFunction(entry, inline_impl=inline)))
 
             case codegen_ir.GenTuStruct():
                 decls.append(self.convertStruct(entry))
