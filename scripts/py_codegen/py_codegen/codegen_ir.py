@@ -751,10 +751,10 @@ class GenTuFunction:
     Whether specific function entry is considered either of those depends on the parent context --
     if it is placed in class it is a method, if it is a toplevel it is a function etc.
     """
-    ReturnType: Optional[QualType] = None
-    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Name: str = ""
     "Non-demangled function name as seen in the source file"
+    ReturnType: QualType = field(default_factory=lambda: QualType(Name="void"))
+    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     "Documentation comment above the function"
     Params: Optional[GenTuTemplateParams] = field(default=None)

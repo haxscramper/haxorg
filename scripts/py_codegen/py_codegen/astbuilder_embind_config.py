@@ -58,10 +58,10 @@ class EmbindAstbuilderConfig(AstbulderConfig):
                 ["org", "imm", "ImmBox", _] | \
                 ["org", "imm", "ImmVec", _] | \
                 ["hstd", "IntSet", _]:
-                name = GEN + "." + self.getBindName(Type, withParams=False)
+                name = GEN + "." + self.getTypeBindName(Type, withParams=False)
 
             case _:
-                name = self.getBindName(Type, withParams=False)
+                name = self.getTypeBindName(Type, withParams=False)
 
         struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:

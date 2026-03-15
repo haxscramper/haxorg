@@ -4,6 +4,8 @@ exclude: |
     src/py_libs/py_adaptagrams/adaptagrams_py_wrap\.cpp|
     src/wrappers/js/haxorg_wasm\.cpp|
     src/wrappers/js/haxorg_wasm_types\.d\.ts|
+    src/wrappers/js/haxorg_c\.cpp|
+    src/wrappers/js/haxorg_c\.h|
     scripts/py_haxorg/py_haxorg/pyhaxorg\.pyi|
     src/py_libs/pyhaxorg/pyhaxorg\.cpp|
     src/haxorg/serde/SemOrgProto\.proto|

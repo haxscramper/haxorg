@@ -11,6 +11,7 @@ import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
 import py_codegen.codegen_immutable as gen_imm
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
+from py_codegen.astbuilder_c_config import CAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_field_iteration_macros,
@@ -83,9 +84,8 @@ def get_exporter_methods(
                     kindGetter = getattr(field, "variantGetter")
                     variant_methods.append(
                         GenTuFunction(
-                            QualType.ForName("void"),
-                            f"{decl_scope}visit",
-                            GenTuDoc(""),
+                            ReturnType=QualType.ForName("void"),
+                            Name=f"{decl_scope}visit",
                             Params=t_params,
                             Args=[
                                 GenTuIdent(
@@ -103,9 +103,8 @@ def get_exporter_methods(
 
             if value.Name.isOrgType() and len(scope_full) == 0:
                 method = GenTuFunction(
-                    QualType.ForName("void"),
-                    f"{decl_scope}visit{name}",
-                    GenTuDoc(""),
+                    ReturnType=QualType.ForName("void"),
+                    Name=f"{decl_scope}visit{name}",
                     Params=t_params,
                     Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
@@ -127,9 +126,8 @@ def get_exporter_methods(
                 )
             else:
                 method = GenTuFunction(
-                    QualType.ForName("void"),
-                    f"{decl_scope}visit",
-                    GenTuDoc(""),
+                    ReturnType=QualType.ForName("void"),
+                    Name=f"{decl_scope}visit",
                     Params=t_params,
                     Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
@@ -317,11 +315,6 @@ def gen_pyhaxorg_python_wrappers(
     ])
 
 
-# @beartype
-# def gen_pyhaxorg_c_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder, cast: c.ASTBuilder) -> GenFiles:
-#     return
-
-
 @beartype
 def gen_pyhaxorg_napi_wrappers(
     groups: PyhaxorgTypeGroups,
@@ -359,6 +352,27 @@ def gen_pyhaxorg_napi_wrappers(
         GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
             GenTuPass(res.build_typedef(ast=ast)),
         ])),
+    ])
+
+
+@beartype
+def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder) -> GenFiles:
+    cpp_builder = cpp.ASTBuilder(ast.b)
+    conf = CAstbuilderConfig(type_map=groups.type_map)
+
+    standalone_funcs: List[codegen_ir.GenTuFunction] = list()
+
+    for func in groups.get_entries_for_wrapping():
+        if isinstance(func, codegen_ir.GenTuFunction):
+            standalone_funcs.append(
+                codegen_ir.GenTuFunction(ReturnType=conf.getBackendType(
+                    func.ReturnType),))
+
+    return GenFiles([
+        GenUnit(
+            header=GenTu("{root}/src/wrappers/c/haxorg_c.h", []),
+            source=GenTu("{root}/src/wrappers/c/haxorg_c.cpp", []),
+        )
     ])
 
 
@@ -660,6 +674,16 @@ def run_codegen_pyhaxorg(
     with groups_dump_yaml.open("w") as file:
         yaml.safe_dump(to_base_types(groups.conv_tu), stream=file)
         log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
+
+    _write_files_group(
+        gen_haxorg_c_wrappers(
+            groups=groups,
+            ast=builder,
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
 
     _write_files_group(
         gen_pyhaxorg_napi_wrappers(

@@ -114,7 +114,7 @@ class AstbulderConfig(abc.ABC):
             case _:
                 return 0 < len(t.Params)
 
-    def getBindName(self, t: QualType, withParams: bool = True) -> str:
+    def getTypeBindName(self, t: QualType, withParams: bool = True) -> str:
         """
         Get name of the wrapped type for backend. Default name generation logic
         for all backends. Some backends might overwrite this for a more fitting
@@ -166,7 +166,7 @@ class AstbulderConfig(abc.ABC):
 
                 case _:
                     for N in t.Spaces:
-                        res += pascal_case(self.getBindName(N, withParams=withParams))
+                        res += pascal_case(self.getTypeBindName(N, withParams=withParams))
 
                     if t.Name in ["bool", "int", "char", "float"]:
                         res += t.Name
@@ -187,7 +187,8 @@ class AstbulderConfig(abc.ABC):
         if withParams and 0 < len(t.Params):
             res += "Of"
             res += "".join([
-                pascal_case(self.getBindName(T, withParams=withParams)) for T in t.Params
+                pascal_case(self.getTypeBindName(T, withParams=withParams))
+                for T in t.Params
             ])
 
         return res

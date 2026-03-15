@@ -995,7 +995,6 @@ class NbModule:
                 append_decl(NbEnum(decl, self.conf))
 
             case codegen_ir.GenTuTypedef():
-                log(CAT).debug(f"typedef {decl.Name} = {decl.Base}")
                 append_decl(NbTypedefPass(decl, self.conf))
 
             case _:

@@ -169,7 +169,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphPoint>(m, "GraphPoint")
     .def("__init__",
-         [](hstd::ext::GraphPoint* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphPoint* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphPoint();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -187,7 +187,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphPath>(m, "GraphPath")
     .def("__init__",
-         [](hstd::ext::GraphPath* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphPath* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphPath();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -214,7 +214,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphSize>(m, "GraphSize")
     .def("__init__",
-         [](hstd::ext::GraphSize* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphSize* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphSize();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -234,7 +234,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphRect>(m, "GraphRect")
     .def("__init__",
-         [](hstd::ext::GraphRect* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphRect* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphRect();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -255,7 +255,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::Empty>(m, "GraphNodeConstraintEmpty")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::Empty* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::Empty* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::Empty();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -271,7 +271,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "GraphNodeConstraintAlignSpec")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::Align::Spec* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::Align::Spec* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::Align::Spec();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -290,7 +290,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::Align>(m, "GraphNodeConstraintAlign")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::Align* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::Align* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::Align();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -309,7 +309,7 @@ NB_MODULE(py_adaptagrams, m) {
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::Separate>(m, "GraphNodeConstraintSeparate")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::Separate* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::Separate* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::Separate();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -332,7 +332,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::MultiSeparate>(m, "GraphNodeConstraintMultiSeparate")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::MultiSeparate* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::MultiSeparate* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::MultiSeparate();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -354,7 +354,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::FixedRelative>(m, "GraphNodeConstraintFixedRelative")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::FixedRelative* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::FixedRelative* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::FixedRelative();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -372,7 +372,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint::PageBoundary>(m, "GraphNodeConstraintPageBoundary")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint::PageBoundary* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint::PageBoundary* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint::PageBoundary();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -394,7 +394,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphNodeConstraint>(m, "GraphNodeConstraint")
     .def("__init__",
-         [](hstd::ext::GraphNodeConstraint* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphNodeConstraint* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphNodeConstraint();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -441,7 +441,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphEdge>(m, "GraphEdge")
     .def("__init__",
-         [](hstd::ext::GraphEdge* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphEdge* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphEdge();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -460,7 +460,7 @@ nodes)RAW")
     ;
   nanobind::class_<hstd::ext::GraphEdgeConstraint>(m, "GraphEdgeConstraint")
     .def("__init__",
-         [](hstd::ext::GraphEdgeConstraint* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphEdgeConstraint* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphEdgeConstraint();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -487,7 +487,7 @@ with the ratio computed automatically.)RAW")
     ;
   nanobind::class_<hstd::ext::GraphLayoutIR::Subgraph>(m, "GraphLayoutIRSubgraph")
     .def("__init__",
-         [](hstd::ext::GraphLayoutIR::Subgraph* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphLayoutIR::Subgraph* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphLayoutIR::Subgraph();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -503,7 +503,7 @@ with the ratio computed automatically.)RAW")
     ;
   nanobind::class_<hstd::ext::GraphLayoutIR::Edge>(m, "GraphLayoutIREdge")
     .def("__init__",
-         [](hstd::ext::GraphLayoutIR::Edge* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphLayoutIR::Edge* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphLayoutIR::Edge();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -523,7 +523,7 @@ are placed in a way to accomodate for the rectangle.)RAW")
     ;
   nanobind::class_<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "GraphLayoutIRResultSubgraph")
     .def("__init__",
-         [](hstd::ext::GraphLayoutIR::Result::Subgraph* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphLayoutIR::Result::Subgraph* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphLayoutIR::Result::Subgraph();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -541,7 +541,7 @@ are placed in a way to accomodate for the rectangle.)RAW")
     ;
   nanobind::class_<hstd::ext::GraphLayoutIR::Result>(m, "GraphLayoutIRResult")
     .def("__init__",
-         [](hstd::ext::GraphLayoutIR::Result* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphLayoutIR::Result* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphLayoutIR::Result();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -565,7 +565,7 @@ layout spec)RAW")
     ;
   nanobind::class_<hstd::ext::GraphLayoutIR>(m, "GraphLayoutIR")
     .def("__init__",
-         [](hstd::ext::GraphLayoutIR* result, nanobind::kwargs const& kwargs) {
+         [](hstd::ext::GraphLayoutIR* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::ext::GraphLayoutIR();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },

@@ -169,7 +169,7 @@ class GenConverter:
                 else:
                     described_methods = []
 
-                LineParameters = len(described_fields) < 4 and len(described_methods) < 1
+                LineParameters = len(described_fields) < 6 and len(described_methods) < 3
 
                 params.nested.append(
                     self.ast.XCall(
@@ -183,7 +183,7 @@ class GenConverter:
                             self.ast.pars(self.ast.string("")),
                             self.ast.pars(
                                 self.ast.csv(described_fields + described_methods,
-                                             len(fields) < 6 and len(methods) < 2)),
+                                             LineParameters)),
                         ],
                         Stmt=True,
                         LineParameters=LineParameters,

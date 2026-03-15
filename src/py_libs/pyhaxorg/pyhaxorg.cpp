@@ -34,13 +34,6 @@ NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<int>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
 NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
@@ -53,12 +46,6 @@ NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
 NB_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
@@ -170,13 +157,6 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
   org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
   org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
@@ -189,12 +169,6 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<org::graph::MapNode>(m, "StdVecOfGraphMapNode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::graph::MapEdge>(m, "HstdVecOfGraphMapEdge", type_registry_guard);
   org::bind::python::bind_stdvector<org::graph::MapEdge>(m, "StdVecOfGraphMapEdge", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "HstdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "StdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "HstdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "StdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "HstdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "StdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
@@ -294,7 +268,7 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::SequenceSegmentGroup>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
   nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def("__init__",
-         [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) {
+         [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::UserTimeBreakdown();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -317,7 +291,7 @@ NB_MODULE(pyhaxorg, m) {
     ;
   nanobind::class_<hstd::UserTime>(m, "UserTime")
     .def("__init__",
-         [](hstd::UserTime* result, nanobind::kwargs const& kwargs) {
+         [](hstd::UserTime* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::UserTime();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -349,7 +323,7 @@ NB_MODULE(pyhaxorg, m) {
     ;
   nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
     .def("__init__",
-         [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) {
+         [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::SourceLoc();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -369,7 +343,7 @@ NB_MODULE(pyhaxorg, m) {
     ;
   nanobind::class_<org::sem::OrgJson>(m, "OrgJson")
     .def("__init__",
-         [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgJson();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -438,7 +412,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<hstd::OperationsTracer>(m, "OperationsTracer")
     .def("__init__",
-         [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) {
+         [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::OperationsTracer();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -474,7 +448,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
     .def("__init__",
-         [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) {
+         [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::OrgParseFragment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -493,7 +467,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
     .def("__init__",
-         [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) {
+         [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::OrgParseParameters();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -513,7 +487,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
     .def("__init__",
-         [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) {
+         [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::OrgDirectoryParseParameters();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -529,7 +503,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<org::parse::ParseContext>(m, "ParseContext")
     .def("__init__",
-         [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) {
+         [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::ParseContext();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -556,10 +530,10 @@ node can have subnodes.)RAW")
          nanobind::arg("file_name"),
          nanobind::arg("opts"))
     .def("parseDirectory",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
+         static_cast<int(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
          nanobind::arg("path"))
     .def("parseDirectoryOpts",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
+         static_cast<int(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
          nanobind::arg("path"),
          nanobind::arg("opts"))
     .def("parseFileWithIncludes",
@@ -587,7 +561,7 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<org::imm::ImmId>(m, "ImmId")
     .def("__init__",
-         [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmId();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -612,7 +586,7 @@ node must not be nil)RAW")
     ;
   nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
     .def("__init__",
-         [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmPathStep();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -628,7 +602,7 @@ node must not be nil)RAW")
     ;
   nanobind::class_<org::imm::ImmPath>(m, "ImmPath")
     .def("__init__",
-         [](org::imm::ImmPath* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmPath* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmPath();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -649,7 +623,7 @@ ImmPathStep documentation.)RAW")
     ;
   nanobind::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
     .def("__init__",
-         [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmUniqId();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -698,7 +672,7 @@ created anew following the immutable ID structure.)RAW")
     ;
   nanobind::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
     .def("__init__",
-         [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmAstVersion();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -718,7 +692,7 @@ created anew following the immutable ID structure.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
     .def("__init__",
-         [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmAdapter::TreeReprConf();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -758,7 +732,7 @@ field subset.)RAW")
     .def("isSubnodeOf",
          static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
          nanobind::arg("other"))
-    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
+    .def("getParent", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
     .def("at",
          static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
@@ -794,7 +768,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
     .def("__init__",
-         [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) {
+         [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::OrgYamlExportOpts();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -815,7 +789,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
     .def("__init__",
-         [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) {
+         [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::OrgTreeExportOpts();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -838,7 +812,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingPath>(m, "AstTrackingPath")
     .def("__init__",
-         [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingPath();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -859,7 +833,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
     .def("__init__",
-         [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingAlternatives();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -877,7 +851,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
     .def("__init__",
-         [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingGroup::RadioTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -895,7 +869,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
     .def("__init__",
-         [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingGroup::Single();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -912,7 +886,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
     .def("__init__",
-         [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingGroup::TrackedHashtag();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -930,7 +904,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingGroup>(m, "AstTrackingGroup")
     .def("__init__",
-         [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -954,7 +928,7 @@ field subset.)RAW")
     ;
   nanobind::class_<org::AstTrackingMap>(m, "AstTrackingMap")
     .def("__init__",
-         [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) {
+         [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::AstTrackingMap();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -966,16 +940,16 @@ field subset.)RAW")
     .def_rw("radioTargets", &org::AstTrackingMap::radioTargets)
     .def_rw("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
     .def("getIdPath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
+         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
          nanobind::arg("id"))
     .def("getNamePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
+         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
          nanobind::arg("id"))
     .def("getAnchorTarget",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
+         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
          nanobind::arg("id"))
     .def("getFootnotePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
+         static_cast<int(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
          nanobind::arg("id"))
     .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -988,7 +962,7 @@ field subset.)RAW")
     ;
   nanobind::class_<hstd::SequenceSegment>(m, "SequenceSegment")
     .def("__init__",
-         [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) {
+         [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::SequenceSegment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1011,7 +985,7 @@ to create a point segment (spans 1 element).)RAW")
     ;
   nanobind::class_<hstd::SequenceSegmentGroup>(m, "SequenceSegmentGroup")
     .def("__init__",
-         [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) {
+         [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::SequenceSegmentGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1029,7 +1003,7 @@ to create a point segment (spans 1 element).)RAW")
     ;
   nanobind::class_<hstd::SequenceAnnotationTag>(m, "SequenceAnnotationTag")
     .def("__init__",
-         [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) {
+         [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::SequenceAnnotationTag();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1064,7 +1038,7 @@ different sequence segments from these ranges. The first one is
     ;
   nanobind::class_<hstd::SequenceAnnotation>(m, "SequenceAnnotation")
     .def("__init__",
-         [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) {
+         [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) -> void {
          new(result) hstd::SequenceAnnotation();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1089,7 +1063,7 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::graph::MapLink::Link>(m, "GraphMapLinkLink")
     .def("__init__",
-         [](org::graph::MapLink::Link* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapLink::Link* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapLink::Link();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1110,7 +1084,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapLink::Radio>(m, "GraphMapLinkRadio")
     .def("__init__",
-         [](org::graph::MapLink::Radio* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapLink::Radio* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapLink::Radio();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1127,7 +1101,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapLink>(m, "GraphMapLink")
     .def("__init__",
-         [](org::graph::MapLink* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapLink* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapLink();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1148,7 +1122,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapNodeProp>(m, "GraphMapNodeProp")
     .def("__init__",
-         [](org::graph::MapNodeProp* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapNodeProp* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapNodeProp();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1159,10 +1133,10 @@ list items, this field contains a newly created statment list)RAW")
          static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter),
          nanobind::arg("context"))
     .def("getSubtreeId",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
+         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
          nanobind::arg("context"))
     .def("getFootnoteName",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
+         static_cast<int(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
          nanobind::arg("context"))
     .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1175,7 +1149,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapEdgeProp>(m, "GraphMapEdgeProp")
     .def("__init__",
-         [](org::graph::MapEdgeProp* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapEdgeProp* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapEdgeProp();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1192,7 +1166,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapNode>(m, "GraphMapNode")
     .def("__init__",
-         [](org::graph::MapNode* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapNode* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapNode();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1215,7 +1189,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapEdge>(m, "GraphMapEdge")
     .def("__init__",
-         [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapEdge();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1233,7 +1207,7 @@ list items, this field contains a newly created statment list)RAW")
     ;
   nanobind::class_<org::graph::MapGraph>(m, "GraphMapGraph")
     .def("__init__",
-         [](org::graph::MapGraph* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapGraph* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapGraph();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1318,7 +1292,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::graph::MapConfig>(m, "GraphMapConfig")
     .def("__init__",
-         [](org::graph::MapConfig* result, nanobind::kwargs const& kwargs) {
+         [](org::graph::MapConfig* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::graph::MapConfig();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1358,7 +1332,7 @@ ingoing elements.)RAW")
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("getUnresolvedLink",
-         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         static_cast<int(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
@@ -1372,7 +1346,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
     .def("__init__",
-         [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) {
+         [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::bind::python::PyCodeEvalParameters();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1392,7 +1366,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
     .def("__init__",
-         [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) {
+         [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::bind::python::ExporterPython();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1509,7 +1483,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Call* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Call* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Call();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1531,7 +1505,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::List>(m, "LispCodeList")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::List* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::List* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::List();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1552,7 +1526,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::KeyValue>(m, "LispCodeKeyValue")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::KeyValue* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::KeyValue* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::KeyValue();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1574,7 +1548,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Number>(m, "LispCodeNumber")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Number* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Number* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Number();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1595,7 +1569,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Text>(m, "LispCodeText")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Text* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Text* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Text();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1616,7 +1590,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Ident>(m, "LispCodeIdent")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Ident* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Ident* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Ident();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1637,7 +1611,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Boolean>(m, "LispCodeBoolean")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Boolean* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Boolean* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Boolean();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1658,7 +1632,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode::Real>(m, "LispCodeReal")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode::Real* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode::Real* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode::Real();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1708,7 +1682,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::LispCode>(m, "LispCode")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::LispCode* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LispCode* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LispCode();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1751,7 +1725,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Index>(m, "TblfmExprAxisRefPositionIndex")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Index* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Index* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position::Index();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1771,7 +1745,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Name>(m, "TblfmExprAxisRefPositionName")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position::Name* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::AxisRef::Position::Name* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position::Name();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1814,7 +1788,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::AxisRef::Position* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::AxisRef::Position* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1845,7 +1819,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef>(m, "TblfmExprAxisRef")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::AxisRef* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::AxisRef* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1866,7 +1840,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisName>(m, "TblfmExprAxisName")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::AxisName* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::AxisName* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisName();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1886,7 +1860,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::IntLiteral>(m, "TblfmExprIntLiteral")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::IntLiteral* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::IntLiteral* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::IntLiteral();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1906,7 +1880,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::FloatLiteral>(m, "TblfmExprFloatLiteral")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::FloatLiteral* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::FloatLiteral* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::FloatLiteral();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1926,7 +1900,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::RangeRef>(m, "TblfmExprRangeRef")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::RangeRef* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::RangeRef* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::RangeRef();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1947,7 +1921,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::Call>(m, "TblfmExprCall")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::Call* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::Call* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::Call();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -1968,7 +1942,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr::Elisp>(m, "TblfmExprElisp")
     .def("__init__",
-         [](org::sem::Tblfm::Expr::Elisp* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr::Elisp* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::Elisp();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2016,7 +1990,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Expr>(m, "TblfmExpr")
     .def("__init__",
-         [](org::sem::Tblfm::Expr* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Expr* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2093,7 +2067,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm::Assign>(m, "TblfmAssign")
     .def("__init__",
-         [](org::sem::Tblfm::Assign* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm::Assign* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Assign();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2115,7 +2089,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Tblfm>(m, "Tblfm")
     .def("__init__",
-         [](org::sem::Tblfm* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Tblfm* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2136,7 +2110,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::AttrValue::DimensionSpan>(m, "AttrValueDimensionSpan")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::AttrValue::DimensionSpan* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrValue::DimensionSpan* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrValue::DimensionSpan();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2158,7 +2132,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::AttrValue::TextValue>(m, "AttrValueTextValue")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::AttrValue::TextValue* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrValue::TextValue* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrValue::TextValue();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2179,7 +2153,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::AttrValue::FileReference>(m, "AttrValueFileReference")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::AttrValue::FileReference* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrValue::FileReference* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrValue::FileReference();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2201,7 +2175,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::AttrValue::LispValue>(m, "AttrValueLispValue")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::AttrValue::LispValue* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrValue::LispValue* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrValue::LispValue();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2246,7 +2220,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::AttrValue>(m, "AttrValue")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::AttrValue* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrValue* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrValue();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2287,7 +2261,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::HashTagFlat>(m, "HashTagFlat")
     .def("__init__",
-         [](org::sem::HashTagFlat* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::HashTagFlat* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::HashTagFlat();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2334,7 +2308,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::TodoKeyword>(m, "TodoKeyword")
     .def("__init__",
-         [](org::sem::TodoKeyword* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::TodoKeyword* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::TodoKeyword();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2357,7 +2331,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::HashTagText>(m, "HashTagText")
     .def("__init__",
-         [](org::sem::HashTagText* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::HashTagText* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::HashTagText();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2386,7 +2360,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreePath>(m, "SubtreePath")
     .def("__init__",
-         [](org::sem::SubtreePath* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreePath* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreePath();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2406,7 +2380,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Raw>(m, "LinkTargetRaw")
     .def("__init__",
-         [](org::sem::LinkTarget::Raw* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Raw* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Raw();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2426,7 +2400,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Id>(m, "LinkTargetId")
     .def("__init__",
-         [](org::sem::LinkTarget::Id* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Id* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Id();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2446,7 +2420,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::CustomId>(m, "LinkTargetCustomId")
     .def("__init__",
-         [](org::sem::LinkTarget::CustomId* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::CustomId* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::CustomId();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2466,7 +2440,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::SubtreeTitle>(m, "LinkTargetSubtreeTitle")
     .def("__init__",
-         [](org::sem::LinkTarget::SubtreeTitle* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::SubtreeTitle* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::SubtreeTitle();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2487,7 +2461,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Person>(m, "LinkTargetPerson")
     .def("__init__",
-         [](org::sem::LinkTarget::Person* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Person* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Person();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2507,7 +2481,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::UserProtocol>(m, "LinkTargetUserProtocol")
     .def("__init__",
-         [](org::sem::LinkTarget::UserProtocol* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::UserProtocol* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::UserProtocol();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2528,7 +2502,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Internal>(m, "LinkTargetInternal")
     .def("__init__",
-         [](org::sem::LinkTarget::Internal* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Internal* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Internal();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2548,7 +2522,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Footnote>(m, "LinkTargetFootnote")
     .def("__init__",
-         [](org::sem::LinkTarget::Footnote* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Footnote* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Footnote();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2568,7 +2542,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::File>(m, "LinkTargetFile")
     .def("__init__",
-         [](org::sem::LinkTarget::File* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::File* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::File();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2588,7 +2562,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget::Attachment>(m, "LinkTargetAttachment")
     .def("__init__",
-         [](org::sem::LinkTarget::Attachment* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget::Attachment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget::Attachment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2639,7 +2613,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::LinkTarget>(m, "LinkTarget")
     .def("__init__",
-         [](org::sem::LinkTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::LinkTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::LinkTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2710,7 +2684,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Priority>(m, "SubtreeLogHeadPriority")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Priority* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Priority* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Priority();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2733,7 +2707,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Note>(m, "SubtreeLogHeadNote")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Note* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Note* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Note();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2753,7 +2727,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Refile>(m, "SubtreeLogHeadRefile")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Refile* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Refile* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Refile();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2774,7 +2748,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Clock>(m, "SubtreeLogHeadClock")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Clock* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Clock* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Clock();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2795,7 +2769,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::State>(m, "SubtreeLogHeadState")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::State* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::State* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::State();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2817,7 +2791,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Deadline>(m, "SubtreeLogHeadDeadline")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Deadline* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Deadline* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Deadline();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2839,7 +2813,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Schedule>(m, "SubtreeLogHeadSchedule")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Schedule* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Schedule* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Schedule();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2861,7 +2835,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Tag>(m, "SubtreeLogHeadTag")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Tag* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Tag* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Tag();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2883,7 +2857,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead::Unknown>(m, "SubtreeLogHeadUnknown")
     .def("__init__",
-         [](org::sem::SubtreeLogHead::Unknown* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead::Unknown* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead::Unknown();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2932,7 +2906,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLogHead>(m, "SubtreeLogHead")
     .def("__init__",
-         [](org::sem::SubtreeLogHead* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLogHead* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLogHead();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2977,7 +2951,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeCompletion>(m, "SubtreeCompletion")
     .def("__init__",
-         [](org::sem::SubtreeCompletion* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeCompletion* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeCompletion();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -2999,7 +2973,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::AttrList>(m, "AttrList")
     .def("__init__",
-         [](org::sem::AttrList* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrList* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrList();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3019,7 +2993,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::AttrGroup>(m, "AttrGroup")
     .def("__init__",
-         [](org::sem::AttrGroup* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AttrGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AttrGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3086,7 +3060,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::OrgCodeEvalInput::Var>(m, "OrgCodeEvalInputVar")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::OrgCodeEvalInput::Var* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgCodeEvalInput::Var* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgCodeEvalInput::Var();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3187,7 +3161,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgCodeEvalInput>(m, "OrgCodeEvalInput")
     .def("__init__",
-         [](org::sem::OrgCodeEvalInput* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgCodeEvalInput* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgCodeEvalInput();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3217,7 +3191,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgCodeEvalOutput>(m, "OrgCodeEvalOutput")
     .def("__init__",
-         [](org::sem::OrgCodeEvalOutput* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgCodeEvalOutput* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgCodeEvalOutput();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3267,7 +3241,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
     .def("__init__",
-         [](org::sem::ColumnView::Summary::CheckboxAggregate* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColumnView::Summary::CheckboxAggregate* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColumnView::Summary::CheckboxAggregate();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3313,7 +3287,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
     .def("__init__",
-         [](org::sem::ColumnView::Summary::MathAggregate* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColumnView::Summary::MathAggregate* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColumnView::Summary::MathAggregate();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3358,7 +3332,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColumnView::Summary>(m, "ColumnViewSummary")
     .def("__init__",
-         [](org::sem::ColumnView::Summary* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColumnView::Summary* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColumnView::Summary();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3389,7 +3363,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColumnView::Column>(m, "ColumnViewColumn")
     .def("__init__",
-         [](org::sem::ColumnView::Column* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColumnView::Column* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColumnView::Column();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3412,7 +3386,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColumnView>(m, "ColumnView")
     .def("__init__",
-         [](org::sem::ColumnView* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColumnView* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColumnView();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3432,7 +3406,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeLine::Part::Raw>(m, "BlockCodeLinePartRaw")
     .def("__init__",
-         [](org::sem::BlockCodeLine::Part::Raw* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeLine::Part::Raw* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeLine::Part::Raw();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3452,7 +3426,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeLine::Part::Callout>(m, "BlockCodeLinePartCallout")
     .def("__init__",
-         [](org::sem::BlockCodeLine::Part::Callout* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeLine::Part::Callout* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeLine::Part::Callout();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3472,7 +3446,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeLine::Part::Tangle>(m, "BlockCodeLinePartTangle")
     .def("__init__",
-         [](org::sem::BlockCodeLine::Part::Tangle* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeLine::Part::Tangle* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeLine::Part::Tangle();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3516,7 +3490,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeLine::Part>(m, "BlockCodeLinePart")
     .def("__init__",
-         [](org::sem::BlockCodeLine::Part* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeLine::Part* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeLine::Part();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3549,7 +3523,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeLine>(m, "BlockCodeLine")
     .def("__init__",
-         [](org::sem::BlockCodeLine* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeLine* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeLine();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3569,7 +3543,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentExportConfig::TaskExport>(m, "DocumentExportConfigTaskExport")
     .def("__init__",
-         [](org::sem::DocumentExportConfig::TaskExport* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentExportConfig::TaskExport* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentExportConfig::TaskExport();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3687,7 +3661,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentExportConfig::DoExport>(m, "DocumentExportConfigDoExport")
     .def("__init__",
-         [](org::sem::DocumentExportConfig::DoExport* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentExportConfig::DoExport* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentExportConfig::DoExport();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3707,7 +3681,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentExportConfig::ExportFixed>(m, "DocumentExportConfigExportFixed")
     .def("__init__",
-         [](org::sem::DocumentExportConfig::ExportFixed* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentExportConfig::ExportFixed* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentExportConfig::ExportFixed();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3750,7 +3724,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentExportConfig>(m, "DocumentExportConfig")
     .def("__init__",
-         [](org::sem::DocumentExportConfig* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentExportConfig* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentExportConfig();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3842,7 +3816,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreePeriod>(m, "SubtreePeriod")
     .def("__init__",
-         [](org::sem::SubtreePeriod* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreePeriod* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreePeriod();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3864,7 +3838,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Nonblocking>(m, "NamedPropertyNonblocking")
     .def("__init__",
-         [](org::sem::NamedProperty::Nonblocking* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Nonblocking* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Nonblocking();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3884,7 +3858,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTime>(m, "NamedPropertyArchiveTime")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveTime* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveTime* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveTime();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3904,7 +3878,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveFile>(m, "NamedPropertyArchiveFile")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveFile* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveFile* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveFile();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3924,7 +3898,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveOlpath>(m, "NamedPropertyArchiveOlpath")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveOlpath* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveOlpath* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveOlpath();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3944,7 +3918,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTarget>(m, "NamedPropertyArchiveTarget")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3965,7 +3939,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveCategory>(m, "NamedPropertyArchiveCategory")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveCategory* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveCategory* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveCategory();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -3985,7 +3959,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTodo>(m, "NamedPropertyArchiveTodo")
     .def("__init__",
-         [](org::sem::NamedProperty::ArchiveTodo* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ArchiveTodo* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ArchiveTodo();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4005,7 +3979,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Trigger>(m, "NamedPropertyTrigger")
     .def("__init__",
-         [](org::sem::NamedProperty::Trigger* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Trigger* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Trigger();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4024,7 +3998,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexClass>(m, "NamedPropertyExportLatexClass")
     .def("__init__",
-         [](org::sem::NamedProperty::ExportLatexClass* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ExportLatexClass* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ExportLatexClass();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4044,7 +4018,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
     .def("__init__",
-         [](org::sem::NamedProperty::CookieData* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CookieData* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CookieData();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4065,7 +4039,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexClassOptions>(m, "NamedPropertyExportLatexClassOptions")
     .def("__init__",
-         [](org::sem::NamedProperty::ExportLatexClassOptions* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ExportLatexClassOptions* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ExportLatexClassOptions();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4085,7 +4059,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexHeader>(m, "NamedPropertyExportLatexHeader")
     .def("__init__",
-         [](org::sem::NamedProperty::ExportLatexHeader* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ExportLatexHeader* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ExportLatexHeader();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4105,7 +4079,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexCompiler>(m, "NamedPropertyExportLatexCompiler")
     .def("__init__",
-         [](org::sem::NamedProperty::ExportLatexCompiler* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ExportLatexCompiler* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ExportLatexCompiler();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4125,7 +4099,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Ordered>(m, "NamedPropertyOrdered")
     .def("__init__",
-         [](org::sem::NamedProperty::Ordered* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Ordered* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Ordered();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4145,7 +4119,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Effort>(m, "NamedPropertyEffort")
     .def("__init__",
-         [](org::sem::NamedProperty::Effort* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Effort* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Effort();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4191,7 +4165,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Visibility>(m, "NamedPropertyVisibility")
     .def("__init__",
-         [](org::sem::NamedProperty::Visibility* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Visibility* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Visibility();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4211,7 +4185,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::ExportOptions>(m, "NamedPropertyExportOptions")
     .def("__init__",
-         [](org::sem::NamedProperty::ExportOptions* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::ExportOptions* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::ExportOptions();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4232,7 +4206,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Blocker>(m, "NamedPropertyBlocker")
     .def("__init__",
-         [](org::sem::NamedProperty::Blocker* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Blocker* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Blocker();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4252,7 +4226,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Unnumbered>(m, "NamedPropertyUnnumbered")
     .def("__init__",
-         [](org::sem::NamedProperty::Unnumbered* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Unnumbered* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Unnumbered();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4271,7 +4245,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::Created>(m, "NamedPropertyCreated")
     .def("__init__",
-         [](org::sem::NamedProperty::Created* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::Created* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::Created();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4291,7 +4265,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::RadioId>(m, "NamedPropertyRadioId")
     .def("__init__",
-         [](org::sem::NamedProperty::RadioId* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::RadioId* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::RadioId();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4311,7 +4285,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::HashtagDef>(m, "NamedPropertyHashtagDef")
     .def("__init__",
-         [](org::sem::NamedProperty::HashtagDef* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::HashtagDef* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::HashtagDef();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4331,7 +4305,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
     .def("__init__",
-         [](org::sem::NamedProperty::CustomArgs* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CustomArgs* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CustomArgs();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4353,7 +4327,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CustomRaw>(m, "NamedPropertyCustomRaw")
     .def("__init__",
-         [](org::sem::NamedProperty::CustomRaw* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CustomRaw* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CustomRaw();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4374,7 +4348,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CustomId>(m, "NamedPropertyCustomId")
     .def("__init__",
-         [](org::sem::NamedProperty::CustomId* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CustomId* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CustomId();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4394,7 +4368,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeJson>(m, "NamedPropertyCustomSubtreeJson")
     .def("__init__",
-         [](org::sem::NamedProperty::CustomSubtreeJson* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CustomSubtreeJson* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CustomSubtreeJson();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4415,7 +4389,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeFlags>(m, "NamedPropertyCustomSubtreeFlags")
     .def("__init__",
-         [](org::sem::NamedProperty::CustomSubtreeFlags* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty::CustomSubtreeFlags* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty::CustomSubtreeFlags();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4484,7 +4458,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NamedProperty>(m, "NamedProperty")
     .def("__init__",
-         [](org::sem::NamedProperty* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NamedProperty* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NamedProperty();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4572,7 +4546,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ParseTokenError>(m, "OrgDiagnosticsParseTokenError")
     .def("__init__",
-         [](org::sem::OrgDiagnostics::ParseTokenError* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics::ParseTokenError* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics::ParseTokenError();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4600,7 +4574,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ParseError>(m, "OrgDiagnosticsParseError")
     .def("__init__",
-         [](org::sem::OrgDiagnostics::ParseError* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics::ParseError* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics::ParseError();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4626,7 +4600,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics::IncludeError>(m, "OrgDiagnosticsIncludeError")
     .def("__init__",
-         [](org::sem::OrgDiagnostics::IncludeError* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics::IncludeError* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics::IncludeError();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4648,7 +4622,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
     .def("__init__",
-         [](org::sem::OrgDiagnostics::ConvertError* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics::ConvertError* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics::ConvertError();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4675,7 +4649,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics::InternalError>(m, "OrgDiagnosticsInternalError")
     .def("__init__",
-         [](org::sem::OrgDiagnostics::InternalError* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics::InternalError* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics::InternalError();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4725,7 +4699,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::OrgDiagnostics>(m, "OrgDiagnostics")
     .def("__init__",
-         [](org::sem::OrgDiagnostics* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::OrgDiagnostics* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::OrgDiagnostics();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4938,7 +4912,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
     .def("__init__",
-         [](org::sem::NoNode* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::NoNode* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::NoNode();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4954,7 +4928,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ErrorItem, org::sem::Org>(m, "ErrorItem")
     .def("__init__",
-         [](org::sem::ErrorItem* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ErrorItem* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ErrorItem();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -4971,7 +4945,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ErrorGroup, org::sem::Org>(m, "ErrorGroup")
     .def("__init__",
-         [](org::sem::ErrorGroup* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ErrorGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ErrorGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5025,7 +4999,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::StmtList, org::sem::Org>(m, "StmtList")
     .def("__init__",
-         [](org::sem::StmtList* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::StmtList* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::StmtList();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5041,7 +5015,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Empty, org::sem::Org>(m, "Empty")
     .def("__init__",
-         [](org::sem::Empty* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Empty* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Empty();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5114,7 +5088,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::Time::Repeat>(m, "TimeRepeat")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::Time::Repeat* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Time::Repeat* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Time::Repeat();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5134,7 +5108,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::Time::Static>(m, "TimeStatic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::Time::Static* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Time::Static* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Time::Static();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5154,7 +5128,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::Time::Dynamic>(m, "TimeDynamic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::Time::Dynamic* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Time::Dynamic* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Time::Dynamic();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5194,7 +5168,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Time, org::sem::Org>(m, "Time")
     .def("__init__",
-         [](org::sem::Time* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Time* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Time();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5230,7 +5204,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::TimeRange, org::sem::Org>(m, "TimeRange")
     .def("__init__",
-         [](org::sem::TimeRange* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::TimeRange* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::TimeRange();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5249,7 +5223,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Macro, org::sem::Org>(m, "Macro")
     .def("__init__",
-         [](org::sem::Macro* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Macro* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Macro();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5267,7 +5241,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Symbol::Param>(m, "SymbolParam")
     .def("__init__",
-         [](org::sem::Symbol::Param* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Symbol::Param* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Symbol::Param();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5285,7 +5259,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Symbol, org::sem::Org>(m, "Symbol")
     .def("__init__",
-         [](org::sem::Symbol* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Symbol* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Symbol();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5304,7 +5278,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ErrorSkipGroup, org::sem::Org>(m, "ErrorSkipGroup")
     .def("__init__",
-         [](org::sem::ErrorSkipGroup* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ErrorSkipGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ErrorSkipGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5323,7 +5297,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::RadioTarget, org::sem::Org>(m, "RadioTarget")
     .def("__init__",
-         [](org::sem::RadioTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::RadioTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5340,7 +5314,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Latex, org::sem::Org>(m, "Latex")
     .def("__init__",
-         [](org::sem::Latex* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Latex* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Latex();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5356,7 +5330,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::SubtreeLog, org::sem::Org>(m, "SubtreeLog")
     .def("__init__",
-         [](org::sem::SubtreeLog* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::SubtreeLog* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::SubtreeLog();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5377,7 +5351,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Subtree, org::sem::Org>(m, "Subtree")
     .def("__init__",
-         [](org::sem::Subtree* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Subtree* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Subtree();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5436,7 +5410,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ColonExample, org::sem::Org>(m, "ColonExample")
     .def("__init__",
-         [](org::sem::ColonExample* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ColonExample* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ColonExample();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5452,7 +5426,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Call, org::sem::Org>(m, "Call")
     .def("__init__",
-         [](org::sem::Call* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Call* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Call();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5471,7 +5445,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ListItem, org::sem::Org>(m, "ListItem")
     .def("__init__",
-         [](org::sem::ListItem* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ListItem* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ListItem();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5492,7 +5466,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentOptions, org::sem::Org>(m, "DocumentOptions")
     .def("__init__",
-         [](org::sem::DocumentOptions* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentOptions* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentOptions();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5527,7 +5501,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentFragment, org::sem::Org>(m, "DocumentFragment")
     .def("__init__",
-         [](org::sem::DocumentFragment* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentFragment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentFragment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5571,7 +5545,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CriticMarkup, org::sem::Org>(m, "CriticMarkup")
     .def("__init__",
-         [](org::sem::CriticMarkup* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CriticMarkup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CriticMarkup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5588,7 +5562,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Document, org::sem::Org>(m, "Document")
     .def("__init__",
-         [](org::sem::Document* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Document* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Document();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5620,7 +5594,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::FileTarget, org::sem::Org>(m, "FileTarget")
     .def("__init__",
-         [](org::sem::FileTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::FileTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::FileTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5642,7 +5616,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::TextSeparator, org::sem::Org>(m, "TextSeparator")
     .def("__init__",
-         [](org::sem::TextSeparator* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::TextSeparator* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::TextSeparator();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5658,7 +5632,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::DocumentGroup, org::sem::Org>(m, "DocumentGroup")
     .def("__init__",
-         [](org::sem::DocumentGroup* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::DocumentGroup* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::DocumentGroup();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5674,7 +5648,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::File::Document>(m, "FileDocument")
     .def("__init__",
-         [](org::sem::File::Document* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::File::Document* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::File::Document();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5690,7 +5664,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::File::Attachment>(m, "FileAttachment")
     .def("__init__",
-         [](org::sem::File::Attachment* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::File::Attachment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::File::Attachment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5706,7 +5680,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::File::Source>(m, "FileSource")
     .def("__init__",
-         [](org::sem::File::Source* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::File::Source* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::File::Source();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5746,7 +5720,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::File, org::sem::Org>(m, "File")
     .def("__init__",
-         [](org::sem::File* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::File* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::File();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5778,7 +5752,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Directory, org::sem::Org>(m, "Directory")
     .def("__init__",
-         [](org::sem::Directory* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Directory* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Directory();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5796,7 +5770,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Symlink, org::sem::Org>(m, "Symlink")
     .def("__init__",
-         [](org::sem::Symlink* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Symlink* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Symlink();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5815,7 +5789,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeIncludeBase")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::IncludeBase();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5832,7 +5806,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::Example, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExample")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::Example* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::Example* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::Example();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5849,7 +5823,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::Export, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExport")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::Export* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::Export* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::Export();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5867,7 +5841,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::Custom, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeCustom")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::Custom* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::Custom* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::Custom();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5885,7 +5859,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::Src, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeSrc")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::Src* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::Src* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::Src();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5903,7 +5877,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::sem::CmdInclude::OrgDocument, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeOrgDocument")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::sem::CmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude::OrgDocument();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -5949,7 +5923,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdInclude, org::sem::Org>(m, "CmdInclude")
     .def("__init__",
-         [](org::sem::CmdInclude* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdInclude* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdInclude();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6163,7 +6137,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmTime::Repeat();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6186,7 +6160,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmTime::Static>(m, "ImmTimeStatic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Static* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmTime::Static* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmTime::Static();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6209,7 +6183,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmTime::Dynamic>(m, "ImmTimeDynamic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Dynamic* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmTime::Dynamic* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmTime::Dynamic();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6252,7 +6226,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
     .def("__init__",
-         [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmSymbol::Param();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6273,7 +6247,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
     .def("__init__",
-         [](org::imm::ImmFile::Document* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmFile::Document* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmFile::Document();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6292,7 +6266,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmFile::Attachment>(m, "ImmFileAttachment")
     .def("__init__",
-         [](org::imm::ImmFile::Attachment* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmFile::Attachment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmFile::Attachment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6311,7 +6285,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmFile::Source>(m, "ImmFileSource")
     .def("__init__",
-         [](org::imm::ImmFile::Source* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmFile::Source* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmFile::Source();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6355,7 +6329,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::IncludeBase();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6375,7 +6349,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExample")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Example* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::Example* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::Example();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6395,7 +6369,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExport")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Export* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::Export* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::Export();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6416,7 +6390,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeCustom")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Custom* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::Custom* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::Custom();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6437,7 +6411,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeSrc")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Src* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::Src* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::Src();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6458,7 +6432,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::OrgDocument, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeOrgDocument")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) {
+         [](org::imm::ImmCmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::imm::ImmCmdInclude::OrgDocument();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6520,7 +6494,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCustomRaw, org::sem::Stmt>(m, "CmdCustomRaw")
     .def("__init__",
-         [](org::sem::CmdCustomRaw* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCustomRaw* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCustomRaw();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6539,7 +6513,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCustomText, org::sem::Stmt>(m, "CmdCustomText")
     .def("__init__",
-         [](org::sem::CmdCustomText* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCustomText* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCustomText();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6558,7 +6532,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Link, org::sem::Stmt>(m, "Link")
     .def("__init__",
-         [](org::sem::Link* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Link* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Link();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6576,7 +6550,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockComment, org::sem::Stmt>(m, "BlockComment")
     .def("__init__",
-         [](org::sem::BlockComment* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockComment* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockComment();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6592,7 +6566,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Paragraph, org::sem::Stmt>(m, "Paragraph")
     .def("__init__",
-         [](org::sem::Paragraph* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Paragraph* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Paragraph();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6619,7 +6593,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::List, org::sem::Stmt>(m, "List")
     .def("__init__",
-         [](org::sem::List* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::List* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::List();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6641,7 +6615,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::HashTag, org::sem::Inline>(m, "HashTag")
     .def("__init__",
-         [](org::sem::HashTag* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::HashTag* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::HashTag();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6658,7 +6632,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::InlineFootnote, org::sem::Inline>(m, "InlineFootnote")
     .def("__init__",
-         [](org::sem::InlineFootnote* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::InlineFootnote* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::InlineFootnote();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6676,7 +6650,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::InlineExport, org::sem::Inline>(m, "InlineExport")
     .def("__init__",
-         [](org::sem::InlineExport* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::InlineExport* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::InlineExport();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6694,7 +6668,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Escaped, org::sem::Leaf>(m, "Escaped")
     .def("__init__",
-         [](org::sem::Escaped* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Escaped* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Escaped();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6710,7 +6684,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Newline, org::sem::Leaf>(m, "Newline")
     .def("__init__",
-         [](org::sem::Newline* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Newline* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Newline();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6726,7 +6700,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Space, org::sem::Leaf>(m, "Space")
     .def("__init__",
-         [](org::sem::Space* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Space* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Space();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6742,7 +6716,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Word, org::sem::Leaf>(m, "Word")
     .def("__init__",
-         [](org::sem::Word* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Word* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Word();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6758,7 +6732,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::AtMention, org::sem::Leaf>(m, "AtMention")
     .def("__init__",
-         [](org::sem::AtMention* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::AtMention* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::AtMention();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6774,7 +6748,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::RawText, org::sem::Leaf>(m, "RawText")
     .def("__init__",
-         [](org::sem::RawText* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::RawText* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::RawText();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6790,7 +6764,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Punctuation, org::sem::Leaf>(m, "Punctuation")
     .def("__init__",
-         [](org::sem::Punctuation* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Punctuation* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Punctuation();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6806,7 +6780,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Placeholder, org::sem::Leaf>(m, "Placeholder")
     .def("__init__",
-         [](org::sem::Placeholder* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Placeholder* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Placeholder();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6822,7 +6796,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BigIdent, org::sem::Leaf>(m, "BigIdent")
     .def("__init__",
-         [](org::sem::BigIdent* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BigIdent* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BigIdent();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6838,7 +6812,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::TextTarget, org::sem::Leaf>(m, "TextTarget")
     .def("__init__",
-         [](org::sem::TextTarget* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::TextTarget* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::TextTarget();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6854,7 +6828,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::ErrorSkipToken, org::sem::Leaf>(m, "ErrorSkipToken")
     .def("__init__",
-         [](org::sem::ErrorSkipToken* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::ErrorSkipToken* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::ErrorSkipToken();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6870,7 +6844,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Bold, org::sem::Markup>(m, "Bold")
     .def("__init__",
-         [](org::sem::Bold* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Bold* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Bold();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6886,7 +6860,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Underline, org::sem::Markup>(m, "Underline")
     .def("__init__",
-         [](org::sem::Underline* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Underline* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Underline();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6902,7 +6876,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Monospace, org::sem::Markup>(m, "Monospace")
     .def("__init__",
-         [](org::sem::Monospace* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Monospace* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Monospace();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6918,7 +6892,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::MarkQuote, org::sem::Markup>(m, "MarkQuote")
     .def("__init__",
-         [](org::sem::MarkQuote* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::MarkQuote* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::MarkQuote();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6934,7 +6908,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Verbatim, org::sem::Markup>(m, "Verbatim")
     .def("__init__",
-         [](org::sem::Verbatim* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Verbatim* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Verbatim();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6950,7 +6924,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Italic, org::sem::Markup>(m, "Italic")
     .def("__init__",
-         [](org::sem::Italic* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Italic* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Italic();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6966,7 +6940,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Strike, org::sem::Markup>(m, "Strike")
     .def("__init__",
-         [](org::sem::Strike* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Strike* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Strike();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -6982,7 +6956,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Par, org::sem::Markup>(m, "Par")
     .def("__init__",
-         [](org::sem::Par* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Par* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Par();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7046,7 +7020,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterDirectoryAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDirectoryAPI")
     .def("getFsSubnode",
-         static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
+         static_cast<int(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
          nanobind::arg("name"),
          nanobind::arg("withPath") = true)
     ;
@@ -7076,7 +7050,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCreator, org::sem::Cmd>(m, "CmdCreator")
     .def("__init__",
-         [](org::sem::CmdCreator* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCreator* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCreator();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7093,7 +7067,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdAuthor, org::sem::Cmd>(m, "CmdAuthor")
     .def("__init__",
-         [](org::sem::CmdAuthor* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdAuthor* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdAuthor();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7110,7 +7084,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdEmail, org::sem::Cmd>(m, "CmdEmail")
     .def("__init__",
-         [](org::sem::CmdEmail* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdEmail* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdEmail();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7127,7 +7101,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdLanguage, org::sem::Cmd>(m, "CmdLanguage")
     .def("__init__",
-         [](org::sem::CmdLanguage* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdLanguage* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdLanguage();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7144,7 +7118,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCustomArgs, org::sem::Cmd>(m, "CmdCustomArgs")
     .def("__init__",
-         [](org::sem::CmdCustomArgs* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCustomArgs* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCustomArgs();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7162,7 +7136,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdTblfm, org::sem::Cmd>(m, "CmdTblfm")
     .def("__init__",
-         [](org::sem::CmdTblfm* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdTblfm* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdTblfm();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7179,7 +7153,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Cell, org::sem::Cmd>(m, "Cell")
     .def("__init__",
-         [](org::sem::Cell* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Cell* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Cell();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7196,7 +7170,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Row, org::sem::Cmd>(m, "Row")
     .def("__init__",
-         [](org::sem::Row* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Row* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Row();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7444,7 +7418,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
     .def("__init__",
-         [](org::sem::BlockCenter* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCenter* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCenter();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7460,7 +7434,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockQuote, org::sem::Block>(m, "BlockQuote")
     .def("__init__",
-         [](org::sem::BlockQuote* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockQuote* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockQuote();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7476,7 +7450,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockVerse, org::sem::Block>(m, "BlockVerse")
     .def("__init__",
-         [](org::sem::BlockVerse* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockVerse* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockVerse();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7492,7 +7466,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockDynamicFallback, org::sem::Block>(m, "BlockDynamicFallback")
     .def("__init__",
-         [](org::sem::BlockDynamicFallback* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockDynamicFallback* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockDynamicFallback();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7509,7 +7483,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockExample, org::sem::Block>(m, "BlockExample")
     .def("__init__",
-         [](org::sem::BlockExample* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockExample* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockExample();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7525,7 +7499,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockExport, org::sem::Block>(m, "BlockExport")
     .def("__init__",
-         [](org::sem::BlockExport* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockExport* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockExport();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7544,7 +7518,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockAdmonition, org::sem::Block>(m, "BlockAdmonition")
     .def("__init__",
-         [](org::sem::BlockAdmonition* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockAdmonition* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockAdmonition();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7560,7 +7534,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCodeEvalResult, org::sem::Block>(m, "BlockCodeEvalResult")
     .def("__init__",
-         [](org::sem::BlockCodeEvalResult* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCodeEvalResult* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCodeEvalResult();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7578,7 +7552,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::BlockCode, org::sem::Block>(m, "BlockCode")
     .def("__init__",
-         [](org::sem::BlockCode* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::BlockCode* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::BlockCode();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7601,7 +7575,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::Table, org::sem::Block>(m, "Table")
     .def("__init__",
-         [](org::sem::Table* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::Table* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Table();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7738,7 +7712,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
     .def("__init__",
-         [](org::sem::CmdCaption* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCaption* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCaption();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7755,7 +7729,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdColumns, org::sem::Attached>(m, "CmdColumns")
     .def("__init__",
-         [](org::sem::CmdColumns* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdColumns* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdColumns();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7772,7 +7746,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdName, org::sem::Attached>(m, "CmdName")
     .def("__init__",
-         [](org::sem::CmdName* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdName* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdName();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7789,7 +7763,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdCall, org::sem::Attached>(m, "CmdCall")
     .def("__init__",
-         [](org::sem::CmdCall* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdCall* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdCall();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7811,7 +7785,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdAttr, org::sem::Attached>(m, "CmdAttr")
     .def("__init__",
-         [](org::sem::CmdAttr* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdAttr* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdAttr();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
@@ -7828,7 +7802,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::sem::CmdExport, org::sem::Attached>(m, "CmdExport")
     .def("__init__",
-         [](org::sem::CmdExport* result, nanobind::kwargs const& kwargs) {
+         [](org::sem::CmdExport* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::CmdExport();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },

@@ -1,100 +1,100 @@
 /* clang-format off */
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapterGenerated.hpp>
-org::imm::ImmAdapterT<org::imm::ImmNoNode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNoNode>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmNoNode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNoNode>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "NoNode", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmErrorItem>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorItem>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmErrorItem>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorItem>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorItem", other.getKind())
 }
 org::sem::OrgDiagnostics org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getDiag() const {
   return this->value().diag;
 }
-org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorGroup>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorGroup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorGroup", other.getKind())
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics() const {
   return this->value().diagnostics;
 }
-org::imm::ImmAdapterT<org::imm::ImmStmt>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmt>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmStmt>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmt>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Stmt", other.getKind())
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached() const {
   return this->value().attached;
 }
-org::imm::ImmAdapterT<org::imm::ImmInline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInline>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmInline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInline>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Inline", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmStmtList>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmtList>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmStmtList>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmtList>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "StmtList", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmEmpty>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEmpty>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmEmpty>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEmpty>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Empty", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmCmd>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmd>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmd>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmd>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Cmd", other.getKind())
 }
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCmd>::getAttrs() const {
   return this->value().attrs;
 }
-org::imm::ImmAdapterT<org::imm::ImmBlock>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlock>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlock>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlock>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Block", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmLineCommand>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLineCommand>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmLineCommand>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLineCommand>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "LineCommand", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmAttached>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAttached>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmAttached>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAttached>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Attached", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmLeaf>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLeaf>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmLeaf>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLeaf>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Leaf", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmLeaf>::getText() const {
   return this->value().text.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCaption>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCaption>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCaption", other.getKind())
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmCmdCaption::text);
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCreator>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCreator>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCreator", other.getKind())
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmCmdCreator::text);
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAuthor>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAuthor>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdAuthor", other.getKind())
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmCmdAuthor::text);
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdEmail>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdEmail>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdEmail", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getText() const {
   return this->value().text.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdLanguage>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdLanguage>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdLanguage", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::getText() const {
   return this->value().text.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdColumns>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdColumns>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdColumns", other.getKind())
 }
 org::sem::ColumnView org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getView() const {
   return this->value().view;
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdName>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdName>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdName>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdName>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdName", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdName>::getName() const {
   return this->value().name.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomArgs>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomArgs>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomArgs", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getName() const {
@@ -103,7 +103,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getName() co
 bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached() const {
   return this->value().isAttached;
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomRaw>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomRaw>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomRaw", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getName() const {
@@ -115,7 +115,7 @@ bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached() const {
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getText() const {
   return this->value().text.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomText>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomText>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCustomText", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName() const {
@@ -127,7 +127,7 @@ bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached() const {
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmCmdCustomText::text);
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdCall>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCall>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdCall>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCall>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdCall", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getName() const {
@@ -148,19 +148,19 @@ org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getEndHeaderAtt
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult() const {
   return this->value().result;
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdTblfm>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdTblfm>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdTblfm", other.getKind())
 }
 org::sem::Tblfm org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getExpr() const {
   return this->value().expr;
 }
-org::imm::ImmAdapterT<org::imm::ImmHashTag>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmHashTag>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmHashTag>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmHashTag>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "HashTag", other.getKind())
 }
 org::sem::HashTagText org::imm::ImmAdapterT<org::imm::ImmHashTag>::getText() const {
   return this->value().text;
 }
-org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineFootnote>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineFootnote>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "InlineFootnote", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag() const {
@@ -169,7 +169,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag() co
 hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmInlineFootnote::definition);
 }
-org::imm::ImmAdapterT<org::imm::ImmInlineExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineExport>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmInlineExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInlineExport>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "InlineExport", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getExporter() const {
@@ -178,7 +178,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getExporter()
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getContent() const {
   return this->value().content.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmTime>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTime>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmTime>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTime>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Time", other.getKind())
 }
 bool org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive() const {
@@ -187,7 +187,7 @@ bool org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive() const {
 org::imm::ImmTime::TimeVariant org::imm::ImmAdapterT<org::imm::ImmTime>::getTime() const {
   return this->value().time;
 }
-org::imm::ImmAdapterT<org::imm::ImmTimeRange>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmTimeRange>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TimeRange", other.getKind())
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom() const {
@@ -196,7 +196,7 @@ org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom() co
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmTimeRange::to);
 }
-org::imm::ImmAdapterT<org::imm::ImmMacro>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMacro>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmMacro>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMacro>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Macro", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmMacro>::getName() const {
@@ -205,7 +205,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmMacro>::getName() const {
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmMacro>::getAttrs() const {
   return this->value().attrs;
 }
-org::imm::ImmAdapterT<org::imm::ImmSymbol>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymbol>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmSymbol>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymbol>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Symbol", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmSymbol>::getName() const {
@@ -217,82 +217,82 @@ hstd::ext::ImmVec<org::imm::ImmSymbol::Param> org::imm::ImmAdapterT<org::imm::Im
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional() const {
   return this->value().positional;
 }
-org::imm::ImmAdapterT<org::imm::ImmEscaped>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEscaped>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmEscaped>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEscaped>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Escaped", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmNewline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNewline>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmNewline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmNewline>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Newline", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmSpace>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSpace>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmSpace>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSpace>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Space", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmWord>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmWord>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmWord>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmWord>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Word", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmAtMention>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAtMention>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmAtMention>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmAtMention>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "AtMention", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmRawText>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRawText>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmRawText>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRawText>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "RawText", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmPunctuation>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPunctuation>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmPunctuation>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPunctuation>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Punctuation", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPlaceholder>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmPlaceholder>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPlaceholder>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Placeholder", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBigIdent>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBigIdent>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBigIdent>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBigIdent>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BigIdent", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmTextTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextTarget>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmTextTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextTarget>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TextTarget", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipToken>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipToken>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorSkipToken", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipGroup>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipGroup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorSkipGroup", other.getKind())
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped() const {
   return this->value().skipped;
 }
-org::imm::ImmAdapterT<org::imm::ImmMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkup>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Markup", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBold>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBold>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBold>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBold>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Bold", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmUnderline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmUnderline>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmUnderline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmUnderline>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Underline", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmMonospace>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMonospace>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmMonospace>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMonospace>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Monospace", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkQuote>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmMarkQuote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkQuote>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "MarkQuote", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmVerbatim>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmVerbatim>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmVerbatim>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmVerbatim>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Verbatim", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmItalic>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmItalic>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmItalic>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmItalic>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Italic", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmStrike>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStrike>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmStrike>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStrike>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Strike", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmPar>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPar>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmPar>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmPar>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Par", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRadioTarget>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRadioTarget>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "RadioTarget", other.getKind())
 }
 hstd::ext::ImmVec<hstd::Str> org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords() const {
   return this->value().words;
 }
-org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLatex>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLatex>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Latex", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmLink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLink>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmLink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLink>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Link", other.getKind())
 }
 hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription() const {
@@ -301,28 +301,28 @@ hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<o
 org::sem::LinkTarget org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget() const {
   return this->value().target;
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockCenter>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCenter", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockQuote>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockQuote", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockComment>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockComment>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockComment", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockVerse>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockVerse", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockDynamicFallback", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::getName() const {
   return this->value().name.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockExample>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockExample>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockExample", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockExport", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getExporter() const {
@@ -331,10 +331,10 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getExporter() 
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getContent() const {
   return this->value().content.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockAdmonition", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCodeEvalResult", other.getKind())
 }
 hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw() const {
@@ -343,7 +343,7 @@ hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> org::imm::ImmAdapterT<org::imm::I
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmBlockCodeEvalResult::node);
 }
-org::imm::ImmAdapterT<org::imm::ImmBlockCode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmBlockCode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCode", other.getKind())
 }
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang() const {
@@ -358,7 +358,7 @@ hstd::ext::ImmVec<org::sem::BlockCodeLine> org::imm::ImmAdapterT<org::imm::ImmBl
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getSwitches() const {
   return this->value().switches;
 }
-org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtreeLog>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtreeLog>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "SubtreeLog", other.getKind())
 }
 org::sem::SubtreeLogHead org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead() const {
@@ -367,7 +367,7 @@ org::sem::SubtreeLogHead org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead
 hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtreeLog::desc);
 }
-org::imm::ImmAdapterT<org::imm::ImmSubtree>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtree>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmSubtree>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtree>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Subtree", other.getKind())
 }
 int org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel() const {
@@ -415,13 +415,13 @@ bool org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived() const {
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority() const {
   return this->value().priority.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCell>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCell>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCell>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCell>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Cell", other.getKind())
 }
 bool org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock() const {
   return this->value().isBlock;
 }
-org::imm::ImmAdapterT<org::imm::ImmRow>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRow>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmRow>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRow>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Row", other.getKind())
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> org::imm::ImmAdapterT<org::imm::ImmRow>::getCells() const {
@@ -430,7 +430,7 @@ hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> org::imm::ImmAdapterT<org
 bool org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock() const {
   return this->value().isBlock;
 }
-org::imm::ImmAdapterT<org::imm::ImmTable>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTable>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmTable>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTable>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Table", other.getKind())
 }
 hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> org::imm::ImmAdapterT<org::imm::ImmTable>::getRows() const {
@@ -439,19 +439,19 @@ hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> org::imm::ImmAdapterT<org:
 bool org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock() const {
   return this->value().isBlock;
 }
-org::imm::ImmAdapterT<org::imm::ImmParagraph>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmParagraph>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmParagraph>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmParagraph>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Paragraph", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmColonExample>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmColonExample>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmColonExample>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmColonExample>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ColonExample", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAttr>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdAttr>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdAttr", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getTarget() const {
   return this->value().target.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdExport>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdExport>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdExport>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdExport", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getExporter() const {
@@ -460,7 +460,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getExporter() co
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getContent() const {
   return this->value().content.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCall>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCall>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCall>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCall>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Call", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCall>::getName() const {
@@ -472,10 +472,10 @@ org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCall>::getAttrs() const {
 bool org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand() const {
   return this->value().isCommand;
 }
-org::imm::ImmAdapterT<org::imm::ImmList>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmList>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmList>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmList>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "List", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmListItem>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmListItem>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmListItem>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmListItem>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ListItem", other.getKind())
 }
 CheckboxState org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox() const {
@@ -487,7 +487,7 @@ hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<o
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet() const {
   return this->value().bullet.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentOptions>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentOptions>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentOptions", other.getKind())
 }
 InitialSubtreeVisibility org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility() const {
@@ -523,7 +523,7 @@ hstd::ext::ImmVec<org::sem::TodoKeyword> org::imm::ImmAdapterT<org::imm::ImmDocu
 hstd::ext::ImmVec<org::sem::TodoKeyword> org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords() const {
   return this->value().doneKeywords;
 }
-org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentFragment>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentFragment>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentFragment", other.getKind())
 }
 int org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine() const {
@@ -532,13 +532,13 @@ int org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine() const {
 int org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol() const {
   return this->value().baseCol;
 }
-org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCriticMarkup>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCriticMarkup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CriticMarkup", other.getKind())
 }
 org::imm::ImmCriticMarkup::Kind org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind() const {
   return this->value().kind;
 }
-org::imm::ImmAdapterT<org::imm::ImmDocument>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocument>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmDocument>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocument>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Document", other.getKind())
 }
 hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle() const {
@@ -565,7 +565,7 @@ org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions() 
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName() const {
   return this->value().exportFileName.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmFileTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFileTarget>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmFileTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFileTarget>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "FileTarget", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getPath() const {
@@ -586,13 +586,13 @@ hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getT
 hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp() const {
   return this->value().regexp.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextSeparator>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextSeparator>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "TextSeparator", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentGroup>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentGroup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentGroup", other.getKind())
 }
-org::imm::ImmAdapterT<org::imm::ImmFile>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFile>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmFile>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFile>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "File", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFile>::getRelPath() const {
@@ -604,7 +604,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFile>::getAbsPath() const {
 org::imm::ImmFile::Data org::imm::ImmAdapterT<org::imm::ImmFile>::getData() const {
   return this->value().data;
 }
-org::imm::ImmAdapterT<org::imm::ImmDirectory>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDirectory>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmDirectory>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDirectory>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Directory", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmDirectory>::getRelPath() const {
@@ -613,7 +613,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmDirectory>::getRelPath() con
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmDirectory>::getAbsPath() const {
   return this->value().absPath.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmSymlink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymlink>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmSymlink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymlink>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Symlink", other.getKind())
 }
 bool org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory() const {
@@ -622,7 +622,7 @@ bool org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory() const {
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmSymlink>::getAbsPath() const {
   return this->value().absPath.get();
 }
-org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>{other} {
+void org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CmdInclude", other.getKind())
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getPath() const {

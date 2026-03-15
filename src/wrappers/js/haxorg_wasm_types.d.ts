@@ -1591,10 +1591,10 @@ export interface ParseOrgParseFragment {
 }
 export interface OrgParseParametersConstructor { new(): OrgParseParameters; }
 export interface OrgParseParameters {
-  baseTokenTracePath: haxorg_wasm.Optional<string>
-  tokenTracePath: haxorg_wasm.Optional<string>
-  parseTracePath: haxorg_wasm.Optional<string>
-  semTracePath: haxorg_wasm.Optional<string>
+  baseTokenTracePath: number
+  tokenTracePath: number
+  parseTracePath: number
+  semTracePath: number
 }
 export interface OrgDirectoryParseParametersConstructor { new(): OrgDirectoryParseParameters; }
 export interface OrgDirectoryParseParameters {  }
@@ -1606,8 +1606,8 @@ export interface ParseContext {
   parseFile(file: string): Org;
   parseString(text: string, file_name: string): Org;
   parseStringOpts(text: string, file_name: string, opts: OrgParseParameters): Org;
-  parseDirectory(path: string): haxorg_wasm.Optional<Org>;
-  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
+  parseDirectory(path: string): number;
+  parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): number;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
   collectDiagnostics(tree: Org, cache: StdShared_ptr<Cache>): haxorg_wasm.HstdVec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
@@ -1629,7 +1629,7 @@ export interface ImmPathConstructor { new(): ImmPath; }
 export interface ImmPath {
   empty(): boolean;
   root: ImmId
-  path: ImmPathStore
+  path: number
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
@@ -1660,7 +1660,7 @@ export interface ImmAdapter {
   isDirectParentOf(other: ImmAdapter): boolean;
   isIndirectParentOf(other: ImmAdapter): boolean;
   isSubnodeOf(other: ImmAdapter): boolean;
-  getParent(): haxorg_wasm.Optional<ImmAdapter>;
+  getParent(): number;
   getSelfIndex(): number;
   atPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
@@ -1674,7 +1674,7 @@ export interface ImmAdapterTreeReprConf {
   maxDepth: number
   withAuxFields: boolean
   withReflFields: boolean
-  withFieldSubset: HstdSet<StdPair<OrgSemKind, ImmReflFieldId>>
+  withFieldSubset: number
 }
 export interface ImmAdapterVirtualBaseConstructor { new(): ImmAdapterVirtualBase; }
 export interface ImmAdapterVirtualBase {  }
@@ -1729,20 +1729,20 @@ export interface AstTrackingGroupSingle { node: Org }
 export interface AstTrackingGroupTrackedHashtagConstructor { new(): AstTrackingGroupTrackedHashtag; }
 export interface AstTrackingGroupTrackedHashtag {
   tag: Org
-  targets: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingPath>
+  targets: number
 }
 export interface AstTrackingMapConstructor { new(): AstTrackingMap; }
 export interface AstTrackingMap {
-  getIdPath(id: Str): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getNamePath(id: Str): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getAnchorTarget(id: Str): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  getFootnotePath(id: Str): haxorg_wasm.Optional<AstTrackingAlternatives>;
-  footnotes: haxorg_wasm.HstdMap<Str, AstTrackingAlternatives>
-  subtrees: haxorg_wasm.HstdMap<Str, AstTrackingAlternatives>
-  names: haxorg_wasm.HstdMap<Str, AstTrackingAlternatives>
-  anchorTargets: haxorg_wasm.HstdMap<Str, AstTrackingAlternatives>
-  radioTargets: haxorg_wasm.HstdMap<Str, AstTrackingAlternatives>
-  hashtagDefinitions: haxorg_wasm.HstdMap<HashTagFlat, AstTrackingAlternatives>
+  getIdPath(id: Str): number;
+  getNamePath(id: Str): number;
+  getAnchorTarget(id: Str): number;
+  getFootnotePath(id: Str): number;
+  footnotes: number
+  subtrees: number
+  names: number
+  anchorTargets: number
+  radioTargets: number
+  hashtagDefinitions: number
 }
 export interface SequenceSegmentConstructor { new(): SequenceSegment; }
 export interface SequenceSegment {
@@ -1787,8 +1787,8 @@ export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
 export interface GraphMapNodeProp {
   getAdapter(context: ImmAstContext): ImmAdapter;
-  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
+  getSubtreeId(context: ImmAstContext): number;
+  getFootnoteName(context: ImmAstContext): number;
   id: ImmUniqId
   unresolved: haxorg_wasm.HstdVec<GraphMapLink>
 }
@@ -1843,14 +1843,14 @@ export interface GraphMapGraphState {
   addNode(node: ImmAdapter, conf: GraphMapConfig): void;
   addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
   getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.HstdVec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
+  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): number;
   graph: GraphMapGraph
   ast: ImmAstContext
 }
-export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
-export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
+export type GraphNodeProps = number;
+export type GraphEdgeProps = number;
 export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;
-export type GraphAdjList = haxorg_wasm.HstdMap<GraphMapNode, GraphAdjNodesList>;
+export type GraphAdjList = number;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   __eq__(other: LispCode): boolean;
@@ -4283,7 +4283,7 @@ export interface ImmAdapterCallAPI {  }
 export interface ImmAdapterFileAPIConstructor { new(): ImmAdapterFileAPI; }
 export interface ImmAdapterFileAPI {  }
 export interface ImmAdapterDirectoryAPIConstructor { new(): ImmAdapterDirectoryAPI; }
-export interface ImmAdapterDirectoryAPI { getFsSubnode(name: Str, withPath: boolean): haxorg_wasm.Optional<ImmAdapter>; }
+export interface ImmAdapterDirectoryAPI { getFsSubnode(name: Str, withPath: boolean): number; }
 export interface ImmAdapterSymlinkAPIConstructor { new(): ImmAdapterSymlinkAPI; }
 export interface ImmAdapterSymlinkAPI {  }
 export interface ImmAdapterDocumentFragmentAPIConstructor { new(): ImmAdapterDocumentFragmentAPI; }

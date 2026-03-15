@@ -313,11 +313,7 @@ struct AttrValue {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, TextValue, FileReference, LispValue)
   using variant_enum_type = org::sem::AttrValue::Kind;
   using variant_data_type = org::sem::AttrValue::DataVariant;
-  BOOST_DESCRIBE_CLASS(AttrValue, (), (), (), (name,
-                                               varname,
-                                               span,
-                                               isQuoted,
-                                               data));
+  BOOST_DESCRIBE_CLASS(AttrValue, (), (), (), (name, varname, span, isQuoted, data));
   hstd::Opt<hstd::Str> name = std::nullopt;
   hstd::Opt<hstd::Str> varname = std::nullopt;
   hstd::Vec<org::sem::AttrValue::DimensionSpan> span = {};
@@ -366,8 +362,7 @@ struct TodoKeyword {
 
 /// \brief Single or nested inline hash-tag
 struct HashTagText {
-  BOOST_DESCRIBE_CLASS(HashTagText, (), (), (), (head,
-                                                 subtags));
+  BOOST_DESCRIBE_CLASS(HashTagText, (), (), (), (head, subtags));
   /// \brief Main part of the tag
   hstd::Str head;
   /// \brief List of nested tags
@@ -661,8 +656,7 @@ struct AttrList {
 };
 
 struct AttrGroup {
-  BOOST_DESCRIBE_CLASS(AttrGroup, (), (), (), (positional,
-                                               named));
+  BOOST_DESCRIBE_CLASS(AttrGroup, (), (), (), (positional, named));
   /// \brief Positional arguments with no keys
   org::sem::AttrList positional;
   /// \brief Stored key-value mapping

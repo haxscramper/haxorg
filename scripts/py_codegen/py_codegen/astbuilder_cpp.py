@@ -40,7 +40,7 @@ class FunctionParams:
     doc: DocParams = field(default_factory=lambda: DocParams(""))
     Template: Optional[GenTuTemplateParams] = field(default_factory=GenTuTemplateParams)
     "Template parameters for function"
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
+    ResultTy: QualType = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
@@ -791,7 +791,7 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.b.line([
             self.string("static " if method.IsStatic else ""),
             self.string("virtual " if method.IsVirtual else ""),
-            *([] if method.Params.ResultTy is None else [
+            *([] if method.Params.IsConstructor else [
                 self.Type(method.Params.ResultTy),
                 self.string(" "),
             ]),

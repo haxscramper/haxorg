@@ -27,7 +27,7 @@ def collect_type_specializations(
             seen_types.add(hash(T))
             res.append(TypeSpecialization(
                 used_type=T,
-                bind_name=conf.getBindName(T),
+                bind_name=conf.getTypeBindName(T),
             ))
 
     def visit_type_rec(value: Optional[QualType]) -> None:

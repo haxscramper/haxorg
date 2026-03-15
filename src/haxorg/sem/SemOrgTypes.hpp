@@ -361,9 +361,7 @@ struct Time : public org::sem::Org {
   BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
   using variant_enum_type = org::sem::Time::TimeKind;
   using variant_data_type = org::sem::Time::TimeVariant;
-  BOOST_DESCRIBE_CLASS(Time, (Org), (), (), (staticKind,
-                                             isActive,
-                                             time));
+  BOOST_DESCRIBE_CLASS(Time, (Org), (), (), (staticKind, isActive, time));
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
   bool isActive = false;
@@ -393,9 +391,7 @@ struct Time : public org::sem::Org {
 struct TimeRange : public org::sem::Org {
   using Org::Org;
   virtual ~TimeRange() = default;
-  BOOST_DESCRIBE_CLASS(TimeRange, (Org), (), (), (staticKind,
-                                                  from,
-                                                  to));
+  BOOST_DESCRIBE_CLASS(TimeRange, (Org), (), (), (staticKind, from, to));
   static OrgSemKind const staticKind;
   /// \brief Starting time
   org::sem::SemId<org::sem::Time> from = sem::SemId<sem::Time>::Nil();
@@ -704,9 +700,7 @@ struct BlockExample : public org::sem::Block {
 struct BlockExport : public org::sem::Block {
   using Block::Block;
   virtual ~BlockExport() = default;
-  BOOST_DESCRIBE_CLASS(BlockExport, (Block), (), (), (staticKind,
-                                                      exporter,
-                                                      content));
+  BOOST_DESCRIBE_CLASS(BlockExport, (Block), (), (), (staticKind, exporter, content));
   static OrgSemKind const staticKind;
   hstd::Str exporter = "";
   hstd::Str content = "";
@@ -739,11 +733,7 @@ struct BlockCodeEvalResult : public org::sem::Block {
 struct BlockCode : public org::sem::Block {
   using Block::Block;
   virtual ~BlockCode() = default;
-  BOOST_DESCRIBE_CLASS(BlockCode, (Block), (), (), (staticKind,
-                                                    lang,
-                                                    result,
-                                                    lines,
-                                                    switches));
+  BOOST_DESCRIBE_CLASS(BlockCode, (Block), (), (), (staticKind, lang, result, lines, switches));
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   hstd::Opt<hstd::Str> lang = std::nullopt;
@@ -761,9 +751,7 @@ struct BlockCode : public org::sem::Block {
 struct SubtreeLog : public org::sem::Org {
   using Org::Org;
   virtual ~SubtreeLog() = default;
-  BOOST_DESCRIBE_CLASS(SubtreeLog, (Org), (), (), (staticKind,
-                                                   head,
-                                                   desc));
+  BOOST_DESCRIBE_CLASS(SubtreeLog, (Org), (), (), (staticKind, head, desc));
   static OrgSemKind const staticKind;
   org::sem::SubtreeLogHead head;
   /// \brief Optional description of the log entry
@@ -957,10 +945,7 @@ struct List : public org::sem::Stmt {
 struct ListItem : public org::sem::Org {
   using Org::Org;
   virtual ~ListItem() = default;
-  BOOST_DESCRIBE_CLASS(ListItem, (Org), (), (), (staticKind,
-                                                 checkbox,
-                                                 header,
-                                                 bullet));
+  BOOST_DESCRIBE_CLASS(ListItem, (Org), (), (), (staticKind, checkbox, header, bullet));
   static OrgSemKind const staticKind;
   CheckboxState checkbox = CheckboxState::None;
   /// \brief Description list item header
@@ -1110,10 +1095,7 @@ struct File : public org::sem::Org {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Document, Attachment, Source)
   using variant_enum_type = org::sem::File::Kind;
   using variant_data_type = org::sem::File::Data;
-  BOOST_DESCRIBE_CLASS(File, (Org), (), (), (staticKind,
-                                             relPath,
-                                             absPath,
-                                             data));
+  BOOST_DESCRIBE_CLASS(File, (Org), (), (), (staticKind, relPath, absPath, data));
   static OrgSemKind const staticKind;
   /// \brief Relative path from the root directory
   hstd::Str relPath = "";
@@ -1213,11 +1195,7 @@ struct CmdInclude : public org::sem::Org {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
   using variant_enum_type = org::sem::CmdInclude::Kind;
   using variant_data_type = org::sem::CmdInclude::Data;
-  BOOST_DESCRIBE_CLASS(CmdInclude, (Org), (), (), (staticKind,
-                                                   path,
-                                                   firstLine,
-                                                   lastLine,
-                                                   data));
+  BOOST_DESCRIBE_CLASS(CmdInclude, (Org), (), (), (staticKind, path, firstLine, lastLine, data));
   static OrgSemKind const staticKind;
   /// \brief Path to include
   hstd::Str path;
