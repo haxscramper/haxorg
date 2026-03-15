@@ -300,6 +300,7 @@ def rec_expand_group(
             Name=record.variantField,
             Doc=codegen_ir.GenTuDoc(""),
             Value=ast.string(record.variantValue) if record.variantValue else None,
+            IsExposedForWrap=False,
         )
 
         setattr(variant_field, "isVariantField", True)

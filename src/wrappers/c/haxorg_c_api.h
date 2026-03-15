@@ -13,4 +13,9 @@ struct haxorg_ptr_payload {
 
 struct haxorg_StdString {};
 struct haxorg_SemId {};
-struct haxorg_CHstdVec {};
+struct haxorg_HstdVec {};
+struct haxorg_HstdStr {};
+struct haxorg_HstdOpt {};
+struct haxorg_StdOptional {};
+struct haxorg_HstdUnorderedMap {};
+struct haxorg_ImmVec {};

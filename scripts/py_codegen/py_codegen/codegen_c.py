@@ -1,10 +1,14 @@
 from py_codegen.astbuilder_c_config import CAstbuilderConfig
 import py_codegen.astbuilder_cpp as cpp
+from dataclasses import dataclass, field, replace
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
 from beartype import beartype
 from beartype.typing import List
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -47,11 +51,42 @@ def _gen_func(func: codegen_ir.GenTuFunction, ast: cpp.ASTBuilder,
 
 
 @beartype
-def _gen_struct(
-        struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder, conf: CAstbuilderConfig
-) -> list[codegen_ir.GenTuStruct | codegen_ir.GenTuFunction]:
+def _gen_typedef(tdef: codegen_ir.GenTuTypedef, ast: cpp.ASTBuilder,
+                 conf: CAstbuilderConfig) -> codegen_ir.GenTuTypedef:
+    return codegen_ir.GenTuTypedef(
+        Name=conf.getBackendType(tdef.Name),
+        Base=conf.getBackendType(tdef.Base),
+        Is_PlainC=True,
+    )
 
-    decls = list()
+
+@beartype
+def _gen_enum(en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder,
+              conf: CAstbuilderConfig) -> codegen_ir.GenTuEnum:
+    return replace(
+        en,
+        Name=conf.getBackendType(en.Name),
+        GenEnumDescription=False,
+    )
+
+
+@beartype
+@dataclass
+class _StructGenResult():
+    wrappers: list[codegen_ir.GenTuEntry] = field(default_factory=list)
+    forward_decls: list[codegen_ir.GenTuPass] = field(default_factory=list)
+
+
+@beartype
+def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
+                conf: CAstbuilderConfig) -> _StructGenResult:
+
+    head = struct.declarationQualName().flatQualNameWithParams()
+
+    assert head != ['org', 'imm', 'ImmIdT', [['org', 'imm', 'ImmList']]]
+    log(CAT).info(head)
+
+    result = _StructGenResult()
     basename = conf.getBackendType(struct.declarationQualName()).Name.replace(
         "haxorg_", "")
 
@@ -59,7 +94,16 @@ def _gen_struct(
         Name=QualType(Name=f"haxorg_{basename}"),
         GenDescribeFields=False,
         GenDescribeMethods=False,
-        Doc=codegen_ir.GenTuDoc(f"{struct.declarationQualName()}"))
+        Doc=codegen_ir.GenTuDoc(
+            f"{struct.declarationQualName().flatQualNameWithParams()}"))
+
+    result.forward_decls.append(
+        codegen_ir.GenTuPass(
+            ast.line([
+                ast.string("struct "),
+                ast.Type(wrap_struct.Name),
+                ast.string(";"),
+            ])))
 
     vtable_struct = codegen_ir.GenTuStruct(
         Name=QualType(Name=f"haxorg_{basename}_vtable"),
@@ -67,15 +111,15 @@ def _gen_struct(
         GenDescribeMethods=False,
     )
 
-    for field in struct.Fields:
-        if field.IsExposedForWrap:
-            assert field.Type
+    for f in struct.Fields:
+        if conf.isAcceptedByBackend(f):
+            assert f.Type
             vtable_struct.Fields.append(
                 codegen_ir.GenTuField(
-                    Name=f"get_{field.Name}",
+                    Name=f"get_{f.Name}",
                     Type=QualType.ForFunction(
-                        ReturnType=conf.getBackendType(field.Type).asConstPtr(),
-                        Args=list(),
+                        ReturnType=conf.getBackendType(f.Type).asConstPtr(),
+                        Args=[wrap_struct.Name.asConstPtr()],
                     ),
                 ))
 
@@ -96,10 +140,10 @@ def _gen_struct(
         Name="data",
     ))
 
-    decls.append(vtable_struct)
-    decls.append(wrap_struct)
+    result.wrappers.append(vtable_struct)
+    result.wrappers.append(wrap_struct)
 
-    decls.append(
+    result.wrappers.append(
         codegen_ir.GenTuFunction(
             Name=f"haxorg_destroy_{basename}",
             Args=[
@@ -114,7 +158,19 @@ def _gen_struct(
             ),
         ))
 
-    return decls
+    for entry in struct.Nested:
+        match entry:
+            case codegen_ir.GenTuStruct():
+                if conf.isAcceptedByBackend(entry):
+                    conv = _gen_struct(entry, ast, conf)
+                    result.forward_decls.extend(conv.forward_decls)
+                    result.wrappers.extend(conv.wrappers)
+
+            case codegen_ir.GenTuEnum():
+                if conf.isAcceptedByBackend(entry):
+                    result.wrappers.append(_gen_enum(entry, ast, conf))
+
+    return result
 
 
 @beartype
@@ -125,16 +181,39 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
 
     standalone_funcs: List[codegen_ir.GenTuFunction] = list()
     wrapped_structs: List[codegen_ir.GenTuEntry] = list()
+    header_only: list[codegen_ir.GenTuEntry] = list()
 
     for entry in groups.get_entries_for_wrapping():
-        match entry:
-            case codegen_ir.GenTuFunction():
-                if conf.isAcceptedByBackend(entry.ReflectionParams):
+        if conf.isAcceptedByBackend(entry):
+            match entry:
+                case codegen_ir.GenTuFunction():
                     standalone_funcs.append(_gen_func(entry, ast, conf))
 
-            case codegen_ir.GenTuStruct():
-                if conf.isAcceptedByBackend(entry.ReflectionParams):
-                    wrapped_structs.extend(_gen_struct(entry, ast, conf))
+                case codegen_ir.GenTuStruct():
+                    match entry.declarationQualName():
+                        case ["org", "imm", "ImmIdT", _]:
+                            # Ignore explicit specializations for immutable ID
+                            # in the C backend.
+                            continue
+
+                        case _:
+                            structs = _gen_struct(entry, ast, conf)
+                            wrapped_structs.extend(structs.wrappers)
+                            header_only.extend(structs.forward_decls)
+
+                case codegen_ir.GenTuEnum():
+                    wrapped_structs.append(_gen_enum(entry, ast, conf))
+
+                case codegen_ir.GenTuTypedef():
+                    tdef = _gen_typedef(entry, ast, conf)
+                    # wrapped_structs.append(
+                    #     codegen_ir.GenTuPass(
+                    #         ast.Comment([
+                    #             str(entry.Base.flatQualNameWithParams()),
+                    #             str(tdef.Base.flatQualNameWithParams()),
+                    #         ])))
+
+                    wrapped_structs.append(tdef)
 
     return codegen_ir.GenFiles([
         codegen_ir.GenUnit(
@@ -142,7 +221,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                 "{root}/src/wrappers/c/haxorg_c.h",
                 [
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_api.h", True),
-                ] + wrapped_structs + standalone_funcs,
+                ] + header_only + wrapped_structs + standalone_funcs,
             ),
             source=codegen_ir.GenTu(
                 "{root}/src/wrappers/c/haxorg_c.cpp",

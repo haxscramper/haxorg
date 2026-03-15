@@ -24,7 +24,7 @@ from pydantic import AliasChoices, BaseModel, Field
 
 CAT = __name__
 
-DEBUG_TYPE_ORIGIN = False
+DEBUG_TYPE_ORIGIN = True
 
 
 class QualTypeKind(str, Enum):
@@ -98,7 +98,7 @@ class QualType(BaseModel, extra="forbid"):
     @beartype
     class Function(BaseModel, extra="forbid"):
         "Pointer to function signature"
-        ReturnType: Optional['QualType']
+        ReturnType: 'QualType'
         "Type of the function return type"
         Args: List['QualType']
         "Types of the function arguments"
@@ -731,6 +731,12 @@ class GenTuTypedef:
     ReflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
     ExposeHeaderDeclaration: bool = True
     "When generating header source files, the structure would be exposed for public API"
+    IsHeaderOnly: bool = True
+    """
+    If the typedef is encountered in the split source-header translation unit, don't
+    duplicate it into the source, only put in header.
+    """
+    Is_PlainC: bool = False
 
 
 @beartype
@@ -755,6 +761,8 @@ class GenTuEnum:
     ReflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
     IsDescribedEnum: bool = False
+    GenEnumDescription: bool = True
+    "Generate boost descibe mapping for the enum"
 
     ExposeHeaderDeclaration: bool = True
     "When generating header source files, the enum would be exposed for public API"
@@ -947,6 +955,8 @@ class GenTuStruct():
     IsAbstract: bool = False
     HasName: bool = True
     OriginalPath: Optional[Path] = field(default=None)
+    IsExposedForWrap: bool = True
+    "Whether a structure should be mapped to the wrappers"
     GenDescribeMethods: bool = False
     "Include boost describe for the class methods"
     GenDescribeFields: bool = True
@@ -1040,8 +1050,9 @@ class GenTuNamespace:
     """
 
 
-type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude |  GenTuTypedef |    GenTuPass
+type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude | GenTuTypedef | GenTuPass
 type GenTuUnion = GenTuStruct | GenTuEnum | GenTuTypedef | GenTuFunction
+type GenTuDeclaration = GenTuUnion | GenTuField
 
 
 @beartype

@@ -8,8 +8,8 @@ GEN = "haxorg_wasm"
 
 class EmbindAstbuilderConfig(AstbulderConfig):
 
-    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
-        return not params or params.isAcceptedBackend("wasm")
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        return self._isExposedByBackendImpl(entry, "wasm")
 
     def getSanitizedIdent(self, s: str) -> str:
         return codegen_ir.sanitize_ident(s, {

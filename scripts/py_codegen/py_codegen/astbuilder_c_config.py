@@ -2,12 +2,14 @@ from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
 from beartype.typing import Optional
+from beartype import beartype
 
 
+@beartype
 class CAstbuilderConfig(AstbulderConfig):
 
-    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
-        return not params or params.isAcceptedBackend("c")
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        return self._isExposedByBackendImpl(entry, "c")
 
     def getTypeBindName(self, Type: QualType, withParams: bool = True) -> str:
         return super().getTypeBindName(Type, withParams)
@@ -16,13 +18,34 @@ class CAstbuilderConfig(AstbulderConfig):
         prefix = "haxorg_"
         match Type.flatQualNameWithParams():
             case ["hstd", "Vec", _]:
-                return QualType(Name=prefix + "CHstdVec")
+                return QualType(Name=prefix + "HstdVec")
 
-            case ["hstd", "UnorderedMap", _]:
-                return QualType(Name=prefix + "CHstdUnorderedMap")
+            case ["hstd", "Opt", _]:
+                return QualType(Name=prefix + "HstdOpt")
+
+            case ["hstd", "Str"]:
+                return QualType(Name=prefix + "HstdStr")
+
+            case ["std", "optional", _]:
+                return QualType(Name=prefix + "StdOptional")
+
+            case ["hstd", "UnorderedMap", _, _]:
+                return QualType(Name=prefix + "HstdUnorderedMap")
+
+            case ["hstd", "SortedMap", _, _]:
+                return QualType(Name=prefix + "HstdMap")
 
             case ["org", "sem", "SemId", _]:
                 return QualType(Name=prefix + "SemId")
+
+            case ["org", "imm", "ImmIdT", _]:
+                return QualType(Name=prefix + "ImmId")
+
+            case ["hstd", "ext", "ImmBox", _]:
+                return self.getBackendType(Type.par0())
+
+            case ["hstd", "ext", "ImmVec", _]:
+                return QualType(Name=prefix + "ImmVec")
 
             case ["org", "imm", "ImmAdapterT", _]:
                 return QualType(Name=prefix + self.getTypeBindName(Type.par0()) +
@@ -47,4 +70,7 @@ class CAstbuilderConfig(AstbulderConfig):
                 return Type
 
             case _:
-                return QualType(Name=prefix + self.getTypeBindName(Type, withParams=True))
+                return QualType(
+                    Name=prefix + self.getTypeBindName(Type, withParams=True),
+                    DbgOrigin=str(Type.flatQualNameWithParams()),
+                )

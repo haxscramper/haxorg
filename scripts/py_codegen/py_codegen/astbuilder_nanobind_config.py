@@ -7,8 +7,8 @@ from beartype.typing import Optional
 class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
 
-    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
-        return not params or params.isAcceptedBackend("python")
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        return self._isExposedByBackendImpl(entry, "python")
 
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"

@@ -77,8 +77,13 @@ class GenConverter:
         return self.ast.TranslationUnit(decls)
 
     def convertTypedef(self, typedef: codegen_ir.GenTuTypedef) -> BlockId:
-        return self.ast.Using(
-            cpp.UsingParams(newName=typedef.Name.Name, baseType=typedef.Base))
+        if typedef.Is_PlainC:
+            return self.ast.Typedef(
+                cpp.UsingParams(newName=typedef.Name.Name, baseType=typedef.Base))
+
+        else:
+            return self.ast.Using(
+                cpp.UsingParams(newName=typedef.Name.Name, baseType=typedef.Base))
 
     def convertMethod(self, method: codegen_ir.GenTuFunction, Class: QualType,
                       inline_methods: bool) -> cpp.MethodDeclParams | cpp.MethodDefParams:
@@ -268,28 +273,29 @@ class GenConverter:
 
         if isToplevel:
             Describe = []
-            Describe.append(
-                self.ast.line([
-                    self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
-                    self.ast.pars(self.ast.Type(entry.Name)),
-                ]))
-
-            for field in entry.Fields:
+            if entry.GenEnumDescription:
                 Describe.append(
                     self.ast.line([
-                        self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
-                        self.ast.pars(
-                            self.ast.csv([
-                                self.ast.Type(entry.Name),
-                                self.ast.string(field.Name),
-                            ]))
+                        self.ast.string("BOOST_DESCRIBE_ENUM_BEGIN"),
+                        self.ast.pars(self.ast.Type(entry.Name)),
                     ]))
 
-            Describe.append(
-                self.ast.line([
-                    self.ast.string("BOOST_DESCRIBE_ENUM_END"),
-                    self.ast.pars(self.ast.Type(entry.Name)),
-                ]))
+                for field in entry.Fields:
+                    Describe.append(
+                        self.ast.line([
+                            self.ast.string("  BOOST_DESCRIBE_ENUM_ENTRY"),
+                            self.ast.pars(
+                                self.ast.csv([
+                                    self.ast.Type(entry.Name),
+                                    self.ast.string(field.Name),
+                                ]))
+                        ]))
+
+                Describe.append(
+                    self.ast.line([
+                        self.ast.string("BOOST_DESCRIBE_ENUM_END"),
+                        self.ast.pars(self.ast.Type(entry.Name)),
+                    ]))
 
             FromDefinition = FromParams
             ToDefininition = ToParams
@@ -372,7 +378,8 @@ class GenConverter:
                     decls.append(entry.what)
 
             case codegen_ir.GenTuTypedef():
-                decls.append(self.convertTypedef(entry))
+                if not entry.IsHeaderOnly or self.isHeader or not self.isSplitHeaderSource:
+                    decls.append(self.convertTypedef(entry))
 
             case codegen_ir.GenTuNamespace():
                 decls.append(self.convertNamespace(entry))

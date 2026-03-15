@@ -20,8 +20,19 @@ class AstbulderConfig(abc.ABC):
     def __init__(self, type_map: codegen_ir.GenTypeMap):
         self.type_map = type_map
 
+    def _isExposedByBackendImpl(self, entry: codegen_ir.GenTuDeclaration,
+                                backend: str) -> bool:
+        match entry:
+            case codegen_ir.GenTuStruct() | codegen_ir.GenTuField(
+            ) | codegen_ir.GenTuFunction:
+                if not entry.IsExposedForWrap:
+                    return False
+
+        return not entry.ReflectionParams or entry.ReflectionParams.isAcceptedBackend(
+            backend)
+
     @abc.abstractmethod
-    def isAcceptedByBackend(self, params: Optional[codegen_ir.GenTuReflParams]) -> bool:
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
         "Check if the entry with these reflection params is accepted for the backend"
         ...
 

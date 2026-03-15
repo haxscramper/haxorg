@@ -22,43 +22,43 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include "pyhaxorg_manual_impl.hpp"
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
-NB_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
-NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
-NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
-NB_MAKE_OPAQUE(hstd::Vec<int>)
-NB_MAKE_OPAQUE(std::vector<int>)
-NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
-NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmUniqId>)
-NB_MAKE_OPAQUE(std::vector<org::imm::ImmUniqId>)
-NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
-NB_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
-NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapNode>)
-NB_MAKE_OPAQUE(std::vector<org::graph::MapNode>)
-NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapEdge>)
-NB_MAKE_OPAQUE(std::vector<org::graph::MapEdge>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::MapNodeProp>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>)
-NB_MAKE_OPAQUE(std::unordered_map<org::graph::MapNode, org::graph::AdjNodesList>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [640]Type parameter [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'OrgJson'<>) */> /*  [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [640]Type parameter [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'OrgJson'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]sem/SemOrgBase.hpp:233:36( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Report /*  [640]Type parameter [905]api/ParseContext.hpp:142:43( [780] >record 'Report'<>) */> /*  [905]api/ParseContext.hpp:142:43( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Report /*  [640]Type parameter [905]api/ParseContext.hpp:142:43( [780] >record 'Report'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ErrorGroup /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'ErrorGroup'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]api/ParseContext.hpp:146:53( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ErrorGroup /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'ErrorGroup'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<int /*  [640]Type parameter [905]imm/ImmOrg.hpp:1110:31( [766] >builtin/unqual<>) */> /*  [905]imm/ImmOrg.hpp:1110:31( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Vec'< [657] templates: template-specialization-type>)<>) */)
+NB_MAKE_OPAQUE(std::vector<int /*  [640]Type parameter [905]imm/ImmOrg.hpp:1110:31( [766] >builtin/unqual<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1119:36( [780] >record 'ImmAdapter'<>) */> /*  [905]imm/ImmOrg.hpp:1119:36( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1119:36( [780] >record 'ImmAdapter'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedSet<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::pair<OrgSemKind /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [780] >record 'ImmReflFieldId'<>) */> /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [780] >record 'pair'< [657] templates: template-specialization-type>) */> /*  [905]imm/ImmOrg.hpp:984:13( [780] >record 'UnorderedSet'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'AstTrackingPath'<>) */> /*  [905]api/SemBaseApi.hpp:154:13( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'AstTrackingPath'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'Str'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:223:9( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'Str'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'AstTrackingAlternatives'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:232:9( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'AstTrackingAlternatives'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:38:35( [780] >record 'SequenceSegment'<>) */> /*  [905]stdlib/RangeSegmentation.hpp:38:35( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:38:35( [780] >record 'SequenceSegment'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:79:41( [780] >record 'SequenceAnnotationTag'<>) */> /*  [905]stdlib/RangeSegmentation.hpp:79:41( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:79:41( [780] >record 'SequenceAnnotationTag'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:25:49( [780] >record 'ImmUniqId'<>) */> /*  [905]imm/ImmOrgGraph.hpp:25:49( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:25:49( [780] >record 'ImmUniqId'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:44:34( [780] >record 'MapLink'<>) */> /*  [905]imm/ImmOrgGraph.hpp:44:34( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:44:34( [780] >record 'MapLink'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:119:60( [780] >record 'MapNode'<>) */> /*  [1555] Typedef Decl Visit [905]imm/ImmOrgGraph.hpp:119:60( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:119:60( [780] >record 'MapNode'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'MapEdge'<>) */> /*  [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'MapEdge'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNodeProp'<>) */> /*  [1555] Typedef Decl Visit [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNodeProp'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdge'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdgeProp'<>) */> /*  [1555] Typedef Decl Visit [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdge'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdgeProp'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [735] typedef type imm/ImmOrgGraph.hpp:119:60) */> /*  [1555] Typedef Decl Visit [905]imm/ImmOrgGraph.hpp:120:60( [780] >record 'UnorderedMap'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::unordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [735] typedef type imm/ImmOrgGraph.hpp:119:60) */>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
@@ -106,38 +106,38 @@ NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::SubtreeLog>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::TodoKeyword>)
 NB_MAKE_OPAQUE(std::vector<org::sem::TodoKeyword>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Str>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmTime::Repeat>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmSymbol::Param>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<hstd::Str>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<hstd::Str>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::NamedProperty>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<bool>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<int>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::TodoKeyword>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreePath>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Str> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmTime::Repeat /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmSymbol::Param /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<hstd /* imm_write */::Str /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList /* imm_write */> /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph /* imm_write */> /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime /* imm_write */> /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<bool /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<int /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText /* imm_write */> /* imm_write */>> /* rewrite_field */)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreePath>> /* rewrite_field */)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::UserTime>)
 NB_MAKE_OPAQUE(std::vector<hstd::UserTime>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */>> /* rewrite_field */)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Cell>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Cell>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell /* imm_write */> /* imm_write */> /* imm_write */)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalOutput>)
 NB_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalOutput>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
@@ -146,55 +146,55 @@ NB_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
 NB_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Row>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Row>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::BlockCodeLine>)
-NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>)
-NB_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
-NB_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotation>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::BlockCodeLine> /* imm_write */)
+NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow /* imm_write */> /* imm_write */> /* imm_write */)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [640]Type parameter [905]api/SemBaseApi.hpp:268:38( [780] >record 'AstTrackingGroup'<>) */> /*  [905]api/SemBaseApi.hpp:268:38( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [640]Type parameter [905]api/SemBaseApi.hpp:268:38( [780] >record 'AstTrackingGroup'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'SequenceAnnotation'<>) */> /*  [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'Vec'< [657] templates: template-specialization-type>) */)
+NB_MAKE_OPAQUE(std::vector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'SequenceAnnotation'<>) */>)
+NB_MAKE_OPAQUE(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:94:38( [780] >record 'SequenceSegmentGroup'<>) */> /*  [905]stdlib/RangeSegmentation.hpp:94:38( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Vec'< [657] templates: template-specialization-type>)<>) */)
+NB_MAKE_OPAQUE(std::vector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:94:38( [780] >record 'SequenceSegmentGroup'<>) */>)
 NB_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::OrgJson>(m, "StdVecOfOrgJson", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Org>>(m, "StdVecOfSemIdOfOrg", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::ext::Report>(m, "HstdVecOfReport", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
-  org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceAnnotationTag>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::imm::ImmUniqId>(m, "HstdVecOfImmUniqId", type_registry_guard);
-  org::bind::python::bind_stdvector<org::imm::ImmUniqId>(m, "StdVecOfImmUniqId", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::graph::MapLink>(m, "HstdVecOfGraphMapLink", type_registry_guard);
-  org::bind::python::bind_stdvector<org::graph::MapLink>(m, "StdVecOfGraphMapLink", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::graph::MapNode>(m, "HstdVecOfGraphMapNode", type_registry_guard);
-  org::bind::python::bind_stdvector<org::graph::MapNode>(m, "StdVecOfGraphMapNode", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::graph::MapEdge>(m, "HstdVecOfGraphMapEdge", type_registry_guard);
-  org::bind::python::bind_stdvector<org::graph::MapEdge>(m, "StdVecOfGraphMapEdge", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::MapNodeProp>(m, "HstdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::MapNodeProp>(m, "StdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "HstdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapEdge, org::graph::MapEdgeProp>(m, "StdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::graph::MapNode, org::graph::AdjNodesList>(m, "HstdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::graph::MapNode, org::graph::AdjNodesList>(m, "StdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [640]Type parameter [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'OrgJson'<>) */>(m, "HstdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [640]Type parameter [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'OrgJson'<>) */>(m, "StdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]sem/SemOrgBase.hpp:233:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>(m, "StdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Report /*  [640]Type parameter [905]api/ParseContext.hpp:142:43( [780] >record 'Report'<>) */>(m, "HstdVecOfReport", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Report /*  [640]Type parameter [905]api/ParseContext.hpp:142:43( [780] >record 'Report'<>) */>(m, "StdVecOfReport", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ErrorGroup /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'ErrorGroup'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ErrorGroup /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'ErrorGroup'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'SemId'< [657] templates: template-specialization-type>) */>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_hstdVec<int /*  [640]Type parameter [905]imm/ImmOrg.hpp:1110:31( [766] >builtin/unqual<>) */>(m, "HstdVecOfInt", type_registry_guard);
+  org::bind::python::bind_stdvector<int /*  [640]Type parameter [905]imm/ImmOrg.hpp:1110:31( [766] >builtin/unqual<>) */>(m, "StdVecOfInt", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1119:36( [780] >record 'ImmAdapter'<>) */>(m, "HstdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1119:36( [780] >record 'ImmAdapter'<>) */>(m, "StdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedSet<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::pair<OrgSemKind /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [780] >record 'ImmReflFieldId'<>) */> /*  [640]Type parameter [905]imm/ImmOrg.hpp:984:13( [780] >record 'pair'< [657] templates: template-specialization-type>) */>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'AstTrackingPath'<>) */>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [640]Type parameter [905]api/SemBaseApi.hpp:154:13( [780] >record 'AstTrackingPath'<>) */>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'Str'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'AstTrackingAlternatives'<>) */>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'Str'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:223:9( [780] >record 'AstTrackingAlternatives'<>) */>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'AstTrackingAlternatives'<>) */>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::HashTagFlat /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'HashTagFlat'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:232:9( [780] >record 'AstTrackingAlternatives'<>) */>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:38:35( [780] >record 'SequenceSegment'<>) */>(m, "HstdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:38:35( [780] >record 'SequenceSegment'<>) */>(m, "StdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:79:41( [780] >record 'SequenceAnnotationTag'<>) */>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:79:41( [780] >record 'SequenceAnnotationTag'<>) */>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:25:49( [780] >record 'ImmUniqId'<>) */>(m, "HstdVecOfImmUniqId", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:25:49( [780] >record 'ImmUniqId'<>) */>(m, "StdVecOfImmUniqId", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:44:34( [780] >record 'MapLink'<>) */>(m, "HstdVecOfGraphMapLink", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:44:34( [780] >record 'MapLink'<>) */>(m, "StdVecOfGraphMapLink", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:119:60( [780] >record 'MapNode'<>) */>(m, "HstdVecOfGraphMapNode", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:119:60( [780] >record 'MapNode'<>) */>(m, "StdVecOfGraphMapNode", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'MapEdge'<>) */>(m, "HstdVecOfGraphMapEdge", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'MapEdge'<>) */>(m, "StdVecOfGraphMapEdge", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNodeProp'<>) */>(m, "HstdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:117:60( [780] >record 'MapNodeProp'<>) */>(m, "StdMapOfGraphMapNodeGraphMapNodeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdge'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdgeProp'<>) */>(m, "HstdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdge'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:118:60( [780] >record 'MapEdgeProp'<>) */>(m, "StdMapOfGraphMapEdgeGraphMapEdgeProp", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [735] typedef type imm/ImmOrgGraph.hpp:119:60) */>(m, "HstdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [780] >record 'MapNode'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:120:60( [735] typedef type imm/ImmOrgGraph.hpp:119:60) */>(m, "StdMapOfGraphMapNodeGraphAdjNodesList", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
@@ -242,27 +242,27 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::SubtreeLog>>(m, "StdVecOfSemIdOfSubtreeLog", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::TodoKeyword>(m, "HstdVecOfTodoKeyword", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::TodoKeyword>(m, "StdVecOfTodoKeyword", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmVecOfImmIdTOfImmErrorItem", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmVecOfImmIdTOfImmOrg", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmErrorItem", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmOrg", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmTime::Repeat>(m, "ImmVecOfImmTimeRepeat", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>(m, "ImmBoxOfOptOfImmTimeRepeat", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmSymbol::Param>(m, "ImmVecOfImmSymbolParam", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<hstd::Str>>(m, "ImmBoxOfOptOfStr", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmVecOfImmIdTOfImmErrorSkipToken", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<hstd::Str>(m, "ImmVecOfStr", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptOfImmIdTOfImmStmtList", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmTime::Repeat /* imm_write */>(m, "ImmVecOfImmTimeRepeat", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmTime::Repeat /* imm_write */>>(m, "ImmBoxOfOptOfImmTimeRepeat", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmSymbol::Param /* imm_write */>(m, "ImmVecOfImmSymbolParam", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<hstd /* imm_write */::Str /* imm_write */>>(m, "ImmBoxOfOptOfStr", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmErrorSkipToken", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<hstd /* imm_write */::Str /* imm_write */>(m, "ImmVecOfStr", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList /* imm_write */> /* imm_write */>>(m, "ImmBoxOfOptOfImmIdTOfImmStmtList", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreeCompletion>>(m, "ImmBoxOfOptOfSubtreeCompletion", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptOfImmIdTOfImmParagraph", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmVecOfImmIdTOfImmHashTag", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmVecOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph /* imm_write */> /* imm_write */>>(m, "ImmBoxOfOptOfImmIdTOfImmParagraph", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmHashTag", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmSubtreeLog", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::NamedProperty>(m, "ImmVecOfNamedProperty", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTOfImmTime", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<bool>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<int>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime /* imm_write */> /* imm_write */>>(m, "ImmBoxOfOptOfImmIdTOfImmTime", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<bool /* imm_write */>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<int /* imm_write */>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::ColumnView>>(m, "ImmBoxOfOptOfColumnView", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::TodoKeyword>(m, "ImmVecOfTodoKeyword", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptOfImmIdTOfImmRawText", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText /* imm_write */> /* imm_write */>>(m, "ImmBoxOfOptOfImmIdTOfImmRawText", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreePath>>(m, "ImmBoxOfOptOfSubtreePath", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "HstdVecOfSemIdOfBigIdent", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::BigIdent>>(m, "StdVecOfSemIdOfBigIdent", type_registry_guard);
@@ -270,10 +270,10 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::UserTime>(m, "StdVecOfUserTime", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Time>>(m, "HstdVecOfSemIdOfTime", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Time>>(m, "StdVecOfSemIdOfTime", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfOptOfImmIdTOfImmOrg", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */>>(m, "ImmBoxOfOptOfImmIdTOfImmOrg", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Cell>>(m, "HstdVecOfSemIdOfCell", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Cell>>(m, "StdVecOfSemIdOfCell", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmVecOfImmIdTOfImmCell", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmCell", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::OrgCodeEvalOutput>(m, "HstdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::OrgCodeEvalOutput>(m, "StdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "HstdVecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
@@ -283,759 +283,759 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Row>>(m, "HstdVecOfSemIdOfRow", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Row>>(m, "StdVecOfSemIdOfRow", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::OrgCodeEvalOutput>(m, "ImmVecOfOrgCodeEvalOutput", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmVecOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::BlockCodeLine>(m, "ImmVecOfBlockCodeLine", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmVecOfImmIdTOfImmRow", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::AstTrackingGroup>(m, "HstdVecOfAstTrackingGroup", type_registry_guard);
-  org::bind::python::bind_stdvector<org::AstTrackingGroup>(m, "StdVecOfAstTrackingGroup", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceAnnotation>(m, "HstdVecOfSequenceAnnotation", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceAnnotation>(m, "StdVecOfSequenceAnnotation", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceSegmentGroup>(m, "HstdVecOfSequenceSegmentGroup", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceSegmentGroup>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
-  nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow /* imm_write */> /* imm_write */>(m, "ImmVecOfImmIdTOfImmRow", type_registry_guard);
+  org::bind::python::bind_hstdVec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [640]Type parameter [905]api/SemBaseApi.hpp:268:38( [780] >record 'AstTrackingGroup'<>) */>(m, "HstdVecOfAstTrackingGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [640]Type parameter [905]api/SemBaseApi.hpp:268:38( [780] >record 'AstTrackingGroup'<>) */>(m, "StdVecOfAstTrackingGroup", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'SequenceAnnotation'<>) */>(m, "HstdVecOfSequenceAnnotation", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'SequenceAnnotation'<>) */>(m, "StdVecOfSequenceAnnotation", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:94:38( [780] >record 'SequenceSegmentGroup'<>) */>(m, "HstdVecOfSequenceSegmentGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:94:38( [780] >record 'SequenceSegmentGroup'<>) */>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */>(m, "UserTimeBreakdown")
     .def("__init__",
-         [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::UserTimeBreakdown();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown* /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("year", &hstd::UserTimeBreakdown::year)
-    .def_rw("month", &hstd::UserTimeBreakdown::month)
-    .def_rw("day", &hstd::UserTimeBreakdown::day)
-    .def_rw("hour", &hstd::UserTimeBreakdown::hour)
-    .def_rw("minute", &hstd::UserTimeBreakdown::minute)
-    .def_rw("second", &hstd::UserTimeBreakdown::second)
-    .def_rw("zone", &hstd::UserTimeBreakdown::zone)
-    .def("__repr__", [](hstd::UserTimeBreakdown const& _self) -> std::string {
+    .def_rw("year", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::year)
+    .def_rw("month", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::month)
+    .def_rw("day", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::day)
+    .def_rw("hour", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::hour)
+    .def_rw("minute", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::minute)
+    .def_rw("second", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::second)
+    .def_rw("zone", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */::zone)
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown const& /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::UserTimeBreakdown const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown const& /*  [905]stdlib/Time.hpp:15:17( [780] >record 'UserTimeBreakdown'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::UserTime>(m, "UserTime")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */>(m, "UserTime")
     .def("__init__",
-         [](hstd::UserTime* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::UserTime();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime* /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getBreakdown", static_cast<hstd::UserTimeBreakdown(hstd::UserTime::*)() const>(&hstd::UserTime::getBreakdown))
-    .def("format", static_cast<std::string(hstd::UserTime::*)() const>(&hstd::UserTime::format))
+    .def("getBreakdown", static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown /*  [905]stdlib/Time.hpp:50:32( [780] >record 'UserTimeBreakdown'<>) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::*)() const>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::getBreakdown))
+    .def("format", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]stdlib/Time.hpp:51:32( [735] typedef type bits/stringfwd.h:79:33) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::*)() const>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::format))
     .def("getTimeDeltaSeconds",
-         static_cast<int64_t(hstd::UserTime::*)(hstd::UserTime const&) const>(&hstd::UserTime::getTimeDeltaSeconds),
+         static_cast<int64_t /*  [905]stdlib/Time.hpp:56:22( [735] typedef type bits/stdint-intn.h:27:19) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime const& /*  [905]stdlib/Time.hpp:56:58( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'UserTime'<>)<>) */) const>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::getTimeDeltaSeconds),
          nanobind::arg("other"))
-    .def("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
-    .def("__repr__", [](hstd::UserTime const& _self) -> std::string {
+    .def("toUnixTimestamp", static_cast<int64_t /*  [905]stdlib/Time.hpp:57:22( [735] typedef type bits/stdint-intn.h:27:19) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::*)() const>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */::toUnixTimestamp))
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime const& /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::UserTime const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTime const& /*  [905]stdlib/Time.hpp:41:17( [780] >record 'UserTime'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::SourceFileId>(m, "ParseSourceFileId")
-    .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceFileId /*  [905]lexbase/SourceManager.hpp:9:1( [780] >record 'SourceFileId'<>) */>(m, "ParseSourceFileId")
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceFileId const& /*  [905]lexbase/SourceManager.hpp:9:1( [780] >record 'SourceFileId'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::SourceFileId const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceFileId const& /*  [905]lexbase/SourceManager.hpp:9:1( [780] >record 'SourceFileId'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */>(m, "ParseSourceLoc")
     .def("__init__",
-         [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::SourceLoc();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc* /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("line", &org::parse::SourceLoc::line)
-    .def_rw("column", &org::parse::SourceLoc::column)
-    .def_rw("pos", &org::parse::SourceLoc::pos)
-    .def_rw("file_id", &org::parse::SourceLoc::file_id)
-    .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
+    .def_rw("line", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */::line)
+    .def_rw("column", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */::column)
+    .def_rw("pos", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */::pos)
+    .def_rw("file_id", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */::file_id)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc const& /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::SourceLoc const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceLoc const& /*  [905]lexbase/SourceManager.hpp:41:17( [780] >record 'SourceLoc'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::OrgJson>(m, "OrgJson")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */>(m, "OrgJson")
     .def("__init__",
-         [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgJson();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson* /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getKind", static_cast<OrgJsonKind(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
-    .def("getJsonString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getJsonString))
+    .def("getKind", static_cast<OrgJsonKind /*  [905]sem/SemOrgBaseSharedTypes.hpp:26:26( [786] >enum 'OrgJsonKind'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getKind))
+    .def("getJsonString", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]sem/SemOrgBaseSharedTypes.hpp:40:26( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getJsonString))
     .def("at",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:41:55( [780] >record 'OrgJson'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)(int /*  [905]sem/SemOrgBaseSharedTypes.hpp:41:62( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::at),
          nanobind::arg("idx"))
     .def("at",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:42:55( [780] >record 'OrgJson'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]sem/SemOrgBaseSharedTypes.hpp:43:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::at),
          nanobind::arg("name"))
-    .def("getString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getString))
+    .def("getString", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]sem/SemOrgBaseSharedTypes.hpp:44:33( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getString))
     .def("getField",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::getField),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:45:33( [780] >record 'OrgJson'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]sem/SemOrgBaseSharedTypes.hpp:45:61( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getField),
          nanobind::arg("name"))
     .def("getItem",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::getItem),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:46:33( [780] >record 'OrgJson'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)(int /*  [905]sem/SemOrgBaseSharedTypes.hpp:46:45( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getItem),
          nanobind::arg("index"))
-    .def("getInt", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getInt))
-    .def("getBool", static_cast<bool(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getBool))
-    .def("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
+    .def("getInt", static_cast<int /*  [905]sem/SemOrgBaseSharedTypes.hpp:47:33( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getInt))
+    .def("getBool", static_cast<bool /*  [905]sem/SemOrgBaseSharedTypes.hpp:48:33( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getBool))
+    .def("getArray", static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [640]Type parameter [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'OrgJson'<>) */> /*  [905]sem/SemOrgBaseSharedTypes.hpp:49:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::getArray))
     .def("dump",
-         static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump),
+         static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]sem/SemOrgBaseSharedTypes.hpp:50:33( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::*)(int /*  [905]sem/SemOrgBaseSharedTypes.hpp:50:42( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */::dump),
          nanobind::arg("indent"))
-    .def("__repr__", [](org::sem::OrgJson const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson const& /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::OrgJson const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgJson const& /*  [905]sem/SemOrgBaseSharedTypes.hpp:20:17( [780] >record 'OrgJson'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Org>(m, "Org")
-    .def_rw("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
-    .def_rw("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */>(m, "Org")
+    .def_rw("loc", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::loc, R"RAW(\brief Location of the node in the original source file)RAW")
+    .def_rw("subnodes", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::subnodes, R"RAW(\brief List of subnodes.
 
 Some of the derived nodes don't make the use of subnode list
 (word, punctuation etc), but it was left on the top level of the
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
-    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
+    .def("getKind", static_cast<OrgSemKind /*  [905]sem/SemOrgBase.hpp:224:33( [786] >enum 'OrgSemKind'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::getKind), R"RAW(\brief Get kind of this sem node)RAW")
     .def("push_back",
-         static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
+         static_cast<void /*  [905]sem/SemOrgBase.hpp:235:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:235:40( [780] >record 'Org'<>) */> /*  [905]sem/SemOrgBase.hpp:235:40( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::push_back),
          nanobind::arg("sub"))
-    .def("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
+    .def("size", static_cast<int /*  [905]sem/SemOrgBase.hpp:244:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::size))
     .def("insert",
-         static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert),
+         static_cast<void /*  [905]sem/SemOrgBase.hpp:246:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)(int /*  [905]sem/SemOrgBase.hpp:246:30( [766] >builtin/unqual<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:246:46( [780] >record 'Org'<>) */> /*  [905]sem/SemOrgBase.hpp:246:46( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::insert),
          nanobind::arg("pos"),
          nanobind::arg("node"))
     .def("at",
-         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:261:77( [780] >record 'Org'<>) */> /*  [905]sem/SemOrgBase.hpp:261:77( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)(int /*  [905]sem/SemOrgBase.hpp:262:13( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::at),
          nanobind::arg("idx"))
     .def("is_",
-         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
+         static_cast<bool /*  [905]sem/SemOrgBase.hpp:306:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)(OrgSemKind /*  [905]sem/SemOrgBase.hpp:306:33( [786] >enum 'OrgSemKind'<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::is),
          nanobind::arg("kind"))
     .def("__getitem__",
-         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]sem/SemOrgBase.hpp:261:77( [780] >record 'Org'<>) */> /*  [905]sem/SemOrgBase.hpp:261:77( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::*)(int /*  [905]sem/SemOrgBase.hpp:262:13( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */::at),
          nanobind::arg("idx"))
     .def("__iter__",
-         [](org::sem::Org const& node) -> auto {
-         return nanobind::make_iterator(nanobind::type<org::sem::Org>(), "Org__iter__", node.begin(), node.end());
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org const& /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */ node) -> auto {
+         return nanobind::make_iterator(nanobind::type<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [905]sem/SemOrgBase.hpp:213:8( [780] >record 'Org'<>) */>(), "Org__iter__", node.begin(), node.end());
          },
          nanobind::keep_alive<0, 1>())
     ;
-  nanobind::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */>(m, "OperationsTracer")
     .def("__init__",
-         [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::OperationsTracer();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer* /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("TraceState", &hstd::OperationsTracer::TraceState)
-    .def_rw("traceToFile", &hstd::OperationsTracer::traceToFile)
-    .def_rw("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
-    .def_rw("traceStructured", &hstd::OperationsTracer::traceStructured)
-    .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_rw("activeLevel", &hstd::OperationsTracer::activeLevel)
-    .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def_rw("TraceState", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::TraceState)
+    .def_rw("traceToFile", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::traceToFile)
+    .def_rw("traceToBuffer", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::traceToBuffer)
+    .def_rw("traceStructured", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::traceStructured)
+    .def_rw("traceColored", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::traceColored)
+    .def_rw("activeLevel", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::activeLevel)
+    .def_rw("traceBuffer", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::traceBuffer)
     .def("setTraceFileStr",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         static_cast<void /*  [905]stdlib/TraceBase.hpp:72:19(<>) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]stdlib/TraceBase.hpp:73:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, bool /*  [905]stdlib/TraceBase.hpp:74:28( [755] >bool<>) */)>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::setTraceFileStr),
          nanobind::arg("outfile"),
          nanobind::arg("overwrite"),
          R"RAW(\brief Helper method for reflection)RAW")
     .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         static_cast<void /*  [905]stdlib/TraceBase.hpp:78:19(<>) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]stdlib/TraceBase.hpp:79:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]stdlib/TraceBase.hpp:80:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, int /*  [905]stdlib/TraceBase.hpp:81:28( [766] >builtin/unqual<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]stdlib/TraceBase.hpp:82:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */::sendMessage),
          nanobind::arg("value"),
          nanobind::arg("function"),
          nanobind::arg("line"),
          nanobind::arg("file"))
-    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer const& /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::OperationsTracer const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OperationsTracer const& /*  [905]stdlib/TraceBase.hpp:31:17( [780] >record 'OperationsTracer'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::ext::Cache>(m, "Cache")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Cache /*  [905]ext/error_write.hpp:69:16( [780] >record 'Cache'<>) */>(m, "Cache")
     ;
-  nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */>(m, "ParseOrgParseFragment")
     .def("__init__",
-         [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgParseFragment();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment* /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("baseLine", &org::parse::OrgParseFragment::baseLine)
-    .def_rw("baseCol", &org::parse::OrgParseFragment::baseCol)
-    .def_rw("text", &org::parse::OrgParseFragment::text)
-    .def("__repr__", [](org::parse::OrgParseFragment const& _self) -> std::string {
+    .def_rw("baseLine", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */::baseLine)
+    .def_rw("baseCol", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */::baseCol)
+    .def_rw("text", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */::text)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment const& /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::OrgParseFragment const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseFragment const& /*  [905]api/ParseContext.hpp:14:17( [780] >record 'OrgParseFragment'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */>(m, "OrgParseParameters")
     .def("__init__",
-         [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgParseParameters();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters* /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("baseTokenTracePath", &org::parse::OrgParseParameters::baseTokenTracePath)
-    .def_rw("tokenTracePath", &org::parse::OrgParseParameters::tokenTracePath)
-    .def_rw("parseTracePath", &org::parse::OrgParseParameters::parseTracePath)
-    .def_rw("semTracePath", &org::parse::OrgParseParameters::semTracePath)
-    .def("__repr__", [](org::parse::OrgParseParameters const& _self) -> std::string {
+    .def_rw("baseTokenTracePath", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */::baseTokenTracePath)
+    .def_rw("tokenTracePath", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */::tokenTracePath)
+    .def_rw("parseTracePath", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */::parseTracePath)
+    .def_rw("semTracePath", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */::semTracePath)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters const& /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::OrgParseParameters const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters const& /*  [905]api/ParseContext.hpp:37:8( [780] >record 'OrgParseParameters'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters /*  [905]api/ParseContext.hpp:64:8( [780] >record 'OrgDirectoryParseParameters'<>) */>(m, "OrgDirectoryParseParameters")
     .def("__init__",
-         [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgDirectoryParseParameters();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters* /*  [905]api/ParseContext.hpp:64:8( [780] >record 'OrgDirectoryParseParameters'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters /*  [905]api/ParseContext.hpp:64:8( [780] >record 'OrgDirectoryParseParameters'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::parse::OrgDirectoryParseParameters const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters const& /*  [905]api/ParseContext.hpp:64:8( [780] >record 'OrgDirectoryParseParameters'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::OrgDirectoryParseParameters const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters const& /*  [905]api/ParseContext.hpp:64:8( [780] >record 'OrgDirectoryParseParameters'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::parse::ParseContext>(m, "ParseContext")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */>(m, "ParseContext")
     .def("__init__",
-         [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::ParseContext();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext* /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .def("getDiagnosticStrings", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Cache /*  [640]Type parameter [905]api/ParseContext.hpp:110:48( [780] >record 'Cache'<>) */> /*  [905]api/ParseContext.hpp:110:48( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::getDiagnosticStrings))
     .def("addSource",
-         static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SourceFileId /*  [905]api/ParseContext.hpp:112:27( [780] >record 'SourceFileId'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:113:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:114:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::addSource),
          nanobind::arg("path"),
          nanobind::arg("content"))
     .def("parseFileOpts",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseFileOpts),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:116:35( [780] >record 'Org'<>) */> /*  [905]api/ParseContext.hpp:116:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:117:52( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [640]Type parameter [905]api/ParseContext.hpp:118:52( [780] >record 'OrgParseParameters'<>) */> const& /*  [905]api/ParseContext.hpp:118:52( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseFileOpts),
          nanobind::arg("file"),
          nanobind::arg("opts"))
     .def("parseFile",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:120:35( [780] >record 'Org'<>) */> /*  [905]api/ParseContext.hpp:120:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:120:64( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseFile),
          nanobind::arg("file"))
     .def("parseString",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::string const&)>(&org::parse::ParseContext::parseString),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:122:35( [780] >record 'Org'<>) */> /*  [905]api/ParseContext.hpp:122:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:123:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:124:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseString),
          nanobind::arg("text"),
          nanobind::arg("file_name"))
     .def("parseStringOpts",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const, std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseStringOpts),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:126:35( [780] >record 'Org'<>) */> /*  [905]api/ParseContext.hpp:126:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const /*  [905]api/ParseContext.hpp:127:52( [707] T-const [735] typedef type bits/stringfwd.h:79:33) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:128:52( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgParseParameters /*  [640]Type parameter [905]api/ParseContext.hpp:129:52( [780] >record 'OrgParseParameters'<>) */> const& /*  [905]api/ParseContext.hpp:129:52( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseStringOpts),
          nanobind::arg("text"),
          nanobind::arg("file_name"),
          nanobind::arg("opts"))
     .def("parseDirectory",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:131:46( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:131:46( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]api/ParseContext.hpp:131:46( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:132:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseDirectory),
          nanobind::arg("path"))
     .def("parseDirectoryOpts",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:134:46( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:134:46( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]api/ParseContext.hpp:134:46( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:135:61( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters /*  [640]Type parameter [905]api/ParseContext.hpp:136:61( [780] >record 'OrgDirectoryParseParameters'<>) */> const& /*  [905]api/ParseContext.hpp:136:61( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseDirectoryOpts),
          nanobind::arg("path"),
          nanobind::arg("opts"))
     .def("parseFileWithIncludes",
-         static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::File /*  [640]Type parameter [905]api/ParseContext.hpp:138:36( [780] >record 'File'<>) */> /*  [905]api/ParseContext.hpp:138:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/ParseContext.hpp:139:61( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters /*  [640]Type parameter [905]api/ParseContext.hpp:140:61( [780] >record 'OrgDirectoryParseParameters'<>) */> const& /*  [905]api/ParseContext.hpp:140:61( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::parseFileWithIncludes),
          nanobind::arg("file"),
          nanobind::arg("opts"))
     .def("collectDiagnostics",
-         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Report /*  [640]Type parameter [905]api/ParseContext.hpp:142:43( [780] >record 'Report'<>) */> /*  [905]api/ParseContext.hpp:142:43( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:143:50( [780] >record 'Org'<>) */> const& /*  [905]api/ParseContext.hpp:143:50( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ext /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Cache /*  [640]Type parameter [905]api/ParseContext.hpp:144:50( [780] >record 'Cache'<>) */> const& /*  [905]api/ParseContext.hpp:144:50( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::collectDiagnostics),
          nanobind::arg("tree"),
          nanobind::arg("cache"))
     .def("collectErrorNodes",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ErrorGroup /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'ErrorGroup'<>) */> /*  [640]Type parameter [905]api/ParseContext.hpp:146:53( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]api/ParseContext.hpp:146:53( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/ParseContext.hpp:147:47( [780] >record 'Org'<>) */> const& /*  [905]api/ParseContext.hpp:147:47( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */::collectErrorNodes),
          nanobind::arg("tree"))
-    .def("__repr__", [](org::parse::ParseContext const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext const& /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::parse::ParseContext const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext const& /*  [905]api/ParseContext.hpp:102:8( [780] >record 'ParseContext'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmReflFieldId>(m, "ImmReflFieldId")
-    .def("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId /*  [905]imm/ImmOrgBase.hpp:37:17( [780] >record 'ImmReflFieldId'<>) */>(m, "ImmReflFieldId")
+    .def("getName", static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [905]imm/ImmOrgBase.hpp:38:24( [780] >record 'Str'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId /*  [905]imm/ImmOrgBase.hpp:37:17( [780] >record 'ImmReflFieldId'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId /*  [905]imm/ImmOrgBase.hpp:37:17( [780] >record 'ImmReflFieldId'<>) */::getName))
     ;
-  nanobind::class_<org::imm::ImmId>(m, "ImmId")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */>(m, "ImmId")
     .def("__init__",
-         [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmId();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId* /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("getKind", static_cast<OrgSemKind /*  [905]imm/ImmOrgBase.hpp:293:25( [786] >enum 'OrgSemKind'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::getKind))
     .def("is_",
-         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
+         static_cast<bool /*  [905]imm/ImmOrgBase.hpp:294:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::*)(OrgSemKind /*  [905]imm/ImmOrgBase.hpp:294:33( [786] >enum 'OrgSemKind'<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::is),
          nanobind::arg("kind"))
-    .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
+    .def("getNodeIndex", static_cast<org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmId /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [550]type namespace @[0]' */::NodeIdxT /*  [905]imm/ImmOrgBase.hpp:298:23( [735] typedef type imm/ImmOrgBase.hpp:263:11) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
 node must not be nil)RAW")
-    .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
-    .def("__repr__", [](org::imm::ImmId const& _self) -> std::string {
+    .def("getReadableId", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]imm/ImmOrgBase.hpp:321:26( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */::getReadableId))
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId const& /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmId const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId const& /*  [905]imm/ImmOrgBase.hpp:260:17( [780] >record 'ImmId'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmOrg /*  [905]imm/ImmOrgBase.hpp:352:17( [780] >record 'ImmOrg'<>) */>(m, "ImmOrg")
     ;
-  nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep /*  [905]imm/ImmOrg.hpp:96:17( [780] >record 'ImmPathStep'<>) */>(m, "ImmPathStep")
     .def("__init__",
-         [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmPathStep();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep* /*  [905]imm/ImmOrg.hpp:96:17( [780] >record 'ImmPathStep'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep /*  [905]imm/ImmOrg.hpp:96:17( [780] >record 'ImmPathStep'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmPathStep const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep const& /*  [905]imm/ImmOrg.hpp:96:17( [780] >record 'ImmPathStep'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmPathStep const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep const& /*  [905]imm/ImmOrg.hpp:96:17( [780] >record 'ImmPathStep'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmPath>(m, "ImmPath")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */>(m, "ImmPath")
     .def("__init__",
-         [](org::imm::ImmPath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmPath();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath* /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("root", &org::imm::ImmPath::root, R"RAW(\brief Root ID node)RAW")
-    .def_rw("path", &org::imm::ImmPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
+    .def_rw("root", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */::root, R"RAW(\brief Root ID node)RAW")
+    .def_rw("path", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
 specified target node. For the path iteration structure see \see
 ImmPathStep documentation.)RAW")
-    .def("empty", static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
-    .def("__repr__", [](org::imm::ImmPath const& _self) -> std::string {
+    .def("empty", static_cast<bool /*  [905]imm/ImmOrg.hpp:160:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath const& /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmPath const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPath const& /*  [905]imm/ImmOrg.hpp:147:17( [780] >record 'ImmPath'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [905]imm/ImmOrg.hpp:243:17( [780] >record 'ImmUniqId'<>) */>(m, "ImmUniqId")
     .def("__init__",
-         [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmUniqId();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId* /*  [905]imm/ImmOrg.hpp:243:17( [780] >record 'ImmUniqId'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [905]imm/ImmOrg.hpp:243:17( [780] >record 'ImmUniqId'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmUniqId const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId const& /*  [905]imm/ImmOrg.hpp:243:17( [780] >record 'ImmUniqId'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmUniqId const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId const& /*  [905]imm/ImmOrg.hpp:243:17( [780] >record 'ImmUniqId'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAstReplaceEpoch>(m, "ImmAstReplaceEpoch")
-    .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [905]imm/ImmOrg.hpp:506:8( [780] >record 'ImmAstReplaceEpoch'<>) */>(m, "ImmAstReplaceEpoch")
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch const& /*  [905]imm/ImmOrg.hpp:506:8( [780] >record 'ImmAstReplaceEpoch'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmAstReplaceEpoch const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch const& /*  [905]imm/ImmOrg.hpp:506:8( [780] >record 'ImmAstReplaceEpoch'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAstContext>(m, "ImmAstContext")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */>(m, "ImmAstContext")
     .def("addRoot",
-         static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:663:28( [780] >record 'ImmAstVersion'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]imm/ImmOrg.hpp:663:57( [780] >record 'Org'<>) */> /*  [905]imm/ImmOrg.hpp:663:57( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::addRoot),
          nanobind::arg("data"),
          R"RAW(\brief Add new root node to the store, create a new AST version
 with a new root, new epoch and new AST context tracking the updated
 state of the tree.)RAW")
-    .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
+    .def("getEmptyVersion", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:666:28( [780] >record 'ImmAstVersion'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
 to the current context.)RAW")
     .def("get",
-         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]imm/ImmOrg.hpp:675:35( [780] >record 'Org'<>) */> /*  [905]imm/ImmOrg.hpp:675:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrg.hpp:675:55( [780] >record 'ImmId'<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */::get),
          nanobind::arg("id"),
          R"RAW(\brief Convert immutable AST tree to the sem AST -- the sem AST is
 created anew following the immutable ID structure.)RAW")
-    .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext const& /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmAstContext const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext const& /*  [905]imm/ImmOrg.hpp:612:8( [780] >record 'ImmAstContext'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */>(m, "ImmAstVersion")
     .def("__init__",
-         [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmAstVersion();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion* /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
-    .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
-    .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
-    .def("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
-    .def("__repr__", [](org::imm::ImmAstVersion const& _self) -> std::string {
+    .def("getRoot", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrg.hpp:748:25( [780] >record 'ImmId'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::getRoot))
+    .def("getRootAdapter", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:749:25( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::getRootAdapter))
+    .def("getContext", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrg.hpp:751:45( [780] >record 'ImmAstContext'<>) */> /*  [905]imm/ImmOrg.hpp:751:45( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::getContext))
+    .def("getEpoch", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [640]Type parameter [905]imm/ImmOrg.hpp:755:50( [780] >record 'ImmAstReplaceEpoch'<>) */> /*  [905]imm/ImmOrg.hpp:755:50( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */::getEpoch))
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion const& /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmAstVersion const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstVersion const& /*  [905]imm/ImmOrg.hpp:743:17( [780] >record 'ImmAstVersion'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */>(m, "ImmAdapterTreeReprConf")
     .def("__init__",
-         [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmAdapter::TreeReprConf();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf* /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth, R"RAW(\brief Do not print nodes that are more than N levels deep from
+    .def_rw("maxDepth", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */::maxDepth, R"RAW(\brief Do not print nodes that are more than N levels deep from
 the root)RAW")
-    .def_rw("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields, R"RAW(\brief Include auxiliary subnodes in the tree repr -- `.title`
+    .def_rw("withAuxFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */::withAuxFields, R"RAW(\brief Include auxiliary subnodes in the tree repr -- `.title`
 field and other locations outside of standard `.subnodes`)RAW")
-    .def_rw("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields, R"RAW(\brief Format full immutable node value as a part of tree repr)RAW")
-    .def_rw("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
+    .def_rw("withReflFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */::withReflFields, R"RAW(\brief Format full immutable node value as a part of tree repr)RAW")
+    .def_rw("withFieldSubset", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
 field subset.)RAW")
-    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf const& /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf const& /*  [905]imm/ImmOrg.hpp:972:21( [780] >record 'TreeReprConf'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapter>(m, "ImmAdapter")
-    .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
-    .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
-    .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
-    .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
-    .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */>(m, "ImmAdapter")
+    .def("size", static_cast<int /*  [905]imm/ImmOrg.hpp:908:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::size))
+    .def("isNil", static_cast<bool /*  [905]imm/ImmOrg.hpp:914:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::isNil))
+    .def("isRoot", static_cast<bool /*  [905]imm/ImmOrg.hpp:915:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::isRoot))
+    .def("getKind", static_cast<OrgSemKind /*  [905]imm/ImmOrg.hpp:931:25( [786] >enum 'OrgSemKind'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::getKind))
+    .def("uniq", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId /*  [905]imm/ImmOrg.hpp:967:24( [780] >record 'ImmUniqId'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::uniq))
+    .def("treeReprString", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]imm/ImmOrg.hpp:1008:26( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::treeReprString))
     .def("treeReprStringOpts",
-         static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts),
+         static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]imm/ImmOrg.hpp:1012:26( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::ImmAdapter /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::TreeReprConf const& /*  [905]imm/ImmOrg.hpp:1013:29( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'TreeReprConf'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::treeReprStringOpts),
          nanobind::arg("conf"))
     .def("isDirectParentOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf),
+         static_cast<bool /*  [905]imm/ImmOrg.hpp:1023:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrg.hpp:1023:54( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::isDirectParentOf),
          nanobind::arg("other"))
     .def("isIndirectParentOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isIndirectParentOf),
+         static_cast<bool /*  [905]imm/ImmOrg.hpp:1025:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrg.hpp:1025:56( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::isIndirectParentOf),
          nanobind::arg("other"))
     .def("isSubnodeOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
+         static_cast<bool /*  [905]imm/ImmOrg.hpp:1027:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrg.hpp:1027:49( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::isSubnodeOf),
          nanobind::arg("other"))
-    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
-    .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .def("getParent", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1031:36( [780] >record 'ImmAdapter'<>) */> /*  [905]imm/ImmOrg.hpp:1031:36( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::getParent))
+    .def("getSelfIndex", static_cast<int /*  [905]imm/ImmOrg.hpp:1041:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::getSelfIndex))
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:1089:61( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmId /*  [905]imm/ImmOrg.hpp:1090:21( [780] >record 'ImmId'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmPathStep /*  [905]imm/ImmOrg.hpp:1091:21( [780] >record 'ImmPathStep'<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::at),
          nanobind::arg("id"),
          nanobind::arg("idx"))
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:1095:58( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmReflFieldId const& /*  [905]imm/ImmOrg.hpp:1096:31( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmReflFieldId'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::at),
          nanobind::arg("field"))
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:1105:58( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(int /*  [905]imm/ImmOrg.hpp:1106:14( [766] >builtin/unqual<>) */, bool /*  [905]imm/ImmOrg.hpp:1107:14( [755] >bool<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::at),
          nanobind::arg("idx"),
          nanobind::arg("withPath") = true)
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:1109:57( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<int /*  [640]Type parameter [905]imm/ImmOrg.hpp:1110:31( [766] >builtin/unqual<>) */> const& /*  [905]imm/ImmOrg.hpp:1110:31( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Vec'< [657] templates: template-specialization-type>)<>) */, bool /*  [905]imm/ImmOrg.hpp:1111:31( [755] >bool<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::at),
          nanobind::arg("path"),
          nanobind::arg("withPath") = true)
     .def("is_",
-         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
+         static_cast<bool /*  [905]imm/ImmOrg.hpp:1117:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(OrgSemKind /*  [905]imm/ImmOrg.hpp:1117:33( [786] >enum 'OrgSemKind'<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::is),
          nanobind::arg("kind"))
     .def("sub",
-         static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1119:36( [780] >record 'ImmAdapter'<>) */> /*  [905]imm/ImmOrg.hpp:1119:36( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::*)(bool /*  [905]imm/ImmOrg.hpp:1119:45( [755] >bool<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */::sub),
          nanobind::arg("withPath") = true)
-    .def("__repr__", [](org::imm::ImmAdapter const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmAdapter const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrg.hpp:866:54( [780] >record 'ImmAdapter'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterVirtualBase /*  [905]imm/ImmOrg.hpp:1306:17( [780] >record 'ImmAdapterVirtualBase'<>) */>(m, "ImmAdapterVirtualBase")
     ;
-  nanobind::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */>(m, "OrgYamlExportOpts")
     .def("__init__",
-         [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::OrgYamlExportOpts();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts* /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("skipNullFields", &org::OrgYamlExportOpts::skipNullFields)
-    .def_rw("skipFalseFields", &org::OrgYamlExportOpts::skipFalseFields)
-    .def_rw("skipZeroFields", &org::OrgYamlExportOpts::skipZeroFields)
-    .def_rw("skipLocation", &org::OrgYamlExportOpts::skipLocation)
-    .def_rw("skipId", &org::OrgYamlExportOpts::skipId)
-    .def("__repr__", [](org::OrgYamlExportOpts const& _self) -> std::string {
+    .def_rw("skipNullFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */::skipNullFields)
+    .def_rw("skipFalseFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */::skipFalseFields)
+    .def_rw("skipZeroFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */::skipZeroFields)
+    .def_rw("skipLocation", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */::skipLocation)
+    .def_rw("skipId", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */::skipId)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts const& /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::OrgYamlExportOpts const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts const& /*  [905]api/SemBaseApi.hpp:30:17( [780] >record 'OrgYamlExportOpts'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */>(m, "OrgTreeExportOpts")
     .def("__init__",
-         [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::OrgTreeExportOpts();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts* /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("withLineCol", &org::OrgTreeExportOpts::withLineCol)
-    .def_rw("withOriginalId", &org::OrgTreeExportOpts::withOriginalId)
-    .def_rw("withSubnodeIdx", &org::OrgTreeExportOpts::withSubnodeIdx)
-    .def_rw("skipEmptyFields", &org::OrgTreeExportOpts::skipEmptyFields)
-    .def_rw("startLevel", &org::OrgTreeExportOpts::startLevel)
-    .def_rw("withColor", &org::OrgTreeExportOpts::withColor)
-    .def_rw("maxDepth", &org::OrgTreeExportOpts::maxDepth)
-    .def("__repr__", [](org::OrgTreeExportOpts const& _self) -> std::string {
+    .def_rw("withLineCol", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::withLineCol)
+    .def_rw("withOriginalId", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::withOriginalId)
+    .def_rw("withSubnodeIdx", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::withSubnodeIdx)
+    .def_rw("skipEmptyFields", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::skipEmptyFields)
+    .def_rw("startLevel", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::startLevel)
+    .def_rw("withColor", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::withColor)
+    .def_rw("maxDepth", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */::maxDepth)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts const& /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::OrgTreeExportOpts const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts const& /*  [905]api/SemBaseApi.hpp:69:17( [780] >record 'OrgTreeExportOpts'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingPath>(m, "AstTrackingPath")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */>(m, "AstTrackingPath")
     .def("__init__",
-         [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingPath();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath* /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("path", &org::AstTrackingPath::path)
+    .def_rw("path", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */::path)
     .def("getParent",
-         static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)(int) const>(&org::AstTrackingPath::getParent),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:106:45( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:106:45( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */::*)(int /*  [905]api/SemBaseApi.hpp:107:13( [766] >builtin/unqual<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */::getParent),
          nanobind::arg("offset") = 0)
-    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)() const>(&org::AstTrackingPath::getNode))
-    .def("__repr__", [](org::AstTrackingPath const& _self) -> std::string {
+    .def("getNode", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:119:35( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:119:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */::getNode))
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath const& /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingPath const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingPath const& /*  [905]api/SemBaseApi.hpp:102:17( [780] >record 'AstTrackingPath'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */>(m, "AstTrackingAlternatives")
     .def("__init__",
-         [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingAlternatives();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives* /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getAllNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
-    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
-    .def("__repr__", [](org::AstTrackingAlternatives const& _self) -> std::string {
+    .def("getAllNodes", static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:131:46( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]api/SemBaseApi.hpp:131:46( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> /*  [905]api/SemBaseApi.hpp:131:46( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
+    .def("getNode", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:134:35( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:134:35( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives const& /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingAlternatives const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives const& /*  [905]api/SemBaseApi.hpp:126:17( [780] >record 'AstTrackingAlternatives'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */>(m, "AstTrackingGroupRadioTarget")
     .def("__init__",
-         [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::RadioTarget();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget* /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("target", &org::AstTrackingGroup::RadioTarget::target)
-    .def_rw("nodes", &org::AstTrackingGroup::RadioTarget::nodes)
-    .def("__repr__", [](org::AstTrackingGroup::RadioTarget const& _self) -> std::string {
+    .def_rw("target", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */::target)
+    .def_rw("nodes", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */::nodes)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget const& /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingGroup::RadioTarget const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget const& /*  [905]api/SemBaseApi.hpp:140:21( [780] >record 'RadioTarget'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */>(m, "AstTrackingGroupSingle")
     .def("__init__",
-         [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::Single();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single* /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("node", &org::AstTrackingGroup::Single::node)
-    .def("__repr__", [](org::AstTrackingGroup::Single const& _self) -> std::string {
+    .def_rw("node", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */::node)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single const& /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingGroup::Single const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single const& /*  [905]api/SemBaseApi.hpp:146:21( [780] >record 'Single'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */>(m, "AstTrackingGroupTrackedHashtag")
     .def("__init__",
-         [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::TrackedHashtag();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag* /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
-    .def_rw("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
-    .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
+    .def_rw("tag", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */::tag)
+    .def_rw("targets", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */::targets)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag const& /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag const& /*  [905]api/SemBaseApi.hpp:151:21( [780] >record 'TrackedHashtag'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingGroup>(m, "AstTrackingGroup")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */>(m, "AstTrackingGroup")
     .def("__init__",
-         [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup* /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTarget))
-    .def("getTrackedHashtag", static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtag))
-    .def("getSingle", static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingle))
-    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTarget))
-    .def("getSingle", static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingle))
-    .def("isSingle", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isSingle))
-    .def("isTrackedHashtag", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isTrackedHashtag))
-    .def("isRadioTarget", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isRadioTarget))
-    .def("__repr__", [](org::AstTrackingGroup const& _self) -> std::string {
+    .def("getRadioTarget", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget const& /*  [905]api/SemBaseApi.hpp:179:78( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'RadioTarget'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::getRadioTarget))
+    .def("getTrackedHashtag", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::TrackedHashtag& /*  [905]api/SemBaseApi.hpp:191:76( [745] T-reference [752] >ref/ptr( [780] >record 'TrackedHashtag'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::getTrackedHashtag))
+    .def("getSingle", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single const& /*  [905]api/SemBaseApi.hpp:196:68( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Single'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::getSingle))
+    .def("getRadioTarget", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::RadioTarget& /*  [905]api/SemBaseApi.hpp:201:70( [745] T-reference [752] >ref/ptr( [780] >record 'RadioTarget'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::getRadioTarget))
+    .def("getSingle", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [550]type namespace @[0]' */::Single& /*  [905]api/SemBaseApi.hpp:205:60( [745] T-reference [752] >ref/ptr( [780] >record 'Single'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::getSingle))
+    .def("isSingle", static_cast<bool /*  [905]api/SemBaseApi.hpp:209:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::isSingle))
+    .def("isTrackedHashtag", static_cast<bool /*  [905]api/SemBaseApi.hpp:210:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::isTrackedHashtag))
+    .def("isRadioTarget", static_cast<bool /*  [905]api/SemBaseApi.hpp:214:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */::isRadioTarget))
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup const& /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingGroup const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup const& /*  [905]api/SemBaseApi.hpp:139:17( [780] >record 'AstTrackingGroup'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::AstTrackingMap>(m, "AstTrackingMap")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */>(m, "AstTrackingMap")
     .def("__init__",
-         [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingMap();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap* /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("footnotes", &org::AstTrackingMap::footnotes)
-    .def_rw("subtrees", &org::AstTrackingMap::subtrees)
-    .def_rw("names", &org::AstTrackingMap::names)
-    .def_rw("anchorTargets", &org::AstTrackingMap::anchorTargets)
-    .def_rw("radioTargets", &org::AstTrackingMap::radioTargets)
-    .def_rw("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
+    .def_rw("footnotes", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::footnotes)
+    .def_rw("subtrees", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::subtrees)
+    .def_rw("names", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::names)
+    .def_rw("anchorTargets", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::anchorTargets)
+    .def_rw("radioTargets", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::radioTargets)
+    .def_rw("hashtagDefinitions", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::hashtagDefinitions)
     .def("getIdPath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:243:49( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:243:49( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str const& /*  [905]api/SemBaseApi.hpp:244:26( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Str'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::getIdPath),
          nanobind::arg("id"))
     .def("getNamePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:248:49( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:248:49( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str const& /*  [905]api/SemBaseApi.hpp:249:26( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Str'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::getNamePath),
          nanobind::arg("id"))
     .def("getAnchorTarget",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:254:49( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:254:49( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str const& /*  [905]api/SemBaseApi.hpp:255:26( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Str'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::getAnchorTarget),
          nanobind::arg("id"))
     .def("getFootnotePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingAlternatives /*  [640]Type parameter [905]api/SemBaseApi.hpp:259:49( [780] >record 'AstTrackingAlternatives'<>) */> /*  [905]api/SemBaseApi.hpp:259:49( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str const& /*  [905]api/SemBaseApi.hpp:260:26( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Str'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */::getFootnotePath),
          nanobind::arg("id"))
-    .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap const& /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::AstTrackingMap const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap const& /*  [905]api/SemBaseApi.hpp:221:17( [780] >record 'AstTrackingMap'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::SequenceSegment>(m, "SequenceSegment")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */>(m, "SequenceSegment")
     .def("__init__",
-         [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceSegment();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment* /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("kind", &hstd::SequenceSegment::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
+    .def_rw("kind", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
 segments, and different sequence segment groups can have segments
 with identical kinds.)RAW")
-    .def_rw("first", &hstd::SequenceSegment::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
+    .def_rw("first", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
 other segments' boundaries,but can be identical to the `last`,
 to create a point segment (spans 1 element).)RAW")
-    .def_rw("last", &hstd::SequenceSegment::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
-    .def("__repr__", [](hstd::SequenceSegment const& _self) -> std::string {
+    .def_rw("last", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment const& /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::SequenceSegment const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegment const& /*  [905]stdlib/RangeSegmentation.hpp:16:17( [780] >record 'SequenceSegment'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::SequenceSegmentGroup>(m, "SequenceSegmentGroup")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */>(m, "SequenceSegmentGroup")
     .def("__init__",
-         [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceSegmentGroup();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup* /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("kind", &hstd::SequenceSegmentGroup::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
-    .def_rw("segments", &hstd::SequenceSegmentGroup::segments, R"RAW(\brief List of input segments for grouping)RAW")
-    .def("__repr__", [](hstd::SequenceSegmentGroup const& _self) -> std::string {
+    .def_rw("kind", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
+    .def_rw("segments", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */::segments, R"RAW(\brief List of input segments for grouping)RAW")
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup const& /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::SequenceSegmentGroup const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup const& /*  [905]stdlib/RangeSegmentation.hpp:34:17( [780] >record 'SequenceSegmentGroup'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::SequenceAnnotationTag>(m, "SequenceAnnotationTag")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */>(m, "SequenceAnnotationTag")
     .def("__init__",
-         [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceAnnotationTag();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag* /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("groupKind", &hstd::SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
-    .def_rw("segmentKinds", &hstd::SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.
+    .def_rw("groupKind", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
+    .def_rw("segmentKinds", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */::segmentKinds, R"RAW(\brief ID of the segment in this group.
 
 Segment kinds are constructed from all ranges
 that overlap points in the segment.
@@ -1053,455 +1053,455 @@ different sequence segments from these ranges. The first one is
 6   |
 7   |
 ```)RAW")
-    .def("__repr__", [](hstd::SequenceAnnotationTag const& _self) -> std::string {
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag const& /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::SequenceAnnotationTag const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotationTag const& /*  [905]stdlib/RangeSegmentation.hpp:44:17( [780] >record 'SequenceAnnotationTag'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::SequenceAnnotation>(m, "SequenceAnnotation")
+  nanobind::class_<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */>(m, "SequenceAnnotation")
     .def("__init__",
-         [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceAnnotation();
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation* /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("first", &hstd::SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
-    .def_rw("last", &hstd::SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
-    .def_rw("annotations", &hstd::SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
+    .def_rw("first", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
+    .def_rw("last", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
+    .def_rw("annotations", &hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
     .def("isAnnotatedWith",
-         static_cast<bool(hstd::SequenceAnnotation::*)(int, int) const>(&hstd::SequenceAnnotation::isAnnotatedWith),
+         static_cast<bool /*  [905]stdlib/RangeSegmentation.hpp:83:19( [755] >bool<>) */(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */::*)(int /*  [905]stdlib/RangeSegmentation.hpp:83:39( [766] >builtin/unqual<>) */, int /*  [905]stdlib/RangeSegmentation.hpp:83:54( [766] >builtin/unqual<>) */) const>(&hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */::isAnnotatedWith),
          nanobind::arg("groupKind"),
          nanobind::arg("segmentKind"),
          R"RAW(\brief Check if the segment is annotated with a given group kind
 and a segment kind.)RAW")
-    .def("__repr__", [](hstd::SequenceAnnotation const& _self) -> std::string {
+    .def("__repr__", [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation const& /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](hstd::SequenceAnnotation const& _self, std::string const& name) -> nanobind::object {
+         [](hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation const& /*  [905]stdlib/RangeSegmentation.hpp:73:17( [780] >record 'SequenceAnnotation'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink::Link>(m, "GraphMapLinkLink")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */>(m, "GraphMapLinkLink")
     .def("__init__",
-         [](org::graph::MapLink::Link* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink::Link();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link* /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("link", &org::graph::MapLink::Link::link, R"RAW(\brief Original link used to create the graph edge. Used to
+    .def_rw("link", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */::link, R"RAW(\brief Original link used to create the graph edge. Used to
 return an edge to unresolved state when target is deleted. When
 source is deleted the edge is simply dropped.)RAW")
-    .def_rw("description", &org::graph::MapLink::Link::description, R"RAW(MapLink description field can be reused or, for description
+    .def_rw("description", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */::description, R"RAW(MapLink description field can be reused or, for description
 list items, this field contains a newly created statment list)RAW")
-    .def("__repr__", [](org::graph::MapLink::Link const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link const& /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapLink::Link const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link const& /*  [905]imm/ImmOrgGraph.hpp:18:21( [780] >record 'Link'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink::Radio>(m, "GraphMapLinkRadio")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */>(m, "GraphMapLinkRadio")
     .def("__init__",
-         [](org::graph::MapLink::Radio* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink::Radio();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio* /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("target", &org::graph::MapLink::Radio::target)
-    .def("__repr__", [](org::graph::MapLink::Radio const& _self) -> std::string {
+    .def_rw("target", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */::target)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio const& /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapLink::Radio const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio const& /*  [905]imm/ImmOrgGraph.hpp:31:21( [780] >record 'Radio'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapLink>(m, "GraphMapLink")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */>(m, "GraphMapLink")
     .def("__init__",
-         [](org::graph::MapLink* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink* /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getRadio", static_cast<org::graph::MapLink::Radio&(org::graph::MapLink::*)()>(&org::graph::MapLink::getRadio))
-    .def("isRadio", static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isRadio))
-    .def("getLink", static_cast<org::graph::MapLink::Link&(org::graph::MapLink::*)()>(&org::graph::MapLink::getLink))
-    .def("isLink", static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isLink))
-    .def("getKind", static_cast<org::graph::MapLink::Kind(org::graph::MapLink::*)() const>(&org::graph::MapLink::getKind))
-    .def("__repr__", [](org::graph::MapLink const& _self) -> std::string {
+    .def("getRadio", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Radio& /*  [905]imm/ImmOrgGraph.hpp:36:5( [745] T-reference [752] >ref/ptr( [780] >record 'Radio'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::getRadio))
+    .def("isRadio", static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:36:5( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::isRadio))
+    .def("getLink", static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [550]type namespace @[0]' */::Link& /*  [905]imm/ImmOrgGraph.hpp:36:5( [745] T-reference [752] >ref/ptr( [780] >record 'Link'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::getLink))
+    .def("isLink", static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:36:5( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::isLink))
+    .def("getKind", static_cast<org /*  [485]Apply namespace @[0] from 785:fillTypeRec ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 785:fillTypeRec ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 785:fillTypeRec ' [550]type namespace @[0]' */::Kind /*  [905]imm/ImmOrgGraph.hpp:36:5( [786] >enum 'Kind'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */::getKind))
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink const& /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapLink const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink const& /*  [905]imm/ImmOrgGraph.hpp:17:17( [780] >record 'MapLink'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapNodeProp>(m, "GraphMapNodeProp")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */>(m, "GraphMapNodeProp")
     .def("__init__",
-         [](org::graph::MapNodeProp* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapNodeProp();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp* /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("id", &org::graph::MapNodeProp::id)
-    .def_rw("unresolved", &org::graph::MapNodeProp::unresolved)
+    .def_rw("id", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::id)
+    .def_rw("unresolved", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::unresolved)
     .def("getAdapter",
-         static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [905]imm/ImmOrgGraph.hpp:46:35( [780] >record 'ImmAdapter'<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:47:57( [780] >record 'ImmAstContext'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:47:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::getAdapter),
          nanobind::arg("context"))
     .def("getSubtreeId",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:51:35( [780] >record 'Str'<>) */> /*  [905]imm/ImmOrgGraph.hpp:51:35( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:52:57( [780] >record 'ImmAstContext'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:52:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::getSubtreeId),
          nanobind::arg("context"))
     .def("getFootnoteName",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:54:35( [780] >record 'Str'<>) */> /*  [905]imm/ImmOrgGraph.hpp:54:35( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:55:57( [780] >record 'ImmAstContext'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:55:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */::getFootnoteName),
          nanobind::arg("context"))
-    .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp const& /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapNodeProp const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp const& /*  [905]imm/ImmOrgGraph.hpp:42:17( [780] >record 'MapNodeProp'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapEdgeProp>(m, "GraphMapEdgeProp")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */>(m, "GraphMapEdgeProp")
     .def("__init__",
-         [](org::graph::MapEdgeProp* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapEdgeProp();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp* /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("link", &org::graph::MapEdgeProp::link)
-    .def("__repr__", [](org::graph::MapEdgeProp const& _self) -> std::string {
+    .def_rw("link", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */::link)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp const& /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapEdgeProp const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp const& /*  [905]imm/ImmOrgGraph.hpp:60:17( [780] >record 'MapEdgeProp'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapNode>(m, "GraphMapNode")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */>(m, "GraphMapNode")
     .def("__init__",
-         [](org::graph::MapNode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapNode();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode* /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("id", &org::graph::MapNode::id)
+    .def_rw("id", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */::id)
     .def("__eq__",
-         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:72:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:72:45( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */::operator==),
          nanobind::arg("other"))
     .def("__lt__",
-         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:76:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:76:44( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */::operator<),
          nanobind::arg("other"))
-    .def("__repr__", [](org::graph::MapNode const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapNode const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:66:17( [780] >record 'MapNode'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapEdge>(m, "GraphMapEdge")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */>(m, "GraphMapEdge")
     .def("__init__",
-         [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapEdge();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge* /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("source", &org::graph::MapEdge::source)
-    .def_rw("target", &org::graph::MapEdge::target)
-    .def("__repr__", [](org::graph::MapEdge const& _self) -> std::string {
+    .def_rw("source", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */::source)
+    .def_rw("target", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */::target)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge const& /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapEdge const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge const& /*  [905]imm/ImmOrgGraph.hpp:83:17( [780] >record 'MapEdge'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapGraph>(m, "GraphMapGraph")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */>(m, "GraphMapGraph")
     .def("__init__",
-         [](org::graph::MapGraph* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapGraph();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph* /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("nodeProps", &org::graph::MapGraph::nodeProps)
-    .def_rw("edgeProps", &org::graph::MapGraph::edgeProps)
-    .def_rw("adjList", &org::graph::MapGraph::adjList)
-    .def_rw("adjListIn", &org::graph::MapGraph::adjListIn)
-    .def("nodeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::nodeCount))
-    .def("edgeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::edgeCount))
+    .def_rw("nodeProps", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::nodeProps)
+    .def_rw("edgeProps", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::edgeProps)
+    .def_rw("adjList", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::adjList)
+    .def_rw("adjListIn", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::adjListIn)
+    .def("nodeCount", static_cast<int /*  [905]imm/ImmOrgGraph.hpp:152:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::nodeCount))
+    .def("edgeCount", static_cast<int /*  [905]imm/ImmOrgGraph.hpp:153:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::edgeCount))
     .def("outNodes",
-         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outNodes),
+         static_cast<org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList const& /*  [905]imm/ImmOrgGraph.hpp:155:34( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type imm/ImmOrgGraph.hpp:119:60)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:155:58( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::outNodes),
          nanobind::arg("node"))
     .def("inNodes",
-         static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inNodes),
+         static_cast<org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::AdjNodesList const& /*  [905]imm/ImmOrgGraph.hpp:159:34( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type imm/ImmOrgGraph.hpp:119:60)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:159:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::inNodes),
          nanobind::arg("node"))
     .def("adjEdges",
-         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjEdges),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'MapEdge'<>) */> /*  [905]imm/ImmOrgGraph.hpp:163:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:163:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::adjEdges),
          nanobind::arg("node"))
     .def("adjNodes",
-         static_cast<hstd::Vec<org::graph::MapNode>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjNodes),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:176:33( [780] >record 'MapNode'<>) */> /*  [905]imm/ImmOrgGraph.hpp:176:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:176:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::adjNodes),
          nanobind::arg("node"))
     .def("outEdges",
-         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outEdges),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:190:33( [780] >record 'MapEdge'<>) */> /*  [905]imm/ImmOrgGraph.hpp:190:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:190:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::outEdges),
          nanobind::arg("node"))
     .def("inEdges",
-         static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inEdges),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:198:33( [780] >record 'MapEdge'<>) */> /*  [905]imm/ImmOrgGraph.hpp:198:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:198:56( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::inEdges),
          nanobind::arg("node"))
     .def("outDegree",
-         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outDegree),
+         static_cast<int /*  [905]imm/ImmOrgGraph.hpp:206:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:206:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::outDegree),
          nanobind::arg("node"))
     .def("inDegree",
-         static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inDegree),
+         static_cast<int /*  [905]imm/ImmOrgGraph.hpp:210:18( [766] >builtin/unqual<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:210:42( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::inDegree),
          nanobind::arg("node"))
     .def("isRegisteredNode",
-         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:214:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:214:51( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::isRegisteredNode),
          nanobind::arg("id"))
     .def("isRegisteredNode",
-         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:218:65( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmUniqId const& /*  [905]imm/ImmOrgGraph.hpp:219:36( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmUniqId'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::isRegisteredNode),
          nanobind::arg("id"))
     .def("at",
-         static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp const& /*  [905]imm/ImmOrgGraph.hpp:223:68( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNodeProp'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:224:24( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::at),
          nanobind::arg("node"))
     .def("at",
-         static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at),
+         static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp const& /*  [905]imm/ImmOrgGraph.hpp:228:68( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapEdgeProp'<>)<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge const& /*  [905]imm/ImmOrgGraph.hpp:229:24( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapEdge'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::at),
          nanobind::arg("edge"))
     .def("addEdge",
-         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&)>(&org::graph::MapGraph::addEdge),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:234:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge const& /*  [905]imm/ImmOrgGraph.hpp:234:42( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapEdge'<>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::addEdge),
          nanobind::arg("edge"))
     .def("addEdge",
-         static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:237:60(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdge const& /*  [905]imm/ImmOrgGraph.hpp:238:28( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapEdge'<>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapEdgeProp const& /*  [905]imm/ImmOrgGraph.hpp:239:28( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapEdgeProp'<>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::addEdge),
          nanobind::arg("edge"),
          nanobind::arg("prop"))
     .def("addNode",
-         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&)>(&org::graph::MapGraph::addNode),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:242:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:242:42( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::addNode),
          nanobind::arg("node"),
          R"RAW(\brief Add node to the graph, without registering any outgoing or
 ingoing elements.)RAW")
     .def("addNode",
-         static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNodeProp const&)>(&org::graph::MapGraph::addNode),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:243:60(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:244:28( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp const& /*  [905]imm/ImmOrgGraph.hpp:245:28( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNodeProp'<>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::addNode),
          nanobind::arg("node"),
          nanobind::arg("prop"))
     .def("hasEdge",
-         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNode const&) const>(&org::graph::MapGraph::hasEdge),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:250:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:250:42( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:250:65( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::hasEdge),
          nanobind::arg("source"),
          nanobind::arg("target"))
     .def("hasNode",
-         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:261:19( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNode const& /*  [905]imm/ImmOrgGraph.hpp:261:42( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNode'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::hasNode),
          nanobind::arg("node"))
     .def("hasEdge",
-         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge),
+         static_cast<bool /*  [905]imm/ImmOrgGraph.hpp:265:60( [755] >bool<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrgGraph.hpp:266:37( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrgGraph.hpp:267:37( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */::hasEdge),
          nanobind::arg("source"),
          nanobind::arg("target"))
-    .def("__repr__", [](org::graph::MapGraph const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph const& /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapGraph const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph const& /*  [905]imm/ImmOrgGraph.hpp:137:8( [780] >record 'MapGraph'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapConfig>(m, "GraphMapConfig")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */>(m, "GraphMapConfig")
     .def("__init__",
-         [](org::graph::MapConfig* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapConfig();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig* /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("dbg", &org::graph::MapConfig::dbg)
-    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
+    .def_rw("dbg", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */::dbg)
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig const& /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapConfig const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig const& /*  [905]imm/ImmOrgGraph.hpp:370:8( [780] >record 'MapConfig'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapGraphState>(m, "GraphMapGraphState")
-    .def_rw("graph", &org::graph::MapGraphState::graph)
-    .def_rw("ast", &org::graph::MapGraphState::ast)
-    .def("getGraph", static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph))
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */>(m, "GraphMapGraphState")
+    .def_rw("graph", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::graph)
+    .def_rw("ast", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::ast)
+    .def("getGraph", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:405:40( [780] >record 'MapGraph'<>) */> /*  [905]imm/ImmOrgGraph.hpp:405:40( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::getGraph))
     .def_static("FromAstContextStatic",
-                static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
+                static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:410:52( [780] >record 'MapGraphState'<>) */> /*  [905]imm/ImmOrgGraph.hpp:410:52( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:411:50( [780] >record 'ImmAstContext'<>) */> /*  [905]imm/ImmOrgGraph.hpp:411:50( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::FromAstContext),
                 nanobind::arg("ast"))
     .def("registerNode",
-         static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::registerNode),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:416:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapNodeProp const& /*  [905]imm/ImmOrgGraph.hpp:417:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'MapNodeProp'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:418:43( [780] >record 'MapConfig'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:418:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::registerNode),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("addNode",
-         static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:420:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrgGraph.hpp:421:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:422:43( [780] >record 'MapConfig'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:422:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::addNode),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("addNodeRec",
-         static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec),
+         static_cast<void /*  [905]imm/ImmOrgGraph.hpp:424:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:425:57( [780] >record 'ImmAstContext'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:425:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter const& /*  [905]imm/ImmOrgGraph.hpp:426:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'ImmAdapter'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:427:57( [780] >record 'MapConfig'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:427:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::addNodeRec),
          nanobind::arg("ast"),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("getUnresolvedSubtreeLinks",
-         static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
+         static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:429:33( [780] >record 'MapLink'<>) */> /*  [905]imm/ImmOrgGraph.hpp:429:33( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterT<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmSubtree /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:430:53( [780] >record 'ImmSubtree'<>) */> /*  [905]imm/ImmOrgGraph.hpp:430:53( [780] >record 'ImmAdapterT'< [657] templates: template-specialization-type>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:431:53( [780] >record 'MapConfig'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:431:53( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::getUnresolvedSubtreeLinks),
          nanobind::arg("node"),
          nanobind::arg("conf"))
     .def("getUnresolvedLink",
-         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:433:33( [780] >record 'MapLink'<>) */> /*  [905]imm/ImmOrgGraph.hpp:433:33( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterT<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmLink /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:434:50( [780] >record 'ImmLink'<>) */> /*  [905]imm/ImmOrgGraph.hpp:434:50( [780] >record 'ImmAdapterT'< [657] templates: template-specialization-type>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapConfig /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:435:50( [780] >record 'MapConfig'<>) */> const& /*  [905]imm/ImmOrgGraph.hpp:435:50( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */::getUnresolvedLink),
          nanobind::arg("node"),
          nanobind::arg("conf"))
-    .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState const& /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::graph::MapGraphState const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState const& /*  [905]imm/ImmOrgGraph.hpp:399:8( [780] >record 'MapGraphState'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */>(m, "PyCodeEvalParameters")
     .def("__init__",
-         [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::bind::python::PyCodeEvalParameters();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters* /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
+    .def_rw("evalBlock", &org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */::evalBlock)
     .def("setTraceFile",
-         static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:136:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:136:51( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */::setTraceFile),
          nanobind::arg("path"))
-    .def("__repr__", [](org::bind::python::PyCodeEvalParameters const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::bind::python::PyCodeEvalParameters const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:132:1( [780] >record 'PyCodeEvalParameters'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */>(m, "ExporterPython")
     .def("__init__",
-         [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::bind::python::ExporterPython();
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython* /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
+    .def("enableBufferTrace", static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:369:26(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)()>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::enableBufferTrace))
+    .def("getTraceBuffer", static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:370:26( [735] typedef type bits/stringfwd.h:79:33) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)() const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, bool)>(&org::bind::python::ExporterPython::enableFileTrace),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:371:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:371:54( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, bool /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:371:65( [755] >bool<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::enableFileTrace),
          nanobind::arg("path"),
          nanobind::arg("colored"))
     .def("setVisitAnyIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdAround),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:374:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:374:50( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitAnyIdAround),
          nanobind::arg("cb"))
     .def("setVisitAnyIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdIn),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:379:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:379:46( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitAnyIdIn),
          nanobind::arg("cb"))
     .def("setVisitAnyField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyField),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:382:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:382:47( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitAnyField),
          nanobind::arg("cb"))
     .def("setEvalTopCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:385:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:385:43( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setEvalTopCb),
          nanobind::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:388:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:388:47( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:388:60( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:393:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:393:46( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:393:59( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setEvalIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:398:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:398:45( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:398:58( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitIdInCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:403:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:403:42( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:403:55( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setEvalIdIn),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:408:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 785:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 785:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 785:fillTypeRec ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:409:42( [786] >enum 'LeafFieldType'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:410:42( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitLeafField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:415:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 785:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 785:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 785:fillTypeRec ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:416:42( [786] >enum 'LeafFieldType'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:417:42( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setEvalLeafField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:422:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:422:47( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:422:60( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:427:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:427:46( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:427:59( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setEvalOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setSelf",
-         static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:432:22(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::object /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:432:47( [780] >record 'object'<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setSelf),
          nanobind::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:436:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:436:43( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:436:56( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setNewOrgRes),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setNewAnyOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:441:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:441:46( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setNewAnyOrgRes),
          nanobind::arg("cb"))
     .def("setNewLeafRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:444:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 785:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 785:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 785:fillTypeRec ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:445:42( [786] >enum 'LeafFieldType'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:446:42( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setNewLeafRes),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setNewAnyLeafRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyLeafRes),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:451:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:451:47( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setNewAnyLeafRes),
          nanobind::arg("cb"))
     .def("setPushVisitAnyId",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitAnyId),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:454:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:454:44( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setPushVisitAnyId),
          nanobind::arg("cb"))
     .def("setPopVisitAnyId",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:457:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:457:47( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setPopVisitAnyId),
          nanobind::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:460:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:460:45( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:460:58( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setPushVisitId),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:465:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:465:46( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:465:59( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setPopVisitIdCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitAnyHookCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:470:23(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:470:48( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitAnyHookCb),
          nanobind::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:473:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(OrgSemKind /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:473:45( [786] >enum 'OrgSemKind'<>) */, org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::PyFunc /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:473:58( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:317:11) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::setVisitIdHook),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("print_trace",
-         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&org::bind::python::ExporterPython::print_trace),
+         static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:477:19(<>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:478:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:479:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:480:28( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, int /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:481:28( [766] >builtin/unqual<>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::print_trace),
          nanobind::arg("trace"),
          nanobind::arg("file"),
          nanobind::arg("function"),
          nanobind::arg("line"))
     .def("evalTop",
-         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::evalTop),
+         static_cast<org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::Res /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:725:18( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:318:11) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:725:57( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:725:57( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::evalTop),
          nanobind::arg("org"))
     .def("eval",
-         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::eval),
+         static_cast<org /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[3]' */::bind /*  [485]Apply namespace @[1] from 741:fillTypeRec ' [539]regular type namespaces @[2]' */::python /*  [485]Apply namespace @[2] from 741:fillTypeRec ' [539]regular type namespaces @[1]' */::ExporterPython /*  [485]Apply namespace @[3] from 741:fillTypeRec ' [550]type namespace @[0]' */::Res /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:727:18( [735] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:318:11) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:727:54( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:727:54( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */::eval),
          nanobind::arg("org"))
-    .def("__repr__", [](org::bind::python::ExporterPython const& _self) -> std::string {
+    .def("__repr__", [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::bind::python::ExporterPython const& _self, std::string const& name) -> nanobind::object {
+         [](org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ExporterPython const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:309:1( [780] >record 'ExporterPython'<>) */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -1713,7 +1713,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::LispCode::data)
     .def("__eq__",
          static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==),
          nanobind::arg("other"))
@@ -1819,7 +1818,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::Tblfm::Expr::AxisRef::Position::data)
     .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)(org::sem::Tblfm::Expr::AxisRef::Position const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::operator==),
          nanobind::arg("other"))
@@ -2021,7 +2019,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::Tblfm::Expr::data)
     .def("__eq__",
          static_cast<bool(org::sem::Tblfm::Expr::*)(org::sem::Tblfm::Expr const&) const>(&org::sem::Tblfm::Expr::operator==),
          nanobind::arg("other"))
@@ -2255,7 +2252,6 @@ ingoing elements.)RAW")
     .def_rw("varname", &org::sem::AttrValue::varname)
     .def_rw("span", &org::sem::AttrValue::span)
     .def_rw("isQuoted", &org::sem::AttrValue::isQuoted, R"RAW(If the original value was explicitly quoted in the org-mode code)RAW")
-    .def_rw("data", &org::sem::AttrValue::data)
     .def("getBool", static_cast<hstd::Opt<bool>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getBool))
     .def("getInt", static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt))
     .def("getString", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString))
@@ -2644,7 +2640,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::LinkTarget::data)
     .def("__eq__",
          static_cast<bool(org::sem::LinkTarget::*)(org::sem::LinkTarget const&) const>(&org::sem::LinkTarget::operator==),
          nanobind::arg("other"))
@@ -2937,7 +2932,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("log", &org::sem::SubtreeLogHead::log)
     .def("__eq__",
          static_cast<bool(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead const&) const>(&org::sem::SubtreeLogHead::operator==),
          nanobind::arg("other"))
@@ -3363,7 +3357,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::ColumnView::Summary::data)
     .def("__eq__",
          static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==),
          nanobind::arg("other"))
@@ -3521,7 +3514,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::BlockCodeLine::Part::data)
     .def("__eq__",
          static_cast<bool(org::sem::BlockCodeLine::Part::*)(org::sem::BlockCodeLine::Part const&) const>(&org::sem::BlockCodeLine::Part::operator==),
          nanobind::arg("other"))
@@ -3788,7 +3780,6 @@ ingoing elements.)RAW")
     .def_rw("tagExport", &org::sem::DocumentExportConfig::tagExport)
     .def_rw("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
     .def_rw("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
-    .def_rw("data", &org::sem::DocumentExportConfig::data)
     .def("__eq__",
          static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),
          nanobind::arg("other"))
@@ -4489,7 +4480,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::NamedProperty::data)
     .def("isMatching",
          static_cast<bool(org::sem::NamedProperty::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::NamedProperty::isMatching),
          nanobind::arg("kind"),
@@ -4730,7 +4720,6 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("data", &org::sem::OrgDiagnostics::data)
     .def("__eq__",
          static_cast<bool(org::sem::OrgDiagnostics::*)(org::sem::OrgDiagnostics const&) const>(&org::sem::OrgDiagnostics::operator==),
          nanobind::arg("other"))
@@ -4936,128 +4925,128 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>>(m, "ImmAdapterCmdIncludeBase")
     ;
-  nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
+  nanobind::class_<org::sem::NoNode /* d_org */, org::sem::Org>(m, "NoNode")
     .def("__init__",
-         [](org::sem::NoNode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NoNode();
+         [](org::sem::NoNode* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::NoNode /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::NoNode const& _self) -> std::string {
+    .def("__repr__", [](org::sem::NoNode const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::NoNode const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::NoNode const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ErrorItem, org::sem::Org>(m, "ErrorItem")
+  nanobind::class_<org::sem::ErrorItem /* d_org */, org::sem::Org>(m, "ErrorItem")
     .def("__init__",
-         [](org::sem::ErrorItem* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorItem();
+         [](org::sem::ErrorItem* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ErrorItem /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("diag", &org::sem::ErrorItem::diag)
-    .def("__repr__", [](org::sem::ErrorItem const& _self) -> std::string {
+    .def_rw("diag", &org::sem::ErrorItem /* d_org */::diag)
+    .def("__repr__", [](org::sem::ErrorItem const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ErrorItem const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ErrorItem const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ErrorGroup, org::sem::Org>(m, "ErrorGroup")
+  nanobind::class_<org::sem::ErrorGroup /* d_org */, org::sem::Org>(m, "ErrorGroup")
     .def("__init__",
-         [](org::sem::ErrorGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorGroup();
+         [](org::sem::ErrorGroup* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ErrorGroup /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("diagnostics", &org::sem::ErrorGroup::diagnostics)
-    .def("__repr__", [](org::sem::ErrorGroup const& _self) -> std::string {
+    .def_rw("diagnostics", &org::sem::ErrorGroup /* d_org */::diagnostics)
+    .def("__repr__", [](org::sem::ErrorGroup const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ErrorGroup const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ErrorGroup const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Stmt, org::sem::Org>(m, "Stmt")
-    .def_rw("attached", &org::sem::Stmt::attached)
+  nanobind::class_<org::sem::Stmt /* d_org */, org::sem::Org>(m, "Stmt")
+    .def_rw("attached", &org::sem::Stmt /* d_org */::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt /* d_org */::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt /* d_org */::getAttached),
          nanobind::arg("kind") = std::nullopt,
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt /* d_org */::*)() const>(&org::sem::Stmt /* d_org */::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Stmt /* d_org */::*)() const>(&org::sem::Stmt /* d_org */::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttrs),
+         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Stmt /* d_org */::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt /* d_org */::getAttrs),
          nanobind::arg("kind") = std::nullopt,
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr),
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttr),
          nanobind::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     .def("getFirstAttrString",
-         static_cast<hstd::Opt<hstd::Str>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrString),
+         static_cast<hstd::Opt<hstd::Str>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrString),
          nanobind::arg("kind"))
     .def("getFirstAttrInt",
-         static_cast<hstd::Opt<int>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrInt),
+         static_cast<hstd::Opt<int>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrInt),
          nanobind::arg("kind"))
     .def("getFirstAttrBool",
-         static_cast<hstd::Opt<bool>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrBool),
+         static_cast<hstd::Opt<bool>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrBool),
          nanobind::arg("kind"))
     .def("getFirstAttrDouble",
-         static_cast<hstd::Opt<double>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrDouble),
+         static_cast<hstd::Opt<double>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrDouble),
          nanobind::arg("kind"))
     .def("getFirstAttrLisp",
-         static_cast<hstd::Opt<org::sem::AttrValue::LispValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrLisp),
+         static_cast<hstd::Opt<org::sem::AttrValue::LispValue>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrLisp),
          nanobind::arg("kind"))
     .def("getFirstAttrKind",
-         static_cast<hstd::Opt<org::sem::AttrValue::Kind>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrKind),
+         static_cast<hstd::Opt<org::sem::AttrValue::Kind>(org::sem::Stmt /* d_org */::*)(hstd::Str const&) const>(&org::sem::Stmt /* d_org */::getFirstAttrKind),
          nanobind::arg("kind"))
     ;
-  nanobind::class_<org::sem::Inline, org::sem::Org>(m, "Inline")
+  nanobind::class_<org::sem::Inline /* d_org */, org::sem::Org>(m, "Inline")
     ;
-  nanobind::class_<org::sem::StmtList, org::sem::Org>(m, "StmtList")
+  nanobind::class_<org::sem::StmtList /* d_org */, org::sem::Org>(m, "StmtList")
     .def("__init__",
-         [](org::sem::StmtList* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::StmtList();
+         [](org::sem::StmtList* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::StmtList /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::StmtList const& _self) -> std::string {
+    .def("__repr__", [](org::sem::StmtList const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::StmtList const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::StmtList const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Empty, org::sem::Org>(m, "Empty")
+  nanobind::class_<org::sem::Empty /* d_org */, org::sem::Org>(m, "Empty")
     .def("__init__",
-         [](org::sem::Empty* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Empty();
+         [](org::sem::Empty* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Empty /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Empty const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Empty const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Empty const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Empty const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Leaf, org::sem::Org>(m, "Leaf")
-    .def_rw("text", &org::sem::Leaf::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(org::sem::Leaf::*)() const>(&org::sem::Leaf::getText))
+  nanobind::class_<org::sem::Leaf /* d_org */, org::sem::Org>(m, "Leaf")
+    .def_rw("text", &org::sem::Leaf /* d_org */::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Leaf /* d_org */::*)() const>(&org::sem::Leaf /* d_org */::getText))
     ;
   bind_enum_iterator<org::sem::Time::Repeat::Mode>(m, "TimeRepeatMode", type_registry_guard);
   nanobind::enum_<org::sem::Time::Repeat::Mode>(m, "TimeRepeatMode")
@@ -5192,75 +5181,74 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::sem::Time, org::sem::Org>(m, "Time")
+  nanobind::class_<org::sem::Time /* d_org */, org::sem::Org>(m, "Time")
     .def("__init__",
-         [](org::sem::Time* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Time();
+         [](org::sem::Time* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Time /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("isActive", &org::sem::Time::isActive, R"RAW(<active> vs [inactive])RAW")
-    .def_rw("time", &org::sem::Time::time)
-    .def("getYear", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getYear))
-    .def("getMonth", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMonth))
-    .def("getDay", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getDay))
-    .def("getHour", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getHour))
-    .def("getMinute", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMinute))
-    .def("getSecond", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getSecond))
-    .def("getStaticTime", static_cast<hstd::UserTime(org::sem::Time::*)() const>(&org::sem::Time::getStaticTime))
-    .def("isStatic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isStatic))
-    .def("getStatic", static_cast<org::sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStatic))
-    .def("isDynamic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isDynamic))
-    .def("getDynamic", static_cast<org::sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamic))
+    .def_rw("isActive", &org::sem::Time /* d_org */::isActive, R"RAW(<active> vs [inactive])RAW")
+    .def("getYear", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getYear))
+    .def("getMonth", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getMonth))
+    .def("getDay", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getDay))
+    .def("getHour", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getHour))
+    .def("getMinute", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getMinute))
+    .def("getSecond", static_cast<hstd::Opt<int>(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getSecond))
+    .def("getStaticTime", static_cast<hstd::UserTime(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getStaticTime))
+    .def("isStatic", static_cast<bool(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::isStatic))
+    .def("getStatic", static_cast<org::sem::Time::Static&(org::sem::Time /* d_org */::*)()>(&org::sem::Time /* d_org */::getStatic))
+    .def("isDynamic", static_cast<bool(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::isDynamic))
+    .def("getDynamic", static_cast<org::sem::Time::Dynamic&(org::sem::Time /* d_org */::*)()>(&org::sem::Time /* d_org */::getDynamic))
     .def_static("getTimeKindStatic",
-                static_cast<org::sem::Time::TimeKind(*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKind),
+                static_cast<org::sem::Time::TimeKind(*)(org::sem::Time::TimeVariant const&)>(&org::sem::Time /* d_org */::getTimeKind),
                 nanobind::arg("__input"))
-    .def("getTimeKind", static_cast<org::sem::Time::TimeKind(org::sem::Time::*)() const>(&org::sem::Time::getTimeKind))
-    .def("sub_variant_get_name", static_cast<char const*(org::sem::Time::*)() const>(&org::sem::Time::sub_variant_get_name))
-    .def("sub_variant_get_data", static_cast<org::sem::Time::TimeVariant const&(org::sem::Time::*)() const>(&org::sem::Time::sub_variant_get_data))
-    .def("sub_variant_get_kind", static_cast<org::sem::Time::TimeKind(org::sem::Time::*)() const>(&org::sem::Time::sub_variant_get_kind))
-    .def("__repr__", [](org::sem::Time const& _self) -> std::string {
+    .def("getTimeKind", static_cast<org::sem::Time::TimeKind(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::getTimeKind))
+    .def("sub_variant_get_name", static_cast<char const*(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::sub_variant_get_name))
+    .def("sub_variant_get_data", static_cast<org::sem::Time::TimeVariant const&(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::sub_variant_get_data))
+    .def("sub_variant_get_kind", static_cast<org::sem::Time::TimeKind(org::sem::Time /* d_org */::*)() const>(&org::sem::Time /* d_org */::sub_variant_get_kind))
+    .def("__repr__", [](org::sem::Time const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Time const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Time const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::TimeRange, org::sem::Org>(m, "TimeRange")
+  nanobind::class_<org::sem::TimeRange /* d_org */, org::sem::Org>(m, "TimeRange")
     .def("__init__",
-         [](org::sem::TimeRange* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TimeRange();
+         [](org::sem::TimeRange* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::TimeRange /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("from_", &org::sem::TimeRange::from, R"RAW(Starting time)RAW")
-    .def_rw("to", &org::sem::TimeRange::to, R"RAW(Finishing time)RAW")
-    .def("getClockedTimeSeconds", static_cast<hstd::Opt<int64_t>(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getClockedTimeSeconds))
-    .def("__repr__", [](org::sem::TimeRange const& _self) -> std::string {
+    .def_rw("from_", &org::sem::TimeRange /* d_org */::from, R"RAW(Starting time)RAW")
+    .def_rw("to", &org::sem::TimeRange /* d_org */::to, R"RAW(Finishing time)RAW")
+    .def("getClockedTimeSeconds", static_cast<hstd::Opt<int64_t>(org::sem::TimeRange /* d_org */::*)() const>(&org::sem::TimeRange /* d_org */::getClockedTimeSeconds))
+    .def("__repr__", [](org::sem::TimeRange const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::TimeRange const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::TimeRange const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Macro, org::sem::Org>(m, "Macro")
+  nanobind::class_<org::sem::Macro /* d_org */, org::sem::Org>(m, "Macro")
     .def("__init__",
-         [](org::sem::Macro* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Macro();
+         [](org::sem::Macro* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Macro /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::Macro::name, R"RAW(Macro name)RAW")
-    .def_rw("attrs", &org::sem::Macro::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def("__repr__", [](org::sem::Macro const& _self) -> std::string {
+    .def_rw("name", &org::sem::Macro /* d_org */::name, R"RAW(Macro name)RAW")
+    .def_rw("attrs", &org::sem::Macro /* d_org */::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("__repr__", [](org::sem::Macro const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Macro const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Macro const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -5283,262 +5271,262 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Symbol, org::sem::Org>(m, "Symbol")
+  nanobind::class_<org::sem::Symbol /* d_org */, org::sem::Org>(m, "Symbol")
     .def("__init__",
-         [](org::sem::Symbol* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Symbol();
+         [](org::sem::Symbol* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Symbol /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::Symbol::name, R"RAW(Name of the symbol)RAW")
-    .def_rw("parameters", &org::sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
-    .def_rw("positional", &org::sem::Symbol::positional, R"RAW(Positional parameters)RAW")
-    .def("__repr__", [](org::sem::Symbol const& _self) -> std::string {
+    .def_rw("name", &org::sem::Symbol /* d_org */::name, R"RAW(Name of the symbol)RAW")
+    .def_rw("parameters", &org::sem::Symbol /* d_org */::parameters, R"RAW(Optional list of parameters)RAW")
+    .def_rw("positional", &org::sem::Symbol /* d_org */::positional, R"RAW(Positional parameters)RAW")
+    .def("__repr__", [](org::sem::Symbol const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Symbol const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Symbol const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ErrorSkipGroup, org::sem::Org>(m, "ErrorSkipGroup")
+  nanobind::class_<org::sem::ErrorSkipGroup /* d_org */, org::sem::Org>(m, "ErrorSkipGroup")
     .def("__init__",
-         [](org::sem::ErrorSkipGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorSkipGroup();
+         [](org::sem::ErrorSkipGroup* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ErrorSkipGroup /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("skipped", &org::sem::ErrorSkipGroup::skipped)
-    .def("__repr__", [](org::sem::ErrorSkipGroup const& _self) -> std::string {
+    .def_rw("skipped", &org::sem::ErrorSkipGroup /* d_org */::skipped)
+    .def("__repr__", [](org::sem::ErrorSkipGroup const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ErrorSkipGroup const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ErrorSkipGroup const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Markup, org::sem::Org>(m, "Markup")
+  nanobind::class_<org::sem::Markup /* d_org */, org::sem::Org>(m, "Markup")
     ;
-  nanobind::class_<org::sem::RadioTarget, org::sem::Org>(m, "RadioTarget")
+  nanobind::class_<org::sem::RadioTarget /* d_org */, org::sem::Org>(m, "RadioTarget")
     .def("__init__",
-         [](org::sem::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::RadioTarget();
+         [](org::sem::RadioTarget* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::RadioTarget /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("words", &org::sem::RadioTarget::words)
-    .def("__repr__", [](org::sem::RadioTarget const& _self) -> std::string {
+    .def_rw("words", &org::sem::RadioTarget /* d_org */::words)
+    .def("__repr__", [](org::sem::RadioTarget const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::RadioTarget const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::RadioTarget const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Latex, org::sem::Org>(m, "Latex")
+  nanobind::class_<org::sem::Latex /* d_org */, org::sem::Org>(m, "Latex")
     .def("__init__",
-         [](org::sem::Latex* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Latex();
+         [](org::sem::Latex* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Latex /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Latex const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Latex const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Latex const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Latex const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::SubtreeLog, org::sem::Org>(m, "SubtreeLog")
+  nanobind::class_<org::sem::SubtreeLog /* d_org */, org::sem::Org>(m, "SubtreeLog")
     .def("__init__",
-         [](org::sem::SubtreeLog* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLog();
+         [](org::sem::SubtreeLog* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::SubtreeLog /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("head", &org::sem::SubtreeLog::head)
-    .def_rw("desc", &org::sem::SubtreeLog::desc, R"RAW(Optional description of the log entry)RAW")
+    .def_rw("head", &org::sem::SubtreeLog /* d_org */::head)
+    .def_rw("desc", &org::sem::SubtreeLog /* d_org */::desc, R"RAW(Optional description of the log entry)RAW")
     .def("setDescription",
-         static_cast<void(org::sem::SubtreeLog::*)(org::sem::SemId<org::sem::StmtList>)>(&org::sem::SubtreeLog::setDescription),
+         static_cast<void(org::sem::SubtreeLog /* d_org */::*)(org::sem::SemId<org::sem::StmtList>)>(&org::sem::SubtreeLog /* d_org */::setDescription),
          nanobind::arg("desc"))
-    .def("__repr__", [](org::sem::SubtreeLog const& _self) -> std::string {
+    .def("__repr__", [](org::sem::SubtreeLog const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::SubtreeLog const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::SubtreeLog const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Subtree, org::sem::Org>(m, "Subtree")
+  nanobind::class_<org::sem::Subtree /* d_org */, org::sem::Org>(m, "Subtree")
     .def("__init__",
-         [](org::sem::Subtree* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Subtree();
+         [](org::sem::Subtree* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Subtree /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("level", &org::sem::Subtree::level, R"RAW(Subtree level)RAW")
-    .def_rw("treeId", &org::sem::Subtree::treeId, R"RAW(:ID: property)RAW")
-    .def_rw("todo", &org::sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
-    .def_rw("completion", &org::sem::Subtree::completion, R"RAW(Task completion state)RAW")
-    .def_rw("description", &org::sem::Subtree::description)
-    .def_rw("tags", &org::sem::Subtree::tags, R"RAW(Trailing tags)RAW")
-    .def_rw("title", &org::sem::Subtree::title, R"RAW(Main title)RAW")
-    .def_rw("logbook", &org::sem::Subtree::logbook, R"RAW(Associated subtree log)RAW")
-    .def_rw("properties", &org::sem::Subtree::properties, R"RAW(Immediate properties)RAW")
-    .def_rw("closed", &org::sem::Subtree::closed, R"RAW(When subtree was marked as closed)RAW")
-    .def_rw("deadline", &org::sem::Subtree::deadline, R"RAW(When is the deadline)RAW")
-    .def_rw("scheduled", &org::sem::Subtree::scheduled, R"RAW(When the event is scheduled)RAW")
-    .def_rw("isComment", &org::sem::Subtree::isComment, R"RAW(Subtree is annotated with the COMMENT keyword)RAW")
-    .def_rw("isArchived", &org::sem::Subtree::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
-    .def_rw("priority", &org::sem::Subtree::priority)
+    .def_rw("level", &org::sem::Subtree /* d_org */::level, R"RAW(Subtree level)RAW")
+    .def_rw("treeId", &org::sem::Subtree /* d_org */::treeId, R"RAW(:ID: property)RAW")
+    .def_rw("todo", &org::sem::Subtree /* d_org */::todo, R"RAW(Todo state of the tree)RAW")
+    .def_rw("completion", &org::sem::Subtree /* d_org */::completion, R"RAW(Task completion state)RAW")
+    .def_rw("description", &org::sem::Subtree /* d_org */::description)
+    .def_rw("tags", &org::sem::Subtree /* d_org */::tags, R"RAW(Trailing tags)RAW")
+    .def_rw("title", &org::sem::Subtree /* d_org */::title, R"RAW(Main title)RAW")
+    .def_rw("logbook", &org::sem::Subtree /* d_org */::logbook, R"RAW(Associated subtree log)RAW")
+    .def_rw("properties", &org::sem::Subtree /* d_org */::properties, R"RAW(Immediate properties)RAW")
+    .def_rw("closed", &org::sem::Subtree /* d_org */::closed, R"RAW(When subtree was marked as closed)RAW")
+    .def_rw("deadline", &org::sem::Subtree /* d_org */::deadline, R"RAW(When is the deadline)RAW")
+    .def_rw("scheduled", &org::sem::Subtree /* d_org */::scheduled, R"RAW(When the event is scheduled)RAW")
+    .def_rw("isComment", &org::sem::Subtree /* d_org */::isComment, R"RAW(Subtree is annotated with the COMMENT keyword)RAW")
+    .def_rw("isArchived", &org::sem::Subtree /* d_org */::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
+    .def_rw("priority", &org::sem::Subtree /* d_org */::priority)
     .def("getTimePeriods",
-         static_cast<hstd::Vec<org::sem::SubtreePeriod>(org::sem::Subtree::*)(hstd::IntSet<org::sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods),
+         static_cast<hstd::Vec<org::sem::SubtreePeriod>(org::sem::Subtree /* d_org */::*)(hstd::IntSet<org::sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree /* d_org */::getTimePeriods),
          nanobind::arg("kinds"))
     .def("getProperties",
-         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperties),
+         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Subtree /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree /* d_org */::getProperties),
          nanobind::arg("kind"),
          nanobind::arg("subkind") = std::nullopt)
     .def("getProperty",
-         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperty),
+         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Subtree /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree /* d_org */::getProperty),
          nanobind::arg("kind"),
          nanobind::arg("subkind") = std::nullopt)
     .def("removeProperty",
-         static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::removeProperty),
+         static_cast<void(org::sem::Subtree /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree /* d_org */::removeProperty),
          nanobind::arg("kind"),
          nanobind::arg("subkind") = std::nullopt,
          R"RAW(Remove all instances of the property with matching kind/subkind from the property list)RAW")
     .def("setProperty",
-         static_cast<void(org::sem::Subtree::*)(org::sem::NamedProperty const&)>(&org::sem::Subtree::setProperty),
+         static_cast<void(org::sem::Subtree /* d_org */::*)(org::sem::NamedProperty const&)>(&org::sem::Subtree /* d_org */::setProperty),
          nanobind::arg("value"),
          R"RAW(Create or override existing property value in the subtree property list)RAW")
     .def("setPropertyStrValue",
-         static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::setPropertyStrValue),
+         static_cast<void(org::sem::Subtree /* d_org */::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree /* d_org */::setPropertyStrValue),
          nanobind::arg("value"),
          nanobind::arg("kind"),
          nanobind::arg("subkind") = std::nullopt,
          R"RAW(Assign a raw string literal to a property.)RAW")
-    .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
-    .def("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword))
-    .def("__repr__", [](org::sem::Subtree const& _self) -> std::string {
+    .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree /* d_org */::*)() const>(&org::sem::Subtree /* d_org */::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
+    .def("getTodoKeyword", static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree /* d_org */::*)() const>(&org::sem::Subtree /* d_org */::getTodoKeyword))
+    .def("__repr__", [](org::sem::Subtree const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Subtree const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Subtree const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ColonExample, org::sem::Org>(m, "ColonExample")
+  nanobind::class_<org::sem::ColonExample /* d_org */, org::sem::Org>(m, "ColonExample")
     .def("__init__",
-         [](org::sem::ColonExample* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColonExample();
+         [](org::sem::ColonExample* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ColonExample /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::ColonExample const& _self) -> std::string {
+    .def("__repr__", [](org::sem::ColonExample const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ColonExample const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ColonExample const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Call, org::sem::Org>(m, "Call")
+  nanobind::class_<org::sem::Call /* d_org */, org::sem::Org>(m, "Call")
     .def("__init__",
-         [](org::sem::Call* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Call();
+         [](org::sem::Call* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Call /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::Call::name, R"RAW(Call target name)RAW")
-    .def_rw("attrs", &org::sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter')RAW")
-    .def_rw("isCommand", &org::sem::Call::isCommand)
-    .def("__repr__", [](org::sem::Call const& _self) -> std::string {
+    .def_rw("name", &org::sem::Call /* d_org */::name, R"RAW(Call target name)RAW")
+    .def_rw("attrs", &org::sem::Call /* d_org */::attrs, R"RAW(Additional parameters aside from 'exporter')RAW")
+    .def_rw("isCommand", &org::sem::Call /* d_org */::isCommand)
+    .def("__repr__", [](org::sem::Call const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Call const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Call const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ListItem, org::sem::Org>(m, "ListItem")
+  nanobind::class_<org::sem::ListItem /* d_org */, org::sem::Org>(m, "ListItem")
     .def("__init__",
-         [](org::sem::ListItem* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ListItem();
+         [](org::sem::ListItem* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ListItem /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("checkbox", &org::sem::ListItem::checkbox)
-    .def_rw("header", &org::sem::ListItem::header, R"RAW(Description list item header)RAW")
-    .def_rw("bullet", &org::sem::ListItem::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
-    .def("isDescriptionItem", static_cast<bool(org::sem::ListItem::*)() const>(&org::sem::ListItem::isDescriptionItem))
-    .def("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader), R"RAW(Return flat text for the description list header)RAW")
-    .def("__repr__", [](org::sem::ListItem const& _self) -> std::string {
+    .def_rw("checkbox", &org::sem::ListItem /* d_org */::checkbox)
+    .def_rw("header", &org::sem::ListItem /* d_org */::header, R"RAW(Description list item header)RAW")
+    .def_rw("bullet", &org::sem::ListItem /* d_org */::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
+    .def("isDescriptionItem", static_cast<bool(org::sem::ListItem /* d_org */::*)() const>(&org::sem::ListItem /* d_org */::isDescriptionItem))
+    .def("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem /* d_org */::*)() const>(&org::sem::ListItem /* d_org */::getCleanHeader), R"RAW(Return flat text for the description list header)RAW")
+    .def("__repr__", [](org::sem::ListItem const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ListItem const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ListItem const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::DocumentOptions, org::sem::Org>(m, "DocumentOptions")
+  nanobind::class_<org::sem::DocumentOptions /* d_org */, org::sem::Org>(m, "DocumentOptions")
     .def("__init__",
-         [](org::sem::DocumentOptions* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentOptions();
+         [](org::sem::DocumentOptions* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::DocumentOptions /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
-    .def_rw("properties", &org::sem::DocumentOptions::properties)
-    .def_rw("exportConfig", &org::sem::DocumentOptions::exportConfig)
-    .def_rw("fixedWidthSections", &org::sem::DocumentOptions::fixedWidthSections)
-    .def_rw("startupIndented", &org::sem::DocumentOptions::startupIndented)
-    .def_rw("category", &org::sem::DocumentOptions::category)
-    .def_rw("setupfile", &org::sem::DocumentOptions::setupfile)
-    .def_rw("maxSubtreeLevelExport", &org::sem::DocumentOptions::maxSubtreeLevelExport)
-    .def_rw("columns", &org::sem::DocumentOptions::columns)
-    .def_rw("todoKeywords", &org::sem::DocumentOptions::todoKeywords)
-    .def_rw("doneKeywords", &org::sem::DocumentOptions::doneKeywords)
+    .def_rw("initialVisibility", &org::sem::DocumentOptions /* d_org */::initialVisibility)
+    .def_rw("properties", &org::sem::DocumentOptions /* d_org */::properties)
+    .def_rw("exportConfig", &org::sem::DocumentOptions /* d_org */::exportConfig)
+    .def_rw("fixedWidthSections", &org::sem::DocumentOptions /* d_org */::fixedWidthSections)
+    .def_rw("startupIndented", &org::sem::DocumentOptions /* d_org */::startupIndented)
+    .def_rw("category", &org::sem::DocumentOptions /* d_org */::category)
+    .def_rw("setupfile", &org::sem::DocumentOptions /* d_org */::setupfile)
+    .def_rw("maxSubtreeLevelExport", &org::sem::DocumentOptions /* d_org */::maxSubtreeLevelExport)
+    .def_rw("columns", &org::sem::DocumentOptions /* d_org */::columns)
+    .def_rw("todoKeywords", &org::sem::DocumentOptions /* d_org */::todoKeywords)
+    .def_rw("doneKeywords", &org::sem::DocumentOptions /* d_org */::doneKeywords)
     .def("getProperties",
-         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties),
+         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions /* d_org */::getProperties),
          nanobind::arg("kind"),
          nanobind::arg("subKind") = std::nullopt)
     .def("getProperty",
-         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty),
+         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions /* d_org */::getProperty),
          nanobind::arg("kind"),
          nanobind::arg("subKind") = std::nullopt)
-    .def("__repr__", [](org::sem::DocumentOptions const& _self) -> std::string {
+    .def("__repr__", [](org::sem::DocumentOptions const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::DocumentOptions const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::DocumentOptions const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::DocumentFragment, org::sem::Org>(m, "DocumentFragment")
+  nanobind::class_<org::sem::DocumentFragment /* d_org */, org::sem::Org>(m, "DocumentFragment")
     .def("__init__",
-         [](org::sem::DocumentFragment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentFragment();
+         [](org::sem::DocumentFragment* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::DocumentFragment /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("baseLine", &org::sem::DocumentFragment::baseLine)
-    .def_rw("baseCol", &org::sem::DocumentFragment::baseCol)
-    .def("__repr__", [](org::sem::DocumentFragment const& _self) -> std::string {
+    .def_rw("baseLine", &org::sem::DocumentFragment /* d_org */::baseLine)
+    .def_rw("baseCol", &org::sem::DocumentFragment /* d_org */::baseCol)
+    .def("__repr__", [](org::sem::DocumentFragment const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::DocumentFragment const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::DocumentFragment const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -5569,105 +5557,105 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::sem::CriticMarkup, org::sem::Org>(m, "CriticMarkup")
+  nanobind::class_<org::sem::CriticMarkup /* d_org */, org::sem::Org>(m, "CriticMarkup")
     .def("__init__",
-         [](org::sem::CriticMarkup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CriticMarkup();
+         [](org::sem::CriticMarkup* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CriticMarkup /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("kind", &org::sem::CriticMarkup::kind)
-    .def("__repr__", [](org::sem::CriticMarkup const& _self) -> std::string {
+    .def_rw("kind", &org::sem::CriticMarkup /* d_org */::kind)
+    .def("__repr__", [](org::sem::CriticMarkup const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CriticMarkup const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CriticMarkup const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Document, org::sem::Org>(m, "Document")
+  nanobind::class_<org::sem::Document /* d_org */, org::sem::Org>(m, "Document")
     .def("__init__",
-         [](org::sem::Document* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Document();
+         [](org::sem::Document* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Document /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("title", &org::sem::Document::title)
-    .def_rw("author", &org::sem::Document::author)
-    .def_rw("creator", &org::sem::Document::creator)
-    .def_rw("filetags", &org::sem::Document::filetags)
-    .def_rw("email", &org::sem::Document::email)
-    .def_rw("language", &org::sem::Document::language)
-    .def_rw("options", &org::sem::Document::options)
-    .def_rw("exportFileName", &org::sem::Document::exportFileName)
+    .def_rw("title", &org::sem::Document /* d_org */::title)
+    .def_rw("author", &org::sem::Document /* d_org */::author)
+    .def_rw("creator", &org::sem::Document /* d_org */::creator)
+    .def_rw("filetags", &org::sem::Document /* d_org */::filetags)
+    .def_rw("email", &org::sem::Document /* d_org */::email)
+    .def_rw("language", &org::sem::Document /* d_org */::language)
+    .def_rw("options", &org::sem::Document /* d_org */::options)
+    .def_rw("exportFileName", &org::sem::Document /* d_org */::exportFileName)
     .def("getProperties",
-         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperties),
+         static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Document /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document /* d_org */::getProperties),
          nanobind::arg("kind"),
          nanobind::arg("subKind") = std::nullopt)
     .def("getProperty",
-         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperty),
+         static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Document /* d_org */::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document /* d_org */::getProperty),
          nanobind::arg("kind"),
          nanobind::arg("subKind") = std::nullopt)
-    .def("__repr__", [](org::sem::Document const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Document const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Document const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Document const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::FileTarget, org::sem::Org>(m, "FileTarget")
+  nanobind::class_<org::sem::FileTarget /* d_org */, org::sem::Org>(m, "FileTarget")
     .def("__init__",
-         [](org::sem::FileTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::FileTarget();
+         [](org::sem::FileTarget* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::FileTarget /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("path", &org::sem::FileTarget::path)
-    .def_rw("line", &org::sem::FileTarget::line)
-    .def_rw("searchTarget", &org::sem::FileTarget::searchTarget)
-    .def_rw("restrictToHeadlines", &org::sem::FileTarget::restrictToHeadlines)
-    .def_rw("targetId", &org::sem::FileTarget::targetId)
-    .def_rw("regexp", &org::sem::FileTarget::regexp)
-    .def("__repr__", [](org::sem::FileTarget const& _self) -> std::string {
+    .def_rw("path", &org::sem::FileTarget /* d_org */::path)
+    .def_rw("line", &org::sem::FileTarget /* d_org */::line)
+    .def_rw("searchTarget", &org::sem::FileTarget /* d_org */::searchTarget)
+    .def_rw("restrictToHeadlines", &org::sem::FileTarget /* d_org */::restrictToHeadlines)
+    .def_rw("targetId", &org::sem::FileTarget /* d_org */::targetId)
+    .def_rw("regexp", &org::sem::FileTarget /* d_org */::regexp)
+    .def("__repr__", [](org::sem::FileTarget const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::FileTarget const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::FileTarget const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::TextSeparator, org::sem::Org>(m, "TextSeparator")
+  nanobind::class_<org::sem::TextSeparator /* d_org */, org::sem::Org>(m, "TextSeparator")
     .def("__init__",
-         [](org::sem::TextSeparator* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TextSeparator();
+         [](org::sem::TextSeparator* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::TextSeparator /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::TextSeparator const& _self) -> std::string {
+    .def("__repr__", [](org::sem::TextSeparator const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::TextSeparator const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::TextSeparator const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::DocumentGroup, org::sem::Org>(m, "DocumentGroup")
+  nanobind::class_<org::sem::DocumentGroup /* d_org */, org::sem::Org>(m, "DocumentGroup")
     .def("__init__",
-         [](org::sem::DocumentGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentGroup();
+         [](org::sem::DocumentGroup* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::DocumentGroup /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::DocumentGroup const& _self) -> std::string {
+    .def("__repr__", [](org::sem::DocumentGroup const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::DocumentGroup const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::DocumentGroup const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -5744,70 +5732,69 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::sem::File, org::sem::Org>(m, "File")
+  nanobind::class_<org::sem::File /* d_org */, org::sem::Org>(m, "File")
     .def("__init__",
-         [](org::sem::File* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::File();
+         [](org::sem::File* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::File /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("relPath", &org::sem::File::relPath, R"RAW(Relative path from the root directory)RAW")
-    .def_rw("absPath", &org::sem::File::absPath, R"RAW(Absolute resolved path to physical file)RAW")
-    .def_rw("data", &org::sem::File::data)
-    .def("isDocument", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isDocument))
-    .def("getDocument", static_cast<org::sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocument))
-    .def("isAttachment", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isAttachment))
-    .def("getAttachment", static_cast<org::sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachment))
-    .def("isSource", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isSource))
-    .def("getSource", static_cast<org::sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSource))
+    .def_rw("relPath", &org::sem::File /* d_org */::relPath, R"RAW(Relative path from the root directory)RAW")
+    .def_rw("absPath", &org::sem::File /* d_org */::absPath, R"RAW(Absolute resolved path to physical file)RAW")
+    .def("isDocument", static_cast<bool(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::isDocument))
+    .def("getDocument", static_cast<org::sem::File::Document&(org::sem::File /* d_org */::*)()>(&org::sem::File /* d_org */::getDocument))
+    .def("isAttachment", static_cast<bool(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::isAttachment))
+    .def("getAttachment", static_cast<org::sem::File::Attachment&(org::sem::File /* d_org */::*)()>(&org::sem::File /* d_org */::getAttachment))
+    .def("isSource", static_cast<bool(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::isSource))
+    .def("getSource", static_cast<org::sem::File::Source&(org::sem::File /* d_org */::*)()>(&org::sem::File /* d_org */::getSource))
     .def_static("getFileKindStatic",
-                static_cast<org::sem::File::Kind(*)(org::sem::File::Data const&)>(&org::sem::File::getFileKind),
+                static_cast<org::sem::File::Kind(*)(org::sem::File::Data const&)>(&org::sem::File /* d_org */::getFileKind),
                 nanobind::arg("__input"))
-    .def("getFileKind", static_cast<org::sem::File::Kind(org::sem::File::*)() const>(&org::sem::File::getFileKind))
-    .def("sub_variant_get_name", static_cast<char const*(org::sem::File::*)() const>(&org::sem::File::sub_variant_get_name))
-    .def("sub_variant_get_data", static_cast<org::sem::File::Data const&(org::sem::File::*)() const>(&org::sem::File::sub_variant_get_data))
-    .def("sub_variant_get_kind", static_cast<org::sem::File::Kind(org::sem::File::*)() const>(&org::sem::File::sub_variant_get_kind))
-    .def("__repr__", [](org::sem::File const& _self) -> std::string {
+    .def("getFileKind", static_cast<org::sem::File::Kind(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::getFileKind))
+    .def("sub_variant_get_name", static_cast<char const*(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::sub_variant_get_name))
+    .def("sub_variant_get_data", static_cast<org::sem::File::Data const&(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::sub_variant_get_data))
+    .def("sub_variant_get_kind", static_cast<org::sem::File::Kind(org::sem::File /* d_org */::*)() const>(&org::sem::File /* d_org */::sub_variant_get_kind))
+    .def("__repr__", [](org::sem::File const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::File const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::File const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Directory, org::sem::Org>(m, "Directory")
+  nanobind::class_<org::sem::Directory /* d_org */, org::sem::Org>(m, "Directory")
     .def("__init__",
-         [](org::sem::Directory* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Directory();
+         [](org::sem::Directory* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Directory /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("relPath", &org::sem::Directory::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
-    .def_rw("absPath", &org::sem::Directory::absPath, R"RAW(Absolute resolved path to physical directory)RAW")
-    .def("__repr__", [](org::sem::Directory const& _self) -> std::string {
+    .def_rw("relPath", &org::sem::Directory /* d_org */::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
+    .def_rw("absPath", &org::sem::Directory /* d_org */::absPath, R"RAW(Absolute resolved path to physical directory)RAW")
+    .def("__repr__", [](org::sem::Directory const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Directory const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Directory const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Symlink, org::sem::Org>(m, "Symlink")
+  nanobind::class_<org::sem::Symlink /* d_org */, org::sem::Org>(m, "Symlink")
     .def("__init__",
-         [](org::sem::Symlink* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Symlink();
+         [](org::sem::Symlink* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Symlink /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("isDirectory", &org::sem::Symlink::isDirectory)
-    .def_rw("absPath", &org::sem::Symlink::absPath, R"RAW(Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.)RAW")
-    .def("__repr__", [](org::sem::Symlink const& _self) -> std::string {
+    .def_rw("isDirectory", &org::sem::Symlink /* d_org */::isDirectory)
+    .def_rw("absPath", &org::sem::Symlink /* d_org */::absPath, R"RAW(Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.)RAW")
+    .def("__repr__", [](org::sem::Symlink const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Symlink const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Symlink const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -5947,1306 +5934,1305 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::sem::CmdInclude, org::sem::Org>(m, "CmdInclude")
+  nanobind::class_<org::sem::CmdInclude /* d_org */, org::sem::Org>(m, "CmdInclude")
     .def("__init__",
-         [](org::sem::CmdInclude* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude();
+         [](org::sem::CmdInclude* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdInclude /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("path", &org::sem::CmdInclude::path, R"RAW(Path to include)RAW")
-    .def_rw("firstLine", &org::sem::CmdInclude::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
-    .def_rw("lastLine", &org::sem::CmdInclude::lastLine, R"RAW(0-based index of the last line to include)RAW")
-    .def_rw("data", &org::sem::CmdInclude::data)
-    .def("isExample", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExample))
-    .def("getExample", static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExample))
-    .def("isExport", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExport))
-    .def("getExport", static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExport))
-    .def("isCustom", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isCustom))
-    .def("getCustom", static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustom))
-    .def("isSrc", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isSrc))
-    .def("getSrc", static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrc))
-    .def("isOrgDocument", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isOrgDocument))
-    .def("getOrgDocument", static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocument))
+    .def_rw("path", &org::sem::CmdInclude /* d_org */::path, R"RAW(Path to include)RAW")
+    .def_rw("firstLine", &org::sem::CmdInclude /* d_org */::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
+    .def_rw("lastLine", &org::sem::CmdInclude /* d_org */::lastLine, R"RAW(0-based index of the last line to include)RAW")
+    .def("isExample", static_cast<bool(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::isExample))
+    .def("getExample", static_cast<org::sem::CmdInclude::Example&(org::sem::CmdInclude /* d_org */::*)()>(&org::sem::CmdInclude /* d_org */::getExample))
+    .def("isExport", static_cast<bool(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::isExport))
+    .def("getExport", static_cast<org::sem::CmdInclude::Export&(org::sem::CmdInclude /* d_org */::*)()>(&org::sem::CmdInclude /* d_org */::getExport))
+    .def("isCustom", static_cast<bool(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::isCustom))
+    .def("getCustom", static_cast<org::sem::CmdInclude::Custom&(org::sem::CmdInclude /* d_org */::*)()>(&org::sem::CmdInclude /* d_org */::getCustom))
+    .def("isSrc", static_cast<bool(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::isSrc))
+    .def("getSrc", static_cast<org::sem::CmdInclude::Src&(org::sem::CmdInclude /* d_org */::*)()>(&org::sem::CmdInclude /* d_org */::getSrc))
+    .def("isOrgDocument", static_cast<bool(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::isOrgDocument))
+    .def("getOrgDocument", static_cast<org::sem::CmdInclude::OrgDocument&(org::sem::CmdInclude /* d_org */::*)()>(&org::sem::CmdInclude /* d_org */::getOrgDocument))
     .def_static("getIncludeKindStatic",
-                static_cast<org::sem::CmdInclude::Kind(*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKind),
+                static_cast<org::sem::CmdInclude::Kind(*)(org::sem::CmdInclude::Data const&)>(&org::sem::CmdInclude /* d_org */::getIncludeKind),
                 nanobind::arg("__input"))
-    .def("getIncludeKind", static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getIncludeKind))
-    .def("sub_variant_get_name", static_cast<char const*(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::sub_variant_get_name))
-    .def("sub_variant_get_data", static_cast<org::sem::CmdInclude::Data const&(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::sub_variant_get_data))
-    .def("sub_variant_get_kind", static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::sub_variant_get_kind))
-    .def("__repr__", [](org::sem::CmdInclude const& _self) -> std::string {
+    .def("getIncludeKind", static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::getIncludeKind))
+    .def("sub_variant_get_name", static_cast<char const*(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::sub_variant_get_name))
+    .def("sub_variant_get_data", static_cast<org::sem::CmdInclude::Data const&(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::sub_variant_get_data))
+    .def("sub_variant_get_kind", static_cast<org::sem::CmdInclude::Kind(org::sem::CmdInclude /* d_org */::*)() const>(&org::sem::CmdInclude /* d_org */::sub_variant_get_kind))
+    .def("__repr__", [](org::sem::CmdInclude const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdInclude const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdInclude const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, org::imm::ImmId>(m, "ImmIdTNoNode")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNoNode /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTNoNode")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorItem /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTErrorItem")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorGroup>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorGroup /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmt>, org::imm::ImmId>(m, "ImmIdTStmt")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmt /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTStmt")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInline>, org::imm::ImmId>(m, "ImmIdTInline")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInline /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTInline")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmtList>, org::imm::ImmId>(m, "ImmIdTStmtList")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmtList /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTStmtList")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEmpty>, org::imm::ImmId>(m, "ImmIdTEmpty")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEmpty /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTEmpty")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmd>, org::imm::ImmId>(m, "ImmIdTCmd")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmd /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmd")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlock>, org::imm::ImmId>(m, "ImmIdTBlock")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlock /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlock")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLineCommand>, org::imm::ImmId>(m, "ImmIdTLineCommand")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLineCommand /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTLineCommand")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAttached>, org::imm::ImmId>(m, "ImmIdTAttached")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAttached /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTAttached")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLeaf>, org::imm::ImmId>(m, "ImmIdTLeaf")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLeaf /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTLeaf")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCaption /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCreator>, org::imm::ImmId>(m, "ImmIdTCmdCreator")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCreator /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCreator")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdName /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdName")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomText>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomText /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCall>, org::imm::ImmId>(m, "ImmIdTCmdCall")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCall /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdCall")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdTblfm>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdTblfm /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmHashTag>, org::imm::ImmId>(m, "ImmIdTHashTag")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmHashTag /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTHashTag")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineFootnote>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineFootnote /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineExport>, org::imm::ImmId>(m, "ImmIdTInlineExport")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineExport /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTInlineExport")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTime>, org::imm::ImmId>(m, "ImmIdTTime")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTime /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTTime")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTimeRange>, org::imm::ImmId>(m, "ImmIdTTimeRange")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTimeRange /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTTimeRange")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMacro>, org::imm::ImmId>(m, "ImmIdTMacro")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMacro /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTMacro")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymbol>, org::imm::ImmId>(m, "ImmIdTSymbol")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymbol /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTSymbol")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEscaped>, org::imm::ImmId>(m, "ImmIdTEscaped")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEscaped /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTEscaped")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNewline>, org::imm::ImmId>(m, "ImmIdTNewline")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNewline /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTNewline")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSpace>, org::imm::ImmId>(m, "ImmIdTSpace")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSpace /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTSpace")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmWord>, org::imm::ImmId>(m, "ImmIdTWord")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmWord /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTWord")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAtMention>, org::imm::ImmId>(m, "ImmIdTAtMention")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAtMention /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTAtMention")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRawText>, org::imm::ImmId>(m, "ImmIdTRawText")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRawText /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTRawText")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPunctuation>, org::imm::ImmId>(m, "ImmIdTPunctuation")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPunctuation /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTPunctuation")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPlaceholder>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPlaceholder /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBigIdent /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBigIdent")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextTarget /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTTextTarget")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkup>, org::imm::ImmId>(m, "ImmIdTMarkup")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkup /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTMarkup")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBold>, org::imm::ImmId>(m, "ImmIdTBold")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBold /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBold")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmUnderline>, org::imm::ImmId>(m, "ImmIdTUnderline")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmUnderline /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTUnderline")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMonospace>, org::imm::ImmId>(m, "ImmIdTMonospace")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMonospace /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTMonospace")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkQuote>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkQuote /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmVerbatim>, org::imm::ImmId>(m, "ImmIdTVerbatim")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmVerbatim /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTVerbatim")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmItalic>, org::imm::ImmId>(m, "ImmIdTItalic")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmItalic /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTItalic")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStrike>, org::imm::ImmId>(m, "ImmIdTStrike")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStrike /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTStrike")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPar>, org::imm::ImmId>(m, "ImmIdTPar")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPar /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTPar")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRadioTarget>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRadioTarget /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLatex>, org::imm::ImmId>(m, "ImmIdTLatex")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLatex /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTLatex")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLink>, org::imm::ImmId>(m, "ImmIdTLink")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLink /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTLink")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCenter>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCenter /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockQuote>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockQuote /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockComment>, org::imm::ImmId>(m, "ImmIdTBlockComment")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockComment /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockComment")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockVerse>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockVerse /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExample>, org::imm::ImmId>(m, "ImmIdTBlockExample")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExample /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockExample")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExport>, org::imm::ImmId>(m, "ImmIdTBlockExport")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExport /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockExport")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockAdmonition /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCode>, org::imm::ImmId>(m, "ImmIdTBlockCode")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCode /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTBlockCode")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtreeLog>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtree>, org::imm::ImmId>(m, "ImmIdTSubtree")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtree /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTSubtree")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCell>, org::imm::ImmId>(m, "ImmIdTCell")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCell /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCell")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRow>, org::imm::ImmId>(m, "ImmIdTRow")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRow /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTRow")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTable>, org::imm::ImmId>(m, "ImmIdTTable")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTable /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTTable")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, org::imm::ImmId>(m, "ImmIdTParagraph")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmParagraph /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTParagraph")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, org::imm::ImmId>(m, "ImmIdTColonExample")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmColonExample /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTColonExample")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAttr>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAttr /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdExport>, org::imm::ImmId>(m, "ImmIdTCmdExport")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdExport /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdExport")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCall>, org::imm::ImmId>(m, "ImmIdTCall")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCall /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCall")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmList>, org::imm::ImmId>(m, "ImmIdTList")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmList /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTList")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmListItem>, org::imm::ImmId>(m, "ImmIdTListItem")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmListItem /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTListItem")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentOptions>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentOptions /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentFragment>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentFragment /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocument>, org::imm::ImmId>(m, "ImmIdTDocument")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocument /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTDocument")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFileTarget>, org::imm::ImmId>(m, "ImmIdTFileTarget")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFileTarget /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTFileTarget")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentGroup>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentGroup /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFile>, org::imm::ImmId>(m, "ImmIdTFile")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFile /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTFile")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDirectory>, org::imm::ImmId>(m, "ImmIdTDirectory")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDirectory /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTDirectory")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymlink>, org::imm::ImmId>(m, "ImmIdTSymlink")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymlink /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTSymlink")
     ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude /* d_orgimm_write */>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
     ;
-  nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
+  nanobind::class_<org::imm::ImmTime::Repeat /* imm_write */>(m, "ImmTimeRepeat")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Repeat();
+         [](org::imm::ImmTime::Repeat* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmTime::Repeat /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("mode", &org::imm::ImmTime::Repeat::mode, R"RAW(mode)RAW")
-    .def_rw("period", &org::imm::ImmTime::Repeat::period, R"RAW(period)RAW")
-    .def_rw("count", &org::imm::ImmTime::Repeat::count, R"RAW(count)RAW")
+    .def_rw("mode", &org::imm::ImmTime::Repeat /* imm_write */::mode, R"RAW(mode)RAW")
+    .def_rw("period", &org::imm::ImmTime::Repeat /* imm_write */::period, R"RAW(period)RAW")
+    .def_rw("count", &org::imm::ImmTime::Repeat /* imm_write */::count, R"RAW(count)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmTime::Repeat::*)(org::imm::ImmTime::Repeat const&) const>(&org::imm::ImmTime::Repeat::operator==),
+         static_cast<bool(org::imm::ImmTime::Repeat /* imm_write */::*)(org::imm::ImmTime::Repeat const& /* imm_write */) const>(&org::imm::ImmTime::Repeat /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmTime::Repeat const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmTime::Repeat const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmTime::Repeat const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmTime::Repeat const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmTime::Static>(m, "ImmTimeStatic")
+  nanobind::class_<org::imm::ImmTime::Static /* imm_write */>(m, "ImmTimeStatic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Static* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Static();
+         [](org::imm::ImmTime::Static* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmTime::Static /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("repeat", &org::imm::ImmTime::Static::repeat)
-    .def_rw("warn", &org::imm::ImmTime::Static::warn)
-    .def_rw("time", &org::imm::ImmTime::Static::time)
+    .def_rw("repeat", &org::imm::ImmTime::Static /* imm_write */::repeat)
+    .def_rw("warn", &org::imm::ImmTime::Static /* imm_write */::warn)
+    .def_rw("time", &org::imm::ImmTime::Static /* imm_write */::time)
     .def("__eq__",
-         static_cast<bool(org::imm::ImmTime::Static::*)(org::imm::ImmTime::Static const&) const>(&org::imm::ImmTime::Static::operator==),
+         static_cast<bool(org::imm::ImmTime::Static /* imm_write */::*)(org::imm::ImmTime::Static const& /* imm_write */) const>(&org::imm::ImmTime::Static /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmTime::Static const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmTime::Static const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmTime::Static const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmTime::Static const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmTime::Dynamic>(m, "ImmTimeDynamic")
+  nanobind::class_<org::imm::ImmTime::Dynamic /* imm_write */>(m, "ImmTimeDynamic")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmTime::Dynamic* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Dynamic();
+         [](org::imm::ImmTime::Dynamic* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmTime::Dynamic /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("expr", &org::imm::ImmTime::Dynamic::expr)
+    .def_rw("expr", &org::imm::ImmTime::Dynamic /* imm_write */::expr)
     .def("__eq__",
-         static_cast<bool(org::imm::ImmTime::Dynamic::*)(org::imm::ImmTime::Dynamic const&) const>(&org::imm::ImmTime::Dynamic::operator==),
+         static_cast<bool(org::imm::ImmTime::Dynamic /* imm_write */::*)(org::imm::ImmTime::Dynamic const& /* imm_write */) const>(&org::imm::ImmTime::Dynamic /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmTime::Dynamic const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmTime::Dynamic const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmTime::Dynamic const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmTime::Dynamic const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  bind_enum_iterator<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmTime::TimeKind>(m, "ImmTimeTimeKind")
-    .value("Static", org::imm::ImmTime::TimeKind::Static)
-    .value("Dynamic", org::imm::ImmTime::TimeKind::Dynamic)
-    .def("__iter__", [](org::imm::ImmTime::TimeKind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind>();
+  bind_enum_iterator<org::imm::ImmTime::TimeKind /* imm_write */>(m, "ImmTimeTimeKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmTime::TimeKind /* imm_write */>(m, "ImmTimeTimeKind")
+    .value("Static", org::imm::ImmTime::TimeKind /* imm_write */::Static)
+    .value("Dynamic", org::imm::ImmTime::TimeKind /* imm_write */::Dynamic)
+    .def("__iter__", [](org::imm::ImmTime::TimeKind const& /* imm_write */ _self) -> org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind /* imm_write */> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmTime::TimeKind /* imm_write */>();
                      })
-    .def("__int__", [](org::imm::ImmTime::TimeKind const& _self) -> int {
+    .def("__int__", [](org::imm::ImmTime::TimeKind const& /* imm_write */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::imm::ImmTime::TimeKind const& _self) -> int {
+    .def("__index__", [](org::imm::ImmTime::TimeKind const& /* imm_write */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::imm::ImmTime::TimeKind lhs, org::imm::ImmTime::TimeKind rhs) -> bool {
+         [](org::imm::ImmTime::TimeKind /* imm_write */ lhs, org::imm::ImmTime::TimeKind /* imm_write */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmTime::TimeKind it) -> int {
+         [](org::imm::ImmTime::TimeKind /* imm_write */ it) -> int {
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
+  nanobind::class_<org::imm::ImmSymbol::Param /* imm_write */>(m, "ImmSymbolParam")
     .def("__init__",
-         [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmSymbol::Param();
+         [](org::imm::ImmSymbol::Param* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmSymbol::Param /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("key", &org::imm::ImmSymbol::Param::key, R"RAW(Key -- for non-positional)RAW")
-    .def_rw("value", &org::imm::ImmSymbol::Param::value, R"RAW(Uninterpreted value)RAW")
+    .def_rw("key", &org::imm::ImmSymbol::Param /* imm_write */::key, R"RAW(Key -- for non-positional)RAW")
+    .def_rw("value", &org::imm::ImmSymbol::Param /* imm_write */::value, R"RAW(Uninterpreted value)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmSymbol::Param::*)(org::imm::ImmSymbol::Param const&) const>(&org::imm::ImmSymbol::Param::operator==),
+         static_cast<bool(org::imm::ImmSymbol::Param /* imm_write */::*)(org::imm::ImmSymbol::Param const& /* imm_write */) const>(&org::imm::ImmSymbol::Param /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmSymbol::Param const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmSymbol::Param const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmSymbol::Param const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmSymbol::Param const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
+  nanobind::class_<org::imm::ImmFile::Document /* imm_write */>(m, "ImmFileDocument")
     .def("__init__",
-         [](org::imm::ImmFile::Document* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Document();
+         [](org::imm::ImmFile::Document* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmFile::Document /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("__eq__",
-         static_cast<bool(org::imm::ImmFile::Document::*)(org::imm::ImmFile::Document const&) const>(&org::imm::ImmFile::Document::operator==),
+         static_cast<bool(org::imm::ImmFile::Document /* imm_write */::*)(org::imm::ImmFile::Document const& /* imm_write */) const>(&org::imm::ImmFile::Document /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmFile::Document const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmFile::Document const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmFile::Document const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmFile::Document const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmFile::Attachment>(m, "ImmFileAttachment")
+  nanobind::class_<org::imm::ImmFile::Attachment /* imm_write */>(m, "ImmFileAttachment")
     .def("__init__",
-         [](org::imm::ImmFile::Attachment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Attachment();
+         [](org::imm::ImmFile::Attachment* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmFile::Attachment /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("__eq__",
-         static_cast<bool(org::imm::ImmFile::Attachment::*)(org::imm::ImmFile::Attachment const&) const>(&org::imm::ImmFile::Attachment::operator==),
+         static_cast<bool(org::imm::ImmFile::Attachment /* imm_write */::*)(org::imm::ImmFile::Attachment const& /* imm_write */) const>(&org::imm::ImmFile::Attachment /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmFile::Attachment const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmFile::Attachment const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmFile::Attachment const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmFile::Attachment const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmFile::Source>(m, "ImmFileSource")
+  nanobind::class_<org::imm::ImmFile::Source /* imm_write */>(m, "ImmFileSource")
     .def("__init__",
-         [](org::imm::ImmFile::Source* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Source();
+         [](org::imm::ImmFile::Source* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmFile::Source /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("__eq__",
-         static_cast<bool(org::imm::ImmFile::Source::*)(org::imm::ImmFile::Source const&) const>(&org::imm::ImmFile::Source::operator==),
+         static_cast<bool(org::imm::ImmFile::Source /* imm_write */::*)(org::imm::ImmFile::Source const& /* imm_write */) const>(&org::imm::ImmFile::Source /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmFile::Source const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmFile::Source const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmFile::Source const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmFile::Source const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  bind_enum_iterator<org::imm::ImmFile::Kind>(m, "ImmFileKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmFile::Kind>(m, "ImmFileKind")
-    .value("Document", org::imm::ImmFile::Kind::Document)
-    .value("Attachment", org::imm::ImmFile::Kind::Attachment)
-    .value("Source", org::imm::ImmFile::Kind::Source)
-    .def("__iter__", [](org::imm::ImmFile::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind>();
+  bind_enum_iterator<org::imm::ImmFile::Kind /* imm_write */>(m, "ImmFileKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmFile::Kind /* imm_write */>(m, "ImmFileKind")
+    .value("Document", org::imm::ImmFile::Kind /* imm_write */::Document)
+    .value("Attachment", org::imm::ImmFile::Kind /* imm_write */::Attachment)
+    .value("Source", org::imm::ImmFile::Kind /* imm_write */::Source)
+    .def("__iter__", [](org::imm::ImmFile::Kind const& /* imm_write */ _self) -> org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind /* imm_write */> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmFile::Kind /* imm_write */>();
                      })
-    .def("__int__", [](org::imm::ImmFile::Kind const& _self) -> int {
+    .def("__int__", [](org::imm::ImmFile::Kind const& /* imm_write */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::imm::ImmFile::Kind const& _self) -> int {
+    .def("__index__", [](org::imm::ImmFile::Kind const& /* imm_write */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::imm::ImmFile::Kind lhs, org::imm::ImmFile::Kind rhs) -> bool {
+         [](org::imm::ImmFile::Kind /* imm_write */ lhs, org::imm::ImmFile::Kind /* imm_write */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmFile::Kind it) -> int {
+         [](org::imm::ImmFile::Kind /* imm_write */ it) -> int {
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
+  nanobind::class_<org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeIncludeBase")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::IncludeBase();
+         [](org::imm::ImmCmdInclude::IncludeBase* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::IncludeBase /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::IncludeBase::*)(org::imm::ImmCmdInclude::IncludeBase const&) const>(&org::imm::ImmCmdInclude::IncludeBase::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::IncludeBase /* imm_write */::*)(org::imm::ImmCmdInclude::IncludeBase const& /* imm_write */) const>(&org::imm::ImmCmdInclude::IncludeBase /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::IncludeBase const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::IncludeBase const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::IncludeBase const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::IncludeBase const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExample")
+  nanobind::class_<org::imm::ImmCmdInclude::Example /* imm_write */, org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeExample")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Example* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Example();
+         [](org::imm::ImmCmdInclude::Example* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::Example /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::Example::*)(org::imm::ImmCmdInclude::Example const&) const>(&org::imm::ImmCmdInclude::Example::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::Example /* imm_write */::*)(org::imm::ImmCmdInclude::Example const& /* imm_write */) const>(&org::imm::ImmCmdInclude::Example /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::Example const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::Example const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::Example const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::Example const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExport")
+  nanobind::class_<org::imm::ImmCmdInclude::Export /* imm_write */, org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeExport")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Export* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Export();
+         [](org::imm::ImmCmdInclude::Export* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::Export /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("language", &org::imm::ImmCmdInclude::Export::language, R"RAW(Source code language for export)RAW")
+    .def_rw("language", &org::imm::ImmCmdInclude::Export /* imm_write */::language, R"RAW(Source code language for export)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::Export::*)(org::imm::ImmCmdInclude::Export const&) const>(&org::imm::ImmCmdInclude::Export::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::Export /* imm_write */::*)(org::imm::ImmCmdInclude::Export const& /* imm_write */) const>(&org::imm::ImmCmdInclude::Export /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::Export const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::Export const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::Export const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::Export const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeCustom")
+  nanobind::class_<org::imm::ImmCmdInclude::Custom /* imm_write */, org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeCustom")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Custom* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Custom();
+         [](org::imm::ImmCmdInclude::Custom* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::Custom /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("blockName", &org::imm::ImmCmdInclude::Custom::blockName, R"RAW(Block name not covered by the default values)RAW")
+    .def_rw("blockName", &org::imm::ImmCmdInclude::Custom /* imm_write */::blockName, R"RAW(Block name not covered by the default values)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::Custom::*)(org::imm::ImmCmdInclude::Custom const&) const>(&org::imm::ImmCmdInclude::Custom::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::Custom /* imm_write */::*)(org::imm::ImmCmdInclude::Custom const& /* imm_write */) const>(&org::imm::ImmCmdInclude::Custom /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::Custom const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::Custom const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::Custom const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::Custom const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeSrc")
+  nanobind::class_<org::imm::ImmCmdInclude::Src /* imm_write */, org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeSrc")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::Src* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Src();
+         [](org::imm::ImmCmdInclude::Src* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::Src /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("language", &org::imm::ImmCmdInclude::Src::language, R"RAW(Source code language for code block)RAW")
+    .def_rw("language", &org::imm::ImmCmdInclude::Src /* imm_write */::language, R"RAW(Source code language for code block)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::Src::*)(org::imm::ImmCmdInclude::Src const&) const>(&org::imm::ImmCmdInclude::Src::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::Src /* imm_write */::*)(org::imm::ImmCmdInclude::Src const& /* imm_write */) const>(&org::imm::ImmCmdInclude::Src /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::Src const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::Src const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::Src const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::Src const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmCmdInclude::OrgDocument, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeOrgDocument")
+  nanobind::class_<org::imm::ImmCmdInclude::OrgDocument /* imm_write */, org::imm::ImmCmdInclude::IncludeBase /* imm_write */>(m, "ImmCmdIncludeOrgDocument")
     .def(nanobind::init<>())
     .def("__init__",
-         [](org::imm::ImmCmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::OrgDocument();
+         [](org::imm::ImmCmdInclude::OrgDocument* /* imm_write */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::imm::ImmCmdInclude::OrgDocument /* imm_write */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("onlyContent", &org::imm::ImmCmdInclude::OrgDocument::onlyContent, R"RAW(omits any planning lines or property drawers)RAW")
-    .def_rw("subtreePath", &org::imm::ImmCmdInclude::OrgDocument::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
-    .def_rw("minLevel", &org::imm::ImmCmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
-    .def_rw("customIdTarget", &org::imm::ImmCmdInclude::OrgDocument::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
+    .def_rw("onlyContent", &org::imm::ImmCmdInclude::OrgDocument /* imm_write */::onlyContent, R"RAW(omits any planning lines or property drawers)RAW")
+    .def_rw("subtreePath", &org::imm::ImmCmdInclude::OrgDocument /* imm_write */::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
+    .def_rw("minLevel", &org::imm::ImmCmdInclude::OrgDocument /* imm_write */::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
+    .def_rw("customIdTarget", &org::imm::ImmCmdInclude::OrgDocument /* imm_write */::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
     .def("__eq__",
-         static_cast<bool(org::imm::ImmCmdInclude::OrgDocument::*)(org::imm::ImmCmdInclude::OrgDocument const&) const>(&org::imm::ImmCmdInclude::OrgDocument::operator==),
+         static_cast<bool(org::imm::ImmCmdInclude::OrgDocument /* imm_write */::*)(org::imm::ImmCmdInclude::OrgDocument const& /* imm_write */) const>(&org::imm::ImmCmdInclude::OrgDocument /* imm_write */::operator==),
          nanobind::arg("other"))
-    .def("__repr__", [](org::imm::ImmCmdInclude::OrgDocument const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmCmdInclude::OrgDocument const& /* imm_write */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmCmdInclude::OrgDocument const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmCmdInclude::OrgDocument const& /* imm_write */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  bind_enum_iterator<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind", type_registry_guard);
-  nanobind::enum_<org::imm::ImmCmdInclude::Kind>(m, "ImmCmdIncludeKind")
-    .value("Example", org::imm::ImmCmdInclude::Kind::Example)
-    .value("Export", org::imm::ImmCmdInclude::Kind::Export)
-    .value("Custom", org::imm::ImmCmdInclude::Kind::Custom)
-    .value("Src", org::imm::ImmCmdInclude::Kind::Src)
-    .value("OrgDocument", org::imm::ImmCmdInclude::Kind::OrgDocument)
-    .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind> {
-                     return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind>();
+  bind_enum_iterator<org::imm::ImmCmdInclude::Kind /* imm_write */>(m, "ImmCmdIncludeKind", type_registry_guard);
+  nanobind::enum_<org::imm::ImmCmdInclude::Kind /* imm_write */>(m, "ImmCmdIncludeKind")
+    .value("Example", org::imm::ImmCmdInclude::Kind /* imm_write */::Example)
+    .value("Export", org::imm::ImmCmdInclude::Kind /* imm_write */::Export)
+    .value("Custom", org::imm::ImmCmdInclude::Kind /* imm_write */::Custom)
+    .value("Src", org::imm::ImmCmdInclude::Kind /* imm_write */::Src)
+    .value("OrgDocument", org::imm::ImmCmdInclude::Kind /* imm_write */::OrgDocument)
+    .def("__iter__", [](org::imm::ImmCmdInclude::Kind const& /* imm_write */ _self) -> org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind /* imm_write */> {
+                     return org::bind::python::PyEnumIterator<org::imm::ImmCmdInclude::Kind /* imm_write */>();
                      })
-    .def("__int__", [](org::imm::ImmCmdInclude::Kind const& _self) -> int {
+    .def("__int__", [](org::imm::ImmCmdInclude::Kind const& /* imm_write */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::imm::ImmCmdInclude::Kind const& _self) -> int {
+    .def("__index__", [](org::imm::ImmCmdInclude::Kind const& /* imm_write */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::imm::ImmCmdInclude::Kind lhs, org::imm::ImmCmdInclude::Kind rhs) -> bool {
+         [](org::imm::ImmCmdInclude::Kind /* imm_write */ lhs, org::imm::ImmCmdInclude::Kind /* imm_write */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::imm::ImmCmdInclude::Kind it) -> int {
+         [](org::imm::ImmCmdInclude::Kind /* imm_write */ it) -> int {
          return static_cast<int>(it);
          })
     ;
-  nanobind::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1343:17( [780] >record 'ImmAdapterOrgAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterVirtualBase /*  [905]imm/ImmOrg.hpp:1343:17( [780] >record 'ImmAdapterVirtualBase'<>) */>(m, "ImmAdapterOrgAPI")
     ;
-  nanobind::class_<org::sem::Cmd, org::sem::Stmt>(m, "Cmd")
-    .def_rw("attrs", &org::sem::Cmd::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+  nanobind::class_<org::sem::Cmd /* d_org */, org::sem::Stmt>(m, "Cmd")
+    .def_rw("attrs", &org::sem::Cmd /* d_org */::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("getAttrs",
-         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs),
+         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd /* d_org */::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd /* d_org */::getAttrs),
          nanobind::arg("key") = std::nullopt,
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr),
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd /* d_org */::*)(hstd::Str const&) const>(&org::sem::Cmd /* d_org */::getFirstAttr),
          nanobind::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     ;
-  nanobind::class_<org::sem::CmdCustomRaw, org::sem::Stmt>(m, "CmdCustomRaw")
+  nanobind::class_<org::sem::CmdCustomRaw /* d_org */, org::sem::Stmt>(m, "CmdCustomRaw")
     .def("__init__",
-         [](org::sem::CmdCustomRaw* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomRaw();
+         [](org::sem::CmdCustomRaw* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCustomRaw /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::CmdCustomRaw::name)
-    .def_rw("isAttached", &org::sem::CmdCustomRaw::isAttached)
-    .def_rw("text", &org::sem::CmdCustomRaw::text)
-    .def("__repr__", [](org::sem::CmdCustomRaw const& _self) -> std::string {
+    .def_rw("name", &org::sem::CmdCustomRaw /* d_org */::name)
+    .def_rw("isAttached", &org::sem::CmdCustomRaw /* d_org */::isAttached)
+    .def_rw("text", &org::sem::CmdCustomRaw /* d_org */::text)
+    .def("__repr__", [](org::sem::CmdCustomRaw const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCustomRaw const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCustomRaw const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdCustomText, org::sem::Stmt>(m, "CmdCustomText")
+  nanobind::class_<org::sem::CmdCustomText /* d_org */, org::sem::Stmt>(m, "CmdCustomText")
     .def("__init__",
-         [](org::sem::CmdCustomText* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomText();
+         [](org::sem::CmdCustomText* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCustomText /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::CmdCustomText::name)
-    .def_rw("isAttached", &org::sem::CmdCustomText::isAttached)
-    .def_rw("text", &org::sem::CmdCustomText::text)
-    .def("__repr__", [](org::sem::CmdCustomText const& _self) -> std::string {
+    .def_rw("name", &org::sem::CmdCustomText /* d_org */::name)
+    .def_rw("isAttached", &org::sem::CmdCustomText /* d_org */::isAttached)
+    .def_rw("text", &org::sem::CmdCustomText /* d_org */::text)
+    .def("__repr__", [](org::sem::CmdCustomText const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCustomText const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCustomText const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Link, org::sem::Stmt>(m, "Link")
+  nanobind::class_<org::sem::Link /* d_org */, org::sem::Stmt>(m, "Link")
     .def("__init__",
-         [](org::sem::Link* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Link();
+         [](org::sem::Link* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Link /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("description", &org::sem::Link::description)
-    .def_rw("target", &org::sem::Link::target)
-    .def("__repr__", [](org::sem::Link const& _self) -> std::string {
+    .def_rw("description", &org::sem::Link /* d_org */::description)
+    .def_rw("target", &org::sem::Link /* d_org */::target)
+    .def("__repr__", [](org::sem::Link const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Link const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Link const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockComment, org::sem::Stmt>(m, "BlockComment")
+  nanobind::class_<org::sem::BlockComment /* d_org */, org::sem::Stmt>(m, "BlockComment")
     .def("__init__",
-         [](org::sem::BlockComment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockComment();
+         [](org::sem::BlockComment* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockComment /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockComment const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockComment const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockComment const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockComment const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Paragraph, org::sem::Stmt>(m, "Paragraph")
+  nanobind::class_<org::sem::Paragraph /* d_org */, org::sem::Stmt>(m, "Paragraph")
     .def("__init__",
-         [](org::sem::Paragraph* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Paragraph();
+         [](org::sem::Paragraph* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Paragraph /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("isFootnoteDefinition", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::isFootnoteDefinition))
-    .def("getFootnoteName", static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getFootnoteName))
-    .def("hasAdmonition", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasAdmonition))
-    .def("getAdmonitions", static_cast<hstd::Vec<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitions))
-    .def("getAdmonitionNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::BigIdent>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitionNodes))
-    .def("hasTimestamp", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasTimestamp))
-    .def("getTimestamps", static_cast<hstd::Vec<hstd::UserTime>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestamps))
-    .def("getTimestampNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Time>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestampNodes))
-    .def("hasLeadHashtags", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasLeadHashtags))
-    .def("getLeadHashtags", static_cast<hstd::Vec<org::sem::SemId<org::sem::HashTag>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getLeadHashtags))
-    .def("getBody", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getBody), R"RAW(Return content of the paragraph, without prefix idents, hashtags, footnotes etc. )RAW")
-    .def("__repr__", [](org::sem::Paragraph const& _self) -> std::string {
+    .def("isFootnoteDefinition", static_cast<bool(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::isFootnoteDefinition))
+    .def("getFootnoteName", static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getFootnoteName))
+    .def("hasAdmonition", static_cast<bool(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::hasAdmonition))
+    .def("getAdmonitions", static_cast<hstd::Vec<hstd::Str>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getAdmonitions))
+    .def("getAdmonitionNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::BigIdent>>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getAdmonitionNodes))
+    .def("hasTimestamp", static_cast<bool(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::hasTimestamp))
+    .def("getTimestamps", static_cast<hstd::Vec<hstd::UserTime>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getTimestamps))
+    .def("getTimestampNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Time>>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getTimestampNodes))
+    .def("hasLeadHashtags", static_cast<bool(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::hasLeadHashtags))
+    .def("getLeadHashtags", static_cast<hstd::Vec<org::sem::SemId<org::sem::HashTag>>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getLeadHashtags))
+    .def("getBody", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph /* d_org */::*)() const>(&org::sem::Paragraph /* d_org */::getBody), R"RAW(Return content of the paragraph, without prefix idents, hashtags, footnotes etc. )RAW")
+    .def("__repr__", [](org::sem::Paragraph const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Paragraph const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Paragraph const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::List, org::sem::Stmt>(m, "List")
+  nanobind::class_<org::sem::List /* d_org */, org::sem::Stmt>(m, "List")
     .def("__init__",
-         [](org::sem::List* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::List();
+         [](org::sem::List* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::List /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
     .def("getListAttrs",
-         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::List::*)(hstd::Str const&) const>(&org::sem::List::getListAttrs),
+         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::List /* d_org */::*)(hstd::Str const&) const>(&org::sem::List /* d_org */::getListAttrs),
          nanobind::arg("key"))
-    .def("getListFormattingMode", static_cast<ListFormattingMode(org::sem::List::*)() const>(&org::sem::List::getListFormattingMode))
-    .def("isDescriptionList", static_cast<bool(org::sem::List::*)() const>(&org::sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
-    .def("isNumberedList", static_cast<bool(org::sem::List::*)() const>(&org::sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
-    .def("__repr__", [](org::sem::List const& _self) -> std::string {
+    .def("getListFormattingMode", static_cast<ListFormattingMode(org::sem::List /* d_org */::*)() const>(&org::sem::List /* d_org */::getListFormattingMode))
+    .def("isDescriptionList", static_cast<bool(org::sem::List /* d_org */::*)() const>(&org::sem::List /* d_org */::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
+    .def("isNumberedList", static_cast<bool(org::sem::List /* d_org */::*)() const>(&org::sem::List /* d_org */::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
+    .def("__repr__", [](org::sem::List const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::List const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::List const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::HashTag, org::sem::Inline>(m, "HashTag")
+  nanobind::class_<org::sem::HashTag /* d_org */, org::sem::Inline>(m, "HashTag")
     .def("__init__",
-         [](org::sem::HashTag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::HashTag();
+         [](org::sem::HashTag* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::HashTag /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::HashTag::text)
-    .def("__repr__", [](org::sem::HashTag const& _self) -> std::string {
+    .def_rw("text", &org::sem::HashTag /* d_org */::text)
+    .def("__repr__", [](org::sem::HashTag const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::HashTag const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::HashTag const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::InlineFootnote, org::sem::Inline>(m, "InlineFootnote")
+  nanobind::class_<org::sem::InlineFootnote /* d_org */, org::sem::Inline>(m, "InlineFootnote")
     .def("__init__",
-         [](org::sem::InlineFootnote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::InlineFootnote();
+         [](org::sem::InlineFootnote* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::InlineFootnote /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("tag", &org::sem::InlineFootnote::tag, R"RAW(Footnote text target name)RAW")
-    .def_rw("definition", &org::sem::InlineFootnote::definition, R"RAW(Link to possibly resolved definition)RAW")
-    .def("__repr__", [](org::sem::InlineFootnote const& _self) -> std::string {
+    .def_rw("tag", &org::sem::InlineFootnote /* d_org */::tag, R"RAW(Footnote text target name)RAW")
+    .def_rw("definition", &org::sem::InlineFootnote /* d_org */::definition, R"RAW(Link to possibly resolved definition)RAW")
+    .def("__repr__", [](org::sem::InlineFootnote const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::InlineFootnote const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::InlineFootnote const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::InlineExport, org::sem::Inline>(m, "InlineExport")
+  nanobind::class_<org::sem::InlineExport /* d_org */, org::sem::Inline>(m, "InlineExport")
     .def("__init__",
-         [](org::sem::InlineExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::InlineExport();
+         [](org::sem::InlineExport* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::InlineExport /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("exporter", &org::sem::InlineExport::exporter)
-    .def_rw("content", &org::sem::InlineExport::content)
-    .def("__repr__", [](org::sem::InlineExport const& _self) -> std::string {
+    .def_rw("exporter", &org::sem::InlineExport /* d_org */::exporter)
+    .def_rw("content", &org::sem::InlineExport /* d_org */::content)
+    .def("__repr__", [](org::sem::InlineExport const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::InlineExport const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::InlineExport const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Escaped, org::sem::Leaf>(m, "Escaped")
+  nanobind::class_<org::sem::Escaped /* d_org */, org::sem::Leaf>(m, "Escaped")
     .def("__init__",
-         [](org::sem::Escaped* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Escaped();
+         [](org::sem::Escaped* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Escaped /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Escaped const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Escaped const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Escaped const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Escaped const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Newline, org::sem::Leaf>(m, "Newline")
+  nanobind::class_<org::sem::Newline /* d_org */, org::sem::Leaf>(m, "Newline")
     .def("__init__",
-         [](org::sem::Newline* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Newline();
+         [](org::sem::Newline* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Newline /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Newline const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Newline const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Newline const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Newline const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Space, org::sem::Leaf>(m, "Space")
+  nanobind::class_<org::sem::Space /* d_org */, org::sem::Leaf>(m, "Space")
     .def("__init__",
-         [](org::sem::Space* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Space();
+         [](org::sem::Space* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Space /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Space const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Space const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Space const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Space const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Word, org::sem::Leaf>(m, "Word")
+  nanobind::class_<org::sem::Word /* d_org */, org::sem::Leaf>(m, "Word")
     .def("__init__",
-         [](org::sem::Word* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Word();
+         [](org::sem::Word* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Word /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Word const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Word const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Word const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Word const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::AtMention, org::sem::Leaf>(m, "AtMention")
+  nanobind::class_<org::sem::AtMention /* d_org */, org::sem::Leaf>(m, "AtMention")
     .def("__init__",
-         [](org::sem::AtMention* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AtMention();
+         [](org::sem::AtMention* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::AtMention /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::AtMention const& _self) -> std::string {
+    .def("__repr__", [](org::sem::AtMention const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::AtMention const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::AtMention const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::RawText, org::sem::Leaf>(m, "RawText")
+  nanobind::class_<org::sem::RawText /* d_org */, org::sem::Leaf>(m, "RawText")
     .def("__init__",
-         [](org::sem::RawText* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::RawText();
+         [](org::sem::RawText* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::RawText /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::RawText const& _self) -> std::string {
+    .def("__repr__", [](org::sem::RawText const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::RawText const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::RawText const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Punctuation, org::sem::Leaf>(m, "Punctuation")
+  nanobind::class_<org::sem::Punctuation /* d_org */, org::sem::Leaf>(m, "Punctuation")
     .def("__init__",
-         [](org::sem::Punctuation* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Punctuation();
+         [](org::sem::Punctuation* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Punctuation /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Punctuation const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Punctuation const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Punctuation const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Punctuation const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Placeholder, org::sem::Leaf>(m, "Placeholder")
+  nanobind::class_<org::sem::Placeholder /* d_org */, org::sem::Leaf>(m, "Placeholder")
     .def("__init__",
-         [](org::sem::Placeholder* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Placeholder();
+         [](org::sem::Placeholder* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Placeholder /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Placeholder const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Placeholder const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Placeholder const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Placeholder const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BigIdent, org::sem::Leaf>(m, "BigIdent")
+  nanobind::class_<org::sem::BigIdent /* d_org */, org::sem::Leaf>(m, "BigIdent")
     .def("__init__",
-         [](org::sem::BigIdent* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BigIdent();
+         [](org::sem::BigIdent* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BigIdent /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BigIdent const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BigIdent const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BigIdent const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BigIdent const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::TextTarget, org::sem::Leaf>(m, "TextTarget")
+  nanobind::class_<org::sem::TextTarget /* d_org */, org::sem::Leaf>(m, "TextTarget")
     .def("__init__",
-         [](org::sem::TextTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TextTarget();
+         [](org::sem::TextTarget* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::TextTarget /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::TextTarget const& _self) -> std::string {
+    .def("__repr__", [](org::sem::TextTarget const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::TextTarget const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::TextTarget const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::ErrorSkipToken, org::sem::Leaf>(m, "ErrorSkipToken")
+  nanobind::class_<org::sem::ErrorSkipToken /* d_org */, org::sem::Leaf>(m, "ErrorSkipToken")
     .def("__init__",
-         [](org::sem::ErrorSkipToken* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorSkipToken();
+         [](org::sem::ErrorSkipToken* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::ErrorSkipToken /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::ErrorSkipToken const& _self) -> std::string {
+    .def("__repr__", [](org::sem::ErrorSkipToken const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::ErrorSkipToken const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::ErrorSkipToken const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Bold, org::sem::Markup>(m, "Bold")
+  nanobind::class_<org::sem::Bold /* d_org */, org::sem::Markup>(m, "Bold")
     .def("__init__",
-         [](org::sem::Bold* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Bold();
+         [](org::sem::Bold* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Bold /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Bold const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Bold const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Bold const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Bold const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Underline, org::sem::Markup>(m, "Underline")
+  nanobind::class_<org::sem::Underline /* d_org */, org::sem::Markup>(m, "Underline")
     .def("__init__",
-         [](org::sem::Underline* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Underline();
+         [](org::sem::Underline* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Underline /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Underline const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Underline const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Underline const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Underline const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Monospace, org::sem::Markup>(m, "Monospace")
+  nanobind::class_<org::sem::Monospace /* d_org */, org::sem::Markup>(m, "Monospace")
     .def("__init__",
-         [](org::sem::Monospace* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Monospace();
+         [](org::sem::Monospace* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Monospace /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Monospace const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Monospace const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Monospace const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Monospace const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::MarkQuote, org::sem::Markup>(m, "MarkQuote")
+  nanobind::class_<org::sem::MarkQuote /* d_org */, org::sem::Markup>(m, "MarkQuote")
     .def("__init__",
-         [](org::sem::MarkQuote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::MarkQuote();
+         [](org::sem::MarkQuote* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::MarkQuote /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::MarkQuote const& _self) -> std::string {
+    .def("__repr__", [](org::sem::MarkQuote const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::MarkQuote const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::MarkQuote const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Verbatim, org::sem::Markup>(m, "Verbatim")
+  nanobind::class_<org::sem::Verbatim /* d_org */, org::sem::Markup>(m, "Verbatim")
     .def("__init__",
-         [](org::sem::Verbatim* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Verbatim();
+         [](org::sem::Verbatim* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Verbatim /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Verbatim const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Verbatim const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Verbatim const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Verbatim const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Italic, org::sem::Markup>(m, "Italic")
+  nanobind::class_<org::sem::Italic /* d_org */, org::sem::Markup>(m, "Italic")
     .def("__init__",
-         [](org::sem::Italic* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Italic();
+         [](org::sem::Italic* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Italic /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Italic const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Italic const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Italic const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Italic const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Strike, org::sem::Markup>(m, "Strike")
+  nanobind::class_<org::sem::Strike /* d_org */, org::sem::Markup>(m, "Strike")
     .def("__init__",
-         [](org::sem::Strike* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Strike();
+         [](org::sem::Strike* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Strike /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Strike const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Strike const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Strike const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Strike const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Par, org::sem::Markup>(m, "Par")
+  nanobind::class_<org::sem::Par /* d_org */, org::sem::Markup>(m, "Par")
     .def("__init__",
-         [](org::sem::Par* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Par();
+         [](org::sem::Par* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Par /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::Par const& _self) -> std::string {
+    .def("__repr__", [](org::sem::Par const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Par const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Par const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapterStmtAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1345:17( [780] >record 'ImmAdapterStmtAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1345:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterStmtAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterSubtreeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSubtreeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSubtreeAPI /*  [905]imm/ImmOrg.hpp:1365:17( [780] >record 'ImmAdapterSubtreeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1365:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterSubtreeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterNoNodeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterNoNodeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterNoNodeAPI /*  [905]imm/ImmOrg.hpp:1384:17( [780] >record 'ImmAdapterNoNodeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1384:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterNoNodeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterAttrAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttrAPI /*  [905]imm/ImmOrg.hpp:1385:17( [780] >record 'ImmAdapterAttrAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1385:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterAttrAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterAttrListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrListAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttrListAPI /*  [905]imm/ImmOrg.hpp:1386:17( [780] >record 'ImmAdapterAttrListAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1386:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterAttrListAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterAttrsAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterAttrsAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttrsAPI /*  [905]imm/ImmOrg.hpp:1387:17( [780] >record 'ImmAdapterAttrsAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1387:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterAttrsAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterErrorItemAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorItemAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterErrorItemAPI /*  [905]imm/ImmOrg.hpp:1388:17( [780] >record 'ImmAdapterErrorItemAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1388:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterErrorItemAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterErrorGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorGroupAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterErrorGroupAPI /*  [905]imm/ImmOrg.hpp:1389:17( [780] >record 'ImmAdapterErrorGroupAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1389:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterErrorGroupAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterErrorSkipGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipGroupAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterErrorSkipGroupAPI /*  [905]imm/ImmOrg.hpp:1390:17( [780] >record 'ImmAdapterErrorSkipGroupAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1390:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterErrorSkipGroupAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterErrorSkipTokenAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterErrorSkipTokenAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterErrorSkipTokenAPI /*  [905]imm/ImmOrg.hpp:1391:17( [780] >record 'ImmAdapterErrorSkipTokenAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1391:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterErrorSkipTokenAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterStmtListAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterStmtListAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtListAPI /*  [905]imm/ImmOrg.hpp:1392:17( [780] >record 'ImmAdapterStmtListAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1392:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterStmtListAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterEmptyAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterEmptyAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterEmptyAPI /*  [905]imm/ImmOrg.hpp:1393:17( [780] >record 'ImmAdapterEmptyAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1393:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterEmptyAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterInlineAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterInlineAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineAPI /*  [905]imm/ImmOrg.hpp:1411:17( [780] >record 'ImmAdapterInlineAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1411:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterInlineAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterTimeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTimeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterTimeAPI /*  [905]imm/ImmOrg.hpp:1414:17( [780] >record 'ImmAdapterTimeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1414:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterTimeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterTimeRangeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTimeRangeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterTimeRangeAPI /*  [905]imm/ImmOrg.hpp:1423:17( [780] >record 'ImmAdapterTimeRangeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1423:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterTimeRangeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterMacroAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterMacroAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMacroAPI /*  [905]imm/ImmOrg.hpp:1424:17( [780] >record 'ImmAdapterMacroAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1424:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterMacroAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterSymbolAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSymbolAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSymbolAPI /*  [905]imm/ImmOrg.hpp:1425:17( [780] >record 'ImmAdapterSymbolAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1425:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterSymbolAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterLeafAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterLeafAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1426:17( [780] >record 'ImmAdapterLeafAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1426:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterLeafAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterMarkupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterMarkupAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1439:17( [780] >record 'ImmAdapterMarkupAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1439:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterMarkupAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterLatexAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterLatexAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLatexAPI /*  [905]imm/ImmOrg.hpp:1449:17( [780] >record 'ImmAdapterLatexAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1449:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterLatexAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterSubtreeLogAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSubtreeLogAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSubtreeLogAPI /*  [905]imm/ImmOrg.hpp:1466:17( [780] >record 'ImmAdapterSubtreeLogAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1466:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterSubtreeLogAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterColonExampleAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterColonExampleAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterColonExampleAPI /*  [905]imm/ImmOrg.hpp:1485:17( [780] >record 'ImmAdapterColonExampleAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1485:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterColonExampleAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCallAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCallAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCallAPI /*  [905]imm/ImmOrg.hpp:1487:17( [780] >record 'ImmAdapterCallAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1487:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterCallAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterFileAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterFileAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterFileAPI /*  [905]imm/ImmOrg.hpp:1488:17( [780] >record 'ImmAdapterFileAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1488:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterFileAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterDirectoryAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDirectoryAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDirectoryAPI /*  [905]imm/ImmOrg.hpp:1489:17( [780] >record 'ImmAdapterDirectoryAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1489:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterDirectoryAPI")
     .def("getFsSubnode",
-         static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapterDirectoryAPI::*)(hstd::Str const&, bool) const>(&org::imm::ImmAdapterDirectoryAPI::getFsSubnode),
+         static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::optional<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapter /*  [640]Type parameter [905]imm/ImmOrg.hpp:1490:46( [780] >record 'ImmAdapter'<>) */> /*  [905]imm/ImmOrg.hpp:1490:46( [780] >record 'optional'< [657] templates: template-specialization-type>) */(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDirectoryAPI /*  [905]imm/ImmOrg.hpp:1489:17( [780] >record 'ImmAdapterDirectoryAPI'<>) */::*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Str const& /*  [905]imm/ImmOrg.hpp:1491:26( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Str'<>)<>) */, bool /*  [905]imm/ImmOrg.hpp:1492:26( [755] >bool<>) */) const>(&org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDirectoryAPI /*  [905]imm/ImmOrg.hpp:1489:17( [780] >record 'ImmAdapterDirectoryAPI'<>) */::getFsSubnode),
          nanobind::arg("name"),
          nanobind::arg("withPath") = true)
     ;
-  nanobind::class_<org::imm::ImmAdapterSymlinkAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterSymlinkAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSymlinkAPI /*  [905]imm/ImmOrg.hpp:1494:17( [780] >record 'ImmAdapterSymlinkAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1494:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterSymlinkAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterDocumentFragmentAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentFragmentAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDocumentFragmentAPI /*  [905]imm/ImmOrg.hpp:1495:17( [780] >record 'ImmAdapterDocumentFragmentAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1495:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterDocumentFragmentAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCriticMarkupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCriticMarkupAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCriticMarkupAPI /*  [905]imm/ImmOrg.hpp:1496:17( [780] >record 'ImmAdapterCriticMarkupAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1496:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterCriticMarkupAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterListItemAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterListItemAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterListItemAPI /*  [905]imm/ImmOrg.hpp:1505:17( [780] >record 'ImmAdapterListItemAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1505:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterListItemAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterDocumentOptionsAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentOptionsAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDocumentOptionsAPI /*  [905]imm/ImmOrg.hpp:1513:17( [780] >record 'ImmAdapterDocumentOptionsAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1513:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterDocumentOptionsAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterDocumentAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDocumentAPI /*  [905]imm/ImmOrg.hpp:1525:17( [780] >record 'ImmAdapterDocumentAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1525:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterDocumentAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterFileTargetAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterFileTargetAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterFileTargetAPI /*  [905]imm/ImmOrg.hpp:1534:17( [780] >record 'ImmAdapterFileTargetAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1534:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterFileTargetAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterTextSeparatorAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterTextSeparatorAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterTextSeparatorAPI /*  [905]imm/ImmOrg.hpp:1535:17( [780] >record 'ImmAdapterTextSeparatorAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1535:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterTextSeparatorAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdIncludeAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterCmdIncludeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdIncludeAPI /*  [905]imm/ImmOrg.hpp:1536:17( [780] >record 'ImmAdapterCmdIncludeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1536:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterCmdIncludeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterDocumentGroupAPI, org::imm::ImmAdapterOrgAPI>(m, "ImmAdapterDocumentGroupAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterDocumentGroupAPI /*  [905]imm/ImmOrg.hpp:1537:17( [780] >record 'ImmAdapterDocumentGroupAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterOrgAPI /*  [905]imm/ImmOrg.hpp:1537:17( [780] >record 'ImmAdapterOrgAPI'<>) */>(m, "ImmAdapterDocumentGroupAPI")
     ;
-  nanobind::class_<org::sem::Block, org::sem::Cmd>(m, "Block")
+  nanobind::class_<org::sem::Block /* d_org */, org::sem::Cmd>(m, "Block")
     ;
-  nanobind::class_<org::sem::LineCommand, org::sem::Cmd>(m, "LineCommand")
+  nanobind::class_<org::sem::LineCommand /* d_org */, org::sem::Cmd>(m, "LineCommand")
     ;
-  nanobind::class_<org::sem::CmdCreator, org::sem::Cmd>(m, "CmdCreator")
+  nanobind::class_<org::sem::CmdCreator /* d_org */, org::sem::Cmd>(m, "CmdCreator")
     .def("__init__",
-         [](org::sem::CmdCreator* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCreator();
+         [](org::sem::CmdCreator* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCreator /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::CmdCreator::text, R"RAW(Creator name text)RAW")
-    .def("__repr__", [](org::sem::CmdCreator const& _self) -> std::string {
+    .def_rw("text", &org::sem::CmdCreator /* d_org */::text, R"RAW(Creator name text)RAW")
+    .def("__repr__", [](org::sem::CmdCreator const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCreator const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCreator const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdAuthor, org::sem::Cmd>(m, "CmdAuthor")
+  nanobind::class_<org::sem::CmdAuthor /* d_org */, org::sem::Cmd>(m, "CmdAuthor")
     .def("__init__",
-         [](org::sem::CmdAuthor* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdAuthor();
+         [](org::sem::CmdAuthor* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdAuthor /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::CmdAuthor::text, R"RAW(Author name text)RAW")
-    .def("__repr__", [](org::sem::CmdAuthor const& _self) -> std::string {
+    .def_rw("text", &org::sem::CmdAuthor /* d_org */::text, R"RAW(Author name text)RAW")
+    .def("__repr__", [](org::sem::CmdAuthor const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdAuthor const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdAuthor const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdEmail, org::sem::Cmd>(m, "CmdEmail")
+  nanobind::class_<org::sem::CmdEmail /* d_org */, org::sem::Cmd>(m, "CmdEmail")
     .def("__init__",
-         [](org::sem::CmdEmail* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdEmail();
+         [](org::sem::CmdEmail* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdEmail /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::CmdEmail::text)
-    .def("__repr__", [](org::sem::CmdEmail const& _self) -> std::string {
+    .def_rw("text", &org::sem::CmdEmail /* d_org */::text)
+    .def("__repr__", [](org::sem::CmdEmail const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdEmail const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdEmail const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdLanguage, org::sem::Cmd>(m, "CmdLanguage")
+  nanobind::class_<org::sem::CmdLanguage /* d_org */, org::sem::Cmd>(m, "CmdLanguage")
     .def("__init__",
-         [](org::sem::CmdLanguage* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdLanguage();
+         [](org::sem::CmdLanguage* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdLanguage /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::CmdLanguage::text)
-    .def("__repr__", [](org::sem::CmdLanguage const& _self) -> std::string {
+    .def_rw("text", &org::sem::CmdLanguage /* d_org */::text)
+    .def("__repr__", [](org::sem::CmdLanguage const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdLanguage const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdLanguage const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdCustomArgs, org::sem::Cmd>(m, "CmdCustomArgs")
+  nanobind::class_<org::sem::CmdCustomArgs /* d_org */, org::sem::Cmd>(m, "CmdCustomArgs")
     .def("__init__",
-         [](org::sem::CmdCustomArgs* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomArgs();
+         [](org::sem::CmdCustomArgs* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCustomArgs /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::CmdCustomArgs::name)
-    .def_rw("isAttached", &org::sem::CmdCustomArgs::isAttached)
-    .def("__repr__", [](org::sem::CmdCustomArgs const& _self) -> std::string {
+    .def_rw("name", &org::sem::CmdCustomArgs /* d_org */::name)
+    .def_rw("isAttached", &org::sem::CmdCustomArgs /* d_org */::isAttached)
+    .def("__repr__", [](org::sem::CmdCustomArgs const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCustomArgs const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCustomArgs const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdTblfm, org::sem::Cmd>(m, "CmdTblfm")
+  nanobind::class_<org::sem::CmdTblfm /* d_org */, org::sem::Cmd>(m, "CmdTblfm")
     .def("__init__",
-         [](org::sem::CmdTblfm* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdTblfm();
+         [](org::sem::CmdTblfm* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdTblfm /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("expr", &org::sem::CmdTblfm::expr)
-    .def("__repr__", [](org::sem::CmdTblfm const& _self) -> std::string {
+    .def_rw("expr", &org::sem::CmdTblfm /* d_org */::expr)
+    .def("__repr__", [](org::sem::CmdTblfm const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdTblfm const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdTblfm const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Cell, org::sem::Cmd>(m, "Cell")
+  nanobind::class_<org::sem::Cell /* d_org */, org::sem::Cmd>(m, "Cell")
     .def("__init__",
-         [](org::sem::Cell* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Cell();
+         [](org::sem::Cell* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Cell /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("isBlock", &org::sem::Cell::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def("__repr__", [](org::sem::Cell const& _self) -> std::string {
+    .def_rw("isBlock", &org::sem::Cell /* d_org */::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def("__repr__", [](org::sem::Cell const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Cell const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Cell const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Row, org::sem::Cmd>(m, "Row")
+  nanobind::class_<org::sem::Row /* d_org */, org::sem::Cmd>(m, "Row")
     .def("__init__",
-         [](org::sem::Row* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Row();
+         [](org::sem::Row* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Row /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("cells", &org::sem::Row::cells, R"RAW(List of cells on the row)RAW")
-    .def_rw("isBlock", &org::sem::Row::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def("__repr__", [](org::sem::Row const& _self) -> std::string {
+    .def_rw("cells", &org::sem::Row /* d_org */::cells, R"RAW(List of cells on the row)RAW")
+    .def_rw("isBlock", &org::sem::Row /* d_org */::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def("__repr__", [](org::sem::Row const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Row const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Row const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1357:17( [780] >record 'ImmAdapterCmdAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1357:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterCmdAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCustomRawAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdCustomRawAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCustomRawAPI /*  [905]imm/ImmOrg.hpp:1407:17( [780] >record 'ImmAdapterCmdCustomRawAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1407:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterCmdCustomRawAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCustomTextAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterCmdCustomTextAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCustomTextAPI /*  [905]imm/ImmOrg.hpp:1408:17( [780] >record 'ImmAdapterCmdCustomTextAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1408:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterCmdCustomTextAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterLinkAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterLinkAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLinkAPI /*  [905]imm/ImmOrg.hpp:1450:17( [780] >record 'ImmAdapterLinkAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1450:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterLinkAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockCommentAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterBlockCommentAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockCommentAPI /*  [905]imm/ImmOrg.hpp:1454:17( [780] >record 'ImmAdapterBlockCommentAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1454:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterBlockCommentAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterParagraphAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterParagraphAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterParagraphAPI /*  [905]imm/ImmOrg.hpp:1471:17( [780] >record 'ImmAdapterParagraphAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1471:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterParagraphAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterListAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterListAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterListAPI /*  [905]imm/ImmOrg.hpp:1498:17( [780] >record 'ImmAdapterListAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStmtAPI /*  [905]imm/ImmOrg.hpp:1498:17( [780] >record 'ImmAdapterStmtAPI'<>) */>(m, "ImmAdapterListAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStmt>, org::imm::ImmAdapterStmtAPI>(m, "ImmStmtAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getAttached", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(org::imm::ImmAdapterT<org::imm::ImmStmt>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached))
+    .def("getAttached", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmStmt>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmAdapterSubtreeAPI>(m, "ImmSubtreeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getLevel", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel))
-    .def("getTreeId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId))
-    .def("getTodo", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo))
+    .def("getLevel", static_cast<int /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel))
+    .def("getTreeId", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId))
+    .def("getTodo", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo))
     .def("getCompletion", static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion))
-    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
-    .def("getTags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags))
+    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
+    .def("getTags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags))
     .def("getTitle", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
-    .def("getLogbook", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook))
-    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties))
-    .def("getClosed", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
-    .def("getDeadline", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
-    .def("getScheduled", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
-    .def("getIsComment", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment))
-    .def("getIsArchived", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived))
-    .def("getPriority", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority))
+    .def("getLogbook", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook))
+    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties))
+    .def("getClosed", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
+    .def("getDeadline", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
+    .def("getScheduled", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
+    .def("getIsComment", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment))
+    .def("getIsArchived", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived))
+    .def("getPriority", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, org::imm::ImmAdapterNoNodeAPI>(m, "ImmNoNodeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7257,11 +7243,11 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDiagnostics", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics))
+    .def("getDiagnostics", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, org::imm::ImmAdapterErrorSkipGroupAPI>(m, "ImmErrorSkipGroupAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getSkipped", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped))
+    .def("getSkipped", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, org::imm::ImmAdapterErrorSkipTokenAPI>(m, "ImmErrorSkipTokenAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7272,19 +7258,19 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmAdapterEmptyAPI>(m, "ImmEmptyAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
-  nanobind::class_<org::imm::ImmAdapterHashTagAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterHashTagAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterHashTagAPI /*  [905]imm/ImmOrg.hpp:1412:17( [780] >record 'ImmAdapterHashTagAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineAPI /*  [905]imm/ImmOrg.hpp:1412:17( [780] >record 'ImmAdapterInlineAPI'<>) */>(m, "ImmAdapterHashTagAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterInlineFootnoteAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterInlineFootnoteAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineFootnoteAPI /*  [905]imm/ImmOrg.hpp:1413:17( [780] >record 'ImmAdapterInlineFootnoteAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineAPI /*  [905]imm/ImmOrg.hpp:1413:17( [780] >record 'ImmAdapterInlineAPI'<>) */>(m, "ImmAdapterInlineFootnoteAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterSubtreeCompletionAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterSubtreeCompletionAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSubtreeCompletionAPI /*  [905]imm/ImmOrg.hpp:1467:17( [780] >record 'ImmAdapterSubtreeCompletionAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineAPI /*  [905]imm/ImmOrg.hpp:1467:17( [780] >record 'ImmAdapterInlineAPI'<>) */>(m, "ImmAdapterSubtreeCompletionAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInline>, org::imm::ImmAdapterInlineAPI>(m, "ImmInlineAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmAdapterTimeAPI>(m, "ImmTimeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsActive", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive))
-    .def("getTime", static_cast<org::imm::ImmTime::TimeVariant(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getTime))
+    .def("getIsActive", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive))
+    .def("getTime", static_cast<org::imm::ImmTime::TimeVariant /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getTime))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterTimeRangeAPI>(m, "ImmTimeRangeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7299,50 +7285,50 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmAdapterSymbolAPI>(m, "ImmSymbolAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getName))
-    .def("getParameters", static_cast<hstd::ext::ImmVec<org::imm::ImmSymbol::Param>(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getParameters))
-    .def("getPositional", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional))
+    .def("getParameters", static_cast<hstd::ext::ImmVec<org::imm::ImmSymbol::Param /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getParameters))
+    .def("getPositional", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional))
     ;
-  nanobind::class_<org::imm::ImmAdapterEscapedAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterEscapedAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterEscapedAPI /*  [905]imm/ImmOrg.hpp:1429:17( [780] >record 'ImmAdapterEscapedAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1429:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterEscapedAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterNewlineAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterNewlineAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterNewlineAPI /*  [905]imm/ImmOrg.hpp:1430:17( [780] >record 'ImmAdapterNewlineAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1430:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterNewlineAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterSpaceAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterSpaceAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSpaceAPI /*  [905]imm/ImmOrg.hpp:1431:17( [780] >record 'ImmAdapterSpaceAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1431:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterSpaceAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterWordAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterWordAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterWordAPI /*  [905]imm/ImmOrg.hpp:1432:17( [780] >record 'ImmAdapterWordAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1432:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterWordAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterAtMentionAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterAtMentionAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAtMentionAPI /*  [905]imm/ImmOrg.hpp:1433:17( [780] >record 'ImmAdapterAtMentionAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1433:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterAtMentionAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterRawTextAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterRawTextAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterRawTextAPI /*  [905]imm/ImmOrg.hpp:1434:17( [780] >record 'ImmAdapterRawTextAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1434:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterRawTextAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterPunctuationAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterPunctuationAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterPunctuationAPI /*  [905]imm/ImmOrg.hpp:1435:17( [780] >record 'ImmAdapterPunctuationAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1435:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterPunctuationAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterPlaceholderAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterPlaceholderAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterPlaceholderAPI /*  [905]imm/ImmOrg.hpp:1436:17( [780] >record 'ImmAdapterPlaceholderAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1436:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterPlaceholderAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBigIdentAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterBigIdentAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBigIdentAPI /*  [905]imm/ImmOrg.hpp:1437:17( [780] >record 'ImmAdapterBigIdentAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1437:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterBigIdentAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterTextTargetAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterTextTargetAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterTextTargetAPI /*  [905]imm/ImmOrg.hpp:1438:17( [780] >record 'ImmAdapterTextTargetAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1438:17( [780] >record 'ImmAdapterLeafAPI'<>) */>(m, "ImmAdapterTextTargetAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLeaf>, org::imm::ImmAdapterLeafAPI>(m, "ImmLeafAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmLeaf>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLeaf>::getText))
     ;
-  nanobind::class_<org::imm::ImmAdapterBoldAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterBoldAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBoldAPI /*  [905]imm/ImmOrg.hpp:1440:17( [780] >record 'ImmAdapterBoldAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1440:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterBoldAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterUnderlineAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterUnderlineAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterUnderlineAPI /*  [905]imm/ImmOrg.hpp:1441:17( [780] >record 'ImmAdapterUnderlineAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1441:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterUnderlineAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterMonospaceAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterMonospaceAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMonospaceAPI /*  [905]imm/ImmOrg.hpp:1442:17( [780] >record 'ImmAdapterMonospaceAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1442:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterMonospaceAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterMarkQuoteAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterMarkQuoteAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkQuoteAPI /*  [905]imm/ImmOrg.hpp:1443:17( [780] >record 'ImmAdapterMarkQuoteAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1443:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterMarkQuoteAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterRadioTargetAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterRadioTargetAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterRadioTargetAPI /*  [905]imm/ImmOrg.hpp:1444:17( [780] >record 'ImmAdapterRadioTargetAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1444:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterRadioTargetAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterVerbatimAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterVerbatimAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterVerbatimAPI /*  [905]imm/ImmOrg.hpp:1445:17( [780] >record 'ImmAdapterVerbatimAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1445:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterVerbatimAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterItalicAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterItalicAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterItalicAPI /*  [905]imm/ImmOrg.hpp:1446:17( [780] >record 'ImmAdapterItalicAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1446:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterItalicAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterStrikeAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterStrikeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterStrikeAPI /*  [905]imm/ImmOrg.hpp:1447:17( [780] >record 'ImmAdapterStrikeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1447:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterStrikeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterParAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterParAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterParAPI /*  [905]imm/ImmOrg.hpp:1448:17( [780] >record 'ImmAdapterParAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterMarkupAPI /*  [905]imm/ImmOrg.hpp:1448:17( [780] >record 'ImmAdapterMarkupAPI'<>) */>(m, "ImmAdapterParAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMarkup>, org::imm::ImmAdapterMarkupAPI>(m, "ImmMarkupAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7353,7 +7339,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterSubtreeLogAPI>(m, "ImmSubtreeLogAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getHead", static_cast<org::sem::SubtreeLogHead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead))
-    .def("getDesc", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
+    .def("getDesc", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterColonExampleAPI>(m, "ImmColonExampleAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7362,13 +7348,13 @@ ingoing elements.)RAW")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getName))
     .def("getAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getAttrs))
-    .def("getIsCommand", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand))
+    .def("getIsCommand", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmAdapterFileAPI>(m, "ImmFileAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getRelPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getRelPath))
     .def("getAbsPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getAbsPath))
-    .def("getData", static_cast<org::imm::ImmFile::Data(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getData))
+    .def("getData", static_cast<org::imm::ImmFile::Data /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getData))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmAdapterDirectoryAPI>(m, "ImmDirectoryAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7377,57 +7363,57 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmAdapterSymlinkAPI>(m, "ImmSymlinkAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsDirectory", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory))
+    .def("getIsDirectory", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory))
     .def("getAbsPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getAbsPath))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmAdapterDocumentFragmentAPI>(m, "ImmDocumentFragmentAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getBaseLine", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine))
-    .def("getBaseCol", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol))
+    .def("getBaseLine", static_cast<int /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine))
+    .def("getBaseCol", static_cast<int /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmAdapterCriticMarkupAPI>(m, "ImmCriticMarkupAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getKind", static_cast<org::imm::ImmCriticMarkup::Kind(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind))
+    .def("getKind", static_cast<org::imm::ImmCriticMarkup::Kind /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterListItemAPI>(m, "ImmListItemAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getCheckbox", static_cast<CheckboxState(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox))
-    .def("getHeader", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
-    .def("getBullet", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet))
+    .def("getCheckbox", static_cast<CheckboxState /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox))
+    .def("getHeader", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
+    .def("getBullet", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterDocumentOptionsAPI>(m, "ImmDocumentOptionsAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getInitialVisibility", static_cast<InitialSubtreeVisibility(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility))
-    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getProperties))
+    .def("getInitialVisibility", static_cast<InitialSubtreeVisibility /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility))
+    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getProperties))
     .def("getExportConfig", static_cast<org::sem::DocumentExportConfig(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig))
-    .def("getFixedWidthSections", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections))
-    .def("getStartupIndented", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented))
-    .def("getCategory", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory))
-    .def("getSetupfile", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile))
-    .def("getMaxSubtreeLevelExport", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport))
+    .def("getFixedWidthSections", static_cast<hstd::Opt<bool /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections))
+    .def("getStartupIndented", static_cast<hstd::Opt<bool /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented))
+    .def("getCategory", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory))
+    .def("getSetupfile", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile))
+    .def("getMaxSubtreeLevelExport", static_cast<hstd::Opt<int /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport))
     .def("getColumns", static_cast<hstd::Opt<org::sem::ColumnView> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getColumns))
-    .def("getTodoKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords))
-    .def("getDoneKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords))
+    .def("getTodoKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords))
+    .def("getDoneKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterDocumentAPI>(m, "ImmDocumentAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getTitle", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
-    .def("getAuthor", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
-    .def("getCreator", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
-    .def("getFiletags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags))
-    .def("getEmail", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
-    .def("getLanguage", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage))
+    .def("getTitle", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
+    .def("getAuthor", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
+    .def("getCreator", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
+    .def("getFiletags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags))
+    .def("getEmail", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
+    .def("getLanguage", static_cast<hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage))
     .def("getOptions", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
-    .def("getExportFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName))
+    .def("getExportFileName", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterFileTargetAPI>(m, "ImmFileTargetAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getPath))
-    .def("getLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine))
-    .def("getSearchTarget", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget))
-    .def("getRestrictToHeadlines", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines))
-    .def("getTargetId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId))
-    .def("getRegexp", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp))
+    .def("getLine", static_cast<hstd::Opt<int /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine))
+    .def("getSearchTarget", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget))
+    .def("getRestrictToHeadlines", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines))
+    .def("getTargetId", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId))
+    .def("getRegexp", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmAdapterTextSeparatorAPI>(m, "ImmTextSeparatorAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7435,209 +7421,209 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmAdapterCmdIncludeAPI>(m, "ImmCmdIncludeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getPath))
-    .def("getFirstLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine))
-    .def("getLastLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine))
-    .def("getData", static_cast<org::imm::ImmCmdInclude::Data(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getData))
+    .def("getFirstLine", static_cast<hstd::Opt<int /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine))
+    .def("getLastLine", static_cast<hstd::Opt<int /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine))
+    .def("getData", static_cast<org::imm::ImmCmdInclude::Data /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getData))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmAdapterDocumentGroupAPI>(m, "ImmDocumentGroupAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
-  nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
+  nanobind::class_<org::sem::BlockCenter /* d_org */, org::sem::Block>(m, "BlockCenter")
     .def("__init__",
-         [](org::sem::BlockCenter* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCenter();
+         [](org::sem::BlockCenter* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockCenter /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockCenter const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockCenter const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockCenter const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockCenter const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockQuote, org::sem::Block>(m, "BlockQuote")
+  nanobind::class_<org::sem::BlockQuote /* d_org */, org::sem::Block>(m, "BlockQuote")
     .def("__init__",
-         [](org::sem::BlockQuote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockQuote();
+         [](org::sem::BlockQuote* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockQuote /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockQuote const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockQuote const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockQuote const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockQuote const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockVerse, org::sem::Block>(m, "BlockVerse")
+  nanobind::class_<org::sem::BlockVerse /* d_org */, org::sem::Block>(m, "BlockVerse")
     .def("__init__",
-         [](org::sem::BlockVerse* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockVerse();
+         [](org::sem::BlockVerse* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockVerse /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockVerse const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockVerse const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockVerse const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockVerse const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockDynamicFallback, org::sem::Block>(m, "BlockDynamicFallback")
+  nanobind::class_<org::sem::BlockDynamicFallback /* d_org */, org::sem::Block>(m, "BlockDynamicFallback")
     .def("__init__",
-         [](org::sem::BlockDynamicFallback* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockDynamicFallback();
+         [](org::sem::BlockDynamicFallback* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockDynamicFallback /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::BlockDynamicFallback::name)
-    .def("__repr__", [](org::sem::BlockDynamicFallback const& _self) -> std::string {
+    .def_rw("name", &org::sem::BlockDynamicFallback /* d_org */::name)
+    .def("__repr__", [](org::sem::BlockDynamicFallback const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockDynamicFallback const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockDynamicFallback const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockExample, org::sem::Block>(m, "BlockExample")
+  nanobind::class_<org::sem::BlockExample /* d_org */, org::sem::Block>(m, "BlockExample")
     .def("__init__",
-         [](org::sem::BlockExample* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockExample();
+         [](org::sem::BlockExample* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockExample /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockExample const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockExample const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockExample const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockExample const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockExport, org::sem::Block>(m, "BlockExport")
+  nanobind::class_<org::sem::BlockExport /* d_org */, org::sem::Block>(m, "BlockExport")
     .def("__init__",
-         [](org::sem::BlockExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockExport();
+         [](org::sem::BlockExport* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockExport /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("exporter", &org::sem::BlockExport::exporter)
-    .def_rw("content", &org::sem::BlockExport::content)
-    .def("getPlacement", static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getPlacement), R"RAW(Return value of the :placement attribute if present)RAW")
-    .def("__repr__", [](org::sem::BlockExport const& _self) -> std::string {
+    .def_rw("exporter", &org::sem::BlockExport /* d_org */::exporter)
+    .def_rw("content", &org::sem::BlockExport /* d_org */::content)
+    .def("getPlacement", static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport /* d_org */::*)() const>(&org::sem::BlockExport /* d_org */::getPlacement), R"RAW(Return value of the :placement attribute if present)RAW")
+    .def("__repr__", [](org::sem::BlockExport const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockExport const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockExport const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockAdmonition, org::sem::Block>(m, "BlockAdmonition")
+  nanobind::class_<org::sem::BlockAdmonition /* d_org */, org::sem::Block>(m, "BlockAdmonition")
     .def("__init__",
-         [](org::sem::BlockAdmonition* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockAdmonition();
+         [](org::sem::BlockAdmonition* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockAdmonition /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::sem::BlockAdmonition const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockAdmonition const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockAdmonition const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockAdmonition const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockCodeEvalResult, org::sem::Block>(m, "BlockCodeEvalResult")
+  nanobind::class_<org::sem::BlockCodeEvalResult /* d_org */, org::sem::Block>(m, "BlockCodeEvalResult")
     .def("__init__",
-         [](org::sem::BlockCodeEvalResult* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeEvalResult();
+         [](org::sem::BlockCodeEvalResult* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockCodeEvalResult /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("raw", &org::sem::BlockCodeEvalResult::raw)
-    .def_rw("node", &org::sem::BlockCodeEvalResult::node)
-    .def("__repr__", [](org::sem::BlockCodeEvalResult const& _self) -> std::string {
+    .def_rw("raw", &org::sem::BlockCodeEvalResult /* d_org */::raw)
+    .def_rw("node", &org::sem::BlockCodeEvalResult /* d_org */::node)
+    .def("__repr__", [](org::sem::BlockCodeEvalResult const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockCodeEvalResult const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::BlockCode, org::sem::Block>(m, "BlockCode")
+  nanobind::class_<org::sem::BlockCode /* d_org */, org::sem::Block>(m, "BlockCode")
     .def("__init__",
-         [](org::sem::BlockCode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCode();
+         [](org::sem::BlockCode* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::BlockCode /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("lang", &org::sem::BlockCode::lang, R"RAW(Code block language name)RAW")
-    .def_rw("result", &org::sem::BlockCode::result, R"RAW(Code evaluation results)RAW")
-    .def_rw("lines", &org::sem::BlockCode::lines, R"RAW(Collected code lines)RAW")
-    .def_rw("switches", &org::sem::BlockCode::switches, R"RAW(Dash-based switches for code block execution)RAW")
+    .def_rw("lang", &org::sem::BlockCode /* d_org */::lang, R"RAW(Code block language name)RAW")
+    .def_rw("result", &org::sem::BlockCode /* d_org */::result, R"RAW(Code evaluation results)RAW")
+    .def_rw("lines", &org::sem::BlockCode /* d_org */::lines, R"RAW(Collected code lines)RAW")
+    .def_rw("switches", &org::sem::BlockCode /* d_org */::switches, R"RAW(Dash-based switches for code block execution)RAW")
     .def("getVariable",
-         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode /* d_org */::*)(hstd::Str const&) const>(&org::sem::BlockCode /* d_org */::getVariable),
          nanobind::arg("varname"))
-    .def("__repr__", [](org::sem::BlockCode const& _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockCode const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::BlockCode const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::BlockCode const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Table, org::sem::Block>(m, "Table")
+  nanobind::class_<org::sem::Table /* d_org */, org::sem::Block>(m, "Table")
     .def("__init__",
-         [](org::sem::Table* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Table();
+         [](org::sem::Table* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::Table /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("rows", &org::sem::Table::rows, R"RAW(List of rows for the table)RAW")
-    .def_rw("isBlock", &org::sem::Table::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def("__repr__", [](org::sem::Table const& _self) -> std::string {
+    .def_rw("rows", &org::sem::Table /* d_org */::rows, R"RAW(List of rows for the table)RAW")
+    .def_rw("isBlock", &org::sem::Table /* d_org */::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def("__repr__", [](org::sem::Table const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::Table const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::Table const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::Attached, org::sem::LineCommand>(m, "Attached")
+  nanobind::class_<org::sem::Attached /* d_org */, org::sem::LineCommand>(m, "Attached")
     ;
-  nanobind::class_<org::imm::ImmAdapterLineCommandAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterLineCommandAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLineCommandAPI /*  [905]imm/ImmOrg.hpp:1394:17( [780] >record 'ImmAdapterLineCommandAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1394:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterLineCommandAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCustomArgsAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdCustomArgsAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCustomArgsAPI /*  [905]imm/ImmOrg.hpp:1402:17( [780] >record 'ImmAdapterCmdCustomArgsAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1402:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdCustomArgsAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCreatorAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdCreatorAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCreatorAPI /*  [905]imm/ImmOrg.hpp:1403:17( [780] >record 'ImmAdapterCmdCreatorAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1403:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdCreatorAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdAuthorAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdAuthorAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAuthorAPI /*  [905]imm/ImmOrg.hpp:1404:17( [780] >record 'ImmAdapterCmdAuthorAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1404:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdAuthorAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdEmailAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdEmailAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdEmailAPI /*  [905]imm/ImmOrg.hpp:1405:17( [780] >record 'ImmAdapterCmdEmailAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1405:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdEmailAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdLanguageAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdLanguageAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdLanguageAPI /*  [905]imm/ImmOrg.hpp:1406:17( [780] >record 'ImmAdapterCmdLanguageAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1406:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdLanguageAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdTblfmAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCmdTblfmAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdTblfmAPI /*  [905]imm/ImmOrg.hpp:1410:17( [780] >record 'ImmAdapterCmdTblfmAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1410:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCmdTblfmAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterBlockAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1451:17( [780] >record 'ImmAdapterBlockAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1451:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterBlockAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCellAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterCellAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCellAPI /*  [905]imm/ImmOrg.hpp:1468:17( [780] >record 'ImmAdapterCellAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1468:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterCellAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterRowAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterRowAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterRowAPI /*  [905]imm/ImmOrg.hpp:1469:17( [780] >record 'ImmAdapterRowAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAPI /*  [905]imm/ImmOrg.hpp:1469:17( [780] >record 'ImmAdapterCmdAPI'<>) */>(m, "ImmAdapterRowAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmd>, org::imm::ImmAdapterCmdAPI>(m, "ImmCmdAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7646,18 +7632,18 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmAdapterCmdCustomRawAPI>(m, "ImmCmdCustomRawAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached))
+    .def("getIsAttached", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached))
     .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmAdapterCmdCustomTextAPI>(m, "ImmCmdCustomTextAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached))
+    .def("getIsAttached", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached))
     .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterLinkAPI>(m, "ImmLinkAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
+    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
     .def("getTarget", static_cast<org::sem::LinkTarget(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterBlockCommentAPI>(m, "ImmBlockCommentAdapter")
@@ -7722,7 +7708,7 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmAdapterRadioTargetAPI>(m, "ImmRadioTargetAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getWords", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords))
+    .def("getWords", static_cast<hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmAdapterVerbatimAPI>(m, "ImmVerbatimAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7736,115 +7722,115 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmAdapterParAPI>(m, "ImmParAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
-  nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
+  nanobind::class_<org::sem::CmdCaption /* d_org */, org::sem::Attached>(m, "CmdCaption")
     .def("__init__",
-         [](org::sem::CmdCaption* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCaption();
+         [](org::sem::CmdCaption* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCaption /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("text", &org::sem::CmdCaption::text, R"RAW(Content description)RAW")
-    .def("__repr__", [](org::sem::CmdCaption const& _self) -> std::string {
+    .def_rw("text", &org::sem::CmdCaption /* d_org */::text, R"RAW(Content description)RAW")
+    .def("__repr__", [](org::sem::CmdCaption const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCaption const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCaption const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdColumns, org::sem::Attached>(m, "CmdColumns")
+  nanobind::class_<org::sem::CmdColumns /* d_org */, org::sem::Attached>(m, "CmdColumns")
     .def("__init__",
-         [](org::sem::CmdColumns* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdColumns();
+         [](org::sem::CmdColumns* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdColumns /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("view", &org::sem::CmdColumns::view)
-    .def("__repr__", [](org::sem::CmdColumns const& _self) -> std::string {
+    .def_rw("view", &org::sem::CmdColumns /* d_org */::view)
+    .def("__repr__", [](org::sem::CmdColumns const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdColumns const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdColumns const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdName, org::sem::Attached>(m, "CmdName")
+  nanobind::class_<org::sem::CmdName /* d_org */, org::sem::Attached>(m, "CmdName")
     .def("__init__",
-         [](org::sem::CmdName* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdName();
+         [](org::sem::CmdName* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdName /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::CmdName::name)
-    .def("__repr__", [](org::sem::CmdName const& _self) -> std::string {
+    .def_rw("name", &org::sem::CmdName /* d_org */::name)
+    .def("__repr__", [](org::sem::CmdName const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdName const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdName const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdCall, org::sem::Attached>(m, "CmdCall")
+  nanobind::class_<org::sem::CmdCall /* d_org */, org::sem::Attached>(m, "CmdCall")
     .def("__init__",
-         [](org::sem::CmdCall* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCall();
+         [](org::sem::CmdCall* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdCall /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("name", &org::sem::CmdCall::name, R"RAW(Code block call name)RAW")
-    .def_rw("fileName", &org::sem::CmdCall::fileName, R"RAW(Which file code block should come from)RAW")
-    .def_rw("insideHeaderAttrs", &org::sem::CmdCall::insideHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_rw("callAttrs", &org::sem::CmdCall::callAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_rw("endHeaderAttrs", &org::sem::CmdCall::endHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_rw("result", &org::sem::CmdCall::result, R"RAW(Code evaluation results)RAW")
-    .def("__repr__", [](org::sem::CmdCall const& _self) -> std::string {
+    .def_rw("name", &org::sem::CmdCall /* d_org */::name, R"RAW(Code block call name)RAW")
+    .def_rw("fileName", &org::sem::CmdCall /* d_org */::fileName, R"RAW(Which file code block should come from)RAW")
+    .def_rw("insideHeaderAttrs", &org::sem::CmdCall /* d_org */::insideHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_rw("callAttrs", &org::sem::CmdCall /* d_org */::callAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_rw("endHeaderAttrs", &org::sem::CmdCall /* d_org */::endHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_rw("result", &org::sem::CmdCall /* d_org */::result, R"RAW(Code evaluation results)RAW")
+    .def("__repr__", [](org::sem::CmdCall const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdCall const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdCall const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdAttr, org::sem::Attached>(m, "CmdAttr")
+  nanobind::class_<org::sem::CmdAttr /* d_org */, org::sem::Attached>(m, "CmdAttr")
     .def("__init__",
-         [](org::sem::CmdAttr* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdAttr();
+         [](org::sem::CmdAttr* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdAttr /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("target", &org::sem::CmdAttr::target)
-    .def("__repr__", [](org::sem::CmdAttr const& _self) -> std::string {
+    .def_rw("target", &org::sem::CmdAttr /* d_org */::target)
+    .def("__repr__", [](org::sem::CmdAttr const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdAttr const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdAttr const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::sem::CmdExport, org::sem::Attached>(m, "CmdExport")
+  nanobind::class_<org::sem::CmdExport /* d_org */, org::sem::Attached>(m, "CmdExport")
     .def("__init__",
-         [](org::sem::CmdExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdExport();
+         [](org::sem::CmdExport* /* d_org */ result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::sem::CmdExport /* d_org */();
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("exporter", &org::sem::CmdExport::exporter)
-    .def_rw("content", &org::sem::CmdExport::content)
-    .def("__repr__", [](org::sem::CmdExport const& _self) -> std::string {
+    .def_rw("exporter", &org::sem::CmdExport /* d_org */::exporter)
+    .def_rw("content", &org::sem::CmdExport /* d_org */::content)
+    .def("__repr__", [](org::sem::CmdExport const& /* d_org */ _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::CmdExport const& _self, std::string const& name) -> nanobind::object {
+         [](org::sem::CmdExport const& /* d_org */ _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmAdapterAttachedAPI, org::imm::ImmAdapterLineCommandAPI>(m, "ImmAdapterAttachedAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1395:17( [780] >record 'ImmAdapterAttachedAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLineCommandAPI /*  [905]imm/ImmOrg.hpp:1395:17( [780] >record 'ImmAdapterLineCommandAPI'<>) */>(m, "ImmAdapterAttachedAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLineCommand>, org::imm::ImmAdapterLineCommandAPI>(m, "ImmLineCommandAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7852,7 +7838,7 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterCmdCustomArgsAPI>(m, "ImmCmdCustomArgsAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached))
+    .def("getIsAttached", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, org::imm::ImmAdapterCmdCreatorAPI>(m, "ImmCmdCreatorAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7874,53 +7860,53 @@ ingoing elements.)RAW")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getExpr", static_cast<org::sem::Tblfm(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getExpr))
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockCenterAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCenterAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockCenterAPI /*  [905]imm/ImmOrg.hpp:1452:17( [780] >record 'ImmAdapterBlockCenterAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1452:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockCenterAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockQuoteAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockQuoteAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockQuoteAPI /*  [905]imm/ImmOrg.hpp:1453:17( [780] >record 'ImmAdapterBlockQuoteAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1453:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockQuoteAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockVerseAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockVerseAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockVerseAPI /*  [905]imm/ImmOrg.hpp:1455:17( [780] >record 'ImmAdapterBlockVerseAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1455:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockVerseAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockExampleAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockExampleAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockExampleAPI /*  [905]imm/ImmOrg.hpp:1456:17( [780] >record 'ImmAdapterBlockExampleAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1456:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockExampleAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterInlineExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterInlineExportAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterInlineExportAPI /*  [905]imm/ImmOrg.hpp:1457:17( [780] >record 'ImmAdapterInlineExportAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1457:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterInlineExportAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterCmdExportAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdExportAPI /*  [905]imm/ImmOrg.hpp:1458:17( [780] >record 'ImmAdapterCmdExportAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1458:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterCmdExportAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockExportAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockExportAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockExportAPI /*  [905]imm/ImmOrg.hpp:1459:17( [780] >record 'ImmAdapterBlockExportAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1459:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockExportAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockDynamicFallbackAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockDynamicFallbackAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockDynamicFallbackAPI /*  [905]imm/ImmOrg.hpp:1462:17( [780] >record 'ImmAdapterBlockDynamicFallbackAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1462:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockDynamicFallbackAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockAdmonitionAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockAdmonitionAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAdmonitionAPI /*  [905]imm/ImmOrg.hpp:1463:17( [780] >record 'ImmAdapterBlockAdmonitionAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1463:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockAdmonitionAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockCodeEvalResultAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCodeEvalResultAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockCodeEvalResultAPI /*  [905]imm/ImmOrg.hpp:1464:17( [780] >record 'ImmAdapterBlockCodeEvalResultAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1464:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockCodeEvalResultAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterBlockCodeAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCodeAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockCodeAPI /*  [905]imm/ImmOrg.hpp:1465:17( [780] >record 'ImmAdapterBlockCodeAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1465:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterBlockCodeAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterTableAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterTableAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterTableAPI /*  [905]imm/ImmOrg.hpp:1470:17( [780] >record 'ImmAdapterTableAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterBlockAPI /*  [905]imm/ImmOrg.hpp:1470:17( [780] >record 'ImmAdapterBlockAPI'<>) */>(m, "ImmAdapterTableAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlock>, org::imm::ImmAdapterBlockAPI>(m, "ImmBlockAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmAdapterCellAPI>(m, "ImmCellAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock))
+    .def("getIsBlock", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmAdapterRowAPI>(m, "ImmRowAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getCells", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getCells))
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock))
+    .def("getCells", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getCells))
+    .def("getIsBlock", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock))
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCaptionAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCaptionAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCaptionAPI /*  [905]imm/ImmOrg.hpp:1396:17( [780] >record 'ImmAdapterCmdCaptionAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1396:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdCaptionAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdColumnsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdColumnsAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdColumnsAPI /*  [905]imm/ImmOrg.hpp:1399:17( [780] >record 'ImmAdapterCmdColumnsAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1399:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdColumnsAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdNameAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdNameAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdNameAPI /*  [905]imm/ImmOrg.hpp:1400:17( [780] >record 'ImmAdapterCmdNameAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1400:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdNameAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdCallAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCallAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdCallAPI /*  [905]imm/ImmOrg.hpp:1401:17( [780] >record 'ImmAdapterCmdCallAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1401:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdCallAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdResultsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdResultsAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdResultsAPI /*  [905]imm/ImmOrg.hpp:1409:17( [780] >record 'ImmAdapterCmdResultsAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1409:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdResultsAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterCmdAttrAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdAttrAPI")
+  nanobind::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterCmdAttrAPI /*  [905]imm/ImmOrg.hpp:1486:17( [780] >record 'ImmAdapterCmdAttrAPI'<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAttachedAPI /*  [905]imm/ImmOrg.hpp:1486:17( [780] >record 'ImmAdapterAttachedAPI'<>) */>(m, "ImmAdapterCmdAttrAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmAttached>, org::imm::ImmAdapterAttachedAPI>(m, "ImmAttachedAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7961,20 +7947,20 @@ ingoing elements.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterBlockCodeEvalResultAPI>(m, "ImmBlockCodeEvalResultAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRaw", static_cast<hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw))
+    .def("getRaw", static_cast<hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw))
     .def("getNode", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterBlockCodeAPI>(m, "ImmBlockCodeAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getLang", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang))
-    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult))
-    .def("getLines", static_cast<hstd::ext::ImmVec<org::sem::BlockCodeLine>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLines))
+    .def("getLang", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang))
+    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult))
+    .def("getLines", static_cast<hstd::ext::ImmVec<org::sem::BlockCodeLine> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLines))
     .def("getSwitches", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getSwitches))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmAdapterTableAPI>(m, "ImmTableAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRows", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getRows))
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock))
+    .def("getRows", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getRows))
+    .def("getIsBlock", static_cast<bool /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterCmdCaptionAPI>(m, "ImmCmdCaptionAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -7991,11 +7977,11 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmAdapterCmdCallAPI>(m, "ImmCmdCallAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getName))
-    .def("getFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName))
+    .def("getFileName", static_cast<hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName))
     .def("getInsideHeaderAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getInsideHeaderAttrs))
     .def("getCallAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getCallAttrs))
     .def("getEndHeaderAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getEndHeaderAttrs))
-    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult))
+    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult))
     ;
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
@@ -8725,204 +8711,204 @@ ingoing elements.)RAW")
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind", type_registry_guard);
-  nanobind::enum_<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
-    .value("RadioTarget", org::AstTrackingGroup::Kind::RadioTarget)
-    .value("Single", org::AstTrackingGroup::Kind::Single)
-    .value("TrackedHashtag", org::AstTrackingGroup::Kind::TrackedHashtag)
-    .def("__iter__", [](org::AstTrackingGroup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
-                     return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
+  bind_enum_iterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */>(m, "AstTrackingGroupKind", type_registry_guard);
+  nanobind::enum_<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */>(m, "AstTrackingGroupKind")
+    .value("RadioTarget", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */::RadioTarget)
+    .value("Single", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */::Single)
+    .value("TrackedHashtag", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */::TrackedHashtag)
+    .def("__iter__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ _self) -> org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */> {
+                     return org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */>();
                      })
-    .def("__int__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+    .def("__int__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+    .def("__index__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ lhs, org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::AstTrackingGroup::Kind it) -> int {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::AstTrackingGroup /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct api/SemBaseApi.hpp:162:25 */ it) -> int {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<org::graph::MapLink::Kind>(m, "GraphMapLinkKind", type_registry_guard);
-  nanobind::enum_<org::graph::MapLink::Kind>(m, "GraphMapLinkKind")
-    .value("Radio", org::graph::MapLink::Kind::Radio)
-    .value("Link", org::graph::MapLink::Kind::Link)
-    .def("__iter__", [](org::graph::MapLink::Kind const& _self) -> org::bind::python::PyEnumIterator<org::graph::MapLink::Kind> {
-                     return org::bind::python::PyEnumIterator<org::graph::MapLink::Kind>();
+  bind_enum_iterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */>(m, "GraphMapLinkKind", type_registry_guard);
+  nanobind::enum_<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */>(m, "GraphMapLinkKind")
+    .value("Radio", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */::Radio)
+    .value("Link", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */::Link)
+    .def("__iter__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ _self) -> org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */> {
+                     return org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */>();
                      })
-    .def("__int__", [](org::graph::MapLink::Kind const& _self) -> int {
+    .def("__int__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::graph::MapLink::Kind const& _self) -> int {
+    .def("__index__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind const& /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ lhs, org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::graph::MapLink::Kind it) -> int {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::graph /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::MapLink /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [550]type namespace @[0]' */::Kind /*  [1513]enum direct imm/ImmOrgGraph.hpp:36:5 */ it) -> int {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
-  nanobind::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
-    .value("Int", org::bind::python::LeafFieldType::Int)
-    .value("UserTimeKind", org::bind::python::LeafFieldType::UserTimeKind)
-    .value("QDate", org::bind::python::LeafFieldType::QDate)
-    .value("Bool", org::bind::python::LeafFieldType::Bool)
-    .value("FixedIdVec", org::bind::python::LeafFieldType::FixedIdVec)
-    .value("TopIdVec", org::bind::python::LeafFieldType::TopIdVec)
-    .value("QDateTime", org::bind::python::LeafFieldType::QDateTime)
-    .value("Str", org::bind::python::LeafFieldType::Str)
-    .value("Any", org::bind::python::LeafFieldType::Any)
-    .def("__iter__", [](org::bind::python::LeafFieldType const& _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
-                     return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
+  bind_enum_iterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */>(m, "LeafFieldType", type_registry_guard);
+  nanobind::enum_<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */>(m, "LeafFieldType")
+    .value("Int", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::Int)
+    .value("UserTimeKind", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::UserTimeKind)
+    .value("QDate", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::QDate)
+    .value("Bool", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::Bool)
+    .value("FixedIdVec", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::FixedIdVec)
+    .value("TopIdVec", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::TopIdVec)
+    .value("QDateTime", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::QDateTime)
+    .value("Str", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::Str)
+    .value("Any", org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */::Any)
+    .def("__iter__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType const& /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ _self) -> org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */> {
+                     return org::bind::python::PyEnumIterator<org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */>();
                      })
-    .def("__int__", [](org::bind::python::LeafFieldType const& _self) -> int {
+    .def("__int__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType const& /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](org::bind::python::LeafFieldType const& _self) -> int {
+    .def("__index__", [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType const& /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ lhs, org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](org::bind::python::LeafFieldType it) -> int {
+         [](org /*  [485]Apply namespace @[0] from 1517:VisitEnumDecl ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 1517:VisitEnumDecl ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 1517:VisitEnumDecl ' [539]regular type namespaces @[0]' */::LeafFieldType /*  [1513]enum direct pyhaxorg/pyhaxorg_manual_impl.hpp:228:58 */ it) -> int {
          return static_cast<int>(it);
          })
     ;
   m.def("newSemTimeStatic",
-        static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
+        static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Time /*  [640]Type parameter [905]api/SemBaseApi.hpp:12:32( [780] >record 'Time'<>) */> /*  [905]api/SemBaseApi.hpp:12:32( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::UserTimeBreakdown const& /*  [905]api/SemBaseApi.hpp:13:36( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'UserTimeBreakdown'<>)<>) */, bool /*  [905]api/SemBaseApi.hpp:14:36( [755] >bool<>) */)>(&org::newSemTimeStatic),
         nanobind::arg("breakdown"),
         nanobind::arg("isActive") = false);
-  m.def("initImmutableAstContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext));
+  m.def("initImmutableAstContext", static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]api/SemBaseApi.hpp:16:46( [780] >record 'ImmAstContext'<>) */> /*  [905]api/SemBaseApi.hpp:16:46( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(*)()>(&org::initImmutableAstContext));
   m.def("asOneNode",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&)>(&org::asOneNode),
+        static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:25:31( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:25:31( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:26:43( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:26:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */)>(&org::asOneNode),
         nanobind::arg("arg"));
   m.def("formatToString",
-        static_cast<std::string(*)(org::sem::SemId<org::sem::Org>)>(&org::formatToString),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:28:22( [735] typedef type bits/stringfwd.h:79:33) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:28:58( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:28:58( [780] >record 'SemId'< [657] templates: template-specialization-type>) */)>(&org::formatToString),
         nanobind::arg("arg"));
   m.def("exportToYamlString",
-        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:49:22( [735] typedef type bits/stringfwd.h:79:33) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:50:33( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:50:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts const& /*  [905]api/SemBaseApi.hpp:51:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'OrgYamlExportOpts'<>)<>) */)>(&org::exportToYamlString),
         nanobind::arg("node"),
         nanobind::arg("opts"));
   m.def("exportToYamlFile",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile),
+        static_cast<void /*  [905]api/SemBaseApi.hpp:52:15(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:53:33( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:53:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:54:33( [735] typedef type bits/stringfwd.h:79:33) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgYamlExportOpts const& /*  [905]api/SemBaseApi.hpp:55:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'OrgYamlExportOpts'<>)<>) */)>(&org::exportToYamlFile),
         nanobind::arg("node"),
         nanobind::arg("path"),
         nanobind::arg("opts"));
   m.def("exportToJsonString",
-        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&)>(&org::exportToJsonString),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:57:22( [735] typedef type bits/stringfwd.h:79:33) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:57:69( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:57:69( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */)>(&org::exportToJsonString),
         nanobind::arg("node"));
   m.def("exportToJsonFile",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string)>(&org::exportToJsonFile),
+        static_cast<void /*  [905]api/SemBaseApi.hpp:58:22(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:59:40( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:59:40( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:60:40( [735] typedef type bits/stringfwd.h:79:33) */)>(&org::exportToJsonFile),
         nanobind::arg("node"),
         nanobind::arg("path"));
   m.def("readProtobufFile",
-        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const&)>(&org::readProtobufFile),
+        static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Document /*  [640]Type parameter [905]api/SemBaseApi.hpp:62:36( [780] >record 'Document'<>) */> /*  [905]api/SemBaseApi.hpp:62:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/SemBaseApi.hpp:63:24( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org::readProtobufFile),
         nanobind::arg("file"));
   m.def("exportToProtobufFile",
-        static_cast<void(*)(org::sem::SemId<org::sem::Document>, std::string const&)>(&org::exportToProtobufFile),
+        static_cast<void /*  [905]api/SemBaseApi.hpp:65:15(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Document /*  [640]Type parameter [905]api/SemBaseApi.hpp:66:31( [780] >record 'Document'<>) */> /*  [905]api/SemBaseApi.hpp:66:31( [780] >record 'SemId'< [657] templates: template-specialization-type>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]api/SemBaseApi.hpp:67:31( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org::exportToProtobufFile),
         nanobind::arg("doc"),
         nanobind::arg("file"));
   m.def("exportToTreeString",
-        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgTreeExportOpts const&)>(&org::exportToTreeString),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:92:22( [735] typedef type bits/stringfwd.h:79:33) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:93:33( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:93:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts const& /*  [905]api/SemBaseApi.hpp:94:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'OrgTreeExportOpts'<>)<>) */)>(&org::exportToTreeString),
         nanobind::arg("node"),
         nanobind::arg("opts"));
   m.def("exportToTreeFile",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgTreeExportOpts const&)>(&org::exportToTreeFile),
+        static_cast<void /*  [905]api/SemBaseApi.hpp:96:15(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:97:33( [780] >record 'Org'<>) */> const& /*  [905]api/SemBaseApi.hpp:97:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'SemId'< [657] templates: template-specialization-type>)<>) */, std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]api/SemBaseApi.hpp:98:33( [735] typedef type bits/stringfwd.h:79:33) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgTreeExportOpts const& /*  [905]api/SemBaseApi.hpp:99:33( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'OrgTreeExportOpts'<>)<>) */)>(&org::exportToTreeFile),
         nanobind::arg("node"),
         nanobind::arg("path"),
         nanobind::arg("opts"));
   m.def("getAstTrackingMap",
-        static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap),
+        static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap /*  [905]api/SemBaseApi.hpp:265:25( [780] >record 'AstTrackingMap'<>) */(*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:266:44( [780] >record 'Org'<>) */> /*  [640]Type parameter [905]api/SemBaseApi.hpp:266:44( [780] >record 'SemId'< [657] templates: template-specialization-type>) */> const& /*  [905]api/SemBaseApi.hpp:266:44( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Vec'< [657] templates: template-specialization-type>)<>) */)>(&org::getAstTrackingMap),
         nanobind::arg("nodes"));
   m.def("getSubnodeGroups",
-        static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups),
+        static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingGroup /*  [640]Type parameter [905]api/SemBaseApi.hpp:268:38( [780] >record 'AstTrackingGroup'<>) */> /*  [905]api/SemBaseApi.hpp:268:38( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]api/SemBaseApi.hpp:269:27( [780] >record 'Org'<>) */> /*  [905]api/SemBaseApi.hpp:269:27( [780] >record 'SemId'< [657] templates: template-specialization-type>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::AstTrackingMap const& /*  [905]api/SemBaseApi.hpp:270:27( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'AstTrackingMap'<>)<>) */)>(&org::getSubnodeGroups),
         nanobind::arg("node"),
         nanobind::arg("map"));
   m.def("annotateSequence",
-        static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence),
+        static_cast<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceAnnotation /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'SequenceAnnotation'<>) */> /*  [905]stdlib/RangeSegmentation.hpp:93:34( [780] >record 'Vec'< [657] templates: template-specialization-type>) */(*)(hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Vec<hstd /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SequenceSegmentGroup /*  [640]Type parameter [905]stdlib/RangeSegmentation.hpp:94:38( [780] >record 'SequenceSegmentGroup'<>) */> const& /*  [905]stdlib/RangeSegmentation.hpp:94:38( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'Vec'< [657] templates: template-specialization-type>)<>) */, int /*  [905]stdlib/RangeSegmentation.hpp:95:38( [766] >builtin/unqual<>) */, int /*  [905]stdlib/RangeSegmentation.hpp:96:38( [766] >builtin/unqual<>) */)>(&hstd::annotateSequence),
         nanobind::arg("groups"),
         nanobind::arg("first"),
         nanobind::arg("last"));
   m.def("initMapGraphState",
-        static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState),
+        static_cast<std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraphState /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:441:41( [780] >record 'MapGraphState'<>) */> /*  [905]imm/ImmOrgGraph.hpp:441:41( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]imm/ImmOrgGraph.hpp:442:46( [780] >record 'ImmAstContext'<>) */> /*  [905]imm/ImmOrgGraph.hpp:442:46( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */)>(&org /*  [539]regular type namespaces @[1] */::graph::initMapGraphState),
         nanobind::arg("ast"));
   m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]serde/SemOrgCereal.hpp:7:73( [735] typedef type bits/stringfwd.h:79:33) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:8:43( [780] >record 'ImmAstContext'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:8:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeToText),
         nanobind::arg("store"));
   m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText),
+        static_cast<void /*  [905]serde/SemOrgCereal.hpp:9:68(<>) */(*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]serde/SemOrgCereal.hpp:10:43( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:11:43( [780] >record 'ImmAstContext'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:11:43( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]serde/SemOrgCereal.hpp:13:71( [735] typedef type bits/stringfwd.h:79:33) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:14:48( [780] >record 'ImmAstReplaceEpoch'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:14:48( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeToText),
         nanobind::arg("store"));
   m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText),
+        static_cast<void /*  [905]serde/SemOrgCereal.hpp:15:66(<>) */(*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]serde/SemOrgCereal.hpp:16:48( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:17:48( [780] >record 'ImmAstReplaceEpoch'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:17:48( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]serde/SemOrgCereal.hpp:19:71( [735] typedef type bits/stringfwd.h:79:33) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:20:50( [780] >record 'MapGraph'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:20:50( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeToText),
         nanobind::arg("store"));
   m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText),
+        static_cast<void /*  [905]serde/SemOrgCereal.hpp:21:66(<>) */(*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]serde/SemOrgCereal.hpp:22:50( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [640]Type parameter [905]serde/SemOrgCereal.hpp:23:50( [780] >record 'MapGraph'<>) */> const& /*  [905]serde/SemOrgCereal.hpp:23:50( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeFromTextToTreeDump",
-        static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
+        static_cast<std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string /*  [905]serde/SemOrgCereal.hpp:27:22( [735] typedef type bits/stringfwd.h:79:33) */(*)(std /*  [485]Apply namespace @[0] from 741:fillTypeRec ' [539]regular type namespaces @[0]' */::string const& /*  [905]serde/SemOrgCereal.hpp:28:24( [745] T-reference [752] >ref/ptr( [707] T-const [735] typedef type bits/stringfwd.h:79:33)<>) */)>(&org /*  [539]regular type namespaces @[1] */::imm::serializeFromTextToTreeDump),
         nanobind::arg("binary"));
   m.def("eachSubnodeRec",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRec),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:123:66(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:124:36( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:124:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */, nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::callable /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:125:36( [780] >record 'callable'<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::eachSubnodeRec),
         nanobind::arg("node"),
         nanobind::arg("callback"));
   m.def("eachSubnodeRecSimplePath",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRecSimplePath),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:127:66(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:128:36( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:128:36( [780] >record 'SemId'< [657] templates: template-specialization-type>) */, nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::callable /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:129:36( [780] >record 'callable'<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::eachSubnodeRecSimplePath),
         nanobind::arg("node"),
         nanobind::arg("callback"));
   m.def("setShouldProcessPath",
-        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setShouldProcessPath),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:144:66(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters* /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:145:46( [712] T-pointer [752] >ref/ptr( [780] >record 'OrgDirectoryParseParameters'<>)<>) */, nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::callable /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:146:46( [780] >record 'callable'<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::setShouldProcessPath),
         nanobind::arg("parameters"),
         nanobind::arg("callback"));
   m.def("serializeAstContextToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
+        static_cast<nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:156:5( [780] >record 'bytes'<>) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:157:52( [780] >record 'ImmAstContext'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:157:52( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeAstContextToText),
         nanobind::arg("store"));
   m.def("serializeAstContextFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:167:5(<>) */(*)(nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:168:52( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'bytes'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstContext /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:169:52( [780] >record 'ImmAstContext'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:169:52( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeAstContextFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeAstReplaceEpochToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochToText),
+        static_cast<nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:179:5( [780] >record 'bytes'<>) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:180:57( [780] >record 'ImmAstReplaceEpoch'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:180:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeAstReplaceEpochToText),
         nanobind::arg("store"));
   m.def("serializeAstReplaceEpochFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochFromText),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:190:5(<>) */(*)(nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:191:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'bytes'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAstReplaceEpoch /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:192:57( [780] >record 'ImmAstReplaceEpoch'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:192:57( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeAstReplaceEpochFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeMapGraphFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:202:5(<>) */(*)(nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:203:54( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'bytes'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:204:54( [780] >record 'MapGraph'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:204:54( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeMapGraphFromText),
         nanobind::arg("binary"),
         nanobind::arg("store"));
   m.def("serializeMapGraphToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
+        static_cast<nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::bytes /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:214:5( [780] >record 'bytes'<>) */(*)(std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::graph /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::MapGraph /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:215:54( [780] >record 'MapGraph'<>) */> const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:215:54( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'shared_ptr'< [657] templates: template-specialization-type>)<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::serializeMapGraphToText),
         nanobind::arg("store"));
   m.def("setGetParsedNode",
-        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setGetParsedNode),
+        static_cast<void /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:218:66(<>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::OrgDirectoryParseParameters* /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:219:41( [712] T-pointer [752] >ref/ptr( [780] >record 'OrgDirectoryParseParameters'<>)<>) */, nanobind /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::callable /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:220:41( [780] >record 'callable'<>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::setGetParsedNode),
         nanobind::arg("params"),
         nanobind::arg("callback"));
   m.def("evaluateCodeBlocks",
-        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&, std::shared_ptr<org::parse::ParseContext>)>(&org::bind::python::evaluateCodeBlocks),
+        static_cast<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:222:87( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:222:87( [780] >record 'SemId'< [657] templates: template-specialization-type>) */(*)(org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::SemId<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::sem /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::Org /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:223:47( [780] >record 'Org'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:223:47( [780] >record 'SemId'< [657] templates: template-specialization-type>) */, org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[2]' */::bind /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::python /*  [485]Apply namespace @[2] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::PyCodeEvalParameters const& /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:224:47( [745] T-reference [752] >ref/ptr( [707] T-const [780] >record 'PyCodeEvalParameters'<>)<>) */, std /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::shared_ptr<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::parse /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ParseContext /*  [640]Type parameter [905]pyhaxorg/pyhaxorg_manual_impl.hpp:225:47( [780] >record 'ParseContext'<>) */> /*  [905]pyhaxorg/pyhaxorg_manual_impl.hpp:225:47( [780] >record 'shared_ptr'< [657] templates: template-specialization-type>) */)>(&org /*  [539]regular type namespaces @[2] */::bind /*  [539]regular type namespaces @[1] */::python::evaluateCodeBlocks),
         nanobind::arg("node"),
         nanobind::arg("conf"),
         nanobind::arg("parse_context"));

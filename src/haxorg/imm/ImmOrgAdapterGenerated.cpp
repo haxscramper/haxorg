@@ -13,13 +13,13 @@ org::sem::OrgDiagnostics org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getDiag(
 org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorGroup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorGroup", other.getKind())
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics() const {
   return this->value().diagnostics;
 }
 org::imm::ImmAdapterT<org::imm::ImmStmt>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmStmt>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Stmt", other.getKind())
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached() const {
   return this->value().attached;
 }
 org::imm::ImmAdapterT<org::imm::ImmInline>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmInline>{other} {
@@ -100,7 +100,7 @@ org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::ImmAdapterT(org::imm::ImmAdap
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getName() const {
   return this->value().name.get();
 }
-bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached() const {
   return this->value().isAttached;
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomRaw>{other} {
@@ -109,7 +109,7 @@ org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::ImmAdapterT(org::imm::ImmAdapt
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getName() const {
   return this->value().name.get();
 }
-bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached() const {
   return this->value().isAttached;
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getText() const {
@@ -121,7 +121,7 @@ org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::ImmAdapterT(org::imm::ImmAdap
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName() const {
   return this->value().name.get();
 }
-bool org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached() const {
   return this->value().isAttached;
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText() const {
@@ -133,7 +133,7 @@ org::imm::ImmAdapterT<org::imm::ImmCmdCall>::ImmAdapterT(org::imm::ImmAdapter co
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getName() const {
   return this->value().name.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName() const {
   return this->value().fileName.get();
 }
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getInsideHeaderAttrs() const {
@@ -145,7 +145,7 @@ org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getCallAttrs() 
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getEndHeaderAttrs() const {
   return this->value().endHeaderAttrs;
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult() const {
   return this->value().result;
 }
 org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCmdTblfm>{other} {
@@ -181,10 +181,10 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getContent() 
 org::imm::ImmAdapterT<org::imm::ImmTime>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTime>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Time", other.getKind())
 }
-bool org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive() const {
   return this->value().isActive;
 }
-org::imm::ImmTime::TimeVariant org::imm::ImmAdapterT<org::imm::ImmTime>::getTime() const {
+org::imm::ImmTime::TimeVariant /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmTime>::getTime() const {
   return this->value().time;
 }
 org::imm::ImmAdapterT<org::imm::ImmTimeRange>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>{other} {
@@ -211,10 +211,10 @@ org::imm::ImmAdapterT<org::imm::ImmSymbol>::ImmAdapterT(org::imm::ImmAdapter con
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmSymbol>::getName() const {
   return this->value().name.get();
 }
-hstd::ext::ImmVec<org::imm::ImmSymbol::Param> org::imm::ImmAdapterT<org::imm::ImmSymbol>::getParameters() const {
+hstd::ext::ImmVec<org::imm::ImmSymbol::Param /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSymbol>::getParameters() const {
   return this->value().parameters;
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional() const {
   return this->value().positional;
 }
 org::imm::ImmAdapterT<org::imm::ImmEscaped>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmEscaped>{other} {
@@ -253,7 +253,7 @@ org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>::ImmAdapterT(org::imm::ImmAda
 org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipGroup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ErrorSkipGroup", other.getKind())
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped() const {
   return this->value().skipped;
 }
 org::imm::ImmAdapterT<org::imm::ImmMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmMarkup>{other} {
@@ -286,7 +286,7 @@ org::imm::ImmAdapterT<org::imm::ImmPar>::ImmAdapterT(org::imm::ImmAdapter const&
 org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRadioTarget>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "RadioTarget", other.getKind())
 }
-hstd::ext::ImmVec<hstd::Str> org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords() const {
+hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords() const {
   return this->value().words;
 }
 org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLatex>{other} {
@@ -295,7 +295,7 @@ org::imm::ImmAdapterT<org::imm::ImmLatex>::ImmAdapterT(org::imm::ImmAdapter cons
 org::imm::ImmAdapterT<org::imm::ImmLink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmLink>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Link", other.getKind())
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmLink::description);
 }
 org::sem::LinkTarget org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget() const {
@@ -337,7 +337,7 @@ org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>::ImmAdapterT(org::imm::ImmAd
 org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCodeEvalResult", other.getKind())
 }
-hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw() const {
+hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw() const {
   return this->value().raw;
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode() const {
@@ -346,13 +346,13 @@ org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::ge
 org::imm::ImmAdapterT<org::imm::ImmBlockCode>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "BlockCode", other.getKind())
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang() const {
   return this->value().lang.get();
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult() const {
   return this->value().result;
 }
-hstd::ext::ImmVec<org::sem::BlockCodeLine> org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLines() const {
+hstd::ext::ImmVec<org::sem::BlockCodeLine> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLines() const {
   return this->value().lines;
 }
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getSwitches() const {
@@ -364,79 +364,79 @@ org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::ImmAdapterT(org::imm::ImmAdapter
 org::sem::SubtreeLogHead org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead() const {
   return this->value().head;
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtreeLog::desc);
 }
 org::imm::ImmAdapterT<org::imm::ImmSubtree>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSubtree>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Subtree", other.getKind())
 }
-int org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel() const {
+int /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel() const {
   return this->value().level;
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId() const {
   return this->value().treeId.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo() const {
   return this->value().todo.get();
 }
 hstd::Opt<org::sem::SubtreeCompletion> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion() const {
   return this->value().completion.get();
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::description);
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags() const {
   return this->value().tags;
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::title);
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook() const {
   return this->value().logbook;
 }
-hstd::ext::ImmVec<org::sem::NamedProperty> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties() const {
+hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties() const {
   return this->value().properties;
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::closed);
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::deadline);
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmSubtree::scheduled);
 }
-bool org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment() const {
   return this->value().isComment;
 }
-bool org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived() const {
   return this->value().isArchived;
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority() const {
   return this->value().priority.get();
 }
 org::imm::ImmAdapterT<org::imm::ImmCell>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCell>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Cell", other.getKind())
 }
-bool org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock() const {
   return this->value().isBlock;
 }
 org::imm::ImmAdapterT<org::imm::ImmRow>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmRow>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Row", other.getKind())
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> org::imm::ImmAdapterT<org::imm::ImmRow>::getCells() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmRow>::getCells() const {
   return this->value().cells;
 }
-bool org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock() const {
   return this->value().isBlock;
 }
 org::imm::ImmAdapterT<org::imm::ImmTable>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTable>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Table", other.getKind())
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> org::imm::ImmAdapterT<org::imm::ImmTable>::getRows() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmTable>::getRows() const {
   return this->value().rows;
 }
-bool org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock() const {
   return this->value().isBlock;
 }
 org::imm::ImmAdapterT<org::imm::ImmParagraph>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmParagraph>{other} {
@@ -469,7 +469,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCall>::getName() const {
 org::sem::AttrGroup org::imm::ImmAdapterT<org::imm::ImmCall>::getAttrs() const {
   return this->value().attrs;
 }
-bool org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand() const {
   return this->value().isCommand;
 }
 org::imm::ImmAdapterT<org::imm::ImmList>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmList>{other} {
@@ -478,91 +478,91 @@ org::imm::ImmAdapterT<org::imm::ImmList>::ImmAdapterT(org::imm::ImmAdapter const
 org::imm::ImmAdapterT<org::imm::ImmListItem>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmListItem>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "ListItem", other.getKind())
 }
-CheckboxState org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox() const {
+CheckboxState /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox() const {
   return this->value().checkbox;
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmListItem::header);
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet() const {
   return this->value().bullet.get();
 }
 org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentOptions>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentOptions", other.getKind())
 }
-InitialSubtreeVisibility org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility() const {
+InitialSubtreeVisibility /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility() const {
   return this->value().initialVisibility;
 }
-hstd::ext::ImmVec<org::sem::NamedProperty> org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getProperties() const {
+hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getProperties() const {
   return this->value().properties;
 }
 org::sem::DocumentExportConfig org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig() const {
   return this->value().exportConfig;
 }
-hstd::Opt<bool> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections() const {
+hstd::Opt<bool /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections() const {
   return this->value().fixedWidthSections.get();
 }
-hstd::Opt<bool> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented() const {
+hstd::Opt<bool /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented() const {
   return this->value().startupIndented.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory() const {
   return this->value().category.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile() const {
   return this->value().setupfile.get();
 }
-hstd::Opt<int> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport() const {
+hstd::Opt<int /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport() const {
   return this->value().maxSubtreeLevelExport.get();
 }
 hstd::Opt<org::sem::ColumnView> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getColumns() const {
   return this->value().columns.get();
 }
-hstd::ext::ImmVec<org::sem::TodoKeyword> org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords() const {
+hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords() const {
   return this->value().todoKeywords;
 }
-hstd::ext::ImmVec<org::sem::TodoKeyword> org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords() const {
+hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords() const {
   return this->value().doneKeywords;
 }
 org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocumentFragment>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "DocumentFragment", other.getKind())
 }
-int org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine() const {
+int /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine() const {
   return this->value().baseLine;
 }
-int org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol() const {
+int /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol() const {
   return this->value().baseCol;
 }
 org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmCriticMarkup>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "CriticMarkup", other.getKind())
 }
-org::imm::ImmCriticMarkup::Kind org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind() const {
+org::imm::ImmCriticMarkup::Kind /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind() const {
   return this->value().kind;
 }
 org::imm::ImmAdapterT<org::imm::ImmDocument>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDocument>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Document", other.getKind())
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmDocument::title);
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmDocument::author);
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmDocument::creator);
 }
-hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags() const {
+hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags() const {
   return this->value().filetags;
 }
-hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail() const {
+hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText /* imm_write */>> org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmDocument::email);
 }
-hstd::ext::ImmVec<hstd::Str> org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage() const {
+hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage() const {
   return this->value().language;
 }
 org::imm::ImmAdapter org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions() const {
   return org::imm::get_adapter_field(this, &org::imm::ImmDocument::options);
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName() const {
   return this->value().exportFileName.get();
 }
 org::imm::ImmAdapterT<org::imm::ImmFileTarget>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmFileTarget>{other} {
@@ -571,19 +571,19 @@ org::imm::ImmAdapterT<org::imm::ImmFileTarget>::ImmAdapterT(org::imm::ImmAdapter
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getPath() const {
   return this->value().path.get();
 }
-hstd::Opt<int> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine() const {
+hstd::Opt<int /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine() const {
   return this->value().line.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget() const {
   return this->value().searchTarget.get();
 }
-bool org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines() const {
   return this->value().restrictToHeadlines;
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId() const {
   return this->value().targetId.get();
 }
-hstd::Opt<hstd::Str> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp() const {
+hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp() const {
   return this->value().regexp.get();
 }
 org::imm::ImmAdapterT<org::imm::ImmTextSeparator>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmTextSeparator>{other} {
@@ -601,7 +601,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFile>::getRelPath() const {
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmFile>::getAbsPath() const {
   return this->value().absPath.get();
 }
-org::imm::ImmFile::Data org::imm::ImmAdapterT<org::imm::ImmFile>::getData() const {
+org::imm::ImmFile::Data /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmFile>::getData() const {
   return this->value().data;
 }
 org::imm::ImmAdapterT<org::imm::ImmDirectory>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmDirectory>{other} {
@@ -616,7 +616,7 @@ hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmDirectory>::getAbsPath() con
 org::imm::ImmAdapterT<org::imm::ImmSymlink>::ImmAdapterT(org::imm::ImmAdapter const& other) : org::imm::ImmAdapterTBase<org::imm::ImmSymlink>{other} {
   LOGIC_ASSERTION_CHECK_FMT("Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}", "Symlink", other.getKind())
 }
-bool org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory() const {
+bool /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory() const {
   return this->value().isDirectory;
 }
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmSymlink>::getAbsPath() const {
@@ -628,13 +628,13 @@ org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::ImmAdapterT(org::imm::ImmAdapter
 hstd::Str const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getPath() const {
   return this->value().path.get();
 }
-hstd::Opt<int> const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine() const {
+hstd::Opt<int /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine() const {
   return this->value().firstLine.get();
 }
-hstd::Opt<int> const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine() const {
+hstd::Opt<int /* imm_write */> const& org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine() const {
   return this->value().lastLine.get();
 }
-org::imm::ImmCmdInclude::Data org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getData() const {
+org::imm::ImmCmdInclude::Data /* imm_write */ org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getData() const {
   return this->value().data;
 }
 /* clang-format on */

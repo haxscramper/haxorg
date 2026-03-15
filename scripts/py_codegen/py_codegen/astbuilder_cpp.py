@@ -676,13 +676,30 @@ class ASTBuilder(base.AstbuilderBase):
         return self.brace(p.Stmts)
 
     def VarDecl(self, p: ParmVarParams) -> BlockId:
-        return self.b.line([
-            self.Type(p.type),
-            self.string(" "),
-            self.string("const " if p.IsConst else ""),
-            self.string(p.name), *([self.string(" = "), p.defArg] if p.defArg else []),
-            self.string(";")
-        ])
+        if p.type.Kind == codegen_ir.QualTypeKind.FunctionPtr:
+            assert p.type.Func
+            return self.b.line([
+                self.Type(p.type.Func.ReturnType),
+                self.string(" (*"),
+                self.string(p.name),
+                self.string(")"),
+                self.string("("),
+                self.csv([self.Type(a) for a in p.type.Func.Args]),
+                self.string(")"),
+                self.string("const " if p.IsConst else ""),
+                *([self.string(" = "), p.defArg] if p.defArg else []),
+                self.string(";"),
+            ])
+
+        else:
+            return self.b.line([
+                self.Type(p.type),
+                self.string(" "),
+                self.string("const " if p.IsConst else ""),
+                self.string(p.name),
+                *([self.string(" = "), p.defArg] if p.defArg else []),
+                self.string(";"),
+            ])
 
     def block(
         self,
@@ -755,13 +772,22 @@ class ASTBuilder(base.AstbuilderBase):
                 self.string(";"),
             ]))
 
+    def Typedef(self, params: UsingParams) -> BlockId:
+        return self.line([
+            self.string("typedef "),
+            self.Type(params.baseType),
+            self.string(" "),
+            self.string(params.newName),
+            self.string(";"),
+        ])
+
     def Field(self, field: RecordField) -> BlockId:
-        return self.WithAccess(
-            self.WithDoc(
-                self.b.line([
-                    self.string("static " if field.isStatic else ""),
-                    self.VarDecl(field.params)
-                ]), field.doc), field.access)
+        field_body = self.b.line([
+            self.string("static " if field.isStatic else ""),
+            self.VarDecl(field.params)
+        ])
+
+        return self.WithAccess(self.WithDoc(field_body, field.doc), field.access)
 
     def MethodDef(self, m: MethodDefParams) -> BlockId:
         "Convert method definition parameters to layout block"
