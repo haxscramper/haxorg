@@ -1,6 +1,40 @@
 /* clang-format off */
 #include <wrappers/c/haxorg_c.h>
 #include <wrappers/c/haxorg_c_utils.hpp>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void haxorg_destroy_UserTimeBreakdown(haxorg_UserTimeBreakdown* obj) { execute_destroy<hstd::UserTimeBreakdown>(obj); }
 
 void haxorg_destroy_UserTime(haxorg_UserTime* obj) { execute_destroy<hstd::UserTime>(obj); }
@@ -111,13 +145,11 @@ void haxorg_destroy_LispCodeBoolean(haxorg_LispCodeBoolean* obj) { execute_destr
 
 void haxorg_destroy_LispCodeReal(haxorg_LispCodeReal* obj) { execute_destroy<org::sem::LispCode::Real>(obj); }
 
-
 void haxorg_destroy_LispCode(haxorg_LispCode* obj) { execute_destroy<org::sem::LispCode>(obj); }
 
 void haxorg_destroy_TblfmExprAxisRefPositionIndex(haxorg_TblfmExprAxisRefPositionIndex* obj) { execute_destroy<org::sem::Tblfm::Expr::AxisRef::Position::Index>(obj); }
 
 void haxorg_destroy_TblfmExprAxisRefPositionName(haxorg_TblfmExprAxisRefPositionName* obj) { execute_destroy<org::sem::Tblfm::Expr::AxisRef::Position::Name>(obj); }
-
 
 void haxorg_destroy_TblfmExprAxisRefPosition(haxorg_TblfmExprAxisRefPosition* obj) { execute_destroy<org::sem::Tblfm::Expr::AxisRef::Position>(obj); }
 
@@ -135,9 +167,7 @@ void haxorg_destroy_TblfmExprCall(haxorg_TblfmExprCall* obj) { execute_destroy<o
 
 void haxorg_destroy_TblfmExprElisp(haxorg_TblfmExprElisp* obj) { execute_destroy<org::sem::Tblfm::Expr::Elisp>(obj); }
 
-
 void haxorg_destroy_TblfmExpr(haxorg_TblfmExpr* obj) { execute_destroy<org::sem::Tblfm::Expr>(obj); }
-
 
 void haxorg_destroy_TblfmAssign(haxorg_TblfmAssign* obj) { execute_destroy<org::sem::Tblfm::Assign>(obj); }
 
@@ -151,11 +181,9 @@ void haxorg_destroy_AttrValueFileReference(haxorg_AttrValueFileReference* obj) {
 
 void haxorg_destroy_AttrValueLispValue(haxorg_AttrValueLispValue* obj) { execute_destroy<org::sem::AttrValue::LispValue>(obj); }
 
-
 void haxorg_destroy_AttrValue(haxorg_AttrValue* obj) { execute_destroy<org::sem::AttrValue>(obj); }
 
 void haxorg_destroy_HashTagFlat(haxorg_HashTagFlat* obj) { execute_destroy<org::sem::HashTagFlat>(obj); }
-
 
 void haxorg_destroy_TodoKeyword(haxorg_TodoKeyword* obj) { execute_destroy<org::sem::TodoKeyword>(obj); }
 
@@ -183,9 +211,7 @@ void haxorg_destroy_LinkTargetFile(haxorg_LinkTargetFile* obj) { execute_destroy
 
 void haxorg_destroy_LinkTargetAttachment(haxorg_LinkTargetAttachment* obj) { execute_destroy<org::sem::LinkTarget::Attachment>(obj); }
 
-
 void haxorg_destroy_LinkTarget(haxorg_LinkTarget* obj) { execute_destroy<org::sem::LinkTarget>(obj); }
-
 
 void haxorg_destroy_SubtreeLogHeadPriority(haxorg_SubtreeLogHeadPriority* obj) { execute_destroy<org::sem::SubtreeLogHead::Priority>(obj); }
 
@@ -205,7 +231,6 @@ void haxorg_destroy_SubtreeLogHeadTag(haxorg_SubtreeLogHeadTag* obj) { execute_d
 
 void haxorg_destroy_SubtreeLogHeadUnknown(haxorg_SubtreeLogHeadUnknown* obj) { execute_destroy<org::sem::SubtreeLogHead::Unknown>(obj); }
 
-
 void haxorg_destroy_SubtreeLogHead(haxorg_SubtreeLogHead* obj) { execute_destroy<org::sem::SubtreeLogHead>(obj); }
 
 void haxorg_destroy_SubtreeCompletion(haxorg_SubtreeCompletion* obj) { execute_destroy<org::sem::SubtreeCompletion>(obj); }
@@ -216,19 +241,13 @@ void haxorg_destroy_AttrGroup(haxorg_AttrGroup* obj) { execute_destroy<org::sem:
 
 void haxorg_destroy_OrgCodeEvalInputVar(haxorg_OrgCodeEvalInputVar* obj) { execute_destroy<org::sem::OrgCodeEvalInput::Var>(obj); }
 
-
-
-
 void haxorg_destroy_OrgCodeEvalInput(haxorg_OrgCodeEvalInput* obj) { execute_destroy<org::sem::OrgCodeEvalInput>(obj); }
 
 void haxorg_destroy_OrgCodeEvalOutput(haxorg_OrgCodeEvalOutput* obj) { execute_destroy<org::sem::OrgCodeEvalOutput>(obj); }
 
-
 void haxorg_destroy_ColumnViewSummaryCheckboxAggregate(haxorg_ColumnViewSummaryCheckboxAggregate* obj) { execute_destroy<org::sem::ColumnView::Summary::CheckboxAggregate>(obj); }
 
-
 void haxorg_destroy_ColumnViewSummaryMathAggregate(haxorg_ColumnViewSummaryMathAggregate* obj) { execute_destroy<org::sem::ColumnView::Summary::MathAggregate>(obj); }
-
 
 void haxorg_destroy_ColumnViewSummary(haxorg_ColumnViewSummary* obj) { execute_destroy<org::sem::ColumnView::Summary>(obj); }
 
@@ -242,24 +261,17 @@ void haxorg_destroy_BlockCodeLinePartCallout(haxorg_BlockCodeLinePartCallout* ob
 
 void haxorg_destroy_BlockCodeLinePartTangle(haxorg_BlockCodeLinePartTangle* obj) { execute_destroy<org::sem::BlockCodeLine::Part::Tangle>(obj); }
 
-
 void haxorg_destroy_BlockCodeLinePart(haxorg_BlockCodeLinePart* obj) { execute_destroy<org::sem::BlockCodeLine::Part>(obj); }
 
 void haxorg_destroy_BlockCodeLine(haxorg_BlockCodeLine* obj) { execute_destroy<org::sem::BlockCodeLine>(obj); }
 
 void haxorg_destroy_DocumentExportConfigTaskExport(haxorg_DocumentExportConfigTaskExport* obj) { execute_destroy<org::sem::DocumentExportConfig::TaskExport>(obj); }
 
-
-
-
-
 void haxorg_destroy_DocumentExportConfigDoExport(haxorg_DocumentExportConfigDoExport* obj) { execute_destroy<org::sem::DocumentExportConfig::DoExport>(obj); }
 
 void haxorg_destroy_DocumentExportConfigExportFixed(haxorg_DocumentExportConfigExportFixed* obj) { execute_destroy<org::sem::DocumentExportConfig::ExportFixed>(obj); }
 
-
 void haxorg_destroy_DocumentExportConfig(haxorg_DocumentExportConfig* obj) { execute_destroy<org::sem::DocumentExportConfig>(obj); }
-
 
 void haxorg_destroy_SubtreePeriod(haxorg_SubtreePeriod* obj) { execute_destroy<org::sem::SubtreePeriod>(obj); }
 
@@ -293,7 +305,6 @@ void haxorg_destroy_NamedPropertyOrdered(haxorg_NamedPropertyOrdered* obj) { exe
 
 void haxorg_destroy_NamedPropertyEffort(haxorg_NamedPropertyEffort* obj) { execute_destroy<org::sem::NamedProperty::Effort>(obj); }
 
-
 void haxorg_destroy_NamedPropertyVisibility(haxorg_NamedPropertyVisibility* obj) { execute_destroy<org::sem::NamedProperty::Visibility>(obj); }
 
 void haxorg_destroy_NamedPropertyExportOptions(haxorg_NamedPropertyExportOptions* obj) { execute_destroy<org::sem::NamedProperty::ExportOptions>(obj); }
@@ -318,7 +329,6 @@ void haxorg_destroy_NamedPropertyCustomSubtreeJson(haxorg_NamedPropertyCustomSub
 
 void haxorg_destroy_NamedPropertyCustomSubtreeFlags(haxorg_NamedPropertyCustomSubtreeFlags* obj) { execute_destroy<org::sem::NamedProperty::CustomSubtreeFlags>(obj); }
 
-
 void haxorg_destroy_NamedProperty(haxorg_NamedProperty* obj) { execute_destroy<org::sem::NamedProperty>(obj); }
 
 void haxorg_destroy_OrgDiagnosticsParseTokenError(haxorg_OrgDiagnosticsParseTokenError* obj) { execute_destroy<org::sem::OrgDiagnostics::ParseTokenError>(obj); }
@@ -330,7 +340,6 @@ void haxorg_destroy_OrgDiagnosticsIncludeError(haxorg_OrgDiagnosticsIncludeError
 void haxorg_destroy_OrgDiagnosticsConvertError(haxorg_OrgDiagnosticsConvertError* obj) { execute_destroy<org::sem::OrgDiagnostics::ConvertError>(obj); }
 
 void haxorg_destroy_OrgDiagnosticsInternalError(haxorg_OrgDiagnosticsInternalError* obj) { execute_destroy<org::sem::OrgDiagnostics::InternalError>(obj); }
-
 
 void haxorg_destroy_OrgDiagnostics(haxorg_OrgDiagnostics* obj) { execute_destroy<org::sem::OrgDiagnostics>(obj); }
 
@@ -350,14 +359,11 @@ void haxorg_destroy_Empty(haxorg_Empty* obj) { execute_destroy<org::sem::Empty>(
 
 void haxorg_destroy_Leaf(haxorg_Leaf* obj) { execute_destroy<org::sem::Leaf>(obj); }
 
-
-
 void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj) { execute_destroy<org::sem::Time::Repeat>(obj); }
 
 void haxorg_destroy_TimeStatic(haxorg_TimeStatic* obj) { execute_destroy<org::sem::Time::Static>(obj); }
 
 void haxorg_destroy_TimeDynamic(haxorg_TimeDynamic* obj) { execute_destroy<org::sem::Time::Dynamic>(obj); }
-
 
 void haxorg_destroy_Time(haxorg_Time* obj) { execute_destroy<org::sem::Time>(obj); }
 
@@ -391,7 +397,6 @@ void haxorg_destroy_DocumentOptions(haxorg_DocumentOptions* obj) { execute_destr
 
 void haxorg_destroy_DocumentFragment(haxorg_DocumentFragment* obj) { execute_destroy<org::sem::DocumentFragment>(obj); }
 
-
 void haxorg_destroy_CriticMarkup(haxorg_CriticMarkup* obj) { execute_destroy<org::sem::CriticMarkup>(obj); }
 
 void haxorg_destroy_Document(haxorg_Document* obj) { execute_destroy<org::sem::Document>(obj); }
@@ -407,7 +412,6 @@ void haxorg_destroy_FileDocument(haxorg_FileDocument* obj) { execute_destroy<org
 void haxorg_destroy_FileAttachment(haxorg_FileAttachment* obj) { execute_destroy<org::sem::File::Attachment>(obj); }
 
 void haxorg_destroy_FileSource(haxorg_FileSource* obj) { execute_destroy<org::sem::File::Source>(obj); }
-
 
 void haxorg_destroy_File(haxorg_File* obj) { execute_destroy<org::sem::File>(obj); }
 
@@ -426,7 +430,6 @@ void haxorg_destroy_CmdIncludeCustom(haxorg_CmdIncludeCustom* obj) { execute_des
 void haxorg_destroy_CmdIncludeSrc(haxorg_CmdIncludeSrc* obj) { execute_destroy<org::sem::CmdInclude::Src>(obj); }
 
 void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj) { execute_destroy<org::sem::CmdInclude::OrgDocument>(obj); }
-
 
 void haxorg_destroy_CmdInclude(haxorg_CmdInclude* obj) { execute_destroy<org::sem::CmdInclude>(obj); }
 
@@ -451,7 +454,6 @@ void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj) { execute_destroy<o
 void haxorg_destroy_ImmTimeStatic(haxorg_ImmTimeStatic* obj) { execute_destroy<org::imm::ImmTime::Static>(obj); }
 
 void haxorg_destroy_ImmTimeDynamic(haxorg_ImmTimeDynamic* obj) { execute_destroy<org::imm::ImmTime::Dynamic>(obj); }
-
 
 void haxorg_destroy_ImmTime(haxorg_ImmTime* obj) { execute_destroy<org::imm::ImmTime>(obj); }
 
@@ -501,7 +503,6 @@ void haxorg_destroy_ImmFileAttachment(haxorg_ImmFileAttachment* obj) { execute_d
 
 void haxorg_destroy_ImmFileSource(haxorg_ImmFileSource* obj) { execute_destroy<org::imm::ImmFile::Source>(obj); }
 
-
 void haxorg_destroy_ImmFile(haxorg_ImmFile* obj) { execute_destroy<org::imm::ImmFile>(obj); }
 
 void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj) { execute_destroy<org::imm::ImmDirectory>(obj); }
@@ -519,7 +520,6 @@ void haxorg_destroy_ImmCmdIncludeCustom(haxorg_ImmCmdIncludeCustom* obj) { execu
 void haxorg_destroy_ImmCmdIncludeSrc(haxorg_ImmCmdIncludeSrc* obj) { execute_destroy<org::imm::ImmCmdInclude::Src>(obj); }
 
 void haxorg_destroy_ImmCmdIncludeOrgDocument(haxorg_ImmCmdIncludeOrgDocument* obj) { execute_destroy<org::imm::ImmCmdInclude::OrgDocument>(obj); }
-
 
 void haxorg_destroy_ImmCmdInclude(haxorg_ImmCmdInclude* obj) { execute_destroy<org::imm::ImmCmdInclude>(obj); }
 

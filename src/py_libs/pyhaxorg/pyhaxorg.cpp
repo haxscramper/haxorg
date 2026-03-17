@@ -292,6 +292,807 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::SequenceAnnotation>(m, "StdVecOfSequenceAnnotation", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceSegmentGroup>(m, "HstdVecOfSequenceSegmentGroup", type_registry_guard);
   org::bind::python::bind_stdvector<hstd::SequenceSegmentGroup>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
+  bind_enum_iterator<CheckboxState>(m, "CheckboxState", type_registry_guard);
+  nanobind::enum_<CheckboxState>(m, "CheckboxState")
+    .value("None", CheckboxState::None)
+    .value("Done", CheckboxState::Done)
+    .value("Empty", CheckboxState::Empty)
+    .value("Partial", CheckboxState::Partial)
+    .def("__iter__", [](CheckboxState const& _self) -> org::bind::python::PyEnumIterator<CheckboxState> {
+                     return org::bind::python::PyEnumIterator<CheckboxState>();
+                     })
+    .def("__int__", [](CheckboxState const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](CheckboxState const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](CheckboxState lhs, CheckboxState rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](CheckboxState it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<SubtreeTodoSource>(m, "SubtreeTodoSource", type_registry_guard);
+  nanobind::enum_<SubtreeTodoSource>(m, "SubtreeTodoSource")
+    .value("Checkbox", SubtreeTodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
+    .value("Todo", SubtreeTodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
+    .value("Both", SubtreeTodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
+    .def("__iter__", [](SubtreeTodoSource const& _self) -> org::bind::python::PyEnumIterator<SubtreeTodoSource> {
+                     return org::bind::python::PyEnumIterator<SubtreeTodoSource>();
+                     })
+    .def("__int__", [](SubtreeTodoSource const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](SubtreeTodoSource const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](SubtreeTodoSource it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
+  nanobind::enum_<ListFormattingMode>(m, "ListFormattingMode")
+    .value("None", ListFormattingMode::None, R"RAW(Default, no custom formatting)RAW")
+    .value("Table1D1Col", ListFormattingMode::Table1D1Col, R"RAW(one column, each table item is an individual row)RAW")
+    .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
+    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
+    .value("Table2DRowFirst", ListFormattingMode::Table2DRowFirst, R"RAW(for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.)RAW")
+    .def("__iter__", [](ListFormattingMode const& _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
+                     return org::bind::python::PyEnumIterator<ListFormattingMode>();
+                     })
+    .def("__int__", [](ListFormattingMode const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](ListFormattingMode const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](ListFormattingMode it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
+  nanobind::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
+    .value("Overview", InitialSubtreeVisibility::Overview)
+    .value("Content", InitialSubtreeVisibility::Content)
+    .value("ShowAll", InitialSubtreeVisibility::ShowAll)
+    .value("Show2Levels", InitialSubtreeVisibility::Show2Levels)
+    .value("Show3Levels", InitialSubtreeVisibility::Show3Levels)
+    .value("Show4Levels", InitialSubtreeVisibility::Show4Levels)
+    .value("Show5Levels", InitialSubtreeVisibility::Show5Levels)
+    .value("ShowEverything", InitialSubtreeVisibility::ShowEverything)
+    .def("__iter__", [](InitialSubtreeVisibility const& _self) -> org::bind::python::PyEnumIterator<InitialSubtreeVisibility> {
+                     return org::bind::python::PyEnumIterator<InitialSubtreeVisibility>();
+                     })
+    .def("__int__", [](InitialSubtreeVisibility const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](InitialSubtreeVisibility const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](InitialSubtreeVisibility it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
+  nanobind::enum_<OrgSpecName>(m, "OrgSpecName")
+    .value("Unnamed", OrgSpecName::Unnamed)
+    .value("Result", OrgSpecName::Result)
+    .value("Year", OrgSpecName::Year)
+    .value("Day", OrgSpecName::Day)
+    .value("Clock", OrgSpecName::Clock)
+    .value("Repeater", OrgSpecName::Repeater)
+    .value("Warn", OrgSpecName::Warn)
+    .value("Zone", OrgSpecName::Zone)
+    .value("Link", OrgSpecName::Link)
+    .value("Tags", OrgSpecName::Tags)
+    .value("Tag", OrgSpecName::Tag)
+    .value("State", OrgSpecName::State)
+    .value("Protocol", OrgSpecName::Protocol)
+    .value("Desc", OrgSpecName::Desc)
+    .value("Times", OrgSpecName::Times)
+    .value("Drawer", OrgSpecName::Drawer)
+    .value("Args", OrgSpecName::Args)
+    .value("Name", OrgSpecName::Name)
+    .value("Definition", OrgSpecName::Definition)
+    .value("Body", OrgSpecName::Body)
+    .value("HeaderArgs", OrgSpecName::HeaderArgs)
+    .value("File", OrgSpecName::File)
+    .value("Kind", OrgSpecName::Kind)
+    .value("Lang", OrgSpecName::Lang)
+    .value("Prefix", OrgSpecName::Prefix)
+    .value("Text", OrgSpecName::Text)
+    .value("Todo", OrgSpecName::Todo)
+    .value("Importance", OrgSpecName::Importance)
+    .value("Title", OrgSpecName::Title)
+    .value("Completion", OrgSpecName::Completion)
+    .value("Head", OrgSpecName::Head)
+    .value("Subnodes", OrgSpecName::Subnodes)
+    .value("Properties", OrgSpecName::Properties)
+    .value("Logbook", OrgSpecName::Logbook)
+    .value("Description", OrgSpecName::Description)
+    .value("Logs", OrgSpecName::Logs)
+    .value("Newstate", OrgSpecName::Newstate)
+    .value("Oldstate", OrgSpecName::Oldstate)
+    .value("Time", OrgSpecName::Time)
+    .value("From", OrgSpecName::From)
+    .value("EndArgs", OrgSpecName::EndArgs)
+    .value("Flags", OrgSpecName::Flags)
+    .value("Value", OrgSpecName::Value)
+    .value("Assoc", OrgSpecName::Assoc)
+    .value("Main", OrgSpecName::Main)
+    .value("Hash", OrgSpecName::Hash)
+    .value("Bullet", OrgSpecName::Bullet)
+    .value("Counter", OrgSpecName::Counter)
+    .value("Checkbox", OrgSpecName::Checkbox)
+    .value("Header", OrgSpecName::Header)
+    .value("To", OrgSpecName::To)
+    .value("Diff", OrgSpecName::Diff)
+    .value("Property", OrgSpecName::Property)
+    .value("Subname", OrgSpecName::Subname)
+    .value("Values", OrgSpecName::Values)
+    .value("Cells", OrgSpecName::Cells)
+    .value("Rows", OrgSpecName::Rows)
+    .value("Lines", OrgSpecName::Lines)
+    .value("Chunks", OrgSpecName::Chunks)
+    .def("__iter__", [](OrgSpecName const& _self) -> org::bind::python::PyEnumIterator<OrgSpecName> {
+                     return org::bind::python::PyEnumIterator<OrgSpecName>();
+                     })
+    .def("__int__", [](OrgSpecName const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgSpecName const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](OrgSpecName lhs, OrgSpecName rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](OrgSpecName it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
+  nanobind::enum_<OrgNodeKind>(m, "OrgNodeKind")
+    .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
+    .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
+    .value("Empty", OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
+    .value("InlineStmtList", OrgNodeKind::InlineStmtList)
+    .value("StmtList", OrgNodeKind::StmtList, R"RAW(List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.)RAW")
+    .value("Checkbox", OrgNodeKind::Checkbox, R"RAW(Single checkbox item like `[X]` or `[-]`)RAW")
+    .value("List", OrgNodeKind::List)
+    .value("Bullet", OrgNodeKind::Bullet, R"RAW(List item prefix)RAW")
+    .value("ListItem", OrgNodeKind::ListItem)
+    .value("ListTag", OrgNodeKind::ListTag, R"RAW(Auxilliary wrapper for the paragraph placed at the start of the description list.)RAW")
+    .value("Counter", OrgNodeKind::Counter)
+    .value("File", OrgNodeKind::File)
+    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
+    .value("TextSeparator", OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
+    .value("Paragraph", OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
+    .value("TableRow", OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
+    .value("TableCell", OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
+    .value("Table", OrgNodeKind::Table, R"RAW(Org-mode table)RAW")
+    .value("InlineFootnote", OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
+    .value("Footnote", OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
+    .value("Cmd", OrgNodeKind::Cmd, R"RAW(Undefined single-line command -- most likely custom user-provided oe)RAW")
+    .value("Attrs", OrgNodeKind::Attrs, R"RAW(Arguments for the command block)RAW")
+    .value("AttrValue", OrgNodeKind::AttrValue, R"RAW(:key name=value syntax)RAW")
+    .value("AttrLisp", OrgNodeKind::AttrLisp, R"RAW(S-expression as an attribute value value)RAW")
+    .value("CmdTitle", OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
+    .value("CmdAuthor", OrgNodeKind::CmdAuthor, R"RAW(`#+author:` Document author)RAW")
+    .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
+    .value("CmdInclude", OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
+    .value("CmdLanguage", OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
+    .value("CmdEmail", OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
+    .value("CmdAttr", OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
+    .value("CmdStartup", OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
+    .value("CmdName", OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
+    .value("CmdCustomTextCommand", OrgNodeKind::CmdCustomTextCommand, R"RAW(Line command with parsed text value)RAW")
+    .value("CmdCustomArgsCommand", OrgNodeKind::CmdCustomArgsCommand, R"RAW(Line command with parsed argument list)RAW")
+    .value("CmdCustomRawCommand", OrgNodeKind::CmdCustomRawCommand, R"RAW(Line command with raw text argument)RAW")
+    .value("CmdResults", OrgNodeKind::CmdResults, R"RAW(`#+results:` - source code block evaluation results)RAW")
+    .value("CmdHeader", OrgNodeKind::CmdHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
+    .value("CmdOptions", OrgNodeKind::CmdOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
+    .value("CmdTblfm", OrgNodeKind::CmdTblfm)
+    .value("CmdCaption", OrgNodeKind::CmdCaption, R"RAW(`#+caption:` command)RAW")
+    .value("CmdResult", OrgNodeKind::CmdResult, R"RAW(Command evaluation result)RAW")
+    .value("CmdCallCode", OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
+    .value("CmdLatexClass", OrgNodeKind::CmdLatexClass)
+    .value("CmdLatexHeader", OrgNodeKind::CmdLatexHeader)
+    .value("CmdLatexCompiler", OrgNodeKind::CmdLatexCompiler)
+    .value("CmdLatexClassOptions", OrgNodeKind::CmdLatexClassOptions)
+    .value("CmdHtmlHead", OrgNodeKind::CmdHtmlHead)
+    .value("CmdColumns", OrgNodeKind::CmdColumns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
+    .value("CmdPropertyArgs", OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
+    .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
+    .value("CmdKeywords", OrgNodeKind::CmdKeywords)
+    .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
+    .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
+    .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
+    .value("CodeTangle", OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
+    .value("CodeCallout", OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
+    .value("BlockCode", OrgNodeKind::BlockCode)
+    .value("BlockQuote", OrgNodeKind::BlockQuote, R"RAW(`#+begin_quote:` block in code)RAW")
+    .value("BlockComment", OrgNodeKind::BlockComment, R"RAW(`#+begin_comment:` block in code)RAW")
+    .value("BlockCenter", OrgNodeKind::BlockCenter)
+    .value("BlockVerse", OrgNodeKind::BlockVerse)
+    .value("BlockExample", OrgNodeKind::BlockExample, R"RAW(Verbatim example text block)RAW")
+    .value("BlockExport", OrgNodeKind::BlockExport)
+    .value("BlockDetails", OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
+    .value("BlockSummary", OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
+    .value("BlockDynamicFallback", OrgNodeKind::BlockDynamicFallback, R"RAW(#+begin_<any> section)RAW")
+    .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
+    .value("Bold", OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
+     can itself contain subnodes, which allows to represent nested
+     formatting regions, such as `*bold /italic/*` text. Particular type
+     of identifier is stored in string form in `str` field for `OrgNode`
+     -- bold is represented as `"*"`, italic as `/` and so on. In case
+     of explicit open/close pairs only opening one is stored.
+
+     NOTE: when structured sentences are enabled, regular punctuation
+     elements like `some text (notes)` are also represented as `Word,
+     Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
+    .value("ErrorInfoToken", OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
+    .value("ErrorSkipGroup", OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
+    .value("ErrorSkipToken", OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
+    .value("Italic", OrgNodeKind::Italic)
+    .value("Verbatim", OrgNodeKind::Verbatim)
+    .value("Backtick", OrgNodeKind::Backtick)
+    .value("Underline", OrgNodeKind::Underline)
+    .value("Strike", OrgNodeKind::Strike)
+    .value("Quote", OrgNodeKind::Quote)
+    .value("Angle", OrgNodeKind::Angle)
+    .value("Monospace", OrgNodeKind::Monospace)
+    .value("Par", OrgNodeKind::Par)
+    .value("CriticMarkStructure", OrgNodeKind::CriticMarkStructure)
+    .value("InlineMath", OrgNodeKind::InlineMath, R"RAW(Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.)RAW")
+    .value("DisplayMath", OrgNodeKind::DisplayMath, R"RAW(Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.)RAW")
+    .value("Space", OrgNodeKind::Space, R"RAW(Space or tab character in regular text)RAW")
+    .value("Punctuation", OrgNodeKind::Punctuation)
+    .value("Colon", OrgNodeKind::Colon)
+    .value("Word", OrgNodeKind::Word, R"RAW(Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.)RAW")
+    .value("Escaped", OrgNodeKind::Escaped, R"RAW(Escaped formatting character in the text)RAW")
+    .value("Newline", OrgNodeKind::Newline)
+    .value("RawLink", OrgNodeKind::RawLink, R"RAW(Raw unwrapped link that was pasted in text)RAW")
+    .value("Link", OrgNodeKind::Link, R"RAW(External or internal link. Consists of one or two elements - target
+     (url, file location etc.) and description (`orgParagraph` of text).
+     Description might be empty, and represented as empty node in this
+     case. For external links particular formatting of the address is
+     not handled by parser and instead contains raw string from input
+     text.)RAW")
+    .value("Macro", OrgNodeKind::Macro, R"RAW(Org-mode macro replacement - during export each macro is expanded
+     and evaluated according to it's environment. Body of the macro is
+     not parsed fully during org-mode evaluation, but is checked for
+     correct parenthesis balance (as macro might contain elisp code))RAW")
+    .value("Symbol", OrgNodeKind::Symbol, R"RAW(Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.)RAW")
+    .value("StaticActiveTime", OrgNodeKind::StaticActiveTime)
+    .value("StaticInactiveTime", OrgNodeKind::StaticInactiveTime)
+    .value("DynamicActiveTime", OrgNodeKind::DynamicActiveTime)
+    .value("DynamicInactiveTime", OrgNodeKind::DynamicInactiveTime, R"RAW(Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later)RAW")
+    .value("TimeRange", OrgNodeKind::TimeRange, R"RAW(Date and time range format - two `orgDateTime` entries)RAW")
+    .value("SimpleTime", OrgNodeKind::SimpleTime, R"RAW(Result of the time range evaluation or trailing annotation a subtree)RAW")
+    .value("HashTag", OrgNodeKind::HashTag)
+    .value("MetaSymbol", OrgNodeKind::MetaSymbol, R"RAW(`\sym{}` with explicit arguments)RAW")
+    .value("AtMention", OrgNodeKind::AtMention, R"RAW(`@user`)RAW")
+    .value("Placeholder", OrgNodeKind::Placeholder, R"RAW(Placeholder entry in text, usually writte like `<text to replace>`)RAW")
+    .value("RadioTarget", OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
+    .value("Target", OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
+    .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
+    .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("InlineExport", OrgNodeKind::InlineExport, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
+    .value("InlineComment", OrgNodeKind::InlineComment)
+    .value("RawText", OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
+    .value("SubtreeDescription", OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
+    .value("SubtreeUrgency", OrgNodeKind::SubtreeUrgency)
+    .value("DrawerLogbook", OrgNodeKind::DrawerLogbook, R"RAW(`:logbook:` entry storing note information)RAW")
+    .value("Drawer", OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
+    .value("DrawerPropertyList", OrgNodeKind::DrawerPropertyList)
+    .value("DrawerProperty", OrgNodeKind::DrawerProperty, R"RAW(`:property:` drawer)RAW")
+    .value("Subtree", OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
+    .value("SubtreeTimes", OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
+    .value("SubtreeStars", OrgNodeKind::SubtreeStars)
+    .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
+    .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
+    .def("__iter__", [](OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
+                     return org::bind::python::PyEnumIterator<OrgNodeKind>();
+                     })
+    .def("__int__", [](OrgNodeKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgNodeKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](OrgNodeKind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
+  nanobind::enum_<OrgTokenKind>(m, "OrgTokenKind")
+    .value("Ampersand", OrgTokenKind::Ampersand)
+    .value("AngleBegin", OrgTokenKind::AngleBegin)
+    .value("AngleEnd", OrgTokenKind::AngleEnd)
+    .value("AnyPunct", OrgTokenKind::AnyPunct)
+    .value("Asterisk", OrgTokenKind::Asterisk)
+    .value("At", OrgTokenKind::At)
+    .value("Backtick", OrgTokenKind::Backtick)
+    .value("BigIdent", OrgTokenKind::BigIdent)
+    .value("BoldBegin", OrgTokenKind::BoldBegin)
+    .value("BoldEnd", OrgTokenKind::BoldEnd)
+    .value("BoldUnknown", OrgTokenKind::BoldUnknown)
+    .value("BraceBegin", OrgTokenKind::BraceBegin)
+    .value("BraceEnd", OrgTokenKind::BraceEnd)
+    .value("Checkbox", OrgTokenKind::Checkbox)
+    .value("Circumflex", OrgTokenKind::Circumflex)
+    .value("CmdAdmonitionEnd", OrgTokenKind::CmdAdmonitionEnd)
+    .value("CmdAttr", OrgTokenKind::CmdAttr)
+    .value("CmdAuthor", OrgTokenKind::CmdAuthor)
+    .value("CmdBindRaw", OrgTokenKind::CmdBindRaw)
+    .value("CmdCall", OrgTokenKind::CmdCall)
+    .value("CmdCaption", OrgTokenKind::CmdCaption)
+    .value("CmdCategoryRaw", OrgTokenKind::CmdCategoryRaw)
+    .value("CmdCell", OrgTokenKind::CmdCell)
+    .value("CmdCellBegin", OrgTokenKind::CmdCellBegin)
+    .value("CmdCellEnd", OrgTokenKind::CmdCellEnd)
+    .value("CmdCenterBegin", OrgTokenKind::CmdCenterBegin)
+    .value("CmdCenterEnd", OrgTokenKind::CmdCenterEnd)
+    .value("CmdColonIdent", OrgTokenKind::CmdColonIdent)
+    .value("CmdColumns", OrgTokenKind::CmdColumns)
+    .value("CmdCommentBegin", OrgTokenKind::CmdCommentBegin)
+    .value("CmdCommentEnd", OrgTokenKind::CmdCommentEnd)
+    .value("CmdConstants", OrgTokenKind::CmdConstants)
+    .value("CmdContentBegin", OrgTokenKind::CmdContentBegin)
+    .value("CmdContentEnd", OrgTokenKind::CmdContentEnd)
+    .value("CmdCreator", OrgTokenKind::CmdCreator)
+    .value("CmdCustomRaw", OrgTokenKind::CmdCustomRaw)
+    .value("CmdDateRaw", OrgTokenKind::CmdDateRaw)
+    .value("CmdDescription", OrgTokenKind::CmdDescription)
+    .value("CmdDrawersRaw", OrgTokenKind::CmdDrawersRaw)
+    .value("CmdDynamicBegin", OrgTokenKind::CmdDynamicBegin)
+    .value("CmdDynamicBlockBegin", OrgTokenKind::CmdDynamicBlockBegin)
+    .value("CmdDynamicBlockEnd", OrgTokenKind::CmdDynamicBlockEnd)
+    .value("CmdDynamicEnd", OrgTokenKind::CmdDynamicEnd)
+    .value("CmdEmailRaw", OrgTokenKind::CmdEmailRaw)
+    .value("CmdExampleBegin", OrgTokenKind::CmdExampleBegin)
+    .value("CmdExampleEnd", OrgTokenKind::CmdExampleEnd)
+    .value("CmdExampleLine", OrgTokenKind::CmdExampleLine)
+    .value("CmdExcludeTagsRaw", OrgTokenKind::CmdExcludeTagsRaw)
+    .value("CmdExportBegin", OrgTokenKind::CmdExportBegin)
+    .value("CmdExportEnd", OrgTokenKind::CmdExportEnd)
+    .value("CmdExportLine", OrgTokenKind::CmdExportLine)
+    .value("CmdFiletags", OrgTokenKind::CmdFiletags)
+    .value("CmdFlag", OrgTokenKind::CmdFlag)
+    .value("CmdHeader", OrgTokenKind::CmdHeader)
+    .value("CmdHtmlHeadRaw", OrgTokenKind::CmdHtmlHeadRaw)
+    .value("CmdInclude", OrgTokenKind::CmdInclude)
+    .value("CmdLanguage", OrgTokenKind::CmdLanguage)
+    .value("CmdLatexClass", OrgTokenKind::CmdLatexClass)
+    .value("CmdLatexClassOptions", OrgTokenKind::CmdLatexClassOptions)
+    .value("CmdLatexCompiler", OrgTokenKind::CmdLatexCompiler)
+    .value("CmdLatexHeader", OrgTokenKind::CmdLatexHeader)
+    .value("CmdLatexHeaderExtraRaw", OrgTokenKind::CmdLatexHeaderExtraRaw)
+    .value("CmdLinkRaw", OrgTokenKind::CmdLinkRaw)
+    .value("CmdMacroRaw", OrgTokenKind::CmdMacroRaw)
+    .value("CmdName", OrgTokenKind::CmdName)
+    .value("CmdOptions", OrgTokenKind::CmdOptions)
+    .value("CmdPrefix", OrgTokenKind::CmdPrefix)
+    .value("CmdPrioritiesRaw", OrgTokenKind::CmdPrioritiesRaw)
+    .value("CmdPropertyArgs", OrgTokenKind::CmdPropertyArgs)
+    .value("CmdPropertyRaw", OrgTokenKind::CmdPropertyRaw)
+    .value("CmdPropertyText", OrgTokenKind::CmdPropertyText)
+    .value("CmdQuoteBegin", OrgTokenKind::CmdQuoteBegin)
+    .value("CmdQuoteEnd", OrgTokenKind::CmdQuoteEnd)
+    .value("CmdRawArg", OrgTokenKind::CmdRawArg)
+    .value("CmdResults", OrgTokenKind::CmdResults)
+    .value("CmdRow", OrgTokenKind::CmdRow)
+    .value("CmdRowBegin", OrgTokenKind::CmdRowBegin)
+    .value("CmdRowEnd", OrgTokenKind::CmdRowEnd)
+    .value("CmdSelectTagsRaw", OrgTokenKind::CmdSelectTagsRaw)
+    .value("CmdSeqTodoRaw", OrgTokenKind::CmdSeqTodoRaw)
+    .value("CmdKeywordsRaw", OrgTokenKind::CmdKeywordsRaw)
+    .value("CmdSetupfileRaw", OrgTokenKind::CmdSetupfileRaw)
+    .value("CmdSrcBegin", OrgTokenKind::CmdSrcBegin)
+    .value("CmdSrcEnd", OrgTokenKind::CmdSrcEnd)
+    .value("CmdStartup", OrgTokenKind::CmdStartup)
+    .value("CmdTableBegin", OrgTokenKind::CmdTableBegin)
+    .value("CmdTableEnd", OrgTokenKind::CmdTableEnd)
+    .value("CmdTagsRaw", OrgTokenKind::CmdTagsRaw)
+    .value("CmdTblfm", OrgTokenKind::CmdTblfm)
+    .value("CmdTitle", OrgTokenKind::CmdTitle)
+    .value("CmdVerseBegin", OrgTokenKind::CmdVerseBegin)
+    .value("CmdVerseEnd", OrgTokenKind::CmdVerseEnd)
+    .value("Colon", OrgTokenKind::Colon)
+    .value("ColonArgumentsProperty", OrgTokenKind::ColonArgumentsProperty)
+    .value("ColonEnd", OrgTokenKind::ColonEnd)
+    .value("ColonExampleLine", OrgTokenKind::ColonExampleLine)
+    .value("ColonLiteralProperty", OrgTokenKind::ColonLiteralProperty)
+    .value("ColonLogbook", OrgTokenKind::ColonLogbook)
+    .value("ColonProperties", OrgTokenKind::ColonProperties)
+    .value("ColonPropertyText", OrgTokenKind::ColonPropertyText)
+    .value("Comma", OrgTokenKind::Comma)
+    .value("Comment", OrgTokenKind::Comment)
+    .value("CriticAddBegin", OrgTokenKind::CriticAddBegin)
+    .value("CriticAddEnd", OrgTokenKind::CriticAddEnd)
+    .value("CriticCommentBegin", OrgTokenKind::CriticCommentBegin)
+    .value("CriticCommentEnd", OrgTokenKind::CriticCommentEnd)
+    .value("CriticDeleteBegin", OrgTokenKind::CriticDeleteBegin)
+    .value("CriticDeleteEnd", OrgTokenKind::CriticDeleteEnd)
+    .value("CriticHighlightBegin", OrgTokenKind::CriticHighlightBegin)
+    .value("CriticHighlightEnd", OrgTokenKind::CriticHighlightEnd)
+    .value("CriticReplaceBegin", OrgTokenKind::CriticReplaceBegin)
+    .value("CriticReplaceEnd", OrgTokenKind::CriticReplaceEnd)
+    .value("CriticReplaceMiddle", OrgTokenKind::CriticReplaceMiddle)
+    .value("CurlyBegin", OrgTokenKind::CurlyBegin)
+    .value("CurlyEnd", OrgTokenKind::CurlyEnd)
+    .value("Date", OrgTokenKind::Date)
+    .value("Dedent", OrgTokenKind::Dedent)
+    .value("Dollar", OrgTokenKind::Dollar)
+    .value("DoubleAngleBegin", OrgTokenKind::DoubleAngleBegin)
+    .value("DoubleAngleEnd", OrgTokenKind::DoubleAngleEnd)
+    .value("DoubleColon", OrgTokenKind::DoubleColon)
+    .value("DoubleDash", OrgTokenKind::DoubleDash)
+    .value("DoubleHash", OrgTokenKind::DoubleHash)
+    .value("DoubleQuote", OrgTokenKind::DoubleQuote)
+    .value("DoubleSlash", OrgTokenKind::DoubleSlash)
+    .value("ActiveDynamicTimeContent", OrgTokenKind::ActiveDynamicTimeContent)
+    .value("InactiveDynamicTimeContent", OrgTokenKind::InactiveDynamicTimeContent)
+    .value("EndOfFile", OrgTokenKind::EndOfFile)
+    .value("Equals", OrgTokenKind::Equals)
+    .value("Escaped", OrgTokenKind::Escaped)
+    .value("Exclamation", OrgTokenKind::Exclamation)
+    .value("FootnoteInlineBegin", OrgTokenKind::FootnoteInlineBegin)
+    .value("FootnoteLinked", OrgTokenKind::FootnoteLinked)
+    .value("ForwardSlash", OrgTokenKind::ForwardSlash)
+    .value("HashIdent", OrgTokenKind::HashIdent)
+    .value("HashTagBegin", OrgTokenKind::HashTagBegin)
+    .value("Indent", OrgTokenKind::Indent)
+    .value("InlineExportBackend", OrgTokenKind::InlineExportBackend)
+    .value("InlineExportContent", OrgTokenKind::InlineExportContent)
+    .value("ItalicBegin", OrgTokenKind::ItalicBegin)
+    .value("ItalicEnd", OrgTokenKind::ItalicEnd)
+    .value("ItalicUnknown", OrgTokenKind::ItalicUnknown)
+    .value("LatexInlineRaw", OrgTokenKind::LatexInlineRaw)
+    .value("LatexParBegin", OrgTokenKind::LatexParBegin)
+    .value("LatexParEnd", OrgTokenKind::LatexParEnd)
+    .value("LeadingMinus", OrgTokenKind::LeadingMinus)
+    .value("LeadingNumber", OrgTokenKind::LeadingNumber)
+    .value("LeadingPipe", OrgTokenKind::LeadingPipe)
+    .value("LeadingPlus", OrgTokenKind::LeadingPlus)
+    .value("LeadingSpace", OrgTokenKind::LeadingSpace)
+    .value("LineCommand", OrgTokenKind::LineCommand)
+    .value("LinkBegin", OrgTokenKind::LinkBegin)
+    .value("LinkDescriptionBegin", OrgTokenKind::LinkDescriptionBegin)
+    .value("LinkDescriptionEnd", OrgTokenKind::LinkDescriptionEnd)
+    .value("LinkEnd", OrgTokenKind::LinkEnd)
+    .value("LinkFull", OrgTokenKind::LinkFull)
+    .value("LinkProtocol", OrgTokenKind::LinkProtocol)
+    .value("LinkProtocolAttachment", OrgTokenKind::LinkProtocolAttachment)
+    .value("LinkProtocolCustomId", OrgTokenKind::LinkProtocolCustomId)
+    .value("LinkProtocolFile", OrgTokenKind::LinkProtocolFile)
+    .value("LinkProtocolHttp", OrgTokenKind::LinkProtocolHttp)
+    .value("LinkProtocolId", OrgTokenKind::LinkProtocolId)
+    .value("LinkProtocolInternal", OrgTokenKind::LinkProtocolInternal)
+    .value("LinkProtocolTitle", OrgTokenKind::LinkProtocolTitle)
+    .value("LinkSplit", OrgTokenKind::LinkSplit)
+    .value("LinkTarget", OrgTokenKind::LinkTarget)
+    .value("LinkTargetBegin", OrgTokenKind::LinkTargetBegin)
+    .value("LinkTargetEnd", OrgTokenKind::LinkTargetEnd)
+    .value("LinkTargetFile", OrgTokenKind::LinkTargetFile)
+    .value("ListBegin", OrgTokenKind::ListBegin)
+    .value("ListEnd", OrgTokenKind::ListEnd)
+    .value("ListItemBegin", OrgTokenKind::ListItemBegin)
+    .value("ListItemEnd", OrgTokenKind::ListItemEnd)
+    .value("LongNewline", OrgTokenKind::LongNewline)
+    .value("MediumNewline", OrgTokenKind::MediumNewline)
+    .value("Minus", OrgTokenKind::Minus)
+    .value("MiscUnicode", OrgTokenKind::MiscUnicode)
+    .value("MonospaceBegin", OrgTokenKind::MonospaceBegin)
+    .value("MonospaceEnd", OrgTokenKind::MonospaceEnd)
+    .value("MonospaceUnknown", OrgTokenKind::MonospaceUnknown)
+    .value("Newline", OrgTokenKind::Newline)
+    .value("Number", OrgTokenKind::Number)
+    .value("ParBegin", OrgTokenKind::ParBegin)
+    .value("ParEnd", OrgTokenKind::ParEnd)
+    .value("Percent", OrgTokenKind::Percent)
+    .value("Pipe", OrgTokenKind::Pipe)
+    .value("Placeholder", OrgTokenKind::Placeholder)
+    .value("Plus", OrgTokenKind::Plus)
+    .value("Punctuation", OrgTokenKind::Punctuation)
+    .value("RawText", OrgTokenKind::RawText)
+    .value("SameIndent", OrgTokenKind::SameIndent)
+    .value("Semicolon", OrgTokenKind::Semicolon)
+    .value("SingleQuote", OrgTokenKind::SingleQuote)
+    .value("SrcContent", OrgTokenKind::SrcContent)
+    .value("StmtListBegin", OrgTokenKind::StmtListBegin)
+    .value("StmtListEnd", OrgTokenKind::StmtListEnd)
+    .value("StrikeBegin", OrgTokenKind::StrikeBegin)
+    .value("StrikeEnd", OrgTokenKind::StrikeEnd)
+    .value("StrikeUnknown", OrgTokenKind::StrikeUnknown)
+    .value("SubtreeCompletion", OrgTokenKind::SubtreeCompletion)
+    .value("SubtreePriority", OrgTokenKind::SubtreePriority)
+    .value("SubtreeStars", OrgTokenKind::SubtreeStars)
+    .value("Symbol", OrgTokenKind::Symbol)
+    .value("TableSeparator", OrgTokenKind::TableSeparator)
+    .value("TextSeparator", OrgTokenKind::TextSeparator)
+    .value("TextSrcBegin", OrgTokenKind::TextSrcBegin)
+    .value("Tilda", OrgTokenKind::Tilda)
+    .value("Time", OrgTokenKind::Time)
+    .value("TimeArrow", OrgTokenKind::TimeArrow)
+    .value("TimeRepeaterDuration", OrgTokenKind::TimeRepeaterDuration)
+    .value("TimeRepeaterSpec", OrgTokenKind::TimeRepeaterSpec)
+    .value("TimeWarnPeriod", OrgTokenKind::TimeWarnPeriod)
+    .value("TrailingPipe", OrgTokenKind::TrailingPipe)
+    .value("TreeClock", OrgTokenKind::TreeClock)
+    .value("TreeTime", OrgTokenKind::TreeTime)
+    .value("TripleAngleBegin", OrgTokenKind::TripleAngleBegin)
+    .value("TripleAngleEnd", OrgTokenKind::TripleAngleEnd)
+    .value("Underline", OrgTokenKind::Underline)
+    .value("UnderlineBegin", OrgTokenKind::UnderlineBegin)
+    .value("UnderlineEnd", OrgTokenKind::UnderlineEnd)
+    .value("UnderlineUnknown", OrgTokenKind::UnderlineUnknown)
+    .value("Unknown", OrgTokenKind::Unknown)
+    .value("VerbatimBegin", OrgTokenKind::VerbatimBegin)
+    .value("VerbatimEnd", OrgTokenKind::VerbatimEnd)
+    .value("VerbatimUnknown", OrgTokenKind::VerbatimUnknown)
+    .value("Whitespace", OrgTokenKind::Whitespace)
+    .value("Word", OrgTokenKind::Word)
+    .def("__iter__", [](OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<OrgTokenKind> {
+                     return org::bind::python::PyEnumIterator<OrgTokenKind>();
+                     })
+    .def("__int__", [](OrgTokenKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgTokenKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](OrgTokenKind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<OrgJsonKind>(m, "OrgJsonKind", type_registry_guard);
+  nanobind::enum_<OrgJsonKind>(m, "OrgJsonKind")
+    .value("Null", OrgJsonKind::Null)
+    .value("Object", OrgJsonKind::Object)
+    .value("Array", OrgJsonKind::Array)
+    .value("String", OrgJsonKind::String)
+    .value("Boolean", OrgJsonKind::Boolean)
+    .value("Int", OrgJsonKind::Int)
+    .value("Float", OrgJsonKind::Float)
+    .def("__iter__", [](OrgJsonKind const& _self) -> org::bind::python::PyEnumIterator<OrgJsonKind> {
+                     return org::bind::python::PyEnumIterator<OrgJsonKind>();
+                     })
+    .def("__int__", [](OrgJsonKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgJsonKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](OrgJsonKind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
+  nanobind::enum_<OrgSemKind>(m, "OrgSemKind")
+    .value("NoNode", OrgSemKind::NoNode)
+    .value("ErrorItem", OrgSemKind::ErrorItem)
+    .value("ErrorGroup", OrgSemKind::ErrorGroup)
+    .value("StmtList", OrgSemKind::StmtList)
+    .value("Empty", OrgSemKind::Empty)
+    .value("CmdCaption", OrgSemKind::CmdCaption)
+    .value("CmdCreator", OrgSemKind::CmdCreator)
+    .value("CmdAuthor", OrgSemKind::CmdAuthor)
+    .value("CmdEmail", OrgSemKind::CmdEmail)
+    .value("CmdLanguage", OrgSemKind::CmdLanguage)
+    .value("CmdColumns", OrgSemKind::CmdColumns)
+    .value("CmdName", OrgSemKind::CmdName)
+    .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
+    .value("CmdCustomRaw", OrgSemKind::CmdCustomRaw)
+    .value("CmdCustomText", OrgSemKind::CmdCustomText)
+    .value("CmdCall", OrgSemKind::CmdCall)
+    .value("CmdTblfm", OrgSemKind::CmdTblfm)
+    .value("HashTag", OrgSemKind::HashTag)
+    .value("InlineFootnote", OrgSemKind::InlineFootnote)
+    .value("InlineExport", OrgSemKind::InlineExport)
+    .value("Time", OrgSemKind::Time)
+    .value("TimeRange", OrgSemKind::TimeRange)
+    .value("Macro", OrgSemKind::Macro)
+    .value("Symbol", OrgSemKind::Symbol)
+    .value("Escaped", OrgSemKind::Escaped)
+    .value("Newline", OrgSemKind::Newline)
+    .value("Space", OrgSemKind::Space)
+    .value("Word", OrgSemKind::Word)
+    .value("AtMention", OrgSemKind::AtMention)
+    .value("RawText", OrgSemKind::RawText)
+    .value("Punctuation", OrgSemKind::Punctuation)
+    .value("Placeholder", OrgSemKind::Placeholder)
+    .value("BigIdent", OrgSemKind::BigIdent)
+    .value("TextTarget", OrgSemKind::TextTarget)
+    .value("ErrorSkipToken", OrgSemKind::ErrorSkipToken)
+    .value("ErrorSkipGroup", OrgSemKind::ErrorSkipGroup)
+    .value("Bold", OrgSemKind::Bold)
+    .value("Underline", OrgSemKind::Underline)
+    .value("Monospace", OrgSemKind::Monospace)
+    .value("MarkQuote", OrgSemKind::MarkQuote)
+    .value("Verbatim", OrgSemKind::Verbatim)
+    .value("Italic", OrgSemKind::Italic)
+    .value("Strike", OrgSemKind::Strike)
+    .value("Par", OrgSemKind::Par)
+    .value("RadioTarget", OrgSemKind::RadioTarget)
+    .value("Latex", OrgSemKind::Latex)
+    .value("Link", OrgSemKind::Link)
+    .value("BlockCenter", OrgSemKind::BlockCenter)
+    .value("BlockQuote", OrgSemKind::BlockQuote)
+    .value("BlockComment", OrgSemKind::BlockComment)
+    .value("BlockVerse", OrgSemKind::BlockVerse)
+    .value("BlockDynamicFallback", OrgSemKind::BlockDynamicFallback)
+    .value("BlockExample", OrgSemKind::BlockExample)
+    .value("BlockExport", OrgSemKind::BlockExport)
+    .value("BlockAdmonition", OrgSemKind::BlockAdmonition)
+    .value("BlockCodeEvalResult", OrgSemKind::BlockCodeEvalResult)
+    .value("BlockCode", OrgSemKind::BlockCode)
+    .value("SubtreeLog", OrgSemKind::SubtreeLog)
+    .value("Subtree", OrgSemKind::Subtree)
+    .value("Cell", OrgSemKind::Cell)
+    .value("Row", OrgSemKind::Row)
+    .value("Table", OrgSemKind::Table)
+    .value("Paragraph", OrgSemKind::Paragraph)
+    .value("ColonExample", OrgSemKind::ColonExample)
+    .value("CmdAttr", OrgSemKind::CmdAttr)
+    .value("CmdExport", OrgSemKind::CmdExport)
+    .value("Call", OrgSemKind::Call)
+    .value("List", OrgSemKind::List)
+    .value("ListItem", OrgSemKind::ListItem)
+    .value("DocumentOptions", OrgSemKind::DocumentOptions)
+    .value("DocumentFragment", OrgSemKind::DocumentFragment)
+    .value("CriticMarkup", OrgSemKind::CriticMarkup)
+    .value("Document", OrgSemKind::Document)
+    .value("FileTarget", OrgSemKind::FileTarget)
+    .value("TextSeparator", OrgSemKind::TextSeparator)
+    .value("DocumentGroup", OrgSemKind::DocumentGroup)
+    .value("File", OrgSemKind::File)
+    .value("Directory", OrgSemKind::Directory)
+    .value("Symlink", OrgSemKind::Symlink)
+    .value("CmdInclude", OrgSemKind::CmdInclude)
+    .def("__iter__", [](OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
+                     return org::bind::python::PyEnumIterator<OrgSemKind>();
+                     })
+    .def("__int__", [](OrgSemKind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](OrgSemKind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](OrgSemKind lhs, OrgSemKind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](OrgSemKind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind", type_registry_guard);
+  nanobind::enum_<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
+    .value("RadioTarget", org::AstTrackingGroup::Kind::RadioTarget)
+    .value("Single", org::AstTrackingGroup::Kind::Single)
+    .value("TrackedHashtag", org::AstTrackingGroup::Kind::TrackedHashtag)
+    .def("__iter__", [](org::AstTrackingGroup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
+                     return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
+                     })
+    .def("__int__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::AstTrackingGroup::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::AstTrackingGroup::Kind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<org::graph::MapLink::Kind>(m, "GraphMapLinkKind", type_registry_guard);
+  nanobind::enum_<org::graph::MapLink::Kind>(m, "GraphMapLinkKind")
+    .value("Radio", org::graph::MapLink::Kind::Radio)
+    .value("Link", org::graph::MapLink::Kind::Link)
+    .def("__iter__", [](org::graph::MapLink::Kind const& _self) -> org::bind::python::PyEnumIterator<org::graph::MapLink::Kind> {
+                     return org::bind::python::PyEnumIterator<org::graph::MapLink::Kind>();
+                     })
+    .def("__int__", [](org::graph::MapLink::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::graph::MapLink::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::graph::MapLink::Kind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
+  nanobind::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
+    .value("Int", org::bind::python::LeafFieldType::Int)
+    .value("UserTimeKind", org::bind::python::LeafFieldType::UserTimeKind)
+    .value("QDate", org::bind::python::LeafFieldType::QDate)
+    .value("Bool", org::bind::python::LeafFieldType::Bool)
+    .value("FixedIdVec", org::bind::python::LeafFieldType::FixedIdVec)
+    .value("TopIdVec", org::bind::python::LeafFieldType::TopIdVec)
+    .value("QDateTime", org::bind::python::LeafFieldType::QDateTime)
+    .value("Str", org::bind::python::LeafFieldType::Str)
+    .value("Any", org::bind::python::LeafFieldType::Any)
+    .def("__iter__", [](org::bind::python::LeafFieldType const& _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
+                     return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
+                     })
+    .def("__int__", [](org::bind::python::LeafFieldType const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::bind::python::LeafFieldType const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::bind::python::LeafFieldType it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
   nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def("__init__",
          [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
@@ -7986,807 +8787,6 @@ ingoing elements.)RAW")
   nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
     .def(nanobind::init<org::imm::ImmAdapter const&>())
     .def("getTarget", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getTarget))
-    ;
-  bind_enum_iterator<CheckboxState>(m, "CheckboxState", type_registry_guard);
-  nanobind::enum_<CheckboxState>(m, "CheckboxState")
-    .value("None", CheckboxState::None)
-    .value("Done", CheckboxState::Done)
-    .value("Empty", CheckboxState::Empty)
-    .value("Partial", CheckboxState::Partial)
-    .def("__iter__", [](CheckboxState const& _self) -> org::bind::python::PyEnumIterator<CheckboxState> {
-                     return org::bind::python::PyEnumIterator<CheckboxState>();
-                     })
-    .def("__int__", [](CheckboxState const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](CheckboxState const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](CheckboxState lhs, CheckboxState rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](CheckboxState it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<SubtreeTodoSource>(m, "SubtreeTodoSource", type_registry_guard);
-  nanobind::enum_<SubtreeTodoSource>(m, "SubtreeTodoSource")
-    .value("Checkbox", SubtreeTodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
-    .value("Todo", SubtreeTodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
-    .value("Both", SubtreeTodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
-    .def("__iter__", [](SubtreeTodoSource const& _self) -> org::bind::python::PyEnumIterator<SubtreeTodoSource> {
-                     return org::bind::python::PyEnumIterator<SubtreeTodoSource>();
-                     })
-    .def("__int__", [](SubtreeTodoSource const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](SubtreeTodoSource const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](SubtreeTodoSource lhs, SubtreeTodoSource rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](SubtreeTodoSource it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
-  nanobind::enum_<ListFormattingMode>(m, "ListFormattingMode")
-    .value("None", ListFormattingMode::None, R"RAW(Default, no custom formatting)RAW")
-    .value("Table1D1Col", ListFormattingMode::Table1D1Col, R"RAW(one column, each table item is an individual row)RAW")
-    .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
-    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
-    .value("Table2DRowFirst", ListFormattingMode::Table2DRowFirst, R"RAW(for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.)RAW")
-    .def("__iter__", [](ListFormattingMode const& _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
-                     return org::bind::python::PyEnumIterator<ListFormattingMode>();
-                     })
-    .def("__int__", [](ListFormattingMode const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](ListFormattingMode const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](ListFormattingMode lhs, ListFormattingMode rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](ListFormattingMode it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
-  nanobind::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
-    .value("Overview", InitialSubtreeVisibility::Overview)
-    .value("Content", InitialSubtreeVisibility::Content)
-    .value("ShowAll", InitialSubtreeVisibility::ShowAll)
-    .value("Show2Levels", InitialSubtreeVisibility::Show2Levels)
-    .value("Show3Levels", InitialSubtreeVisibility::Show3Levels)
-    .value("Show4Levels", InitialSubtreeVisibility::Show4Levels)
-    .value("Show5Levels", InitialSubtreeVisibility::Show5Levels)
-    .value("ShowEverything", InitialSubtreeVisibility::ShowEverything)
-    .def("__iter__", [](InitialSubtreeVisibility const& _self) -> org::bind::python::PyEnumIterator<InitialSubtreeVisibility> {
-                     return org::bind::python::PyEnumIterator<InitialSubtreeVisibility>();
-                     })
-    .def("__int__", [](InitialSubtreeVisibility const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](InitialSubtreeVisibility const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](InitialSubtreeVisibility lhs, InitialSubtreeVisibility rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](InitialSubtreeVisibility it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
-  nanobind::enum_<OrgSpecName>(m, "OrgSpecName")
-    .value("Unnamed", OrgSpecName::Unnamed)
-    .value("Result", OrgSpecName::Result)
-    .value("Year", OrgSpecName::Year)
-    .value("Day", OrgSpecName::Day)
-    .value("Clock", OrgSpecName::Clock)
-    .value("Repeater", OrgSpecName::Repeater)
-    .value("Warn", OrgSpecName::Warn)
-    .value("Zone", OrgSpecName::Zone)
-    .value("Link", OrgSpecName::Link)
-    .value("Tags", OrgSpecName::Tags)
-    .value("Tag", OrgSpecName::Tag)
-    .value("State", OrgSpecName::State)
-    .value("Protocol", OrgSpecName::Protocol)
-    .value("Desc", OrgSpecName::Desc)
-    .value("Times", OrgSpecName::Times)
-    .value("Drawer", OrgSpecName::Drawer)
-    .value("Args", OrgSpecName::Args)
-    .value("Name", OrgSpecName::Name)
-    .value("Definition", OrgSpecName::Definition)
-    .value("Body", OrgSpecName::Body)
-    .value("HeaderArgs", OrgSpecName::HeaderArgs)
-    .value("File", OrgSpecName::File)
-    .value("Kind", OrgSpecName::Kind)
-    .value("Lang", OrgSpecName::Lang)
-    .value("Prefix", OrgSpecName::Prefix)
-    .value("Text", OrgSpecName::Text)
-    .value("Todo", OrgSpecName::Todo)
-    .value("Importance", OrgSpecName::Importance)
-    .value("Title", OrgSpecName::Title)
-    .value("Completion", OrgSpecName::Completion)
-    .value("Head", OrgSpecName::Head)
-    .value("Subnodes", OrgSpecName::Subnodes)
-    .value("Properties", OrgSpecName::Properties)
-    .value("Logbook", OrgSpecName::Logbook)
-    .value("Description", OrgSpecName::Description)
-    .value("Logs", OrgSpecName::Logs)
-    .value("Newstate", OrgSpecName::Newstate)
-    .value("Oldstate", OrgSpecName::Oldstate)
-    .value("Time", OrgSpecName::Time)
-    .value("From", OrgSpecName::From)
-    .value("EndArgs", OrgSpecName::EndArgs)
-    .value("Flags", OrgSpecName::Flags)
-    .value("Value", OrgSpecName::Value)
-    .value("Assoc", OrgSpecName::Assoc)
-    .value("Main", OrgSpecName::Main)
-    .value("Hash", OrgSpecName::Hash)
-    .value("Bullet", OrgSpecName::Bullet)
-    .value("Counter", OrgSpecName::Counter)
-    .value("Checkbox", OrgSpecName::Checkbox)
-    .value("Header", OrgSpecName::Header)
-    .value("To", OrgSpecName::To)
-    .value("Diff", OrgSpecName::Diff)
-    .value("Property", OrgSpecName::Property)
-    .value("Subname", OrgSpecName::Subname)
-    .value("Values", OrgSpecName::Values)
-    .value("Cells", OrgSpecName::Cells)
-    .value("Rows", OrgSpecName::Rows)
-    .value("Lines", OrgSpecName::Lines)
-    .value("Chunks", OrgSpecName::Chunks)
-    .def("__iter__", [](OrgSpecName const& _self) -> org::bind::python::PyEnumIterator<OrgSpecName> {
-                     return org::bind::python::PyEnumIterator<OrgSpecName>();
-                     })
-    .def("__int__", [](OrgSpecName const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](OrgSpecName const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](OrgSpecName lhs, OrgSpecName rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](OrgSpecName it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
-  nanobind::enum_<OrgNodeKind>(m, "OrgNodeKind")
-    .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
-    .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
-    .value("Empty", OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
-    .value("InlineStmtList", OrgNodeKind::InlineStmtList)
-    .value("StmtList", OrgNodeKind::StmtList, R"RAW(List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.)RAW")
-    .value("Checkbox", OrgNodeKind::Checkbox, R"RAW(Single checkbox item like `[X]` or `[-]`)RAW")
-    .value("List", OrgNodeKind::List)
-    .value("Bullet", OrgNodeKind::Bullet, R"RAW(List item prefix)RAW")
-    .value("ListItem", OrgNodeKind::ListItem)
-    .value("ListTag", OrgNodeKind::ListTag, R"RAW(Auxilliary wrapper for the paragraph placed at the start of the description list.)RAW")
-    .value("Counter", OrgNodeKind::Counter)
-    .value("File", OrgNodeKind::File)
-    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
-    .value("TextSeparator", OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
-    .value("Paragraph", OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
-    .value("TableRow", OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
-    .value("TableCell", OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
-    .value("Table", OrgNodeKind::Table, R"RAW(Org-mode table)RAW")
-    .value("InlineFootnote", OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
-    .value("Footnote", OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
-    .value("Cmd", OrgNodeKind::Cmd, R"RAW(Undefined single-line command -- most likely custom user-provided oe)RAW")
-    .value("Attrs", OrgNodeKind::Attrs, R"RAW(Arguments for the command block)RAW")
-    .value("AttrValue", OrgNodeKind::AttrValue, R"RAW(:key name=value syntax)RAW")
-    .value("AttrLisp", OrgNodeKind::AttrLisp, R"RAW(S-expression as an attribute value value)RAW")
-    .value("CmdTitle", OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
-    .value("CmdAuthor", OrgNodeKind::CmdAuthor, R"RAW(`#+author:` Document author)RAW")
-    .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
-    .value("CmdInclude", OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
-    .value("CmdLanguage", OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
-    .value("CmdEmail", OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
-    .value("CmdAttr", OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
-    .value("CmdStartup", OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
-    .value("CmdName", OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
-    .value("CmdCustomTextCommand", OrgNodeKind::CmdCustomTextCommand, R"RAW(Line command with parsed text value)RAW")
-    .value("CmdCustomArgsCommand", OrgNodeKind::CmdCustomArgsCommand, R"RAW(Line command with parsed argument list)RAW")
-    .value("CmdCustomRawCommand", OrgNodeKind::CmdCustomRawCommand, R"RAW(Line command with raw text argument)RAW")
-    .value("CmdResults", OrgNodeKind::CmdResults, R"RAW(`#+results:` - source code block evaluation results)RAW")
-    .value("CmdHeader", OrgNodeKind::CmdHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
-    .value("CmdOptions", OrgNodeKind::CmdOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
-    .value("CmdTblfm", OrgNodeKind::CmdTblfm)
-    .value("CmdCaption", OrgNodeKind::CmdCaption, R"RAW(`#+caption:` command)RAW")
-    .value("CmdResult", OrgNodeKind::CmdResult, R"RAW(Command evaluation result)RAW")
-    .value("CmdCallCode", OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
-    .value("CmdLatexClass", OrgNodeKind::CmdLatexClass)
-    .value("CmdLatexHeader", OrgNodeKind::CmdLatexHeader)
-    .value("CmdLatexCompiler", OrgNodeKind::CmdLatexCompiler)
-    .value("CmdLatexClassOptions", OrgNodeKind::CmdLatexClassOptions)
-    .value("CmdHtmlHead", OrgNodeKind::CmdHtmlHead)
-    .value("CmdColumns", OrgNodeKind::CmdColumns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
-    .value("CmdPropertyArgs", OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
-    .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
-    .value("CmdKeywords", OrgNodeKind::CmdKeywords)
-    .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
-    .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
-    .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
-    .value("CodeTangle", OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
-    .value("CodeCallout", OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
-    .value("BlockCode", OrgNodeKind::BlockCode)
-    .value("BlockQuote", OrgNodeKind::BlockQuote, R"RAW(`#+begin_quote:` block in code)RAW")
-    .value("BlockComment", OrgNodeKind::BlockComment, R"RAW(`#+begin_comment:` block in code)RAW")
-    .value("BlockCenter", OrgNodeKind::BlockCenter)
-    .value("BlockVerse", OrgNodeKind::BlockVerse)
-    .value("BlockExample", OrgNodeKind::BlockExample, R"RAW(Verbatim example text block)RAW")
-    .value("BlockExport", OrgNodeKind::BlockExport)
-    .value("BlockDetails", OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
-    .value("BlockSummary", OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
-    .value("BlockDynamicFallback", OrgNodeKind::BlockDynamicFallback, R"RAW(#+begin_<any> section)RAW")
-    .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
-    .value("Bold", OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
-     can itself contain subnodes, which allows to represent nested
-     formatting regions, such as `*bold /italic/*` text. Particular type
-     of identifier is stored in string form in `str` field for `OrgNode`
-     -- bold is represented as `"*"`, italic as `/` and so on. In case
-     of explicit open/close pairs only opening one is stored.
-
-     NOTE: when structured sentences are enabled, regular punctuation
-     elements like `some text (notes)` are also represented as `Word,
-     Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
-    .value("ErrorInfoToken", OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
-    .value("ErrorSkipGroup", OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
-    .value("ErrorSkipToken", OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
-    .value("Italic", OrgNodeKind::Italic)
-    .value("Verbatim", OrgNodeKind::Verbatim)
-    .value("Backtick", OrgNodeKind::Backtick)
-    .value("Underline", OrgNodeKind::Underline)
-    .value("Strike", OrgNodeKind::Strike)
-    .value("Quote", OrgNodeKind::Quote)
-    .value("Angle", OrgNodeKind::Angle)
-    .value("Monospace", OrgNodeKind::Monospace)
-    .value("Par", OrgNodeKind::Par)
-    .value("CriticMarkStructure", OrgNodeKind::CriticMarkStructure)
-    .value("InlineMath", OrgNodeKind::InlineMath, R"RAW(Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.)RAW")
-    .value("DisplayMath", OrgNodeKind::DisplayMath, R"RAW(Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.)RAW")
-    .value("Space", OrgNodeKind::Space, R"RAW(Space or tab character in regular text)RAW")
-    .value("Punctuation", OrgNodeKind::Punctuation)
-    .value("Colon", OrgNodeKind::Colon)
-    .value("Word", OrgNodeKind::Word, R"RAW(Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.)RAW")
-    .value("Escaped", OrgNodeKind::Escaped, R"RAW(Escaped formatting character in the text)RAW")
-    .value("Newline", OrgNodeKind::Newline)
-    .value("RawLink", OrgNodeKind::RawLink, R"RAW(Raw unwrapped link that was pasted in text)RAW")
-    .value("Link", OrgNodeKind::Link, R"RAW(External or internal link. Consists of one or two elements - target
-     (url, file location etc.) and description (`orgParagraph` of text).
-     Description might be empty, and represented as empty node in this
-     case. For external links particular formatting of the address is
-     not handled by parser and instead contains raw string from input
-     text.)RAW")
-    .value("Macro", OrgNodeKind::Macro, R"RAW(Org-mode macro replacement - during export each macro is expanded
-     and evaluated according to it's environment. Body of the macro is
-     not parsed fully during org-mode evaluation, but is checked for
-     correct parenthesis balance (as macro might contain elisp code))RAW")
-    .value("Symbol", OrgNodeKind::Symbol, R"RAW(Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.)RAW")
-    .value("StaticActiveTime", OrgNodeKind::StaticActiveTime)
-    .value("StaticInactiveTime", OrgNodeKind::StaticInactiveTime)
-    .value("DynamicActiveTime", OrgNodeKind::DynamicActiveTime)
-    .value("DynamicInactiveTime", OrgNodeKind::DynamicInactiveTime, R"RAW(Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later)RAW")
-    .value("TimeRange", OrgNodeKind::TimeRange, R"RAW(Date and time range format - two `orgDateTime` entries)RAW")
-    .value("SimpleTime", OrgNodeKind::SimpleTime, R"RAW(Result of the time range evaluation or trailing annotation a subtree)RAW")
-    .value("HashTag", OrgNodeKind::HashTag)
-    .value("MetaSymbol", OrgNodeKind::MetaSymbol, R"RAW(`\sym{}` with explicit arguments)RAW")
-    .value("AtMention", OrgNodeKind::AtMention, R"RAW(`@user`)RAW")
-    .value("Placeholder", OrgNodeKind::Placeholder, R"RAW(Placeholder entry in text, usually writte like `<text to replace>`)RAW")
-    .value("RadioTarget", OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
-    .value("Target", OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
-    .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
-    .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("InlineExport", OrgNodeKind::InlineExport, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
-    .value("InlineComment", OrgNodeKind::InlineComment)
-    .value("RawText", OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
-    .value("SubtreeDescription", OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
-    .value("SubtreeUrgency", OrgNodeKind::SubtreeUrgency)
-    .value("DrawerLogbook", OrgNodeKind::DrawerLogbook, R"RAW(`:logbook:` entry storing note information)RAW")
-    .value("Drawer", OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
-    .value("DrawerPropertyList", OrgNodeKind::DrawerPropertyList)
-    .value("DrawerProperty", OrgNodeKind::DrawerProperty, R"RAW(`:property:` drawer)RAW")
-    .value("Subtree", OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
-    .value("SubtreeTimes", OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
-    .value("SubtreeStars", OrgNodeKind::SubtreeStars)
-    .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
-    .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
-    .def("__iter__", [](OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
-                     return org::bind::python::PyEnumIterator<OrgNodeKind>();
-                     })
-    .def("__int__", [](OrgNodeKind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](OrgNodeKind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](OrgNodeKind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
-  nanobind::enum_<OrgTokenKind>(m, "OrgTokenKind")
-    .value("Ampersand", OrgTokenKind::Ampersand)
-    .value("AngleBegin", OrgTokenKind::AngleBegin)
-    .value("AngleEnd", OrgTokenKind::AngleEnd)
-    .value("AnyPunct", OrgTokenKind::AnyPunct)
-    .value("Asterisk", OrgTokenKind::Asterisk)
-    .value("At", OrgTokenKind::At)
-    .value("Backtick", OrgTokenKind::Backtick)
-    .value("BigIdent", OrgTokenKind::BigIdent)
-    .value("BoldBegin", OrgTokenKind::BoldBegin)
-    .value("BoldEnd", OrgTokenKind::BoldEnd)
-    .value("BoldUnknown", OrgTokenKind::BoldUnknown)
-    .value("BraceBegin", OrgTokenKind::BraceBegin)
-    .value("BraceEnd", OrgTokenKind::BraceEnd)
-    .value("Checkbox", OrgTokenKind::Checkbox)
-    .value("Circumflex", OrgTokenKind::Circumflex)
-    .value("CmdAdmonitionEnd", OrgTokenKind::CmdAdmonitionEnd)
-    .value("CmdAttr", OrgTokenKind::CmdAttr)
-    .value("CmdAuthor", OrgTokenKind::CmdAuthor)
-    .value("CmdBindRaw", OrgTokenKind::CmdBindRaw)
-    .value("CmdCall", OrgTokenKind::CmdCall)
-    .value("CmdCaption", OrgTokenKind::CmdCaption)
-    .value("CmdCategoryRaw", OrgTokenKind::CmdCategoryRaw)
-    .value("CmdCell", OrgTokenKind::CmdCell)
-    .value("CmdCellBegin", OrgTokenKind::CmdCellBegin)
-    .value("CmdCellEnd", OrgTokenKind::CmdCellEnd)
-    .value("CmdCenterBegin", OrgTokenKind::CmdCenterBegin)
-    .value("CmdCenterEnd", OrgTokenKind::CmdCenterEnd)
-    .value("CmdColonIdent", OrgTokenKind::CmdColonIdent)
-    .value("CmdColumns", OrgTokenKind::CmdColumns)
-    .value("CmdCommentBegin", OrgTokenKind::CmdCommentBegin)
-    .value("CmdCommentEnd", OrgTokenKind::CmdCommentEnd)
-    .value("CmdConstants", OrgTokenKind::CmdConstants)
-    .value("CmdContentBegin", OrgTokenKind::CmdContentBegin)
-    .value("CmdContentEnd", OrgTokenKind::CmdContentEnd)
-    .value("CmdCreator", OrgTokenKind::CmdCreator)
-    .value("CmdCustomRaw", OrgTokenKind::CmdCustomRaw)
-    .value("CmdDateRaw", OrgTokenKind::CmdDateRaw)
-    .value("CmdDescription", OrgTokenKind::CmdDescription)
-    .value("CmdDrawersRaw", OrgTokenKind::CmdDrawersRaw)
-    .value("CmdDynamicBegin", OrgTokenKind::CmdDynamicBegin)
-    .value("CmdDynamicBlockBegin", OrgTokenKind::CmdDynamicBlockBegin)
-    .value("CmdDynamicBlockEnd", OrgTokenKind::CmdDynamicBlockEnd)
-    .value("CmdDynamicEnd", OrgTokenKind::CmdDynamicEnd)
-    .value("CmdEmailRaw", OrgTokenKind::CmdEmailRaw)
-    .value("CmdExampleBegin", OrgTokenKind::CmdExampleBegin)
-    .value("CmdExampleEnd", OrgTokenKind::CmdExampleEnd)
-    .value("CmdExampleLine", OrgTokenKind::CmdExampleLine)
-    .value("CmdExcludeTagsRaw", OrgTokenKind::CmdExcludeTagsRaw)
-    .value("CmdExportBegin", OrgTokenKind::CmdExportBegin)
-    .value("CmdExportEnd", OrgTokenKind::CmdExportEnd)
-    .value("CmdExportLine", OrgTokenKind::CmdExportLine)
-    .value("CmdFiletags", OrgTokenKind::CmdFiletags)
-    .value("CmdFlag", OrgTokenKind::CmdFlag)
-    .value("CmdHeader", OrgTokenKind::CmdHeader)
-    .value("CmdHtmlHeadRaw", OrgTokenKind::CmdHtmlHeadRaw)
-    .value("CmdInclude", OrgTokenKind::CmdInclude)
-    .value("CmdLanguage", OrgTokenKind::CmdLanguage)
-    .value("CmdLatexClass", OrgTokenKind::CmdLatexClass)
-    .value("CmdLatexClassOptions", OrgTokenKind::CmdLatexClassOptions)
-    .value("CmdLatexCompiler", OrgTokenKind::CmdLatexCompiler)
-    .value("CmdLatexHeader", OrgTokenKind::CmdLatexHeader)
-    .value("CmdLatexHeaderExtraRaw", OrgTokenKind::CmdLatexHeaderExtraRaw)
-    .value("CmdLinkRaw", OrgTokenKind::CmdLinkRaw)
-    .value("CmdMacroRaw", OrgTokenKind::CmdMacroRaw)
-    .value("CmdName", OrgTokenKind::CmdName)
-    .value("CmdOptions", OrgTokenKind::CmdOptions)
-    .value("CmdPrefix", OrgTokenKind::CmdPrefix)
-    .value("CmdPrioritiesRaw", OrgTokenKind::CmdPrioritiesRaw)
-    .value("CmdPropertyArgs", OrgTokenKind::CmdPropertyArgs)
-    .value("CmdPropertyRaw", OrgTokenKind::CmdPropertyRaw)
-    .value("CmdPropertyText", OrgTokenKind::CmdPropertyText)
-    .value("CmdQuoteBegin", OrgTokenKind::CmdQuoteBegin)
-    .value("CmdQuoteEnd", OrgTokenKind::CmdQuoteEnd)
-    .value("CmdRawArg", OrgTokenKind::CmdRawArg)
-    .value("CmdResults", OrgTokenKind::CmdResults)
-    .value("CmdRow", OrgTokenKind::CmdRow)
-    .value("CmdRowBegin", OrgTokenKind::CmdRowBegin)
-    .value("CmdRowEnd", OrgTokenKind::CmdRowEnd)
-    .value("CmdSelectTagsRaw", OrgTokenKind::CmdSelectTagsRaw)
-    .value("CmdSeqTodoRaw", OrgTokenKind::CmdSeqTodoRaw)
-    .value("CmdKeywordsRaw", OrgTokenKind::CmdKeywordsRaw)
-    .value("CmdSetupfileRaw", OrgTokenKind::CmdSetupfileRaw)
-    .value("CmdSrcBegin", OrgTokenKind::CmdSrcBegin)
-    .value("CmdSrcEnd", OrgTokenKind::CmdSrcEnd)
-    .value("CmdStartup", OrgTokenKind::CmdStartup)
-    .value("CmdTableBegin", OrgTokenKind::CmdTableBegin)
-    .value("CmdTableEnd", OrgTokenKind::CmdTableEnd)
-    .value("CmdTagsRaw", OrgTokenKind::CmdTagsRaw)
-    .value("CmdTblfm", OrgTokenKind::CmdTblfm)
-    .value("CmdTitle", OrgTokenKind::CmdTitle)
-    .value("CmdVerseBegin", OrgTokenKind::CmdVerseBegin)
-    .value("CmdVerseEnd", OrgTokenKind::CmdVerseEnd)
-    .value("Colon", OrgTokenKind::Colon)
-    .value("ColonArgumentsProperty", OrgTokenKind::ColonArgumentsProperty)
-    .value("ColonEnd", OrgTokenKind::ColonEnd)
-    .value("ColonExampleLine", OrgTokenKind::ColonExampleLine)
-    .value("ColonLiteralProperty", OrgTokenKind::ColonLiteralProperty)
-    .value("ColonLogbook", OrgTokenKind::ColonLogbook)
-    .value("ColonProperties", OrgTokenKind::ColonProperties)
-    .value("ColonPropertyText", OrgTokenKind::ColonPropertyText)
-    .value("Comma", OrgTokenKind::Comma)
-    .value("Comment", OrgTokenKind::Comment)
-    .value("CriticAddBegin", OrgTokenKind::CriticAddBegin)
-    .value("CriticAddEnd", OrgTokenKind::CriticAddEnd)
-    .value("CriticCommentBegin", OrgTokenKind::CriticCommentBegin)
-    .value("CriticCommentEnd", OrgTokenKind::CriticCommentEnd)
-    .value("CriticDeleteBegin", OrgTokenKind::CriticDeleteBegin)
-    .value("CriticDeleteEnd", OrgTokenKind::CriticDeleteEnd)
-    .value("CriticHighlightBegin", OrgTokenKind::CriticHighlightBegin)
-    .value("CriticHighlightEnd", OrgTokenKind::CriticHighlightEnd)
-    .value("CriticReplaceBegin", OrgTokenKind::CriticReplaceBegin)
-    .value("CriticReplaceEnd", OrgTokenKind::CriticReplaceEnd)
-    .value("CriticReplaceMiddle", OrgTokenKind::CriticReplaceMiddle)
-    .value("CurlyBegin", OrgTokenKind::CurlyBegin)
-    .value("CurlyEnd", OrgTokenKind::CurlyEnd)
-    .value("Date", OrgTokenKind::Date)
-    .value("Dedent", OrgTokenKind::Dedent)
-    .value("Dollar", OrgTokenKind::Dollar)
-    .value("DoubleAngleBegin", OrgTokenKind::DoubleAngleBegin)
-    .value("DoubleAngleEnd", OrgTokenKind::DoubleAngleEnd)
-    .value("DoubleColon", OrgTokenKind::DoubleColon)
-    .value("DoubleDash", OrgTokenKind::DoubleDash)
-    .value("DoubleHash", OrgTokenKind::DoubleHash)
-    .value("DoubleQuote", OrgTokenKind::DoubleQuote)
-    .value("DoubleSlash", OrgTokenKind::DoubleSlash)
-    .value("ActiveDynamicTimeContent", OrgTokenKind::ActiveDynamicTimeContent)
-    .value("InactiveDynamicTimeContent", OrgTokenKind::InactiveDynamicTimeContent)
-    .value("EndOfFile", OrgTokenKind::EndOfFile)
-    .value("Equals", OrgTokenKind::Equals)
-    .value("Escaped", OrgTokenKind::Escaped)
-    .value("Exclamation", OrgTokenKind::Exclamation)
-    .value("FootnoteInlineBegin", OrgTokenKind::FootnoteInlineBegin)
-    .value("FootnoteLinked", OrgTokenKind::FootnoteLinked)
-    .value("ForwardSlash", OrgTokenKind::ForwardSlash)
-    .value("HashIdent", OrgTokenKind::HashIdent)
-    .value("HashTagBegin", OrgTokenKind::HashTagBegin)
-    .value("Indent", OrgTokenKind::Indent)
-    .value("InlineExportBackend", OrgTokenKind::InlineExportBackend)
-    .value("InlineExportContent", OrgTokenKind::InlineExportContent)
-    .value("ItalicBegin", OrgTokenKind::ItalicBegin)
-    .value("ItalicEnd", OrgTokenKind::ItalicEnd)
-    .value("ItalicUnknown", OrgTokenKind::ItalicUnknown)
-    .value("LatexInlineRaw", OrgTokenKind::LatexInlineRaw)
-    .value("LatexParBegin", OrgTokenKind::LatexParBegin)
-    .value("LatexParEnd", OrgTokenKind::LatexParEnd)
-    .value("LeadingMinus", OrgTokenKind::LeadingMinus)
-    .value("LeadingNumber", OrgTokenKind::LeadingNumber)
-    .value("LeadingPipe", OrgTokenKind::LeadingPipe)
-    .value("LeadingPlus", OrgTokenKind::LeadingPlus)
-    .value("LeadingSpace", OrgTokenKind::LeadingSpace)
-    .value("LineCommand", OrgTokenKind::LineCommand)
-    .value("LinkBegin", OrgTokenKind::LinkBegin)
-    .value("LinkDescriptionBegin", OrgTokenKind::LinkDescriptionBegin)
-    .value("LinkDescriptionEnd", OrgTokenKind::LinkDescriptionEnd)
-    .value("LinkEnd", OrgTokenKind::LinkEnd)
-    .value("LinkFull", OrgTokenKind::LinkFull)
-    .value("LinkProtocol", OrgTokenKind::LinkProtocol)
-    .value("LinkProtocolAttachment", OrgTokenKind::LinkProtocolAttachment)
-    .value("LinkProtocolCustomId", OrgTokenKind::LinkProtocolCustomId)
-    .value("LinkProtocolFile", OrgTokenKind::LinkProtocolFile)
-    .value("LinkProtocolHttp", OrgTokenKind::LinkProtocolHttp)
-    .value("LinkProtocolId", OrgTokenKind::LinkProtocolId)
-    .value("LinkProtocolInternal", OrgTokenKind::LinkProtocolInternal)
-    .value("LinkProtocolTitle", OrgTokenKind::LinkProtocolTitle)
-    .value("LinkSplit", OrgTokenKind::LinkSplit)
-    .value("LinkTarget", OrgTokenKind::LinkTarget)
-    .value("LinkTargetBegin", OrgTokenKind::LinkTargetBegin)
-    .value("LinkTargetEnd", OrgTokenKind::LinkTargetEnd)
-    .value("LinkTargetFile", OrgTokenKind::LinkTargetFile)
-    .value("ListBegin", OrgTokenKind::ListBegin)
-    .value("ListEnd", OrgTokenKind::ListEnd)
-    .value("ListItemBegin", OrgTokenKind::ListItemBegin)
-    .value("ListItemEnd", OrgTokenKind::ListItemEnd)
-    .value("LongNewline", OrgTokenKind::LongNewline)
-    .value("MediumNewline", OrgTokenKind::MediumNewline)
-    .value("Minus", OrgTokenKind::Minus)
-    .value("MiscUnicode", OrgTokenKind::MiscUnicode)
-    .value("MonospaceBegin", OrgTokenKind::MonospaceBegin)
-    .value("MonospaceEnd", OrgTokenKind::MonospaceEnd)
-    .value("MonospaceUnknown", OrgTokenKind::MonospaceUnknown)
-    .value("Newline", OrgTokenKind::Newline)
-    .value("Number", OrgTokenKind::Number)
-    .value("ParBegin", OrgTokenKind::ParBegin)
-    .value("ParEnd", OrgTokenKind::ParEnd)
-    .value("Percent", OrgTokenKind::Percent)
-    .value("Pipe", OrgTokenKind::Pipe)
-    .value("Placeholder", OrgTokenKind::Placeholder)
-    .value("Plus", OrgTokenKind::Plus)
-    .value("Punctuation", OrgTokenKind::Punctuation)
-    .value("RawText", OrgTokenKind::RawText)
-    .value("SameIndent", OrgTokenKind::SameIndent)
-    .value("Semicolon", OrgTokenKind::Semicolon)
-    .value("SingleQuote", OrgTokenKind::SingleQuote)
-    .value("SrcContent", OrgTokenKind::SrcContent)
-    .value("StmtListBegin", OrgTokenKind::StmtListBegin)
-    .value("StmtListEnd", OrgTokenKind::StmtListEnd)
-    .value("StrikeBegin", OrgTokenKind::StrikeBegin)
-    .value("StrikeEnd", OrgTokenKind::StrikeEnd)
-    .value("StrikeUnknown", OrgTokenKind::StrikeUnknown)
-    .value("SubtreeCompletion", OrgTokenKind::SubtreeCompletion)
-    .value("SubtreePriority", OrgTokenKind::SubtreePriority)
-    .value("SubtreeStars", OrgTokenKind::SubtreeStars)
-    .value("Symbol", OrgTokenKind::Symbol)
-    .value("TableSeparator", OrgTokenKind::TableSeparator)
-    .value("TextSeparator", OrgTokenKind::TextSeparator)
-    .value("TextSrcBegin", OrgTokenKind::TextSrcBegin)
-    .value("Tilda", OrgTokenKind::Tilda)
-    .value("Time", OrgTokenKind::Time)
-    .value("TimeArrow", OrgTokenKind::TimeArrow)
-    .value("TimeRepeaterDuration", OrgTokenKind::TimeRepeaterDuration)
-    .value("TimeRepeaterSpec", OrgTokenKind::TimeRepeaterSpec)
-    .value("TimeWarnPeriod", OrgTokenKind::TimeWarnPeriod)
-    .value("TrailingPipe", OrgTokenKind::TrailingPipe)
-    .value("TreeClock", OrgTokenKind::TreeClock)
-    .value("TreeTime", OrgTokenKind::TreeTime)
-    .value("TripleAngleBegin", OrgTokenKind::TripleAngleBegin)
-    .value("TripleAngleEnd", OrgTokenKind::TripleAngleEnd)
-    .value("Underline", OrgTokenKind::Underline)
-    .value("UnderlineBegin", OrgTokenKind::UnderlineBegin)
-    .value("UnderlineEnd", OrgTokenKind::UnderlineEnd)
-    .value("UnderlineUnknown", OrgTokenKind::UnderlineUnknown)
-    .value("Unknown", OrgTokenKind::Unknown)
-    .value("VerbatimBegin", OrgTokenKind::VerbatimBegin)
-    .value("VerbatimEnd", OrgTokenKind::VerbatimEnd)
-    .value("VerbatimUnknown", OrgTokenKind::VerbatimUnknown)
-    .value("Whitespace", OrgTokenKind::Whitespace)
-    .value("Word", OrgTokenKind::Word)
-    .def("__iter__", [](OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<OrgTokenKind> {
-                     return org::bind::python::PyEnumIterator<OrgTokenKind>();
-                     })
-    .def("__int__", [](OrgTokenKind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](OrgTokenKind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](OrgTokenKind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<OrgJsonKind>(m, "OrgJsonKind", type_registry_guard);
-  nanobind::enum_<OrgJsonKind>(m, "OrgJsonKind")
-    .value("Null", OrgJsonKind::Null)
-    .value("Object", OrgJsonKind::Object)
-    .value("Array", OrgJsonKind::Array)
-    .value("String", OrgJsonKind::String)
-    .value("Boolean", OrgJsonKind::Boolean)
-    .value("Int", OrgJsonKind::Int)
-    .value("Float", OrgJsonKind::Float)
-    .def("__iter__", [](OrgJsonKind const& _self) -> org::bind::python::PyEnumIterator<OrgJsonKind> {
-                     return org::bind::python::PyEnumIterator<OrgJsonKind>();
-                     })
-    .def("__int__", [](OrgJsonKind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](OrgJsonKind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](OrgJsonKind lhs, OrgJsonKind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](OrgJsonKind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
-  nanobind::enum_<OrgSemKind>(m, "OrgSemKind")
-    .value("NoNode", OrgSemKind::NoNode)
-    .value("ErrorItem", OrgSemKind::ErrorItem)
-    .value("ErrorGroup", OrgSemKind::ErrorGroup)
-    .value("StmtList", OrgSemKind::StmtList)
-    .value("Empty", OrgSemKind::Empty)
-    .value("CmdCaption", OrgSemKind::CmdCaption)
-    .value("CmdCreator", OrgSemKind::CmdCreator)
-    .value("CmdAuthor", OrgSemKind::CmdAuthor)
-    .value("CmdEmail", OrgSemKind::CmdEmail)
-    .value("CmdLanguage", OrgSemKind::CmdLanguage)
-    .value("CmdColumns", OrgSemKind::CmdColumns)
-    .value("CmdName", OrgSemKind::CmdName)
-    .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
-    .value("CmdCustomRaw", OrgSemKind::CmdCustomRaw)
-    .value("CmdCustomText", OrgSemKind::CmdCustomText)
-    .value("CmdCall", OrgSemKind::CmdCall)
-    .value("CmdTblfm", OrgSemKind::CmdTblfm)
-    .value("HashTag", OrgSemKind::HashTag)
-    .value("InlineFootnote", OrgSemKind::InlineFootnote)
-    .value("InlineExport", OrgSemKind::InlineExport)
-    .value("Time", OrgSemKind::Time)
-    .value("TimeRange", OrgSemKind::TimeRange)
-    .value("Macro", OrgSemKind::Macro)
-    .value("Symbol", OrgSemKind::Symbol)
-    .value("Escaped", OrgSemKind::Escaped)
-    .value("Newline", OrgSemKind::Newline)
-    .value("Space", OrgSemKind::Space)
-    .value("Word", OrgSemKind::Word)
-    .value("AtMention", OrgSemKind::AtMention)
-    .value("RawText", OrgSemKind::RawText)
-    .value("Punctuation", OrgSemKind::Punctuation)
-    .value("Placeholder", OrgSemKind::Placeholder)
-    .value("BigIdent", OrgSemKind::BigIdent)
-    .value("TextTarget", OrgSemKind::TextTarget)
-    .value("ErrorSkipToken", OrgSemKind::ErrorSkipToken)
-    .value("ErrorSkipGroup", OrgSemKind::ErrorSkipGroup)
-    .value("Bold", OrgSemKind::Bold)
-    .value("Underline", OrgSemKind::Underline)
-    .value("Monospace", OrgSemKind::Monospace)
-    .value("MarkQuote", OrgSemKind::MarkQuote)
-    .value("Verbatim", OrgSemKind::Verbatim)
-    .value("Italic", OrgSemKind::Italic)
-    .value("Strike", OrgSemKind::Strike)
-    .value("Par", OrgSemKind::Par)
-    .value("RadioTarget", OrgSemKind::RadioTarget)
-    .value("Latex", OrgSemKind::Latex)
-    .value("Link", OrgSemKind::Link)
-    .value("BlockCenter", OrgSemKind::BlockCenter)
-    .value("BlockQuote", OrgSemKind::BlockQuote)
-    .value("BlockComment", OrgSemKind::BlockComment)
-    .value("BlockVerse", OrgSemKind::BlockVerse)
-    .value("BlockDynamicFallback", OrgSemKind::BlockDynamicFallback)
-    .value("BlockExample", OrgSemKind::BlockExample)
-    .value("BlockExport", OrgSemKind::BlockExport)
-    .value("BlockAdmonition", OrgSemKind::BlockAdmonition)
-    .value("BlockCodeEvalResult", OrgSemKind::BlockCodeEvalResult)
-    .value("BlockCode", OrgSemKind::BlockCode)
-    .value("SubtreeLog", OrgSemKind::SubtreeLog)
-    .value("Subtree", OrgSemKind::Subtree)
-    .value("Cell", OrgSemKind::Cell)
-    .value("Row", OrgSemKind::Row)
-    .value("Table", OrgSemKind::Table)
-    .value("Paragraph", OrgSemKind::Paragraph)
-    .value("ColonExample", OrgSemKind::ColonExample)
-    .value("CmdAttr", OrgSemKind::CmdAttr)
-    .value("CmdExport", OrgSemKind::CmdExport)
-    .value("Call", OrgSemKind::Call)
-    .value("List", OrgSemKind::List)
-    .value("ListItem", OrgSemKind::ListItem)
-    .value("DocumentOptions", OrgSemKind::DocumentOptions)
-    .value("DocumentFragment", OrgSemKind::DocumentFragment)
-    .value("CriticMarkup", OrgSemKind::CriticMarkup)
-    .value("Document", OrgSemKind::Document)
-    .value("FileTarget", OrgSemKind::FileTarget)
-    .value("TextSeparator", OrgSemKind::TextSeparator)
-    .value("DocumentGroup", OrgSemKind::DocumentGroup)
-    .value("File", OrgSemKind::File)
-    .value("Directory", OrgSemKind::Directory)
-    .value("Symlink", OrgSemKind::Symlink)
-    .value("CmdInclude", OrgSemKind::CmdInclude)
-    .def("__iter__", [](OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
-                     return org::bind::python::PyEnumIterator<OrgSemKind>();
-                     })
-    .def("__int__", [](OrgSemKind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](OrgSemKind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](OrgSemKind lhs, OrgSemKind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](OrgSemKind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind", type_registry_guard);
-  nanobind::enum_<org::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
-    .value("RadioTarget", org::AstTrackingGroup::Kind::RadioTarget)
-    .value("Single", org::AstTrackingGroup::Kind::Single)
-    .value("TrackedHashtag", org::AstTrackingGroup::Kind::TrackedHashtag)
-    .def("__iter__", [](org::AstTrackingGroup::Kind const& _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
-                     return org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>();
-                     })
-    .def("__int__", [](org::AstTrackingGroup::Kind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](org::AstTrackingGroup::Kind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](org::AstTrackingGroup::Kind lhs, org::AstTrackingGroup::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::AstTrackingGroup::Kind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<org::graph::MapLink::Kind>(m, "GraphMapLinkKind", type_registry_guard);
-  nanobind::enum_<org::graph::MapLink::Kind>(m, "GraphMapLinkKind")
-    .value("Radio", org::graph::MapLink::Kind::Radio)
-    .value("Link", org::graph::MapLink::Kind::Link)
-    .def("__iter__", [](org::graph::MapLink::Kind const& _self) -> org::bind::python::PyEnumIterator<org::graph::MapLink::Kind> {
-                     return org::bind::python::PyEnumIterator<org::graph::MapLink::Kind>();
-                     })
-    .def("__int__", [](org::graph::MapLink::Kind const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](org::graph::MapLink::Kind const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](org::graph::MapLink::Kind lhs, org::graph::MapLink::Kind rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::graph::MapLink::Kind it) -> int {
-         return static_cast<int>(it);
-         })
-    ;
-  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
-  nanobind::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
-    .value("Int", org::bind::python::LeafFieldType::Int)
-    .value("UserTimeKind", org::bind::python::LeafFieldType::UserTimeKind)
-    .value("QDate", org::bind::python::LeafFieldType::QDate)
-    .value("Bool", org::bind::python::LeafFieldType::Bool)
-    .value("FixedIdVec", org::bind::python::LeafFieldType::FixedIdVec)
-    .value("TopIdVec", org::bind::python::LeafFieldType::TopIdVec)
-    .value("QDateTime", org::bind::python::LeafFieldType::QDateTime)
-    .value("Str", org::bind::python::LeafFieldType::Str)
-    .value("Any", org::bind::python::LeafFieldType::Any)
-    .def("__iter__", [](org::bind::python::LeafFieldType const& _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
-                     return org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>();
-                     })
-    .def("__int__", [](org::bind::python::LeafFieldType const& _self) -> int {
-                    return static_cast<int>(_self);
-                    })
-    .def("__index__", [](org::bind::python::LeafFieldType const& _self) -> int {
-                      return static_cast<int>(_self);
-                      })
-    .def("__eq__",
-         [](org::bind::python::LeafFieldType lhs, org::bind::python::LeafFieldType rhs) -> bool {
-         return lhs == rhs;
-         },
-         nanobind::arg("rhs"))
-    .def("__hash__",
-         [](org::bind::python::LeafFieldType it) -> int {
-         return static_cast<int>(it);
-         })
     ;
   m.def("newSemTimeStatic",
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),

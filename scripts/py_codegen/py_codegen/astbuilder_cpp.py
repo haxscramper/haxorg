@@ -854,26 +854,27 @@ class ASTBuilder(base.AstbuilderBase):
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
 
-        for nested in params.nested:
-            if isinstance(nested, EnumParams):
-                content.append(self.Enum(nested))
-            elif isinstance(nested, RecordParams):
-                content.append(self.Record(nested))
-            else:
-                content.append(nested)
+        if params.IsDefinition:
+            for nested in params.nested:
+                if isinstance(nested, EnumParams):
+                    content.append(self.Enum(nested))
+                elif isinstance(nested, RecordParams):
+                    content.append(self.Record(nested))
+                else:
+                    content.append(nested)
 
-        for member in params.members:
-            if isinstance(member, RecordField):
-                content.append(self.Field(member))
+            for member in params.members:
+                if isinstance(member, RecordField):
+                    content.append(self.Field(member))
 
-            elif isinstance(member, MethodDeclParams):
-                content.append(self.MethodDecl(member))
+                elif isinstance(member, MethodDeclParams):
+                    content.append(self.MethodDecl(member))
 
-            elif isinstance(member, MethodDefParams):
-                content.append(self.MethodDef(member))
+                elif isinstance(member, MethodDefParams):
+                    content.append(self.MethodDef(member))
 
         bases: Optional[BlockId] = None
-        if params.bases:
+        if params.bases and params.IsDefinition:
             classes = [
                 self.b.line([self.string("public "),
                              self.Type(base)]) for base in params.bases
@@ -899,21 +900,28 @@ class ASTBuilder(base.AstbuilderBase):
             else:
                 return self.b.stack(args)
 
-        return self.WithTemplate(
-            params.Template,
-            cond([
-                self.Doc(params.doc),
-                head,
-                self.b.indent(0 if params.OneLine else 2, cond(content)),
-                self.string("};" if params.IsDefinition else ";"),
-                *([self.string("")] if params.TrailingLine else []),
-            ]) if content else cond([
-                self.Doc(params.doc),
-                self.b.line([
+        if content:
+            return self.WithTemplate(
+                params.Template,
+                cond([
+                    self.Doc(params.doc),
                     head,
+                    self.b.indent(0 if params.OneLine else 2, cond(content)),
                     self.string("};" if params.IsDefinition else ";"),
-                ]), *([self.string("")] if params.TrailingLine else [])
-            ]))
+                    *([self.string("")] if params.TrailingLine else []),
+                ]))
+
+        else:
+            return self.WithTemplate(
+                params.Template,
+                cond([
+                    self.Doc(params.doc),
+                    self.b.line([
+                        head,
+                        self.string("};" if params.IsDefinition else ";"),
+                    ]),
+                    *([self.string("")] if params.TrailingLine else []),
+                ]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
         if spec == AccessSpecifier.Unspecified:

@@ -36,7 +36,7 @@ class QualTypeKind(str, Enum):
     MethodPtr = "MethodPtr"
     "Pointer to method"
     Array = "Array"
-    "Constant or dynamic array type"
+    "Constant or dynamic array type. The array parameters are stored in `Params` field"
     TypeExpr = "TypeExpr"
     "Compile-time literal in template parameters"
 
@@ -1051,7 +1051,7 @@ class GenTuNamespace:
     """
 
 
-type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude | GenTuTypedef | GenTuPass
+type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude | GenTuTypedef | GenTuPass | GenTuField
 type GenTuUnion = GenTuStruct | GenTuEnum | GenTuTypedef | GenTuFunction
 type GenTuDeclaration = GenTuUnion | GenTuField
 

@@ -4,8 +4,8 @@ from dataclasses import dataclass, field, replace
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
 from beartype import beartype
-from beartype.typing import List
-from py_codegen.codegen_type_groups import PyhaxorgTypeGroups
+from beartype.typing import List, cast
+from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -74,7 +74,7 @@ def _gen_enum(en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder,
 @dataclass
 class _StructGenResult():
     wrappers: list[codegen_ir.GenTuEntry] = field(default_factory=list)
-    forward_decls: list[codegen_ir.GenTuPass] = field(default_factory=list)
+    forward_decls: list[codegen_ir.GenTuEntry] = field(default_factory=list)
 
 
 @beartype
@@ -92,19 +92,17 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
         Doc=codegen_ir.GenTuDoc(
             f"{struct.declarationQualName().flatQualNameWithParams()}"))
 
-    result.forward_decls.append(
-        codegen_ir.GenTuPass(
-            ast.line([
-                ast.string("struct "),
-                ast.Type(wrap_struct.Name),
-                ast.string(";"),
-            ])))
-
     vtable_struct = codegen_ir.GenTuStruct(
         Name=QualType(Name=f"haxorg_{basename}_vtable"),
         GenDescribeFields=False,
         GenDescribeMethods=False,
     )
+
+    result.forward_decls.append(
+        codegen_ir.GenTuStruct(Name=vtable_struct.Name, IsForwardDecl=True))
+
+    result.forward_decls.append(
+        codegen_ir.GenTuStruct(Name=wrap_struct.Name, IsForwardDecl=True))
 
     for f in struct.Fields:
         if conf.isAcceptedByBackend(f):
@@ -222,6 +220,19 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
 
                 case _:
                     raise TypeError(type(entry))
+
+    def is_forward_declared(Type: QualType) -> bool:
+        if 0 < Type.PtrCount and Type.Name.endswith("_vtable"):
+            return True
+
+        else:
+            return False
+
+    wrapped_structs = topological_sort_entries(
+        wrapped_structs,  # type: ignore
+        use_api=True,
+        is_forward_declared=is_forward_declared,
+    )
 
     return codegen_ir.GenFiles([
         codegen_ir.GenUnit(

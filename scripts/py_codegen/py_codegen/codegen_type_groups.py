@@ -4,7 +4,7 @@ from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict, List, Sequence
+from beartype.typing import Callable, Dict, List, Sequence
 from py_codegen import codegen_ir, refl_read
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.codegen_immutable as gen_imm
@@ -14,15 +14,21 @@ from py_codegen.astbuilder_base_config import AstbulderConfig
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
 from py_scriptutils.script_logging import log, ExceptionContextNote
+import more_itertools
 
 CAT = __name__
 
 
 @beartype
 def topological_sort_entries(
-        entries: List[codegen_ir.GenTuUnion]) -> List[codegen_ir.GenTuUnion]:
+    entries: Sequence[codegen_ir.GenTuUnion],
+    use_bases: bool = True,
+    use_api: bool = False,
+    is_forward_declared: Callable[[QualType], bool] = lambda it: False,
+) -> List[codegen_ir.GenTuUnion]:
     entry_by_hash: Dict[int, codegen_ir.GenTuUnion] = {}
-    cant_have_dependants: List[codegen_ir.GenTuUnion] = []
+    put_last: List[codegen_ir.GenTuUnion] = []
+    put_first: List[codegen_ir.GenTuUnion] = []
 
     for it in entries:
         match it:
@@ -34,23 +40,76 @@ def topological_sort_entries(
             case codegen_ir.GenTuTypedef():
                 entry_by_hash[it.Name.qual_hash()] = it
 
+            case codegen_ir.GenTuEnum():
+                put_first.append(it)
+
             case _:
-                cant_have_dependants.append(it)
+                # Other entries cannot have dependants -- functions, passes etc.
+                put_last.append(it)
 
-    assert (len(entry_by_hash) + len(cant_have_dependants)) == len(
-        entries
-    ), f"Sorting order mismatch len(hash): {len(entry_by_hash)} + len(no-deps): {len(cant_have_dependants)} len(entries): {len(entries)}"
+    assert (len(entry_by_hash) + len(put_last) +
+            len(put_first)) == len(entries), "Sorting order mismatch {}".format({
+                "len(hash)": len(entry_by_hash),
+                "len(no-dependants)": len(put_last),
+                "len(no-deps)": len(put_first),
+                "len(entries)": len(entries),
+            })
 
-    graph = {}
+    graph: dict[int, set[int]] = {}
     for entry in entries:
         match entry:
             case codegen_ir.GenTuStruct():
                 entry_hash = entry.declarationQualName().qual_hash()
-                graph[entry_hash] = {
-                    base.qual_hash()
-                    for base in entry.Bases
-                    if base.qual_hash() in entry_by_hash
-                }
+                graph[entry_hash] = set()
+
+                def use_type(Type: QualType):
+                    match Type.Kind:
+                        case codegen_ir.QualTypeKind.RegularType:
+                            if Type.qual_hash(
+                            ) in entry_by_hash and not is_forward_declared(Type):
+                                graph[entry_hash].add(Type.qual_hash())
+
+                        case codegen_ir.QualTypeKind.FunctionPtr:
+                            assert Type.Func
+                            if Type.Func.Class:
+                                use_type(Type.Func.Class)
+
+                            if Type.Func.ReturnType:
+                                use_type(Type.Func.ReturnType)
+
+                            list(map(use_type, Type.Func.Args))
+
+                        case codegen_ir.QualTypeKind.Array:
+                            list(map(use_type, Type.Params))
+
+                if use_bases:
+                    for base in entry.Bases:
+                        use_type(base)
+
+                if use_api:
+
+                    def aux(nest: codegen_ir.GenTuEntry):
+                        match nest:
+                            case codegen_ir.GenTuStruct():
+                                list(map(aux, nest.Methods))
+                                list(map(aux, nest.Fields))
+                                list(map(aux, nest.Nested))
+
+                            case codegen_ir.GenTuField():
+                                if nest.Type:
+                                    use_type(nest.Type)
+
+                            case codegen_ir.GenTuFunction():
+                                use_type(nest.ReturnType)
+                                list(map(lambda arg: use_type(arg.Type), nest.Args))
+
+                            case codegen_ir.GenTuTypeGroup():
+                                list(map(aux, nest.types))
+
+                            case _:
+                                raise TypeError(type(nest))
+
+                    aux(entry)
 
             case codegen_ir.GenTuTypedef():
                 entry_hash = entry.Name.qual_hash()
@@ -60,20 +119,17 @@ def topological_sort_entries(
                 else:
                     # typedef might refer to the specialization of the
                     # standard type
-                    graph[entry_hash] = {}
+                    graph[entry_hash] = set()
 
     ts = TopologicalSorter(graph)
     try:
         sorted_hashes = list(ts.static_order())
-        result = [entry_by_hash[h] for h in sorted_hashes] + cant_have_dependants
-
-        # assert len(result) == len(
-        #     entries
-        # ), f"Sorting order mismatch len(in): {len(entries)} len(out): {len(result)} len(no-deps): {len(cant_have_dependants)} len(hash): {len(entry_by_hash)}"
+        result = put_first + [entry_by_hash[h] for h in sorted_hashes] + put_last
 
         return result
-    except CycleError:
-        raise ValueError("Cyclic inheritance detected")
+    except CycleError as e:
+        cycle_nodes = [entry_by_hash[n].Name for n in e.args[1]]
+        raise ValueError(f"Cyclic inheritance detected for nodes {cycle_nodes}")
 
 
 @beartype

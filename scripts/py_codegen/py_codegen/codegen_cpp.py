@@ -113,6 +113,7 @@ class GenConverter:
             bases=record.Bases,
             IsTemplateSpecialization=record.IsExplicitInstantiation,
             Template=record.TemplateParams,
+            IsDefinition=not record.IsForwardDecl,
         )
 
         with codegen_cpp.GenConverterWithContext(self, record.Name):
