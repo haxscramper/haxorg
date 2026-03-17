@@ -169,7 +169,7 @@ def run_reflection_tool_provider(
     compile_commands_content = [
         ex.CompileCommand(
             directory=conf.header_root,
-            command=f"clang++ {file}",
+            command=f"clang++ -std=c++23 {file}",
             file=file,
             output=str(Path(file).with_suffix(".o")),
         ) for file in text.keys()

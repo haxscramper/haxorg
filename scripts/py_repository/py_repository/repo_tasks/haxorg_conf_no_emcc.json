@@ -10,7 +10,7 @@
   "build_conf"         : {
     "cmake_generator"       : "Ninja",
     "real_time_output_print": false,
-    "use_warnings"          : false
+    "use_warnings"          : false,
     // "target"                : ["reflection_tool"]
   },
   "py_test_conf"       : {

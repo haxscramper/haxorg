@@ -404,7 +404,15 @@ def test_templates_record(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
     value = refl_test_driver.get_struct(
         """
-        template <typename T>
+
+        template <typename Arg>
+        concept ILabel = requires(Arg v)
+        {
+             typename Arg::nested;
+        };
+
+
+        template <ILabel T>
         struct [[refl]] Templated {
             [[refl]] T get_content();
             [[refl]] T::nested get_nested();

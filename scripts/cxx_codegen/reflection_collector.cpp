@@ -1260,6 +1260,49 @@ void ReflASTVisitor::fillCxxRecordDecl(
         rec->set_reflectionparams(args.value());
     }
 
+    if (clang::
+            ClassTemplateDecl* CTD = Decl->getDescribedClassTemplate()) {
+        clang::TemplateParameterList*
+            templateParams = CTD->getTemplateParameters();
+
+        auto template_spec = rec->add_templates();
+
+        // This code is obviously far too primitive to handle all C++
+        // template type declaration nuances, but it provides the basis
+        // for the data extraction that can be expanded down the line
+        // if necessary.
+        for (clang::NamedDecl* param : *templateParams) {
+            if (auto* typeParam = dyn_cast<clang::TemplateTypeParmDecl>(
+                    param)) {
+                auto spec_param = template_spec->add_parameters();
+                spec_param->set_name(typeParam->getName());
+                spec_param->set_isvariadic(typeParam->isParameterPack());
+                if (typeParam->hasDefaultArgument()) {
+                    auto default_arg = spec_param->add_default_();
+                    fillTypeRec(
+                        default_arg,
+                        typeParam->getDefaultArgument().getArgument(),
+                        std::nullopt);
+                }
+
+                if (typeParam->hasTypeConstraint()) {
+                    const clang::TypeConstraint*
+                        TC = typeParam->getTypeConstraint();
+                    clang::TemplateDecl* TD = TC->getNamedConcept();
+                    if (auto* Concept = dyn_cast<clang::ConceptDecl>(TD)) {
+                        clang::ConceptDecl* CD = Concept;
+                        spec_param->set_name(
+                            CD->getCanonicalDecl()->getNameAsString());
+                    } else {
+                        HSLOG_TRACE("Not a concept type constraint");
+                    }
+                } else {
+                    HSLOG_TRACE("No template type constraint");
+                }
+            }
+        }
+    }
+
     if (Decl->hasDefinition()) {
         for (const auto& base : Decl->bases()) {
             auto b = rec->add_bases();

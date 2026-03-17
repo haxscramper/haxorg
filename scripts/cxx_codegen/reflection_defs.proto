@@ -132,6 +132,9 @@ message TemplateTypename {
     string Name = 3;
     repeated TemplateTypename Nested = 4;
     string Concept = 5;
+    // using repeated instead of optional because python-betterproto
+    // does not support the latter one.
+    repeated QualType Default = 6;
 }
 
 message TemplateSpec {
