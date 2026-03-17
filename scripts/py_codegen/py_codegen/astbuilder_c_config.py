@@ -20,6 +20,9 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["hstd", "Vec", _]:
                 return QualType(Name=prefix + "HstdVec")
 
+            case ["hstd", "UnorderedSet", _]:
+                return QualType(Name=prefix + "HstdUnorderedSet")
+
             case ["hstd", "Opt", _]:
                 return QualType(Name=prefix + "HstdOpt")
 

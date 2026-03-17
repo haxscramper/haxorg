@@ -145,7 +145,7 @@ struct std::formatter<org::imm::ImmPathStep>
 namespace org::imm {
 /// \brief Full path from the root of the document to a specific node.
 struct [[refl]] ImmPath {
-    using Store = immer::flex_vector<ImmPathStep>;
+    [[refl]] typedef immer::flex_vector<ImmPathStep> Store;
     /// \brief Root ID node
     [[refl]] ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the

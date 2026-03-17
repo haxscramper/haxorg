@@ -30,6 +30,7 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
 NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
+NB_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmPathStep>)
 NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<int>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
@@ -166,6 +167,7 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_immerflex_vector<org::imm::ImmPathStep>(m, "ImmVecOfImmPathStep", type_registry_guard);
   org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);

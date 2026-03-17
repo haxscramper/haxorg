@@ -19,3 +19,4 @@ struct haxorg_HstdOpt {};
 struct haxorg_StdOptional {};
 struct haxorg_HstdUnorderedMap {};
 struct haxorg_ImmVec {};
+struct haxorg_HstdUnorderedSet {};

@@ -2675,6 +2675,7 @@ struct haxorg_ImmPathStep {
   haxorg_shared_ptr_payload data;
 };
 
+typedef haxorg_ImmVecOfImmPathStep haxorg_ImmPathStore;
 /// \brief ['org', 'imm', 'ImmPath']
 struct haxorg_ImmPath {
   haxorg_ImmPath_vtable const* vtable;
@@ -2861,15 +2862,15 @@ struct haxorg_GraphMapEdge {
   haxorg_shared_ptr_payload data;
 };
 
-typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
 /// \brief ['org', 'graph', 'MapGraph']
 struct haxorg_GraphMapGraph {
   haxorg_GraphMapGraph_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
-typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
+typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
+typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 /// \brief ['org', 'graph', 'MapConfig']
 struct haxorg_GraphMapConfig {
   haxorg_GraphMapConfig_vtable const* vtable;
@@ -6450,7 +6451,7 @@ struct haxorg_ImmAdapterTreeReprConf_vtable {
   int const* (*get_maxDepth)(haxorg_ImmAdapterTreeReprConf const*);
   bool const* (*get_withAuxFields)(haxorg_ImmAdapterTreeReprConf const*);
   bool const* (*get_withReflFields)(haxorg_ImmAdapterTreeReprConf const*);
-  haxorg_HstdSetOfStdPairOfOrgSemKindImmReflFieldId const* (*get_withFieldSubset)(haxorg_ImmAdapterTreeReprConf const*);
+  haxorg_HstdUnorderedSet const* (*get_withFieldSubset)(haxorg_ImmAdapterTreeReprConf const*);
 };
 
 struct haxorg_OrgYamlExportOpts_vtable {

@@ -2368,6 +2368,7 @@ export interface GraphMapGraphState {
   graph: GraphMapGraph
   ast: ImmAstContext
 }
+export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
 export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
 export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
 export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;

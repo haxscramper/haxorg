@@ -1069,6 +1069,7 @@ class ExporterPython:
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+ImmPathStore = ImmFlexVector[ImmPathStep]
 GraphNodeProps = Dict[GraphMapNode, GraphMapNodeProp]
 GraphEdgeProps = Dict[GraphMapEdge, GraphMapEdgeProp]
 GraphAdjNodesList = list[GraphMapNode]
