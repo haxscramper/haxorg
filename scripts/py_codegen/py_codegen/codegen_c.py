@@ -81,11 +81,6 @@ class _StructGenResult():
 def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                 conf: CAstbuilderConfig) -> _StructGenResult:
 
-    head = struct.declarationQualName().flatQualNameWithParams()
-
-    assert head != ['org', 'imm', 'ImmIdT', [['org', 'imm', 'ImmList']]]
-    log(CAT).info(head)
-
     result = _StructGenResult()
     basename = conf.getBackendType(struct.declarationQualName()).Name.replace(
         "haxorg_", "")
@@ -167,6 +162,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                     result.wrappers.extend(conv.wrappers)
 
             case codegen_ir.GenTuEnum():
+                log(CAT).info(f"{entry.Name}")
                 if conf.isAcceptedByBackend(entry):
                     result.wrappers.append(_gen_enum(entry, ast, conf))
 
@@ -190,7 +186,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     standalone_funcs.append(_gen_func(entry, ast, conf))
 
                 case codegen_ir.GenTuStruct():
-                    match entry.declarationQualName():
+                    match entry.declarationQualName().flatQualNameWithParams():
                         case ["org", "imm", "ImmIdT", _]:
                             # Ignore explicit specializations for immutable ID
                             # in the C backend.

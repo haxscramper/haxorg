@@ -430,182 +430,6 @@ void haxorg_destroy_CmdIncludeSrc(haxorg_CmdIncludeSrc* obj) { execute_destroy<o
 void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj) { execute_destroy<org::sem::CmdInclude::OrgDocument>(obj); }
 
 
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
-void haxorg_destroy_ImmId(haxorg_ImmId* obj) { execute_destroy<org::imm::ImmIdT>(obj); }
-
 void haxorg_destroy_ImmNoNode(haxorg_ImmNoNode* obj) { execute_destroy<org::imm::ImmNoNode /* d_orgimm_write */>(obj); }
 
 void haxorg_destroy_ImmErrorItem(haxorg_ImmErrorItem* obj) { execute_destroy<org::imm::ImmErrorItem /* d_orgimm_write */>(obj); }
@@ -625,8 +449,6 @@ void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj) { execute_destroy<org::imm::Imm
 void haxorg_destroy_ImmTime(haxorg_ImmTime* obj) { execute_destroy<org::imm::ImmTime /* d_orgimm_write */>(obj); }
 
 void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj) { execute_destroy<org::imm::ImmTime::Repeat /* imm_write */>(obj); }
-
-
 
 void haxorg_destroy_ImmTimeStatic(haxorg_ImmTimeStatic* obj) { execute_destroy<org::imm::ImmTime::Static /* imm_write */>(obj); }
 
@@ -664,7 +486,6 @@ void haxorg_destroy_ImmDocumentOptions(haxorg_ImmDocumentOptions* obj) { execute
 void haxorg_destroy_ImmDocumentFragment(haxorg_ImmDocumentFragment* obj) { execute_destroy<org::imm::ImmDocumentFragment /* d_orgimm_write */>(obj); }
 
 void haxorg_destroy_ImmCriticMarkup(haxorg_ImmCriticMarkup* obj) { execute_destroy<org::imm::ImmCriticMarkup /* d_orgimm_write */>(obj); }
-
 
 void haxorg_destroy_ImmDocument(haxorg_ImmDocument* obj) { execute_destroy<org::imm::ImmDocument /* d_orgimm_write */>(obj); }
 

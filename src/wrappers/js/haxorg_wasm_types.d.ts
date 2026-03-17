@@ -565,22 +565,6 @@ export interface haxorg_wasm_module_auto {
   ImmLeaf: ImmLeafConstructor;
   ImmTime: ImmTimeConstructor;
   ImmTimeRepeat: ImmTimeRepeatConstructor;
-  TimeRepeatMode: {
-    None: TimeRepeatMode,
-    Exact: TimeRepeatMode,
-    FirstMatch: TimeRepeatMode,
-    SameDay: TimeRepeatMode,
-  }
-  format_TimeRepeatMode(value: TimeRepeatMode): string;
-  TimeRepeatPeriod: {
-    Year: TimeRepeatPeriod,
-    Month: TimeRepeatPeriod,
-    Week: TimeRepeatPeriod,
-    Day: TimeRepeatPeriod,
-    Hour: TimeRepeatPeriod,
-    Minute: TimeRepeatPeriod,
-  }
-  format_TimeRepeatPeriod(value: TimeRepeatPeriod): string;
   ImmTimeStatic: ImmTimeStaticConstructor;
   ImmTimeDynamic: ImmTimeDynamicConstructor;
   ImmTimeTimeKind: {
@@ -604,14 +588,6 @@ export interface haxorg_wasm_module_auto {
   ImmDocumentOptions: ImmDocumentOptionsConstructor;
   ImmDocumentFragment: ImmDocumentFragmentConstructor;
   ImmCriticMarkup: ImmCriticMarkupConstructor;
-  CriticMarkupKind: {
-    Deletion: CriticMarkupKind,
-    Addition: CriticMarkupKind,
-    Substitution: CriticMarkupKind,
-    Highlighting: CriticMarkupKind,
-    Comment: CriticMarkupKind,
-  }
-  format_CriticMarkupKind(value: CriticMarkupKind): string;
   ImmDocument: ImmDocumentConstructor;
   ImmFileTarget: ImmFileTargetConstructor;
   ImmTextSeparator: ImmTextSeparatorConstructor;
@@ -3648,20 +3624,8 @@ export interface ImmTimeRepeat {
   period: ImmTimeRepeatPeriod
   count: number
 }
-export enum TimeRepeatMode {
-  None,
-  Exact,
-  FirstMatch,
-  SameDay,
-}
-export enum TimeRepeatPeriod {
-  Year,
-  Month,
-  Week,
-  Day,
-  Hour,
-  Minute,
-}
+export type ImmTimeRepeatMode = TimeRepeatMode;
+export type ImmTimeRepeatPeriod = TimeRepeatPeriod;
 export interface ImmTimeStaticConstructor { new(): ImmTimeStatic; }
 export interface ImmTimeStatic {
   Static(): void;
@@ -3805,13 +3769,7 @@ export interface ImmCriticMarkup {
   __eq__(other: ImmCriticMarkup): boolean;
   kind: ImmCriticMarkupKind
 }
-export enum CriticMarkupKind {
-  Deletion,
-  Addition,
-  Substitution,
-  Highlighting,
-  Comment,
-}
+export type ImmCriticMarkupKind = CriticMarkupKind;
 export interface ImmDocumentConstructor { new(): ImmDocument; }
 export interface ImmDocument {
   getKind(): OrgSemKind;

@@ -312,21 +312,8 @@ struct ImmTime : public org::imm::ImmOrg /* imm_write */ {
   virtual ~ImmTime() = default;
   /// \brief Repetition information for static time
   struct Repeat {
-    /// \brief Timestamp repetition mode
-    enum class Mode : short int {
-      /// \brief Do not repeat task on completion
-      None,
-      /// \brief ?
-      Exact,
-      /// \brief Repeat on the first matching day in the future
-      FirstMatch,
-      /// \brief Repeat task on the same day next week/month/year
-      SameDay,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
-    /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
-    enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
-    BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
+    using Mode = org::sem::Time::Repeat::Mode;
+    using Period = org::sem::Time::Repeat::Period;
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count));
     /// \brief mode
     org::imm::ImmTime::Repeat::Mode /* imm_write */ mode;
@@ -1007,8 +994,7 @@ struct ImmDocumentFragment : public org::imm::ImmOrg /* imm_write */ {
 struct ImmCriticMarkup : public org::imm::ImmOrg /* imm_write */ {
   using ImmOrg::ImmOrg;
   virtual ~ImmCriticMarkup() = default;
-  enum class Kind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Deletion, Addition, Substitution, Highlighting, Comment)
+  using Kind = org::sem::CriticMarkup::Kind;
   BOOST_DESCRIBE_CLASS(ImmCriticMarkup, (ImmOrg), (), (), (staticKind, kind));
   static OrgSemKind /* imm_write */ const staticKind;
   org::imm::ImmCriticMarkup::Kind /* imm_write */ kind;

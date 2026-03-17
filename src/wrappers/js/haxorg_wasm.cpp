@@ -2215,8 +2215,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmTime::Repeat /* imm_write */::*)(org::imm::ImmTime::Repeat const& /* imm_write */) const>(&org::imm::ImmTime::Repeat /* imm_write */::operator==))
     .constructor<>()
     ;
-  org::bind::js::bind_enum<org::sem::Time::Repeat::Mode>("TimeRepeatMode");
-  org::bind::js::bind_enum<org::sem::Time::Repeat::Period>("TimeRepeatPeriod");
   emscripten::class_<org::imm::ImmTime::Static /* imm_write */>("ImmTimeStatic")
     .property("repeat", &org::imm::ImmTime::Static /* imm_write */::repeat)
     .property("warn", &org::imm::ImmTime::Static /* imm_write */::warn)
@@ -2355,7 +2353,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCriticMarkup /* d_orgimm_write */::*)(org::imm::ImmCriticMarkup const& /* d_orgimm_write */) const>(&org::imm::ImmCriticMarkup /* d_orgimm_write */::operator==))
     .constructor<>()
     ;
-  org::bind::js::bind_enum<org::sem::CriticMarkup::Kind>("CriticMarkupKind");
   emscripten::class_<org::imm::ImmDocument /* d_orgimm_write */, emscripten::base<org::imm::ImmOrg /* imm_write */>>("ImmDocument")
     .property("title", &org::imm::ImmDocument /* d_orgimm_write */::title)
     .property("author", &org::imm::ImmDocument /* d_orgimm_write */::author)
@@ -2732,9 +2729,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmInlineExport /* d_orgimm_write */::*)(org::imm::ImmInlineExport const& /* d_orgimm_write */) const>(&org::imm::ImmInlineExport /* d_orgimm_write */::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmEscaped /* d_orgimm_write */, emscripten::base<org::imm::ImmLeaf /* imm_write */>>("ImmEscaped")
     .function("getKind", static_cast<OrgSemKind /* imm_write */(org::imm::ImmEscaped /* d_orgimm_write */::*)() const>(&org::imm::ImmEscaped /* d_orgimm_write */::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmEscaped /* d_orgimm_write */::*)(org::imm::ImmEscaped const& /* d_orgimm_write */) const>(&org::imm::ImmEscaped /* d_orgimm_write */::operator==))
@@ -2750,6 +2744,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmSpace /* d_orgimm_write */::*)(org::imm::ImmSpace const& /* d_orgimm_write */) const>(&org::imm::ImmSpace /* d_orgimm_write */::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmWord /* d_orgimm_write */, emscripten::base<org::imm::ImmLeaf /* imm_write */>>("ImmWord")
     .function("getKind", static_cast<OrgSemKind /* imm_write */(org::imm::ImmWord /* d_orgimm_write */::*)() const>(&org::imm::ImmWord /* d_orgimm_write */::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmWord /* d_orgimm_write */::*)(org::imm::ImmWord const& /* d_orgimm_write */) const>(&org::imm::ImmWord /* d_orgimm_write */::operator==))
@@ -3095,15 +3092,15 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterSpaceAPI /*  [905]imm/ImmOrg.hpp:1431:17( [780] >record 'ImmAdapterSpaceAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1431:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterSpaceAPI")
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterWordAPI /*  [905]imm/ImmOrg.hpp:1432:17( [780] >record 'ImmAdapterWordAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1432:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterWordAPI")
     ;
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterAtMentionAPI /*  [905]imm/ImmOrg.hpp:1433:17( [780] >record 'ImmAdapterAtMentionAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1433:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterAtMentionAPI")
     ;
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterRawTextAPI /*  [905]imm/ImmOrg.hpp:1434:17( [780] >record 'ImmAdapterRawTextAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1434:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterRawTextAPI")
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterPunctuationAPI /*  [905]imm/ImmOrg.hpp:1435:17( [780] >record 'ImmAdapterPunctuationAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1435:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterPunctuationAPI")
     ;
   emscripten::class_<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterPlaceholderAPI /*  [905]imm/ImmOrg.hpp:1436:17( [780] >record 'ImmAdapterPlaceholderAPI'<>) */, emscripten::base<org /*  [485]Apply namespace @[0] from 776:fillTypeRec ' [539]regular type namespaces @[1]' */::imm /*  [485]Apply namespace @[1] from 776:fillTypeRec ' [539]regular type namespaces @[0]' */::ImmAdapterLeafAPI /*  [905]imm/ImmOrg.hpp:1436:17( [780] >record 'ImmAdapterLeafAPI'<>) */>>("ImmAdapterPlaceholderAPI")
@@ -3481,9 +3478,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdCaption /* d_orgimm_write */::*)(org::imm::ImmCmdCaption const& /* d_orgimm_write */) const>(&org::imm::ImmCmdCaption /* d_orgimm_write */::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdColumns /* d_orgimm_write */, emscripten::base<org::imm::ImmAttached /* imm_write */>>("ImmCmdColumns")
     .property("view", &org::imm::ImmCmdColumns /* d_orgimm_write */::view)
     .function("getKind", static_cast<OrgSemKind /* imm_write */(org::imm::ImmCmdColumns /* d_orgimm_write */::*)() const>(&org::imm::ImmCmdColumns /* d_orgimm_write */::getKind))
@@ -3507,6 +3501,9 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmCmdCall /* d_orgimm_write */::*)(org::imm::ImmCmdCall const& /* d_orgimm_write */) const>(&org::imm::ImmCmdCall /* d_orgimm_write */::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmCmdAttr /* d_orgimm_write */, emscripten::base<org::imm::ImmAttached /* imm_write */>>("ImmCmdAttr")
     .property("target", &org::imm::ImmCmdAttr /* d_orgimm_write */::target)
     .function("getKind", static_cast<OrgSemKind /* imm_write */(org::imm::ImmCmdAttr /* d_orgimm_write */::*)() const>(&org::imm::ImmCmdAttr /* d_orgimm_write */::getKind))

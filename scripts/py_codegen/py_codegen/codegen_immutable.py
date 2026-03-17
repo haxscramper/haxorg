@@ -216,8 +216,14 @@ def rewrite_any_to_immutable(
         case codegen_ir.GenTuField():
             return rewrite_field_to_immutable(it)
 
-        case codegen_ir.GenTuPass() | codegen_ir.GenTuEnum():
+        case codegen_ir.GenTuPass():
             return it
+
+        case codegen_ir.GenTuEnum():
+            return codegen_ir.GenTuTypedef(
+                Base=it.Name,
+                Name=rewrite_type_to_immutable(it.Name),
+            )
 
         case codegen_ir.GenTuFunction():
             return rewrite_function_to_immutable(it)

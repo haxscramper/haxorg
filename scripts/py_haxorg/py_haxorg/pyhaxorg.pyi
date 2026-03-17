@@ -2786,6 +2786,8 @@ class ImmIdTSymlink(ImmId):
 class ImmIdTCmdInclude(ImmId):
     def __init__(self) -> None: ...
 
+ImmTimeRepeatMode = TimeRepeatMode
+ImmTimeRepeatPeriod = TimeRepeatPeriod
 class ImmTimeRepeat:
     def __init__(self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -2824,6 +2826,7 @@ class ImmSymbolParam:
     key: ImmBox[Optional[str]]
     value: ImmBox[str]
 
+ImmCriticMarkupKind = CriticMarkupKind
 class ImmFileDocument:
     def __init__(self) -> None: ...
     def __eq__(self, other: object) -> bool: ...

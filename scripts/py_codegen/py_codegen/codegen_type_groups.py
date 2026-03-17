@@ -122,7 +122,7 @@ def rec_expand_type(ast: cpp.ASTBuilder,
             case codegen_ir.GenTuEnum():
                 converted.append(replace(item, Name=item.Name))
 
-            case codegen_ir.GenTuPass():
+            case codegen_ir.GenTuPass() | codegen_ir.GenTuTypedef():
                 converted.append(item)
 
             case _:
