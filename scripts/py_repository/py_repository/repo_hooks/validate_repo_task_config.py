@@ -28,6 +28,11 @@ def check_json_file(filepath: Path) -> list[str]:
                         f"{filepath}: 'py_test_conf.extra_pytest_args' contains non-flag argument: {arg}"
                     )
 
+    if "build_conf" in data and "target" in data["build_conf"]:
+        errors.append(
+            f"{filepath}: 'build_conf.target' contains narrow list of build targets, must use default"
+        )
+
     return errors
 
 

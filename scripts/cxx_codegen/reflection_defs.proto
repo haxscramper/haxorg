@@ -76,6 +76,8 @@ message QualType {
     bool IsBuiltin = 11;
     bool IsTypedef = 12;
     bool IsGlobalNamespace = 13;
+    bool IsTemplateTypeParam = 14;
+    bool IsTemplateInjectedType = 15;
 }
 
 enum AccessSpecifier {

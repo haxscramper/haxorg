@@ -1,14 +1,23 @@
 {
-  "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
+    "emscripten_build": false,
+    "emscripten_test" : false
+  },
   "debug"              : true,
   "use_unchanged_tasks": true,
   "use_dependencies"   : true,
-  "build_conf"         : {"cmake_generator": "Ninja", "real_time_output_print": false, "use_warnings": false},
+  "build_conf"         : {
+    "cmake_generator"       : "Ninja",
+    "real_time_output_print": false,
+    "use_warnings"          : false
+    // "target"                : ["reflection_tool"]
+  },
   "py_test_conf"       : {
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
-      // "tests/python/refl/test_wrapper_generation.py"
+      // "tests/python/refl/test_record_reflection.py::test_templates_record"
       // "tests/python/test_adaptagrams.py::test_align_axis_multi_separate_equal_sizes"
       // "tests/python/refl/test_record_reflection.py"
       // "tests/python/test_coverall.py::test_run_typst_construction"
@@ -22,12 +31,14 @@
       // "tests/python/test_simple_org_use.py::test_sem_parser_expected",
       // "tests/python/test_cli.py::test_tag_sorting"
     ],
-    "real_time_output_print": true,
-    // "use_lldb": true
+    "real_time_output_print": true
   },
   "instrument"         : {"coverage": true},
   "coverage_conf"      : {
-    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"}, {"binary_pattern": "reflection_tool"} ],
-    "coverage_html_whitelist": [ "OrgParser",                      "reflection_collector"                ]
+    "coverage_run_whitelist" : [
+      {"class_pattern": "OrgParseSem"},
+      {"binary_pattern": "reflection_tool"}
+    ],
+    "coverage_html_whitelist": ["OrgParser", "reflection_collector"]
   }
 }

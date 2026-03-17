@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 CAT = __name__
 
 
-class TuOptions(BaseModel):
+class TuOptions(BaseModel, extra="forbid"):
     input: List[str] = Field(description="List of input files, directories or globs",)
     indexing_tool: str = Field(description="Path to the TU index generator tool",)
 

@@ -826,6 +826,7 @@ void ReflASTVisitor::fillTypeRec(
                 In.getTypePtr())) {
             add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
+            Out->set_istemplatetypeparam(true);
             const c::TemplateTypeParmDecl* D = parm->getDecl();
             if (D != nullptr) {
                 Out->set_name(D->getNameAsString());
@@ -844,6 +845,7 @@ void ReflASTVisitor::fillTypeRec(
             c::CXXRecordDecl* injDecl = inj->getDecl();
             applyNamespaces(Out, getNamespaces(injDecl, Loc));
             Out->set_kind(TypeKind::RegularType);
+            Out->set_istemplateinjectedtype(true);
             if (inj->getDecl()) {
                 Out->set_name(inj->getDecl()->getNameAsString());
             } else {
@@ -882,6 +884,21 @@ void ReflASTVisitor::fillTypeRec(
             auto param = Out->add_parameters();
             add_debug(param, "SubstTemplateTypeParmType");
             fillTypeRec(param, STTP->getReplacementType(), Loc);
+
+        } else if (
+            const auto* DEP = dyn_cast<c::DependentNameType>(
+                In.getTypePtr())) {
+            add_debug(Out, ">DependentNameType");
+            Out->set_kind(TypeKind::RegularType);
+            Out->set_name(DEP->getIdentifier()->getName());
+            Out->set_istemplateinjectedtype(true);
+            auto parent = Out->add_spaces();
+            fillTypeRec(
+                parent,
+                Ctx->getQualifiedType(
+                    DEP->getQualifier().getAsType(), c::Qualifiers()),
+                Loc);
+
         } else {
             add_debug(
                 Out, std::format("typeclass={}", In->getTypeClassName()));

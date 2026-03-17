@@ -397,3 +397,22 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
 
     if refl_test_driver.has_nim_installed():
         refl_test_driver.verify_nim_code(code_dir, formatted, "import a; echo A(), B()")
+
+
+@pytest.mark.test_release
+def test_templates_record(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+    value = refl_test_driver.get_struct(
+        """
+        template <typename T>
+        struct [[refl]] Templated {
+            [[refl]] T get_content();
+            [[refl]] T::nested get_nested();
+            [[refl]] T value_field;
+            [[refl]] T::multi_nested::second get_multi_nested();
+        };
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )

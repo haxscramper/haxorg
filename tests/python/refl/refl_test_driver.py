@@ -155,10 +155,10 @@ def run_reflection_tool_provider(
         indexing_tool=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
         compilation_database=str(compile_commands),
         output_directory=str(output_dir),
-        directory_root=str(code_dir),
         header_root=str(code_dir),
         binary_collection_file=str(output_dir.joinpath("reflection.pb")),
         only_annotated=only_annotated,
+        convert_failure_log_dir=str(output_dir),
     )
 
     conf.cache_collector_runs = False
