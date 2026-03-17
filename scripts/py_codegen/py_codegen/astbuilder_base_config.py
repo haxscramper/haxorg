@@ -24,7 +24,7 @@ class AstbulderConfig(abc.ABC):
                                 backend: str) -> bool:
         match entry:
             case codegen_ir.GenTuStruct() | codegen_ir.GenTuField(
-            ) | codegen_ir.GenTuFunction:
+            ) | codegen_ir.GenTuFunction | codegen_ir.GenTuTypedef():
                 if not entry.IsExposedForWrap:
                     return False
 

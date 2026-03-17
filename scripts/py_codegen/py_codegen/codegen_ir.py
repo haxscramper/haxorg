@@ -24,7 +24,7 @@ from pydantic import AliasChoices, BaseModel, Field
 
 CAT = __name__
 
-DEBUG_TYPE_ORIGIN = True
+DEBUG_TYPE_ORIGIN = False
 
 
 class QualTypeKind(str, Enum):
@@ -737,6 +737,7 @@ class GenTuTypedef:
     duplicate it into the source, only put in header.
     """
     Is_PlainC: bool = False
+    IsExposedForWrap: bool = True
 
 
 @beartype

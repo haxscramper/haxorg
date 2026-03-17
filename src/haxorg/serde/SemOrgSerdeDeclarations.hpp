@@ -834,142 +834,142 @@ struct org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnosti
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::NoNode /* d_org */, org::sem::NoNode /* d_org */> {
-  static void write(::orgproto::NoNode* /* d_org */ out, org::sem::NoNode const& /* d_org */ in);
-  static void read(::orgproto::NoNode const& /* d_org */ out, proto_write_accessor<org::sem::NoNode /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode> {
+  static void write(::orgproto::NoNode* out, org::sem::NoNode const& in);
+  static void read(::orgproto::NoNode const& out, proto_write_accessor<org::sem::NoNode> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ErrorItem /* d_org */, org::sem::ErrorItem /* d_org */> {
-  static void write(::orgproto::ErrorItem* /* d_org */ out, org::sem::ErrorItem const& /* d_org */ in);
-  static void read(::orgproto::ErrorItem const& /* d_org */ out, proto_write_accessor<org::sem::ErrorItem /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem> {
+  static void write(::orgproto::ErrorItem* out, org::sem::ErrorItem const& in);
+  static void read(::orgproto::ErrorItem const& out, proto_write_accessor<org::sem::ErrorItem> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ErrorGroup /* d_org */, org::sem::ErrorGroup /* d_org */> {
-  static void write(::orgproto::ErrorGroup* /* d_org */ out, org::sem::ErrorGroup const& /* d_org */ in);
-  static void read(::orgproto::ErrorGroup const& /* d_org */ out, proto_write_accessor<org::sem::ErrorGroup /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup> {
+  static void write(::orgproto::ErrorGroup* out, org::sem::ErrorGroup const& in);
+  static void read(::orgproto::ErrorGroup const& out, proto_write_accessor<org::sem::ErrorGroup> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::StmtList /* d_org */, org::sem::StmtList /* d_org */> {
-  static void write(::orgproto::StmtList* /* d_org */ out, org::sem::StmtList const& /* d_org */ in);
-  static void read(::orgproto::StmtList const& /* d_org */ out, proto_write_accessor<org::sem::StmtList /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::StmtList, org::sem::StmtList> {
+  static void write(::orgproto::StmtList* out, org::sem::StmtList const& in);
+  static void read(::orgproto::StmtList const& out, proto_write_accessor<org::sem::StmtList> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Empty /* d_org */, org::sem::Empty /* d_org */> {
-  static void write(::orgproto::Empty* /* d_org */ out, org::sem::Empty const& /* d_org */ in);
-  static void read(::orgproto::Empty const& /* d_org */ out, proto_write_accessor<org::sem::Empty /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Empty, org::sem::Empty> {
+  static void write(::orgproto::Empty* out, org::sem::Empty const& in);
+  static void read(::orgproto::Empty const& out, proto_write_accessor<org::sem::Empty> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::CmdCaption /* d_org */> {
-  static void write(::orgproto::CmdCaption* /* d_org */ out, org::sem::CmdCaption const& /* d_org */ in);
-  static void read(::orgproto::CmdCaption const& /* d_org */ out, proto_write_accessor<org::sem::CmdCaption /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption> {
+  static void write(::orgproto::CmdCaption* out, org::sem::CmdCaption const& in);
+  static void read(::orgproto::CmdCaption const& out, proto_write_accessor<org::sem::CmdCaption> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::CmdCreator /* d_org */> {
-  static void write(::orgproto::CmdCreator* /* d_org */ out, org::sem::CmdCreator const& /* d_org */ in);
-  static void read(::orgproto::CmdCreator const& /* d_org */ out, proto_write_accessor<org::sem::CmdCreator /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator> {
+  static void write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in);
+  static void read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::CmdAuthor /* d_org */> {
-  static void write(::orgproto::CmdAuthor* /* d_org */ out, org::sem::CmdAuthor const& /* d_org */ in);
-  static void read(::orgproto::CmdAuthor const& /* d_org */ out, proto_write_accessor<org::sem::CmdAuthor /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor> {
+  static void write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in);
+  static void read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::CmdEmail /* d_org */> {
-  static void write(::orgproto::CmdEmail* /* d_org */ out, org::sem::CmdEmail const& /* d_org */ in);
-  static void read(::orgproto::CmdEmail const& /* d_org */ out, proto_write_accessor<org::sem::CmdEmail /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail> {
+  static void write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in);
+  static void read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::CmdLanguage /* d_org */> {
-  static void write(::orgproto::CmdLanguage* /* d_org */ out, org::sem::CmdLanguage const& /* d_org */ in);
-  static void read(::orgproto::CmdLanguage const& /* d_org */ out, proto_write_accessor<org::sem::CmdLanguage /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage> {
+  static void write(::orgproto::CmdLanguage* out, org::sem::CmdLanguage const& in);
+  static void read(::orgproto::CmdLanguage const& out, proto_write_accessor<org::sem::CmdLanguage> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::CmdColumns /* d_org */> {
-  static void write(::orgproto::CmdColumns* /* d_org */ out, org::sem::CmdColumns const& /* d_org */ in);
-  static void read(::orgproto::CmdColumns const& /* d_org */ out, proto_write_accessor<org::sem::CmdColumns /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns> {
+  static void write(::orgproto::CmdColumns* out, org::sem::CmdColumns const& in);
+  static void read(::orgproto::CmdColumns const& out, proto_write_accessor<org::sem::CmdColumns> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::CmdName /* d_org */> {
-  static void write(::orgproto::CmdName* /* d_org */ out, org::sem::CmdName const& /* d_org */ in);
-  static void read(::orgproto::CmdName const& /* d_org */ out, proto_write_accessor<org::sem::CmdName /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdName, org::sem::CmdName> {
+  static void write(::orgproto::CmdName* out, org::sem::CmdName const& in);
+  static void read(::orgproto::CmdName const& out, proto_write_accessor<org::sem::CmdName> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::CmdCustomArgs /* d_org */> {
-  static void write(::orgproto::CmdCustomArgs* /* d_org */ out, org::sem::CmdCustomArgs const& /* d_org */ in);
-  static void read(::orgproto::CmdCustomArgs const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomArgs /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::CmdCustomArgs> {
+  static void write(::orgproto::CmdCustomArgs* out, org::sem::CmdCustomArgs const& in);
+  static void read(::orgproto::CmdCustomArgs const& out, proto_write_accessor<org::sem::CmdCustomArgs> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::CmdCustomRaw /* d_org */> {
-  static void write(::orgproto::CmdCustomRaw* /* d_org */ out, org::sem::CmdCustomRaw const& /* d_org */ in);
-  static void read(::orgproto::CmdCustomRaw const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomRaw /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::CmdCustomRaw> {
+  static void write(::orgproto::CmdCustomRaw* out, org::sem::CmdCustomRaw const& in);
+  static void read(::orgproto::CmdCustomRaw const& out, proto_write_accessor<org::sem::CmdCustomRaw> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::CmdCustomText /* d_org */> {
-  static void write(::orgproto::CmdCustomText* /* d_org */ out, org::sem::CmdCustomText const& /* d_org */ in);
-  static void read(::orgproto::CmdCustomText const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomText /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText> {
+  static void write(::orgproto::CmdCustomText* out, org::sem::CmdCustomText const& in);
+  static void read(::orgproto::CmdCustomText const& out, proto_write_accessor<org::sem::CmdCustomText> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::CmdCall /* d_org */> {
-  static void write(::orgproto::CmdCall* /* d_org */ out, org::sem::CmdCall const& /* d_org */ in);
-  static void read(::orgproto::CmdCall const& /* d_org */ out, proto_write_accessor<org::sem::CmdCall /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall> {
+  static void write(::orgproto::CmdCall* out, org::sem::CmdCall const& in);
+  static void read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::CmdTblfm /* d_org */> {
-  static void write(::orgproto::CmdTblfm* /* d_org */ out, org::sem::CmdTblfm const& /* d_org */ in);
-  static void read(::orgproto::CmdTblfm const& /* d_org */ out, proto_write_accessor<org::sem::CmdTblfm /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm> {
+  static void write(::orgproto::CmdTblfm* out, org::sem::CmdTblfm const& in);
+  static void read(::orgproto::CmdTblfm const& out, proto_write_accessor<org::sem::CmdTblfm> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::HashTag /* d_org */, org::sem::HashTag /* d_org */> {
-  static void write(::orgproto::HashTag* /* d_org */ out, org::sem::HashTag const& /* d_org */ in);
-  static void read(::orgproto::HashTag const& /* d_org */ out, proto_write_accessor<org::sem::HashTag /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::HashTag, org::sem::HashTag> {
+  static void write(::orgproto::HashTag* out, org::sem::HashTag const& in);
+  static void read(::orgproto::HashTag const& out, proto_write_accessor<org::sem::HashTag> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::InlineFootnote /* d_org */, org::sem::InlineFootnote /* d_org */> {
-  static void write(::orgproto::InlineFootnote* /* d_org */ out, org::sem::InlineFootnote const& /* d_org */ in);
-  static void read(::orgproto::InlineFootnote const& /* d_org */ out, proto_write_accessor<org::sem::InlineFootnote /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::InlineFootnote, org::sem::InlineFootnote> {
+  static void write(::orgproto::InlineFootnote* out, org::sem::InlineFootnote const& in);
+  static void read(::orgproto::InlineFootnote const& out, proto_write_accessor<org::sem::InlineFootnote> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::InlineExport /* d_org */, org::sem::InlineExport /* d_org */> {
-  static void write(::orgproto::InlineExport* /* d_org */ out, org::sem::InlineExport const& /* d_org */ in);
-  static void read(::orgproto::InlineExport const& /* d_org */ out, proto_write_accessor<org::sem::InlineExport /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::InlineExport, org::sem::InlineExport> {
+  static void write(::orgproto::InlineExport* out, org::sem::InlineExport const& in);
+  static void read(::orgproto::InlineExport const& out, proto_write_accessor<org::sem::InlineExport> in);
 };
 
 
@@ -995,23 +995,23 @@ struct org::algo::proto_serde<::orgproto::Time::Dynamic, org::sem::Time::Dynamic
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Time /* d_org */> {
-  static void write(::orgproto::Time* /* d_org */ out, org::sem::Time const& /* d_org */ in);
-  static void read(::orgproto::Time const& /* d_org */ out, proto_write_accessor<org::sem::Time /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Time, org::sem::Time> {
+  static void write(::orgproto::Time* out, org::sem::Time const& in);
+  static void read(::orgproto::Time const& out, proto_write_accessor<org::sem::Time> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::TimeRange /* d_org */> {
-  static void write(::orgproto::TimeRange* /* d_org */ out, org::sem::TimeRange const& /* d_org */ in);
-  static void read(::orgproto::TimeRange const& /* d_org */ out, proto_write_accessor<org::sem::TimeRange /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::TimeRange, org::sem::TimeRange> {
+  static void write(::orgproto::TimeRange* out, org::sem::TimeRange const& in);
+  static void read(::orgproto::TimeRange const& out, proto_write_accessor<org::sem::TimeRange> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Macro /* d_org */, org::sem::Macro /* d_org */> {
-  static void write(::orgproto::Macro* /* d_org */ out, org::sem::Macro const& /* d_org */ in);
-  static void read(::orgproto::Macro const& /* d_org */ out, proto_write_accessor<org::sem::Macro /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Macro, org::sem::Macro> {
+  static void write(::orgproto::Macro* out, org::sem::Macro const& in);
+  static void read(::orgproto::Macro const& out, proto_write_accessor<org::sem::Macro> in);
 };
 
 
@@ -1023,373 +1023,373 @@ struct org::algo::proto_serde<::orgproto::Symbol::Param, org::sem::Symbol::Param
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Symbol /* d_org */, org::sem::Symbol /* d_org */> {
-  static void write(::orgproto::Symbol* /* d_org */ out, org::sem::Symbol const& /* d_org */ in);
-  static void read(::orgproto::Symbol const& /* d_org */ out, proto_write_accessor<org::sem::Symbol /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Symbol, org::sem::Symbol> {
+  static void write(::orgproto::Symbol* out, org::sem::Symbol const& in);
+  static void read(::orgproto::Symbol const& out, proto_write_accessor<org::sem::Symbol> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Escaped /* d_org */> {
-  static void write(::orgproto::Escaped* /* d_org */ out, org::sem::Escaped const& /* d_org */ in);
-  static void read(::orgproto::Escaped const& /* d_org */ out, proto_write_accessor<org::sem::Escaped /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Escaped, org::sem::Escaped> {
+  static void write(::orgproto::Escaped* out, org::sem::Escaped const& in);
+  static void read(::orgproto::Escaped const& out, proto_write_accessor<org::sem::Escaped> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Newline /* d_org */> {
-  static void write(::orgproto::Newline* /* d_org */ out, org::sem::Newline const& /* d_org */ in);
-  static void read(::orgproto::Newline const& /* d_org */ out, proto_write_accessor<org::sem::Newline /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Newline, org::sem::Newline> {
+  static void write(::orgproto::Newline* out, org::sem::Newline const& in);
+  static void read(::orgproto::Newline const& out, proto_write_accessor<org::sem::Newline> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Space /* d_org */> {
-  static void write(::orgproto::Space* /* d_org */ out, org::sem::Space const& /* d_org */ in);
-  static void read(::orgproto::Space const& /* d_org */ out, proto_write_accessor<org::sem::Space /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Space, org::sem::Space> {
+  static void write(::orgproto::Space* out, org::sem::Space const& in);
+  static void read(::orgproto::Space const& out, proto_write_accessor<org::sem::Space> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Word /* d_org */> {
-  static void write(::orgproto::Word* /* d_org */ out, org::sem::Word const& /* d_org */ in);
-  static void read(::orgproto::Word const& /* d_org */ out, proto_write_accessor<org::sem::Word /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Word, org::sem::Word> {
+  static void write(::orgproto::Word* out, org::sem::Word const& in);
+  static void read(::orgproto::Word const& out, proto_write_accessor<org::sem::Word> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::AtMention /* d_org */> {
-  static void write(::orgproto::AtMention* /* d_org */ out, org::sem::AtMention const& /* d_org */ in);
-  static void read(::orgproto::AtMention const& /* d_org */ out, proto_write_accessor<org::sem::AtMention /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::AtMention, org::sem::AtMention> {
+  static void write(::orgproto::AtMention* out, org::sem::AtMention const& in);
+  static void read(::orgproto::AtMention const& out, proto_write_accessor<org::sem::AtMention> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::RawText /* d_org */> {
-  static void write(::orgproto::RawText* /* d_org */ out, org::sem::RawText const& /* d_org */ in);
-  static void read(::orgproto::RawText const& /* d_org */ out, proto_write_accessor<org::sem::RawText /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::RawText, org::sem::RawText> {
+  static void write(::orgproto::RawText* out, org::sem::RawText const& in);
+  static void read(::orgproto::RawText const& out, proto_write_accessor<org::sem::RawText> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Punctuation /* d_org */> {
-  static void write(::orgproto::Punctuation* /* d_org */ out, org::sem::Punctuation const& /* d_org */ in);
-  static void read(::orgproto::Punctuation const& /* d_org */ out, proto_write_accessor<org::sem::Punctuation /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Punctuation, org::sem::Punctuation> {
+  static void write(::orgproto::Punctuation* out, org::sem::Punctuation const& in);
+  static void read(::orgproto::Punctuation const& out, proto_write_accessor<org::sem::Punctuation> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Placeholder /* d_org */> {
-  static void write(::orgproto::Placeholder* /* d_org */ out, org::sem::Placeholder const& /* d_org */ in);
-  static void read(::orgproto::Placeholder const& /* d_org */ out, proto_write_accessor<org::sem::Placeholder /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Placeholder, org::sem::Placeholder> {
+  static void write(::orgproto::Placeholder* out, org::sem::Placeholder const& in);
+  static void read(::orgproto::Placeholder const& out, proto_write_accessor<org::sem::Placeholder> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::BigIdent /* d_org */> {
-  static void write(::orgproto::BigIdent* /* d_org */ out, org::sem::BigIdent const& /* d_org */ in);
-  static void read(::orgproto::BigIdent const& /* d_org */ out, proto_write_accessor<org::sem::BigIdent /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BigIdent, org::sem::BigIdent> {
+  static void write(::orgproto::BigIdent* out, org::sem::BigIdent const& in);
+  static void read(::orgproto::BigIdent const& out, proto_write_accessor<org::sem::BigIdent> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::TextTarget /* d_org */> {
-  static void write(::orgproto::TextTarget* /* d_org */ out, org::sem::TextTarget const& /* d_org */ in);
-  static void read(::orgproto::TextTarget const& /* d_org */ out, proto_write_accessor<org::sem::TextTarget /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget> {
+  static void write(::orgproto::TextTarget* out, org::sem::TextTarget const& in);
+  static void read(::orgproto::TextTarget const& out, proto_write_accessor<org::sem::TextTarget> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::ErrorSkipToken /* d_org */> {
-  static void write(::orgproto::ErrorSkipToken* /* d_org */ out, org::sem::ErrorSkipToken const& /* d_org */ in);
-  static void read(::orgproto::ErrorSkipToken const& /* d_org */ out, proto_write_accessor<org::sem::ErrorSkipToken /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken> {
+  static void write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in);
+  static void read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ErrorSkipGroup /* d_org */, org::sem::ErrorSkipGroup /* d_org */> {
-  static void write(::orgproto::ErrorSkipGroup* /* d_org */ out, org::sem::ErrorSkipGroup const& /* d_org */ in);
-  static void read(::orgproto::ErrorSkipGroup const& /* d_org */ out, proto_write_accessor<org::sem::ErrorSkipGroup /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup> {
+  static void write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in);
+  static void read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Bold /* d_org */, org::sem::Bold /* d_org */> {
-  static void write(::orgproto::Bold* /* d_org */ out, org::sem::Bold const& /* d_org */ in);
-  static void read(::orgproto::Bold const& /* d_org */ out, proto_write_accessor<org::sem::Bold /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Bold, org::sem::Bold> {
+  static void write(::orgproto::Bold* out, org::sem::Bold const& in);
+  static void read(::orgproto::Bold const& out, proto_write_accessor<org::sem::Bold> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Underline /* d_org */, org::sem::Underline /* d_org */> {
-  static void write(::orgproto::Underline* /* d_org */ out, org::sem::Underline const& /* d_org */ in);
-  static void read(::orgproto::Underline const& /* d_org */ out, proto_write_accessor<org::sem::Underline /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Underline, org::sem::Underline> {
+  static void write(::orgproto::Underline* out, org::sem::Underline const& in);
+  static void read(::orgproto::Underline const& out, proto_write_accessor<org::sem::Underline> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Monospace /* d_org */, org::sem::Monospace /* d_org */> {
-  static void write(::orgproto::Monospace* /* d_org */ out, org::sem::Monospace const& /* d_org */ in);
-  static void read(::orgproto::Monospace const& /* d_org */ out, proto_write_accessor<org::sem::Monospace /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Monospace, org::sem::Monospace> {
+  static void write(::orgproto::Monospace* out, org::sem::Monospace const& in);
+  static void read(::orgproto::Monospace const& out, proto_write_accessor<org::sem::Monospace> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::MarkQuote /* d_org */, org::sem::MarkQuote /* d_org */> {
-  static void write(::orgproto::MarkQuote* /* d_org */ out, org::sem::MarkQuote const& /* d_org */ in);
-  static void read(::orgproto::MarkQuote const& /* d_org */ out, proto_write_accessor<org::sem::MarkQuote /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::MarkQuote, org::sem::MarkQuote> {
+  static void write(::orgproto::MarkQuote* out, org::sem::MarkQuote const& in);
+  static void read(::orgproto::MarkQuote const& out, proto_write_accessor<org::sem::MarkQuote> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Verbatim /* d_org */, org::sem::Verbatim /* d_org */> {
-  static void write(::orgproto::Verbatim* /* d_org */ out, org::sem::Verbatim const& /* d_org */ in);
-  static void read(::orgproto::Verbatim const& /* d_org */ out, proto_write_accessor<org::sem::Verbatim /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Verbatim, org::sem::Verbatim> {
+  static void write(::orgproto::Verbatim* out, org::sem::Verbatim const& in);
+  static void read(::orgproto::Verbatim const& out, proto_write_accessor<org::sem::Verbatim> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Italic /* d_org */, org::sem::Italic /* d_org */> {
-  static void write(::orgproto::Italic* /* d_org */ out, org::sem::Italic const& /* d_org */ in);
-  static void read(::orgproto::Italic const& /* d_org */ out, proto_write_accessor<org::sem::Italic /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Italic, org::sem::Italic> {
+  static void write(::orgproto::Italic* out, org::sem::Italic const& in);
+  static void read(::orgproto::Italic const& out, proto_write_accessor<org::sem::Italic> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Strike /* d_org */, org::sem::Strike /* d_org */> {
-  static void write(::orgproto::Strike* /* d_org */ out, org::sem::Strike const& /* d_org */ in);
-  static void read(::orgproto::Strike const& /* d_org */ out, proto_write_accessor<org::sem::Strike /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Strike, org::sem::Strike> {
+  static void write(::orgproto::Strike* out, org::sem::Strike const& in);
+  static void read(::orgproto::Strike const& out, proto_write_accessor<org::sem::Strike> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Par /* d_org */, org::sem::Par /* d_org */> {
-  static void write(::orgproto::Par* /* d_org */ out, org::sem::Par const& /* d_org */ in);
-  static void read(::orgproto::Par const& /* d_org */ out, proto_write_accessor<org::sem::Par /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Par, org::sem::Par> {
+  static void write(::orgproto::Par* out, org::sem::Par const& in);
+  static void read(::orgproto::Par const& out, proto_write_accessor<org::sem::Par> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::RadioTarget /* d_org */, org::sem::RadioTarget /* d_org */> {
-  static void write(::orgproto::RadioTarget* /* d_org */ out, org::sem::RadioTarget const& /* d_org */ in);
-  static void read(::orgproto::RadioTarget const& /* d_org */ out, proto_write_accessor<org::sem::RadioTarget /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::RadioTarget, org::sem::RadioTarget> {
+  static void write(::orgproto::RadioTarget* out, org::sem::RadioTarget const& in);
+  static void read(::orgproto::RadioTarget const& out, proto_write_accessor<org::sem::RadioTarget> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Latex /* d_org */, org::sem::Latex /* d_org */> {
-  static void write(::orgproto::Latex* /* d_org */ out, org::sem::Latex const& /* d_org */ in);
-  static void read(::orgproto::Latex const& /* d_org */ out, proto_write_accessor<org::sem::Latex /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Latex, org::sem::Latex> {
+  static void write(::orgproto::Latex* out, org::sem::Latex const& in);
+  static void read(::orgproto::Latex const& out, proto_write_accessor<org::sem::Latex> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Link /* d_org */> {
-  static void write(::orgproto::Link* /* d_org */ out, org::sem::Link const& /* d_org */ in);
-  static void read(::orgproto::Link const& /* d_org */ out, proto_write_accessor<org::sem::Link /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Link, org::sem::Link> {
+  static void write(::orgproto::Link* out, org::sem::Link const& in);
+  static void read(::orgproto::Link const& out, proto_write_accessor<org::sem::Link> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::BlockCenter /* d_org */> {
-  static void write(::orgproto::BlockCenter* /* d_org */ out, org::sem::BlockCenter const& /* d_org */ in);
-  static void read(::orgproto::BlockCenter const& /* d_org */ out, proto_write_accessor<org::sem::BlockCenter /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockCenter, org::sem::BlockCenter> {
+  static void write(::orgproto::BlockCenter* out, org::sem::BlockCenter const& in);
+  static void read(::orgproto::BlockCenter const& out, proto_write_accessor<org::sem::BlockCenter> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::BlockQuote /* d_org */> {
-  static void write(::orgproto::BlockQuote* /* d_org */ out, org::sem::BlockQuote const& /* d_org */ in);
-  static void read(::orgproto::BlockQuote const& /* d_org */ out, proto_write_accessor<org::sem::BlockQuote /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockQuote, org::sem::BlockQuote> {
+  static void write(::orgproto::BlockQuote* out, org::sem::BlockQuote const& in);
+  static void read(::orgproto::BlockQuote const& out, proto_write_accessor<org::sem::BlockQuote> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::BlockComment /* d_org */> {
-  static void write(::orgproto::BlockComment* /* d_org */ out, org::sem::BlockComment const& /* d_org */ in);
-  static void read(::orgproto::BlockComment const& /* d_org */ out, proto_write_accessor<org::sem::BlockComment /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockComment, org::sem::BlockComment> {
+  static void write(::orgproto::BlockComment* out, org::sem::BlockComment const& in);
+  static void read(::orgproto::BlockComment const& out, proto_write_accessor<org::sem::BlockComment> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::BlockVerse /* d_org */> {
-  static void write(::orgproto::BlockVerse* /* d_org */ out, org::sem::BlockVerse const& /* d_org */ in);
-  static void read(::orgproto::BlockVerse const& /* d_org */ out, proto_write_accessor<org::sem::BlockVerse /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockVerse, org::sem::BlockVerse> {
+  static void write(::orgproto::BlockVerse* out, org::sem::BlockVerse const& in);
+  static void read(::orgproto::BlockVerse const& out, proto_write_accessor<org::sem::BlockVerse> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::BlockDynamicFallback /* d_org */> {
-  static void write(::orgproto::BlockDynamicFallback* /* d_org */ out, org::sem::BlockDynamicFallback const& /* d_org */ in);
-  static void read(::orgproto::BlockDynamicFallback const& /* d_org */ out, proto_write_accessor<org::sem::BlockDynamicFallback /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::BlockDynamicFallback> {
+  static void write(::orgproto::BlockDynamicFallback* out, org::sem::BlockDynamicFallback const& in);
+  static void read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<org::sem::BlockDynamicFallback> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::BlockExample /* d_org */> {
-  static void write(::orgproto::BlockExample* /* d_org */ out, org::sem::BlockExample const& /* d_org */ in);
-  static void read(::orgproto::BlockExample const& /* d_org */ out, proto_write_accessor<org::sem::BlockExample /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockExample, org::sem::BlockExample> {
+  static void write(::orgproto::BlockExample* out, org::sem::BlockExample const& in);
+  static void read(::orgproto::BlockExample const& out, proto_write_accessor<org::sem::BlockExample> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::BlockExport /* d_org */> {
-  static void write(::orgproto::BlockExport* /* d_org */ out, org::sem::BlockExport const& /* d_org */ in);
-  static void read(::orgproto::BlockExport const& /* d_org */ out, proto_write_accessor<org::sem::BlockExport /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockExport, org::sem::BlockExport> {
+  static void write(::orgproto::BlockExport* out, org::sem::BlockExport const& in);
+  static void read(::orgproto::BlockExport const& out, proto_write_accessor<org::sem::BlockExport> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::BlockAdmonition /* d_org */> {
-  static void write(::orgproto::BlockAdmonition* /* d_org */ out, org::sem::BlockAdmonition const& /* d_org */ in);
-  static void read(::orgproto::BlockAdmonition const& /* d_org */ out, proto_write_accessor<org::sem::BlockAdmonition /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition> {
+  static void write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in);
+  static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::BlockCodeEvalResult /* d_org */> {
-  static void write(::orgproto::BlockCodeEvalResult* /* d_org */ out, org::sem::BlockCodeEvalResult const& /* d_org */ in);
-  static void read(::orgproto::BlockCodeEvalResult const& /* d_org */ out, proto_write_accessor<org::sem::BlockCodeEvalResult /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
+  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
+  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::BlockCode /* d_org */> {
-  static void write(::orgproto::BlockCode* /* d_org */ out, org::sem::BlockCode const& /* d_org */ in);
-  static void read(::orgproto::BlockCode const& /* d_org */ out, proto_write_accessor<org::sem::BlockCode /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode> {
+  static void write(::orgproto::BlockCode* out, org::sem::BlockCode const& in);
+  static void read(::orgproto::BlockCode const& out, proto_write_accessor<org::sem::BlockCode> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::SubtreeLog /* d_org */, org::sem::SubtreeLog /* d_org */> {
-  static void write(::orgproto::SubtreeLog* /* d_org */ out, org::sem::SubtreeLog const& /* d_org */ in);
-  static void read(::orgproto::SubtreeLog const& /* d_org */ out, proto_write_accessor<org::sem::SubtreeLog /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::SubtreeLog> {
+  static void write(::orgproto::SubtreeLog* out, org::sem::SubtreeLog const& in);
+  static void read(::orgproto::SubtreeLog const& out, proto_write_accessor<org::sem::SubtreeLog> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Subtree /* d_org */> {
-  static void write(::orgproto::Subtree* /* d_org */ out, org::sem::Subtree const& /* d_org */ in);
-  static void read(::orgproto::Subtree const& /* d_org */ out, proto_write_accessor<org::sem::Subtree /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree> {
+  static void write(::orgproto::Subtree* out, org::sem::Subtree const& in);
+  static void read(::orgproto::Subtree const& out, proto_write_accessor<org::sem::Subtree> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Cell /* d_org */> {
-  static void write(::orgproto::Cell* /* d_org */ out, org::sem::Cell const& /* d_org */ in);
-  static void read(::orgproto::Cell const& /* d_org */ out, proto_write_accessor<org::sem::Cell /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Cell, org::sem::Cell> {
+  static void write(::orgproto::Cell* out, org::sem::Cell const& in);
+  static void read(::orgproto::Cell const& out, proto_write_accessor<org::sem::Cell> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Row /* d_org */> {
-  static void write(::orgproto::Row* /* d_org */ out, org::sem::Row const& /* d_org */ in);
-  static void read(::orgproto::Row const& /* d_org */ out, proto_write_accessor<org::sem::Row /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Row, org::sem::Row> {
+  static void write(::orgproto::Row* out, org::sem::Row const& in);
+  static void read(::orgproto::Row const& out, proto_write_accessor<org::sem::Row> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Table /* d_org */> {
-  static void write(::orgproto::Table* /* d_org */ out, org::sem::Table const& /* d_org */ in);
-  static void read(::orgproto::Table const& /* d_org */ out, proto_write_accessor<org::sem::Table /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Table, org::sem::Table> {
+  static void write(::orgproto::Table* out, org::sem::Table const& in);
+  static void read(::orgproto::Table const& out, proto_write_accessor<org::sem::Table> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Paragraph /* d_org */> {
-  static void write(::orgproto::Paragraph* /* d_org */ out, org::sem::Paragraph const& /* d_org */ in);
-  static void read(::orgproto::Paragraph const& /* d_org */ out, proto_write_accessor<org::sem::Paragraph /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Paragraph, org::sem::Paragraph> {
+  static void write(::orgproto::Paragraph* out, org::sem::Paragraph const& in);
+  static void read(::orgproto::Paragraph const& out, proto_write_accessor<org::sem::Paragraph> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ColonExample /* d_org */, org::sem::ColonExample /* d_org */> {
-  static void write(::orgproto::ColonExample* /* d_org */ out, org::sem::ColonExample const& /* d_org */ in);
-  static void read(::orgproto::ColonExample const& /* d_org */ out, proto_write_accessor<org::sem::ColonExample /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ColonExample, org::sem::ColonExample> {
+  static void write(::orgproto::ColonExample* out, org::sem::ColonExample const& in);
+  static void read(::orgproto::ColonExample const& out, proto_write_accessor<org::sem::ColonExample> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::CmdAttr /* d_org */> {
-  static void write(::orgproto::CmdAttr* /* d_org */ out, org::sem::CmdAttr const& /* d_org */ in);
-  static void read(::orgproto::CmdAttr const& /* d_org */ out, proto_write_accessor<org::sem::CmdAttr /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdAttr, org::sem::CmdAttr> {
+  static void write(::orgproto::CmdAttr* out, org::sem::CmdAttr const& in);
+  static void read(::orgproto::CmdAttr const& out, proto_write_accessor<org::sem::CmdAttr> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::CmdExport /* d_org */> {
-  static void write(::orgproto::CmdExport* /* d_org */ out, org::sem::CmdExport const& /* d_org */ in);
-  static void read(::orgproto::CmdExport const& /* d_org */ out, proto_write_accessor<org::sem::CmdExport /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdExport, org::sem::CmdExport> {
+  static void write(::orgproto::CmdExport* out, org::sem::CmdExport const& in);
+  static void read(::orgproto::CmdExport const& out, proto_write_accessor<org::sem::CmdExport> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Call /* d_org */, org::sem::Call /* d_org */> {
-  static void write(::orgproto::Call* /* d_org */ out, org::sem::Call const& /* d_org */ in);
-  static void read(::orgproto::Call const& /* d_org */ out, proto_write_accessor<org::sem::Call /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Call, org::sem::Call> {
+  static void write(::orgproto::Call* out, org::sem::Call const& in);
+  static void read(::orgproto::Call const& out, proto_write_accessor<org::sem::Call> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::List /* d_org */> {
-  static void write(::orgproto::List* /* d_org */ out, org::sem::List const& /* d_org */ in);
-  static void read(::orgproto::List const& /* d_org */ out, proto_write_accessor<org::sem::List /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::List, org::sem::List> {
+  static void write(::orgproto::List* out, org::sem::List const& in);
+  static void read(::orgproto::List const& out, proto_write_accessor<org::sem::List> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::ListItem /* d_org */> {
-  static void write(::orgproto::ListItem* /* d_org */ out, org::sem::ListItem const& /* d_org */ in);
-  static void read(::orgproto::ListItem const& /* d_org */ out, proto_write_accessor<org::sem::ListItem /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem> {
+  static void write(::orgproto::ListItem* out, org::sem::ListItem const& in);
+  static void read(::orgproto::ListItem const& out, proto_write_accessor<org::sem::ListItem> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::DocumentOptions /* d_org */> {
-  static void write(::orgproto::DocumentOptions* /* d_org */ out, org::sem::DocumentOptions const& /* d_org */ in);
-  static void read(::orgproto::DocumentOptions const& /* d_org */ out, proto_write_accessor<org::sem::DocumentOptions /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptions> {
+  static void write(::orgproto::DocumentOptions* out, org::sem::DocumentOptions const& in);
+  static void read(::orgproto::DocumentOptions const& out, proto_write_accessor<org::sem::DocumentOptions> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::DocumentFragment /* d_org */, org::sem::DocumentFragment /* d_org */> {
-  static void write(::orgproto::DocumentFragment* /* d_org */ out, org::sem::DocumentFragment const& /* d_org */ in);
-  static void read(::orgproto::DocumentFragment const& /* d_org */ out, proto_write_accessor<org::sem::DocumentFragment /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment> {
+  static void write(::orgproto::DocumentFragment* out, org::sem::DocumentFragment const& in);
+  static void read(::orgproto::DocumentFragment const& out, proto_write_accessor<org::sem::DocumentFragment> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CriticMarkup /* d_org */, org::sem::CriticMarkup /* d_org */> {
-  static void write(::orgproto::CriticMarkup* /* d_org */ out, org::sem::CriticMarkup const& /* d_org */ in);
-  static void read(::orgproto::CriticMarkup const& /* d_org */ out, proto_write_accessor<org::sem::CriticMarkup /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup> {
+  static void write(::orgproto::CriticMarkup* out, org::sem::CriticMarkup const& in);
+  static void read(::orgproto::CriticMarkup const& out, proto_write_accessor<org::sem::CriticMarkup> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Document /* d_org */> {
-  static void write(::orgproto::Document* /* d_org */ out, org::sem::Document const& /* d_org */ in);
-  static void read(::orgproto::Document const& /* d_org */ out, proto_write_accessor<org::sem::Document /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Document, org::sem::Document> {
+  static void write(::orgproto::Document* out, org::sem::Document const& in);
+  static void read(::orgproto::Document const& out, proto_write_accessor<org::sem::Document> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::FileTarget /* d_org */> {
-  static void write(::orgproto::FileTarget* /* d_org */ out, org::sem::FileTarget const& /* d_org */ in);
-  static void read(::orgproto::FileTarget const& /* d_org */ out, proto_write_accessor<org::sem::FileTarget /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::FileTarget, org::sem::FileTarget> {
+  static void write(::orgproto::FileTarget* out, org::sem::FileTarget const& in);
+  static void read(::orgproto::FileTarget const& out, proto_write_accessor<org::sem::FileTarget> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::TextSeparator /* d_org */, org::sem::TextSeparator /* d_org */> {
-  static void write(::orgproto::TextSeparator* /* d_org */ out, org::sem::TextSeparator const& /* d_org */ in);
-  static void read(::orgproto::TextSeparator const& /* d_org */ out, proto_write_accessor<org::sem::TextSeparator /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::TextSeparator, org::sem::TextSeparator> {
+  static void write(::orgproto::TextSeparator* out, org::sem::TextSeparator const& in);
+  static void read(::orgproto::TextSeparator const& out, proto_write_accessor<org::sem::TextSeparator> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::DocumentGroup /* d_org */, org::sem::DocumentGroup /* d_org */> {
-  static void write(::orgproto::DocumentGroup* /* d_org */ out, org::sem::DocumentGroup const& /* d_org */ in);
-  static void read(::orgproto::DocumentGroup const& /* d_org */ out, proto_write_accessor<org::sem::DocumentGroup /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::DocumentGroup, org::sem::DocumentGroup> {
+  static void write(::orgproto::DocumentGroup* out, org::sem::DocumentGroup const& in);
+  static void read(::orgproto::DocumentGroup const& out, proto_write_accessor<org::sem::DocumentGroup> in);
 };
 
 
@@ -1415,23 +1415,23 @@ struct org::algo::proto_serde<::orgproto::File::Source, org::sem::File::Source> 
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::File /* d_org */> {
-  static void write(::orgproto::File* /* d_org */ out, org::sem::File const& /* d_org */ in);
-  static void read(::orgproto::File const& /* d_org */ out, proto_write_accessor<org::sem::File /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::File, org::sem::File> {
+  static void write(::orgproto::File* out, org::sem::File const& in);
+  static void read(::orgproto::File const& out, proto_write_accessor<org::sem::File> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Directory /* d_org */, org::sem::Directory /* d_org */> {
-  static void write(::orgproto::Directory* /* d_org */ out, org::sem::Directory const& /* d_org */ in);
-  static void read(::orgproto::Directory const& /* d_org */ out, proto_write_accessor<org::sem::Directory /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Directory, org::sem::Directory> {
+  static void write(::orgproto::Directory* out, org::sem::Directory const& in);
+  static void read(::orgproto::Directory const& out, proto_write_accessor<org::sem::Directory> in);
 };
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::Symlink /* d_org */, org::sem::Symlink /* d_org */> {
-  static void write(::orgproto::Symlink* /* d_org */ out, org::sem::Symlink const& /* d_org */ in);
-  static void read(::orgproto::Symlink const& /* d_org */ out, proto_write_accessor<org::sem::Symlink /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::Symlink, org::sem::Symlink> {
+  static void write(::orgproto::Symlink* out, org::sem::Symlink const& in);
+  static void read(::orgproto::Symlink const& out, proto_write_accessor<org::sem::Symlink> in);
 };
 
 
@@ -1478,9 +1478,9 @@ struct org::algo::proto_serde<::orgproto::CmdInclude::OrgDocument, org::sem::Cmd
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::CmdInclude /* d_org */> {
-  static void write(::orgproto::CmdInclude* /* d_org */ out, org::sem::CmdInclude const& /* d_org */ in);
-  static void read(::orgproto::CmdInclude const& /* d_org */ out, proto_write_accessor<org::sem::CmdInclude /* d_org */> in);
+struct org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude> {
+  static void write(::orgproto::CmdInclude* out, org::sem::CmdInclude const& in);
+  static void read(::orgproto::CmdInclude const& out, proto_write_accessor<org::sem::CmdInclude> in);
 };
 
 

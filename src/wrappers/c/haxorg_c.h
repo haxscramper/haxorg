@@ -538,6 +538,266 @@ struct haxorg_ImmCmdColumnsAdapter;
 struct haxorg_ImmCmdNameAdapter;
 struct haxorg_ImmCmdCallAdapter;
 struct haxorg_ImmCmdAttrAdapter;
+enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
+/// \brief Where to take todo completion statistics from
+enum class haxorg_SubtreeTodoSource : short int {
+  /// \brief Only count checkbox subnodes as a progress completion
+  Checkbox,
+  /// \brief Use subtrees with todo keywords
+  Todo,
+  /// \brief Use both subtrees and todo keywords
+  Both,
+};
+enum class haxorg_ListFormattingMode : short int {
+  /// \brief Default, no custom formatting
+  None,
+  /// \brief one column, each table item is an individual row
+  Table1D1Col,
+  /// \brief for description lists, treat header row as an individual column
+  Table1D2Col,
+  /// \brief for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values
+  Table2DColFirst,
+  /// \brief for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.
+  Table2DRowFirst,
+};
+enum class haxorg_InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
+enum class haxorg_OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
+enum class haxorg_OrgNodeKind : short int {
+  /// \brief Default valye for node - invalid state
+  None,
+  /// \brief Toplevel part of the ast, not created by parser, and only used in `semorg` stage
+  Document,
+  /// \brief Empty node - valid state that does not contain any value
+  Empty,
+  InlineStmtList,
+  /// \brief List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.
+  StmtList,
+  /// \brief Single checkbox item like `[X]` or `[-]`
+  Checkbox,
+  List,
+  /// \brief List item prefix
+  Bullet,
+  ListItem,
+  /// \brief Auxilliary wrapper for the paragraph placed at the start of the description list.
+  ListTag,
+  Counter,
+  File,
+  /// \brief Colon example block
+  ColonExample,
+  /// \brief Long horizontal line `----`
+  TextSeparator,
+  /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
+  Paragraph,
+  /// \brief Horizontal table row
+  TableRow,
+  /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.
+  TableCell,
+  /// \brief Org-mode table
+  Table,
+  /// \brief Inline footnote with text placed directly in the node body.
+  InlineFootnote,
+  /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
+  Footnote,
+  /// \brief Undefined single-line command -- most likely custom user-provided oe
+  Cmd,
+  /// \brief Arguments for the command block
+  Attrs,
+  /// \brief :key name=value syntax
+  AttrValue,
+  /// \brief S-expression as an attribute value value
+  AttrLisp,
+  /// \brief `#+title:` - full document title
+  CmdTitle,
+  /// \brief `#+author:` Document author
+  CmdAuthor,
+  /// \brief `#+creator:` Document creator
+  CmdCreator,
+  /// \brief `#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.
+  CmdInclude,
+  /// \brief `#+language:`
+  CmdLanguage,
+  /// \brief `#+email:`
+  CmdEmail,
+  /// \brief `#+attr_html:`, `#+attr_image` etc.
+  CmdAttr,
+  /// \brief `#+startup:`
+  CmdStartup,
+  /// \brief `#+name:` - name of the associated entry
+  CmdName,
+  /// \brief Line command with parsed text value
+  CmdCustomTextCommand,
+  /// \brief Line command with parsed argument list
+  CmdCustomArgsCommand,
+  /// \brief Line command with raw text argument
+  CmdCustomRawCommand,
+  /// \brief `#+results:` - source code block evaluation results
+  CmdResults,
+  /// \brief `#+header:` - extended list of parameters passed to associated block
+  CmdHeader,
+  /// \brief `#+options:` - document-wide formatting options
+  CmdOptions,
+  CmdTblfm,
+  /// \brief `#+caption:` command
+  CmdCaption,
+  /// \brief Command evaluation result
+  CmdResult,
+  /// \brief Call to named source code block.
+  CmdCallCode,
+  /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
+  CmdFlag,
+  CmdLatexClass,
+  CmdLatexHeader,
+  CmdLatexCompiler,
+  CmdLatexClassOptions,
+  CmdHtmlHead,
+  /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
+  CmdColumns,
+  /// \brief `#+property:` command
+  CmdPropertyArgs,
+  /// \brief `#+property:` command
+  CmdPropertyText,
+  /// \brief `#+property:` command
+  CmdPropertyRaw,
+  /// \brief `#+filetags:` line command
+  CmdFiletags,
+  CmdKeywords,
+  /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
+  BlockVerbatimMultiline,
+  /// \brief Single line of source code
+  CodeLine,
+  /// \brief Block of source code text
+  CodeText,
+  /// \brief Single tangle target in the code block
+  CodeTangle,
+  /// \brief `(refs:` callout in the source code
+  CodeCallout,
+  BlockCode,
+  /// \brief `#+begin_quote:` block in code
+  BlockQuote,
+  /// \brief `#+begin_comment:` block in code
+  BlockComment,
+  BlockCenter,
+  BlockVerse,
+  /// \brief Verbatim example text block
+  BlockExample,
+  BlockExport,
+  /// \brief `#+begin_details`  section
+  BlockDetails,
+  /// \brief `#+begin_summary` section
+  BlockSummary,
+  /// \brief #+begin_<any> section
+  BlockDynamicFallback,
+  /// \brief full-uppsercase identifier such as `MUST` or `TODO`
+  BigIdent,
+  /// \brief Region of text with formatting, which contains standalone words -
+  ///      can itself contain subnodes, which allows to represent nested
+  ///      formatting regions, such as `*bold /italic/*` text. Particular type
+  ///      of identifier is stored in string form in `str` field for `OrgNode`
+  ///      -- bold is represented as `"*"`, italic as `/` and so on. In case
+  ///      of explicit open/close pairs only opening one is stored.
+  ///      NOTE: when structured sentences are enabled, regular punctuation
+  ///      elements like `some text (notes)` are also represented as `Word,
+  ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
+  Bold,
+  /// \brief Error leaf node inserted into the parse tree on failure
+  ErrorInfoToken,
+  /// \brief Parent node for one or more tokens skipped during error recovery
+  ErrorSkipGroup,
+  /// \brief Single token node skipped while the parser searched for recovery point
+  ErrorSkipToken,
+  Italic,
+  Verbatim,
+  Backtick,
+  Underline,
+  Strike,
+  Quote,
+  Angle,
+  Monospace,
+  Par,
+  CriticMarkStructure,
+  /// \brief Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
+  InlineMath,
+  /// \brief Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.
+  DisplayMath,
+  /// \brief Space or tab character in regular text
+  Space,
+  Punctuation,
+  Colon,
+  /// \brief Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.
+  Word,
+  /// \brief Escaped formatting character in the text
+  Escaped,
+  Newline,
+  /// \brief Raw unwrapped link that was pasted in text
+  RawLink,
+  /// \brief External or internal link. Consists of one or two elements - target
+  ///      (url, file location etc.) and description (`orgParagraph` of text).
+  ///      Description might be empty, and represented as empty node in this
+  ///      case. For external links particular formatting of the address is
+  ///      not handled by parser and instead contains raw string from input
+  ///      text.
+  Link,
+  /// \brief Org-mode macro replacement - during export each macro is expanded
+  ///      and evaluated according to it's environment. Body of the macro is
+  ///      not parsed fully during org-mode evaluation, but is checked for
+  ///      correct parenthesis balance (as macro might contain elisp code)
+  Macro,
+  /// \brief Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.
+  Symbol,
+  StaticActiveTime,
+  StaticInactiveTime,
+  DynamicActiveTime,
+  /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
+  DynamicInactiveTime,
+  /// \brief Date and time range format - two `orgDateTime` entries
+  TimeRange,
+  /// \brief Result of the time range evaluation or trailing annotation a subtree
+  SimpleTime,
+  HashTag,
+  /// \brief `\sym{}` with explicit arguments
+  MetaSymbol,
+  /// \brief `@user`
+  AtMention,
+  /// \brief Placeholder entry in text, usually writte like `<text to replace>`
+  Placeholder,
+  /// \brief `<<<RADIO>>>`
+  RadioTarget,
+  /// \brief `<<TARGET>>`
+  Target,
+  /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
+  SrcInlineCode,
+  /// \brief Call to named source code block.
+  InlineCallCode,
+  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
+  InlineExport,
+  InlineComment,
+  /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
+  RawText,
+  /// \brief `:description:` entry
+  SubtreeDescription,
+  SubtreeUrgency,
+  /// \brief `:logbook:` entry storing note information
+  DrawerLogbook,
+  /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
+  Drawer,
+  DrawerPropertyList,
+  /// \brief `:property:` drawer
+  DrawerProperty,
+  /// \brief Section subtree
+  Subtree,
+  /// \brief Time? associated with subtree entry
+  SubtreeTimes,
+  SubtreeStars,
+  /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
+  SubtreeCompletion,
+  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
+  SubtreeImportance,
+};
+enum class haxorg_OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, ActiveDynamicTimeContent, InactiveDynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
+enum class haxorg_OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
+enum class haxorg_OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class haxorg_AstTrackingGroupKind : short int { RadioTarget, Single, TrackedHashtag, };
+enum class haxorg_GraphMapLinkKind : short int { Radio, Link, };
 struct haxorg_UserTimeBreakdown_vtable {
   haxorg_StdOptional const* (*get_year)(haxorg_UserTimeBreakdown const*);
   haxorg_StdOptional const* (*get_month)(haxorg_UserTimeBreakdown const*);
@@ -574,10 +834,10 @@ struct haxorg_ParseSourceFileId {
 
 void haxorg_destroy_ParseSourceFileId(haxorg_ParseSourceFileId* obj);
 struct haxorg_ParseSourceLoc_vtable {
-  int const* /*  [905]lexbase/SourceManager.hpp:42:27( [766] >builtin/unqual<>) */ (*get_line)(haxorg_ParseSourceLoc const*);
-  int const* /*  [905]lexbase/SourceManager.hpp:43:27( [766] >builtin/unqual<>) */ (*get_column)(haxorg_ParseSourceLoc const*);
-  int const* /*  [905]lexbase/SourceManager.hpp:44:27( [766] >builtin/unqual<>) */ (*get_pos)(haxorg_ParseSourceLoc const*);
-  haxorg_ParseSourceFileId const* /* ['org', 'parse', 'SourceFileId'] */ (*get_file_id)(haxorg_ParseSourceLoc const*);
+  int const* (*get_line)(haxorg_ParseSourceLoc const*);
+  int const* (*get_column)(haxorg_ParseSourceLoc const*);
+  int const* (*get_pos)(haxorg_ParseSourceLoc const*);
+  haxorg_ParseSourceFileId const* (*get_file_id)(haxorg_ParseSourceLoc const*);
 };
 
 /// \brief ['org', 'parse', 'SourceLoc']
@@ -609,13 +869,13 @@ struct haxorg_Org {
 
 void haxorg_destroy_Org(haxorg_Org* obj);
 struct haxorg_OperationsTracer_vtable {
-  bool const* /*  [905]stdlib/TraceBase.hpp:32:19( [755] >bool<>) */ (*get_TraceState)(haxorg_OperationsTracer const*);
-  bool const* /*  [905]stdlib/TraceBase.hpp:33:19( [755] >bool<>) */ (*get_traceToFile)(haxorg_OperationsTracer const*);
-  bool const* /*  [905]stdlib/TraceBase.hpp:34:19( [755] >bool<>) */ (*get_traceToBuffer)(haxorg_OperationsTracer const*);
-  bool const* /*  [905]stdlib/TraceBase.hpp:35:19( [755] >bool<>) */ (*get_traceStructured)(haxorg_OperationsTracer const*);
-  bool const* /*  [905]stdlib/TraceBase.hpp:36:19( [755] >bool<>) */ (*get_traceColored)(haxorg_OperationsTracer const*);
-  int const* /*  [905]stdlib/TraceBase.hpp:37:19( [766] >builtin/unqual<>) */ (*get_activeLevel)(haxorg_OperationsTracer const*);
-  haxorg_StdString const* /* ['std', 'string'] */ (*get_traceBuffer)(haxorg_OperationsTracer const*);
+  bool const* (*get_TraceState)(haxorg_OperationsTracer const*);
+  bool const* (*get_traceToFile)(haxorg_OperationsTracer const*);
+  bool const* (*get_traceToBuffer)(haxorg_OperationsTracer const*);
+  bool const* (*get_traceStructured)(haxorg_OperationsTracer const*);
+  bool const* (*get_traceColored)(haxorg_OperationsTracer const*);
+  int const* (*get_activeLevel)(haxorg_OperationsTracer const*);
+  haxorg_StdString const* (*get_traceBuffer)(haxorg_OperationsTracer const*);
 };
 
 /// \brief ['hstd', 'OperationsTracer']
@@ -635,9 +895,9 @@ struct haxorg_Cache {
 
 void haxorg_destroy_Cache(haxorg_Cache* obj);
 struct haxorg_ParseOrgParseFragment_vtable {
-  int const* /*  [905]api/ParseContext.hpp:15:26( [766] >builtin/unqual<>) */ (*get_baseLine)(haxorg_ParseOrgParseFragment const*);
-  int const* /*  [905]api/ParseContext.hpp:16:26( [766] >builtin/unqual<>) */ (*get_baseCol)(haxorg_ParseOrgParseFragment const*);
-  haxorg_StdString const* /* ['std', 'string'] */ (*get_text)(haxorg_ParseOrgParseFragment const*);
+  int const* (*get_baseLine)(haxorg_ParseOrgParseFragment const*);
+  int const* (*get_baseCol)(haxorg_ParseOrgParseFragment const*);
+  haxorg_StdString const* (*get_text)(haxorg_ParseOrgParseFragment const*);
 };
 
 /// \brief ['org', 'parse', 'OrgParseFragment']
@@ -716,8 +976,8 @@ struct haxorg_ImmPathStep {
 
 void haxorg_destroy_ImmPathStep(haxorg_ImmPathStep* obj);
 struct haxorg_ImmPath_vtable {
-  haxorg_ImmId const* /* ['org', 'imm', 'ImmId'] */ (*get_root)(haxorg_ImmPath const*);
-  haxorg_ImmPathStore const* /* ['org', 'imm', 'ImmPath', 'Store'] */ (*get_path)(haxorg_ImmPath const*);
+  haxorg_ImmId const* (*get_root)(haxorg_ImmPath const*);
+  haxorg_ImmPathStore const* (*get_path)(haxorg_ImmPath const*);
 };
 
 /// \brief ['org', 'imm', 'ImmPath']
@@ -763,20 +1023,11 @@ struct haxorg_ImmAstVersion {
 };
 
 void haxorg_destroy_ImmAstVersion(haxorg_ImmAstVersion* obj);
-struct haxorg_ImmAdapter_vtable {};
-
-/// \brief ['org', 'imm', 'ImmAdapter']
-struct haxorg_ImmAdapter {
-  haxorg_ImmAdapter_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmAdapter(haxorg_ImmAdapter* obj);
 struct haxorg_ImmAdapterTreeReprConf_vtable {
-  int const* /*  [905]imm/ImmOrg.hpp:975:22( [766] >builtin/unqual<>) */ (*get_maxDepth)(haxorg_ImmAdapterTreeReprConf const*);
-  bool const* /*  [905]imm/ImmOrg.hpp:978:23( [755] >bool<>) */ (*get_withAuxFields)(haxorg_ImmAdapterTreeReprConf const*);
-  bool const* /*  [905]imm/ImmOrg.hpp:980:23( [755] >bool<>) */ (*get_withReflFields)(haxorg_ImmAdapterTreeReprConf const*);
-  haxorg_HstdSetOfStdPairOfOrgSemKindImmReflFieldId const* /* ['hstd', 'UnorderedSet', [['std', 'pair', [['OrgSemKind']], [['org', 'imm', 'ImmReflFieldId']]]]] */ (*get_withFieldSubset)(haxorg_ImmAdapterTreeReprConf const*);
+  int const* (*get_maxDepth)(haxorg_ImmAdapterTreeReprConf const*);
+  bool const* (*get_withAuxFields)(haxorg_ImmAdapterTreeReprConf const*);
+  bool const* (*get_withReflFields)(haxorg_ImmAdapterTreeReprConf const*);
+  haxorg_HstdSetOfStdPairOfOrgSemKindImmReflFieldId const* (*get_withFieldSubset)(haxorg_ImmAdapterTreeReprConf const*);
 };
 
 /// \brief ['org', 'imm', 'ImmAdapter', 'TreeReprConf']
@@ -786,6 +1037,15 @@ struct haxorg_ImmAdapterTreeReprConf {
 };
 
 void haxorg_destroy_ImmAdapterTreeReprConf(haxorg_ImmAdapterTreeReprConf* obj);
+struct haxorg_ImmAdapter_vtable {};
+
+/// \brief ['org', 'imm', 'ImmAdapter']
+struct haxorg_ImmAdapter {
+  haxorg_ImmAdapter_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ImmAdapter(haxorg_ImmAdapter* obj);
 struct haxorg_ImmAdapterVirtualBase_vtable {};
 
 /// \brief ['org', 'imm', 'ImmAdapterVirtualBase']
@@ -796,11 +1056,11 @@ struct haxorg_ImmAdapterVirtualBase {
 
 void haxorg_destroy_ImmAdapterVirtualBase(haxorg_ImmAdapterVirtualBase* obj);
 struct haxorg_OrgYamlExportOpts_vtable {
-  bool const* /*  [905]api/SemBaseApi.hpp:31:19( [755] >bool<>) */ (*get_skipNullFields)(haxorg_OrgYamlExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:32:19( [755] >bool<>) */ (*get_skipFalseFields)(haxorg_OrgYamlExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:33:19( [755] >bool<>) */ (*get_skipZeroFields)(haxorg_OrgYamlExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:34:19( [755] >bool<>) */ (*get_skipLocation)(haxorg_OrgYamlExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:35:19( [755] >bool<>) */ (*get_skipId)(haxorg_OrgYamlExportOpts const*);
+  bool const* (*get_skipNullFields)(haxorg_OrgYamlExportOpts const*);
+  bool const* (*get_skipFalseFields)(haxorg_OrgYamlExportOpts const*);
+  bool const* (*get_skipZeroFields)(haxorg_OrgYamlExportOpts const*);
+  bool const* (*get_skipLocation)(haxorg_OrgYamlExportOpts const*);
+  bool const* (*get_skipId)(haxorg_OrgYamlExportOpts const*);
 };
 
 /// \brief ['org', 'OrgYamlExportOpts']
@@ -811,13 +1071,13 @@ struct haxorg_OrgYamlExportOpts {
 
 void haxorg_destroy_OrgYamlExportOpts(haxorg_OrgYamlExportOpts* obj);
 struct haxorg_OrgTreeExportOpts_vtable {
-  bool const* /*  [905]api/SemBaseApi.hpp:70:19( [755] >bool<>) */ (*get_withLineCol)(haxorg_OrgTreeExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:71:19( [755] >bool<>) */ (*get_withOriginalId)(haxorg_OrgTreeExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:72:19( [755] >bool<>) */ (*get_withSubnodeIdx)(haxorg_OrgTreeExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:73:19( [755] >bool<>) */ (*get_skipEmptyFields)(haxorg_OrgTreeExportOpts const*);
-  int const* /*  [905]api/SemBaseApi.hpp:74:19( [766] >builtin/unqual<>) */ (*get_startLevel)(haxorg_OrgTreeExportOpts const*);
-  bool const* /*  [905]api/SemBaseApi.hpp:75:19( [755] >bool<>) */ (*get_withColor)(haxorg_OrgTreeExportOpts const*);
-  int const* /*  [905]api/SemBaseApi.hpp:76:19( [766] >builtin/unqual<>) */ (*get_maxDepth)(haxorg_OrgTreeExportOpts const*);
+  bool const* (*get_withLineCol)(haxorg_OrgTreeExportOpts const*);
+  bool const* (*get_withOriginalId)(haxorg_OrgTreeExportOpts const*);
+  bool const* (*get_withSubnodeIdx)(haxorg_OrgTreeExportOpts const*);
+  bool const* (*get_skipEmptyFields)(haxorg_OrgTreeExportOpts const*);
+  int const* (*get_startLevel)(haxorg_OrgTreeExportOpts const*);
+  bool const* (*get_withColor)(haxorg_OrgTreeExportOpts const*);
+  int const* (*get_maxDepth)(haxorg_OrgTreeExportOpts const*);
 };
 
 /// \brief ['org', 'OrgTreeExportOpts']
@@ -847,17 +1107,8 @@ struct haxorg_AstTrackingAlternatives {
 };
 
 void haxorg_destroy_AstTrackingAlternatives(haxorg_AstTrackingAlternatives* obj);
-struct haxorg_AstTrackingGroup_vtable {};
-
-/// \brief ['org', 'AstTrackingGroup']
-struct haxorg_AstTrackingGroup {
-  haxorg_AstTrackingGroup_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_AstTrackingGroup(haxorg_AstTrackingGroup* obj);
 struct haxorg_AstTrackingGroupRadioTarget_vtable {
-  haxorg_AstTrackingPath const* /* ['org', 'AstTrackingPath'] */ (*get_target)(haxorg_AstTrackingGroupRadioTarget const*);
+  haxorg_AstTrackingPath const* (*get_target)(haxorg_AstTrackingGroupRadioTarget const*);
   haxorg_HstdVec const* (*get_nodes)(haxorg_AstTrackingGroupRadioTarget const*);
 };
 
@@ -891,6 +1142,15 @@ struct haxorg_AstTrackingGroupTrackedHashtag {
 };
 
 void haxorg_destroy_AstTrackingGroupTrackedHashtag(haxorg_AstTrackingGroupTrackedHashtag* obj);
+struct haxorg_AstTrackingGroup_vtable {};
+
+/// \brief ['org', 'AstTrackingGroup']
+struct haxorg_AstTrackingGroup {
+  haxorg_AstTrackingGroup_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_AstTrackingGroup(haxorg_AstTrackingGroup* obj);
 struct haxorg_AstTrackingMap_vtable {
   haxorg_HstdUnorderedMap const* (*get_footnotes)(haxorg_AstTrackingMap const*);
   haxorg_HstdUnorderedMap const* (*get_subtrees)(haxorg_AstTrackingMap const*);
@@ -908,9 +1168,9 @@ struct haxorg_AstTrackingMap {
 
 void haxorg_destroy_AstTrackingMap(haxorg_AstTrackingMap* obj);
 struct haxorg_SequenceSegment_vtable {
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:20:18( [766] >builtin/unqual<>) */ (*get_kind)(haxorg_SequenceSegment const*);
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:25:18( [766] >builtin/unqual<>) */ (*get_first)(haxorg_SequenceSegment const*);
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:28:18( [766] >builtin/unqual<>) */ (*get_last)(haxorg_SequenceSegment const*);
+  int const* (*get_kind)(haxorg_SequenceSegment const*);
+  int const* (*get_first)(haxorg_SequenceSegment const*);
+  int const* (*get_last)(haxorg_SequenceSegment const*);
 };
 
 /// \brief ['hstd', 'SequenceSegment']
@@ -921,7 +1181,7 @@ struct haxorg_SequenceSegment {
 
 void haxorg_destroy_SequenceSegment(haxorg_SequenceSegment* obj);
 struct haxorg_SequenceSegmentGroup_vtable {
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:36:18( [766] >builtin/unqual<>) */ (*get_kind)(haxorg_SequenceSegmentGroup const*);
+  int const* (*get_kind)(haxorg_SequenceSegmentGroup const*);
   haxorg_HstdVec const* (*get_segments)(haxorg_SequenceSegmentGroup const*);
 };
 
@@ -933,7 +1193,7 @@ struct haxorg_SequenceSegmentGroup {
 
 void haxorg_destroy_SequenceSegmentGroup(haxorg_SequenceSegmentGroup* obj);
 struct haxorg_SequenceAnnotationTag_vtable {
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:46:18( [766] >builtin/unqual<>) */ (*get_groupKind)(haxorg_SequenceAnnotationTag const*);
+  int const* (*get_groupKind)(haxorg_SequenceAnnotationTag const*);
   haxorg_HstdVec const* (*get_segmentKinds)(haxorg_SequenceAnnotationTag const*);
 };
 
@@ -945,8 +1205,8 @@ struct haxorg_SequenceAnnotationTag {
 
 void haxorg_destroy_SequenceAnnotationTag(haxorg_SequenceAnnotationTag* obj);
 struct haxorg_SequenceAnnotation_vtable {
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:75:18( [766] >builtin/unqual<>) */ (*get_first)(haxorg_SequenceAnnotation const*);
-  int const* /*  [905]stdlib/RangeSegmentation.hpp:77:18( [766] >builtin/unqual<>) */ (*get_last)(haxorg_SequenceAnnotation const*);
+  int const* (*get_first)(haxorg_SequenceAnnotation const*);
+  int const* (*get_last)(haxorg_SequenceAnnotation const*);
   haxorg_HstdVec const* (*get_annotations)(haxorg_SequenceAnnotation const*);
 };
 
@@ -957,17 +1217,8 @@ struct haxorg_SequenceAnnotation {
 };
 
 void haxorg_destroy_SequenceAnnotation(haxorg_SequenceAnnotation* obj);
-struct haxorg_GraphMapLink_vtable {};
-
-/// \brief ['org', 'graph', 'MapLink']
-struct haxorg_GraphMapLink {
-  haxorg_GraphMapLink_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_GraphMapLink(haxorg_GraphMapLink* obj);
 struct haxorg_GraphMapLinkLink_vtable {
-  haxorg_ImmUniqId const* /* ['org', 'imm', 'ImmUniqId'] */ (*get_link)(haxorg_GraphMapLinkLink const*);
+  haxorg_ImmUniqId const* (*get_link)(haxorg_GraphMapLinkLink const*);
   haxorg_HstdVec const* (*get_description)(haxorg_GraphMapLinkLink const*);
 };
 
@@ -979,7 +1230,7 @@ struct haxorg_GraphMapLinkLink {
 
 void haxorg_destroy_GraphMapLinkLink(haxorg_GraphMapLinkLink* obj);
 struct haxorg_GraphMapLinkRadio_vtable {
-  haxorg_ImmUniqId const* /* ['org', 'imm', 'ImmUniqId'] */ (*get_target)(haxorg_GraphMapLinkRadio const*);
+  haxorg_ImmUniqId const* (*get_target)(haxorg_GraphMapLinkRadio const*);
 };
 
 /// \brief ['org', 'graph', 'MapLink', 'Radio']
@@ -989,8 +1240,17 @@ struct haxorg_GraphMapLinkRadio {
 };
 
 void haxorg_destroy_GraphMapLinkRadio(haxorg_GraphMapLinkRadio* obj);
+struct haxorg_GraphMapLink_vtable {};
+
+/// \brief ['org', 'graph', 'MapLink']
+struct haxorg_GraphMapLink {
+  haxorg_GraphMapLink_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_GraphMapLink(haxorg_GraphMapLink* obj);
 struct haxorg_GraphMapNodeProp_vtable {
-  haxorg_ImmUniqId const* /* ['org', 'imm', 'ImmUniqId'] */ (*get_id)(haxorg_GraphMapNodeProp const*);
+  haxorg_ImmUniqId const* (*get_id)(haxorg_GraphMapNodeProp const*);
   haxorg_HstdVec const* (*get_unresolved)(haxorg_GraphMapNodeProp const*);
 };
 
@@ -1002,7 +1262,7 @@ struct haxorg_GraphMapNodeProp {
 
 void haxorg_destroy_GraphMapNodeProp(haxorg_GraphMapNodeProp* obj);
 struct haxorg_GraphMapEdgeProp_vtable {
-  haxorg_GraphMapLink const* /* ['org', 'graph', 'MapLink'] */ (*get_link)(haxorg_GraphMapEdgeProp const*);
+  haxorg_GraphMapLink const* (*get_link)(haxorg_GraphMapEdgeProp const*);
 };
 
 /// \brief ['org', 'graph', 'MapEdgeProp']
@@ -1013,7 +1273,7 @@ struct haxorg_GraphMapEdgeProp {
 
 void haxorg_destroy_GraphMapEdgeProp(haxorg_GraphMapEdgeProp* obj);
 struct haxorg_GraphMapNode_vtable {
-  haxorg_ImmUniqId const* /* ['org', 'imm', 'ImmUniqId'] */ (*get_id)(haxorg_GraphMapNode const*);
+  haxorg_ImmUniqId const* (*get_id)(haxorg_GraphMapNode const*);
 };
 
 /// \brief ['org', 'graph', 'MapNode']
@@ -1024,8 +1284,8 @@ struct haxorg_GraphMapNode {
 
 void haxorg_destroy_GraphMapNode(haxorg_GraphMapNode* obj);
 struct haxorg_GraphMapEdge_vtable {
-  haxorg_GraphMapNode const* /* ['org', 'graph', 'MapNode'] */ (*get_source)(haxorg_GraphMapEdge const*);
-  haxorg_GraphMapNode const* /* ['org', 'graph', 'MapNode'] */ (*get_target)(haxorg_GraphMapEdge const*);
+  haxorg_GraphMapNode const* (*get_source)(haxorg_GraphMapEdge const*);
+  haxorg_GraphMapNode const* (*get_target)(haxorg_GraphMapEdge const*);
 };
 
 /// \brief ['org', 'graph', 'MapEdge']
@@ -1036,10 +1296,10 @@ struct haxorg_GraphMapEdge {
 
 void haxorg_destroy_GraphMapEdge(haxorg_GraphMapEdge* obj);
 struct haxorg_GraphMapGraph_vtable {
-  haxorg_GraphNodeProps const* /* ['org', 'graph', 'NodeProps'] */ (*get_nodeProps)(haxorg_GraphMapGraph const*);
-  haxorg_GraphEdgeProps const* /* ['org', 'graph', 'EdgeProps'] */ (*get_edgeProps)(haxorg_GraphMapGraph const*);
-  haxorg_GraphAdjList const* /* ['org', 'graph', 'AdjList'] */ (*get_adjList)(haxorg_GraphMapGraph const*);
-  haxorg_GraphAdjList const* /* ['org', 'graph', 'AdjList'] */ (*get_adjListIn)(haxorg_GraphMapGraph const*);
+  haxorg_GraphNodeProps const* (*get_nodeProps)(haxorg_GraphMapGraph const*);
+  haxorg_GraphEdgeProps const* (*get_edgeProps)(haxorg_GraphMapGraph const*);
+  haxorg_GraphAdjList const* (*get_adjList)(haxorg_GraphMapGraph const*);
+  haxorg_GraphAdjList const* (*get_adjListIn)(haxorg_GraphMapGraph const*);
 };
 
 /// \brief ['org', 'graph', 'MapGraph']
@@ -1050,7 +1310,7 @@ struct haxorg_GraphMapGraph {
 
 void haxorg_destroy_GraphMapGraph(haxorg_GraphMapGraph* obj);
 struct haxorg_GraphMapConfig_vtable {
-  haxorg_OperationsTracer const* /* ['hstd', 'OperationsTracer'] */ (*get_dbg)(haxorg_GraphMapConfig const*);
+  haxorg_OperationsTracer const* (*get_dbg)(haxorg_GraphMapConfig const*);
 };
 
 /// \brief ['org', 'graph', 'MapConfig']
@@ -1061,8 +1321,8 @@ struct haxorg_GraphMapConfig {
 
 void haxorg_destroy_GraphMapConfig(haxorg_GraphMapConfig* obj);
 struct haxorg_GraphMapGraphState_vtable {
-  haxorg_GraphMapGraph const* /* ['org', 'graph', 'MapGraph'] */ (*get_graph)(haxorg_GraphMapGraphState const*);
-  haxorg_ImmAstContext const* /* ['org', 'imm', 'ImmAstContext'] */ (*get_ast)(haxorg_GraphMapGraphState const*);
+  haxorg_GraphMapGraph const* (*get_graph)(haxorg_GraphMapGraphState const*);
+  haxorg_ImmAstContext const* (*get_ast)(haxorg_GraphMapGraphState const*);
 };
 
 /// \brief ['org', 'graph', 'MapGraphState']
@@ -1076,15 +1336,6 @@ typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
 typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
-struct haxorg_LispCode_vtable {};
-
-/// \brief ['org', 'sem', 'LispCode']
-struct haxorg_LispCode {
-  haxorg_LispCode_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_LispCode(haxorg_LispCode* obj);
 struct haxorg_LispCodeCall_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_LispCodeCall const*);
   haxorg_HstdVec const* (*get_args)(haxorg_LispCodeCall const*);
@@ -1176,47 +1427,15 @@ struct haxorg_LispCodeReal {
 
 void haxorg_destroy_LispCodeReal(haxorg_LispCodeReal* obj);
 enum class haxorg_LispCodeKind : short int { Call, List, KeyValue, Number, Text, Ident, Boolean, Real, };
-struct haxorg_Tblfm_vtable {
-  haxorg_HstdVec const* (*get_exprs)(haxorg_Tblfm const*);
-};
+struct haxorg_LispCode_vtable {};
 
-/// \brief ['org', 'sem', 'Tblfm']
-struct haxorg_Tblfm {
-  haxorg_Tblfm_vtable const* vtable;
+/// \brief ['org', 'sem', 'LispCode']
+struct haxorg_LispCode {
+  haxorg_LispCode_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_Tblfm(haxorg_Tblfm* obj);
-struct haxorg_TblfmExpr_vtable {};
-
-/// \brief ['org', 'sem', 'Tblfm', 'Expr']
-struct haxorg_TblfmExpr {
-  haxorg_TblfmExpr_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_TblfmExpr(haxorg_TblfmExpr* obj);
-struct haxorg_TblfmExprAxisRef_vtable {
-  haxorg_TblfmExprAxisRefPosition const* /* ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef', 'Position'] */ (*get_col)(haxorg_TblfmExprAxisRef const*);
-  haxorg_HstdOpt const* (*get_row)(haxorg_TblfmExprAxisRef const*);
-};
-
-/// \brief ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef']
-struct haxorg_TblfmExprAxisRef {
-  haxorg_TblfmExprAxisRef_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_TblfmExprAxisRef(haxorg_TblfmExprAxisRef* obj);
-struct haxorg_TblfmExprAxisRefPosition_vtable {};
-
-/// \brief ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef', 'Position']
-struct haxorg_TblfmExprAxisRefPosition {
-  haxorg_TblfmExprAxisRefPosition_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_TblfmExprAxisRefPosition(haxorg_TblfmExprAxisRefPosition* obj);
+void haxorg_destroy_LispCode(haxorg_LispCode* obj);
 struct haxorg_TblfmExprAxisRefPositionIndex_vtable {
   int const* (*get_index)(haxorg_TblfmExprAxisRefPositionIndex const*);
 };
@@ -1240,6 +1459,27 @@ struct haxorg_TblfmExprAxisRefPositionName {
 
 void haxorg_destroy_TblfmExprAxisRefPositionName(haxorg_TblfmExprAxisRefPositionName* obj);
 enum class haxorg_TblfmExprAxisRefPositionKind : short int { Index, Name, };
+struct haxorg_TblfmExprAxisRefPosition_vtable {};
+
+/// \brief ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef', 'Position']
+struct haxorg_TblfmExprAxisRefPosition {
+  haxorg_TblfmExprAxisRefPosition_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_TblfmExprAxisRefPosition(haxorg_TblfmExprAxisRefPosition* obj);
+struct haxorg_TblfmExprAxisRef_vtable {
+  haxorg_TblfmExprAxisRefPosition const* (*get_col)(haxorg_TblfmExprAxisRef const*);
+  haxorg_HstdOpt const* (*get_row)(haxorg_TblfmExprAxisRef const*);
+};
+
+/// \brief ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef']
+struct haxorg_TblfmExprAxisRef {
+  haxorg_TblfmExprAxisRef_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_TblfmExprAxisRef(haxorg_TblfmExprAxisRef* obj);
 struct haxorg_TblfmExprAxisName_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_TblfmExprAxisName const*);
 };
@@ -1309,19 +1549,15 @@ struct haxorg_TblfmExprElisp {
 
 void haxorg_destroy_TblfmExprElisp(haxorg_TblfmExprElisp* obj);
 enum class haxorg_TblfmExprKind : short int { AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp, };
-struct haxorg_TblfmAssign_vtable {
-  haxorg_TblfmExprAxisRef const* /* ['org', 'sem', 'Tblfm', 'Expr', 'AxisRef'] */ (*get_target)(haxorg_TblfmAssign const*);
-  haxorg_HstdVec const* (*get_expr)(haxorg_TblfmAssign const*);
-  haxorg_HstdVec const* (*get_flags)(haxorg_TblfmAssign const*);
-};
+struct haxorg_TblfmExpr_vtable {};
 
-/// \brief ['org', 'sem', 'Tblfm', 'Assign']
-struct haxorg_TblfmAssign {
-  haxorg_TblfmAssign_vtable const* vtable;
+/// \brief ['org', 'sem', 'Tblfm', 'Expr']
+struct haxorg_TblfmExpr {
+  haxorg_TblfmExpr_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_TblfmAssign(haxorg_TblfmAssign* obj);
+void haxorg_destroy_TblfmExpr(haxorg_TblfmExpr* obj);
 /// \brief Flags for table format expression cell formulas
 enum class haxorg_TblfmAssignFlag : short int {
   /// \brief Left-align the result
@@ -1355,20 +1591,30 @@ enum class haxorg_TblfmAssignFlag : short int {
   /// \brief Quote field contents
   CellQuote,
 };
-struct haxorg_AttrValue_vtable {
-  haxorg_HstdOpt const* (*get_name)(haxorg_AttrValue const*);
-  haxorg_HstdOpt const* (*get_varname)(haxorg_AttrValue const*);
-  haxorg_HstdVec const* (*get_span)(haxorg_AttrValue const*);
-  bool const* (*get_isQuoted)(haxorg_AttrValue const*);
+struct haxorg_TblfmAssign_vtable {
+  haxorg_TblfmExprAxisRef const* (*get_target)(haxorg_TblfmAssign const*);
+  haxorg_HstdVec const* (*get_expr)(haxorg_TblfmAssign const*);
+  haxorg_HstdVec const* (*get_flags)(haxorg_TblfmAssign const*);
 };
 
-/// \brief ['org', 'sem', 'AttrValue']
-struct haxorg_AttrValue {
-  haxorg_AttrValue_vtable const* vtable;
+/// \brief ['org', 'sem', 'Tblfm', 'Assign']
+struct haxorg_TblfmAssign {
+  haxorg_TblfmAssign_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_AttrValue(haxorg_AttrValue* obj);
+void haxorg_destroy_TblfmAssign(haxorg_TblfmAssign* obj);
+struct haxorg_Tblfm_vtable {
+  haxorg_HstdVec const* (*get_exprs)(haxorg_Tblfm const*);
+};
+
+/// \brief ['org', 'sem', 'Tblfm']
+struct haxorg_Tblfm {
+  haxorg_Tblfm_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_Tblfm(haxorg_Tblfm* obj);
 struct haxorg_AttrValueDimensionSpan_vtable {
   int const* (*get_first)(haxorg_AttrValueDimensionSpan const*);
   haxorg_HstdOpt const* (*get_last)(haxorg_AttrValueDimensionSpan const*);
@@ -1405,7 +1651,7 @@ struct haxorg_AttrValueFileReference {
 
 void haxorg_destroy_AttrValueFileReference(haxorg_AttrValueFileReference* obj);
 struct haxorg_AttrValueLispValue_vtable {
-  haxorg_LispCode const* /* ['org', 'sem', 'LispCode'] */ (*get_code)(haxorg_AttrValueLispValue const*);
+  haxorg_LispCode const* (*get_code)(haxorg_AttrValueLispValue const*);
 };
 
 /// \brief ['org', 'sem', 'AttrValue', 'LispValue']
@@ -1416,6 +1662,20 @@ struct haxorg_AttrValueLispValue {
 
 void haxorg_destroy_AttrValueLispValue(haxorg_AttrValueLispValue* obj);
 enum class haxorg_AttrValueKind : short int { TextValue, FileReference, LispValue, };
+struct haxorg_AttrValue_vtable {
+  haxorg_HstdOpt const* (*get_name)(haxorg_AttrValue const*);
+  haxorg_HstdOpt const* (*get_varname)(haxorg_AttrValue const*);
+  haxorg_HstdVec const* (*get_span)(haxorg_AttrValue const*);
+  bool const* (*get_isQuoted)(haxorg_AttrValue const*);
+};
+
+/// \brief ['org', 'sem', 'AttrValue']
+struct haxorg_AttrValue {
+  haxorg_AttrValue_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_AttrValue(haxorg_AttrValue* obj);
 struct haxorg_HashTagFlat_vtable {
   haxorg_HstdVec const* (*get_tags)(haxorg_HashTagFlat const*);
 };
@@ -1427,11 +1687,12 @@ struct haxorg_HashTagFlat {
 };
 
 void haxorg_destroy_HashTagFlat(haxorg_HashTagFlat* obj);
+enum class haxorg_TodoKeywordTransition : short int { None, NoteWithTimestamp, Timestamp, };
 struct haxorg_TodoKeyword_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_TodoKeyword const*);
   haxorg_HstdOpt const* (*get_shortcut)(haxorg_TodoKeyword const*);
-  haxorg_TodoKeywordTransition const* /* ['org', 'sem', 'TodoKeyword', 'Transition'] */ (*get_onEnter)(haxorg_TodoKeyword const*);
-  haxorg_TodoKeywordTransition const* /* ['org', 'sem', 'TodoKeyword', 'Transition'] */ (*get_onLeave)(haxorg_TodoKeyword const*);
+  haxorg_TodoKeywordTransition const* (*get_onEnter)(haxorg_TodoKeyword const*);
+  haxorg_TodoKeywordTransition const* (*get_onLeave)(haxorg_TodoKeyword const*);
 };
 
 /// \brief ['org', 'sem', 'TodoKeyword']
@@ -1441,7 +1702,6 @@ struct haxorg_TodoKeyword {
 };
 
 void haxorg_destroy_TodoKeyword(haxorg_TodoKeyword* obj);
-enum class haxorg_TodoKeywordTransition : short int { None, NoteWithTimestamp, Timestamp, };
 struct haxorg_HashTagText_vtable {
   haxorg_HstdStr const* (*get_head)(haxorg_HashTagText const*);
   haxorg_HstdVec const* (*get_subtags)(haxorg_HashTagText const*);
@@ -1465,15 +1725,6 @@ struct haxorg_SubtreePath {
 };
 
 void haxorg_destroy_SubtreePath(haxorg_SubtreePath* obj);
-struct haxorg_LinkTarget_vtable {};
-
-/// \brief ['org', 'sem', 'LinkTarget']
-struct haxorg_LinkTarget {
-  haxorg_LinkTarget_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_LinkTarget(haxorg_LinkTarget* obj);
 struct haxorg_LinkTargetRaw_vtable {
   haxorg_HstdStr const* (*get_text)(haxorg_LinkTargetRaw const*);
 };
@@ -1508,7 +1759,7 @@ struct haxorg_LinkTargetCustomId {
 
 void haxorg_destroy_LinkTargetCustomId(haxorg_LinkTargetCustomId* obj);
 struct haxorg_LinkTargetSubtreeTitle_vtable {
-  haxorg_SubtreePath const* /* ['org', 'sem', 'SubtreePath'] */ (*get_title)(haxorg_LinkTargetSubtreeTitle const*);
+  haxorg_SubtreePath const* (*get_title)(haxorg_LinkTargetSubtreeTitle const*);
   int const* (*get_level)(haxorg_LinkTargetSubtreeTitle const*);
 };
 
@@ -1587,29 +1838,15 @@ struct haxorg_LinkTargetAttachment {
 
 void haxorg_destroy_LinkTargetAttachment(haxorg_LinkTargetAttachment* obj);
 enum class haxorg_LinkTargetKind : short int { Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-struct haxorg_SubtreeLogHead_vtable {};
+struct haxorg_LinkTarget_vtable {};
 
-/// \brief ['org', 'sem', 'SubtreeLogHead']
-struct haxorg_SubtreeLogHead {
-  haxorg_SubtreeLogHead_vtable const* vtable;
+/// \brief ['org', 'sem', 'LinkTarget']
+struct haxorg_LinkTarget {
+  haxorg_LinkTarget_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_SubtreeLogHead(haxorg_SubtreeLogHead* obj);
-struct haxorg_SubtreeLogHeadPriority_vtable {
-  haxorg_HstdOpt const* (*get_oldPriority)(haxorg_SubtreeLogHeadPriority const*);
-  haxorg_HstdOpt const* (*get_newPriority)(haxorg_SubtreeLogHeadPriority const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadPriority const*);
-  haxorg_SubtreeLogHeadPriorityAction const* /* ['org', 'sem', 'SubtreeLogHead', 'Priority', 'Action'] */ (*get_action)(haxorg_SubtreeLogHeadPriority const*);
-};
-
-/// \brief ['org', 'sem', 'SubtreeLogHead', 'Priority']
-struct haxorg_SubtreeLogHeadPriority {
-  haxorg_SubtreeLogHeadPriority_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_SubtreeLogHeadPriority(haxorg_SubtreeLogHeadPriority* obj);
+void haxorg_destroy_LinkTarget(haxorg_LinkTarget* obj);
 /// \brief Priority change action
 enum class haxorg_SubtreeLogHeadPriorityAction : short int {
   /// \brief `Priority B added on [timestamp]`
@@ -1619,8 +1856,22 @@ enum class haxorg_SubtreeLogHeadPriorityAction : short int {
   /// \brief `Priority B changed from C on [timestamp]`
   Changed,
 };
+struct haxorg_SubtreeLogHeadPriority_vtable {
+  haxorg_HstdOpt const* (*get_oldPriority)(haxorg_SubtreeLogHeadPriority const*);
+  haxorg_HstdOpt const* (*get_newPriority)(haxorg_SubtreeLogHeadPriority const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadPriority const*);
+  haxorg_SubtreeLogHeadPriorityAction const* (*get_action)(haxorg_SubtreeLogHeadPriority const*);
+};
+
+/// \brief ['org', 'sem', 'SubtreeLogHead', 'Priority']
+struct haxorg_SubtreeLogHeadPriority {
+  haxorg_SubtreeLogHeadPriority_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_SubtreeLogHeadPriority(haxorg_SubtreeLogHeadPriority* obj);
 struct haxorg_SubtreeLogHeadNote_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadNote const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadNote const*);
 };
 
 /// \brief ['org', 'sem', 'SubtreeLogHead', 'Note']
@@ -1631,8 +1882,8 @@ struct haxorg_SubtreeLogHeadNote {
 
 void haxorg_destroy_SubtreeLogHeadNote(haxorg_SubtreeLogHeadNote* obj);
 struct haxorg_SubtreeLogHeadRefile_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadRefile const*);
-  haxorg_LinkTarget const* /* ['org', 'sem', 'LinkTarget'] */ (*get_from)(haxorg_SubtreeLogHeadRefile const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadRefile const*);
+  haxorg_LinkTarget const* (*get_from)(haxorg_SubtreeLogHeadRefile const*);
 };
 
 /// \brief ['org', 'sem', 'SubtreeLogHead', 'Refile']
@@ -1643,7 +1894,7 @@ struct haxorg_SubtreeLogHeadRefile {
 
 void haxorg_destroy_SubtreeLogHeadRefile(haxorg_SubtreeLogHeadRefile* obj);
 struct haxorg_SubtreeLogHeadClock_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_from)(haxorg_SubtreeLogHeadClock const*);
+  haxorg_UserTime const* (*get_from)(haxorg_SubtreeLogHeadClock const*);
   haxorg_HstdOpt const* (*get_to)(haxorg_SubtreeLogHeadClock const*);
 };
 
@@ -1657,7 +1908,7 @@ void haxorg_destroy_SubtreeLogHeadClock(haxorg_SubtreeLogHeadClock* obj);
 struct haxorg_SubtreeLogHeadState_vtable {
   haxorg_HstdStr const* (*get_from)(haxorg_SubtreeLogHeadState const*);
   haxorg_HstdStr const* (*get_to)(haxorg_SubtreeLogHeadState const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadState const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadState const*);
 };
 
 /// \brief ['org', 'sem', 'SubtreeLogHead', 'State']
@@ -1669,8 +1920,8 @@ struct haxorg_SubtreeLogHeadState {
 void haxorg_destroy_SubtreeLogHeadState(haxorg_SubtreeLogHeadState* obj);
 struct haxorg_SubtreeLogHeadDeadline_vtable {
   haxorg_HstdOpt const* (*get_from)(haxorg_SubtreeLogHeadDeadline const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_to)(haxorg_SubtreeLogHeadDeadline const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadDeadline const*);
+  haxorg_UserTime const* (*get_to)(haxorg_SubtreeLogHeadDeadline const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadDeadline const*);
 };
 
 /// \brief ['org', 'sem', 'SubtreeLogHead', 'Deadline']
@@ -1682,8 +1933,8 @@ struct haxorg_SubtreeLogHeadDeadline {
 void haxorg_destroy_SubtreeLogHeadDeadline(haxorg_SubtreeLogHeadDeadline* obj);
 struct haxorg_SubtreeLogHeadSchedule_vtable {
   haxorg_HstdOpt const* (*get_from)(haxorg_SubtreeLogHeadSchedule const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_to)(haxorg_SubtreeLogHeadSchedule const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadSchedule const*);
+  haxorg_UserTime const* (*get_to)(haxorg_SubtreeLogHeadSchedule const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadSchedule const*);
 };
 
 /// \brief ['org', 'sem', 'SubtreeLogHead', 'Schedule']
@@ -1694,8 +1945,8 @@ struct haxorg_SubtreeLogHeadSchedule {
 
 void haxorg_destroy_SubtreeLogHeadSchedule(haxorg_SubtreeLogHeadSchedule* obj);
 struct haxorg_SubtreeLogHeadTag_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_on)(haxorg_SubtreeLogHeadTag const*);
-  haxorg_HashTagText const* /* ['org', 'sem', 'HashTagText'] */ (*get_tag)(haxorg_SubtreeLogHeadTag const*);
+  haxorg_UserTime const* (*get_on)(haxorg_SubtreeLogHeadTag const*);
+  haxorg_HashTagText const* (*get_tag)(haxorg_SubtreeLogHeadTag const*);
   bool const* (*get_added)(haxorg_SubtreeLogHeadTag const*);
 };
 
@@ -1716,6 +1967,15 @@ struct haxorg_SubtreeLogHeadUnknown {
 
 void haxorg_destroy_SubtreeLogHeadUnknown(haxorg_SubtreeLogHeadUnknown* obj);
 enum class haxorg_SubtreeLogHeadKind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+struct haxorg_SubtreeLogHead_vtable {};
+
+/// \brief ['org', 'sem', 'SubtreeLogHead']
+struct haxorg_SubtreeLogHead {
+  haxorg_SubtreeLogHead_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_SubtreeLogHead(haxorg_SubtreeLogHead* obj);
 struct haxorg_SubtreeCompletion_vtable {
   int const* (*get_done)(haxorg_SubtreeCompletion const*);
   int const* (*get_full)(haxorg_SubtreeCompletion const*);
@@ -1741,7 +2001,7 @@ struct haxorg_AttrList {
 
 void haxorg_destroy_AttrList(haxorg_AttrList* obj);
 struct haxorg_AttrGroup_vtable {
-  haxorg_AttrList const* /* ['org', 'sem', 'AttrList'] */ (*get_positional)(haxorg_AttrGroup const*);
+  haxorg_AttrList const* (*get_positional)(haxorg_AttrGroup const*);
   haxorg_HstdUnorderedMap const* (*get_named)(haxorg_AttrGroup const*);
 };
 
@@ -1752,27 +2012,9 @@ struct haxorg_AttrGroup {
 };
 
 void haxorg_destroy_AttrGroup(haxorg_AttrGroup* obj);
-struct haxorg_OrgCodeEvalInput_vtable {
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_blockAttrs)(haxorg_OrgCodeEvalInput const*);
-  haxorg_HstdStr const* (*get_tangledCode)(haxorg_OrgCodeEvalInput const*);
-  haxorg_HstdOpt const* (*get_exportType)(haxorg_OrgCodeEvalInput const*);
-  haxorg_OrgCodeEvalInputResultType const* /* ['org', 'sem', 'OrgCodeEvalInput', 'ResultType'] */ (*get_resultType)(haxorg_OrgCodeEvalInput const*);
-  haxorg_OrgCodeEvalInputResultFormat const* /* ['org', 'sem', 'OrgCodeEvalInput', 'ResultFormat'] */ (*get_resultFormat)(haxorg_OrgCodeEvalInput const*);
-  haxorg_OrgCodeEvalInputResultHandling const* /* ['org', 'sem', 'OrgCodeEvalInput', 'ResultHandling'] */ (*get_resultHandling)(haxorg_OrgCodeEvalInput const*);
-  haxorg_HstdStr const* (*get_language)(haxorg_OrgCodeEvalInput const*);
-  haxorg_HstdVec const* (*get_argList)(haxorg_OrgCodeEvalInput const*);
-};
-
-/// \brief ['org', 'sem', 'OrgCodeEvalInput']
-struct haxorg_OrgCodeEvalInput {
-  haxorg_OrgCodeEvalInput_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_OrgCodeEvalInput(haxorg_OrgCodeEvalInput* obj);
 struct haxorg_OrgCodeEvalInputVar_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_OrgCodeEvalInputVar const*);
-  haxorg_OrgJson const* /* ['org', 'sem', 'OrgJson'] */ (*get_value)(haxorg_OrgCodeEvalInputVar const*);
+  haxorg_OrgJson const* (*get_value)(haxorg_OrgCodeEvalInputVar const*);
 };
 
 /// \brief ['org', 'sem', 'OrgCodeEvalInput', 'Var']
@@ -1809,6 +2051,24 @@ enum class haxorg_OrgCodeEvalInputResultFormat : short int {
 };
 /// \brief What to do with the final evaluation results
 enum class haxorg_OrgCodeEvalInputResultHandling : short int { None, Replace, Silent, Discard, Append, Prepend, };
+struct haxorg_OrgCodeEvalInput_vtable {
+  haxorg_AttrGroup const* (*get_blockAttrs)(haxorg_OrgCodeEvalInput const*);
+  haxorg_HstdStr const* (*get_tangledCode)(haxorg_OrgCodeEvalInput const*);
+  haxorg_HstdOpt const* (*get_exportType)(haxorg_OrgCodeEvalInput const*);
+  haxorg_OrgCodeEvalInputResultType const* (*get_resultType)(haxorg_OrgCodeEvalInput const*);
+  haxorg_OrgCodeEvalInputResultFormat const* (*get_resultFormat)(haxorg_OrgCodeEvalInput const*);
+  haxorg_OrgCodeEvalInputResultHandling const* (*get_resultHandling)(haxorg_OrgCodeEvalInput const*);
+  haxorg_HstdStr const* (*get_language)(haxorg_OrgCodeEvalInput const*);
+  haxorg_HstdVec const* (*get_argList)(haxorg_OrgCodeEvalInput const*);
+};
+
+/// \brief ['org', 'sem', 'OrgCodeEvalInput']
+struct haxorg_OrgCodeEvalInput {
+  haxorg_OrgCodeEvalInput_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_OrgCodeEvalInput(haxorg_OrgCodeEvalInput* obj);
 struct haxorg_OrgCodeEvalOutput_vtable {
   haxorg_HstdStr const* (*get_stdoutText)(haxorg_OrgCodeEvalOutput const*);
   haxorg_HstdStr const* (*get_stderrText)(haxorg_OrgCodeEvalOutput const*);
@@ -1816,7 +2076,7 @@ struct haxorg_OrgCodeEvalOutput_vtable {
   haxorg_HstdOpt const* (*get_cmd)(haxorg_OrgCodeEvalOutput const*);
   haxorg_HstdVec const* (*get_args)(haxorg_OrgCodeEvalOutput const*);
   haxorg_HstdStr const* (*get_cwd)(haxorg_OrgCodeEvalOutput const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_appliedHeaderArg)(haxorg_OrgCodeEvalOutput const*);
+  haxorg_AttrGroup const* (*get_appliedHeaderArg)(haxorg_OrgCodeEvalOutput const*);
 };
 
 /// \brief ['org', 'sem', 'OrgCodeEvalOutput']
@@ -1826,28 +2086,9 @@ struct haxorg_OrgCodeEvalOutput {
 };
 
 void haxorg_destroy_OrgCodeEvalOutput(haxorg_OrgCodeEvalOutput* obj);
-struct haxorg_ColumnView_vtable {
-  haxorg_HstdVec const* (*get_columns)(haxorg_ColumnView const*);
-};
-
-/// \brief ['org', 'sem', 'ColumnView']
-struct haxorg_ColumnView {
-  haxorg_ColumnView_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ColumnView(haxorg_ColumnView* obj);
-struct haxorg_ColumnViewSummary_vtable {};
-
-/// \brief ['org', 'sem', 'ColumnView', 'Summary']
-struct haxorg_ColumnViewSummary {
-  haxorg_ColumnViewSummary_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ColumnViewSummary(haxorg_ColumnViewSummary* obj);
+enum class haxorg_ColumnViewSummaryCheckboxAggregateKind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
 struct haxorg_ColumnViewSummaryCheckboxAggregate_vtable {
-  haxorg_ColumnViewSummaryCheckboxAggregateKind const* /* ['org', 'sem', 'ColumnView', 'Summary', 'CheckboxAggregate', 'Kind'] */ (*get_kind)(haxorg_ColumnViewSummaryCheckboxAggregate const*);
+  haxorg_ColumnViewSummaryCheckboxAggregateKind const* (*get_kind)(haxorg_ColumnViewSummaryCheckboxAggregate const*);
 };
 
 /// \brief ['org', 'sem', 'ColumnView', 'Summary', 'CheckboxAggregate']
@@ -1857,9 +2098,9 @@ struct haxorg_ColumnViewSummaryCheckboxAggregate {
 };
 
 void haxorg_destroy_ColumnViewSummaryCheckboxAggregate(haxorg_ColumnViewSummaryCheckboxAggregate* obj);
-enum class haxorg_ColumnViewSummaryCheckboxAggregateKind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
+enum class haxorg_ColumnViewSummaryMathAggregateKind : short int { Min, Max, Mean, Sum, LowHighEst, };
 struct haxorg_ColumnViewSummaryMathAggregate_vtable {
-  haxorg_ColumnViewSummaryMathAggregateKind const* /* ['org', 'sem', 'ColumnView', 'Summary', 'MathAggregate', 'Kind'] */ (*get_kind)(haxorg_ColumnViewSummaryMathAggregate const*);
+  haxorg_ColumnViewSummaryMathAggregateKind const* (*get_kind)(haxorg_ColumnViewSummaryMathAggregate const*);
   haxorg_HstdOpt const* (*get_formatDigits)(haxorg_ColumnViewSummaryMathAggregate const*);
   haxorg_HstdOpt const* (*get_formatPrecision)(haxorg_ColumnViewSummaryMathAggregate const*);
 };
@@ -1871,8 +2112,16 @@ struct haxorg_ColumnViewSummaryMathAggregate {
 };
 
 void haxorg_destroy_ColumnViewSummaryMathAggregate(haxorg_ColumnViewSummaryMathAggregate* obj);
-enum class haxorg_ColumnViewSummaryMathAggregateKind : short int { Min, Max, Mean, Sum, LowHighEst, };
 enum class haxorg_ColumnViewSummaryKind : short int { CheckboxAggregate, MathAggregate, };
+struct haxorg_ColumnViewSummary_vtable {};
+
+/// \brief ['org', 'sem', 'ColumnView', 'Summary']
+struct haxorg_ColumnViewSummary {
+  haxorg_ColumnViewSummary_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ColumnViewSummary(haxorg_ColumnViewSummary* obj);
 struct haxorg_ColumnViewColumn_vtable {
   haxorg_HstdOpt const* (*get_summary)(haxorg_ColumnViewColumn const*);
   haxorg_HstdOpt const* (*get_width)(haxorg_ColumnViewColumn const*);
@@ -1887,26 +2136,17 @@ struct haxorg_ColumnViewColumn {
 };
 
 void haxorg_destroy_ColumnViewColumn(haxorg_ColumnViewColumn* obj);
-struct haxorg_BlockCodeLine_vtable {
-  haxorg_HstdVec const* (*get_parts)(haxorg_BlockCodeLine const*);
+struct haxorg_ColumnView_vtable {
+  haxorg_HstdVec const* (*get_columns)(haxorg_ColumnView const*);
 };
 
-/// \brief ['org', 'sem', 'BlockCodeLine']
-struct haxorg_BlockCodeLine {
-  haxorg_BlockCodeLine_vtable const* vtable;
+/// \brief ['org', 'sem', 'ColumnView']
+struct haxorg_ColumnView {
+  haxorg_ColumnView_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_BlockCodeLine(haxorg_BlockCodeLine* obj);
-struct haxorg_BlockCodeLinePart_vtable {};
-
-/// \brief ['org', 'sem', 'BlockCodeLine', 'Part']
-struct haxorg_BlockCodeLinePart {
-  haxorg_BlockCodeLinePart_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_BlockCodeLinePart(haxorg_BlockCodeLinePart* obj);
+void haxorg_destroy_ColumnView(haxorg_ColumnView* obj);
 struct haxorg_BlockCodeLinePartRaw_vtable {
   haxorg_HstdStr const* (*get_code)(haxorg_BlockCodeLinePartRaw const*);
 };
@@ -1941,49 +2181,26 @@ struct haxorg_BlockCodeLinePartTangle {
 
 void haxorg_destroy_BlockCodeLinePartTangle(haxorg_BlockCodeLinePartTangle* obj);
 enum class haxorg_BlockCodeLinePartKind : short int { Raw, Callout, Tangle, };
-struct haxorg_DocumentExportConfig_vtable {
-  haxorg_HstdOpt const* (*get_inlinetasks)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_footnotes)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_clock)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_author)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_emphasis)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_specialStrings)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_propertyDrawers)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_statisticsCookies)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_todoText)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_smartQuotes)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_fixedWidth)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_timestamps)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_preserveBreaks)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_subSuperscripts)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_expandLinks)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_creator)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_drawers)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_date)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_entities)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_email)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_sectionNumbers)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_planning)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_priority)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_latex)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_timestamp)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_title)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_tables)(haxorg_DocumentExportConfig const*);
-  haxorg_HstdOpt const* (*get_headlineLevels)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigBrokenLinks const* /* ['org', 'sem', 'DocumentExportConfig', 'BrokenLinks'] */ (*get_brokenLinks)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigTocExport const* /* ['org', 'sem', 'DocumentExportConfig', 'TocExport'] */ (*get_tocExport)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigTagExport const* /* ['org', 'sem', 'DocumentExportConfig', 'TagExport'] */ (*get_tagExport)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigTaskFiltering const* /* ['org', 'sem', 'DocumentExportConfig', 'TaskFiltering'] */ (*get_taskFiltering)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigArchivedTrees const* /* ['org', 'sem', 'DocumentExportConfig', 'ArchivedTrees'] */ (*get_archivedTrees)(haxorg_DocumentExportConfig const*);
-};
+struct haxorg_BlockCodeLinePart_vtable {};
 
-/// \brief ['org', 'sem', 'DocumentExportConfig']
-struct haxorg_DocumentExportConfig {
-  haxorg_DocumentExportConfig_vtable const* vtable;
+/// \brief ['org', 'sem', 'BlockCodeLine', 'Part']
+struct haxorg_BlockCodeLinePart {
+  haxorg_BlockCodeLinePart_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_DocumentExportConfig(haxorg_DocumentExportConfig* obj);
+void haxorg_destroy_BlockCodeLinePart(haxorg_BlockCodeLinePart* obj);
+struct haxorg_BlockCodeLine_vtable {
+  haxorg_HstdVec const* (*get_parts)(haxorg_BlockCodeLine const*);
+};
+
+/// \brief ['org', 'sem', 'BlockCodeLine']
+struct haxorg_BlockCodeLine {
+  haxorg_BlockCodeLine_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_BlockCodeLine(haxorg_BlockCodeLine* obj);
 struct haxorg_DocumentExportConfigTaskExport_vtable {
   haxorg_HstdVec const* (*get_taskWhitelist)(haxorg_DocumentExportConfigTaskExport const*);
 };
@@ -2044,19 +2261,49 @@ struct haxorg_DocumentExportConfigExportFixed {
 
 void haxorg_destroy_DocumentExportConfigExportFixed(haxorg_DocumentExportConfigExportFixed* obj);
 enum class haxorg_DocumentExportConfigTocExportKind : short int { DoExport, ExportFixed, };
-struct haxorg_SubtreePeriod_vtable {
-  haxorg_SubtreePeriodKind const* /* ['org', 'sem', 'SubtreePeriod', 'Kind'] */ (*get_kind)(haxorg_SubtreePeriod const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_from)(haxorg_SubtreePeriod const*);
-  haxorg_HstdOpt const* (*get_to)(haxorg_SubtreePeriod const*);
+struct haxorg_DocumentExportConfig_vtable {
+  haxorg_HstdOpt const* (*get_inlinetasks)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_footnotes)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_clock)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_author)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_emphasis)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_specialStrings)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_propertyDrawers)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_statisticsCookies)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_todoText)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_smartQuotes)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_fixedWidth)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_timestamps)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_preserveBreaks)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_subSuperscripts)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_expandLinks)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_creator)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_drawers)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_date)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_entities)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_email)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_sectionNumbers)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_planning)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_priority)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_latex)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_timestamp)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_title)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_tables)(haxorg_DocumentExportConfig const*);
+  haxorg_HstdOpt const* (*get_headlineLevels)(haxorg_DocumentExportConfig const*);
+  haxorg_DocumentExportConfigBrokenLinks const* (*get_brokenLinks)(haxorg_DocumentExportConfig const*);
+  haxorg_DocumentExportConfigTocExport const* (*get_tocExport)(haxorg_DocumentExportConfig const*);
+  haxorg_DocumentExportConfigTagExport const* (*get_tagExport)(haxorg_DocumentExportConfig const*);
+  haxorg_DocumentExportConfigTaskFiltering const* (*get_taskFiltering)(haxorg_DocumentExportConfig const*);
+  haxorg_DocumentExportConfigArchivedTrees const* (*get_archivedTrees)(haxorg_DocumentExportConfig const*);
 };
 
-/// \brief ['org', 'sem', 'SubtreePeriod']
-struct haxorg_SubtreePeriod {
-  haxorg_SubtreePeriod_vtable const* vtable;
+/// \brief ['org', 'sem', 'DocumentExportConfig']
+struct haxorg_DocumentExportConfig {
+  haxorg_DocumentExportConfig_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_SubtreePeriod(haxorg_SubtreePeriod* obj);
+void haxorg_destroy_DocumentExportConfig(haxorg_DocumentExportConfig* obj);
 /// \brief Period kind
 enum class haxorg_SubtreePeriodKind : short int {
   /// \brief Time period of the task execution.
@@ -2074,15 +2321,19 @@ enum class haxorg_SubtreePeriodKind : short int {
   /// \brief Last repeat time of the recurring tasks
   Repeated,
 };
-struct haxorg_NamedProperty_vtable {};
+struct haxorg_SubtreePeriod_vtable {
+  haxorg_SubtreePeriodKind const* (*get_kind)(haxorg_SubtreePeriod const*);
+  haxorg_UserTime const* (*get_from)(haxorg_SubtreePeriod const*);
+  haxorg_HstdOpt const* (*get_to)(haxorg_SubtreePeriod const*);
+};
 
-/// \brief ['org', 'sem', 'NamedProperty']
-struct haxorg_NamedProperty {
-  haxorg_NamedProperty_vtable const* vtable;
+/// \brief ['org', 'sem', 'SubtreePeriod']
+struct haxorg_SubtreePeriod {
+  haxorg_SubtreePeriod_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_NamedProperty(haxorg_NamedProperty* obj);
+void haxorg_destroy_SubtreePeriod(haxorg_SubtreePeriod* obj);
 struct haxorg_NamedPropertyNonblocking_vtable {
   bool const* (*get_isBlocking)(haxorg_NamedPropertyNonblocking const*);
 };
@@ -2095,7 +2346,7 @@ struct haxorg_NamedPropertyNonblocking {
 
 void haxorg_destroy_NamedPropertyNonblocking(haxorg_NamedPropertyNonblocking* obj);
 struct haxorg_NamedPropertyArchiveTime_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_time)(haxorg_NamedPropertyArchiveTime const*);
+  haxorg_UserTime const* (*get_time)(haxorg_NamedPropertyArchiveTime const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'ArchiveTime']
@@ -2117,7 +2368,7 @@ struct haxorg_NamedPropertyArchiveFile {
 
 void haxorg_destroy_NamedPropertyArchiveFile(haxorg_NamedPropertyArchiveFile* obj);
 struct haxorg_NamedPropertyArchiveOlpath_vtable {
-  haxorg_SubtreePath const* /* ['org', 'sem', 'SubtreePath'] */ (*get_path)(haxorg_NamedPropertyArchiveOlpath const*);
+  haxorg_SubtreePath const* (*get_path)(haxorg_NamedPropertyArchiveOlpath const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'ArchiveOlpath']
@@ -2128,7 +2379,7 @@ struct haxorg_NamedPropertyArchiveOlpath {
 
 void haxorg_destroy_NamedPropertyArchiveOlpath(haxorg_NamedPropertyArchiveOlpath* obj);
 struct haxorg_NamedPropertyArchiveTarget_vtable {
-  haxorg_SubtreePath const* /* ['org', 'sem', 'SubtreePath'] */ (*get_path)(haxorg_NamedPropertyArchiveTarget const*);
+  haxorg_SubtreePath const* (*get_path)(haxorg_NamedPropertyArchiveTarget const*);
   haxorg_HstdStr const* (*get_pattern)(haxorg_NamedPropertyArchiveTarget const*);
 };
 
@@ -2183,7 +2434,7 @@ struct haxorg_NamedPropertyExportLatexClass {
 void haxorg_destroy_NamedPropertyExportLatexClass(haxorg_NamedPropertyExportLatexClass* obj);
 struct haxorg_NamedPropertyCookieData_vtable {
   bool const* (*get_isRecursive)(haxorg_NamedPropertyCookieData const*);
-  haxorg_SubtreeTodoSource const* /* ['SubtreeTodoSource'] */ (*get_source)(haxorg_NamedPropertyCookieData const*);
+  haxorg_SubtreeTodoSource const* (*get_source)(haxorg_NamedPropertyCookieData const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'CookieData']
@@ -2249,8 +2500,9 @@ struct haxorg_NamedPropertyEffort {
 };
 
 void haxorg_destroy_NamedPropertyEffort(haxorg_NamedPropertyEffort* obj);
+enum class haxorg_NamedPropertyVisibilityLevel : short int { Folded, Children, Content, All, };
 struct haxorg_NamedPropertyVisibility_vtable {
-  haxorg_NamedPropertyVisibilityLevel const* /* ['org', 'sem', 'NamedProperty', 'Visibility', 'Level'] */ (*get_level)(haxorg_NamedPropertyVisibility const*);
+  haxorg_NamedPropertyVisibilityLevel const* (*get_level)(haxorg_NamedPropertyVisibility const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'Visibility']
@@ -2260,7 +2512,6 @@ struct haxorg_NamedPropertyVisibility {
 };
 
 void haxorg_destroy_NamedPropertyVisibility(haxorg_NamedPropertyVisibility* obj);
-enum class haxorg_NamedPropertyVisibilityLevel : short int { Folded, Children, Content, All, };
 struct haxorg_NamedPropertyExportOptions_vtable {
   haxorg_HstdStr const* (*get_backend)(haxorg_NamedPropertyExportOptions const*);
   haxorg_HstdUnorderedMap const* (*get_values)(haxorg_NamedPropertyExportOptions const*);
@@ -2294,7 +2545,7 @@ struct haxorg_NamedPropertyUnnumbered {
 
 void haxorg_destroy_NamedPropertyUnnumbered(haxorg_NamedPropertyUnnumbered* obj);
 struct haxorg_NamedPropertyCreated_vtable {
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_time)(haxorg_NamedPropertyCreated const*);
+  haxorg_UserTime const* (*get_time)(haxorg_NamedPropertyCreated const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'Created']
@@ -2316,7 +2567,7 @@ struct haxorg_NamedPropertyRadioId {
 
 void haxorg_destroy_NamedPropertyRadioId(haxorg_NamedPropertyRadioId* obj);
 struct haxorg_NamedPropertyHashtagDef_vtable {
-  haxorg_HashTagText const* /* ['org', 'sem', 'HashTagText'] */ (*get_hashtag)(haxorg_NamedPropertyHashtagDef const*);
+  haxorg_HashTagText const* (*get_hashtag)(haxorg_NamedPropertyHashtagDef const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'HashtagDef']
@@ -2329,7 +2580,7 @@ void haxorg_destroy_NamedPropertyHashtagDef(haxorg_NamedPropertyHashtagDef* obj)
 struct haxorg_NamedPropertyCustomArgs_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_NamedPropertyCustomArgs const*);
   haxorg_HstdOpt const* (*get_sub)(haxorg_NamedPropertyCustomArgs const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_NamedPropertyCustomArgs const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_NamedPropertyCustomArgs const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'CustomArgs']
@@ -2364,7 +2615,7 @@ struct haxorg_NamedPropertyCustomId {
 void haxorg_destroy_NamedPropertyCustomId(haxorg_NamedPropertyCustomId* obj);
 struct haxorg_NamedPropertyCustomSubtreeJson_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_NamedPropertyCustomSubtreeJson const*);
-  haxorg_OrgJson const* /* ['org', 'sem', 'OrgJson'] */ (*get_value)(haxorg_NamedPropertyCustomSubtreeJson const*);
+  haxorg_OrgJson const* (*get_value)(haxorg_NamedPropertyCustomSubtreeJson const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'CustomSubtreeJson']
@@ -2376,7 +2627,7 @@ struct haxorg_NamedPropertyCustomSubtreeJson {
 void haxorg_destroy_NamedPropertyCustomSubtreeJson(haxorg_NamedPropertyCustomSubtreeJson* obj);
 struct haxorg_NamedPropertyCustomSubtreeFlags_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_NamedPropertyCustomSubtreeFlags const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_value)(haxorg_NamedPropertyCustomSubtreeFlags const*);
+  haxorg_AttrGroup const* (*get_value)(haxorg_NamedPropertyCustomSubtreeFlags const*);
 };
 
 /// \brief ['org', 'sem', 'NamedProperty', 'CustomSubtreeFlags']
@@ -2387,23 +2638,23 @@ struct haxorg_NamedPropertyCustomSubtreeFlags {
 
 void haxorg_destroy_NamedPropertyCustomSubtreeFlags(haxorg_NamedPropertyCustomSubtreeFlags* obj);
 enum class haxorg_NamedPropertyKind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomId, CustomSubtreeJson, CustomSubtreeFlags, };
-struct haxorg_OrgDiagnostics_vtable {};
+struct haxorg_NamedProperty_vtable {};
 
-/// \brief ['org', 'sem', 'OrgDiagnostics']
-struct haxorg_OrgDiagnostics {
-  haxorg_OrgDiagnostics_vtable const* vtable;
+/// \brief ['org', 'sem', 'NamedProperty']
+struct haxorg_NamedProperty {
+  haxorg_NamedProperty_vtable const* vtable;
   haxorg_shared_ptr_payload data;
 };
 
-void haxorg_destroy_OrgDiagnostics(haxorg_OrgDiagnostics* obj);
+void haxorg_destroy_NamedProperty(haxorg_NamedProperty* obj);
 struct haxorg_OrgDiagnosticsParseTokenError_vtable {
   haxorg_HstdStr const* (*get_brief)(haxorg_OrgDiagnosticsParseTokenError const*);
   haxorg_HstdStr const* (*get_detail)(haxorg_OrgDiagnosticsParseTokenError const*);
   haxorg_HstdStr const* (*get_parserFunction)(haxorg_OrgDiagnosticsParseTokenError const*);
   int const* (*get_parserLine)(haxorg_OrgDiagnosticsParseTokenError const*);
-  haxorg_OrgTokenKind const* /* ['OrgTokenKind'] */ (*get_tokenKind)(haxorg_OrgDiagnosticsParseTokenError const*);
+  haxorg_OrgTokenKind const* (*get_tokenKind)(haxorg_OrgDiagnosticsParseTokenError const*);
   haxorg_HstdStr const* (*get_tokenText)(haxorg_OrgDiagnosticsParseTokenError const*);
-  haxorg_ParseSourceLoc const* /* ['org', 'parse', 'SourceLoc'] */ (*get_loc)(haxorg_OrgDiagnosticsParseTokenError const*);
+  haxorg_ParseSourceLoc const* (*get_loc)(haxorg_OrgDiagnosticsParseTokenError const*);
   haxorg_HstdStr const* (*get_errName)(haxorg_OrgDiagnosticsParseTokenError const*);
   haxorg_HstdStr const* (*get_errCode)(haxorg_OrgDiagnosticsParseTokenError const*);
 };
@@ -2479,6 +2730,15 @@ struct haxorg_OrgDiagnosticsInternalError {
 
 void haxorg_destroy_OrgDiagnosticsInternalError(haxorg_OrgDiagnosticsInternalError* obj);
 enum class haxorg_OrgDiagnosticsKind : short int { ParseTokenError, ParseError, IncludeError, ConvertError, InternalError, };
+struct haxorg_OrgDiagnostics_vtable {};
+
+/// \brief ['org', 'sem', 'OrgDiagnostics']
+struct haxorg_OrgDiagnostics {
+  haxorg_OrgDiagnostics_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_OrgDiagnostics(haxorg_OrgDiagnostics* obj);
 struct haxorg_NoNode_vtable {};
 
 /// \brief ['org', 'sem', 'NoNode']
@@ -2489,7 +2749,7 @@ struct haxorg_NoNode {
 
 void haxorg_destroy_NoNode(haxorg_NoNode* obj);
 struct haxorg_ErrorItem_vtable {
-  haxorg_OrgDiagnostics const* /* ['org', 'sem', 'OrgDiagnostics'] */ (*get_diag)(haxorg_ErrorItem const*);
+  haxorg_OrgDiagnostics const* (*get_diag)(haxorg_ErrorItem const*);
 };
 
 /// \brief ['org', 'sem', 'ErrorItem']
@@ -2559,30 +2819,6 @@ struct haxorg_Leaf {
 };
 
 void haxorg_destroy_Leaf(haxorg_Leaf* obj);
-struct haxorg_Time_vtable {
-  bool const* (*get_isActive)(haxorg_Time const*);
-};
-
-/// \brief ['org', 'sem', 'Time']
-struct haxorg_Time {
-  haxorg_Time_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_Time(haxorg_Time* obj);
-struct haxorg_TimeRepeat_vtable {
-  haxorg_TimeRepeatMode const* /* ['org', 'sem', 'Time', 'Repeat', 'Mode'] */ (*get_mode)(haxorg_TimeRepeat const*);
-  haxorg_TimeRepeatPeriod const* /* ['org', 'sem', 'Time', 'Repeat', 'Period'] */ (*get_period)(haxorg_TimeRepeat const*);
-  int const* (*get_count)(haxorg_TimeRepeat const*);
-};
-
-/// \brief ['org', 'sem', 'Time', 'Repeat']
-struct haxorg_TimeRepeat {
-  haxorg_TimeRepeat_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj);
 /// \brief Timestamp repetition mode
 enum class haxorg_TimeRepeatMode : short int {
   /// \brief Do not repeat task on completion
@@ -2596,10 +2832,23 @@ enum class haxorg_TimeRepeatMode : short int {
 };
 /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
 enum class haxorg_TimeRepeatPeriod : short int { Year, Month, Week, Day, Hour, Minute, };
+struct haxorg_TimeRepeat_vtable {
+  haxorg_TimeRepeatMode const* (*get_mode)(haxorg_TimeRepeat const*);
+  haxorg_TimeRepeatPeriod const* (*get_period)(haxorg_TimeRepeat const*);
+  int const* (*get_count)(haxorg_TimeRepeat const*);
+};
+
+/// \brief ['org', 'sem', 'Time', 'Repeat']
+struct haxorg_TimeRepeat {
+  haxorg_TimeRepeat_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj);
 struct haxorg_TimeStatic_vtable {
   haxorg_HstdVec const* (*get_repeat)(haxorg_TimeStatic const*);
   haxorg_HstdOpt const* (*get_warn)(haxorg_TimeStatic const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_time)(haxorg_TimeStatic const*);
+  haxorg_UserTime const* (*get_time)(haxorg_TimeStatic const*);
 };
 
 /// \brief ['org', 'sem', 'Time', 'Static']
@@ -2610,7 +2859,7 @@ struct haxorg_TimeStatic {
 
 void haxorg_destroy_TimeStatic(haxorg_TimeStatic* obj);
 struct haxorg_TimeDynamic_vtable {
-  haxorg_LispCode const* /* ['org', 'sem', 'LispCode'] */ (*get_expr)(haxorg_TimeDynamic const*);
+  haxorg_LispCode const* (*get_expr)(haxorg_TimeDynamic const*);
 };
 
 /// \brief ['org', 'sem', 'Time', 'Dynamic']
@@ -2621,6 +2870,17 @@ struct haxorg_TimeDynamic {
 
 void haxorg_destroy_TimeDynamic(haxorg_TimeDynamic* obj);
 enum class haxorg_TimeTimeKind : short int { Static, Dynamic, };
+struct haxorg_Time_vtable {
+  bool const* (*get_isActive)(haxorg_Time const*);
+};
+
+/// \brief ['org', 'sem', 'Time']
+struct haxorg_Time {
+  haxorg_Time_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_Time(haxorg_Time* obj);
 struct haxorg_TimeRange_vtable {
   haxorg_SemId const* (*get_from)(haxorg_TimeRange const*);
   haxorg_SemId const* (*get_to)(haxorg_TimeRange const*);
@@ -2635,7 +2895,7 @@ struct haxorg_TimeRange {
 void haxorg_destroy_TimeRange(haxorg_TimeRange* obj);
 struct haxorg_Macro_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_Macro const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_Macro const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_Macro const*);
 };
 
 /// \brief ['org', 'sem', 'Macro']
@@ -2645,6 +2905,18 @@ struct haxorg_Macro {
 };
 
 void haxorg_destroy_Macro(haxorg_Macro* obj);
+struct haxorg_SymbolParam_vtable {
+  haxorg_HstdOpt const* (*get_key)(haxorg_SymbolParam const*);
+  haxorg_HstdStr const* (*get_value)(haxorg_SymbolParam const*);
+};
+
+/// \brief ['org', 'sem', 'Symbol', 'Param']
+struct haxorg_SymbolParam {
+  haxorg_SymbolParam_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_SymbolParam(haxorg_SymbolParam* obj);
 struct haxorg_Symbol_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_Symbol const*);
   haxorg_HstdVec const* (*get_parameters)(haxorg_Symbol const*);
@@ -2658,18 +2930,6 @@ struct haxorg_Symbol {
 };
 
 void haxorg_destroy_Symbol(haxorg_Symbol* obj);
-struct haxorg_SymbolParam_vtable {
-  haxorg_HstdOpt const* (*get_key)(haxorg_SymbolParam const*);
-  haxorg_HstdStr const* (*get_value)(haxorg_SymbolParam const*);
-};
-
-/// \brief ['org', 'sem', 'Symbol', 'Param']
-struct haxorg_SymbolParam {
-  haxorg_SymbolParam_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_SymbolParam(haxorg_SymbolParam* obj);
 struct haxorg_ErrorSkipGroup_vtable {
   haxorg_HstdVec const* (*get_skipped)(haxorg_ErrorSkipGroup const*);
 };
@@ -2711,7 +2971,7 @@ struct haxorg_Latex {
 
 void haxorg_destroy_Latex(haxorg_Latex* obj);
 struct haxorg_SubtreeLog_vtable {
-  haxorg_SubtreeLogHead const* /* ['org', 'sem', 'SubtreeLogHead'] */ (*get_head)(haxorg_SubtreeLog const*);
+  haxorg_SubtreeLogHead const* (*get_head)(haxorg_SubtreeLog const*);
   haxorg_HstdOpt const* (*get_desc)(haxorg_SubtreeLog const*);
 };
 
@@ -2758,7 +3018,7 @@ struct haxorg_ColonExample {
 void haxorg_destroy_ColonExample(haxorg_ColonExample* obj);
 struct haxorg_Call_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_Call const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_Call const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_Call const*);
   bool const* (*get_isCommand)(haxorg_Call const*);
 };
 
@@ -2770,7 +3030,7 @@ struct haxorg_Call {
 
 void haxorg_destroy_Call(haxorg_Call* obj);
 struct haxorg_ListItem_vtable {
-  haxorg_CheckboxState const* /* ['CheckboxState'] */ (*get_checkbox)(haxorg_ListItem const*);
+  haxorg_CheckboxState const* (*get_checkbox)(haxorg_ListItem const*);
   haxorg_HstdOpt const* (*get_header)(haxorg_ListItem const*);
   haxorg_HstdOpt const* (*get_bullet)(haxorg_ListItem const*);
 };
@@ -2783,9 +3043,9 @@ struct haxorg_ListItem {
 
 void haxorg_destroy_ListItem(haxorg_ListItem* obj);
 struct haxorg_DocumentOptions_vtable {
-  haxorg_InitialSubtreeVisibility const* /* ['InitialSubtreeVisibility'] */ (*get_initialVisibility)(haxorg_DocumentOptions const*);
+  haxorg_InitialSubtreeVisibility const* (*get_initialVisibility)(haxorg_DocumentOptions const*);
   haxorg_HstdVec const* (*get_properties)(haxorg_DocumentOptions const*);
-  haxorg_DocumentExportConfig const* /* ['org', 'sem', 'DocumentExportConfig'] */ (*get_exportConfig)(haxorg_DocumentOptions const*);
+  haxorg_DocumentExportConfig const* (*get_exportConfig)(haxorg_DocumentOptions const*);
   haxorg_HstdOpt const* (*get_fixedWidthSections)(haxorg_DocumentOptions const*);
   haxorg_HstdOpt const* (*get_startupIndented)(haxorg_DocumentOptions const*);
   haxorg_HstdOpt const* (*get_category)(haxorg_DocumentOptions const*);
@@ -2815,8 +3075,9 @@ struct haxorg_DocumentFragment {
 };
 
 void haxorg_destroy_DocumentFragment(haxorg_DocumentFragment* obj);
+enum class haxorg_CriticMarkupKind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
 struct haxorg_CriticMarkup_vtable {
-  haxorg_CriticMarkupKind const* /* ['org', 'sem', 'CriticMarkup', 'Kind'] */ (*get_kind)(haxorg_CriticMarkup const*);
+  haxorg_CriticMarkupKind const* (*get_kind)(haxorg_CriticMarkup const*);
 };
 
 /// \brief ['org', 'sem', 'CriticMarkup']
@@ -2826,7 +3087,6 @@ struct haxorg_CriticMarkup {
 };
 
 void haxorg_destroy_CriticMarkup(haxorg_CriticMarkup* obj);
-enum class haxorg_CriticMarkupKind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
 struct haxorg_Document_vtable {
   haxorg_HstdOpt const* (*get_title)(haxorg_Document const*);
   haxorg_HstdOpt const* (*get_author)(haxorg_Document const*);
@@ -2879,18 +3139,6 @@ struct haxorg_DocumentGroup {
 };
 
 void haxorg_destroy_DocumentGroup(haxorg_DocumentGroup* obj);
-struct haxorg_File_vtable {
-  haxorg_HstdStr const* (*get_relPath)(haxorg_File const*);
-  haxorg_HstdStr const* (*get_absPath)(haxorg_File const*);
-};
-
-/// \brief ['org', 'sem', 'File']
-struct haxorg_File {
-  haxorg_File_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_File(haxorg_File* obj);
 struct haxorg_FileDocument_vtable {};
 
 /// \brief ['org', 'sem', 'File', 'Document']
@@ -2919,6 +3167,18 @@ struct haxorg_FileSource {
 
 void haxorg_destroy_FileSource(haxorg_FileSource* obj);
 enum class haxorg_FileKind : short int { Document, Attachment, Source, };
+struct haxorg_File_vtable {
+  haxorg_HstdStr const* (*get_relPath)(haxorg_File const*);
+  haxorg_HstdStr const* (*get_absPath)(haxorg_File const*);
+};
+
+/// \brief ['org', 'sem', 'File']
+struct haxorg_File {
+  haxorg_File_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_File(haxorg_File* obj);
 struct haxorg_Directory_vtable {
   haxorg_HstdStr const* (*get_relPath)(haxorg_Directory const*);
   haxorg_HstdStr const* (*get_absPath)(haxorg_Directory const*);
@@ -2943,19 +3203,6 @@ struct haxorg_Symlink {
 };
 
 void haxorg_destroy_Symlink(haxorg_Symlink* obj);
-struct haxorg_CmdInclude_vtable {
-  haxorg_HstdStr const* (*get_path)(haxorg_CmdInclude const*);
-  haxorg_HstdOpt const* (*get_firstLine)(haxorg_CmdInclude const*);
-  haxorg_HstdOpt const* (*get_lastLine)(haxorg_CmdInclude const*);
-};
-
-/// \brief ['org', 'sem', 'CmdInclude']
-struct haxorg_CmdInclude {
-  haxorg_CmdInclude_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_CmdInclude(haxorg_CmdInclude* obj);
 struct haxorg_CmdIncludeIncludeBase_vtable {};
 
 /// \brief ['org', 'sem', 'CmdInclude', 'IncludeBase']
@@ -3022,6 +3269,19 @@ struct haxorg_CmdIncludeOrgDocument {
 
 void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj);
 enum class haxorg_CmdIncludeKind : short int { Example, Export, Custom, Src, OrgDocument, };
+struct haxorg_CmdInclude_vtable {
+  haxorg_HstdStr const* (*get_path)(haxorg_CmdInclude const*);
+  haxorg_HstdOpt const* (*get_firstLine)(haxorg_CmdInclude const*);
+  haxorg_HstdOpt const* (*get_lastLine)(haxorg_CmdInclude const*);
+};
+
+/// \brief ['org', 'sem', 'CmdInclude']
+struct haxorg_CmdInclude {
+  haxorg_CmdInclude_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_CmdInclude(haxorg_CmdInclude* obj);
 struct haxorg_ImmNoNode_vtable {};
 
 /// \brief ['org', 'imm', 'ImmNoNode']
@@ -3032,7 +3292,7 @@ struct haxorg_ImmNoNode {
 
 void haxorg_destroy_ImmNoNode(haxorg_ImmNoNode* obj);
 struct haxorg_ImmErrorItem_vtable {
-  haxorg_OrgDiagnostics const* /* ['org', 'sem', 'OrgDiagnostics'] */ (*get_diag)(haxorg_ImmErrorItem const*);
+  haxorg_OrgDiagnostics const* (*get_diag)(haxorg_ImmErrorItem const*);
 };
 
 /// \brief ['org', 'imm', 'ImmErrorItem']
@@ -3102,21 +3362,12 @@ struct haxorg_ImmLeaf {
 };
 
 void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj);
-struct haxorg_ImmTime_vtable {
-  bool const* /* imm_write */ (*get_isActive)(haxorg_ImmTime const*);
-};
-
-/// \brief ['org', 'imm', 'ImmTime']
-struct haxorg_ImmTime {
-  haxorg_ImmTime_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmTime(haxorg_ImmTime* obj);
+typedef haxorg_TimeRepeatMode haxorg_ImmTimeRepeatMode;
+typedef haxorg_TimeRepeatPeriod haxorg_ImmTimeRepeatPeriod;
 struct haxorg_ImmTimeRepeat_vtable {
-  haxorg_ImmTimeRepeatMode const* /* ['org', 'imm', 'ImmTime', 'Repeat', 'Mode'] */ (*get_mode)(haxorg_ImmTimeRepeat const*);
-  haxorg_ImmTimeRepeatPeriod const* /* ['org', 'imm', 'ImmTime', 'Repeat', 'Period'] */ (*get_period)(haxorg_ImmTimeRepeat const*);
-  int const* /* imm_write */ (*get_count)(haxorg_ImmTimeRepeat const*);
+  haxorg_ImmTimeRepeatMode const* (*get_mode)(haxorg_ImmTimeRepeat const*);
+  haxorg_ImmTimeRepeatPeriod const* (*get_period)(haxorg_ImmTimeRepeat const*);
+  int const* (*get_count)(haxorg_ImmTimeRepeat const*);
 };
 
 /// \brief ['org', 'imm', 'ImmTime', 'Repeat']
@@ -3129,7 +3380,7 @@ void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj);
 struct haxorg_ImmTimeStatic_vtable {
   haxorg_ImmVec const* (*get_repeat)(haxorg_ImmTimeStatic const*);
   haxorg_HstdOpt const* (*get_warn)(haxorg_ImmTimeStatic const*);
-  haxorg_UserTime const* /* ['hstd', 'UserTime'] */ (*get_time)(haxorg_ImmTimeStatic const*);
+  haxorg_UserTime const* (*get_time)(haxorg_ImmTimeStatic const*);
 };
 
 /// \brief ['org', 'imm', 'ImmTime', 'Static']
@@ -3140,7 +3391,7 @@ struct haxorg_ImmTimeStatic {
 
 void haxorg_destroy_ImmTimeStatic(haxorg_ImmTimeStatic* obj);
 struct haxorg_ImmTimeDynamic_vtable {
-  haxorg_LispCode const* /* ['org', 'sem', 'LispCode'] */ (*get_expr)(haxorg_ImmTimeDynamic const*);
+  haxorg_LispCode const* (*get_expr)(haxorg_ImmTimeDynamic const*);
 };
 
 /// \brief ['org', 'imm', 'ImmTime', 'Dynamic']
@@ -3151,6 +3402,17 @@ struct haxorg_ImmTimeDynamic {
 
 void haxorg_destroy_ImmTimeDynamic(haxorg_ImmTimeDynamic* obj);
 enum class haxorg_ImmTimeTimeKind : short int { Static, Dynamic, };
+struct haxorg_ImmTime_vtable {
+  bool const* (*get_isActive)(haxorg_ImmTime const*);
+};
+
+/// \brief ['org', 'imm', 'ImmTime']
+struct haxorg_ImmTime {
+  haxorg_ImmTime_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ImmTime(haxorg_ImmTime* obj);
 struct haxorg_ImmTimeRange_vtable {
   haxorg_ImmId const* (*get_from)(haxorg_ImmTimeRange const*);
   haxorg_ImmId const* (*get_to)(haxorg_ImmTimeRange const*);
@@ -3165,7 +3427,7 @@ struct haxorg_ImmTimeRange {
 void haxorg_destroy_ImmTimeRange(haxorg_ImmTimeRange* obj);
 struct haxorg_ImmMacro_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmMacro const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_ImmMacro const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_ImmMacro const*);
 };
 
 /// \brief ['org', 'imm', 'ImmMacro']
@@ -3175,6 +3437,18 @@ struct haxorg_ImmMacro {
 };
 
 void haxorg_destroy_ImmMacro(haxorg_ImmMacro* obj);
+struct haxorg_ImmSymbolParam_vtable {
+  haxorg_HstdOpt const* (*get_key)(haxorg_ImmSymbolParam const*);
+  haxorg_HstdStr const* (*get_value)(haxorg_ImmSymbolParam const*);
+};
+
+/// \brief ['org', 'imm', 'ImmSymbol', 'Param']
+struct haxorg_ImmSymbolParam {
+  haxorg_ImmSymbolParam_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ImmSymbolParam(haxorg_ImmSymbolParam* obj);
 struct haxorg_ImmSymbol_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmSymbol const*);
   haxorg_ImmVec const* (*get_parameters)(haxorg_ImmSymbol const*);
@@ -3188,18 +3462,6 @@ struct haxorg_ImmSymbol {
 };
 
 void haxorg_destroy_ImmSymbol(haxorg_ImmSymbol* obj);
-struct haxorg_ImmSymbolParam_vtable {
-  haxorg_HstdOpt const* (*get_key)(haxorg_ImmSymbolParam const*);
-  haxorg_HstdStr const* (*get_value)(haxorg_ImmSymbolParam const*);
-};
-
-/// \brief ['org', 'imm', 'ImmSymbol', 'Param']
-struct haxorg_ImmSymbolParam {
-  haxorg_ImmSymbolParam_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmSymbolParam(haxorg_ImmSymbolParam* obj);
 struct haxorg_ImmErrorSkipGroup_vtable {
   haxorg_ImmVec const* (*get_skipped)(haxorg_ImmErrorSkipGroup const*);
 };
@@ -3241,7 +3503,7 @@ struct haxorg_ImmLatex {
 
 void haxorg_destroy_ImmLatex(haxorg_ImmLatex* obj);
 struct haxorg_ImmSubtreeLog_vtable {
-  haxorg_SubtreeLogHead const* /* ['org', 'sem', 'SubtreeLogHead'] */ (*get_head)(haxorg_ImmSubtreeLog const*);
+  haxorg_SubtreeLogHead const* (*get_head)(haxorg_ImmSubtreeLog const*);
   haxorg_HstdOpt const* (*get_desc)(haxorg_ImmSubtreeLog const*);
 };
 
@@ -3253,7 +3515,7 @@ struct haxorg_ImmSubtreeLog {
 
 void haxorg_destroy_ImmSubtreeLog(haxorg_ImmSubtreeLog* obj);
 struct haxorg_ImmSubtree_vtable {
-  int const* /* imm_write */ (*get_level)(haxorg_ImmSubtree const*);
+  int const* (*get_level)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_treeId)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_todo)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_completion)(haxorg_ImmSubtree const*);
@@ -3265,8 +3527,8 @@ struct haxorg_ImmSubtree_vtable {
   haxorg_HstdOpt const* (*get_closed)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_deadline)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_scheduled)(haxorg_ImmSubtree const*);
-  bool const* /* imm_write */ (*get_isComment)(haxorg_ImmSubtree const*);
-  bool const* /* imm_write */ (*get_isArchived)(haxorg_ImmSubtree const*);
+  bool const* (*get_isComment)(haxorg_ImmSubtree const*);
+  bool const* (*get_isArchived)(haxorg_ImmSubtree const*);
   haxorg_HstdOpt const* (*get_priority)(haxorg_ImmSubtree const*);
 };
 
@@ -3288,8 +3550,8 @@ struct haxorg_ImmColonExample {
 void haxorg_destroy_ImmColonExample(haxorg_ImmColonExample* obj);
 struct haxorg_ImmCall_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_ImmCall const*);
-  bool const* /* imm_write */ (*get_isCommand)(haxorg_ImmCall const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_ImmCall const*);
+  bool const* (*get_isCommand)(haxorg_ImmCall const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCall']
@@ -3300,7 +3562,7 @@ struct haxorg_ImmCall {
 
 void haxorg_destroy_ImmCall(haxorg_ImmCall* obj);
 struct haxorg_ImmListItem_vtable {
-  haxorg_CheckboxState const* /* ['CheckboxState'] */ (*get_checkbox)(haxorg_ImmListItem const*);
+  haxorg_CheckboxState const* (*get_checkbox)(haxorg_ImmListItem const*);
   haxorg_HstdOpt const* (*get_header)(haxorg_ImmListItem const*);
   haxorg_HstdOpt const* (*get_bullet)(haxorg_ImmListItem const*);
 };
@@ -3313,9 +3575,9 @@ struct haxorg_ImmListItem {
 
 void haxorg_destroy_ImmListItem(haxorg_ImmListItem* obj);
 struct haxorg_ImmDocumentOptions_vtable {
-  haxorg_InitialSubtreeVisibility const* /* ['InitialSubtreeVisibility'] */ (*get_initialVisibility)(haxorg_ImmDocumentOptions const*);
+  haxorg_InitialSubtreeVisibility const* (*get_initialVisibility)(haxorg_ImmDocumentOptions const*);
   haxorg_ImmVec const* (*get_properties)(haxorg_ImmDocumentOptions const*);
-  haxorg_DocumentExportConfig const* /* ['org', 'sem', 'DocumentExportConfig'] */ (*get_exportConfig)(haxorg_ImmDocumentOptions const*);
+  haxorg_DocumentExportConfig const* (*get_exportConfig)(haxorg_ImmDocumentOptions const*);
   haxorg_HstdOpt const* (*get_fixedWidthSections)(haxorg_ImmDocumentOptions const*);
   haxorg_HstdOpt const* (*get_startupIndented)(haxorg_ImmDocumentOptions const*);
   haxorg_HstdOpt const* (*get_category)(haxorg_ImmDocumentOptions const*);
@@ -3334,8 +3596,8 @@ struct haxorg_ImmDocumentOptions {
 
 void haxorg_destroy_ImmDocumentOptions(haxorg_ImmDocumentOptions* obj);
 struct haxorg_ImmDocumentFragment_vtable {
-  int const* /* imm_write */ (*get_baseLine)(haxorg_ImmDocumentFragment const*);
-  int const* /* imm_write */ (*get_baseCol)(haxorg_ImmDocumentFragment const*);
+  int const* (*get_baseLine)(haxorg_ImmDocumentFragment const*);
+  int const* (*get_baseCol)(haxorg_ImmDocumentFragment const*);
 };
 
 /// \brief ['org', 'imm', 'ImmDocumentFragment']
@@ -3345,8 +3607,9 @@ struct haxorg_ImmDocumentFragment {
 };
 
 void haxorg_destroy_ImmDocumentFragment(haxorg_ImmDocumentFragment* obj);
+typedef haxorg_CriticMarkupKind haxorg_ImmCriticMarkupKind;
 struct haxorg_ImmCriticMarkup_vtable {
-  haxorg_ImmCriticMarkupKind const* /* ['org', 'imm', 'ImmCriticMarkup', 'Kind'] */ (*get_kind)(haxorg_ImmCriticMarkup const*);
+  haxorg_ImmCriticMarkupKind const* (*get_kind)(haxorg_ImmCriticMarkup const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCriticMarkup']
@@ -3378,7 +3641,7 @@ struct haxorg_ImmFileTarget_vtable {
   haxorg_HstdStr const* (*get_path)(haxorg_ImmFileTarget const*);
   haxorg_HstdOpt const* (*get_line)(haxorg_ImmFileTarget const*);
   haxorg_HstdOpt const* (*get_searchTarget)(haxorg_ImmFileTarget const*);
-  bool const* /* imm_write */ (*get_restrictToHeadlines)(haxorg_ImmFileTarget const*);
+  bool const* (*get_restrictToHeadlines)(haxorg_ImmFileTarget const*);
   haxorg_HstdOpt const* (*get_targetId)(haxorg_ImmFileTarget const*);
   haxorg_HstdOpt const* (*get_regexp)(haxorg_ImmFileTarget const*);
 };
@@ -3408,18 +3671,6 @@ struct haxorg_ImmDocumentGroup {
 };
 
 void haxorg_destroy_ImmDocumentGroup(haxorg_ImmDocumentGroup* obj);
-struct haxorg_ImmFile_vtable {
-  haxorg_HstdStr const* (*get_relPath)(haxorg_ImmFile const*);
-  haxorg_HstdStr const* (*get_absPath)(haxorg_ImmFile const*);
-};
-
-/// \brief ['org', 'imm', 'ImmFile']
-struct haxorg_ImmFile {
-  haxorg_ImmFile_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmFile(haxorg_ImmFile* obj);
 struct haxorg_ImmFileDocument_vtable {};
 
 /// \brief ['org', 'imm', 'ImmFile', 'Document']
@@ -3448,6 +3699,18 @@ struct haxorg_ImmFileSource {
 
 void haxorg_destroy_ImmFileSource(haxorg_ImmFileSource* obj);
 enum class haxorg_ImmFileKind : short int { Document, Attachment, Source, };
+struct haxorg_ImmFile_vtable {
+  haxorg_HstdStr const* (*get_relPath)(haxorg_ImmFile const*);
+  haxorg_HstdStr const* (*get_absPath)(haxorg_ImmFile const*);
+};
+
+/// \brief ['org', 'imm', 'ImmFile']
+struct haxorg_ImmFile {
+  haxorg_ImmFile_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ImmFile(haxorg_ImmFile* obj);
 struct haxorg_ImmDirectory_vtable {
   haxorg_HstdStr const* (*get_relPath)(haxorg_ImmDirectory const*);
   haxorg_HstdStr const* (*get_absPath)(haxorg_ImmDirectory const*);
@@ -3461,7 +3724,7 @@ struct haxorg_ImmDirectory {
 
 void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj);
 struct haxorg_ImmSymlink_vtable {
-  bool const* /* imm_write */ (*get_isDirectory)(haxorg_ImmSymlink const*);
+  bool const* (*get_isDirectory)(haxorg_ImmSymlink const*);
   haxorg_HstdStr const* (*get_absPath)(haxorg_ImmSymlink const*);
 };
 
@@ -3472,19 +3735,6 @@ struct haxorg_ImmSymlink {
 };
 
 void haxorg_destroy_ImmSymlink(haxorg_ImmSymlink* obj);
-struct haxorg_ImmCmdInclude_vtable {
-  haxorg_HstdStr const* (*get_path)(haxorg_ImmCmdInclude const*);
-  haxorg_HstdOpt const* (*get_firstLine)(haxorg_ImmCmdInclude const*);
-  haxorg_HstdOpt const* (*get_lastLine)(haxorg_ImmCmdInclude const*);
-};
-
-/// \brief ['org', 'imm', 'ImmCmdInclude']
-struct haxorg_ImmCmdInclude {
-  haxorg_ImmCmdInclude_vtable const* vtable;
-  haxorg_shared_ptr_payload data;
-};
-
-void haxorg_destroy_ImmCmdInclude(haxorg_ImmCmdInclude* obj);
 struct haxorg_ImmCmdIncludeIncludeBase_vtable {};
 
 /// \brief ['org', 'imm', 'ImmCmdInclude', 'IncludeBase']
@@ -3551,6 +3801,19 @@ struct haxorg_ImmCmdIncludeOrgDocument {
 
 void haxorg_destroy_ImmCmdIncludeOrgDocument(haxorg_ImmCmdIncludeOrgDocument* obj);
 enum class haxorg_ImmCmdIncludeKind : short int { Example, Export, Custom, Src, OrgDocument, };
+struct haxorg_ImmCmdInclude_vtable {
+  haxorg_HstdStr const* (*get_path)(haxorg_ImmCmdInclude const*);
+  haxorg_HstdOpt const* (*get_firstLine)(haxorg_ImmCmdInclude const*);
+  haxorg_HstdOpt const* (*get_lastLine)(haxorg_ImmCmdInclude const*);
+};
+
+/// \brief ['org', 'imm', 'ImmCmdInclude']
+struct haxorg_ImmCmdInclude {
+  haxorg_ImmCmdInclude_vtable const* vtable;
+  haxorg_shared_ptr_payload data;
+};
+
+void haxorg_destroy_ImmCmdInclude(haxorg_ImmCmdInclude* obj);
 struct haxorg_ImmAdapterOrgAPI_vtable {};
 
 /// \brief ['org', 'imm', 'ImmAdapterOrgAPI']
@@ -3561,7 +3824,7 @@ struct haxorg_ImmAdapterOrgAPI {
 
 void haxorg_destroy_ImmAdapterOrgAPI(haxorg_ImmAdapterOrgAPI* obj);
 struct haxorg_Cmd_vtable {
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_Cmd const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_Cmd const*);
 };
 
 /// \brief ['org', 'sem', 'Cmd']
@@ -3599,7 +3862,7 @@ struct haxorg_CmdCustomText {
 void haxorg_destroy_CmdCustomText(haxorg_CmdCustomText* obj);
 struct haxorg_Link_vtable {
   haxorg_HstdOpt const* (*get_description)(haxorg_Link const*);
-  haxorg_LinkTarget const* /* ['org', 'sem', 'LinkTarget'] */ (*get_target)(haxorg_Link const*);
+  haxorg_LinkTarget const* (*get_target)(haxorg_Link const*);
 };
 
 /// \brief ['org', 'sem', 'Link']
@@ -3637,7 +3900,7 @@ struct haxorg_List {
 
 void haxorg_destroy_List(haxorg_List* obj);
 struct haxorg_HashTag_vtable {
-  haxorg_HashTagText const* /* ['org', 'sem', 'HashTagText'] */ (*get_text)(haxorg_HashTag const*);
+  haxorg_HashTagText const* (*get_text)(haxorg_HashTag const*);
 };
 
 /// \brief ['org', 'sem', 'HashTag']
@@ -3843,7 +4106,7 @@ struct haxorg_Par {
 
 void haxorg_destroy_Par(haxorg_Par* obj);
 struct haxorg_ImmCmd_vtable {
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_attrs)(haxorg_ImmCmd const*);
+  haxorg_AttrGroup const* (*get_attrs)(haxorg_ImmCmd const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCmd']
@@ -3855,7 +4118,7 @@ struct haxorg_ImmCmd {
 void haxorg_destroy_ImmCmd(haxorg_ImmCmd* obj);
 struct haxorg_ImmCmdCustomRaw_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmCmdCustomRaw const*);
-  bool const* /* imm_write */ (*get_isAttached)(haxorg_ImmCmdCustomRaw const*);
+  bool const* (*get_isAttached)(haxorg_ImmCmdCustomRaw const*);
   haxorg_HstdStr const* (*get_text)(haxorg_ImmCmdCustomRaw const*);
 };
 
@@ -3868,7 +4131,7 @@ struct haxorg_ImmCmdCustomRaw {
 void haxorg_destroy_ImmCmdCustomRaw(haxorg_ImmCmdCustomRaw* obj);
 struct haxorg_ImmCmdCustomText_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmCmdCustomText const*);
-  bool const* /* imm_write */ (*get_isAttached)(haxorg_ImmCmdCustomText const*);
+  bool const* (*get_isAttached)(haxorg_ImmCmdCustomText const*);
   haxorg_ImmId const* (*get_text)(haxorg_ImmCmdCustomText const*);
 };
 
@@ -3881,7 +4144,7 @@ struct haxorg_ImmCmdCustomText {
 void haxorg_destroy_ImmCmdCustomText(haxorg_ImmCmdCustomText* obj);
 struct haxorg_ImmLink_vtable {
   haxorg_HstdOpt const* (*get_description)(haxorg_ImmLink const*);
-  haxorg_LinkTarget const* /* ['org', 'sem', 'LinkTarget'] */ (*get_target)(haxorg_ImmLink const*);
+  haxorg_LinkTarget const* (*get_target)(haxorg_ImmLink const*);
 };
 
 /// \brief ['org', 'imm', 'ImmLink']
@@ -3919,7 +4182,7 @@ struct haxorg_ImmList {
 
 void haxorg_destroy_ImmList(haxorg_ImmList* obj);
 struct haxorg_ImmHashTag_vtable {
-  haxorg_HashTagText const* /* ['org', 'sem', 'HashTagText'] */ (*get_text)(haxorg_ImmHashTag const*);
+  haxorg_HashTagText const* (*get_text)(haxorg_ImmHashTag const*);
 };
 
 /// \brief ['org', 'imm', 'ImmHashTag']
@@ -4514,7 +4777,7 @@ struct haxorg_CmdCustomArgs {
 
 void haxorg_destroy_CmdCustomArgs(haxorg_CmdCustomArgs* obj);
 struct haxorg_CmdTblfm_vtable {
-  haxorg_Tblfm const* /* ['org', 'sem', 'Tblfm'] */ (*get_expr)(haxorg_CmdTblfm const*);
+  haxorg_Tblfm const* (*get_expr)(haxorg_CmdTblfm const*);
 };
 
 /// \brief ['org', 'sem', 'CmdTblfm']
@@ -4611,7 +4874,7 @@ struct haxorg_ImmCmdLanguage {
 void haxorg_destroy_ImmCmdLanguage(haxorg_ImmCmdLanguage* obj);
 struct haxorg_ImmCmdCustomArgs_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmCmdCustomArgs const*);
-  bool const* /* imm_write */ (*get_isAttached)(haxorg_ImmCmdCustomArgs const*);
+  bool const* (*get_isAttached)(haxorg_ImmCmdCustomArgs const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCmdCustomArgs']
@@ -4622,7 +4885,7 @@ struct haxorg_ImmCmdCustomArgs {
 
 void haxorg_destroy_ImmCmdCustomArgs(haxorg_ImmCmdCustomArgs* obj);
 struct haxorg_ImmCmdTblfm_vtable {
-  haxorg_Tblfm const* /* ['org', 'sem', 'Tblfm'] */ (*get_expr)(haxorg_ImmCmdTblfm const*);
+  haxorg_Tblfm const* (*get_expr)(haxorg_ImmCmdTblfm const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCmdTblfm']
@@ -4633,7 +4896,7 @@ struct haxorg_ImmCmdTblfm {
 
 void haxorg_destroy_ImmCmdTblfm(haxorg_ImmCmdTblfm* obj);
 struct haxorg_ImmCell_vtable {
-  bool const* /* imm_write */ (*get_isBlock)(haxorg_ImmCell const*);
+  bool const* (*get_isBlock)(haxorg_ImmCell const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCell']
@@ -4645,7 +4908,7 @@ struct haxorg_ImmCell {
 void haxorg_destroy_ImmCell(haxorg_ImmCell* obj);
 struct haxorg_ImmRow_vtable {
   haxorg_ImmVec const* (*get_cells)(haxorg_ImmRow const*);
-  bool const* /* imm_write */ (*get_isBlock)(haxorg_ImmRow const*);
+  bool const* (*get_isBlock)(haxorg_ImmRow const*);
 };
 
 /// \brief ['org', 'imm', 'ImmRow']
@@ -5288,7 +5551,7 @@ struct haxorg_BlockCode_vtable {
   haxorg_HstdOpt const* (*get_lang)(haxorg_BlockCode const*);
   haxorg_HstdVec const* (*get_result)(haxorg_BlockCode const*);
   haxorg_HstdVec const* (*get_lines)(haxorg_BlockCode const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_switches)(haxorg_BlockCode const*);
+  haxorg_AttrGroup const* (*get_switches)(haxorg_BlockCode const*);
 };
 
 /// \brief ['org', 'sem', 'BlockCode']
@@ -5403,7 +5666,7 @@ struct haxorg_ImmBlockCode_vtable {
   haxorg_HstdOpt const* (*get_lang)(haxorg_ImmBlockCode const*);
   haxorg_ImmVec const* (*get_result)(haxorg_ImmBlockCode const*);
   haxorg_ImmVec const* (*get_lines)(haxorg_ImmBlockCode const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_switches)(haxorg_ImmBlockCode const*);
+  haxorg_AttrGroup const* (*get_switches)(haxorg_ImmBlockCode const*);
 };
 
 /// \brief ['org', 'imm', 'ImmBlockCode']
@@ -5415,7 +5678,7 @@ struct haxorg_ImmBlockCode {
 void haxorg_destroy_ImmBlockCode(haxorg_ImmBlockCode* obj);
 struct haxorg_ImmTable_vtable {
   haxorg_ImmVec const* (*get_rows)(haxorg_ImmTable const*);
-  bool const* /* imm_write */ (*get_isBlock)(haxorg_ImmTable const*);
+  bool const* (*get_isBlock)(haxorg_ImmTable const*);
 };
 
 /// \brief ['org', 'imm', 'ImmTable']
@@ -5788,7 +6051,7 @@ struct haxorg_CmdCaption {
 
 void haxorg_destroy_CmdCaption(haxorg_CmdCaption* obj);
 struct haxorg_CmdColumns_vtable {
-  haxorg_ColumnView const* /* ['org', 'sem', 'ColumnView'] */ (*get_view)(haxorg_CmdColumns const*);
+  haxorg_ColumnView const* (*get_view)(haxorg_CmdColumns const*);
 };
 
 /// \brief ['org', 'sem', 'CmdColumns']
@@ -5812,9 +6075,9 @@ void haxorg_destroy_CmdName(haxorg_CmdName* obj);
 struct haxorg_CmdCall_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_CmdCall const*);
   haxorg_HstdOpt const* (*get_fileName)(haxorg_CmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_insideHeaderAttrs)(haxorg_CmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_callAttrs)(haxorg_CmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_endHeaderAttrs)(haxorg_CmdCall const*);
+  haxorg_AttrGroup const* (*get_insideHeaderAttrs)(haxorg_CmdCall const*);
+  haxorg_AttrGroup const* (*get_callAttrs)(haxorg_CmdCall const*);
+  haxorg_AttrGroup const* (*get_endHeaderAttrs)(haxorg_CmdCall const*);
   haxorg_HstdVec const* (*get_result)(haxorg_CmdCall const*);
 };
 
@@ -5860,7 +6123,7 @@ struct haxorg_ImmCmdCaption {
 
 void haxorg_destroy_ImmCmdCaption(haxorg_ImmCmdCaption* obj);
 struct haxorg_ImmCmdColumns_vtable {
-  haxorg_ColumnView const* /* ['org', 'sem', 'ColumnView'] */ (*get_view)(haxorg_ImmCmdColumns const*);
+  haxorg_ColumnView const* (*get_view)(haxorg_ImmCmdColumns const*);
 };
 
 /// \brief ['org', 'imm', 'ImmCmdColumns']
@@ -5884,9 +6147,9 @@ void haxorg_destroy_ImmCmdName(haxorg_ImmCmdName* obj);
 struct haxorg_ImmCmdCall_vtable {
   haxorg_HstdStr const* (*get_name)(haxorg_ImmCmdCall const*);
   haxorg_HstdOpt const* (*get_fileName)(haxorg_ImmCmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_insideHeaderAttrs)(haxorg_ImmCmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_callAttrs)(haxorg_ImmCmdCall const*);
-  haxorg_AttrGroup const* /* ['org', 'sem', 'AttrGroup'] */ (*get_endHeaderAttrs)(haxorg_ImmCmdCall const*);
+  haxorg_AttrGroup const* (*get_insideHeaderAttrs)(haxorg_ImmCmdCall const*);
+  haxorg_AttrGroup const* (*get_callAttrs)(haxorg_ImmCmdCall const*);
+  haxorg_AttrGroup const* (*get_endHeaderAttrs)(haxorg_ImmCmdCall const*);
   haxorg_ImmVec const* (*get_result)(haxorg_ImmCmdCall const*);
 };
 
@@ -6343,287 +6606,27 @@ struct haxorg_ImmCmdAttrAdapter {
 };
 
 void haxorg_destroy_ImmCmdAttrAdapter(haxorg_ImmCmdAttrAdapter* obj);
-enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
-/// \brief Where to take todo completion statistics from
-enum class haxorg_SubtreeTodoSource : short int {
-  /// \brief Only count checkbox subnodes as a progress completion
-  Checkbox,
-  /// \brief Use subtrees with todo keywords
-  Todo,
-  /// \brief Use both subtrees and todo keywords
-  Both,
-};
-enum class haxorg_ListFormattingMode : short int {
-  /// \brief Default, no custom formatting
-  None,
-  /// \brief one column, each table item is an individual row
-  Table1D1Col,
-  /// \brief for description lists, treat header row as an individual column
-  Table1D2Col,
-  /// \brief for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values
-  Table2DColFirst,
-  /// \brief for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.
-  Table2DRowFirst,
-};
-enum class haxorg_InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
-enum class haxorg_OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
-enum class haxorg_OrgNodeKind : short int {
-  /// \brief Default valye for node - invalid state
-  None,
-  /// \brief Toplevel part of the ast, not created by parser, and only used in `semorg` stage
-  Document,
-  /// \brief Empty node - valid state that does not contain any value
-  Empty,
-  InlineStmtList,
-  /// \brief List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.
-  StmtList,
-  /// \brief Single checkbox item like `[X]` or `[-]`
-  Checkbox,
-  List,
-  /// \brief List item prefix
-  Bullet,
-  ListItem,
-  /// \brief Auxilliary wrapper for the paragraph placed at the start of the description list.
-  ListTag,
-  Counter,
-  File,
-  /// \brief Colon example block
-  ColonExample,
-  /// \brief Long horizontal line `----`
-  TextSeparator,
-  /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
-  Paragraph,
-  /// \brief Horizontal table row
-  TableRow,
-  /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.
-  TableCell,
-  /// \brief Org-mode table
-  Table,
-  /// \brief Inline footnote with text placed directly in the node body.
-  InlineFootnote,
-  /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
-  Footnote,
-  /// \brief Undefined single-line command -- most likely custom user-provided oe
-  Cmd,
-  /// \brief Arguments for the command block
-  Attrs,
-  /// \brief :key name=value syntax
-  AttrValue,
-  /// \brief S-expression as an attribute value value
-  AttrLisp,
-  /// \brief `#+title:` - full document title
-  CmdTitle,
-  /// \brief `#+author:` Document author
-  CmdAuthor,
-  /// \brief `#+creator:` Document creator
-  CmdCreator,
-  /// \brief `#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.
-  CmdInclude,
-  /// \brief `#+language:`
-  CmdLanguage,
-  /// \brief `#+email:`
-  CmdEmail,
-  /// \brief `#+attr_html:`, `#+attr_image` etc.
-  CmdAttr,
-  /// \brief `#+startup:`
-  CmdStartup,
-  /// \brief `#+name:` - name of the associated entry
-  CmdName,
-  /// \brief Line command with parsed text value
-  CmdCustomTextCommand,
-  /// \brief Line command with parsed argument list
-  CmdCustomArgsCommand,
-  /// \brief Line command with raw text argument
-  CmdCustomRawCommand,
-  /// \brief `#+results:` - source code block evaluation results
-  CmdResults,
-  /// \brief `#+header:` - extended list of parameters passed to associated block
-  CmdHeader,
-  /// \brief `#+options:` - document-wide formatting options
-  CmdOptions,
-  CmdTblfm,
-  /// \brief `#+caption:` command
-  CmdCaption,
-  /// \brief Command evaluation result
-  CmdResult,
-  /// \brief Call to named source code block.
-  CmdCallCode,
-  /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
-  CmdFlag,
-  CmdLatexClass,
-  CmdLatexHeader,
-  CmdLatexCompiler,
-  CmdLatexClassOptions,
-  CmdHtmlHead,
-  /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
-  CmdColumns,
-  /// \brief `#+property:` command
-  CmdPropertyArgs,
-  /// \brief `#+property:` command
-  CmdPropertyText,
-  /// \brief `#+property:` command
-  CmdPropertyRaw,
-  /// \brief `#+filetags:` line command
-  CmdFiletags,
-  CmdKeywords,
-  /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
-  BlockVerbatimMultiline,
-  /// \brief Single line of source code
-  CodeLine,
-  /// \brief Block of source code text
-  CodeText,
-  /// \brief Single tangle target in the code block
-  CodeTangle,
-  /// \brief `(refs:` callout in the source code
-  CodeCallout,
-  BlockCode,
-  /// \brief `#+begin_quote:` block in code
-  BlockQuote,
-  /// \brief `#+begin_comment:` block in code
-  BlockComment,
-  BlockCenter,
-  BlockVerse,
-  /// \brief Verbatim example text block
-  BlockExample,
-  BlockExport,
-  /// \brief `#+begin_details`  section
-  BlockDetails,
-  /// \brief `#+begin_summary` section
-  BlockSummary,
-  /// \brief #+begin_<any> section
-  BlockDynamicFallback,
-  /// \brief full-uppsercase identifier such as `MUST` or `TODO`
-  BigIdent,
-  /// \brief Region of text with formatting, which contains standalone words -
-  ///      can itself contain subnodes, which allows to represent nested
-  ///      formatting regions, such as `*bold /italic/*` text. Particular type
-  ///      of identifier is stored in string form in `str` field for `OrgNode`
-  ///      -- bold is represented as `"*"`, italic as `/` and so on. In case
-  ///      of explicit open/close pairs only opening one is stored.
-  ///      NOTE: when structured sentences are enabled, regular punctuation
-  ///      elements like `some text (notes)` are also represented as `Word,
-  ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
-  Bold,
-  /// \brief Error leaf node inserted into the parse tree on failure
-  ErrorInfoToken,
-  /// \brief Parent node for one or more tokens skipped during error recovery
-  ErrorSkipGroup,
-  /// \brief Single token node skipped while the parser searched for recovery point
-  ErrorSkipToken,
-  Italic,
-  Verbatim,
-  Backtick,
-  Underline,
-  Strike,
-  Quote,
-  Angle,
-  Monospace,
-  Par,
-  CriticMarkStructure,
-  /// \brief Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
-  InlineMath,
-  /// \brief Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.
-  DisplayMath,
-  /// \brief Space or tab character in regular text
-  Space,
-  Punctuation,
-  Colon,
-  /// \brief Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.
-  Word,
-  /// \brief Escaped formatting character in the text
-  Escaped,
-  Newline,
-  /// \brief Raw unwrapped link that was pasted in text
-  RawLink,
-  /// \brief External or internal link. Consists of one or two elements - target
-  ///      (url, file location etc.) and description (`orgParagraph` of text).
-  ///      Description might be empty, and represented as empty node in this
-  ///      case. For external links particular formatting of the address is
-  ///      not handled by parser and instead contains raw string from input
-  ///      text.
-  Link,
-  /// \brief Org-mode macro replacement - during export each macro is expanded
-  ///      and evaluated according to it's environment. Body of the macro is
-  ///      not parsed fully during org-mode evaluation, but is checked for
-  ///      correct parenthesis balance (as macro might contain elisp code)
-  Macro,
-  /// \brief Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.
-  Symbol,
-  StaticActiveTime,
-  StaticInactiveTime,
-  DynamicActiveTime,
-  /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
-  DynamicInactiveTime,
-  /// \brief Date and time range format - two `orgDateTime` entries
-  TimeRange,
-  /// \brief Result of the time range evaluation or trailing annotation a subtree
-  SimpleTime,
-  HashTag,
-  /// \brief `\sym{}` with explicit arguments
-  MetaSymbol,
-  /// \brief `@user`
-  AtMention,
-  /// \brief Placeholder entry in text, usually writte like `<text to replace>`
-  Placeholder,
-  /// \brief `<<<RADIO>>>`
-  RadioTarget,
-  /// \brief `<<TARGET>>`
-  Target,
-  /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
-  SrcInlineCode,
-  /// \brief Call to named source code block.
-  InlineCallCode,
-  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
-  InlineExport,
-  InlineComment,
-  /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
-  RawText,
-  /// \brief `:description:` entry
-  SubtreeDescription,
-  SubtreeUrgency,
-  /// \brief `:logbook:` entry storing note information
-  DrawerLogbook,
-  /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
-  Drawer,
-  DrawerPropertyList,
-  /// \brief `:property:` drawer
-  DrawerProperty,
-  /// \brief Section subtree
-  Subtree,
-  /// \brief Time? associated with subtree entry
-  SubtreeTimes,
-  SubtreeStars,
-  /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
-  SubtreeCompletion,
-  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
-  SubtreeImportance,
-};
-enum class haxorg_OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, ActiveDynamicTimeContent, InactiveDynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
-enum class haxorg_OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
-enum class haxorg_OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
-enum class haxorg_AstTrackingGroupKind : short int { RadioTarget, Single, TrackedHashtag, };
-enum class haxorg_GraphMapLinkKind : short int { Radio, Link, };
-HAXORG_C_API_LINKAGE haxorg_SemId newSemTimeStatic(haxorg_UserTimeBreakdown /* ['hstd', 'UserTimeBreakdown'] */ breakdown, bool /*  [905]api/SemBaseApi.hpp:14:36( [755] >bool<>) */ isActive, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_ImmAstContext /* ['org', 'imm', 'ImmAstContext'] */ initImmutableAstContext(OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_SemId newSemTimeStatic(haxorg_UserTimeBreakdown breakdown, bool isActive, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_ImmAstContext initImmutableAstContext(OrgContext* org_context);
 HAXORG_C_API_LINKAGE haxorg_SemId asOneNode(haxorg_SemId arg, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ formatToString(haxorg_SemId arg, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ exportToYamlString(haxorg_SemId node, haxorg_OrgYamlExportOpts /* ['org', 'OrgYamlExportOpts'] */ opts, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]api/SemBaseApi.hpp:52:15(<>) */ exportToYamlFile(haxorg_SemId node, haxorg_StdString /* ['std', 'string'] */ path, haxorg_OrgYamlExportOpts /* ['org', 'OrgYamlExportOpts'] */ opts, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ exportToJsonString(haxorg_SemId node, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]api/SemBaseApi.hpp:58:22(<>) */ exportToJsonFile(haxorg_SemId node, haxorg_StdString /* ['std', 'string'] */ path, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_SemId readProtobufFile(haxorg_StdString /* ['std', 'string'] */ file, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]api/SemBaseApi.hpp:65:15(<>) */ exportToProtobufFile(haxorg_SemId doc, haxorg_StdString /* ['std', 'string'] */ file, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ exportToTreeString(haxorg_SemId node, haxorg_OrgTreeExportOpts /* ['org', 'OrgTreeExportOpts'] */ opts, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]api/SemBaseApi.hpp:96:15(<>) */ exportToTreeFile(haxorg_SemId node, haxorg_StdString /* ['std', 'string'] */ path, haxorg_OrgTreeExportOpts /* ['org', 'OrgTreeExportOpts'] */ opts, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_AstTrackingMap /* ['org', 'AstTrackingMap'] */ getAstTrackingMap(haxorg_HstdVec nodes, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_HstdVec getSubnodeGroups(haxorg_SemId node, haxorg_AstTrackingMap /* ['org', 'AstTrackingMap'] */ map, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_HstdVec annotateSequence(haxorg_HstdVec groups, int /*  [905]stdlib/RangeSegmentation.hpp:95:38( [766] >builtin/unqual<>) */ first, int /*  [905]stdlib/RangeSegmentation.hpp:96:38( [766] >builtin/unqual<>) */ last, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_GraphMapGraphState /* ['org', 'graph', 'MapGraphState'] */ initMapGraphState(haxorg_ImmAstContext /* ['org', 'imm', 'ImmAstContext'] */ ast, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ serializeToText(haxorg_ImmAstContext /* ['org', 'imm', 'ImmAstContext'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]serde/SemOrgCereal.hpp:9:68(<>) */ serializeFromText(haxorg_StdString /* ['std', 'string'] */ binary, haxorg_ImmAstContext /* ['org', 'imm', 'ImmAstContext'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ serializeToText(haxorg_ImmAstReplaceEpoch /* ['org', 'imm', 'ImmAstReplaceEpoch'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]serde/SemOrgCereal.hpp:15:66(<>) */ serializeFromText(haxorg_StdString /* ['std', 'string'] */ binary, haxorg_ImmAstReplaceEpoch /* ['org', 'imm', 'ImmAstReplaceEpoch'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ serializeToText(haxorg_GraphMapGraph /* ['org', 'graph', 'MapGraph'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE void /*  [905]serde/SemOrgCereal.hpp:21:66(<>) */ serializeFromText(haxorg_StdString /* ['std', 'string'] */ binary, haxorg_GraphMapGraph /* ['org', 'graph', 'MapGraph'] */ store, OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_StdString /* ['std', 'string'] */ serializeFromTextToTreeDump(haxorg_StdString /* ['std', 'string'] */ binary, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString formatToString(haxorg_SemId arg, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString exportToYamlString(haxorg_SemId node, haxorg_OrgYamlExportOpts opts, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void exportToYamlFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgYamlExportOpts opts, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString exportToJsonString(haxorg_SemId node, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void exportToJsonFile(haxorg_SemId node, haxorg_StdString path, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_SemId readProtobufFile(haxorg_StdString file, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void exportToProtobufFile(haxorg_SemId doc, haxorg_StdString file, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString exportToTreeString(haxorg_SemId node, haxorg_OrgTreeExportOpts opts, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void exportToTreeFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgTreeExportOpts opts, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_AstTrackingMap getAstTrackingMap(haxorg_HstdVec nodes, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_HstdVec getSubnodeGroups(haxorg_SemId node, haxorg_AstTrackingMap map, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_HstdVec annotateSequence(haxorg_HstdVec groups, int first, int last, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_GraphMapGraphState initMapGraphState(haxorg_ImmAstContext ast, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString serializeToText(haxorg_ImmAstContext store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void serializeFromText(haxorg_StdString binary, haxorg_ImmAstContext store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString serializeToText(haxorg_ImmAstReplaceEpoch store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void serializeFromText(haxorg_StdString binary, haxorg_ImmAstReplaceEpoch store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString serializeToText(haxorg_GraphMapGraph store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE void serializeFromText(haxorg_StdString binary, haxorg_GraphMapGraph store, OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_StdString serializeFromTextToTreeDump(haxorg_StdString binary, OrgContext* org_context);
 /* clang-format on */

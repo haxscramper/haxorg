@@ -183,6 +183,7 @@ def rec_expand_group(
                     Spaces=[QualType.ForName("std")],
                     Params=typeNames,
                 ),
+                IsExposedForWrap=False,
             ))
 
         result.append(

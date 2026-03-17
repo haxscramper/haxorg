@@ -1952,189 +1952,189 @@ void org::algo::proto_serde<::orgproto::OrgDiagnostics, org::sem::OrgDiagnostics
   }
 }
 
-void org::algo::proto_serde<::orgproto::NoNode /* d_org */, org::sem::NoNode /* d_org */>::write(::orgproto::NoNode* /* d_org */ out, org::sem::NoNode const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::NoNode /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode>::write(::orgproto::NoNode* out, org::sem::NoNode const& in) {
+  org::algo::proto_serde<::orgproto::NoNode, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::NoNode /* d_org */, org::sem::NoNode /* d_org */>::read(::orgproto::NoNode const& /* d_org */ out, proto_write_accessor<org::sem::NoNode /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::NoNode /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::NoNode, org::sem::NoNode>::read(::orgproto::NoNode const& out, proto_write_accessor<org::sem::NoNode> in) {
+  org::algo::proto_serde<::orgproto::NoNode, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::ErrorItem /* d_org */, org::sem::ErrorItem /* d_org */>::write(::orgproto::ErrorItem* /* d_org */ out, org::sem::ErrorItem const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ErrorItem /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::write(::orgproto::ErrorItem* out, org::sem::ErrorItem const& in) {
+  org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::write(out, in);
   proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::write(out->mutable_diag(), in.diag);
 }
 
-void org::algo::proto_serde<::orgproto::ErrorItem /* d_org */, org::sem::ErrorItem /* d_org */>::read(::orgproto::ErrorItem const& /* d_org */ out, proto_write_accessor<org::sem::ErrorItem /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ErrorItem /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(out.diag(), in.for_field(&org::sem::ErrorItem /* d_org */::diag));
+void org::algo::proto_serde<::orgproto::ErrorItem, org::sem::ErrorItem>::read(::orgproto::ErrorItem const& out, proto_write_accessor<org::sem::ErrorItem> in) {
+  org::algo::proto_serde<::orgproto::ErrorItem, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::OrgDiagnostics, org::sem::OrgDiagnostics>::read(out.diag(), in.for_field(&org::sem::ErrorItem::diag));
 }
 
-void org::algo::proto_serde<::orgproto::ErrorGroup /* d_org */, org::sem::ErrorGroup /* d_org */>::write(::orgproto::ErrorGroup* /* d_org */ out, org::sem::ErrorGroup const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ErrorGroup /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::write(::orgproto::ErrorGroup* out, org::sem::ErrorGroup const& in) {
+  org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::write(out->mutable_diagnostics(), in.diagnostics);
 }
 
-void org::algo::proto_serde<::orgproto::ErrorGroup /* d_org */, org::sem::ErrorGroup /* d_org */>::read(::orgproto::ErrorGroup const& /* d_org */ out, proto_write_accessor<org::sem::ErrorGroup /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ErrorGroup /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::read(out.diagnostics(), in.for_field(&org::sem::ErrorGroup /* d_org */::diagnostics));
+void org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::ErrorGroup>::read(::orgproto::ErrorGroup const& out, proto_write_accessor<org::sem::ErrorGroup> in) {
+  org::algo::proto_serde<::orgproto::ErrorGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorItem>, hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>>::read(out.diagnostics(), in.for_field(&org::sem::ErrorGroup::diagnostics));
 }
 
-void org::algo::proto_serde<::orgproto::StmtList /* d_org */, org::sem::StmtList /* d_org */>::write(::orgproto::StmtList* /* d_org */ out, org::sem::StmtList const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::StmtList /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::StmtList, org::sem::StmtList>::write(::orgproto::StmtList* out, org::sem::StmtList const& in) {
+  org::algo::proto_serde<::orgproto::StmtList, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::StmtList /* d_org */, org::sem::StmtList /* d_org */>::read(::orgproto::StmtList const& /* d_org */ out, proto_write_accessor<org::sem::StmtList /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::StmtList /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::StmtList, org::sem::StmtList>::read(::orgproto::StmtList const& out, proto_write_accessor<org::sem::StmtList> in) {
+  org::algo::proto_serde<::orgproto::StmtList, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Empty /* d_org */, org::sem::Empty /* d_org */>::write(::orgproto::Empty* /* d_org */ out, org::sem::Empty const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Empty /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Empty, org::sem::Empty>::write(::orgproto::Empty* out, org::sem::Empty const& in) {
+  org::algo::proto_serde<::orgproto::Empty, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Empty /* d_org */, org::sem::Empty /* d_org */>::read(::orgproto::Empty const& /* d_org */ out, proto_write_accessor<org::sem::Empty /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Empty /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Empty, org::sem::Empty>::read(::orgproto::Empty const& out, proto_write_accessor<org::sem::Empty> in) {
+  org::algo::proto_serde<::orgproto::Empty, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::CmdCaption /* d_org */>::write(::orgproto::CmdCaption* /* d_org */ out, org::sem::CmdCaption const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption>::write(::orgproto::CmdCaption* out, org::sem::CmdCaption const& in) {
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Org>::write(out, in);
   if (!in.text.isNil()) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::CmdCaption /* d_org */>::read(::orgproto::CmdCaption const& /* d_org */ out, proto_write_accessor<org::sem::CmdCaption /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCaption /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCaption /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdCaption, org::sem::CmdCaption>::read(::orgproto::CmdCaption const& out, proto_write_accessor<org::sem::CmdCaption> in) {
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCaption, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCaption::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::CmdCreator /* d_org */>::write(::orgproto::CmdCreator* /* d_org */ out, org::sem::CmdCreator const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::write(::orgproto::CmdCreator* out, org::sem::CmdCreator const& in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::write(out, in);
   if (!in.text.isNil()) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::CmdCreator /* d_org */>::read(::orgproto::CmdCreator const& /* d_org */ out, proto_write_accessor<org::sem::CmdCreator /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCreator /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCreator /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdCreator, org::sem::CmdCreator>::read(::orgproto::CmdCreator const& out, proto_write_accessor<org::sem::CmdCreator> in) {
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCreator, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCreator::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::CmdAuthor /* d_org */>::write(::orgproto::CmdAuthor* /* d_org */ out, org::sem::CmdAuthor const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::write(::orgproto::CmdAuthor* out, org::sem::CmdAuthor const& in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::write(out, in);
   if (!in.text.isNil()) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_text(), in.text);
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::CmdAuthor /* d_org */>::read(::orgproto::CmdAuthor const& /* d_org */ out, proto_write_accessor<org::sem::CmdAuthor /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdAuthor /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdAuthor /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::CmdAuthor>::read(::orgproto::CmdAuthor const& out, proto_write_accessor<org::sem::CmdAuthor> in) {
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdAuthor, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdAuthor::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::CmdEmail /* d_org */>::write(::orgproto::CmdEmail* /* d_org */ out, org::sem::CmdEmail const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::write(::orgproto::CmdEmail* out, org::sem::CmdEmail const& in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
 }
 
-void org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::CmdEmail /* d_org */>::read(::orgproto::CmdEmail const& /* d_org */ out, proto_write_accessor<org::sem::CmdEmail /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdEmail /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdEmail /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdEmail, org::sem::CmdEmail>::read(::orgproto::CmdEmail const& out, proto_write_accessor<org::sem::CmdEmail> in) {
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdEmail, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdEmail::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::CmdLanguage /* d_org */>::write(::orgproto::CmdLanguage* /* d_org */ out, org::sem::CmdLanguage const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage>::write(::orgproto::CmdLanguage* out, org::sem::CmdLanguage const& in) {
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
 }
 
-void org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::CmdLanguage /* d_org */>::read(::orgproto::CmdLanguage const& /* d_org */ out, proto_write_accessor<org::sem::CmdLanguage /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdLanguage /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdLanguage /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::CmdLanguage>::read(::orgproto::CmdLanguage const& out, proto_write_accessor<org::sem::CmdLanguage> in) {
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdLanguage, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdLanguage::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::CmdColumns /* d_org */>::write(::orgproto::CmdColumns* /* d_org */ out, org::sem::CmdColumns const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns>::write(::orgproto::CmdColumns* out, org::sem::CmdColumns const& in) {
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Org>::write(out, in);
   proto_serde<orgproto::ColumnView, org::sem::ColumnView>::write(out->mutable_view(), in.view);
 }
 
-void org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::CmdColumns /* d_org */>::read(::orgproto::CmdColumns const& /* d_org */ out, proto_write_accessor<org::sem::CmdColumns /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdColumns /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::ColumnView, org::sem::ColumnView>::read(out.view(), in.for_field(&org::sem::CmdColumns /* d_org */::view));
+void org::algo::proto_serde<::orgproto::CmdColumns, org::sem::CmdColumns>::read(::orgproto::CmdColumns const& out, proto_write_accessor<org::sem::CmdColumns> in) {
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdColumns, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::ColumnView, org::sem::ColumnView>::read(out.view(), in.for_field(&org::sem::CmdColumns::view));
 }
 
-void org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::CmdName /* d_org */>::write(::orgproto::CmdName* /* d_org */ out, org::sem::CmdName const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdName, org::sem::CmdName>::write(::orgproto::CmdName* out, org::sem::CmdName const& in) {
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
 }
 
-void org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::CmdName /* d_org */>::read(::orgproto::CmdName const& /* d_org */ out, proto_write_accessor<org::sem::CmdName /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdName /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdName /* d_org */::name));
+void org::algo::proto_serde<::orgproto::CmdName, org::sem::CmdName>::read(::orgproto::CmdName const& out, proto_write_accessor<org::sem::CmdName> in) {
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdName, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdName::name));
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::CmdCustomArgs /* d_org */>::write(::orgproto::CmdCustomArgs* /* d_org */ out, org::sem::CmdCustomArgs const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::CmdCustomArgs>::write(::orgproto::CmdCustomArgs* out, org::sem::CmdCustomArgs const& in) {
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   out->set_isattached(in.isAttached);
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::CmdCustomArgs /* d_org */>::read(::orgproto::CmdCustomArgs const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomArgs /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCustomArgs /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomArgs /* d_org */::name));
-  in.for_field(&org::sem::CmdCustomArgs /* d_org */::isAttached).get() = out.isattached();
+void org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::CmdCustomArgs>::read(::orgproto::CmdCustomArgs const& out, proto_write_accessor<org::sem::CmdCustomArgs> in) {
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCustomArgs, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomArgs::name));
+  in.for_field(&org::sem::CmdCustomArgs::isAttached).get() = out.isattached();
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::CmdCustomRaw /* d_org */>::write(::orgproto::CmdCustomRaw* /* d_org */ out, org::sem::CmdCustomRaw const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::CmdCustomRaw>::write(::orgproto::CmdCustomRaw* out, org::sem::CmdCustomRaw const& in) {
+  org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   out->set_isattached(in.isAttached);
   proto_serde<std::string, hstd::Str>::write(out->mutable_text(), in.text);
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::CmdCustomRaw /* d_org */>::read(::orgproto::CmdCustomRaw const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomRaw /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCustomRaw /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomRaw /* d_org */::name));
-  in.for_field(&org::sem::CmdCustomRaw /* d_org */::isAttached).get() = out.isattached();
-  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdCustomRaw /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::CmdCustomRaw>::read(::orgproto::CmdCustomRaw const& out, proto_write_accessor<org::sem::CmdCustomRaw> in) {
+  org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCustomRaw, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomRaw::name));
+  in.for_field(&org::sem::CmdCustomRaw::isAttached).get() = out.isattached();
+  proto_serde<std::string, hstd::Str>::read(out.text(), in.for_field(&org::sem::CmdCustomRaw::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::CmdCustomText /* d_org */>::write(::orgproto::CmdCustomText* /* d_org */ out, org::sem::CmdCustomText const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText>::write(::orgproto::CmdCustomText* out, org::sem::CmdCustomText const& in) {
+  org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   out->set_isattached(in.isAttached);
   if (!in.text.isNil()) {
@@ -2142,18 +2142,18 @@ void org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::Cmd
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::CmdCustomText /* d_org */>::read(::orgproto::CmdCustomText const& /* d_org */ out, proto_write_accessor<org::sem::CmdCustomText /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCustomText /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomText /* d_org */::name));
-  in.for_field(&org::sem::CmdCustomText /* d_org */::isAttached).get() = out.isattached();
-  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCustomText /* d_org */::text));
+void org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText>::read(::orgproto::CmdCustomText const& out, proto_write_accessor<org::sem::CmdCustomText> in) {
+  org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCustomText::name));
+  in.for_field(&org::sem::CmdCustomText::isAttached).get() = out.isattached();
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCustomText::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::CmdCall /* d_org */>::write(::orgproto::CmdCall* /* d_org */ out, org::sem::CmdCall const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::write(::orgproto::CmdCall* out, org::sem::CmdCall const& in) {
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   if (in.fileName) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_filename(), *in.fileName);
@@ -2164,70 +2164,70 @@ void org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::CmdCall /
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::write(out->mutable_result(), in.result);
 }
 
-void org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::CmdCall /* d_org */>::read(::orgproto::CmdCall const& /* d_org */ out, proto_write_accessor<org::sem::CmdCall /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdCall /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCall /* d_org */::name));
+void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in) {
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCall::name));
   if (out.has_filename()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.filename(), in.for_field(&org::sem::CmdCall /* d_org */::fileName));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.filename(), in.for_field(&org::sem::CmdCall::fileName));
   }
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.insideheaderattrs(), in.for_field(&org::sem::CmdCall /* d_org */::insideHeaderAttrs));
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.callattrs(), in.for_field(&org::sem::CmdCall /* d_org */::callAttrs));
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.endheaderattrs(), in.for_field(&org::sem::CmdCall /* d_org */::endHeaderAttrs));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::CmdCall /* d_org */::result));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.insideheaderattrs(), in.for_field(&org::sem::CmdCall::insideHeaderAttrs));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.callattrs(), in.for_field(&org::sem::CmdCall::callAttrs));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.endheaderattrs(), in.for_field(&org::sem::CmdCall::endHeaderAttrs));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::CmdCall::result));
 }
 
-void org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::CmdTblfm /* d_org */>::write(::orgproto::CmdTblfm* /* d_org */ out, org::sem::CmdTblfm const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm>::write(::orgproto::CmdTblfm* out, org::sem::CmdTblfm const& in) {
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Org>::write(out, in);
   proto_serde<orgproto::Tblfm, org::sem::Tblfm>::write(out->mutable_expr(), in.expr);
 }
 
-void org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::CmdTblfm /* d_org */>::read(::orgproto::CmdTblfm const& /* d_org */ out, proto_write_accessor<org::sem::CmdTblfm /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdTblfm /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::Tblfm, org::sem::Tblfm>::read(out.expr(), in.for_field(&org::sem::CmdTblfm /* d_org */::expr));
+void org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm>::read(::orgproto::CmdTblfm const& out, proto_write_accessor<org::sem::CmdTblfm> in) {
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Tblfm, org::sem::Tblfm>::read(out.expr(), in.for_field(&org::sem::CmdTblfm::expr));
 }
 
-void org::algo::proto_serde<::orgproto::HashTag /* d_org */, org::sem::HashTag /* d_org */>::write(::orgproto::HashTag* /* d_org */ out, org::sem::HashTag const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::HashTag /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::HashTag, org::sem::HashTag>::write(::orgproto::HashTag* out, org::sem::HashTag const& in) {
+  org::algo::proto_serde<::orgproto::HashTag, org::sem::Org>::write(out, in);
   proto_serde<orgproto::HashTagText, org::sem::HashTagText>::write(out->mutable_text(), in.text);
 }
 
-void org::algo::proto_serde<::orgproto::HashTag /* d_org */, org::sem::HashTag /* d_org */>::read(::orgproto::HashTag const& /* d_org */ out, proto_write_accessor<org::sem::HashTag /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::HashTag /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::HashTagText, org::sem::HashTagText>::read(out.text(), in.for_field(&org::sem::HashTag /* d_org */::text));
+void org::algo::proto_serde<::orgproto::HashTag, org::sem::HashTag>::read(::orgproto::HashTag const& out, proto_write_accessor<org::sem::HashTag> in) {
+  org::algo::proto_serde<::orgproto::HashTag, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::HashTagText, org::sem::HashTagText>::read(out.text(), in.for_field(&org::sem::HashTag::text));
 }
 
-void org::algo::proto_serde<::orgproto::InlineFootnote /* d_org */, org::sem::InlineFootnote /* d_org */>::write(::orgproto::InlineFootnote* /* d_org */ out, org::sem::InlineFootnote const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::InlineFootnote /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::InlineFootnote, org::sem::InlineFootnote>::write(::orgproto::InlineFootnote* out, org::sem::InlineFootnote const& in) {
+  org::algo::proto_serde<::orgproto::InlineFootnote, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_tag(), in.tag);
   if (in.definition) {
     proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(out->mutable_definition(), *in.definition);
   }
 }
 
-void org::algo::proto_serde<::orgproto::InlineFootnote /* d_org */, org::sem::InlineFootnote /* d_org */>::read(::orgproto::InlineFootnote const& /* d_org */ out, proto_write_accessor<org::sem::InlineFootnote /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::InlineFootnote /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.tag(), in.for_field(&org::sem::InlineFootnote /* d_org */::tag));
+void org::algo::proto_serde<::orgproto::InlineFootnote, org::sem::InlineFootnote>::read(::orgproto::InlineFootnote const& out, proto_write_accessor<org::sem::InlineFootnote> in) {
+  org::algo::proto_serde<::orgproto::InlineFootnote, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.tag(), in.for_field(&org::sem::InlineFootnote::tag));
   if (out.has_definition()) {
-    proto_serde<hstd::Opt<orgproto::AnyNode>, hstd::Opt<org::sem::SemId<org::sem::Org>>>::read(out.definition(), in.for_field(&org::sem::InlineFootnote /* d_org */::definition));
+    proto_serde<hstd::Opt<orgproto::AnyNode>, hstd::Opt<org::sem::SemId<org::sem::Org>>>::read(out.definition(), in.for_field(&org::sem::InlineFootnote::definition));
   }
 }
 
-void org::algo::proto_serde<::orgproto::InlineExport /* d_org */, org::sem::InlineExport /* d_org */>::write(::orgproto::InlineExport* /* d_org */ out, org::sem::InlineExport const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::InlineExport /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::InlineExport, org::sem::InlineExport>::write(::orgproto::InlineExport* out, org::sem::InlineExport const& in) {
+  org::algo::proto_serde<::orgproto::InlineExport, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_exporter(), in.exporter);
   proto_serde<std::string, hstd::Str>::write(out->mutable_content(), in.content);
 }
 
-void org::algo::proto_serde<::orgproto::InlineExport /* d_org */, org::sem::InlineExport /* d_org */>::read(::orgproto::InlineExport const& /* d_org */ out, proto_write_accessor<org::sem::InlineExport /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::InlineExport /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::InlineExport /* d_org */::exporter));
-  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::InlineExport /* d_org */::content));
+void org::algo::proto_serde<::orgproto::InlineExport, org::sem::InlineExport>::read(::orgproto::InlineExport const& out, proto_write_accessor<org::sem::InlineExport> in) {
+  org::algo::proto_serde<::orgproto::InlineExport, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::InlineExport::exporter));
+  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::InlineExport::content));
 }
 
 void org::algo::proto_serde<::orgproto::Time::Repeat, org::sem::Time::Repeat>::write(::orgproto::Time::Repeat* out, org::sem::Time::Repeat const& in) {
@@ -2266,8 +2266,8 @@ void org::algo::proto_serde<::orgproto::Time::Dynamic, org::sem::Time::Dynamic>:
   proto_serde<orgproto::LispCode, org::sem::LispCode>::read(out.expr(), in.for_field(&org::sem::Time::Dynamic::expr));
 }
 
-void org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Time /* d_org */>::write(::orgproto::Time* /* d_org */ out, org::sem::Time const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Time, org::sem::Time>::write(::orgproto::Time* out, org::sem::Time const& in) {
+  org::algo::proto_serde<::orgproto::Time, org::sem::Org>::write(out, in);
   out->set_isactive(in.isActive);
   switch (in.time.index()) {
     case 0:
@@ -2279,27 +2279,27 @@ void org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Time /* d_or
   }
 }
 
-void org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Time /* d_org */>::read(::orgproto::Time const& /* d_org */ out, proto_write_accessor<org::sem::Time /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Time /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::Time /* d_org */::isActive).get() = out.isactive();
+void org::algo::proto_serde<::orgproto::Time, org::sem::Time>::read(::orgproto::Time const& out, proto_write_accessor<org::sem::Time> in) {
+  org::algo::proto_serde<::orgproto::Time, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::Time::isActive).get() = out.isactive();
   switch (out.time().kind_case()) {
-    case ::orgproto::Time /* d_org */::TimeVariant::kStatic:
-      in.for_field_variant<0>(&org::sem::Time /* d_org */::time).get();
-      proto_serde<orgproto::Time::Static, org::sem::Time::Static>::read(out.time().static_(), in.for_field_variant<0>(&org::sem::Time /* d_org */::time));
+    case ::orgproto::Time::TimeVariant::kStatic:
+      in.for_field_variant<0>(&org::sem::Time::time).get();
+      proto_serde<orgproto::Time::Static, org::sem::Time::Static>::read(out.time().static_(), in.for_field_variant<0>(&org::sem::Time::time));
       break;
-    case ::orgproto::Time /* d_org */::TimeVariant::kDynamic:
-      in.for_field_variant<1>(&org::sem::Time /* d_org */::time).get();
-      proto_serde<orgproto::Time::Dynamic, org::sem::Time::Dynamic>::read(out.time().dynamic(), in.for_field_variant<1>(&org::sem::Time /* d_org */::time));
+    case ::orgproto::Time::TimeVariant::kDynamic:
+      in.for_field_variant<1>(&org::sem::Time::time).get();
+      proto_serde<orgproto::Time::Dynamic, org::sem::Time::Dynamic>::read(out.time().dynamic(), in.for_field_variant<1>(&org::sem::Time::time));
       break;
-    case ::orgproto::Time /* d_org */::TimeVariant::KIND_NOT_SET: {
+    case ::orgproto::Time::TimeVariant::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
       break;
     }
   }
 }
 
-void org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::TimeRange /* d_org */>::write(::orgproto::TimeRange* /* d_org */ out, org::sem::TimeRange const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::TimeRange, org::sem::TimeRange>::write(::orgproto::TimeRange* out, org::sem::TimeRange const& in) {
+  org::algo::proto_serde<::orgproto::TimeRange, org::sem::Org>::write(out, in);
   if (!in.from.isNil()) {
     proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::write(out->mutable_from(), in.from);
   }
@@ -2308,22 +2308,22 @@ void org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::TimeRan
   }
 }
 
-void org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::TimeRange /* d_org */>::read(::orgproto::TimeRange const& /* d_org */ out, proto_write_accessor<org::sem::TimeRange /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::TimeRange /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::read(out.from(), in.for_field(&org::sem::TimeRange /* d_org */::from));
-  proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::read(out.to(), in.for_field(&org::sem::TimeRange /* d_org */::to));
+void org::algo::proto_serde<::orgproto::TimeRange, org::sem::TimeRange>::read(::orgproto::TimeRange const& out, proto_write_accessor<org::sem::TimeRange> in) {
+  org::algo::proto_serde<::orgproto::TimeRange, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::read(out.from(), in.for_field(&org::sem::TimeRange::from));
+  proto_serde<orgproto::Time, org::sem::SemId<org::sem::Time>>::read(out.to(), in.for_field(&org::sem::TimeRange::to));
 }
 
-void org::algo::proto_serde<::orgproto::Macro /* d_org */, org::sem::Macro /* d_org */>::write(::orgproto::Macro* /* d_org */ out, org::sem::Macro const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Macro /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Macro, org::sem::Macro>::write(::orgproto::Macro* out, org::sem::Macro const& in) {
+  org::algo::proto_serde<::orgproto::Macro, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_attrs(), in.attrs);
 }
 
-void org::algo::proto_serde<::orgproto::Macro /* d_org */, org::sem::Macro /* d_org */>::read(::orgproto::Macro const& /* d_org */ out, proto_write_accessor<org::sem::Macro /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Macro /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Macro /* d_org */::name));
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.attrs(), in.for_field(&org::sem::Macro /* d_org */::attrs));
+void org::algo::proto_serde<::orgproto::Macro, org::sem::Macro>::read(::orgproto::Macro const& out, proto_write_accessor<org::sem::Macro> in) {
+  org::algo::proto_serde<::orgproto::Macro, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Macro::name));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.attrs(), in.for_field(&org::sem::Macro::attrs));
 }
 
 void org::algo::proto_serde<::orgproto::Symbol::Param, org::sem::Symbol::Param>::write(::orgproto::Symbol::Param* out, org::sem::Symbol::Param const& in) {
@@ -2340,362 +2340,362 @@ void org::algo::proto_serde<::orgproto::Symbol::Param, org::sem::Symbol::Param>:
   proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::Symbol::Param::value));
 }
 
-void org::algo::proto_serde<::orgproto::Symbol /* d_org */, org::sem::Symbol /* d_org */>::write(::orgproto::Symbol* /* d_org */ out, org::sem::Symbol const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Symbol /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Symbol, org::sem::Symbol>::write(::orgproto::Symbol* out, org::sem::Symbol const& in) {
+  org::algo::proto_serde<::orgproto::Symbol, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, hstd::Vec<org::sem::Symbol::Param>>::write(out->mutable_parameters(), in.parameters);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, hstd::Vec<org::sem::SemId<org::sem::Org>>>::write(out->mutable_positional(), in.positional);
 }
 
-void org::algo::proto_serde<::orgproto::Symbol /* d_org */, org::sem::Symbol /* d_org */>::read(::orgproto::Symbol const& /* d_org */ out, proto_write_accessor<org::sem::Symbol /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Symbol /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Symbol /* d_org */::name));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, hstd::Vec<org::sem::Symbol::Param>>::read(out.parameters(), in.for_field(&org::sem::Symbol /* d_org */::parameters));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, hstd::Vec<org::sem::SemId<org::sem::Org>>>::read(out.positional(), in.for_field(&org::sem::Symbol /* d_org */::positional));
+void org::algo::proto_serde<::orgproto::Symbol, org::sem::Symbol>::read(::orgproto::Symbol const& out, proto_write_accessor<org::sem::Symbol> in) {
+  org::algo::proto_serde<::orgproto::Symbol, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Symbol::name));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Symbol::Param>, hstd::Vec<org::sem::Symbol::Param>>::read(out.parameters(), in.for_field(&org::sem::Symbol::parameters));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AnyNode>, hstd::Vec<org::sem::SemId<org::sem::Org>>>::read(out.positional(), in.for_field(&org::sem::Symbol::positional));
 }
 
-void org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Escaped /* d_org */>::write(::orgproto::Escaped* /* d_org */ out, org::sem::Escaped const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Escaped, org::sem::Escaped>::write(::orgproto::Escaped* out, org::sem::Escaped const& in) {
+  org::algo::proto_serde<::orgproto::Escaped, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Escaped, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Escaped /* d_org */>::read(::orgproto::Escaped const& /* d_org */ out, proto_write_accessor<org::sem::Escaped /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Escaped /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Escaped, org::sem::Escaped>::read(::orgproto::Escaped const& out, proto_write_accessor<org::sem::Escaped> in) {
+  org::algo::proto_serde<::orgproto::Escaped, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Escaped, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Newline /* d_org */>::write(::orgproto::Newline* /* d_org */ out, org::sem::Newline const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Newline, org::sem::Newline>::write(::orgproto::Newline* out, org::sem::Newline const& in) {
+  org::algo::proto_serde<::orgproto::Newline, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Newline, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Newline /* d_org */>::read(::orgproto::Newline const& /* d_org */ out, proto_write_accessor<org::sem::Newline /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Newline /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Newline, org::sem::Newline>::read(::orgproto::Newline const& out, proto_write_accessor<org::sem::Newline> in) {
+  org::algo::proto_serde<::orgproto::Newline, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Newline, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Space /* d_org */>::write(::orgproto::Space* /* d_org */ out, org::sem::Space const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Space, org::sem::Space>::write(::orgproto::Space* out, org::sem::Space const& in) {
+  org::algo::proto_serde<::orgproto::Space, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Space, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Space /* d_org */>::read(::orgproto::Space const& /* d_org */ out, proto_write_accessor<org::sem::Space /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Space /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Space, org::sem::Space>::read(::orgproto::Space const& out, proto_write_accessor<org::sem::Space> in) {
+  org::algo::proto_serde<::orgproto::Space, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Space, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Word /* d_org */>::write(::orgproto::Word* /* d_org */ out, org::sem::Word const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Word, org::sem::Word>::write(::orgproto::Word* out, org::sem::Word const& in) {
+  org::algo::proto_serde<::orgproto::Word, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Word, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Word /* d_org */>::read(::orgproto::Word const& /* d_org */ out, proto_write_accessor<org::sem::Word /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Word /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Word, org::sem::Word>::read(::orgproto::Word const& out, proto_write_accessor<org::sem::Word> in) {
+  org::algo::proto_serde<::orgproto::Word, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Word, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::AtMention /* d_org */>::write(::orgproto::AtMention* /* d_org */ out, org::sem::AtMention const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::AtMention, org::sem::AtMention>::write(::orgproto::AtMention* out, org::sem::AtMention const& in) {
+  org::algo::proto_serde<::orgproto::AtMention, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::AtMention, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::AtMention /* d_org */>::read(::orgproto::AtMention const& /* d_org */ out, proto_write_accessor<org::sem::AtMention /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::AtMention /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::AtMention, org::sem::AtMention>::read(::orgproto::AtMention const& out, proto_write_accessor<org::sem::AtMention> in) {
+  org::algo::proto_serde<::orgproto::AtMention, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::AtMention, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::RawText /* d_org */>::write(::orgproto::RawText* /* d_org */ out, org::sem::RawText const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::RawText, org::sem::RawText>::write(::orgproto::RawText* out, org::sem::RawText const& in) {
+  org::algo::proto_serde<::orgproto::RawText, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::RawText, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::RawText /* d_org */>::read(::orgproto::RawText const& /* d_org */ out, proto_write_accessor<org::sem::RawText /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::RawText /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::RawText, org::sem::RawText>::read(::orgproto::RawText const& out, proto_write_accessor<org::sem::RawText> in) {
+  org::algo::proto_serde<::orgproto::RawText, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::RawText, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Punctuation /* d_org */>::write(::orgproto::Punctuation* /* d_org */ out, org::sem::Punctuation const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Punctuation, org::sem::Punctuation>::write(::orgproto::Punctuation* out, org::sem::Punctuation const& in) {
+  org::algo::proto_serde<::orgproto::Punctuation, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Punctuation, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Punctuation /* d_org */>::read(::orgproto::Punctuation const& /* d_org */ out, proto_write_accessor<org::sem::Punctuation /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Punctuation /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Punctuation, org::sem::Punctuation>::read(::orgproto::Punctuation const& out, proto_write_accessor<org::sem::Punctuation> in) {
+  org::algo::proto_serde<::orgproto::Punctuation, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Punctuation, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Placeholder /* d_org */>::write(::orgproto::Placeholder* /* d_org */ out, org::sem::Placeholder const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Placeholder, org::sem::Placeholder>::write(::orgproto::Placeholder* out, org::sem::Placeholder const& in) {
+  org::algo::proto_serde<::orgproto::Placeholder, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::Placeholder, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Placeholder /* d_org */>::read(::orgproto::Placeholder const& /* d_org */ out, proto_write_accessor<org::sem::Placeholder /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::Placeholder /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Placeholder, org::sem::Placeholder>::read(::orgproto::Placeholder const& out, proto_write_accessor<org::sem::Placeholder> in) {
+  org::algo::proto_serde<::orgproto::Placeholder, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::Placeholder, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::BigIdent /* d_org */>::write(::orgproto::BigIdent* /* d_org */ out, org::sem::BigIdent const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BigIdent, org::sem::BigIdent>::write(::orgproto::BigIdent* out, org::sem::BigIdent const& in) {
+  org::algo::proto_serde<::orgproto::BigIdent, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::BigIdent, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::BigIdent /* d_org */>::read(::orgproto::BigIdent const& /* d_org */ out, proto_write_accessor<org::sem::BigIdent /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::BigIdent /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BigIdent, org::sem::BigIdent>::read(::orgproto::BigIdent const& out, proto_write_accessor<org::sem::BigIdent> in) {
+  org::algo::proto_serde<::orgproto::BigIdent, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::BigIdent, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::TextTarget /* d_org */>::write(::orgproto::TextTarget* /* d_org */ out, org::sem::TextTarget const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget>::write(::orgproto::TextTarget* out, org::sem::TextTarget const& in) {
+  org::algo::proto_serde<::orgproto::TextTarget, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::TextTarget, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::TextTarget /* d_org */>::read(::orgproto::TextTarget const& /* d_org */ out, proto_write_accessor<org::sem::TextTarget /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::TextTarget /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::TextTarget, org::sem::TextTarget>::read(::orgproto::TextTarget const& out, proto_write_accessor<org::sem::TextTarget> in) {
+  org::algo::proto_serde<::orgproto::TextTarget, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::TextTarget, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::ErrorSkipToken /* d_org */>::write(::orgproto::ErrorSkipToken* /* d_org */ out, org::sem::ErrorSkipToken const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::Leaf>::write(out, in);
-  org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::write(::orgproto::ErrorSkipToken* out, org::sem::ErrorSkipToken const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::write(out, in);
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::ErrorSkipToken /* d_org */>::read(::orgproto::ErrorSkipToken const& /* d_org */ out, proto_write_accessor<org::sem::ErrorSkipToken /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
-  org::algo::proto_serde<::orgproto::ErrorSkipToken /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::ErrorSkipToken>::read(::orgproto::ErrorSkipToken const& out, proto_write_accessor<org::sem::ErrorSkipToken> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Leaf>::read(out, in.as<org::sem::Leaf>());
+  org::algo::proto_serde<::orgproto::ErrorSkipToken, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::ErrorSkipGroup /* d_org */, org::sem::ErrorSkipGroup /* d_org */>::write(::orgproto::ErrorSkipGroup* /* d_org */ out, org::sem::ErrorSkipGroup const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ErrorSkipGroup /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::write(::orgproto::ErrorSkipGroup* out, org::sem::ErrorSkipGroup const& in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::write(out->mutable_skipped(), in.skipped);
 }
 
-void org::algo::proto_serde<::orgproto::ErrorSkipGroup /* d_org */, org::sem::ErrorSkipGroup /* d_org */>::read(::orgproto::ErrorSkipGroup const& /* d_org */ out, proto_write_accessor<org::sem::ErrorSkipGroup /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ErrorSkipGroup /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::read(out.skipped(), in.for_field(&org::sem::ErrorSkipGroup /* d_org */::skipped));
+void org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::ErrorSkipGroup>::read(::orgproto::ErrorSkipGroup const& out, proto_write_accessor<org::sem::ErrorSkipGroup> in) {
+  org::algo::proto_serde<::orgproto::ErrorSkipGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ErrorSkipToken>, hstd::Vec<org::sem::SemId<org::sem::ErrorSkipToken>>>::read(out.skipped(), in.for_field(&org::sem::ErrorSkipGroup::skipped));
 }
 
-void org::algo::proto_serde<::orgproto::Bold /* d_org */, org::sem::Bold /* d_org */>::write(::orgproto::Bold* /* d_org */ out, org::sem::Bold const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Bold /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Bold, org::sem::Bold>::write(::orgproto::Bold* out, org::sem::Bold const& in) {
+  org::algo::proto_serde<::orgproto::Bold, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Bold /* d_org */, org::sem::Bold /* d_org */>::read(::orgproto::Bold const& /* d_org */ out, proto_write_accessor<org::sem::Bold /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Bold /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Bold, org::sem::Bold>::read(::orgproto::Bold const& out, proto_write_accessor<org::sem::Bold> in) {
+  org::algo::proto_serde<::orgproto::Bold, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Underline /* d_org */, org::sem::Underline /* d_org */>::write(::orgproto::Underline* /* d_org */ out, org::sem::Underline const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Underline /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Underline, org::sem::Underline>::write(::orgproto::Underline* out, org::sem::Underline const& in) {
+  org::algo::proto_serde<::orgproto::Underline, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Underline /* d_org */, org::sem::Underline /* d_org */>::read(::orgproto::Underline const& /* d_org */ out, proto_write_accessor<org::sem::Underline /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Underline /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Underline, org::sem::Underline>::read(::orgproto::Underline const& out, proto_write_accessor<org::sem::Underline> in) {
+  org::algo::proto_serde<::orgproto::Underline, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Monospace /* d_org */, org::sem::Monospace /* d_org */>::write(::orgproto::Monospace* /* d_org */ out, org::sem::Monospace const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Monospace /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Monospace, org::sem::Monospace>::write(::orgproto::Monospace* out, org::sem::Monospace const& in) {
+  org::algo::proto_serde<::orgproto::Monospace, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Monospace /* d_org */, org::sem::Monospace /* d_org */>::read(::orgproto::Monospace const& /* d_org */ out, proto_write_accessor<org::sem::Monospace /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Monospace /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Monospace, org::sem::Monospace>::read(::orgproto::Monospace const& out, proto_write_accessor<org::sem::Monospace> in) {
+  org::algo::proto_serde<::orgproto::Monospace, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::MarkQuote /* d_org */, org::sem::MarkQuote /* d_org */>::write(::orgproto::MarkQuote* /* d_org */ out, org::sem::MarkQuote const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::MarkQuote /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::MarkQuote, org::sem::MarkQuote>::write(::orgproto::MarkQuote* out, org::sem::MarkQuote const& in) {
+  org::algo::proto_serde<::orgproto::MarkQuote, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::MarkQuote /* d_org */, org::sem::MarkQuote /* d_org */>::read(::orgproto::MarkQuote const& /* d_org */ out, proto_write_accessor<org::sem::MarkQuote /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::MarkQuote /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::MarkQuote, org::sem::MarkQuote>::read(::orgproto::MarkQuote const& out, proto_write_accessor<org::sem::MarkQuote> in) {
+  org::algo::proto_serde<::orgproto::MarkQuote, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Verbatim /* d_org */, org::sem::Verbatim /* d_org */>::write(::orgproto::Verbatim* /* d_org */ out, org::sem::Verbatim const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Verbatim /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Verbatim, org::sem::Verbatim>::write(::orgproto::Verbatim* out, org::sem::Verbatim const& in) {
+  org::algo::proto_serde<::orgproto::Verbatim, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Verbatim /* d_org */, org::sem::Verbatim /* d_org */>::read(::orgproto::Verbatim const& /* d_org */ out, proto_write_accessor<org::sem::Verbatim /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Verbatim /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Verbatim, org::sem::Verbatim>::read(::orgproto::Verbatim const& out, proto_write_accessor<org::sem::Verbatim> in) {
+  org::algo::proto_serde<::orgproto::Verbatim, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Italic /* d_org */, org::sem::Italic /* d_org */>::write(::orgproto::Italic* /* d_org */ out, org::sem::Italic const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Italic /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Italic, org::sem::Italic>::write(::orgproto::Italic* out, org::sem::Italic const& in) {
+  org::algo::proto_serde<::orgproto::Italic, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Italic /* d_org */, org::sem::Italic /* d_org */>::read(::orgproto::Italic const& /* d_org */ out, proto_write_accessor<org::sem::Italic /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Italic /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Italic, org::sem::Italic>::read(::orgproto::Italic const& out, proto_write_accessor<org::sem::Italic> in) {
+  org::algo::proto_serde<::orgproto::Italic, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Strike /* d_org */, org::sem::Strike /* d_org */>::write(::orgproto::Strike* /* d_org */ out, org::sem::Strike const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Strike /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Strike, org::sem::Strike>::write(::orgproto::Strike* out, org::sem::Strike const& in) {
+  org::algo::proto_serde<::orgproto::Strike, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Strike /* d_org */, org::sem::Strike /* d_org */>::read(::orgproto::Strike const& /* d_org */ out, proto_write_accessor<org::sem::Strike /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Strike /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Strike, org::sem::Strike>::read(::orgproto::Strike const& out, proto_write_accessor<org::sem::Strike> in) {
+  org::algo::proto_serde<::orgproto::Strike, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Par /* d_org */, org::sem::Par /* d_org */>::write(::orgproto::Par* /* d_org */ out, org::sem::Par const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Par /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Par, org::sem::Par>::write(::orgproto::Par* out, org::sem::Par const& in) {
+  org::algo::proto_serde<::orgproto::Par, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Par /* d_org */, org::sem::Par /* d_org */>::read(::orgproto::Par const& /* d_org */ out, proto_write_accessor<org::sem::Par /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Par /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Par, org::sem::Par>::read(::orgproto::Par const& out, proto_write_accessor<org::sem::Par> in) {
+  org::algo::proto_serde<::orgproto::Par, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::RadioTarget /* d_org */, org::sem::RadioTarget /* d_org */>::write(::orgproto::RadioTarget* /* d_org */ out, org::sem::RadioTarget const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::RadioTarget /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::RadioTarget, org::sem::RadioTarget>::write(::orgproto::RadioTarget* out, org::sem::RadioTarget const& in) {
+  org::algo::proto_serde<::orgproto::RadioTarget, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::write(out->mutable_words(), in.words);
 }
 
-void org::algo::proto_serde<::orgproto::RadioTarget /* d_org */, org::sem::RadioTarget /* d_org */>::read(::orgproto::RadioTarget const& /* d_org */ out, proto_write_accessor<org::sem::RadioTarget /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::RadioTarget /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.words(), in.for_field(&org::sem::RadioTarget /* d_org */::words));
+void org::algo::proto_serde<::orgproto::RadioTarget, org::sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<org::sem::RadioTarget> in) {
+  org::algo::proto_serde<::orgproto::RadioTarget, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.words(), in.for_field(&org::sem::RadioTarget::words));
 }
 
-void org::algo::proto_serde<::orgproto::Latex /* d_org */, org::sem::Latex /* d_org */>::write(::orgproto::Latex* /* d_org */ out, org::sem::Latex const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Latex /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Latex, org::sem::Latex>::write(::orgproto::Latex* out, org::sem::Latex const& in) {
+  org::algo::proto_serde<::orgproto::Latex, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Latex /* d_org */, org::sem::Latex /* d_org */>::read(::orgproto::Latex const& /* d_org */ out, proto_write_accessor<org::sem::Latex /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Latex /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Latex, org::sem::Latex>::read(::orgproto::Latex const& out, proto_write_accessor<org::sem::Latex> in) {
+  org::algo::proto_serde<::orgproto::Latex, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Link /* d_org */>::write(::orgproto::Link* /* d_org */ out, org::sem::Link const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Link, org::sem::Link>::write(::orgproto::Link* out, org::sem::Link const& in) {
+  org::algo::proto_serde<::orgproto::Link, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::Link, org::sem::Org>::write(out, in);
   if (in.description) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_description(), *in.description);
   }
   proto_serde<orgproto::LinkTarget, org::sem::LinkTarget>::write(out->mutable_target(), in.target);
 }
 
-void org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Link /* d_org */>::read(::orgproto::Link const& /* d_org */ out, proto_write_accessor<org::sem::Link /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::Link /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Link, org::sem::Link>::read(::orgproto::Link const& out, proto_write_accessor<org::sem::Link> in) {
+  org::algo::proto_serde<::orgproto::Link, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::Link, org::sem::Org>::read(out, in.as<org::sem::Org>());
   if (out.has_description()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.description(), in.for_field(&org::sem::Link /* d_org */::description));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.description(), in.for_field(&org::sem::Link::description));
   }
-  proto_serde<orgproto::LinkTarget, org::sem::LinkTarget>::read(out.target(), in.for_field(&org::sem::Link /* d_org */::target));
+  proto_serde<orgproto::LinkTarget, org::sem::LinkTarget>::read(out.target(), in.for_field(&org::sem::Link::target));
 }
 
-void org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::BlockCenter /* d_org */>::write(::orgproto::BlockCenter* /* d_org */ out, org::sem::BlockCenter const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockCenter, org::sem::BlockCenter>::write(::orgproto::BlockCenter* out, org::sem::BlockCenter const& in) {
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::BlockCenter /* d_org */>::read(::orgproto::BlockCenter const& /* d_org */ out, proto_write_accessor<org::sem::BlockCenter /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockCenter /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockCenter, org::sem::BlockCenter>::read(::orgproto::BlockCenter const& out, proto_write_accessor<org::sem::BlockCenter> in) {
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockCenter, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::BlockQuote /* d_org */>::write(::orgproto::BlockQuote* /* d_org */ out, org::sem::BlockQuote const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockQuote, org::sem::BlockQuote>::write(::orgproto::BlockQuote* out, org::sem::BlockQuote const& in) {
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::BlockQuote /* d_org */>::read(::orgproto::BlockQuote const& /* d_org */ out, proto_write_accessor<org::sem::BlockQuote /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockQuote /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockQuote, org::sem::BlockQuote>::read(::orgproto::BlockQuote const& out, proto_write_accessor<org::sem::BlockQuote> in) {
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockQuote, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::BlockComment /* d_org */>::write(::orgproto::BlockComment* /* d_org */ out, org::sem::BlockComment const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockComment, org::sem::BlockComment>::write(::orgproto::BlockComment* out, org::sem::BlockComment const& in) {
+  org::algo::proto_serde<::orgproto::BlockComment, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockComment, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::BlockComment /* d_org */>::read(::orgproto::BlockComment const& /* d_org */ out, proto_write_accessor<org::sem::BlockComment /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockComment /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockComment, org::sem::BlockComment>::read(::orgproto::BlockComment const& out, proto_write_accessor<org::sem::BlockComment> in) {
+  org::algo::proto_serde<::orgproto::BlockComment, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockComment, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::BlockVerse /* d_org */>::write(::orgproto::BlockVerse* /* d_org */ out, org::sem::BlockVerse const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockVerse, org::sem::BlockVerse>::write(::orgproto::BlockVerse* out, org::sem::BlockVerse const& in) {
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::BlockVerse /* d_org */>::read(::orgproto::BlockVerse const& /* d_org */ out, proto_write_accessor<org::sem::BlockVerse /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockVerse /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockVerse, org::sem::BlockVerse>::read(::orgproto::BlockVerse const& out, proto_write_accessor<org::sem::BlockVerse> in) {
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockVerse, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::BlockDynamicFallback /* d_org */>::write(::orgproto::BlockDynamicFallback* /* d_org */ out, org::sem::BlockDynamicFallback const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::BlockDynamicFallback>::write(::orgproto::BlockDynamicFallback* out, org::sem::BlockDynamicFallback const& in) {
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
 }
 
-void org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::BlockDynamicFallback /* d_org */>::read(::orgproto::BlockDynamicFallback const& /* d_org */ out, proto_write_accessor<org::sem::BlockDynamicFallback /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockDynamicFallback /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::BlockDynamicFallback /* d_org */::name));
+void org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::BlockDynamicFallback>::read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<org::sem::BlockDynamicFallback> in) {
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockDynamicFallback, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::BlockDynamicFallback::name));
 }
 
-void org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::BlockExample /* d_org */>::write(::orgproto::BlockExample* /* d_org */ out, org::sem::BlockExample const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockExample, org::sem::BlockExample>::write(::orgproto::BlockExample* out, org::sem::BlockExample const& in) {
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::BlockExample /* d_org */>::read(::orgproto::BlockExample const& /* d_org */ out, proto_write_accessor<org::sem::BlockExample /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockExample /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockExample, org::sem::BlockExample>::read(::orgproto::BlockExample const& out, proto_write_accessor<org::sem::BlockExample> in) {
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockExample, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::BlockExport /* d_org */>::write(::orgproto::BlockExport* /* d_org */ out, org::sem::BlockExport const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockExport, org::sem::BlockExport>::write(::orgproto::BlockExport* out, org::sem::BlockExport const& in) {
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_exporter(), in.exporter);
   proto_serde<std::string, hstd::Str>::write(out->mutable_content(), in.content);
 }
 
-void org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::BlockExport /* d_org */>::read(::orgproto::BlockExport const& /* d_org */ out, proto_write_accessor<org::sem::BlockExport /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockExport /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::BlockExport /* d_org */::exporter));
-  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::BlockExport /* d_org */::content));
+void org::algo::proto_serde<::orgproto::BlockExport, org::sem::BlockExport>::read(::orgproto::BlockExport const& out, proto_write_accessor<org::sem::BlockExport> in) {
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockExport, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::BlockExport::exporter));
+  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::BlockExport::content));
 }
 
-void org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::BlockAdmonition /* d_org */>::write(::orgproto::BlockAdmonition* /* d_org */ out, org::sem::BlockAdmonition const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition>::write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in) {
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::BlockAdmonition /* d_org */>::read(::orgproto::BlockAdmonition const& /* d_org */ out, proto_write_accessor<org::sem::BlockAdmonition /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockAdmonition /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition>::read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in) {
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::BlockCodeEvalResult /* d_org */>::write(::orgproto::BlockCodeEvalResult* /* d_org */ out, org::sem::BlockCodeEvalResult const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult>::write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in) {
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalOutput>, hstd::Vec<org::sem::OrgCodeEvalOutput>>::write(out->mutable_raw(), in.raw);
   if (!in.node.isNil()) {
     proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(out->mutable_node(), in.node);
   }
 }
 
-void org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::BlockCodeEvalResult /* d_org */>::read(::orgproto::BlockCodeEvalResult const& /* d_org */ out, proto_write_accessor<org::sem::BlockCodeEvalResult /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockCodeEvalResult /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalOutput>, hstd::Vec<org::sem::OrgCodeEvalOutput>>::read(out.raw(), in.for_field(&org::sem::BlockCodeEvalResult /* d_org */::raw));
-  proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(out.node(), in.for_field(&org::sem::BlockCodeEvalResult /* d_org */::node));
+void org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult>::read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in) {
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalOutput>, hstd::Vec<org::sem::OrgCodeEvalOutput>>::read(out.raw(), in.for_field(&org::sem::BlockCodeEvalResult::raw));
+  proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(out.node(), in.for_field(&org::sem::BlockCodeEvalResult::node));
 }
 
-void org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::BlockCode /* d_org */>::write(::orgproto::BlockCode* /* d_org */ out, org::sem::BlockCode const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::write(::orgproto::BlockCode* out, org::sem::BlockCode const& in) {
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Org>::write(out, in);
   if (in.lang) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_lang(), *in.lang);
   }
@@ -2704,36 +2704,36 @@ void org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::BlockCo
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_switches(), in.switches);
 }
 
-void org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::BlockCode /* d_org */>::read(::orgproto::BlockCode const& /* d_org */ out, proto_write_accessor<org::sem::BlockCode /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::BlockCode /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::orgproto::BlockCode const& out, proto_write_accessor<org::sem::BlockCode> in) {
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::BlockCode, org::sem::Org>::read(out, in.as<org::sem::Org>());
   if (out.has_lang()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.lang(), in.for_field(&org::sem::BlockCode /* d_org */::lang));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.lang(), in.for_field(&org::sem::BlockCode::lang));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::BlockCode /* d_org */::result));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::read(out.lines(), in.for_field(&org::sem::BlockCode /* d_org */::lines));
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.switches(), in.for_field(&org::sem::BlockCode /* d_org */::switches));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::BlockCode::result));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::read(out.lines(), in.for_field(&org::sem::BlockCode::lines));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.switches(), in.for_field(&org::sem::BlockCode::switches));
 }
 
-void org::algo::proto_serde<::orgproto::SubtreeLog /* d_org */, org::sem::SubtreeLog /* d_org */>::write(::orgproto::SubtreeLog* /* d_org */ out, org::sem::SubtreeLog const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::SubtreeLog /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::SubtreeLog>::write(::orgproto::SubtreeLog* out, org::sem::SubtreeLog const& in) {
+  org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::Org>::write(out, in);
   proto_serde<orgproto::SubtreeLogHead, org::sem::SubtreeLogHead>::write(out->mutable_head(), in.head);
   if (in.desc) {
     proto_serde<orgproto::StmtList, org::sem::SemId<org::sem::StmtList>>::write(out->mutable_desc(), *in.desc);
   }
 }
 
-void org::algo::proto_serde<::orgproto::SubtreeLog /* d_org */, org::sem::SubtreeLog /* d_org */>::read(::orgproto::SubtreeLog const& /* d_org */ out, proto_write_accessor<org::sem::SubtreeLog /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::SubtreeLog /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::SubtreeLogHead, org::sem::SubtreeLogHead>::read(out.head(), in.for_field(&org::sem::SubtreeLog /* d_org */::head));
+void org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::SubtreeLog>::read(::orgproto::SubtreeLog const& out, proto_write_accessor<org::sem::SubtreeLog> in) {
+  org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<orgproto::SubtreeLogHead, org::sem::SubtreeLogHead>::read(out.head(), in.for_field(&org::sem::SubtreeLog::head));
   if (out.has_desc()) {
-    proto_serde<hstd::Opt<orgproto::StmtList>, hstd::Opt<org::sem::SemId<org::sem::StmtList>>>::read(out.desc(), in.for_field(&org::sem::SubtreeLog /* d_org */::desc));
+    proto_serde<hstd::Opt<orgproto::StmtList>, hstd::Opt<org::sem::SemId<org::sem::StmtList>>>::read(out.desc(), in.for_field(&org::sem::SubtreeLog::desc));
   }
 }
 
-void org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Subtree /* d_org */>::write(::orgproto::Subtree* /* d_org */ out, org::sem::Subtree const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::write(::orgproto::Subtree* out, org::sem::Subtree const& in) {
+  org::algo::proto_serde<::orgproto::Subtree, org::sem::Org>::write(out, in);
   out->set_level(in.level);
   if (in.treeId) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_treeid(), *in.treeId);
@@ -2769,161 +2769,161 @@ void org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Subtree /
   }
 }
 
-void org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Subtree /* d_org */>::read(::orgproto::Subtree const& /* d_org */ out, proto_write_accessor<org::sem::Subtree /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Subtree /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::Subtree /* d_org */::level).get() = out.level();
+void org::algo::proto_serde<::orgproto::Subtree, org::sem::Subtree>::read(::orgproto::Subtree const& out, proto_write_accessor<org::sem::Subtree> in) {
+  org::algo::proto_serde<::orgproto::Subtree, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::Subtree::level).get() = out.level();
   if (out.has_treeid()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.treeid(), in.for_field(&org::sem::Subtree /* d_org */::treeId));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.treeid(), in.for_field(&org::sem::Subtree::treeId));
   }
   if (out.has_todo()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.todo(), in.for_field(&org::sem::Subtree /* d_org */::todo));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.todo(), in.for_field(&org::sem::Subtree::todo));
   }
   if (out.has_completion()) {
-    proto_serde<hstd::Opt<orgproto::SubtreeCompletion>, hstd::Opt<org::sem::SubtreeCompletion>>::read(out.completion(), in.for_field(&org::sem::Subtree /* d_org */::completion));
+    proto_serde<hstd::Opt<orgproto::SubtreeCompletion>, hstd::Opt<org::sem::SubtreeCompletion>>::read(out.completion(), in.for_field(&org::sem::Subtree::completion));
   }
   if (out.has_description()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.description(), in.for_field(&org::sem::Subtree /* d_org */::description));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.description(), in.for_field(&org::sem::Subtree::description));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, hstd::Vec<org::sem::SemId<org::sem::HashTag>>>::read(out.tags(), in.for_field(&org::sem::Subtree /* d_org */::tags));
-  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.title(), in.for_field(&org::sem::Subtree /* d_org */::title));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>>::read(out.logbook(), in.for_field(&org::sem::Subtree /* d_org */::logbook));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::read(out.properties(), in.for_field(&org::sem::Subtree /* d_org */::properties));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, hstd::Vec<org::sem::SemId<org::sem::HashTag>>>::read(out.tags(), in.for_field(&org::sem::Subtree::tags));
+  proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.title(), in.for_field(&org::sem::Subtree::title));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>>::read(out.logbook(), in.for_field(&org::sem::Subtree::logbook));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::read(out.properties(), in.for_field(&org::sem::Subtree::properties));
   if (out.has_closed()) {
-    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.closed(), in.for_field(&org::sem::Subtree /* d_org */::closed));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.closed(), in.for_field(&org::sem::Subtree::closed));
   }
   if (out.has_deadline()) {
-    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.deadline(), in.for_field(&org::sem::Subtree /* d_org */::deadline));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.deadline(), in.for_field(&org::sem::Subtree::deadline));
   }
   if (out.has_scheduled()) {
-    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.scheduled(), in.for_field(&org::sem::Subtree /* d_org */::scheduled));
+    proto_serde<hstd::Opt<orgproto::Time>, hstd::Opt<org::sem::SemId<org::sem::Time>>>::read(out.scheduled(), in.for_field(&org::sem::Subtree::scheduled));
   }
-  in.for_field(&org::sem::Subtree /* d_org */::isComment).get() = out.iscomment();
-  in.for_field(&org::sem::Subtree /* d_org */::isArchived).get() = out.isarchived();
+  in.for_field(&org::sem::Subtree::isComment).get() = out.iscomment();
+  in.for_field(&org::sem::Subtree::isArchived).get() = out.isarchived();
   if (out.has_priority()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.priority(), in.for_field(&org::sem::Subtree /* d_org */::priority));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.priority(), in.for_field(&org::sem::Subtree::priority));
   }
 }
 
-void org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Cell /* d_org */>::write(::orgproto::Cell* /* d_org */ out, org::sem::Cell const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Cell, org::sem::Cell>::write(::orgproto::Cell* out, org::sem::Cell const& in) {
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Org>::write(out, in);
   out->set_isblock(in.isBlock);
 }
 
-void org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Cell /* d_org */>::read(::orgproto::Cell const& /* d_org */ out, proto_write_accessor<org::sem::Cell /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::Cell /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::Cell /* d_org */::isBlock).get() = out.isblock();
+void org::algo::proto_serde<::orgproto::Cell, org::sem::Cell>::read(::orgproto::Cell const& out, proto_write_accessor<org::sem::Cell> in) {
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::Cell, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::Cell::isBlock).get() = out.isblock();
 }
 
-void org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Row /* d_org */>::write(::orgproto::Row* /* d_org */ out, org::sem::Row const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Row, org::sem::Row>::write(::orgproto::Row* out, org::sem::Row const& in) {
+  org::algo::proto_serde<::orgproto::Row, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::Row, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::Row, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, hstd::Vec<org::sem::SemId<org::sem::Cell>>>::write(out->mutable_cells(), in.cells);
   out->set_isblock(in.isBlock);
 }
 
-void org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Row /* d_org */>::read(::orgproto::Row const& /* d_org */ out, proto_write_accessor<org::sem::Row /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::Row /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, hstd::Vec<org::sem::SemId<org::sem::Cell>>>::read(out.cells(), in.for_field(&org::sem::Row /* d_org */::cells));
-  in.for_field(&org::sem::Row /* d_org */::isBlock).get() = out.isblock();
+void org::algo::proto_serde<::orgproto::Row, org::sem::Row>::read(::orgproto::Row const& out, proto_write_accessor<org::sem::Row> in) {
+  org::algo::proto_serde<::orgproto::Row, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::Row, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::Row, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Cell>, hstd::Vec<org::sem::SemId<org::sem::Cell>>>::read(out.cells(), in.for_field(&org::sem::Row::cells));
+  in.for_field(&org::sem::Row::isBlock).get() = out.isblock();
 }
 
-void org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Table /* d_org */>::write(::orgproto::Table* /* d_org */ out, org::sem::Table const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Table, org::sem::Table>::write(::orgproto::Table* out, org::sem::Table const& in) {
+  org::algo::proto_serde<::orgproto::Table, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::Table, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::Table, org::sem::Org>::write(out, in);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, hstd::Vec<org::sem::SemId<org::sem::Row>>>::write(out->mutable_rows(), in.rows);
   out->set_isblock(in.isBlock);
 }
 
-void org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Table /* d_org */>::read(::orgproto::Table const& /* d_org */ out, proto_write_accessor<org::sem::Table /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::Table /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, hstd::Vec<org::sem::SemId<org::sem::Row>>>::read(out.rows(), in.for_field(&org::sem::Table /* d_org */::rows));
-  in.for_field(&org::sem::Table /* d_org */::isBlock).get() = out.isblock();
+void org::algo::proto_serde<::orgproto::Table, org::sem::Table>::read(::orgproto::Table const& out, proto_write_accessor<org::sem::Table> in) {
+  org::algo::proto_serde<::orgproto::Table, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::Table, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::Table, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Row>, hstd::Vec<org::sem::SemId<org::sem::Row>>>::read(out.rows(), in.for_field(&org::sem::Table::rows));
+  in.for_field(&org::sem::Table::isBlock).get() = out.isblock();
 }
 
-void org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Paragraph /* d_org */>::write(::orgproto::Paragraph* /* d_org */ out, org::sem::Paragraph const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Paragraph, org::sem::Paragraph>::write(::orgproto::Paragraph* out, org::sem::Paragraph const& in) {
+  org::algo::proto_serde<::orgproto::Paragraph, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::Paragraph, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Paragraph /* d_org */>::read(::orgproto::Paragraph const& /* d_org */ out, proto_write_accessor<org::sem::Paragraph /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::Paragraph /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Paragraph, org::sem::Paragraph>::read(::orgproto::Paragraph const& out, proto_write_accessor<org::sem::Paragraph> in) {
+  org::algo::proto_serde<::orgproto::Paragraph, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::Paragraph, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::ColonExample /* d_org */, org::sem::ColonExample /* d_org */>::write(::orgproto::ColonExample* /* d_org */ out, org::sem::ColonExample const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ColonExample /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ColonExample, org::sem::ColonExample>::write(::orgproto::ColonExample* out, org::sem::ColonExample const& in) {
+  org::algo::proto_serde<::orgproto::ColonExample, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::ColonExample /* d_org */, org::sem::ColonExample /* d_org */>::read(::orgproto::ColonExample const& /* d_org */ out, proto_write_accessor<org::sem::ColonExample /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ColonExample /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::ColonExample, org::sem::ColonExample>::read(::orgproto::ColonExample const& out, proto_write_accessor<org::sem::ColonExample> in) {
+  org::algo::proto_serde<::orgproto::ColonExample, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::CmdAttr /* d_org */>::write(::orgproto::CmdAttr* /* d_org */ out, org::sem::CmdAttr const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdAttr, org::sem::CmdAttr>::write(::orgproto::CmdAttr* out, org::sem::CmdAttr const& in) {
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_target(), in.target);
 }
 
-void org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::CmdAttr /* d_org */>::read(::orgproto::CmdAttr const& /* d_org */ out, proto_write_accessor<org::sem::CmdAttr /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdAttr /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.target(), in.for_field(&org::sem::CmdAttr /* d_org */::target));
+void org::algo::proto_serde<::orgproto::CmdAttr, org::sem::CmdAttr>::read(::orgproto::CmdAttr const& out, proto_write_accessor<org::sem::CmdAttr> in) {
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdAttr, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.target(), in.for_field(&org::sem::CmdAttr::target));
 }
 
-void org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::CmdExport /* d_org */>::write(::orgproto::CmdExport* /* d_org */ out, org::sem::CmdExport const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdExport, org::sem::CmdExport>::write(::orgproto::CmdExport* out, org::sem::CmdExport const& in) {
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_exporter(), in.exporter);
   proto_serde<std::string, hstd::Str>::write(out->mutable_content(), in.content);
 }
 
-void org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::CmdExport /* d_org */>::read(::orgproto::CmdExport const& /* d_org */ out, proto_write_accessor<org::sem::CmdExport /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdExport /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::CmdExport /* d_org */::exporter));
-  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::CmdExport /* d_org */::content));
+void org::algo::proto_serde<::orgproto::CmdExport, org::sem::CmdExport>::read(::orgproto::CmdExport const& out, proto_write_accessor<org::sem::CmdExport> in) {
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdExport, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.exporter(), in.for_field(&org::sem::CmdExport::exporter));
+  proto_serde<std::string, hstd::Str>::read(out.content(), in.for_field(&org::sem::CmdExport::content));
 }
 
-void org::algo::proto_serde<::orgproto::Call /* d_org */, org::sem::Call /* d_org */>::write(::orgproto::Call* /* d_org */ out, org::sem::Call const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Call /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Call, org::sem::Call>::write(::orgproto::Call* out, org::sem::Call const& in) {
+  org::algo::proto_serde<::orgproto::Call, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_attrs(), in.attrs);
   out->set_iscommand(in.isCommand);
 }
 
-void org::algo::proto_serde<::orgproto::Call /* d_org */, org::sem::Call /* d_org */>::read(::orgproto::Call const& /* d_org */ out, proto_write_accessor<org::sem::Call /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Call /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Call /* d_org */::name));
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.attrs(), in.for_field(&org::sem::Call /* d_org */::attrs));
-  in.for_field(&org::sem::Call /* d_org */::isCommand).get() = out.iscommand();
+void org::algo::proto_serde<::orgproto::Call, org::sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<org::sem::Call> in) {
+  org::algo::proto_serde<::orgproto::Call, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::Call::name));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.attrs(), in.for_field(&org::sem::Call::attrs));
+  in.for_field(&org::sem::Call::isCommand).get() = out.iscommand();
 }
 
-void org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::List /* d_org */>::write(::orgproto::List* /* d_org */ out, org::sem::List const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::List, org::sem::List>::write(::orgproto::List* out, org::sem::List const& in) {
+  org::algo::proto_serde<::orgproto::List, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::List, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::List /* d_org */>::read(::orgproto::List const& /* d_org */ out, proto_write_accessor<org::sem::List /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::List /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::List, org::sem::List>::read(::orgproto::List const& out, proto_write_accessor<org::sem::List> in) {
+  org::algo::proto_serde<::orgproto::List, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::List, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::ListItem /* d_org */>::write(::orgproto::ListItem* /* d_org */ out, org::sem::ListItem const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem>::write(::orgproto::ListItem* out, org::sem::ListItem const& in) {
+  org::algo::proto_serde<::orgproto::ListItem, org::sem::Org>::write(out, in);
   out->set_checkbox(static_cast<orgproto::CheckboxState>(in.checkbox));
   if (in.header) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_header(), *in.header);
@@ -2933,19 +2933,19 @@ void org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::ListItem
   }
 }
 
-void org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::ListItem /* d_org */>::read(::orgproto::ListItem const& /* d_org */ out, proto_write_accessor<org::sem::ListItem /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::ListItem /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::ListItem /* d_org */::checkbox).get() = static_cast<CheckboxState>(out.checkbox());
+void org::algo::proto_serde<::orgproto::ListItem, org::sem::ListItem>::read(::orgproto::ListItem const& out, proto_write_accessor<org::sem::ListItem> in) {
+  org::algo::proto_serde<::orgproto::ListItem, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::ListItem::checkbox).get() = static_cast<CheckboxState>(out.checkbox());
   if (out.has_header()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.header(), in.for_field(&org::sem::ListItem /* d_org */::header));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.header(), in.for_field(&org::sem::ListItem::header));
   }
   if (out.has_bullet()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.bullet(), in.for_field(&org::sem::ListItem /* d_org */::bullet));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.bullet(), in.for_field(&org::sem::ListItem::bullet));
   }
 }
 
-void org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::DocumentOptions /* d_org */>::write(::orgproto::DocumentOptions* /* d_org */ out, org::sem::DocumentOptions const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptions>::write(::orgproto::DocumentOptions* out, org::sem::DocumentOptions const& in) {
+  org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::Org>::write(out, in);
   out->set_initialvisibility(static_cast<orgproto::InitialSubtreeVisibility>(in.initialVisibility));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::write(out->mutable_properties(), in.properties);
   proto_serde<orgproto::DocumentExportConfig, org::sem::DocumentExportConfig>::write(out->mutable_exportconfig(), in.exportConfig);
@@ -2971,57 +2971,57 @@ void org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::D
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::write(out->mutable_donekeywords(), in.doneKeywords);
 }
 
-void org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::DocumentOptions /* d_org */>::read(::orgproto::DocumentOptions const& /* d_org */ out, proto_write_accessor<org::sem::DocumentOptions /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::DocumentOptions /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::DocumentOptions /* d_org */::initialVisibility).get() = static_cast<InitialSubtreeVisibility>(out.initialvisibility());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::read(out.properties(), in.for_field(&org::sem::DocumentOptions /* d_org */::properties));
-  proto_serde<orgproto::DocumentExportConfig, org::sem::DocumentExportConfig>::read(out.exportconfig(), in.for_field(&org::sem::DocumentOptions /* d_org */::exportConfig));
+void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<org::sem::DocumentOptions> in) {
+  org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::DocumentOptions::initialVisibility).get() = static_cast<InitialSubtreeVisibility>(out.initialvisibility());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, hstd::Vec<org::sem::NamedProperty>>::read(out.properties(), in.for_field(&org::sem::DocumentOptions::properties));
+  proto_serde<orgproto::DocumentExportConfig, org::sem::DocumentExportConfig>::read(out.exportconfig(), in.for_field(&org::sem::DocumentOptions::exportConfig));
   if (out.has_fixedwidthsections()) {
-    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&org::sem::DocumentOptions /* d_org */::fixedWidthSections));
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&org::sem::DocumentOptions::fixedWidthSections));
   }
   if (out.has_startupindented()) {
-    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.startupindented(), in.for_field(&org::sem::DocumentOptions /* d_org */::startupIndented));
+    proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.startupindented(), in.for_field(&org::sem::DocumentOptions::startupIndented));
   }
   if (out.has_category()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.category(), in.for_field(&org::sem::DocumentOptions /* d_org */::category));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.category(), in.for_field(&org::sem::DocumentOptions::category));
   }
   if (out.has_setupfile()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.setupfile(), in.for_field(&org::sem::DocumentOptions /* d_org */::setupfile));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.setupfile(), in.for_field(&org::sem::DocumentOptions::setupfile));
   }
   if (out.has_maxsubtreelevelexport()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.maxsubtreelevelexport(), in.for_field(&org::sem::DocumentOptions /* d_org */::maxSubtreeLevelExport));
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.maxsubtreelevelexport(), in.for_field(&org::sem::DocumentOptions::maxSubtreeLevelExport));
   }
   if (out.has_columns()) {
-    proto_serde<hstd::Opt<orgproto::ColumnView>, hstd::Opt<org::sem::ColumnView>>::read(out.columns(), in.for_field(&org::sem::DocumentOptions /* d_org */::columns));
+    proto_serde<hstd::Opt<orgproto::ColumnView>, hstd::Opt<org::sem::ColumnView>>::read(out.columns(), in.for_field(&org::sem::DocumentOptions::columns));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.todokeywords(), in.for_field(&org::sem::DocumentOptions /* d_org */::todoKeywords));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.donekeywords(), in.for_field(&org::sem::DocumentOptions /* d_org */::doneKeywords));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.todokeywords(), in.for_field(&org::sem::DocumentOptions::todoKeywords));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::TodoKeyword>, hstd::Vec<org::sem::TodoKeyword>>::read(out.donekeywords(), in.for_field(&org::sem::DocumentOptions::doneKeywords));
 }
 
-void org::algo::proto_serde<::orgproto::DocumentFragment /* d_org */, org::sem::DocumentFragment /* d_org */>::write(::orgproto::DocumentFragment* /* d_org */ out, org::sem::DocumentFragment const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::DocumentFragment /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment>::write(::orgproto::DocumentFragment* out, org::sem::DocumentFragment const& in) {
+  org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::Org>::write(out, in);
   out->set_baseline(in.baseLine);
   out->set_basecol(in.baseCol);
 }
 
-void org::algo::proto_serde<::orgproto::DocumentFragment /* d_org */, org::sem::DocumentFragment /* d_org */>::read(::orgproto::DocumentFragment const& /* d_org */ out, proto_write_accessor<org::sem::DocumentFragment /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::DocumentFragment /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::DocumentFragment /* d_org */::baseLine).get() = out.baseline();
-  in.for_field(&org::sem::DocumentFragment /* d_org */::baseCol).get() = out.basecol();
+void org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::DocumentFragment>::read(::orgproto::DocumentFragment const& out, proto_write_accessor<org::sem::DocumentFragment> in) {
+  org::algo::proto_serde<::orgproto::DocumentFragment, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::DocumentFragment::baseLine).get() = out.baseline();
+  in.for_field(&org::sem::DocumentFragment::baseCol).get() = out.basecol();
 }
 
-void org::algo::proto_serde<::orgproto::CriticMarkup /* d_org */, org::sem::CriticMarkup /* d_org */>::write(::orgproto::CriticMarkup* /* d_org */ out, org::sem::CriticMarkup const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CriticMarkup /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup>::write(::orgproto::CriticMarkup* out, org::sem::CriticMarkup const& in) {
+  org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::Org>::write(out, in);
   out->set_kind(static_cast<orgproto::CriticMarkup_Kind>(in.kind));
 }
 
-void org::algo::proto_serde<::orgproto::CriticMarkup /* d_org */, org::sem::CriticMarkup /* d_org */>::read(::orgproto::CriticMarkup const& /* d_org */ out, proto_write_accessor<org::sem::CriticMarkup /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CriticMarkup /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::CriticMarkup /* d_org */::kind).get() = static_cast<org::sem::CriticMarkup::Kind>(out.kind());
+void org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::CriticMarkup>::read(::orgproto::CriticMarkup const& out, proto_write_accessor<org::sem::CriticMarkup> in) {
+  org::algo::proto_serde<::orgproto::CriticMarkup, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::CriticMarkup::kind).get() = static_cast<org::sem::CriticMarkup::Kind>(out.kind());
 }
 
-void org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Document /* d_org */>::write(::orgproto::Document* /* d_org */ out, org::sem::Document const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Document, org::sem::Document>::write(::orgproto::Document* out, org::sem::Document const& in) {
+  org::algo::proto_serde<::orgproto::Document, org::sem::Org>::write(out, in);
   if (in.title) {
     proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::write(out->mutable_title(), *in.title);
   }
@@ -3044,30 +3044,30 @@ void org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Document
   }
 }
 
-void org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Document /* d_org */>::read(::orgproto::Document const& /* d_org */ out, proto_write_accessor<org::sem::Document /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Document /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::Document, org::sem::Document>::read(::orgproto::Document const& out, proto_write_accessor<org::sem::Document> in) {
+  org::algo::proto_serde<::orgproto::Document, org::sem::Org>::read(out, in.as<org::sem::Org>());
   if (out.has_title()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.title(), in.for_field(&org::sem::Document /* d_org */::title));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.title(), in.for_field(&org::sem::Document::title));
   }
   if (out.has_author()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.author(), in.for_field(&org::sem::Document /* d_org */::author));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.author(), in.for_field(&org::sem::Document::author));
   }
   if (out.has_creator()) {
-    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.creator(), in.for_field(&org::sem::Document /* d_org */::creator));
+    proto_serde<hstd::Opt<orgproto::Paragraph>, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>>::read(out.creator(), in.for_field(&org::sem::Document::creator));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, hstd::Vec<org::sem::SemId<org::sem::HashTag>>>::read(out.filetags(), in.for_field(&org::sem::Document /* d_org */::filetags));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, hstd::Vec<org::sem::SemId<org::sem::HashTag>>>::read(out.filetags(), in.for_field(&org::sem::Document::filetags));
   if (out.has_email()) {
-    proto_serde<hstd::Opt<orgproto::RawText>, hstd::Opt<org::sem::SemId<org::sem::RawText>>>::read(out.email(), in.for_field(&org::sem::Document /* d_org */::email));
+    proto_serde<hstd::Opt<orgproto::RawText>, hstd::Opt<org::sem::SemId<org::sem::RawText>>>::read(out.email(), in.for_field(&org::sem::Document::email));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.language(), in.for_field(&org::sem::Document /* d_org */::language));
-  proto_serde<orgproto::DocumentOptions, org::sem::SemId<org::sem::DocumentOptions>>::read(out.options(), in.for_field(&org::sem::Document /* d_org */::options));
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.language(), in.for_field(&org::sem::Document::language));
+  proto_serde<orgproto::DocumentOptions, org::sem::SemId<org::sem::DocumentOptions>>::read(out.options(), in.for_field(&org::sem::Document::options));
   if (out.has_exportfilename()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.exportfilename(), in.for_field(&org::sem::Document /* d_org */::exportFileName));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.exportfilename(), in.for_field(&org::sem::Document::exportFileName));
   }
 }
 
-void org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::FileTarget /* d_org */>::write(::orgproto::FileTarget* /* d_org */ out, org::sem::FileTarget const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::FileTarget, org::sem::FileTarget>::write(::orgproto::FileTarget* out, org::sem::FileTarget const& in) {
+  org::algo::proto_serde<::orgproto::FileTarget, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_path(), in.path);
   if (in.line) {
     out->set_line(*in.line);
@@ -3084,38 +3084,38 @@ void org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::FileTa
   }
 }
 
-void org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::FileTarget /* d_org */>::read(::orgproto::FileTarget const& /* d_org */ out, proto_write_accessor<org::sem::FileTarget /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::FileTarget /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.path(), in.for_field(&org::sem::FileTarget /* d_org */::path));
+void org::algo::proto_serde<::orgproto::FileTarget, org::sem::FileTarget>::read(::orgproto::FileTarget const& out, proto_write_accessor<org::sem::FileTarget> in) {
+  org::algo::proto_serde<::orgproto::FileTarget, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.path(), in.for_field(&org::sem::FileTarget::path));
   if (out.has_line()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::FileTarget /* d_org */::line));
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.line(), in.for_field(&org::sem::FileTarget::line));
   }
   if (out.has_searchtarget()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.searchtarget(), in.for_field(&org::sem::FileTarget /* d_org */::searchTarget));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.searchtarget(), in.for_field(&org::sem::FileTarget::searchTarget));
   }
-  in.for_field(&org::sem::FileTarget /* d_org */::restrictToHeadlines).get() = out.restricttoheadlines();
+  in.for_field(&org::sem::FileTarget::restrictToHeadlines).get() = out.restricttoheadlines();
   if (out.has_targetid()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.targetid(), in.for_field(&org::sem::FileTarget /* d_org */::targetId));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.targetid(), in.for_field(&org::sem::FileTarget::targetId));
   }
   if (out.has_regexp()) {
-    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.regexp(), in.for_field(&org::sem::FileTarget /* d_org */::regexp));
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.regexp(), in.for_field(&org::sem::FileTarget::regexp));
   }
 }
 
-void org::algo::proto_serde<::orgproto::TextSeparator /* d_org */, org::sem::TextSeparator /* d_org */>::write(::orgproto::TextSeparator* /* d_org */ out, org::sem::TextSeparator const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::TextSeparator /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::TextSeparator, org::sem::TextSeparator>::write(::orgproto::TextSeparator* out, org::sem::TextSeparator const& in) {
+  org::algo::proto_serde<::orgproto::TextSeparator, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::TextSeparator /* d_org */, org::sem::TextSeparator /* d_org */>::read(::orgproto::TextSeparator const& /* d_org */ out, proto_write_accessor<org::sem::TextSeparator /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::TextSeparator /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::TextSeparator, org::sem::TextSeparator>::read(::orgproto::TextSeparator const& out, proto_write_accessor<org::sem::TextSeparator> in) {
+  org::algo::proto_serde<::orgproto::TextSeparator, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
-void org::algo::proto_serde<::orgproto::DocumentGroup /* d_org */, org::sem::DocumentGroup /* d_org */>::write(::orgproto::DocumentGroup* /* d_org */ out, org::sem::DocumentGroup const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::DocumentGroup /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::DocumentGroup, org::sem::DocumentGroup>::write(::orgproto::DocumentGroup* out, org::sem::DocumentGroup const& in) {
+  org::algo::proto_serde<::orgproto::DocumentGroup, org::sem::Org>::write(out, in);
 }
 
-void org::algo::proto_serde<::orgproto::DocumentGroup /* d_org */, org::sem::DocumentGroup /* d_org */>::read(::orgproto::DocumentGroup const& /* d_org */ out, proto_write_accessor<org::sem::DocumentGroup /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::DocumentGroup /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::DocumentGroup, org::sem::DocumentGroup>::read(::orgproto::DocumentGroup const& out, proto_write_accessor<org::sem::DocumentGroup> in) {
+  org::algo::proto_serde<::orgproto::DocumentGroup, org::sem::Org>::read(out, in.as<org::sem::Org>());
 }
 
 void org::algo::proto_serde<::orgproto::File::Document, org::sem::File::Document>::write(::orgproto::File::Document* out, org::sem::File::Document const& in) {
@@ -3142,8 +3142,8 @@ void org::algo::proto_serde<::orgproto::File::Source, org::sem::File::Source>::r
 
 }
 
-void org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::File /* d_org */>::write(::orgproto::File* /* d_org */ out, org::sem::File const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::File, org::sem::File>::write(::orgproto::File* out, org::sem::File const& in) {
+  org::algo::proto_serde<::orgproto::File, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_relpath(), in.relPath);
   proto_serde<std::string, hstd::Str>::write(out->mutable_abspath(), in.absPath);
   switch (in.data.index()) {
@@ -3159,52 +3159,52 @@ void org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::File /* d_or
   }
 }
 
-void org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::File /* d_org */>::read(::orgproto::File const& /* d_org */ out, proto_write_accessor<org::sem::File /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::File /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.relpath(), in.for_field(&org::sem::File /* d_org */::relPath));
-  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::File /* d_org */::absPath));
+void org::algo::proto_serde<::orgproto::File, org::sem::File>::read(::orgproto::File const& out, proto_write_accessor<org::sem::File> in) {
+  org::algo::proto_serde<::orgproto::File, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.relpath(), in.for_field(&org::sem::File::relPath));
+  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::File::absPath));
   switch (out.data().kind_case()) {
-    case ::orgproto::File /* d_org */::Data::kDocument:
-      in.for_field_variant<0>(&org::sem::File /* d_org */::data).get();
-      proto_serde<orgproto::File::Document, org::sem::File::Document>::read(out.data().document(), in.for_field_variant<0>(&org::sem::File /* d_org */::data));
+    case ::orgproto::File::Data::kDocument:
+      in.for_field_variant<0>(&org::sem::File::data).get();
+      proto_serde<orgproto::File::Document, org::sem::File::Document>::read(out.data().document(), in.for_field_variant<0>(&org::sem::File::data));
       break;
-    case ::orgproto::File /* d_org */::Data::kAttachment:
-      in.for_field_variant<1>(&org::sem::File /* d_org */::data).get();
-      proto_serde<orgproto::File::Attachment, org::sem::File::Attachment>::read(out.data().attachment(), in.for_field_variant<1>(&org::sem::File /* d_org */::data));
+    case ::orgproto::File::Data::kAttachment:
+      in.for_field_variant<1>(&org::sem::File::data).get();
+      proto_serde<orgproto::File::Attachment, org::sem::File::Attachment>::read(out.data().attachment(), in.for_field_variant<1>(&org::sem::File::data));
       break;
-    case ::orgproto::File /* d_org */::Data::kSource:
-      in.for_field_variant<2>(&org::sem::File /* d_org */::data).get();
-      proto_serde<orgproto::File::Source, org::sem::File::Source>::read(out.data().source(), in.for_field_variant<2>(&org::sem::File /* d_org */::data));
+    case ::orgproto::File::Data::kSource:
+      in.for_field_variant<2>(&org::sem::File::data).get();
+      proto_serde<orgproto::File::Source, org::sem::File::Source>::read(out.data().source(), in.for_field_variant<2>(&org::sem::File::data));
       break;
-    case ::orgproto::File /* d_org */::Data::KIND_NOT_SET: {
+    case ::orgproto::File::Data::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
       break;
     }
   }
 }
 
-void org::algo::proto_serde<::orgproto::Directory /* d_org */, org::sem::Directory /* d_org */>::write(::orgproto::Directory* /* d_org */ out, org::sem::Directory const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Directory /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Directory, org::sem::Directory>::write(::orgproto::Directory* out, org::sem::Directory const& in) {
+  org::algo::proto_serde<::orgproto::Directory, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_relpath(), in.relPath);
   proto_serde<std::string, hstd::Str>::write(out->mutable_abspath(), in.absPath);
 }
 
-void org::algo::proto_serde<::orgproto::Directory /* d_org */, org::sem::Directory /* d_org */>::read(::orgproto::Directory const& /* d_org */ out, proto_write_accessor<org::sem::Directory /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Directory /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.relpath(), in.for_field(&org::sem::Directory /* d_org */::relPath));
-  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::Directory /* d_org */::absPath));
+void org::algo::proto_serde<::orgproto::Directory, org::sem::Directory>::read(::orgproto::Directory const& out, proto_write_accessor<org::sem::Directory> in) {
+  org::algo::proto_serde<::orgproto::Directory, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.relpath(), in.for_field(&org::sem::Directory::relPath));
+  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::Directory::absPath));
 }
 
-void org::algo::proto_serde<::orgproto::Symlink /* d_org */, org::sem::Symlink /* d_org */>::write(::orgproto::Symlink* /* d_org */ out, org::sem::Symlink const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::Symlink /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::Symlink, org::sem::Symlink>::write(::orgproto::Symlink* out, org::sem::Symlink const& in) {
+  org::algo::proto_serde<::orgproto::Symlink, org::sem::Org>::write(out, in);
   out->set_isdirectory(in.isDirectory);
   proto_serde<std::string, hstd::Str>::write(out->mutable_abspath(), in.absPath);
 }
 
-void org::algo::proto_serde<::orgproto::Symlink /* d_org */, org::sem::Symlink /* d_org */>::read(::orgproto::Symlink const& /* d_org */ out, proto_write_accessor<org::sem::Symlink /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::Symlink /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  in.for_field(&org::sem::Symlink /* d_org */::isDirectory).get() = out.isdirectory();
-  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::Symlink /* d_org */::absPath));
+void org::algo::proto_serde<::orgproto::Symlink, org::sem::Symlink>::read(::orgproto::Symlink const& out, proto_write_accessor<org::sem::Symlink> in) {
+  org::algo::proto_serde<::orgproto::Symlink, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  in.for_field(&org::sem::Symlink::isDirectory).get() = out.isdirectory();
+  proto_serde<std::string, hstd::Str>::read(out.abspath(), in.for_field(&org::sem::Symlink::absPath));
 }
 
 void org::algo::proto_serde<::orgproto::CmdInclude::IncludeBase, org::sem::CmdInclude::IncludeBase>::write(::orgproto::CmdInclude::IncludeBase* out, org::sem::CmdInclude::IncludeBase const& in) {
@@ -3277,8 +3277,8 @@ void org::algo::proto_serde<::orgproto::CmdInclude::OrgDocument, org::sem::CmdIn
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::CmdInclude /* d_org */>::write(::orgproto::CmdInclude* /* d_org */ out, org::sem::CmdInclude const& /* d_org */ in) {
-  org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude>::write(::orgproto::CmdInclude* out, org::sem::CmdInclude const& in) {
+  org::algo::proto_serde<::orgproto::CmdInclude, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_path(), in.path);
   if (in.firstLine) {
     out->set_firstline(*in.firstLine);
@@ -3305,37 +3305,37 @@ void org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::CmdInc
   }
 }
 
-void org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::CmdInclude /* d_org */>::read(::orgproto::CmdInclude const& /* d_org */ out, proto_write_accessor<org::sem::CmdInclude /* d_org */> in) {
-  org::algo::proto_serde<::orgproto::CmdInclude /* d_org */, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<std::string, hstd::Str>::read(out.path(), in.for_field(&org::sem::CmdInclude /* d_org */::path));
+void org::algo::proto_serde<::orgproto::CmdInclude, org::sem::CmdInclude>::read(::orgproto::CmdInclude const& out, proto_write_accessor<org::sem::CmdInclude> in) {
+  org::algo::proto_serde<::orgproto::CmdInclude, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.path(), in.for_field(&org::sem::CmdInclude::path));
   if (out.has_firstline()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.firstline(), in.for_field(&org::sem::CmdInclude /* d_org */::firstLine));
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.firstline(), in.for_field(&org::sem::CmdInclude::firstLine));
   }
   if (out.has_lastline()) {
-    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.lastline(), in.for_field(&org::sem::CmdInclude /* d_org */::lastLine));
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.lastline(), in.for_field(&org::sem::CmdInclude::lastLine));
   }
   switch (out.data().kind_case()) {
-    case ::orgproto::CmdInclude /* d_org */::Data::kExample:
-      in.for_field_variant<0>(&org::sem::CmdInclude /* d_org */::data).get();
-      proto_serde<orgproto::CmdInclude::Example, org::sem::CmdInclude::Example>::read(out.data().example(), in.for_field_variant<0>(&org::sem::CmdInclude /* d_org */::data));
+    case ::orgproto::CmdInclude::Data::kExample:
+      in.for_field_variant<0>(&org::sem::CmdInclude::data).get();
+      proto_serde<orgproto::CmdInclude::Example, org::sem::CmdInclude::Example>::read(out.data().example(), in.for_field_variant<0>(&org::sem::CmdInclude::data));
       break;
-    case ::orgproto::CmdInclude /* d_org */::Data::kExport:
-      in.for_field_variant<1>(&org::sem::CmdInclude /* d_org */::data).get();
-      proto_serde<orgproto::CmdInclude::Export, org::sem::CmdInclude::Export>::read(out.data().export_(), in.for_field_variant<1>(&org::sem::CmdInclude /* d_org */::data));
+    case ::orgproto::CmdInclude::Data::kExport:
+      in.for_field_variant<1>(&org::sem::CmdInclude::data).get();
+      proto_serde<orgproto::CmdInclude::Export, org::sem::CmdInclude::Export>::read(out.data().export_(), in.for_field_variant<1>(&org::sem::CmdInclude::data));
       break;
-    case ::orgproto::CmdInclude /* d_org */::Data::kCustom:
-      in.for_field_variant<2>(&org::sem::CmdInclude /* d_org */::data).get();
-      proto_serde<orgproto::CmdInclude::Custom, org::sem::CmdInclude::Custom>::read(out.data().custom(), in.for_field_variant<2>(&org::sem::CmdInclude /* d_org */::data));
+    case ::orgproto::CmdInclude::Data::kCustom:
+      in.for_field_variant<2>(&org::sem::CmdInclude::data).get();
+      proto_serde<orgproto::CmdInclude::Custom, org::sem::CmdInclude::Custom>::read(out.data().custom(), in.for_field_variant<2>(&org::sem::CmdInclude::data));
       break;
-    case ::orgproto::CmdInclude /* d_org */::Data::kSrc:
-      in.for_field_variant<3>(&org::sem::CmdInclude /* d_org */::data).get();
-      proto_serde<orgproto::CmdInclude::Src, org::sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<3>(&org::sem::CmdInclude /* d_org */::data));
+    case ::orgproto::CmdInclude::Data::kSrc:
+      in.for_field_variant<3>(&org::sem::CmdInclude::data).get();
+      proto_serde<orgproto::CmdInclude::Src, org::sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<3>(&org::sem::CmdInclude::data));
       break;
-    case ::orgproto::CmdInclude /* d_org */::Data::kOrgdocument:
-      in.for_field_variant<4>(&org::sem::CmdInclude /* d_org */::data).get();
-      proto_serde<orgproto::CmdInclude::OrgDocument, org::sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<4>(&org::sem::CmdInclude /* d_org */::data));
+    case ::orgproto::CmdInclude::Data::kOrgdocument:
+      in.for_field_variant<4>(&org::sem::CmdInclude::data).get();
+      proto_serde<orgproto::CmdInclude::OrgDocument, org::sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<4>(&org::sem::CmdInclude::data));
       break;
-    case ::orgproto::CmdInclude /* d_org */::Data::KIND_NOT_SET: {
+    case ::orgproto::CmdInclude::Data::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
       break;
     }

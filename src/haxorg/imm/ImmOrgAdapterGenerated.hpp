@@ -27,7 +27,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorGroup> : public org::imm::ImmAdap
   using api_type = org::imm::ImmAdapterErrorGroupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorGroupAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem /* imm_write */> /* imm_write */> /* imm_write */ getDiagnostics() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> getDiagnostics() const;
 };
 
 template <>
@@ -36,7 +36,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmStmt> : public org::imm::ImmAdapterTBa
   using api_type = org::imm::ImmAdapterStmtAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterStmtAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */ getAttached() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> getAttached() const;
 };
 
 template <>
@@ -175,7 +175,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs> : public org::imm::ImmA
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomArgsAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
-  bool /* imm_write */ getIsAttached() const;
+  bool getIsAttached() const;
 };
 
 template <>
@@ -185,7 +185,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw> : public org::imm::ImmAd
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomRawAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
-  bool /* imm_write */ getIsAttached() const;
+  bool getIsAttached() const;
   hstd::Str const& getText() const;
 };
 
@@ -196,7 +196,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCustomText> : public org::imm::ImmA
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCustomTextAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
-  bool /* imm_write */ getIsAttached() const;
+  bool getIsAttached() const;
   org::imm::ImmAdapter getText() const;
 };
 
@@ -207,11 +207,11 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdCall> : public org::imm::ImmAdapter
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdCallAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getFileName() const;
+  hstd::Opt<hstd::Str> const& getFileName() const;
   org::sem::AttrGroup getInsideHeaderAttrs() const;
   org::sem::AttrGroup getCallAttrs() const;
   org::sem::AttrGroup getEndHeaderAttrs() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */ getResult() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> getResult() const;
 };
 
 template <>
@@ -258,8 +258,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmTime> : public org::imm::ImmAdapterTBa
   using api_type = org::imm::ImmAdapterTimeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTimeAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  bool /* imm_write */ getIsActive() const;
-  org::imm::ImmTime::TimeVariant /* imm_write */ getTime() const;
+  bool getIsActive() const;
+  org::imm::ImmTime::TimeVariant getTime() const;
 };
 
 template <>
@@ -289,8 +289,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmSymbol> : public org::imm::ImmAdapterT
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSymbolAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
-  hstd::ext::ImmVec<org::imm::ImmSymbol::Param /* imm_write */> /* imm_write */ getParameters() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg /* imm_write */> /* imm_write */> /* imm_write */ getPositional() const;
+  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> getParameters() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> getPositional() const;
 };
 
 template <>
@@ -387,7 +387,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup> : public org::imm::Imm
   using api_type = org::imm::ImmAdapterErrorSkipGroupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterErrorSkipGroupAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken /* imm_write */> /* imm_write */> /* imm_write */ getSkipped() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> getSkipped() const;
 };
 
 template <>
@@ -468,7 +468,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmRadioTarget> : public org::imm::ImmAda
   using api_type = org::imm::ImmAdapterRadioTargetAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterRadioTargetAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */ getWords() const;
+  hstd::ext::ImmVec<hstd::Str> getWords() const;
 };
 
 template <>
@@ -485,7 +485,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmLink> : public org::imm::ImmAdapterTBa
   using api_type = org::imm::ImmAdapterLinkAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterLinkAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getDescription() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getDescription() const;
   org::sem::LinkTarget getTarget() const;
 };
 
@@ -562,7 +562,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult> : public org::imm
   using api_type = org::imm::ImmAdapterBlockCodeEvalResultAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeEvalResultAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> /* imm_write */ getRaw() const;
+  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> getRaw() const;
   org::imm::ImmAdapter getNode() const;
 };
 
@@ -572,9 +572,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmBlockCode> : public org::imm::ImmAdapt
   using api_type = org::imm::ImmAdapterBlockCodeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getLang() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult /* imm_write */> /* imm_write */> /* imm_write */ getResult() const;
-  hstd::ext::ImmVec<org::sem::BlockCodeLine> /* imm_write */ getLines() const;
+  hstd::Opt<hstd::Str> const& getLang() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> getResult() const;
+  hstd::ext::ImmVec<org::sem::BlockCodeLine> getLines() const;
   org::sem::AttrGroup getSwitches() const;
 };
 
@@ -585,7 +585,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmSubtreeLog> : public org::imm::ImmAdap
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSubtreeLogAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   org::sem::SubtreeLogHead getHead() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList /* imm_write */>> getDesc() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>> getDesc() const;
 };
 
 template <>
@@ -594,21 +594,21 @@ struct org::imm::ImmAdapterT<org::imm::ImmSubtree> : public org::imm::ImmAdapter
   using api_type = org::imm::ImmAdapterSubtreeAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSubtreeAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  int /* imm_write */ getLevel() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getTreeId() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getTodo() const;
+  int getLevel() const;
+  hstd::Opt<hstd::Str> const& getTreeId() const;
+  hstd::Opt<hstd::Str> const& getTodo() const;
   hstd::Opt<org::sem::SubtreeCompletion> const& getCompletion() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getDescription() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */ getTags() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getDescription() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> getTags() const;
   org::imm::ImmAdapter getTitle() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog /* imm_write */> /* imm_write */> /* imm_write */ getLogbook() const;
-  hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */ getProperties() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> getClosed() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> getDeadline() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime /* imm_write */>> getScheduled() const;
-  bool /* imm_write */ getIsComment() const;
-  bool /* imm_write */ getIsArchived() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getPriority() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> getLogbook() const;
+  hstd::ext::ImmVec<org::sem::NamedProperty> getProperties() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> getClosed() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> getDeadline() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>> getScheduled() const;
+  bool getIsComment() const;
+  bool getIsArchived() const;
+  hstd::Opt<hstd::Str> const& getPriority() const;
 };
 
 template <>
@@ -617,7 +617,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCell> : public org::imm::ImmAdapterTBa
   using api_type = org::imm::ImmAdapterCellAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCellAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  bool /* imm_write */ getIsBlock() const;
+  bool getIsBlock() const;
 };
 
 template <>
@@ -626,8 +626,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmRow> : public org::imm::ImmAdapterTBas
   using api_type = org::imm::ImmAdapterRowAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterRowAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell /* imm_write */> /* imm_write */> /* imm_write */ getCells() const;
-  bool /* imm_write */ getIsBlock() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> getCells() const;
+  bool getIsBlock() const;
 };
 
 template <>
@@ -636,8 +636,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmTable> : public org::imm::ImmAdapterTB
   using api_type = org::imm::ImmAdapterTableAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterTableAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow /* imm_write */> /* imm_write */> /* imm_write */ getRows() const;
-  bool /* imm_write */ getIsBlock() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> getRows() const;
+  bool getIsBlock() const;
 };
 
 template <>
@@ -683,7 +683,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCall> : public org::imm::ImmAdapterTBa
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getName() const;
   org::sem::AttrGroup getAttrs() const;
-  bool /* imm_write */ getIsCommand() const;
+  bool getIsCommand() const;
 };
 
 template <>
@@ -700,9 +700,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmListItem> : public org::imm::ImmAdapte
   using api_type = org::imm::ImmAdapterListItemAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterListItemAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  CheckboxState /* imm_write */ getCheckbox() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getHeader() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getBullet() const;
+  CheckboxState getCheckbox() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getHeader() const;
+  hstd::Opt<hstd::Str> const& getBullet() const;
 };
 
 template <>
@@ -711,17 +711,17 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentOptions> : public org::imm::Im
   using api_type = org::imm::ImmAdapterDocumentOptionsAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentOptionsAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  InitialSubtreeVisibility /* imm_write */ getInitialVisibility() const;
-  hstd::ext::ImmVec<org::sem::NamedProperty> /* imm_write */ getProperties() const;
+  InitialSubtreeVisibility getInitialVisibility() const;
+  hstd::ext::ImmVec<org::sem::NamedProperty> getProperties() const;
   org::sem::DocumentExportConfig getExportConfig() const;
-  hstd::Opt<bool /* imm_write */> const& getFixedWidthSections() const;
-  hstd::Opt<bool /* imm_write */> const& getStartupIndented() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getCategory() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getSetupfile() const;
-  hstd::Opt<int /* imm_write */> const& getMaxSubtreeLevelExport() const;
+  hstd::Opt<bool> const& getFixedWidthSections() const;
+  hstd::Opt<bool> const& getStartupIndented() const;
+  hstd::Opt<hstd::Str> const& getCategory() const;
+  hstd::Opt<hstd::Str> const& getSetupfile() const;
+  hstd::Opt<int> const& getMaxSubtreeLevelExport() const;
   hstd::Opt<org::sem::ColumnView> const& getColumns() const;
-  hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */ getTodoKeywords() const;
-  hstd::ext::ImmVec<org::sem::TodoKeyword> /* imm_write */ getDoneKeywords() const;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> getTodoKeywords() const;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> getDoneKeywords() const;
 };
 
 template <>
@@ -730,8 +730,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentFragment> : public org::imm::I
   using api_type = org::imm::ImmAdapterDocumentFragmentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentFragmentAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  int /* imm_write */ getBaseLine() const;
-  int /* imm_write */ getBaseCol() const;
+  int getBaseLine() const;
+  int getBaseCol() const;
 };
 
 template <>
@@ -740,7 +740,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmCriticMarkup> : public org::imm::ImmAd
   using api_type = org::imm::ImmAdapterCriticMarkupAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCriticMarkupAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  org::imm::ImmCriticMarkup::Kind /* imm_write */ getKind() const;
+  org::imm::ImmCriticMarkup::Kind getKind() const;
 };
 
 template <>
@@ -749,14 +749,14 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocument> : public org::imm::ImmAdapte
   using api_type = org::imm::ImmAdapterDocumentAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getTitle() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getAuthor() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph /* imm_write */>> getCreator() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag /* imm_write */> /* imm_write */> /* imm_write */ getFiletags() const;
-  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText /* imm_write */>> getEmail() const;
-  hstd::ext::ImmVec<hstd /* imm_write */::Str /* imm_write */> /* imm_write */ getLanguage() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getTitle() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getAuthor() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getCreator() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> getFiletags() const;
+  hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>> getEmail() const;
+  hstd::ext::ImmVec<hstd::Str> getLanguage() const;
   org::imm::ImmAdapter getOptions() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getExportFileName() const;
+  hstd::Opt<hstd::Str> const& getExportFileName() const;
 };
 
 template <>
@@ -766,11 +766,11 @@ struct org::imm::ImmAdapterT<org::imm::ImmFileTarget> : public org::imm::ImmAdap
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterFileTargetAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getPath() const;
-  hstd::Opt<int /* imm_write */> const& getLine() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getSearchTarget() const;
-  bool /* imm_write */ getRestrictToHeadlines() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getTargetId() const;
-  hstd::Opt<hstd /* imm_write */::Str /* imm_write */> const& getRegexp() const;
+  hstd::Opt<int> const& getLine() const;
+  hstd::Opt<hstd::Str> const& getSearchTarget() const;
+  bool getRestrictToHeadlines() const;
+  hstd::Opt<hstd::Str> const& getTargetId() const;
+  hstd::Opt<hstd::Str> const& getRegexp() const;
 };
 
 template <>
@@ -797,7 +797,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmFile> : public org::imm::ImmAdapterTBa
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getRelPath() const;
   hstd::Str const& getAbsPath() const;
-  org::imm::ImmFile::Data /* imm_write */ getData() const;
+  org::imm::ImmFile::Data getData() const;
 };
 
 template <>
@@ -816,7 +816,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmSymlink> : public org::imm::ImmAdapter
   using api_type = org::imm::ImmAdapterSymlinkAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterSymlinkAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
-  bool /* imm_write */ getIsDirectory() const;
+  bool getIsDirectory() const;
   hstd::Str const& getAbsPath() const;
 };
 
@@ -827,9 +827,9 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdInclude> : public org::imm::ImmAdap
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterCmdIncludeAPI), (), (), ());
   ImmAdapterT(org::imm::ImmAdapter const& other);
   hstd::Str const& getPath() const;
-  hstd::Opt<int /* imm_write */> const& getFirstLine() const;
-  hstd::Opt<int /* imm_write */> const& getLastLine() const;
-  org::imm::ImmCmdInclude::Data /* imm_write */ getData() const;
+  hstd::Opt<int> const& getFirstLine() const;
+  hstd::Opt<int> const& getLastLine() const;
+  org::imm::ImmCmdInclude::Data getData() const;
 };
 
 }

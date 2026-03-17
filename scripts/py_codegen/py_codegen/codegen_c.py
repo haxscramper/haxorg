@@ -135,6 +135,28 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
         Name="data",
     ))
 
+    for entry in struct.Nested:
+        match entry:
+            case codegen_ir.GenTuStruct():
+                if conf.isAcceptedByBackend(entry):
+                    conv = _gen_struct(entry, ast, conf)
+                    result.forward_decls.extend(conv.forward_decls)
+                    result.wrappers.extend(conv.wrappers)
+
+            case codegen_ir.GenTuEnum():
+                if conf.isAcceptedByBackend(entry):
+                    result.wrappers.append(_gen_enum(entry, ast, conf))
+
+            case codegen_ir.GenTuTypedef():
+                if conf.isAcceptedByBackend(entry):
+                    result.wrappers.append(_gen_typedef(entry, ast, conf))
+
+            case codegen_ir.GenTuPass():
+                pass
+
+            case _:
+                raise TypeError(type(entry))
+
     result.wrappers.append(vtable_struct)
     result.wrappers.append(wrap_struct)
 
@@ -152,19 +174,6 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                 Stmt=True,
             ),
         ))
-
-    for entry in struct.Nested:
-        match entry:
-            case codegen_ir.GenTuStruct():
-                if conf.isAcceptedByBackend(entry):
-                    conv = _gen_struct(entry, ast, conf)
-                    result.forward_decls.extend(conv.forward_decls)
-                    result.wrappers.extend(conv.wrappers)
-
-            case codegen_ir.GenTuEnum():
-                log(CAT).info(f"{entry.Name}")
-                if conf.isAcceptedByBackend(entry):
-                    result.wrappers.append(_gen_enum(entry, ast, conf))
 
     return result
 
@@ -198,7 +207,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                             header_only.extend(structs.forward_decls)
 
                 case codegen_ir.GenTuEnum():
-                    wrapped_structs.append(_gen_enum(entry, ast, conf))
+                    header_only.append(_gen_enum(entry, ast, conf))
 
                 case codegen_ir.GenTuTypedef():
                     tdef = _gen_typedef(entry, ast, conf)
@@ -210,6 +219,9 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     #         ])))
 
                     wrapped_structs.append(tdef)
+
+                case _:
+                    raise TypeError(type(entry))
 
     return codegen_ir.GenFiles([
         codegen_ir.GenUnit(
