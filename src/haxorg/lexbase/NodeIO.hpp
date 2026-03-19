@@ -16,9 +16,9 @@ namespace org::test {
 
 template <typename N, typename K, typename V, typename M>
 yaml yamlRepr(
-    hstd::CR<org::parse::NodeGroup<N, K, V, M>> group,
-    bool                                        withStrings = true,
-    bool                                        withId      = false) {
+    hstd::org::parse::NodeGroup<N, K, V, M> const& group,
+    bool                                           withStrings = true,
+    bool                                           withId      = false) {
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
@@ -42,8 +42,8 @@ yaml yamlRepr(
 
 template <typename N, typename K, typename V, typename M>
 json jsonRepr(
-    hstd::CR<org::parse::NodeGroup<N, K, V, M>> group,
-    bool                                        withStrings = true) {
+    hstd::org::parse::NodeGroup<N, K, V, M> const& group,
+    bool                                           withStrings = true) {
     json out = json::array();
     for (const auto& [id, node] : group.nodes.pairs()) {
         json item;
@@ -184,8 +184,8 @@ yaml yamlRepr(
 
 template <typename K, typename V>
 yaml yamlRepr(
-    hstd::CR<org::parse::TokenGroup<K, V>> group,
-    bool                                   withIdx = false) {
+    hstd::org::parse::TokenGroup<K, V> const& group,
+    bool                                      withIdx = false) {
     yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
         out.push_back(yamlRepr(id, *token, withIdx));
@@ -195,8 +195,8 @@ yaml yamlRepr(
 
 template <typename K, typename V>
 json jsonRepr(
-    hstd::CR<org::parse::TokenGroup<K, V>> group,
-    bool                                   withIdx = false) {
+    hstd::org::parse::TokenGroup<K, V> const& group,
+    bool                                      withIdx = false) {
     json out = json::array();
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;
@@ -209,7 +209,7 @@ json jsonRepr(
 }
 
 template <typename N, typename K, typename V, typename M>
-org::parse::NodeGroup<N, K, V, M> fromFlatNodes(hstd::CR<yaml> node) {
+org::parse::NodeGroup<N, K, V, M> fromFlatNodes(hstd::yaml const& node) {
     org::parse::NodeGroup<N, K, V, M> result;
     result.nodes.resize(
         node.size(),
@@ -238,8 +238,8 @@ org::parse::NodeGroup<N, K, V, M> fromFlatNodes(hstd::CR<yaml> node) {
 
 template <typename K, typename V>
 org::parse::TokenGroup<K, V> fromFlatTokens(
-    hstd::CR<yaml> node,
-    hstd::Str&     buf) {
+    hstd::yaml const& node,
+    hstd::Str&        buf) {
     org::parse::TokenGroup<K, V> result;
     result.tokens.resize(node.size());
     int index = 0;

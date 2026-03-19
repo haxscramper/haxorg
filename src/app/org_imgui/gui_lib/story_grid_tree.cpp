@@ -6,7 +6,7 @@ void TreeGridCell::render(
     StoryNodeId const&     id,
     StoryGridConfig const& conf,
     ImVec2 const&          start,
-    const std::string&     im_tag) {
+    std::string const&     im_tag) {
     auto& ctx = model.ctx;
 
     IM_FN_PRINT("Cell", hstd::fmt("pos:{} size:{}", start, getSize()));

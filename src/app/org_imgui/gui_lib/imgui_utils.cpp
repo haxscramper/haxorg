@@ -23,9 +23,9 @@ bool                     ImRenderTraceRecord::TraceState;
 
 void AddTextWithBackground(
     ImDrawList*        draw_list,
-    const ImVec2&      position,
+    ImVec2 const&      position,
     ImU32              text_color,
-    const std::string& text,
+    std::string const& text,
     ImU32              background_color) {
     ImFont* font      = ImGui::GetFont();
     ImVec2  text_size = font->CalcTextSizeA(
@@ -86,7 +86,7 @@ int push_frameless_window_vars() {
     return 3;
 }
 
-void render_debug_rect(const ImVec2& size, ImU32 const& col) {
+void render_debug_rect(ImVec2 const& size, ImU32 const& col) {
     render_debug_rect(
         ImRect(
             ImGui::GetCursorScreenPos(),
@@ -95,7 +95,7 @@ void render_debug_rect(const ImVec2& size, ImU32 const& col) {
 }
 
 
-void render_debug_rect(const ImRect& rect, const ImU32& col) {
+void render_debug_rect(ImRect const& rect, ImU32 const& col) {
     ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, col);
 }
 
@@ -120,7 +120,7 @@ Opt<Str> get_fontconfig_path(Str const& fontname) {
 }
 
 SPtr<StbFontMetrics> StbFontMetrics::FromPath(
-    const std::string& fontPath,
+    std::string const& fontPath,
     float              fontSize) {
     auto result      = std::make_shared<StbFontMetrics>();
     result->fontSize = fontSize;
@@ -170,7 +170,7 @@ Pair<int, int> StbFontMetrics::GetAscentDescent() const {
     return std::make_pair(ascent, descent);
 }
 
-int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
+int StbFontMetrics::GetTextWidth(std::string_view const& text) const {
     int textWidth = 0;
     for (char c : text) {
         int advanceWidth, leftSideBearing;
@@ -204,11 +204,11 @@ void ImRenderTraceRecord::StartTrace() {
 
 void ImRenderTraceRecord::EndTrace() { TraceState = false; }
 
-void ImRenderTraceRecord::PushRecord(const ImRenderTraceRecord& rec) {
+void ImRenderTraceRecord::PushRecord(ImRenderTraceRecord const& rec) {
     if (TraceState) { stack.push_back(rec); }
 }
 
-void ImRenderTraceRecord::PushUnitRecord(const ImRenderTraceRecord& rec) {
+void ImRenderTraceRecord::PushUnitRecord(ImRenderTraceRecord const& rec) {
     if (TraceState) {
         if (stack.empty()) {
             stack.push_back(ImRenderTraceRecord::init());
@@ -285,8 +285,8 @@ bool ImRenderTraceRecord::ImRenderExpr(
 }
 
 void ImRenderTraceRecord::ImRenderUnit(
-    const std::string& im_function,
-    const std::string& im_id,
+    std::string const& im_function,
+    std::string const& im_id,
     const char*        function,
     int                line,
     const char*        file) {
@@ -338,7 +338,7 @@ ImVec2 getCurrentWindowContentPos() {
 void AddText(
     ImDrawList*        list,
     ImVec2 const&      pos,
-    const ImU32&       color,
-    const std::string& text) {
+    ImU32 const&       color,
+    std::string const& text) {
     list->AddText(pos, color, text.data(), text.data() + text.size());
 }

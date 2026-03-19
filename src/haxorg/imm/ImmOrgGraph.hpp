@@ -283,12 +283,12 @@ struct [[refl(
     };
 
     hstd::ext::Graphviz::Graph toGraphviz(
-        const org::imm::ImmAstContext::Ptr& ctx) const {
+        org::imm::ImmAstContext::Ptr const& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
     hstd::ext::Graphviz::Graph toGraphviz(
-        const org::imm::ImmAstContext::Ptr& ctx,
+        org::imm::ImmAstContext::Ptr const& ctx,
         GvConfig const&                     conf) const;
 #endif
 };

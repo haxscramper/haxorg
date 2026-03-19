@@ -58,28 +58,28 @@ template <typename T>
 struct value_domain;
 
 template <typename T>
-concept ImplementsSucc = requires(CR<T> value) {
+concept ImplementsSucc = requires(T const& value) {
     { value_domain<T>::succ(value) } -> std::same_as<T>;
 };
 
 template <typename T>
-concept ImplementsPrev = requires(CR<T> value) {
+concept ImplementsPrev = requires(T const& value) {
     { value_domain<T>::prev(value) } -> std::same_as<T>;
 };
 
 
 template <typename T>
-concept ImplementsLow = requires(CR<T> value) {
+concept ImplementsLow = requires(T const& value) {
     { value_domain<T>::low() } -> std::same_as<T>;
 };
 
 template <typename T>
-concept ImplementsHigh = requires(CR<T> value) {
+concept ImplementsHigh = requires(T const& value) {
     { value_domain<T>::high() } -> std::same_as<T>;
 };
 
 template <typename T>
-concept ImplementsOrd = requires(CR<T> value) {
+concept ImplementsOrd = requires(T const& value) {
     { value_domain<T>::ord(value) } -> std::convertible_to<long long int>;
 };
 

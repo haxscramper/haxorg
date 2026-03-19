@@ -28,7 +28,7 @@ void log_graph_tracker::add_processor(
 }
 
 void log_graph_tracker::start_tracing(
-    const log_graph_processor::tracked_info& info) {
+    log_graph_processor::tracked_info const& info) {
     if (TraceState) {
         throw std::runtime_error("Tracing already started");
     }
@@ -44,7 +44,7 @@ void log_graph_tracker::end_tracing(
 }
 
 void log_graph_tracker::notify_function_start(
-    const log_graph_processor::function_info& info) {
+    log_graph_processor::function_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_function_start(info);
@@ -61,7 +61,7 @@ void log_graph_tracker::notify_function_end(
 
 
 void log_graph_tracker::notify_scope_enter(
-    const log_graph_processor::scope_info& info) {
+    log_graph_processor::scope_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_scope_enter(info);
@@ -69,7 +69,7 @@ void log_graph_tracker::notify_scope_enter(
 }
 
 void log_graph_tracker::notify_scope_exit(
-    const log_graph_processor::scope_info& info) {
+    log_graph_processor::scope_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_scope_exit(info);
@@ -77,7 +77,7 @@ void log_graph_tracker::notify_scope_exit(
 }
 
 void log_graph_tracker::notify_named_text(
-    const log_graph_processor::named_text_info& info) {
+    log_graph_processor::named_text_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_named_text(info);
@@ -85,7 +85,7 @@ void log_graph_tracker::notify_named_text(
 }
 
 void log_graph_tracker::notify_named_jump(
-    const log_graph_processor::named_jump_info& info) {
+    log_graph_processor::named_jump_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_named_jump(info);
@@ -94,7 +94,7 @@ void log_graph_tracker::notify_named_jump(
 
 
 hstd::finally_std log_graph_tracker::track_scope(
-    const log_graph_processor::scope_info& info) {
+    log_graph_processor::scope_info const& info) {
     notify_scope_enter(info);
     return hstd::finally_std{
         [this, info]() { this->notify_scope_exit(info); }};
@@ -108,7 +108,7 @@ hstd::finally_std log_graph_tracker::track_function(
 }
 
 #    if ORG_BUILD_WITH_CGRAPH
-void graphviz_processor::track_function_start(const function_info& info) {
+void graphviz_processor::track_function_start(function_info const& info) {
     call_stack.push(info.name);
     if (call_stack.size() >= 2) {
         std::string parent = get_parent();
@@ -122,7 +122,7 @@ void graphviz_processor::track_function_start(const function_info& info) {
 }
 
 void graphviz_processor::track_function_end(
-    const log_graph_processor::function_info& info) {
+    log_graph_processor::function_info const& info) {
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
@@ -142,18 +142,18 @@ void graphviz_processor::track_scope_enter(scope_info const& info) {
 }
 
 void graphviz_processor::track_scope_exit(
-    const log_graph_processor::scope_info& info) {
+    log_graph_processor::scope_info const& info) {
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
-void graphviz_processor::track_started(const tracked_info& info) {
+void graphviz_processor::track_started(tracked_info const& info) {
     nodes.clear();
     edges.clear();
     while (!call_stack.empty()) { call_stack.pop(); }
     pending_jump.clear();
 }
 
-void graphviz_processor::track_named_jump(const named_jump_info& info) {
+void graphviz_processor::track_named_jump(named_jump_info const& info) {
     pending_jump = info.description;
 }
 
@@ -221,8 +221,8 @@ std::string graphviz_processor::get_parent() {
 }
 
 void graphviz_processor::add_edge(
-    const std::string& from,
-    const std::string& to) {
+    std::string const& from,
+    std::string const& to) {
     std::string edge_key = std::format("{} -> {}", from, to);
     auto        it       = edges.find(edge_key);
     if (it != edges.end()) {
@@ -239,7 +239,7 @@ void graphviz_processor::add_edge(
 }
 
 void hstd::log::graphviz_processor::track_signal_emit(
-    const signal_emit_info& info) {
+    signal_emit_info const& info) {
     std::string full_name = std::format("{}", info.name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
     nodes.insert_or_assign(
@@ -251,7 +251,7 @@ void hstd::log::graphviz_processor::track_signal_emit(
 }
 
 void hstd::log::graphviz_processor::track_slot_trigger(
-    const slot_trigger_info& info) {
+    slot_trigger_info const& info) {
     std::string full_name = std::format("{}", info.name);
     call_stack.push(full_name);
     nodes.insert_or_assign(
@@ -265,7 +265,7 @@ void hstd::log::graphviz_processor::track_slot_trigger(
 
 #    endif
 
-void logger_processor::track_function_start(const function_info& info) {
+void logger_processor::track_function_start(function_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message("function enter::'{}'", info.name)
@@ -273,7 +273,7 @@ void logger_processor::track_function_start(const function_info& info) {
     ++log_scoped_depth_attr::instance().depth;
 }
 
-void logger_processor::track_function_end(const function_info& info) {
+void logger_processor::track_function_end(function_info const& info) {
     --log_scoped_depth_attr::instance().depth;
     // log_record{}
     //     .set_callsite(info.loc.line, info.loc.function, info.loc.file)
@@ -282,7 +282,7 @@ void logger_processor::track_function_end(const function_info& info) {
 }
 
 
-void logger_processor::track_scope_enter(const scope_info& info) {
+void logger_processor::track_scope_enter(scope_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message("scope enter::'{}'", info.name)
@@ -290,7 +290,7 @@ void logger_processor::track_scope_enter(const scope_info& info) {
     ++log_scoped_depth_attr::instance().depth;
 }
 
-void logger_processor::track_scope_exit(const scope_info& info) {
+void logger_processor::track_scope_exit(scope_info const& info) {
     --log_scoped_depth_attr::instance().depth;
     // log_record{}
     //     .set_callsite(info.loc.line, info.loc.function, info.loc.file)
@@ -298,7 +298,7 @@ void logger_processor::track_scope_exit(const scope_info& info) {
     //     .end();
 }
 
-void logger_processor::track_started(const tracked_info& info) {
+void logger_processor::track_started(tracked_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message("track started")
@@ -306,7 +306,7 @@ void logger_processor::track_started(const tracked_info& info) {
     ++log_scoped_depth_attr::instance().depth;
 }
 
-void logger_processor::track_ended(const tracked_info& info) {
+void logger_processor::track_ended(tracked_info const& info) {
     --log_scoped_depth_attr::instance().depth;
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
@@ -314,14 +314,14 @@ void logger_processor::track_ended(const tracked_info& info) {
         .end();
 }
 
-void logger_processor::track_named_text(const named_text_info& info) {
+void logger_processor::track_named_text(named_text_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message("track named text::'{}' = '{}'", info.key, info.value)
         .end();
 }
 
-void logger_processor::track_named_jump(const named_jump_info& info) {
+void logger_processor::track_named_jump(named_jump_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message("named jump::'{}'", info.description)
@@ -350,7 +350,7 @@ void hstd::log::log_graph_tracker::notify_signal_emit(
 }
 
 void hstd::log::log_graph_tracker::notify_slot_trigger(
-    const log_graph_processor::slot_trigger_info& info) {
+    log_graph_processor::slot_trigger_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) {
         processor->track_slot_trigger(info);
@@ -358,7 +358,7 @@ void hstd::log::log_graph_tracker::notify_slot_trigger(
 }
 
 hstd::finally_std hstd::log::log_graph_tracker::track_slot(
-    const log_graph_processor::slot_trigger_info& info) {
+    log_graph_processor::slot_trigger_info const& info) {
     notify_slot_trigger(info);
     return track_function(
         hstd::log::log_graph_processor::function_info(
@@ -366,20 +366,20 @@ hstd::finally_std hstd::log::log_graph_tracker::track_slot(
 }
 
 void hstd::log::log_graph_tracker::notify_qobject(
-    const log_graph_processor::qobject_info& info) {
+    log_graph_processor::qobject_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) { processor->track_qobject(info); }
 }
 
 void hstd::log::log_graph_tracker::notify_connect(
-    const log_graph_processor::connect_info& info) {
+    log_graph_processor::connect_info const& info) {
     if (!TraceState) { return; }
     for (auto& processor : processors) { processor->track_connect(info); }
 }
 
 
 void hstd::log::logger_processor::track_signal_emit(
-    const signal_emit_info& info) {
+    signal_emit_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
@@ -391,7 +391,7 @@ void hstd::log::logger_processor::track_signal_emit(
 }
 
 void hstd::log::logger_processor::track_slot_trigger(
-    const slot_trigger_info& info) {
+    slot_trigger_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
@@ -418,7 +418,7 @@ void hstd::log::logger_processor::track_qobject(
         });
 }
 
-void hstd::log::logger_processor::track_connect(const connect_info& info) {
+void hstd::log::logger_processor::track_connect(connect_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
@@ -444,7 +444,7 @@ void SignalDebugger::connectToAllSignals() {
     }
 }
 
-void SignalDebugger::connectToSignal(const QMetaMethod& signal) {
+void SignalDebugger::connectToSignal(QMetaMethod const& signal) {
     QString    signalSignature     = signal.methodSignature();
     QByteArray normalizedSignature = QMetaObject::normalizedSignature(
         signalSignature.toLocal8Bit());
@@ -486,7 +486,7 @@ void SignalDebugger::onSignalTriggered() {
 }
 
 hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> SignalDebugger::
-    formatParameterInfo(const QMetaMethod& method) {
+    formatParameterInfo(QMetaMethod const& method) {
     QList<QByteArray> paramNames = method.parameterNames();
     QList<QByteArray> paramTypes = method.parameterTypes();
 

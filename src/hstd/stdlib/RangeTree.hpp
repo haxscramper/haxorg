@@ -17,10 +17,10 @@ struct RangeTreeRange {
     Slice<T> range;
     int      index;
 
-    bool contains(CR<T> point) const { return range.contains(point); }
+    bool contains(T const& point) const { return range.contains(point); }
 
-    CR<T> first() const { return range.first; }
-    CR<T> last() const { return range.last; }
+    T const& first() const { return range.first; }
+    T const& last() const { return range.last; }
 };
 
 
@@ -35,10 +35,10 @@ class RangeTree {
         UPtr<Node> right = nullptr;
         Node(T center) : center(center) {}
 
-        Vec<Node*> getAllNodes(CR<T> point) const {
+        Vec<Node*> getAllNodes(T const& point) const {
             Vec<Node*> result;
 
-            if (rs::any_of(overlapping, [&](CR<Range> r) {
+            if (rs::any_of(overlapping, [&](Range const& r) {
                     return r.contains(point);
                 })) {
                 result.push_back(const_cast<Node*>(this));
@@ -65,7 +65,7 @@ class RangeTree {
     }
 
 
-    UPtr<Node> buildRec(const Vec<Range>& ranges) {
+    UPtr<Node> buildRec(Vec<Range> const& ranges) {
         if (ranges.empty()) { return nullptr; }
 
         Vec<T> points;
@@ -102,7 +102,7 @@ class RangeTree {
         auto ranges  //
             = slices //
             | rv::enumerate
-            | rv::transform([](CR<Pair<int, Slice<T>>> pair) -> Range {
+            | rv::transform([](Pair<int, Slice<T>> const& pair) -> Range {
                   return Range{
                       .range = pair.second,
                       .index = pair.first,
@@ -113,7 +113,7 @@ class RangeTree {
         std::sort(
             ranges.begin(),
             ranges.end(),
-            [](CR<Range> lhs, CR<Range> rhs) {
+            [](Range const& lhs, Range const& rhs) {
                 if (lhs.range.first != rhs.range.first) {
                     return lhs.range.first < rhs.range.first;
                 } else if (lhs.range.last != rhs.range.last) {
@@ -127,13 +127,13 @@ class RangeTree {
         return buildRec(ranges);
     }
 
-    Vec<Node*> getNodes(CR<T> point) const {
+    Vec<Node*> getNodes(T const& point) const {
         LOGIC_ASSERTION_CHECK(
             root.get() != nullptr, "Root must not be nil");
         return root->getAllNodes(point);
     }
 
-    Vec<Range> getRanges(CR<T> point) const {
+    Vec<Range> getRanges(T const& point) const {
         Vec<Range> res;
         for (auto const& node : getNodes(point)) {
             for (auto const& left : node->overlapping) {
@@ -153,7 +153,7 @@ template <typename T>
 struct std::formatter<hstd::RangeTreeRange<T>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::RangeTreeRange<T>& p, FormatContext& ctx)
+    auto format(hstd::RangeTreeRange<T> const& p, FormatContext& ctx)
         const {
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.range.first, ctx);
@@ -169,7 +169,7 @@ struct std::formatter<hstd::RangeTreeRange<T>>
 template <typename T>
 struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::RangeTree<T>& p, FormatContext& ctx) const {
+    auto format(hstd::RangeTree<T> const& p, FormatContext& ctx) const {
         if (p.root == nullptr) {
             return fmt_ctx("nil", ctx);
         } else {

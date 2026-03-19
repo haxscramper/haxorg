@@ -28,15 +28,15 @@ struct UnorderedSet
     using Base::insert;
 
 
-    inline bool contains(CR<T> key) const { return count(key) != 0; }
-    void        incl(CR<T> value) { insert(value); }
-    void        excl(CR<T> value) { erase(value); }
+    inline bool contains(T const& key) const { return count(key) != 0; }
+    void        incl(T const& value) { insert(value); }
+    void        excl(T const& value) { erase(value); }
 
-    void incl(CR<UnorderedSet<T>> other) {
+    void incl(UnorderedSet<T> const& other) {
         for (const auto& it : other) { this->incl(it); }
     }
 
-    void excl(CR<UnorderedSet<T>> value) {
+    void excl(UnorderedSet<T> const& value) {
         for (const auto& it : value) { this->erase(it); }
     }
 };

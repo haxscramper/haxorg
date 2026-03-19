@@ -164,7 +164,7 @@ template <typename T>
 struct std::formatter<std::reference_wrapper<T>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const std::reference_wrapper<T>& p, FormatContext& ctx)
+    auto format(std::reference_wrapper<T> const& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.get(), ctx);
     }

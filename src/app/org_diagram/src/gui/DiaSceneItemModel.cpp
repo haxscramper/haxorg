@@ -31,7 +31,7 @@ hstd::ColText DiaSceneItemModel::format() {
 }
 
 hstd::Opt<QModelIndex> DiaSceneItemModel::indexAtPath(
-    const hstd::Vec<int>& path) const {
+    hstd::Vec<int> const& path) const {
     QModelIndex result;
     for (auto const& i : path) {
         if (i < rowCount(result)) {
@@ -46,7 +46,7 @@ hstd::Opt<QModelIndex> DiaSceneItemModel::indexAtPath(
 QModelIndex DiaSceneItemModel::index(
     int                row,
     int                column,
-    const QModelIndex& parent) const {
+    QModelIndex const& parent) const {
     hstd::logic_assertion_check_not_nil(rootNode);
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
@@ -63,7 +63,7 @@ QModelIndex DiaSceneItemModel::index(
 
     return QModelIndex{};
 }
-QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
+QModelIndex DiaSceneItemModel::parent(QModelIndex const& index) const {
     if (!index.isValid()) { return QModelIndex{}; }
 
     DiaSceneItem* childNode = static_cast<DiaSceneItem*>(
@@ -83,7 +83,7 @@ QModelIndex DiaSceneItemModel::parent(const QModelIndex& index) const {
 
     return QModelIndex{};
 }
-QVariant DiaSceneItemModel::data(const QModelIndex& index, int role)
+QVariant DiaSceneItemModel::data(QModelIndex const& index, int role)
     const {
     hstd::logic_assertion_check_not_nil(rootNode);
     if (!index.isValid()) { return QVariant{}; }
@@ -98,7 +98,7 @@ QVariant DiaSceneItemModel::data(const QModelIndex& index, int role)
 }
 
 QModelIndex DiaSceneItemModel::findNodeIndex(
-    const QModelIndex& parent,
+    QModelIndex const& parent,
     DiaSceneItem*      targetNode) const {
     hstd::logic_assertion_check_not_nil(rootNode);
     DiaSceneItem* parentNode = parent.isValid()
@@ -130,7 +130,7 @@ QModelIndex DiaSceneItemModel::findNodeIndex(
 
 
 void DiaSceneItemModel::beginEditApply(
-    const DiaEdit&         edit,
+    DiaEdit const&         edit,
     DiaEditTransientState& state) {
     TRACKED_FUNCTION("beginEditApply");
 
@@ -208,7 +208,7 @@ void DiaSceneItemModel::beginEditApply(
 }
 
 void DiaSceneItemModel::endEditApply(
-    const DiaEdit&         edit,
+    DiaEdit const&         edit,
     DiaEditTransientState& state) {
     TRACKED_FUNCTION("endEditApply");
     switch (edit.getKind()) {

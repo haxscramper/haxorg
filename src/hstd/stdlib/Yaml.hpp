@@ -15,7 +15,7 @@ using yaml = YAML::Node;
 namespace hstd {
 
 struct BadTypeConversion : public YAML::RepresentationException {
-    explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
+    explicit BadTypeConversion(YAML::Mark mark, std::string const& message)
         : YAML::RepresentationException(mark, message) {}
 };
 
@@ -45,7 +45,7 @@ inline void maybe_enum_field(
 template <>
 struct std::formatter<YAML::Mark> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const YAML::Mark& p, FormatContext& ctx) const {
+    auto format(YAML::Mark const& p, FormatContext& ctx) const {
         if (p.is_null()) {
             return fmt_ctx("null", ctx);
         } else {

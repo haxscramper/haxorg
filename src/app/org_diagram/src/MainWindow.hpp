@@ -39,13 +39,13 @@ class DiaSelectionManager : public QObject {
 
   private slots:
     void onSceneSelectionChanged(
-        const QList<DiaSceneItemVisual*>& selectedNodes);
+        QList<DiaSceneItemVisual*> const& selectedNodes);
 
     void onTreeSelectionChanged(
-        const QItemSelection& selected,
-        const QItemSelection& deselected);
+        QItemSelection const& selected,
+        QItemSelection const& deselected);
 
-    void onTreeNodesSelected(const QList<QModelIndex>& indexes);
+    void onTreeNodesSelected(QList<QModelIndex> const& indexes);
 
   private:
     void setupConnections();

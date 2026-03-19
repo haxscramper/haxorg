@@ -31,16 +31,16 @@ struct SemNodeStore : hstd::ext::diff::NodeStore {
         return const_cast<sem::Org*>(id.ToPtr<sem::Org>());
     }
 
-    virtual int getSubnodeCount(const Id& id) override;
+    virtual int getSubnodeCount(Id const& id) override;
 
-    virtual Id getSubnodeAt(const Id& node, int index) override;
+    virtual Id getSubnodeAt(Id const& node, int index) override;
 
     virtual Id getRoot() override {
         return NodeStore::Id::FromPtr(root.get());
     }
 
     virtual hstd::ext::diff::ASTNodeKind getNodeKind(
-        const Id& node) const override {
+        Id const& node) const override {
         return static_cast<int>(get(node)->getKind());
     }
 
@@ -124,14 +124,14 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
         return map.at_left(id);
     }
 
-    virtual int getSubnodeCount(const Id& id) override;
+    virtual int getSubnodeCount(Id const& id) override;
 
-    virtual Id getSubnodeAt(const Id& node, int index) override;
+    virtual Id getSubnodeAt(Id const& node, int index) override;
 
     virtual Id getRoot() override { return getStoreId(root.uniq()); }
 
     virtual hstd::ext::diff::ASTNodeKind getNodeKind(
-        const Id& node) const override {
+        Id const& node) const override {
         return static_cast<int>(get(node).getKind());
     }
 

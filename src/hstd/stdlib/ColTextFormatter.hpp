@@ -7,7 +7,7 @@
 template <>
 struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ColRune& p, FormatContext& ctx) const {
+    auto format(hstd::ColRune const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("{", ctx);
         hstd::fmt_ctx(p.rune, ctx);
         if (p.style.fg != (hstd::TermColorFg8Bit)0) {
@@ -33,7 +33,7 @@ struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
 template <>
 struct std::formatter<hstd::ColText> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ColText& p, FormatContext& ctx) const {
+    auto format(hstd::ColText const& p, FormatContext& ctx) const {
         return std::formatter<std::string>{}.format(
             p.toString(false), ctx);
     }

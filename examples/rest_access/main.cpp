@@ -751,8 +751,8 @@ auto make_method_handler_callback(
             if constexpr (std::is_void_v<return_type>) {
                 call_with_tuple(
                     [&instance, f](auto&&... args) {
-                        if constexpr (std::is_pointer_v<
-                                          decltype(instance)>) {
+                        if constexpr (
+                            std::is_pointer_v<decltype(instance)>) {
                             (instance->*f)(
                                 std::forward<decltype(args)>(args)...);
                         } else {
@@ -765,8 +765,8 @@ auto make_method_handler_callback(
                 // Call method and serialize result
                 auto result = call_with_tuple(
                     [&instance, f](auto&&... args) {
-                        if constexpr (std::is_pointer_v<
-                                          decltype(instance)>) {
+                        if constexpr (
+                            std::is_pointer_v<decltype(instance)>) {
                             return (instance->*f)(
                                 std::forward<decltype(args)>(args)...);
                         } else {
@@ -1287,7 +1287,7 @@ int main(int argc, char** argv) {
         }
 
         return EXIT_SUCCESS;
-    } catch (const std::exception& e) {
+    } catch (std::exception const& e) {
         OLOG(error) << e.what();
         return EXIT_FAILURE;
     }

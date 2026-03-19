@@ -13,8 +13,8 @@ using namespace org;
 using namespace org::sem;
 
 hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
-    const std::string&            text,
-    const hstd::Vec<std::string>& commentPrefixes) {
+    std::string const&            text,
+    hstd::Vec<std::string> const& commentPrefixes) {
 
     Vec<OrgParseFragment> fragments;
     Vec<std::string>      lines;
@@ -26,7 +26,7 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
     OrgParseFragment currentFragment{-1, -1, ""};
 
     for (size_t lineIdx = 0; lineIdx < lines.size(); ++lineIdx) {
-        const std::string& currentLine  = lines[lineIdx];
+        std::string const& currentLine  = lines[lineIdx];
         bool               foundComment = false;
         size_t             commentPos   = std::string::npos;
         std::string        matchedPrefix;
@@ -112,7 +112,7 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
 
 ParseContext::ParseContext() : source{std::make_shared<SourceManager>()} {}
 
-ParseContext::ParseContext(const hstd::SPtr<SourceManager>& source)
+ParseContext::ParseContext(hstd::SPtr<SourceManager> const& source)
     : source{source} {}
 
 std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
@@ -121,8 +121,8 @@ std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
 }
 
 SourceFileId ParseContext::addSource(
-    const std::string& path,
-    const std::string& content) const {
+    std::string const& path,
+    std::string const& content) const {
     LOGIC_ASSERTION_CHECK_FMT(
         path.contains("/")
             || (path.starts_with("<") && path.ends_with(">")),
@@ -133,13 +133,13 @@ SourceFileId ParseContext::addSource(
 }
 
 sem::SemId<sem::Org> ParseContext::parseFileOpts(
-    const std::string&                         file,
+    std::string const&                         file,
     std::shared_ptr<OrgParseParameters> const& opts) {
     auto text = readFile(fs::path{file});
     return parseStringOpts(text, file, opts);
 }
 
-sem::SemId<sem::Org> ParseContext::parseFile(const std::string& file) {
+sem::SemId<sem::Org> ParseContext::parseFile(std::string const& file) {
     auto opts = OrgParseParameters::shared();
     auto text = readFile(fs::path{file});
     return parseStringOpts(text, file, opts);
@@ -155,7 +155,7 @@ sem::SemId<sem::Org> ParseContext::parseString(
 sem::SemId<sem::Org> ParseContext::parseStringOpts(
     const std::string                          text,
     std::string const&                         string_id,
-    const std::shared_ptr<OrgParseParameters>& opts) {
+    std::shared_ptr<OrgParseParameters> const& opts) {
 
     auto file_id = addSource(string_id, text);
 
@@ -388,7 +388,7 @@ Opt<sem::SemId<Org>> parsePathAux(
 
 Opt<fs::path> resolvePath(
     fs::path const&                                     workdir,
-    CR<Str>                                             target,
+    Str const&                                          target,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     LOGIC_ASSERTION_CHECK_FMT(
         opts->isDirectory(workdir),
@@ -539,7 +539,7 @@ void postProcessFileReferences(
 
 
 Opt<sem::SemId<Org>> ParseContext::parseDirectoryOpts(
-    const std::string&                                  root,
+    std::string const&                                  root,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
 
     DirectoryParseState state;
@@ -547,13 +547,13 @@ Opt<sem::SemId<Org>> ParseContext::parseDirectoryOpts(
 }
 
 hstd::Opt<sem::SemId<Org>> ParseContext::parseDirectory(
-    const std::string& path) {
+    std::string const& path) {
     return parseDirectoryOpts(
         path, org::parse::OrgDirectoryParseParameters::shared());
 }
 
 sem::SemId<File> ParseContext::parseFileWithIncludes(
-    const std::string&                                  file,
+    std::string const&                                  file,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     DirectoryParseState state;
     auto                parsed = parseFileAux(
@@ -566,7 +566,7 @@ sem::SemId<File> ParseContext::parseFileWithIncludes(
 }
 
 bool OrgDirectoryParseParameters::isDirectory(
-    const std::string& path) const {
+    std::string const& path) const {
     if (isDirectoryImpl) {
         return isDirectoryImpl(path);
     } else {
@@ -575,7 +575,7 @@ bool OrgDirectoryParseParameters::isDirectory(
 }
 
 bool OrgDirectoryParseParameters::isSymlink(
-    const std::string& path) const {
+    std::string const& path) const {
     if (isSymlinkImpl) {
         return isSymlinkImpl(path);
     } else {
@@ -584,7 +584,7 @@ bool OrgDirectoryParseParameters::isSymlink(
 }
 
 bool OrgDirectoryParseParameters::isRegularFile(
-    const std::string& path) const {
+    std::string const& path) const {
     if (isRegularFileImpl) {
         return isRegularFileImpl(path);
     } else {
@@ -593,7 +593,7 @@ bool OrgDirectoryParseParameters::isRegularFile(
 }
 
 std::string OrgDirectoryParseParameters::resolveSymlink(
-    const std::string& path) const {
+    std::string const& path) const {
     if (resolveSymlinkImpl) {
         return resolveSymlinkImpl(path);
     } else {
@@ -602,7 +602,7 @@ std::string OrgDirectoryParseParameters::resolveSymlink(
 }
 
 std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
-    const std::string& path) const {
+    std::string const& path) const {
     if (getDirectoryEntriesImpl) {
         return getDirectoryEntriesImpl(path);
     } else {
@@ -616,7 +616,7 @@ std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
 
 
 hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
-    const org::sem::SemId<sem::Org>&         tree,
+    org::sem::SemId<sem::Org> const&         tree,
     std::shared_ptr<hstd::ext::Cache> const& cache) {
     hstd::Vec<ext::Report> result;
 
@@ -711,7 +711,7 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
 }
 
 hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
-    const org::sem::SemId<sem::Org>& tree) {
+    org::sem::SemId<sem::Org> const& tree) {
     hstd::Vec<sem::SemId<ErrorGroup>> res;
     org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
         if (auto group = node.asOpt<org::sem::ErrorGroup>(); group) {
@@ -722,7 +722,7 @@ hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
 }
 
 std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(
-    const hstd::ext::Id& id) {
+    hstd::ext::Id const& id) {
     auto file_id = org::parse::SourceFileId::FromValue(id);
     if (!sources.contains(file_id)) {
         sources.insert_or_assign(
@@ -735,7 +735,7 @@ std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(
 }
 
 std::optional<std::string> DiagnosticsParseContext::display(
-    const hstd::ext::Id& id) const {
+    hstd::ext::Id const& id) const {
     return context->source->getPath(
         org::parse::SourceFileId::FromValue(id));
 }

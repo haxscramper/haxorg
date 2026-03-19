@@ -131,14 +131,14 @@ hstd::finally_std trackTestExecution(
 
 void customMessageHandler(
     QtMsgType                 type,
-    const QMessageLogContext& context,
-    const QString&            msg_in);
+    QMessageLogContext const& context,
+    QString const&            msg_in);
 
 hstd::ColText printModelTree(
     const QAbstractItemModel* model,
     const QModelIndex&        parent = QModelIndex{},
-    hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>> toString = std::
-        nullopt,
+    hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>>
+                   toString         = std::nullopt,
     bool           ignoreExceptions = false,
     hstd::Opt<int> maxDepth         = std::nullopt);
 
@@ -258,7 +258,7 @@ void q_register_metatypes();
 
 
 template <typename T, typename Field>
-auto get_optional_field(const std::optional<T>& opt, Field T::* field_ptr)
+auto get_optional_field(std::optional<T> const& opt, Field T::* field_ptr)
     -> std::conditional_t<
         std::is_same_v<Field, std::optional<typename Field::value_type>>,
         std::optional<typename Field::value_type>,
@@ -266,9 +266,10 @@ auto get_optional_field(const std::optional<T>& opt, Field T::* field_ptr)
     if (!opt) { return std::nullopt; }
 
     if constexpr (requires { typename Field::value_type; }) {
-        if constexpr (std::is_same_v<
-                          Field,
-                          std::optional<typename Field::value_type>>) {
+        if constexpr (
+            std::is_same_v<
+                Field,
+                std::optional<typename Field::value_type>>) {
             return opt.value().*field_ptr;
         } else {
             return opt.value().*field_ptr;
@@ -287,7 +288,7 @@ struct Pos {
 template <typename V, typename E>
 struct std::formatter<hstd::Result<V, E>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::Result<V, E>& p, FormatContext& ctx) const {
+    auto format(hstd::Result<V, E> const& p, FormatContext& ctx) const {
         if (p) {
             hstd::fmt_ctx("Ok(", ctx);
             hstd::fmt_ctx(p.assume_value(), ctx);

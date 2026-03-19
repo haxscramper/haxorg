@@ -52,17 +52,17 @@ struct tokenizer_error : CRTP_hexception<tokenizer_error> {};
 using otk = OrgTokenKind;
 
 template <typename T>
-bool opt_equal(CR<Opt<T>> opt, CR<T> value) {
+bool opt_equal(Opt<T> const& opt, T const& value) {
     return opt.has_value() && opt.value() == value;
 }
 
 template <typename T>
-bool opt_equal(CR<Opt<CRw<T>>> opt, CR<T> value) {
+bool opt_equal(Opt<CRw<T>> const& opt, T const& value) {
     return opt.has_value() && opt.value() == value;
 }
 
 template <typename K, typename V>
-bool opt_equal_kind(CR<Opt<CRw<Token<K, V>>>> opt, CR<K> value) {
+bool opt_equal_kind(Opt<CRw<Token<K, V>>> const& opt, K const& value) {
     return opt.has_value() && opt.value().get().kind == value;
 }
 
@@ -235,7 +235,7 @@ struct RecombineState {
         }
     }
 
-    OrgFill loc_fill(CR<Str> text = "") {
+    OrgFill loc_fill(Str const& text = "") {
         return OrgFill{.text = text, .loc = lex.tok()->loc};
     }
 
@@ -698,8 +698,10 @@ struct LineToken {
         }
     }
 
-    void setLineCommandKind(CR<Span<OrgToken>> tokens, int tokensOffset) {
-        CR<OrgToken> current = tokens.at(tokensOffset);
+    void setLineCommandKind(
+        Span<OrgToken> const& tokens,
+        int                   tokensOffset) {
+        OrgToken const& current = tokens.at(tokensOffset);
         if (current.kind == otk::LineCommand) {
             if (auto next = whichBlockLineKind(
                     tokens.at(tokensOffset + 1).kind);
@@ -722,7 +724,7 @@ struct LineToken {
         }
     }
 
-    void setLeadingSpaceKind(CR<Span<OrgToken>> tokens) {
+    void setLeadingSpaceKind(Span<OrgToken> const& tokens) {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
                 case otk::TreeClock: kind = Kind::ListItem; break;
@@ -759,7 +761,7 @@ struct LineToken {
     }
 
     void setIndent() {
-        CR<OrgToken> first = tokens.at(0);
+        OrgToken const& first = tokens.at(0);
         switch (first.kind) {
             case otk::CmdExampleLine:
             case otk::SrcContent: {
@@ -790,7 +792,7 @@ struct LineToken {
     }
 
     void updateForTokens() {
-        CR<OrgToken> first = tokens.at(0);
+        OrgToken const& first = tokens.at(0);
         setIndent();
         switch (first.kind) {
             case otk::LeadingSpace: {
@@ -823,7 +825,7 @@ struct LineToken {
         }
     }
 
-    LineToken(CR<Span<OrgToken>> tokens) : tokens(tokens) {
+    LineToken(Span<OrgToken> const& tokens) : tokens(tokens) {
         if (!tokens.empty()) { updateForTokens(); }
     }
 };
@@ -1072,11 +1074,11 @@ struct GroupVisitorState {
     }
 
     void rec_add_line(
-        CR<GroupToken> gr,
-        CR<LineToken>  line,
-        CVec<int>      ind,
-        int            code_line = __builtin_LINE(),
-        char const*    function  = __builtin_FUNCTION()) {
+        GroupToken const& gr,
+        LineToken const&  line,
+        CVec<int>         ind,
+        int               code_line = __builtin_LINE(),
+        char const*       function  = __builtin_FUNCTION()) {
         if (TraceState) {
             d->print(
                 lex,
@@ -1138,11 +1140,11 @@ struct GroupVisitorState {
     /// Recursively convert group and line tokens into a stream of org-mode
     /// tokens, adding the indent and dedent. The function recurses only on
     /// the block nodes, the regular list items are flat in the group.
-    void rec_convert_groups(CR<Vec<GroupToken>> groups) {
+    void rec_convert_groups(Vec<GroupToken> const& groups) {
         Vec<int> ind{};
         for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
-            auto const& gr  = groups.at(gr_index);
-            auto        dbg = [&](int         line = __builtin_LINE(),
+            auto const& gr = groups.at(gr_index);
+            auto dbg = [&](int         line     = __builtin_LINE(),
                            char const* function = __builtin_FUNCTION()) {
                 if (TraceState) {
                     print1(
@@ -1290,7 +1292,7 @@ struct GroupVisitorState {
                 rec_convert_groups(gr.getNested().subgroups);
                 rec_add_line(gr, gr.getNested().end, ind);
             } else {
-                for (CR<LineToken> line : gr.getLeaf().lines) {
+                for (LineToken const& line : gr.getLeaf().lines) {
                     rec_add_line(gr, line, ind);
                 }
             }
@@ -1324,11 +1326,11 @@ struct GroupVisitorState {
     };
 
     void print_line(
-        CR<LineToken> line,
-        Str           prefix,
-        int           level,
-        int           code_line = __builtin_LINE(),
-        char const*   function  = __builtin_FUNCTION()) {
+        LineToken const& line,
+        Str              prefix,
+        int              level,
+        int              code_line = __builtin_LINE(),
+        char const*      function  = __builtin_FUNCTION()) {
         if (TraceState) {
             print1(
                 fmt("[{}] line:{} indent={}{}",
@@ -1353,9 +1355,10 @@ struct GroupVisitorState {
         }
     };
 
-    void print_groups(CR<Vec<GroupToken>> groups) {
-        Func<void(CR<Vec<GroupToken>> groups, int level)> rec_print_group;
-        rec_print_group = [&](CR<Vec<GroupToken>> groups, int level) {
+    void print_groups(Vec<GroupToken> const& groups) {
+        Func<void(Vec<GroupToken> const& groups, int level)>
+            rec_print_group;
+        rec_print_group = [&](Vec<GroupToken> const& groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
                 auto const& gr = groups.at(gr_index);
                 if (TraceState) {
@@ -1425,7 +1428,7 @@ void OrgTokenizer::convert(OrgLexer& lex) {
 
 void OrgTokenizer::print(
     OrgLexer&          lex,
-    const std::string& msg,
+    std::string const& msg,
     int                line,
     const char*        function,
     int                extraIndent) {

@@ -134,9 +134,9 @@ struct Source {
     /// Get the range of lines that this Codespan runs across.
     /// The resulting range is guaranteed to contain valid line indices
     /// (i.e: those that can be used for Source::line()).
-    Slice<int> get_line_range(const CodeSpan& span);
+    Slice<int> get_line_range(CodeSpan const& span);
 
-    ColText get_line_text(CR<Line> line);
+    ColText get_line_text(Line const& line);
 
     DESC_FIELDS(Source, (lines, len));
 };
@@ -154,12 +154,12 @@ class StrCache : public Cache {
     void add(Id id, std::string const& source, std::string const& name);
     Id   add_path(hstd::fs::path const& path);
 
-    inline std::shared_ptr<Source> fetch(const Id& id) override {
+    inline std::shared_ptr<Source> fetch(Id const& id) override {
         return sources.at(id);
     }
 
     inline std::optional<std::string> display(
-        const Id& id) const override {
+        Id const& id) const override {
         return names.get_right(id);
     }
 };
@@ -201,13 +201,13 @@ BOOST_DESCRIBE_ENUM(LabelKind, Inline, Multiline);
 
 struct Label {
     /// \brief Give this label a message
-    Label& with_message(const ColText& msg) {
+    Label& with_message(ColText const& msg) {
         this->msg = msg;
         return *this;
     }
 
     /// \brief Give this label a highlight color
-    Label& with_color(const ColStyle& color) {
+    Label& with_color(ColStyle const& color) {
         this->color = color;
         return *this;
     }
@@ -421,63 +421,63 @@ class Report {
 
     /// \brief Give this report a numerical code that may be used to more
     /// precisely \brief look up the error in documentation.
-    Report& with_code(const std::string& code) {
+    Report& with_code(std::string const& code) {
         this->code = code;
         return *this;
     }
 
     /// \brief Set the message of this report.
-    void set_message(const ColText& msg) { this->msg = msg; }
+    void set_message(ColText const& msg) { this->msg = msg; }
 
     /// \brief Add a message to this report.
-    Report& with_message(const ColText& msg) {
+    Report& with_message(ColText const& msg) {
         set_message(msg);
         return *this;
     }
 
     /// \brief Set the note of this report.
-    void add_note(const ColText& note) { this->note.push_back(note); }
+    void add_note(ColText const& note) { this->note.push_back(note); }
 
     /// \brief Set the note of this report.
-    Report& with_note(const ColText& note) {
+    Report& with_note(ColText const& note) {
         add_note(note);
         return *this;
     }
 
     /// \brief Set the help message of this report.
-    void add_help(const ColText& help) { this->help.push_back(help); }
+    void add_help(ColText const& help) { this->help.push_back(help); }
 
     /// \brief Set the help message of this report.
-    Report& with_help(const ColText& help) {
+    Report& with_help(ColText const& help) {
         add_help(help);
         return *this;
     }
 
     /// \brief Add a label to the report.
-    void add_label(const Label& label) { labels.push_back(label); }
+    void add_label(Label const& label) { labels.push_back(label); }
 
     /// \brief Add multiple labels to the report.
     template <typename Container>
-    void add_labels(const Container& labels) {
+    void add_labels(Container const& labels) {
         this->labels.insert(
             this->labels.end(), labels.begin(), labels.end());
     }
 
     /// \brief Add a label to the report.
-    Report& with_label(const Label& label) {
+    Report& with_label(Label const& label) {
         add_label(label);
         return *this;
     }
 
     /// \brief Add multiple labels to the report.
     template <typename Container>
-    Report& with_labels(const Container& labels) {
+    Report& with_labels(Container const& labels) {
         add_labels(labels);
         return *this;
     }
 
     /// \brief Use the given Config to determine diagnostic attributes.
-    Report& with_config(const Config& config) {
+    Report& with_config(Config const& config) {
         this->config = config;
         return *this;
     }
@@ -515,7 +515,7 @@ class Report {
 template <>
 struct std::formatter<hstd::ext::CodeSpan> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ext::CodeSpan& p, FormatContext& ctx) const {
+    auto format(hstd::ext::CodeSpan const& p, FormatContext& ctx) const {
         return ::hstd::fmt_ctx(
             hstd::fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
     }

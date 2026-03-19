@@ -135,7 +135,7 @@ template <>
 struct std::formatter<org::imm::ImmPathStep>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmPathStep& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmPathStep const& p, FormatContext& ctx) const {
         return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(
             p.path, ctx);
     }
@@ -574,8 +574,8 @@ struct ImmAstStore {
 
     /// \brief Generate new set of parent nodes for the node update.
     ImmAstReplaceEpoch::Ptr cascadeUpdate(
-        const ImmAdapter& root,
-        const ImmAstReplaceGroup&,
+        ImmAdapter const& root,
+        ImmAstReplaceGroup const&,
         ImmAstEditContext& ctx);
 
     template <org::imm::IsImmOrgValueType T>
@@ -701,7 +701,7 @@ struct
 
 
     /// \brief Traverse one path step down the tree structure.
-    ImmId at(ImmId node, const ImmPathStep& item) const;
+    ImmId at(ImmId node, ImmPathStep const& item) const;
     /// \brief Get tree ID targeted by the path, starting from the `item`
     /// root value. Note: `ImmAstContext` itself does not track the current
     /// root of whatever document you are working with, this function is
@@ -900,7 +900,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
             return *this;
         }
 
-        bool operator!=(const iterator& other) const {
+        bool operator!=(iterator const& other) const {
             return this->idx != other.idx;
         }
     };
@@ -1049,13 +1049,13 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     hstd::Opt<ImmAdapter> getAdjacentNode(int offset) const;
     hstd::Opt<ImmAdapter> getFirstMatchingParent(
-        hstd::Func<bool(const ImmAdapter&)> pred) const;
+        hstd::Func<bool(ImmAdapter const&)> pred) const;
     hstd::Opt<ImmAdapter> getParentSubtree() const;
     hstd::Vec<ImmAdapter> getAllSubnodes(
-        const hstd::Opt<ImmPath>& rootPath,
+        hstd::Opt<ImmPath> const& rootPath,
         bool                      withPath = true) const;
     hstd::Vec<ImmAdapter> getAllSubnodesDFS(
-        const hstd::Opt<ImmPath>& rootPath,
+        hstd::Opt<ImmPath> const& rootPath,
         bool                      withPath = true,
         const hstd::Opt<hstd::Func<bool(ImmAdapter)>>&
             acceptFilter = std::nullopt) const;
@@ -1660,7 +1660,7 @@ struct std::formatter<org::imm::ImmAstTrackingMap*>
 template <>
 struct std::formatter<org::imm::ImmPath> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmPath& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmPath const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}//{}", p.root, p.path), ctx);
     }
 };
@@ -1668,7 +1668,7 @@ struct std::formatter<org::imm::ImmPath> : std::formatter<std::string> {
 template <>
 struct std::formatter<org::imm::ImmUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmUniqId& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmUniqId const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };
@@ -1678,7 +1678,7 @@ template <>
 struct std::formatter<org::imm::ImmAstStore>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmAstStore& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmAstStore const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx("ImmAstStore{}", ctx);
     }
 };
@@ -1687,7 +1687,7 @@ struct std::formatter<org::imm::ImmAstStore>
 template <>
 struct std::formatter<org::imm::ImmAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmAdapter& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmAdapter const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };

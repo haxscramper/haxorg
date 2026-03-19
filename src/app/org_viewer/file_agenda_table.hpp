@@ -76,7 +76,7 @@ class OrgTreeModel : public QAbstractItemModel {
         int                column,
         const QModelIndex& parent = QModelIndex()) const override;
 
-    QModelIndex parent(const QModelIndex& index) const override;
+    QModelIndex parent(QModelIndex const& index) const override;
 
     int rowCount(
         const QModelIndex& parent = QModelIndex()) const override {
@@ -96,7 +96,7 @@ class OrgTreeModel : public QAbstractItemModel {
         return 8;
     }
 
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+    QVariant data(QModelIndex const& index, int role = Qt::DisplayRole)
         const override;
 
     QVariant headerData(
@@ -153,14 +153,14 @@ class OrgTreeProxyModel : public QSortFilterProxyModel {
     }
 
   protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex& source_parent)
+    bool filterAcceptsRow(int source_row, QModelIndex const& source_parent)
         const override;
 
-    bool lessThan(const QModelIndex& left, const QModelIndex& right)
+    bool lessThan(QModelIndex const& left, QModelIndex const& right)
         const override;
 
   private:
-    bool isCompletedTask(const std::string& todo) const {
+    bool isCompletedTask(std::string const& todo) const {
         static const std::unordered_set<std::string> completed_tasks = {
             "done", "completed"};
         std::string lower_todo = todo;
@@ -187,9 +187,9 @@ class CommandPaletteItem {
     double      score{0.0};
 
     CommandPaletteItem(
-        const std::string& title,
-        const std::string& full_path,
-        const QModelIndex& model_index)
+        std::string const& title,
+        std::string const& full_path,
+        QModelIndex const& model_index)
         : title{title}, full_path{full_path}, model_index{model_index} {}
 };
 
@@ -210,8 +210,8 @@ class CommandPalette : public QDialog {
         auto parent_rect   = parentWidget()->window()->geometry();
         int  palette_width = static_cast<int>(parent_rect.width() * 0.6);
         int  x             = parent_rect.x()
-              + (parent_rect.width() - palette_width) / 2;
-        int y = parent_rect.y() + 50;
+                           + (parent_rect.width() - palette_width) / 2;
+        int  y             = parent_rect.y() + 50;
         setGeometry(x, y, palette_width, 400);
         _dfmt(x, y, palette_width);
     }
@@ -226,7 +226,7 @@ class CommandPalette : public QDialog {
     }
 
   signals:
-    void itemSelected(const QModelIndex& index);
+    void itemSelected(QModelIndex const& index);
 
   protected:
     void keyPressEvent(QKeyEvent* event) override {
@@ -247,7 +247,7 @@ class CommandPalette : public QDialog {
     }
 
   private slots:
-    void onSearchChanged(const QString& text) {
+    void onSearchChanged(QString const& text) {
         if (text.trimmed().isEmpty()) {
             filtered_items = items;
         } else {
@@ -283,7 +283,7 @@ class CommandPalette : public QDialog {
 
     void extractItemsRecursive(
         QAbstractItemModel*             model,
-        const QModelIndex&              parent_index,
+        QModelIndex const&              parent_index,
         std::vector<std::string> const& path,
         QSortFilterProxyModel*          proxy_model) {
         int row_count = model->rowCount(parent_index);
@@ -292,9 +292,9 @@ class CommandPalette : public QDialog {
             auto index = model->index(row, 0, parent_index);
             if (!index.isValid()) { continue; }
 
-            auto title = model->data(index, Qt::DisplayRole)
-                             .toString()
-                             .toStdString();
+            auto title        = model->data(index, Qt::DisplayRole)
+                                    .toString()
+                                    .toStdString();
             auto current_path = path;
             current_path.push_back(title);
 
@@ -316,7 +316,7 @@ class CommandPalette : public QDialog {
     }
 
     std::vector<CommandPaletteItem> filterAndScoreItems(
-        const std::string& search_text);
+        std::string const& search_text);
 
     void updateResultsList();
 
@@ -378,7 +378,7 @@ class TreeViewWithCommandPalette : public QObject {
     }
 
   private slots:
-    void onItemSelected(const QModelIndex& model_index) {
+    void onItemSelected(QModelIndex const& model_index) {
         if (model_index.isValid()) {
             tree_view->scrollTo(model_index);
             tree_view->setCurrentIndex(model_index);
@@ -418,7 +418,7 @@ class AgendaWidget : public QWidget {
 
     void onFocusLifted() { model->setFocused(nullptr); }
 
-    void onRowFocused(const QModelIndex& index) {
+    void onRowFocused(QModelIndex const& index) {
         if (!index.isValid()) { return; }
 
         QModelIndex source_index;

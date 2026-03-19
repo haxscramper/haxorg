@@ -97,7 +97,7 @@ template <typename T>
 struct std::formatter<org::imm::ImmAdapterT<T>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmAdapterT<T>& p, FormatContext& ctx)
+    auto format(org::imm::ImmAdapterT<T> const& p, FormatContext& ctx)
         const {
         return hstd::fmt_ctx(p.id, ctx);
     }

@@ -300,7 +300,7 @@ struct Cursor {
             opts.flags = lexy::visualize_use_unicode
                        | lexy::visualize_use_symbols
                        | lexy::visualize_space;
-            auto view = lexy_view(offset);
+            auto view  = lexy_view(offset);
             lexy::trace_to<Rule>(
                 std::back_insert_iterator(str),
                 lexy::zstring_input(input.data()),
@@ -1425,28 +1425,28 @@ void switch_regular_char(Cursor& c) {
                 c.token_adv(otk::LinkBegin, 2);
                 switch (c.get()) {
                     case '*': {
-                        auto span = c.try_lexy_patt<dsl::until(
-                            link_end)>();
+                        auto
+                            span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkProtocolTitle, *span - 2);
 
                         break;
                     }
                     case '#': {
                         c.token_adv(otk::LinkProtocolCustomId, 1);
-                        auto span = c.try_lexy_patt<dsl::until(
-                            link_end)>();
+                        auto
+                            span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTarget, *span - 2);
                         break;
                     }
                     case '/': {
-                        auto span = c.try_lexy_patt<dsl::until(
-                            link_end)>();
+                        auto
+                            span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTargetFile, *span - 2);
                         break;
                     }
                     case '.': {
-                        auto span = c.try_lexy_patt<dsl::until(
-                            link_end)>();
+                        auto
+                            span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTargetFile, *span - 2);
                         break;
                     }
@@ -1763,7 +1763,7 @@ void switch_regular_char(Cursor& c) {
 } // namespace
 
 OrgTokenGroup org::parse::tokenize(
-    const std::string&              text,
+    std::string const&              text,
     org::parse::LexerParams const&  params,
     org::parse::SourceFileId const& file_id) {
     __perf_trace("lexing", "base lexer run");

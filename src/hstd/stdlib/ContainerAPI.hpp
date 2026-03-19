@@ -15,7 +15,7 @@ struct SequentialContainerAdapterBase : CRTP_this_method<Derived> {
     auto begin() const { return _this()->begin_impl(); }
     auto end() const { return _this()->end_impl(); }
     int  size() const { return _this()->size_impl(); }
-    void add(const value_type& value) { _this()->add_impl(value); }
+    void add(value_type const& value) { _this()->add_impl(value); }
     void add(value_type&& value) { _this()->add_impl(value); }
     void begin_insert() { _this()->begin_insert_impl(); }
     void end_insert() { _this()->end_insert_impl(); }
@@ -100,7 +100,7 @@ class SequentialContainerAdapter<hstd::Vec<T>>
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         const_cast<container_type*>(container)->push_back(value);
     }
 
@@ -129,7 +129,7 @@ class SequentialContainerAdapter<hstd::SmallVec<T, Size>>
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         const_cast<container_type*>(container)->push_back(value);
     }
 

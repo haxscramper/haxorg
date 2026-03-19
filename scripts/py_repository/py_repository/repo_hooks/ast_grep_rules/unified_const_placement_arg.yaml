@@ -1,0 +1,7 @@
+id: west-to-east-const-ref-unnamed-param
+language: cpp
+rule:
+  pattern:
+    context: 'void f(const $T &);'
+    selector: parameter_declaration
+fix: '$T const&'

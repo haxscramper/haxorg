@@ -194,7 +194,7 @@ struct ComparisonOptions {
     };
 
     FirstPassKind firstPass = FirstPassKind::TopDown;
-    Func<bool(const Node& N1, const Node& N2)>     isMatchingAllowed;
+    Func<bool(Node const& N1, Node const& N2)>     isMatchingAllowed;
     Func<bool(Node const& src, Node const& dst)>   areValuesEqual;
     Func<double(Node const& src, Node const& dst)> getUpdateCost;
 };
@@ -233,7 +233,7 @@ template <>
 struct std::formatter<hstd::ext::diff::NodeIdx>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ext::diff::NodeIdx& p, FormatContext& ctx)
+    auto format(hstd::ext::diff::NodeIdx const& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.Offset, ctx);
     }
@@ -245,7 +245,7 @@ struct std::formatter<hstd::ext::diff::NodeStore::Id>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const hstd::ext::diff::NodeStore::Id& p,
+        hstd::ext::diff::NodeStore::Id const& p,
         FormatContext&                        ctx) const {
         return fmt_ctx(p.id, ctx);
     }
@@ -255,7 +255,7 @@ template <>
 struct std::formatter<hstd::ext::diff::Node>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ext::diff::Node& p, FormatContext& ctx) {
+    auto format(hstd::ext::diff::Node const& p, FormatContext& ctx) {
         return std::format(
             "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
             p.Height,
@@ -272,8 +272,8 @@ namespace hstd::ext::diff {
 
 class SyntaxTree;
 
-Vec<NodeIdx> getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root);
-Vec<NodeIdx> getSubtreePostorder(const SyntaxTree& Tree, NodeIdx Root);
+Vec<NodeIdx> getSubtreeBfs(SyntaxTree const& Tree, NodeIdx Root);
+Vec<NodeIdx> getSubtreePostorder(SyntaxTree const& Tree, NodeIdx Root);
 
 
 /// SyntaxTree objects represent subtrees of the AST.
@@ -406,7 +406,7 @@ class SyntaxTree {
     int findPositionInParent(NodeIdx id, bool Shifted = false) const {
         NodeIdx Parent = getNode(id).Parent;
         if (Parent.isInvalid()) { return 0; }
-        const auto& Siblings = getNode(Parent).Subnodes;
+        auto const& Siblings = getNode(Parent).Subnodes;
         int         Position = 0;
         for (int I = 0, E = Siblings.size(); I < E; ++I) {
             if (Shifted) { Position += getNode(Siblings[I]).Shift; }
@@ -510,7 +510,7 @@ class ASTDiff {
         DESC_FIELDS(Change, (src, dst, data, diff));
 
         Change() {}
-        Change(CR<Data> data, ASTDiff* diff, NodeIdx src, NodeIdx dst)
+        Change(Data const& data, ASTDiff* diff, NodeIdx src, NodeIdx dst)
             : src(src), dst(dst), diff(diff), data(data) {}
 
 
@@ -544,7 +544,7 @@ class ASTDiff {
     ASTDiff(
         SyntaxTree&              src,
         SyntaxTree&              dst,
-        const ComparisonOptions& Options)
+        ComparisonOptions const& Options)
         : src(src), dst(dst), Options(Options) {
         computeMapping();
         computeChangeKinds(TheMapping);
@@ -655,7 +655,7 @@ class ASTDiff {
 
     /// \brief Returns the ID of the node that is mapped to the given node
     /// in SourceTree.
-    NodeIdx getMapped(const SyntaxTree& Tree, NodeIdx id) const {
+    NodeIdx getMapped(SyntaxTree const& Tree, NodeIdx id) const {
         if (&Tree == &src) { return TheMapping.getDst(id); }
         assert(&Tree == &dst && "Invalid tree.");
         return TheMapping.getSrc(id);
@@ -673,7 +673,7 @@ class ASTDiff {
     }
 
     /// \brief Returns true if the nodes' parents are matched.
-    bool haveSameParents(const Mapping& M, NodeIdx Id1, NodeIdx Id2)
+    bool haveSameParents(Mapping const& M, NodeIdx Id1, NodeIdx Id2)
         const {
         NodeIdx P1 = src.getNode(Id1).Parent;
         NodeIdx P2 = dst.getNode(Id2).Parent;
@@ -688,10 +688,10 @@ class ASTDiff {
     /// \brief Computes the ratio of common descendants between the two
     /// nodes. Descendants are only considered to be equal when they are
     /// mapped in M.
-    double getJaccardSimilarity(const Mapping& M, NodeIdx Id1, NodeIdx Id2)
+    double getJaccardSimilarity(Mapping const& M, NodeIdx Id1, NodeIdx Id2)
         const;
     /// \brief Returns the node that has the highest degree of similarity.
-    NodeIdx findCandidate(const Mapping& M, NodeIdx Id1) const;
+    NodeIdx findCandidate(Mapping const& M, NodeIdx Id1) const;
     /// \brief Returns a mapping of identical subtrees.
     Mapping matchTopDown() const;
     Mapping greedyMatchTopDown() const;
@@ -731,7 +731,7 @@ class Subtree {
 
   public:
     Vec<SubNodeIdx> KeyRoots;
-    Subtree(const SyntaxTree& Tree, NodeIdx SubtreeRoot) : Tree(Tree) {
+    Subtree(SyntaxTree const& Tree, NodeIdx SubtreeRoot) : Tree(Tree) {
         RootIds       = getSubtreePostorder(Tree, SubtreeRoot);
         int NumLeaves = setLeftMostDescendants();
         computeKeyRoots(NumLeaves);
@@ -765,7 +765,7 @@ class Subtree {
         LeftMostDescendants.resize(getSize());
         for (int I = 0; I < getSize(); ++I) {
             SubNodeIdx  SI(I + 1);
-            const Node& N = getNode(SI);
+            Node const& N = getNode(SI);
             NumLeaves += N.isLeaf();
             assert(
                 I == Tree.PostorderIds[getIdInRoot(SI)] -
@@ -808,9 +808,9 @@ class ZhangShashaMatcher {
   public:
     ZhangShashaMatcher(
         ComparisonOptions const& opts,
-        const ASTDiff&           DiffImpl,
-        const SyntaxTree&        src,
-        const SyntaxTree&        dst,
+        ASTDiff const&           DiffImpl,
+        SyntaxTree const&        src,
+        SyntaxTree const&        dst,
         NodeIdx                  Id1,
         NodeIdx                  Id2)
         : opts{opts}
@@ -860,7 +860,7 @@ class ZhangShashaMatcher {
 // Compares nodes by their depth.
 struct HeightLess {
     const SyntaxTree& Tree;
-    HeightLess(const SyntaxTree& Tree) : Tree(Tree) {}
+    HeightLess(SyntaxTree const& Tree) : Tree(Tree) {}
     bool operator()(NodeIdx Id1, NodeIdx Id2) const {
         return Tree.getNode(Id1).Height < Tree.getNode(Id2).Height;
     }
@@ -874,7 +874,7 @@ class PriorityList {
     std::priority_queue<NodeIdx, Vec<NodeIdx>, HeightLess> List;
 
   public:
-    PriorityList(const SyntaxTree& Tree)
+    PriorityList(SyntaxTree const& Tree)
         : Tree(Tree), Cmp(Tree), List(Cmp, Container) {}
     void         push(NodeIdx id) { List.push(id); }
     Vec<NodeIdx> pop() {
@@ -906,28 +906,28 @@ class PriorityList {
 
 
 void printNode(
-    ColStream&                       os,
-    SyntaxTree const&                Tree,
-    NodeIdx                          id,
-    Func<ColText(CR<NodeStore::Id>)> ValoStr);
+    ColStream&                          os,
+    SyntaxTree const&                   Tree,
+    NodeIdx                             id,
+    Func<ColText(NodeStore::Id const&)> ValoStr);
 
 
 void printDstChange(
-    ColStream&                       OS,
-    ASTDiff const&                   Diff,
-    SyntaxTree const&                SrcTree,
-    SyntaxTree const&                DstTree,
-    NodeIdx                          Dst,
-    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
+    ColStream&                          OS,
+    ASTDiff const&                      Diff,
+    SyntaxTree const&                   SrcTree,
+    SyntaxTree const&                   DstTree,
+    NodeIdx                             Dst,
+    Func<ColText(NodeStore::Id const&)> FormatSrcTreeValue,
+    Func<ColText(NodeStore::Id const&)> FormatDstTreeValue);
 
 void printMapping(
-    ColStream&                       os,
-    ASTDiff const&                   Diff,
-    SyntaxTree const&                SrcTree,
-    SyntaxTree const&                DstTree,
-    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
+    ColStream&                          os,
+    ASTDiff const&                      Diff,
+    SyntaxTree const&                   SrcTree,
+    SyntaxTree const&                   DstTree,
+    Func<ColText(NodeStore::Id const&)> FormatSrcTreeValue,
+    Func<ColText(NodeStore::Id const&)> FormatDstTreeValue);
 } // namespace hstd::ext::diff
 
 template <>

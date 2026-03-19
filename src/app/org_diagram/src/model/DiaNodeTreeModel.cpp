@@ -3,7 +3,7 @@
 
 #include "DiaNodeTreeModel.moc"
 
-QModelIndex DiaNodeTreeModel::parent(const QModelIndex& index) const {
+QModelIndex DiaNodeTreeModel::parent(QModelIndex const& index) const {
     if (index.isValid()) {
         DiaAdapter node = getNode(index);
         return getParentIndex(node.id).value_or(QModelIndex{});
@@ -12,7 +12,7 @@ QModelIndex DiaNodeTreeModel::parent(const QModelIndex& index) const {
     }
 }
 
-DiaAdapter DiaNodeTreeModel::getNode(const QModelIndex& index) const {
+DiaAdapter DiaNodeTreeModel::getNode(QModelIndex const& index) const {
     DiaAdapter parentNode{};
     if (index.isValid()) {
         return DiaAdapter{
@@ -23,11 +23,11 @@ DiaAdapter DiaNodeTreeModel::getNode(const QModelIndex& index) const {
     }
 }
 
-int DiaNodeTreeModel::rowCount(const QModelIndex& parent) const {
+int DiaNodeTreeModel::rowCount(QModelIndex const& parent) const {
     return getNode(parent).size();
 }
 
-QVariant DiaNodeTreeModel::data(const QModelIndex& index, int role) const {
+QVariant DiaNodeTreeModel::data(QModelIndex const& index, int role) const {
     if (!index.isValid()) { return QVariant{}; }
 
     if (role == Qt::DisplayRole) {
@@ -38,14 +38,14 @@ QVariant DiaNodeTreeModel::data(const QModelIndex& index, int role) const {
     return QVariant{};
 }
 
-DiaNodeTreeModel::DiaNodeTreeModel(const DiaAdapter& root, QObject* parent)
+DiaNodeTreeModel::DiaNodeTreeModel(DiaAdapter const& root, QObject* parent)
     : QAbstractItemModel{parent}, rootNode{root} {
     TRACKED_FUNCTION(OrgDiagramModel);
 }
 
 void DiaNodeTreeModel::setNewRoot(
-    const DiaAdapter&         root,
-    const hstd::Vec<DiaEdit>& edits) {}
+    DiaAdapter const&         root,
+    hstd::Vec<DiaEdit> const& edits) {}
 
 hstd::ColText DiaNodeTreeModel::format() {
     return ::printModelTree(
@@ -65,7 +65,7 @@ hstd::ColText DiaNodeTreeModel::format() {
 QModelIndex DiaNodeTreeModel::index(
     int                row,
     int                column,
-    const QModelIndex& parent) const {
+    QModelIndex const& parent) const {
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
     DiaAdapter parentNode = getNode(parent);

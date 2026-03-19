@@ -28,7 +28,7 @@ ImGuiWindow* GetWindowByName(std::string const& name) {
 }
 
 
-Str getDebugFile(ImGuiTest* t, const Str& suffix) {
+Str getDebugFile(ImGuiTest* t, Str const& suffix) {
     auto res = fs::path{
         fmt("/tmp/haxorg_tests/imgui/{}/{}/{}",
             normalize(t->Category),
@@ -61,6 +61,6 @@ void ImTestVarsBase::show_test_base_window() {
     }
 }
 
-void MouseMoveRelative(ImGuiTestContext* ctx, const ImVec2& shift) {
+void MouseMoveRelative(ImGuiTestContext* ctx, ImVec2 const& shift) {
     ctx->MouseMoveToPos(ImGui::GetMousePos() + shift);
 }

@@ -22,7 +22,7 @@ std::string getColumnName(TableColumns column) {
 
 bool OrgTreeProxyModel::filterAcceptsRow(
     int                source_row,
-    const QModelIndex& source_parent) const {
+    QModelIndex const& source_parent) const {
     if (model->isFlatSorting()) {
         auto node = model->flat_nodes[source_row];
         if (hide_completed_tasks && isCompletedTask(node->getTodo())) {
@@ -69,8 +69,8 @@ bool OrgTreeProxyModel::filterAcceptsRow(
 }
 
 bool OrgTreeProxyModel::lessThan(
-    const QModelIndex& left,
-    const QModelIndex& right) const {
+    QModelIndex const& left,
+    QModelIndex const& right) const {
     int  column       = left.column();
     bool is_ascending = model->sort_order == Qt::AscendingOrder;
 
@@ -148,7 +148,7 @@ bool OrgTreeProxyModel::lessThan(
 QModelIndex OrgTreeModel::index(
     int                row,
     int                column,
-    const QModelIndex& parent) const {
+    QModelIndex const& parent) const {
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
     if (isFlatSorting()) {
@@ -175,7 +175,7 @@ QModelIndex OrgTreeModel::index(
     return QModelIndex{};
 }
 
-QModelIndex OrgTreeModel::parent(const QModelIndex& index) const {
+QModelIndex OrgTreeModel::parent(QModelIndex const& index) const {
     if (!index.isValid() || isFlatSorting()) { return QModelIndex{}; }
 
     auto node = static_cast<OrgAgendaNode*>(index.internalPointer());
@@ -200,7 +200,7 @@ QModelIndex OrgTreeModel::parent(const QModelIndex& index) const {
     return QModelIndex{};
 }
 
-QVariant OrgTreeModel::data(const QModelIndex& index, int role) const {
+QVariant OrgTreeModel::data(QModelIndex const& index, int role) const {
     if (!index.isValid()) { return QVariant{}; }
 
     auto node   = static_cast<OrgAgendaNode*>(index.internalPointer());
@@ -349,7 +349,7 @@ void CommandPalette::setupUi() {
 }
 
 std::vector<CommandPaletteItem> CommandPalette::filterAndScoreItems(
-    const std::string& search_text) {
+    std::string const& search_text) {
     std::vector<CommandPaletteItem> scored_items;
 
     hstd::FuzzyMatcher matcher;
@@ -387,7 +387,7 @@ std::vector<CommandPaletteItem> CommandPalette::filterAndScoreItems(
     std::sort(
         scored_items.begin(),
         scored_items.end(),
-        [](const auto& a, const auto& b) {
+        [](auto const& a, auto const& b) {
             if (a.score != b.score) { return a.score > b.score; }
             return a.full_path.length() < b.full_path.length();
         });
@@ -406,9 +406,8 @@ void CommandPalette::updateResultsList() {
             QVariant::fromValue(const_cast<CommandPaletteItem*>(&item)));
 
         if (!search_input->text().trimmed().isEmpty()) {
-            std::string search_text = search_input->text()
-                                          .toLower()
-                                          .toStdString();
+            std::string
+                search_text = search_input->text().toLower().toStdString();
             std::string title_lower = item.title;
             std::transform(
                 title_lower.begin(),

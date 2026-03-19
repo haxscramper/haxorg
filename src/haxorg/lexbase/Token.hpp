@@ -94,7 +94,7 @@ struct std::formatter<org::parse::TokenId<K, V>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
-        const org::parse::TokenId<K, V>& p,
+        org::parse::TokenId<K, V> const& p,
         FormatContext&                   ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(p.format(hstd::demangle(typeid(K).name())), ctx);

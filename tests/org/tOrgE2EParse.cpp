@@ -62,8 +62,8 @@ TEST(TestFiles, OrgCerealSerdeRoundtrip) {
 
 TEST(TestFiles, AllNodeSerdeRoundtrip) {
 #if ORG_BUILD_WITH_PROTOBUF
-    std::string file
-        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
+    std::string
+        file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     // std::string file = "/home/haxscramper/tmp/doc1.org";
     MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
@@ -71,9 +71,9 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
 
     sem::OrgConverter converter{};
     sem::SemId        write_node = converter
-                                .convertDocument(
-                                    OrgAdapter(&p.nodes, OrgId(0)))
-                                .value();
+                                       .convertDocument(
+                                           OrgAdapter(&p.nodes, OrgId(0)))
+                                       .value();
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, write_node);
@@ -120,15 +120,15 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
 
 TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();
-    std::string file
-        = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
+    std::string
+        file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
     SemSet            foundNodes;
     sem::OrgConverter converter{};
-    sem::SemId        node = converter
+    sem::SemId node = converter
                           .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
                           .value();
 
@@ -180,8 +180,8 @@ TEST(SimpleNodeConversion, LCSCompile) {
     auto     res = longestCommonSubsequence<int>(
         first,
         second,
-        [](CR<int> lhs, CR<int> rhs) { return lhs == rhs; },
-        [](CR<int> lhs, CR<int> rhs) {
+        [](int const& lhs, int const& rhs) { return lhs == rhs; },
+        [](int const& lhs, int const& rhs) {
             if (lhs == rhs) {
                 return 1;
             } else {

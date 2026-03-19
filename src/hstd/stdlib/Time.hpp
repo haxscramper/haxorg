@@ -69,7 +69,7 @@ template <>
 struct std::formatter<cctz::civil_second> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const cctz::civil_second& p,
+        cctz::civil_second const& p,
         FormatContext&            ctx) const;
 };
 
@@ -77,6 +77,6 @@ template <>
 struct std::formatter<cctz::time_zone> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const cctz::time_zone& p,
+        cctz::time_zone const& p,
         FormatContext&         ctx) const;
 };

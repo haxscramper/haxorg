@@ -327,7 +327,7 @@ Id operator++(Id& id, int) {
 ///
 /// \note Masked portions are ignored, only unmasked indices are compared
 template <IsIdType Id>
-typename Id::id_base_type distance(CR<Id> first, CR<Id> last) {
+typename Id::id_base_type distance(Id const& first, Id const& last) {
     return saturating_sub(last.getUnmasked(), first.getUnmasked());
 }
 
@@ -388,7 +388,7 @@ struct Store {
     }
 
     /// Add value to the storage and return newly created ID
-    [[nodiscard]] auto add(const T& value, Id::id_mask_type mask) -> Id {
+    [[nodiscard]] auto add(T const& value, Id::id_mask_type mask) -> Id {
         int index = content.size();
         content.push_back(value);
         auto result = Id::FromMaskedIdx(index, mask);
@@ -410,7 +410,7 @@ struct Store {
     }
 
     /// Add value to the storage and return newly created ID
-    [[nodiscard]] auto add(const T& value) -> Id {
+    [[nodiscard]] auto add(T const& value) -> Id {
         int index = content.size();
         content.push_back(value);
         auto result = Id::FromIndex(index);
@@ -439,7 +439,7 @@ struct Store {
     /// confuse with ID)
     auto atIndex(int index) -> T& { return content.at(index); }
     /// \brief Immutable reference
-    auto atIndex(int index) const -> CR<T> { return content.at(index); }
+    auto atIndex(int index) const -> T const& { return content.at(index); }
 
     /// \brief Span view over multiple values referenced by slice.
     ///
@@ -456,7 +456,7 @@ struct Store {
     auto at(Id id) -> T& { return content.at(id.getIndex()); }
     /// \brief Get a immutable reference to an object pointed to by the
     /// \arg id
-    auto at(Id id) const -> CR<T> { return content.at(id.getIndex()); }
+    auto at(Id id) const -> T const& { return content.at(id.getIndex()); }
     /// \brief Get a total number of the stored objects int the store
     auto size() const -> int { return content.size(); }
     bool empty() const { return size() == 0; }
@@ -482,7 +482,7 @@ struct Store {
 
     /// \brief Insert value into the store at position, either appending to
     /// the internal list or replacing an existing value.
-    void insert(Id id, CR<T> value) {
+    void insert(Id id, T const& value) {
         if (id.getIndex() == content.size()) {
             content.push_back(value);
         } else if (id.getIndex() < content.size()) {
@@ -514,7 +514,7 @@ struct InternStore {
     /// Add value to the store - if the value is already contained can
     /// return previous ID
     [[nodiscard]] auto add(
-        CR<Val>                                  in,
+        Val const&                               in,
         std::optional<typename Id::id_mask_type> mask = std::nullopt)
         -> Id {
         auto found = id_map.find(in);
@@ -535,7 +535,7 @@ struct InternStore {
     }
 
     /// \brief Value has already been interned in the store
-    auto contains(CR<Val> in) const -> bool {
+    auto contains(Val const& in) const -> bool {
         return id_map.find(in) != id_map.end();
     }
 
@@ -546,13 +546,13 @@ struct InternStore {
     /// \brief Get mutable reference at the content pointed at by the ID
     auto at(Id id) -> Val& { return content.at(id); }
     /// \brief Get immutable references at the content pointed at by the ID
-    auto at(Id id) const -> CR<Val> { return content.at(id); }
+    auto at(Id id) const -> Val const& { return content.at(id); }
 
     /// \brief Insert new value to the store if it has not already been
     /// interned
     ///
     /// \copydoc Store::insert
-    void insert(Id id, CR<Val> value) {
+    void insert(Id id, Val const& value) {
         if (!contains(value)) {
             LOGIC_ASSERTION_CHECK(
                 !id.isNil(), "cannot use nil ID for interned store key");
@@ -618,7 +618,7 @@ struct MultiStore {
     /// Push value on one of the stores, inferring which one based on the
     /// ID
     template <typename Val>
-    [[nodiscard]] auto add(CR<Val> t) -> id_type_t<Val> {
+    [[nodiscard]] auto add(Val const& t) -> id_type_t<Val> {
         return store<Val>().add(t);
     }
 
@@ -631,13 +631,13 @@ struct MultiStore {
 
     /// \copydoc Store::at
     template <dod::IsIdType Id>
-    auto at(Id id) const -> CR<value_type_t<Id>> {
+    auto at(Id id) const -> value_type_t<Id> const& {
         return store<value_type_t<Id>>().at(id);
     }
 
     /// \copydoc Store::insert
     template <typename Id, typename Val>
-    void insert(Id id, CR<Val> val) {
+    void insert(Id id, Val const& val) {
         return store<Val>().insert(id, val);
     }
 

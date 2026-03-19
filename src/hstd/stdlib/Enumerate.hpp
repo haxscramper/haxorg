@@ -79,7 +79,7 @@ class enumerator_impl {
             return *this;
         }
 
-        bool operator!=(const enumerate_iterator& other) const {
+        bool operator!=(enumerate_iterator const& other) const {
             return it != other.it;
         }
     };

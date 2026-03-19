@@ -5,7 +5,7 @@
 using namespace hstd;
 
 Vec<SequenceAnnotation> hstd::annotateSequence(
-    const Vec<SequenceSegmentGroup>& groups,
+    Vec<SequenceSegmentGroup> const& groups,
     int                              first,
     int                              last) {
 

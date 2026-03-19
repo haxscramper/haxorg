@@ -13,7 +13,7 @@ struct VectorPathTracker {
     Container path;
 
     VectorPathTracker() = default;
-    VectorPathTracker(const Container& p) : path{p} {}
+    VectorPathTracker(Container const& p) : path{p} {}
 
     VectorPathTracker push(int value) const {
         Container new_path = path;
@@ -32,7 +32,7 @@ struct VectorPathTracker<immer::flex_vector<int>> {
     immer::flex_vector<int> path;
 
     VectorPathTracker() = default;
-    VectorPathTracker(const immer::flex_vector<int>& p) : path{p} {}
+    VectorPathTracker(immer::flex_vector<int> const& p) : path{p} {}
 
     VectorPathTracker push(int value) const {
         return VectorPathTracker{path.push_back(value)};
@@ -49,7 +49,7 @@ struct VectorPathTracker<immer::vector<int>> {
     immer::vector<int> path;
 
     VectorPathTracker() = default;
-    VectorPathTracker(const immer::vector<int>& p) : path{p} {}
+    VectorPathTracker(immer::vector<int> const& p) : path{p} {}
 
     VectorPathTracker push(int value) const {
         return VectorPathTracker{path.push_back(value)};

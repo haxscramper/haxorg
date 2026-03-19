@@ -40,10 +40,12 @@ struct DiffItem {
 
 
 Vec<DiffItem> json_diff(
-    const json&          source,
-    const json&          target,
-    const std::string&   path   = "",
-    Func<bool(CR<json>)> ignore = [](CR<json>) -> bool { return false; }) {
+    json const&             source,
+    json const&             target,
+    const std::string&      path   = "",
+    Func<bool(json const&)> ignore = [](json const&) -> bool {
+        return false;
+    }) {
 
     // the patch
     Vec<DiffItem> result;
@@ -369,8 +371,8 @@ void exporterVisit(
 
 template <typename K, typename V>
 CorpusRunner::RunResult::LexCompare compareTokens(
-    CR<TokenGroup<K, V>>       lexed,
-    CR<TokenGroup<K, V>>       expected,
+    TokenGroup<K, V> const&    lexed,
+    TokenGroup<K, V> const&    expected,
     ParseSpec::Conf::MatchMode match,
     auto                       token_eq,
     auto                       get_token_text) {
@@ -423,19 +425,20 @@ CorpusRunner::RunResult::LexCompare compareTokens(
 }
 
 CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
-    CR<OrgNodeGroup> parsed,
-    CR<OrgNodeGroup> expected) {
+    OrgNodeGroup const& parsed,
+    OrgNodeGroup const& expected) {
     BacktrackRes nodeSimilarity;
     auto         paths = longestCommonSubsequence<OrgNode>(
         parsed.nodes.content,
         expected.nodes.content,
-        [&](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+        [&](OrgNode const& lhs, OrgNode const& rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
-            } else if (OrgSet{
-                           onk::TextSeparator,
-                       }
-                           .contains(lhs.kind)) {
+            } else if (
+                OrgSet{
+                    onk::TextSeparator,
+                }
+                    .contains(lhs.kind)) {
                 return true;
             } else if (lhs.isTerminal()) {
                 if (parsed.tokens != nullptr && expected.tokens != nullptr
@@ -535,7 +538,7 @@ json toTestJson(org::sem::OrgArg arg) {
 }
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
-    CR<ParseSpec>                 spec,
+    ParseSpec const&              spec,
     sem::SemId<sem::Org>          node,
     json                          expected,
     org::parse::ParseContext::Ptr parse_context) {
@@ -591,7 +594,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         BacktrackRes sem_lcs = longestCommonSubsequence<Str>(
             converted_lines,
             expected_lines,
-            [](CR<Str> lhs, CR<Str> rhs) -> bool {
+            [](Str const& lhs, Str const& rhs) -> bool {
                 return lhs == rhs;
             })[0];
 
@@ -612,10 +615,10 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 }
 
 hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
-    hstd::CR<ParseSpec>   spec,
-    hstd::CR<std::string> from,
-    hstd::CR<hstd::Str>   relDebug,
-    MockFull&             p) {
+    hstd::ParseSpec const&   spec,
+    hstd::std::string const& from,
+    hstd::hstd::Str const&   relDebug,
+    MockFull&                p) {
 
     auto skip = RunResult{RunResult::Skip{}};
 
@@ -695,10 +698,10 @@ hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
 }
 
 CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
-    hstd::CR<ParseSpec>   spec,
-    hstd::CR<std::string> from,
-    hstd::CR<hstd::Str>   relDebug,
-    MockFull&             p) {
+    hstd::ParseSpec const&   spec,
+    hstd::std::string const& from,
+    hstd::hstd::Str const&   relDebug,
+    MockFull&                p) {
 
     auto skip = RunResult{RunResult::Skip{}};
 
@@ -867,9 +870,9 @@ fail:
 }
 
 CorpusRunner::RunResult CorpusRunner::runSpec(
-    CR<ParseSpec>   spec,
-    CR<std::string> from,
-    CR<Str>         relDebug) {
+    ParseSpec const&   spec,
+    std::string const& from,
+    Str const&         relDebug) {
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running test spec '{}'", spec.name);
     __perf_trace("cli", "run spec");
     MockFull p("<mock>", spec.debug.traceParse, spec.debug.traceLex);
@@ -880,9 +883,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
-    MockFull&     p,
-    CR<ParseSpec> spec,
-    CR<Str>       relDebug) {
+    MockFull&        p,
+    ParseSpec const& spec,
+    Str const&       relDebug) {
     __perf_trace("cli", "lex base");
 
     LexerParams params;
@@ -922,7 +925,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
             fromFlatTokens<OrgTokenKind, OrgFill>(
                 spec.base_tokens.value(), buffer),
             spec.conf.tokenMatch,
-            [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+            [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
                     return false;
                 } else if (lhs.value.text != rhs.value.text) {
@@ -931,7 +934,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
                     return true;
                 }
             },
-            [](CR<OrgToken> tok) { return tok.value.text; });
+            [](OrgToken const& tok) { return tok.value.text; });
 
         return result;
     } else {
@@ -940,9 +943,9 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
-    MockFull&     p,
-    CR<ParseSpec> spec,
-    CR<Str>       relDebug) {
+    MockFull&        p,
+    ParseSpec const& spec,
+    Str const&       relDebug) {
     __perf_trace("cli", "lex");
 
     p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
@@ -981,7 +984,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
             fromFlatTokens<OrgTokenKind, OrgFill>(
                 spec.tokens.value(), buffer),
             spec.conf.tokenMatch,
-            [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+            [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
                     return false;
                 } else if (
@@ -995,7 +998,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
                     return true;
                 }
             },
-            [](CR<OrgToken> tok) { return tok->text; });
+            [](OrgToken const& tok) { return tok->text; });
 
         return result;
     } else {
@@ -1004,9 +1007,9 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
 }
 
 CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
-    MockFull&     p,
-    CR<ParseSpec> spec,
-    CR<Str>       relDebug) {
+    MockFull&        p,
+    ParseSpec const& spec,
+    Str const&       relDebug) {
 
     __perf_trace("cli", "parse");
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
@@ -1023,7 +1026,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
             spec.debugFile("trace_parse.log", relDebug));
     }
 
-    p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
+    p.parser->reportHook = [&](OrgParser::Report const& rep) {
         if (rep.kind == OrgParser::ReportKind::AddToken
             || rep.kind == OrgParser::ReportKind::StartNode) {
             parseAddedOnLine.insert_or_assign(*rep.node, rep.line);
@@ -1095,9 +1098,9 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 }
 
 CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
-    MockFull&     p,
-    CR<ParseSpec> spec,
-    CR<Str>       relDebug) {
+    MockFull&        p,
+    ParseSpec const& spec,
+    Str const&       relDebug) {
     HSLOG_INFO_DEPTH_SCOPE_ANON("Running spec sem");
     __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{};
@@ -1110,7 +1113,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     auto document = converter
                         .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
                         .unwrap();
-    p.node = document.asOrg();
+    p.node        = document.asOrg();
 
     if (spec.debug.traceAll || spec.debug.printSem
         || spec.debug.printSemToFile) {
@@ -1203,7 +1206,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 }
 
 TestResult org::test::gtest_run_spec(
-    CR<TestParams>        params,
+    TestParams const&     params,
     hstd::fs::path const& testDir) {
 
     auto sink = HSLOG_SINK_FACTORY_SCOPED(([&testDir]() {
@@ -1266,7 +1269,7 @@ TestResult org::test::gtest_run_spec(
 
         std::visit(
             overloaded{
-                [&](CR<RunResult::CompareBase> node) {
+                [&](RunResult::CompareBase const& node) {
                     os = node.failDescribe;
                 },
                 [&](RunResult::Skip const& node) {},
@@ -1327,7 +1330,7 @@ void TestParams::PrintToImpl(std::ostream* os) const {
     *os << dump.dump();
 }
 
-hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org::
+hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const&)> org::
     test::getOrgParseWriteParams(
         OrgSpec const*                               spec,
         org::parse::OrgNodeGroup const*              nodes,
@@ -1390,10 +1393,10 @@ hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org
 }
 
 void CorpusRunner::writeFile(
-    hstd::CR<ParseSpec> spec,
-    hstd::CR<hstd::Str> name,
-    hstd::CR<hstd::Str> content,
-    hstd::CR<hstd::Str> relDebug) {
+    hstd::ParseSpec const& spec,
+    hstd::hstd::Str const& name,
+    hstd::hstd::Str const& content,
+    hstd::hstd::Str const& relDebug) {
     files.push_back(
         TestResult::File{
             .path  = name,

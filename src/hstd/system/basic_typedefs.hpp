@@ -43,7 +43,7 @@ template <typename T> using Rw = std::reference_wrapper<T>;
 template <typename T> using CRw = std::reference_wrapper<const T>;
 
 template <typename T>
-CR<T> cr(CR<T> in) {
+T const& cr(T const& in) {
    return in;
 }
 

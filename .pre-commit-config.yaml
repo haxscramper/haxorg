@@ -23,6 +23,13 @@ exclude: |
     src/haxorg/imm/ImmOrgTypes\.hpp
   )$
 repos:
+  - repo: local
+    hooks:
+      - id: pre-commit-sg-rewrite
+        name: Remove and unify code styles
+        language: system
+        entry: ast-grep scan --color=never -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
+        types: [c++]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -77,11 +84,3 @@ repos:
         language: system
         pass_filenames: true
         files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$
-
-  - repo: local
-    hooks:
-      - id: pre-commit-sg-rewrite
-        name: Remove and unify code styles
-        language: system
-        entry: ast-grep scan -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
-        types: [c++]

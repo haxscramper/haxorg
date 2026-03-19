@@ -48,10 +48,10 @@ org::sem::OrgJson::OrgJson(const json* ptr)
     : value{std::shared_ptr<json>(const_cast<json*>(ptr), [](json* p) {})}
     , holds_value{false} {}
 
-org::sem::OrgJson::OrgJson(const json& copy)
+org::sem::OrgJson::OrgJson(json const& copy)
     : value{std::make_shared<json>(copy)}, holds_value{true} {}
 
-bool org::sem::OrgJson::operator==(const OrgJson& other) const {
+bool org::sem::OrgJson::operator==(OrgJson const& other) const {
     return getRef() == other.getRef();
 }
 
@@ -96,11 +96,11 @@ org::sem::OrgJson org::sem::OrgJson::getItem(int index) const {
 }
 
 org::sem::OrgJson org::sem::OrgJson::getField(
-    const std::string& name) const {
+    std::string const& name) const {
     return getRef().at(name);
 }
 
-org::sem::OrgJson org::sem::OrgJson::at(const std::string& name) const {
+org::sem::OrgJson org::sem::OrgJson::at(std::string const& name) const {
     return &getRef().at(name);
 }
 

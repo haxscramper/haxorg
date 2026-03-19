@@ -22,15 +22,12 @@ ImVec4 theme[] = {
     [(int)ColorName::BrightGreen]  = ImVec4(0.710f, 0.741f, 0.408f, 1.00f),
     [(int)ColorName::BrightYellow] = ImVec4(0.941f, 0.776f, 0.455f, 1.00f),
     [(int)ColorName::BrightBlue]   = ImVec4(0.506f, 0.635f, 0.745f, 1.00f),
-    [(int)ColorName::BrightMagenta] = ImVec4(
-        0.698f,
-        0.580f,
-        0.733f,
-        1.00f),
-    [(int)ColorName::BrightCyan]  = ImVec4(0.541f, 0.745f, 0.718f, 1.00f),
-    [(int)ColorName::BrightWhite] = ImVec4(0.773f, 0.784f, 0.776f, 1.00f),
-    [(int)ColorName::Background]  = ImVec4(0.114f, 0.122f, 0.129f, 1.00f),
-    [(int)ColorName::Foreground]  = ImVec4(0.773f, 0.784f, 0.776f, 1.00f)};
+    [(int)
+         ColorName::BrightMagenta] = ImVec4(0.698f, 0.580f, 0.733f, 1.00f),
+    [(int)ColorName::BrightCyan]   = ImVec4(0.541f, 0.745f, 0.718f, 1.00f),
+    [(int)ColorName::BrightWhite]  = ImVec4(0.773f, 0.784f, 0.776f, 1.00f),
+    [(int)ColorName::Background]   = ImVec4(0.114f, 0.122f, 0.129f, 1.00f),
+    [(int)ColorName::Foreground] = ImVec4(0.773f, 0.784f, 0.776f, 1.00f)};
 
 
 ImVec4 const& color(ColorName const& name) { return theme[(int)name]; }
@@ -160,9 +157,9 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
 
     template <typename T>
     void visitField(
-        int&                   j,
-        const char*            name,
-        CR<org::sem::SemId<T>> field) {
+        int&                      j,
+        const char*               name,
+        org::sem::SemId<T> const& field) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         if (ImOrgTree(name)) {
             visit(j, field);
@@ -171,7 +168,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     }
 
     template <typename T>
-    void visitField(int&, const char* name, CR<T> field) {
+    void visitField(int&, const char* name, T const& field) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         ImGui::TextColored(
             color(ColorName::Red),

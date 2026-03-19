@@ -7,7 +7,7 @@
 using namespace hstd;
 using namespace hstd::ext;
 
-Str Graphviz::Node::Record::escape(const Str& input) {
+Str Graphviz::Node::Record::escape(Str const& input) {
     Str escaped;
     escaped.reserve(input.size());
     for (char c : input) {
@@ -25,7 +25,7 @@ Str Graphviz::Node::Record::escape(const Str& input) {
     return escaped;
 }
 
-Str Graphviz::Node::Record::escapeHtml(CR<Str> input) {
+Str Graphviz::Node::Record::escapeHtml(Str const& input) {
     Str escaped;
     for (char c : input) {
         switch (c) {
@@ -41,7 +41,7 @@ Str Graphviz::Node::Record::escapeHtml(CR<Str> input) {
 }
 
 Str Graphviz::Node::Record::toHtml(bool horizontal) const {
-    auto generateCell = [](CR<Record> rec) -> Str {
+    auto generateCell = [](Record const& rec) -> Str {
         return rec.isFinal() ? rec.getLabel() : rec.toHtml();
     };
 
@@ -61,13 +61,15 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
         if (std::all_of(
                 nested.begin(),
                 nested.end(),
-                [](CR<Record> r) { return r.isRecord(); })
+                [](Record const& r) { return r.isRecord(); })
             && std::all_of(
                 nested.front().getNested().begin(),
                 nested.front().getNested().end(),
-                [&nested](CR<Record> r) {
+                [&nested](Record const& r) {
                     return std::all_of(
-                        nested.begin(), nested.end(), [&](CR<Record> row) {
+                        nested.begin(),
+                        nested.end(),
+                        [&](Record const& row) {
                             return row.isRecord()
                                 && row.getNested().size()
                                        == nested.front()
@@ -78,9 +80,9 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
 
 
             Str html = get_html_tag(this, "table");
-            for (CR<Record> row : nested) {
+            for (Record const& row : nested) {
                 html += "\n" + get_html_tag(&row, "tr");
-                for (CR<Record> cell : row.getNested()) {
+                for (Record const& cell : row.getNested()) {
                     html += "\n" + get_html_tag(&cell, "td")
                           + generateCell(cell) + "</td>"_ss;
                 }
@@ -90,7 +92,7 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
             return html;
         } else {
             Str html = get_html_tag(this, "table");
-            for (CR<Record> r : nested) {
+            for (Record const& r : nested) {
                 if (horizontal) {
                     html += get_html_tag(&r, "tr") + "<td>"_ss;
                 } else {
@@ -108,7 +110,9 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
     }
 }
 
-void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
+void Graphviz::Node::Record::set(
+    Str const&    columnKey,
+    Record const& value) {
     if (isFinal()) {
         content = Vec<Record>{Record({Record(columnKey), value})};
     } else {
@@ -127,7 +131,7 @@ void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
 }
 
 Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
-    const Str& text,
+    Str const& text,
     TextAlign  align) {
     Record res;
     res.content = escapeHtmlForGraphviz(text, align);
@@ -135,14 +139,14 @@ Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
 }
 
 Graphviz::Node::Record Graphviz::Node::Record::fromRow(
-    const Vec<Record>& recs) {
+    Vec<Record> const& recs) {
     Record res;
     res.content = recs;
     return res;
 }
 
 Graphviz::Node::Record Graphviz::Node::Record::fromEscapedTextRow(
-    const Vec<Str>& cells) {
+    Vec<Str> const& cells) {
     Record res = fromRow({});
     for (auto const& cell : cells) { res.add(fromEscapedText(cell)); }
     return res;
@@ -154,7 +158,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
         if (tag) { result += std::format("<{}>", *tag); }
         result += Record::escape(getLabel());
     } else {
-        const auto& c = getNested();
+        auto const& c = getNested();
         if (!c.empty()) {
             result += Str("{").repeated(braceCount);
             for (int i = 0; i < c.size(); ++i) {
@@ -168,7 +172,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
     return result;
 }
 
-Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
+Graphviz::Edge::Edge(Agraph_t* graph, Node const& head, Node const& tail)
     : graph(graph) {
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
     Agedge_t* edge = agedge(
@@ -185,7 +189,7 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     }
 }
 
-Graphviz::Graph::Graph(const Str& name, Agdesc_t desc)
+Graphviz::Graph::Graph(Str const& name, Agdesc_t desc)
     : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
@@ -199,7 +203,7 @@ Graphviz::Graph::Graph(const Str& name, Agdesc_t desc)
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
 }
 
-Graphviz::Graph::Graph(const fs::path& file)
+Graphviz::Graph::Graph(fs::path const& file)
     : graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr) {
@@ -259,14 +263,14 @@ void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
 }
 
 void Graphviz::Graph::render(
-    const fs::path& path,
+    fs::path const& path,
     LayoutType      layout,
     RenderFormat    format) {
     hstd::ext::Graphviz gvc;
     gvc.renderToFile(path, *this, format, layout);
 }
 
-Str Graphviz::alignText(const Str& text, TextAlign direction) {
+Str Graphviz::alignText(Str const& text, TextAlign direction) {
     Str res = text;
     switch (direction) {
         case TextAlign::Left: {
@@ -290,7 +294,7 @@ Str Graphviz::alignText(const Str& text, TextAlign direction) {
 }
 
 std::string Graphviz::escapeHtmlForGraphviz(
-    const std::string& input,
+    std::string const& input,
     TextAlign          direction) {
     std::string escaped = input;
     hstd::replace_all(escaped, "&", "&amp;");
@@ -340,7 +344,7 @@ Str Graphviz::renderFormatToString(RenderFormat renderFormat) const {
     }
 }
 
-void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) const {
+void Graphviz::createLayout(Graph const& graph, LayoutType layout) const {
     int res = gvLayout(
         gvc.get(),
         const_cast<Agraph_t*>(graph.get()),
@@ -355,8 +359,8 @@ void Graphviz::freeLayout(Graph graph) const {
 }
 
 void Graphviz::writeFile(
-    const fs::path& fileName,
-    CR<Graph>       graph,
+    fs::path const& fileName,
+    Graph const&    graph,
     RenderFormat    format) const {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.c_str(), "w");
@@ -385,8 +389,8 @@ void Graphviz::writeFile(
 }
 
 void Graphviz::renderToFile(
-    const fs::path& fileName,
-    CR<Graph>       graph,
+    fs::path const& fileName,
+    Graph const&    graph,
     RenderFormat    format,
     LayoutType      layout) const {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
@@ -404,14 +408,14 @@ void Graphviz::renderToFile(
 
 Graphviz::Node::Node(
     Agraph_t*     graph,
-    const Str&    name,
-    const Record& record)
+    Str const&    name,
+    Record const& record)
     : Node(graph, name) {
     setShape(Shape::record);
     setLabel(record.toString());
 }
 
-Graphviz::Node::Node(Agraph_t* graph, const Str& name) {
+Graphviz::Node::Node(Agraph_t* graph, Str const& name) {
     auto node_ = agnode(graph, const_cast<char*>(name.c_str()), 1);
     if (!node_) {
         throw std::runtime_error("Failed to create node");

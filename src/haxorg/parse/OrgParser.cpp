@@ -36,12 +36,13 @@ org::sem::OrgDiagnostics::ParseError ParseErrorInit(
 }
 
 struct ErrorTable {
-#define P_ERROR(__fieldname, __short, __long)                                              \
-    static const inline org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit( \
-        #__fieldname,                                                                      \
-        ::org::fieldname_to_code(#__fieldname),                                            \
-        __short,                                                                           \
-        __long);
+#define P_ERROR(__fieldname, __short, __long)                             \
+    static const inline org::sem::OrgDiagnostics::ParseError              \
+        __fieldname = ParseErrorInit(                                     \
+            #__fieldname,                                                 \
+            ::org::fieldname_to_code(#__fieldname),                       \
+            __short,                                                      \
+            __long);
 
     P_ERROR(FallbackError, "Default fallback error", "");
     P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
@@ -419,8 +420,8 @@ void OrgParser::textFold(OrgLexer& lex) {
         if (startDepth < treeDepth()) {
             print(fmt(
                 "Folding unclosed with token {}", lex.in->at(startToken)));
-            auto unclosed = group->pendingTrees.back();
-            group->nodes.at(unclosed).kind = onk::Punctuation;
+            auto unclosed                   = group->pendingTrees.back();
+            group->nodes.at(unclosed).kind  = onk::Punctuation;
             group->nodes.at(unclosed).value = startToken;
             group->pendingTrees.pop_back();
         }
@@ -2622,7 +2623,7 @@ std::string OrgParser::printLexerToString(OrgLexer& lex) const {
 }
 
 
-bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
+bool OrgParser::at(OrgLexer const& lex, OrgExpectable const& item) {
     if (item.index() == 0 && lex.at(std::get<0>(item))) {
         return true;
     } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
@@ -2647,7 +2648,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
     aux = [&](Id top) {
         auto& g = *group;
         LOGIC_ASSERTION_CHECK_FMT(g.nodes.contains(top), "");
-        auto fmt_id = [&](CR<Id> id) {
+        auto fmt_id = [&](Id const& id) {
             return fmt("{} {}", id.format(), g.at(id).kind);
         };
         if (g.at(top).isTerminal() || g.at(top).isMono()) { return; }
@@ -2822,7 +2823,7 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
 }
 
 OrgParser::ParseOk OrgParser::NodeGuard::end(
-    const std::string& desc,
+    std::string const& desc,
     int                line,
     const char*        function) {
     LOGIC_ASSERTION_CHECK_FMT(

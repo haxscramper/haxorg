@@ -25,7 +25,7 @@ std::string get_current_program_name() {
     return fs::read_symlink("/proc/self/exe").filename().string();
 }
 
-void safe_move(const fs::path& from, const fs::path& to) {
+void safe_move(fs::path const& from, fs::path const& to) {
     std::error_code ec_remove, ec_rename, ec_copy;
 
     // Check if the target file exists, if it does, delete it.
@@ -53,7 +53,7 @@ void safe_move(const fs::path& from, const fs::path& to) {
 }
 
 
-bool move_latest_xray_log_to_path(const std::string& path) {
+bool move_latest_xray_log_to_path(std::string const& path) {
 
     // Get the program name
     std::string program_name = get_current_program_name();

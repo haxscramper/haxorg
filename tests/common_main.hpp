@@ -19,7 +19,7 @@ extern void enable_full_trace_on_cli();
 class LinePrinterLogSink : public absl::LogSink {
   public:
     LinePrinterLogSink(const char* path) : file(path) {}
-    void Send(const absl::LogEntry& entry) override {
+    void Send(absl::LogEntry const& entry) override {
         for (absl::string_view line : absl::StrSplit(
                  entry.text_message_with_prefix(), absl::ByChar('\n'))) {
             // Overprint severe entries for emphasis:
@@ -38,7 +38,7 @@ class LinePrinterLogSink : public absl::LogSink {
 class QuietTestPrinter : public ::testing::EmptyTestEventListener {
     // Called after a failed assertion or a SUCCESS().
     void OnTestPartResult(
-        const ::testing::TestPartResult& test_part_result) override {
+        ::testing::TestPartResult const& test_part_result) override {
         if (test_part_result.failed()) {
             std::cout << ::hstd::fmt(
                 "{} in {}:{}\n{}\n",

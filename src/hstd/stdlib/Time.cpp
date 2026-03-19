@@ -80,7 +80,7 @@ std::string UserTime::format(Format kind) const {
     return cctz::format(format, cctz::convert(time, tz), tz);
 }
 
-bool UserTime::operator==(const UserTime& it) const {
+bool UserTime::operator==(UserTime const& it) const {
     bool result = true;
     result &= this->time == it.time;
     result &= this->zone == it.zone;
@@ -88,7 +88,7 @@ bool UserTime::operator==(const UserTime& it) const {
     return result;
 }
 
-int64_t UserTime::getTimeDeltaSeconds(const UserTime& other) const {
+int64_t UserTime::getTimeDeltaSeconds(UserTime const& other) const {
     auto this_zone  = zone.value_or(cctz::utc_time_zone());
     auto other_zone = other.zone.value_or(cctz::utc_time_zone());
 
@@ -123,7 +123,7 @@ int64_t UserTime::toUnixTimestamp() const {
 }
 
 std::size_t std::hash<UserTime>::operator()(
-    const UserTime& it) const noexcept {
+    UserTime const& it) const noexcept {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.align);
     if (it.zone) {
@@ -141,14 +141,14 @@ std::size_t std::hash<UserTime>::operator()(
 
 template <typename FormatContext>
 FormatContext::iterator std::formatter<cctz::time_zone>::format(
-    const cctz::time_zone& p,
+    cctz::time_zone const& p,
     FormatContext&         ctx) const {
     return fmt_ctx(p.name(), ctx);
 }
 
 template <typename FormatContext>
 FormatContext::iterator std::formatter<cctz::civil_second>::format(
-    const cctz::civil_second& p,
+    cctz::civil_second const& p,
     FormatContext&            ctx) const {
     return hstd::fmt_ctx(
         std::format(
@@ -163,8 +163,8 @@ FormatContext::iterator std::formatter<cctz::civil_second>::format(
 }
 
 template std::format_context::iterator std::formatter<cctz::civil_second>::
-    format(const cctz::civil_second&, std::format_context&) const;
+    format(cctz::civil_second const&, std::format_context&) const;
 
 template std::format_context::iterator std::formatter<
     cctz::time_zone,
-    char>::format(const cctz::time_zone&, std::format_context&) const;
+    char>::format(cctz::time_zone const&, std::format_context&) const;

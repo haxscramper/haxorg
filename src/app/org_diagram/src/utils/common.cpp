@@ -52,8 +52,8 @@ hstd::ext::Graphviz::Graph get_tracker_graph() {
 
 void customMessageHandler(
     QtMsgType                 type,
-    const QMessageLogContext& context,
-    const QString&            msg_in) {
+    QMessageLogContext const& context,
+    QString const&            msg_in) {
     QByteArray  localMsg = msg_in.toLocal8Bit();
     std::string lvl;
 
@@ -82,7 +82,7 @@ void customMessageHandler(
     }
 }
 
-hstd::fs::path getDebugFile(QObject* testClass, const hstd::Str& suffix) {
+hstd::fs::path getDebugFile(QObject* testClass, hstd::Str const& suffix) {
     auto dir = std::filesystem::temp_directory_path()
              / hstd::fs::path{hstd::fmt(
                  "haxorg_tests/{}", testClass->metaObject()->className())};
@@ -104,7 +104,7 @@ hstd::fs::path getDebugFile(QObject* testClass, const hstd::Str& suffix) {
 
 hstd::finally_std trackTestExecution(
     QObject*         testClas,
-    const hstd::Str& suffix,
+    hstd::Str const& suffix,
     int              line,
     const char*      function,
     const char*      file) {
@@ -134,7 +134,7 @@ hstd::finally_std trackTestExecution(
 }
 
 
-QModelIndex mapToNestedSource(const QModelIndex& index) {
+QModelIndex mapToNestedSource(QModelIndex const& index) {
     QModelIndex currentIndex = index;
     auto currentProxyModel   = qobject_cast<QSortFilterProxyModel const*>(
         index.model());
@@ -162,7 +162,7 @@ QModelIndex mapToNestedSource(const QModelIndex& index) {
 }
 
 QModelIndex mapToNestedProxy(
-    const QModelIndex&                index,
+    QModelIndex const&                index,
     hstd::Vec<QSortFilterProxyModel*> proxies) {
     QModelIndex currentIndex = index;
 
@@ -374,7 +374,7 @@ hstd::ColText format_records(hstd::CVec<ModelLevelRecord> records) {
 
 hstd::ColText printModelTree(
     const QAbstractItemModel*                                model,
-    const QModelIndex&                                       parent,
+    QModelIndex const&                                       parent,
     hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>> toString,
     bool           ignoreExceptions,
     hstd::Opt<int> maxDepth) {
@@ -413,8 +413,8 @@ bool hasProperty(
 }
 
 hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
-    const std::string&                                 kind) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+    std::string const&                                 kind) {
     BOOST_OUTCOME_TRY_OPTIONAL(
         property,
         node.getPropertyByKind(kind),
@@ -424,14 +424,14 @@ hstd::outcome::result<const org::sem::AttrGroup*, std::string> getFlagProperty(
 }
 
 bool hasJsonProperty(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
-    const std::string&                                 kind) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+    std::string const&                                 kind) {
     return node.getPropertyByKind("propjson", kind).has_value();
 }
 
 bool hasArgsProperty(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
-    const std::string&                                 kind) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+    std::string const&                                 kind) {
     return node.getPropertyByKind("propargs", kind).has_value();
 }
 

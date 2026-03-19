@@ -55,8 +55,8 @@ void connect_vertical_constraints(
         for (int row = 0; row <= maxRow; ++row) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             GraphSize   size{
-                  .w = static_cast<double>(lane.blocks.at(row).width),
-                  .h = static_cast<double>(lane.blocks.at(row).height),
+                .w = static_cast<double>(lane.blocks.at(row).width),
+                .h = static_cast<double>(lane.blocks.at(row).height),
             };
 
             lyt.ir.rectangles.push_back(size);
@@ -209,17 +209,17 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
 
 float line_width = 4.0f;
 
-void render_point(const GraphPoint& point, ImVec2 const& shift) {
+void render_point(GraphPoint const& point, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddCircleFilled(
         ImVec2(point.x, point.y) + shift, 3.0f, IM_COL32(255, 0, 0, 255));
 }
 
-void render_path(const GraphPath& path, ImVec2 const& shift) {
+void render_path(GraphPath const& path, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     for (size_t i = 0; i < path.points.size() - 1; ++i) {
-        const GraphPoint& p1 = path.points[i];
-        const GraphPoint& p2 = path.points[i + 1];
+        GraphPoint const& p1 = path.points[i];
+        GraphPoint const& p2 = path.points[i + 1];
         draw_list->AddLine(
             ImVec2(p1.x, p1.y) + shift,
             ImVec2(p2.x, p2.y) + shift,
@@ -230,7 +230,7 @@ void render_path(const GraphPath& path, ImVec2 const& shift) {
 
 
 void render_bezier_path(
-    const GraphPath&            path,
+    GraphPath const&            path,
     ImVec2 const&               shift,
     LaneBlockGraphConfig const& conf) {
     if (path.points.size() < 2) { return; }
@@ -298,7 +298,7 @@ void render_bezier_path(
         conf.edgeCurveBorderWidth);
 }
 
-void render_rect(const GraphRect& rect, ImVec2 const& shift) {
+void render_rect(GraphRect const& rect, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(
         ImVec2(rect.left, rect.top) + shift,
@@ -310,10 +310,10 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
 }
 
 void render_edge(
-    const GraphLayoutIR::Edge&  edge,
+    GraphLayoutIR::Edge const&  edge,
     ImVec2 const&               shift,
     bool                        bezier,
-    const LaneBlockGraphConfig& style) {
+    LaneBlockGraphConfig const& style) {
     for (const auto& path : edge.paths) {
         if (bezier) {
             render_bezier_path(path, shift, style);
@@ -370,8 +370,8 @@ Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
 
 int LaneBlockStack::addBlock(
     int                         laneIndex,
-    const ImVec2&               size,
-    const LaneBlockGraphConfig& conf) {
+    ImVec2 const&               size,
+    LaneBlockGraphConfig const& conf) {
 
     LOGIC_ASSERTION_CHECK_FMT(
         size.x != 0 && size.y != 0, "Cannot create block with no size");
@@ -393,7 +393,7 @@ int LaneBlockStack::addBlock(
     return blocks.high();
 }
 
-ImVec2 get_center(const GraphRect& rect) {
+ImVec2 get_center(GraphRect const& rect) {
     return ImVec2(
         rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
 }
@@ -414,7 +414,8 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
         Vec<C::Offset> offsets;
         for (auto const& rect : a.nodes) {
             ImVec2 center = get_rect_center(rect.node);
-            ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
+            ImVec2
+                offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
             centers.push_back(C::Point{center - offset, {rect.node}});
             offsets.push_back(
                 C::Offset{
@@ -439,9 +440,9 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
             .end     = end,
             .offsets = offsets,
             .rects   = a.nodes
-                   | rv::transform(get_field_get(
-                       &GraphNodeConstraint::Align::Spec::node))
-                   | rs::to<Vec>(),
+                     | rv::transform(get_field_get(
+                         &GraphNodeConstraint::Align::Spec::node))
+                     | rs::to<Vec>(),
         };
     };
 
@@ -494,7 +495,7 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
 }
 
 void render_debug(
-    const ColaConstraintDebug&   debug,
+    ColaConstraintDebug const&   debug,
     ImVec2 const&                shift,
     GraphLayoutIR::Result const& ir) {
     ImDrawList* dl = ImGui::GetForegroundDrawList();
@@ -510,7 +511,7 @@ void render_debug(
         AddTextWithBackground(dl, pos, IM_COL32(0, 0, 0, 255), t);
     };
 
-    auto point = [&](const C::Point& point) {
+    auto point = [&](C::Point const& point) {
         dl->AddCircleFilled(point.pos + shift, 3.0f, rectCenterColor);
         if (!point.rectOrigin.empty()) {
             text(point.pos + shift, fmt("{}", point.rectOrigin));
@@ -579,7 +580,7 @@ void render_debug(
 }
 
 void LaneBlockGraph::addScrolling(
-    const ImVec2& graphPos,
+    ImVec2 const& graphPos,
     float         direction) {
     gr_log(hstd::log::l_trace)
         .fmt_message(

@@ -62,14 +62,14 @@ struct IntSet : public SetBase<IntSet<T>, T> {
     // depending on the size/type of the value, but for now this check is
     // added purely for footgun reasons.
   private:
-    constexpr static inline std::size_t toIdx(CR<T> value) {
+    constexpr static inline std::size_t toIdx(T const& value) {
         return value_domain<T>::ord(value);
     }
 
     constexpr void buildSet(Ref<IntSet<T>> result) {}
 
     template <typename ValueT>
-    constexpr void buildSet(Ref<IntSet<T>> result, CR<ValueT> value)
+    constexpr void buildSet(Ref<IntSet<T>> result, ValueT const& value)
         requires ConvertibleToSet<T, ValueT>
     {
         result.incl(value);
@@ -79,7 +79,7 @@ struct IntSet : public SetBase<IntSet<T>, T> {
     template <typename Value, typename... Args>
     constexpr void buildSet(
         Ref<IntSet<T>> result,
-        CR<Value>      value,
+        Value const&   value,
         Args&&... tail)
         requires AllConvertibleToSet<T, Args...>
               && ConvertibleToSet<T, Value>
@@ -102,32 +102,34 @@ struct IntSet : public SetBase<IntSet<T>, T> {
     using BitsetT = std::bitset<pow_v<2, 8 * sizeof(T)>::res>;
     BitsetT values;
 
-    constexpr bool contains(CR<T> value) const {
+    constexpr bool contains(T const& value) const {
         return values.test(toIdx(value));
     }
     /// Check if one set is a proper subset of another -- \arg other
     /// contains all the values.
-    constexpr bool contains(CR<IntSet<T>> other) const {
+    constexpr bool contains(IntSet<T> const& other) const {
         return ((values & other.values) == other.values);
     }
 
 
-    constexpr void incl(CR<IntSet<T>> other) { values |= other.values; }
-    constexpr void excl(CR<IntSet<T>> other) { values &= ~other.values; }
-    constexpr void incl(CR<T> value) { values.set(toIdx(value)); }
-    constexpr void excl(CR<T> value) { values.reset(toIdx(value)); }
+    constexpr void incl(IntSet<T> const& other) { values |= other.values; }
+    constexpr void excl(IntSet<T> const& other) {
+        values &= ~other.values;
+    }
+    constexpr void incl(T const& value) { values.set(toIdx(value)); }
+    constexpr void excl(T const& value) { values.reset(toIdx(value)); }
 
-    bool operator==(CR<IntSet<T>> other) const {
+    bool operator==(IntSet<T> const& other) const {
         return values == other.values;
     }
 
-    IntSet<T> operator^(CR<IntSet<T>> other) const {
+    IntSet<T> operator^(IntSet<T> const& other) const {
         IntSet<T> result;
         result.values = this->values ^ other.values;
         return result;
     }
 
-    IntSet<T> operator&(CR<IntSet<T>> other) const {
+    IntSet<T> operator&(IntSet<T> const& other) const {
         IntSet<T> result;
         result.values = this->values & other.values;
         return result;
@@ -181,7 +183,7 @@ struct IntSet : public SetBase<IntSet<T>, T> {
             return *this;
         }
 
-        bool operator!=(const iterator& other) {
+        bool operator!=(iterator const& other) {
             return index != other.index;
         }
     };

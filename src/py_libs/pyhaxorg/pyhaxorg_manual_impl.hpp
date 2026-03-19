@@ -59,7 +59,7 @@
 template <>
 struct std::formatter<nanobind::callable> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const nanobind::callable& p, FormatContext& ctx) const {
+    auto format(nanobind::callable const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx("nanobind::callable", ctx);
     }
 };
@@ -93,7 +93,7 @@ struct type_caster<org::sem::SemId<O>> {
     }
 
     static handle from_cpp(
-        const Value&  src,
+        Value const&  src,
         rv_policy     policy,
         cleanup_list* cleanup) noexcept {
         if (src.isNil()) { return none().release(); }
@@ -581,8 +581,8 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
         org::sem::SemId<T> const& value) {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitField)
-                      .with_node(value.asOrg())
-                      .with_field(name);
+                              .with_node(value.asOrg())
+                              .with_field(name);
 
         if (visitAnyField) {
             auto __scope = trace_scope(ev.with_loc().with_msg(

@@ -21,11 +21,11 @@ const SemSet AGENDA_NODE_TYPES = {
 
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
-    const fs::path&               infile,
-    const fs::path&               graph_path,
-    const fs::path&               context_path,
-    const fs::path&               epoch_path,
-    const fs::path&               cache_file,
+    fs::path const&               infile,
+    fs::path const&               graph_path,
+    fs::path const&               context_path,
+    fs::path const&               epoch_path,
+    fs::path const&               cache_file,
     org::parse::ParseContext::Ptr parse_context,
     bool                          use_cache) {
     auto dir_opts   = org::parse::OrgDirectoryParseParameters::shared();
@@ -35,7 +35,7 @@ org::sem::SemId<org::sem::Org> loadCachedImmNode(
         || !fs::exists(graph_path) || !fs::exists(context_path)
         || !fs::exists(epoch_path)) {
 
-        dir_opts->getParsedNode = [&](const std::string& path)
+        dir_opts->getParsedNode = [&](std::string const& path)
             -> org::sem::SemId<org::sem::Org> {
             // try {
             return parse_context->parseFileOpts(
@@ -217,13 +217,13 @@ int OrgAgendaNode::getAgeSeconds() const {
 }
 
 std::unordered_map<std::string, double> getOrgFileTimes(
-    const fs::path& infile) {
+    fs::path const& infile) {
     std::unordered_map<std::string, double> current_times;
 
     auto insert_time = [&](fs::path const& path) {
         auto ftime = fs::last_write_time(path);
         auto sctp  = std::chrono::time_point_cast<
-             std::chrono::system_clock::duration>(
+            std::chrono::system_clock::duration>(
             ftime - fs::file_time_type::clock::now()
             + std::chrono::system_clock::now());
         auto time_t = std::chrono::system_clock::to_time_t(sctp);
@@ -250,8 +250,8 @@ std::unordered_map<std::string, double> getOrgFileTimes(
 }
 
 bool checkOrgFilesChanged(
-    const fs::path& infile,
-    const fs::path& cache_file) {
+    fs::path const& infile,
+    fs::path const& cache_file) {
     auto current_times = getOrgFileTimes(infile);
 
     if (fs::exists(cache_file)) {
@@ -266,8 +266,8 @@ bool checkOrgFilesChanged(
 }
 
 void writeOrgFileCache(
-    const fs::path& infile,
-    const fs::path& cache_file) {
+    fs::path const& infile,
+    fs::path const& cache_file) {
     auto current_times = getOrgFileTimes(infile);
 
     hstd::writeFile(cache_file, hstd::to_json_eval(current_times).dump(2));

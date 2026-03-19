@@ -12,7 +12,7 @@ int DiaSceneItem::getSelfIndex() const {
         "parent node node does not contain `this` subnode");
 }
 
-hstd::ColText DiaSceneItem::treeRepr(const TreeReprConf& conf) const {
+hstd::ColText DiaSceneItem::treeRepr(TreeReprConf const& conf) const {
     hstd::ColStream                               os;
     std::function<void(DiaSceneItem const*, int)> aux;
     aux = [&](DiaSceneItem const* item, int level) {
@@ -60,7 +60,7 @@ org::imm::ImmPath DiaSceneItem::getActivePath() const {
 }
 
 hstd::Opt<DiaSceneItem*> DiaSceneItem::getItemAtPath(
-    const hstd::Vec<int>& path) const {
+    hstd::Vec<int> const& path) const {
     DiaSceneItem* res = const_cast<DiaSceneItem*>(this);
     for (auto const& it : path) {
         if (it < res->size()) {

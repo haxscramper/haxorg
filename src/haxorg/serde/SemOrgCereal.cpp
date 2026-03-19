@@ -67,7 +67,8 @@ json msgpack_to_json(msgpack::object const& obj) {
                     json value = convert(o.via.map.ptr[i].val);
 
                     if (o.via.map.ptr[i].key.type == msgpack::type::STR) {
-                        obj_json[o.via.map.ptr[i].key.as<std::string>()] = value;
+                        obj_json[o.via.map.ptr[i]
+                                     .key.as<std::string>()] = value;
                     } else {
                         json key = convert(o.via.map.ptr[i].key);
                         obj_json[key.dump()] = value;
@@ -660,7 +661,7 @@ struct pack_associative_container {
         __trace_call();
         o.pack_array(v.size());
         hstd::AssociativeContainerAdapter<Container> a{&v};
-        if constexpr (requires(const K& a, const K& b) {
+        if constexpr (requires(K const& a, K const& b) {
                           { a < b } -> std::convertible_to<bool>;
                       }) {
             for (auto const& key : hstd::sorted(a.keys())) {
@@ -696,7 +697,7 @@ struct pack<immer::map<K, V>> {
         uint32_t size = checked_get_container_size(v.size());
         o.pack_array(size);
 
-        if constexpr (requires(const K& a, const K& b) {
+        if constexpr (requires(K const& a, K const& b) {
                           { a < b } -> std::convertible_to<bool>;
                       }) {
             hstd::Vec<K> keys;
@@ -1138,32 +1139,32 @@ void msgpack_from_text(std::string const& binary, T& value) {
 }
 
 std::string org::imm::serializeToText(
-    const std::shared_ptr<ImmAstContext>& store) {
+    std::shared_ptr<ImmAstContext> const& store) {
     auto tmp = msgpack_to_text(store);
     return tmp;
 }
 
 void org::imm::serializeFromText(
     std::string const&                    binary,
-    const std::shared_ptr<ImmAstContext>& store) {
+    std::shared_ptr<ImmAstContext> const& store) {
     auto tmp = store;
     msgpack_from_text(binary, tmp);
 }
 
 std::string org::imm::serializeToText(
-    const std::shared_ptr<ImmAstReplaceEpoch>& store) {
+    std::shared_ptr<ImmAstReplaceEpoch> const& store) {
     auto tmp = msgpack_to_text(store);
     return tmp;
 }
 
 void org::imm::serializeFromText(
     std::string const&                         binary,
-    const std::shared_ptr<ImmAstReplaceEpoch>& store) {
+    std::shared_ptr<ImmAstReplaceEpoch> const& store) {
     auto tmp = store;
     msgpack_from_text(binary, tmp);
 }
 
-json org::imm::serializeFromTextToJson(const std::string& binary) {
+json org::imm::serializeFromTextToJson(std::string const& binary) {
     msgpack::object_handle o = msgpack::unpack(
         binary.data(), binary.size());
     msgpack::object deserialized = o.get();
@@ -1171,7 +1172,7 @@ json org::imm::serializeFromTextToJson(const std::string& binary) {
 }
 
 std::string org::imm::serializeFromTextToTreeDump(
-    const std::string& binary) {
+    std::string const& binary) {
     msgpack::object_handle o = msgpack::unpack(
         binary.data(), binary.size());
     msgpack::object deserialized = o.get();
@@ -1179,14 +1180,14 @@ std::string org::imm::serializeFromTextToTreeDump(
 }
 
 std::string org::imm::serializeToText(
-    const std::shared_ptr<org::graph::MapGraph>& store) {
+    std::shared_ptr<org::graph::MapGraph> const& store) {
     auto tmp = msgpack_to_text(store);
     return tmp;
 }
 
 void org::imm::serializeFromText(
-    const std::string&                      binary,
-    const std::shared_ptr<graph::MapGraph>& store) {
+    std::string const&                      binary,
+    std::shared_ptr<graph::MapGraph> const& store) {
     auto tmp = store;
     LOGIC_ASSERTION_CHECK(tmp.get() == store.get(), "");
     msgpack_from_text(binary, tmp);

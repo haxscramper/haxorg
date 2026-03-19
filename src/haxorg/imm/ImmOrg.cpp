@@ -116,8 +116,8 @@ void ImmId::assertValid() const {
 }
 
 #define _define_static(__Kind)                                            \
-    const OrgSemKind org::imm::Imm##__Kind::staticKind = OrgSemKind::     \
-        __Kind;
+    const OrgSemKind                                                      \
+        org::imm::Imm##__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
@@ -357,7 +357,7 @@ Str ImmAdapter::selfSelect() const {
     return result;
 }
 
-void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
+void ImmAdapter::treeRepr(ColStream& os, TreeReprConf const& conf) const {
     treeReprRec(
         *this,
         os,
@@ -368,7 +368,7 @@ void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
         });
 }
 
-bool ImmAdapter::isDirectParentOf(const ImmAdapter& other) const {
+bool ImmAdapter::isDirectParentOf(ImmAdapter const& other) const {
     if (auto parent = other.getParent(); parent) {
         return parent->id == this->id;
     } else {
@@ -376,7 +376,7 @@ bool ImmAdapter::isDirectParentOf(const ImmAdapter& other) const {
     }
 }
 
-bool ImmAdapter::isIndirectParentOf(const ImmAdapter& other) const {
+bool ImmAdapter::isIndirectParentOf(ImmAdapter const& other) const {
     for (auto const& parent : other.getParentChain(false)) {
         if (parent.id == this->id) { return true; }
     }
@@ -460,7 +460,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
     Opt<ImmPath> const&                rootPath,
     bool                               withPath,
-    const Opt<Func<bool(ImmAdapter)>>& acceptFilter) const {
+    Opt<Func<bool(ImmAdapter)>> const& acceptFilter) const {
     Vec<ImmAdapter>                                    result;
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {
@@ -478,7 +478,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
 }
 
 Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
-    const ImmId& subnode) const {
+    ImmId const& subnode) const {
     Vec<ImmPathStep> result;
     for (auto const& sub : getAllSubnodes(std::nullopt)) {
         LOGIC_ASSERTION_CHECK_FMT(sub.path.path.size() == 1, "");
@@ -520,8 +520,8 @@ Vec<ImmAdapter> ImmAdapter::sub(bool withPath) const {
 }
 
 void ImmAstTrackingMapTransient::setAsParentOf(
-    const ImmId& parent,
-    const ImmId& target) {
+    ImmId const& parent,
+    ImmId const& target) {
     auto const* newParent = parents.find(target);
     if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
 
@@ -541,7 +541,7 @@ SemSet FastTrackNodes{
 };
 
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(
-    const ImmAdapter& parent) {
+    ImmAdapter const& parent) {
     if (!isTrackingParent(parent)) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         auto subParents = parents.find(sub.id);
@@ -557,7 +557,7 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
 }
 
 void ImmAstTrackingMapTransient::insertAllSubnodesOf(
-    const ImmAdapter& parent) {
+    ImmAdapter const& parent) {
     if (!isTrackingParent(parent)) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         if (isTrackingParent(sub)) { setAsParentOf(parent.id, sub.id); }
@@ -594,9 +594,9 @@ concept ProvidesImmApi //
     = std::is_base_of_v<API, typename imm_api_type<T>::api_type>
    || std::is_same_v<API, typename imm_api_type<T>::api_type>;
 
-void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
+void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 
-    auto edit_radio_targets = [&](auto const& words, CR<ImmId> target) {
+    auto edit_radio_targets = [&](auto const& words, ImmId const& target) {
         auto&             rt    = transientTrack.radioTargets;
         auto              word  = words.at(0);
         Vec<ImmId> const* items = rt.find(word);
@@ -752,7 +752,7 @@ hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() {
 }
 
 void ImmAstEditContext::message(
-    const std::string& value,
+    std::string const& value,
     const char*        function,
     int                line,
     const char*        file) {
@@ -792,7 +792,7 @@ struct value_metadata<hstd::ext::ImmBox<T>> {
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 hstd::ext::Graphviz::Graph org::imm::toGraphviz(
-    const Vec<ImmAstVersion>& history,
+    Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const& conf) {
     hstd::ext::Graphviz::Graph g{"g"_ss};
     g.setBackgroundColor("beige");
@@ -864,14 +864,15 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
                     id,
                     ctx,
                     [&]<typename F>(Str const& name, F const& value) {
-                        if constexpr (std::is_same_v<
-                                          hstd::ext::ImmBox<hstd::Opt<
-                                              org::sem::AttrGroup>>,
-                                          F>) {
+                        if constexpr (
+                            std::is_same_v<
+                                hstd::ext::ImmBox<
+                                    hstd::Opt<org::sem::AttrGroup>>,
+                                F>) {
                             if (name == "attrs") {
                                 if (value.get()) {
-                                    org::sem::AttrGroup group = value.get()
-                                                                    .value();
+                                    org::sem::AttrGroup
+                                             group = value.get().value();
                                     Vec<Str> attrs;
                                     for (auto const& it : hstd::enumerator(
                                              group.positional.items)) {
@@ -1043,7 +1044,7 @@ IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
 template <IsImmOrgValueType T>
 Vec<ImmId> imm::allSubnodes(
     T const&                  value,
-    const ImmAstContext::Ptr& ctx) {
+    ImmAstContext::Ptr const& ctx) {
     Vec<ImmId> subnodes;
     for_each_field_with_bases<T>([&](auto const& f) {
         using FieldType = DESC_FIELD_TYPE(f);
@@ -1056,8 +1057,8 @@ Vec<ImmId> imm::allSubnodes(
 
 
 Vec<ImmId> imm::allSubnodes(
-    const ImmId&              value,
-    const ImmAstContext::Ptr& ctx) {
+    ImmId const&              value,
+    ImmAstContext::Ptr const& ctx) {
     value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                     \
@@ -1085,7 +1086,7 @@ ImmAstVersion ImmAstVersion::getEditVersion(
     return context->getEditVersion(getRootAdapter(), cb);
 }
 
-void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
+void ImmAstReplaceGroup::set(ImmAstReplace const& replace) {
     LOGIC_ASSERTION_CHECK_FMT(replace.original.has_value(), "");
     for (auto const& it :
          Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
@@ -1115,7 +1116,7 @@ void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
     map.insert_or_assign(*replace.original, replace.replaced);
 }
 
-void ImmAstReplaceGroup::incl(const ImmAstReplace& replace) {
+void ImmAstReplaceGroup::incl(ImmAstReplace const& replace) {
     LOGIC_ASSERTION_CHECK_FMT(
         !map.contains(replace.original.value()),
         "replacement group cannot contain duplicate nodes. {0} -> {1} "
@@ -1154,7 +1155,7 @@ ImmParentIdVec EmptyImmParentIdVec;
 ColText ImmAstTrackingMap::toString() const {
     ColStream os;
 
-    CR<hshow_opts> opts = hshow_opts{};
+    hshow_opts const& opts = hshow_opts{};
 
     auto write_map = [&]<typename K, typename V>(ImmMap<K, V> const& map) {
         auto keys = map.keys();
@@ -1183,7 +1184,7 @@ ColText ImmAstTrackingMap::toString() const {
 }
 
 const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
-    const ImmId& it) const {
+    ImmId const& it) const {
     if (parents.contains(it)) {
         return parents.at(it);
     } else {
@@ -1192,7 +1193,7 @@ const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
 }
 
 ParentPathMap ImmAstTrackingMap::getParentsFor(
-    const ImmId&         it,
+    ImmId const&         it,
     ImmAstContext const* ctx) const {
     if (parents.contains(it)) {
         ParentPathMap result;
@@ -1214,7 +1215,7 @@ ParentPathMap ImmAstTrackingMap::getParentsFor(
 }
 
 Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
-    const ImmId&         it,
+    ImmId const&         it,
     const ImmAstContext* ctx) const {
     Func<Vec<ImmPath>(ImmId const& id)> aux;
     aux = [&](ImmId const& id) -> Vec<ImmPath> {
@@ -1251,13 +1252,13 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
     return result;
 }
 
-Vec<ImmAdapter> ImmAstContext::getAdaptersFor(const ImmId& it) const {
+Vec<ImmAdapter> ImmAstContext::getAdaptersFor(ImmId const& it) const {
     Vec<ImmAdapter> result;
     for (auto const& id : getPathsFor(it)) { result.push_back(adapt(id)); }
     return result;
 }
 
-Vec<ImmAdapter> ImmAstContext::getParentPathsFor(CR<ImmId> id) const {
+Vec<ImmAdapter> ImmAstContext::getParentPathsFor(ImmId const& id) const {
     Vec<ImmAdapter> result;
     for (auto const& parent : getParentsFor(id)) {
         for (auto const& path : getPathsFor(parent.first)) {
@@ -1274,7 +1275,7 @@ ImmAstEditContext ImmAstContext::getEditContext() {
     };
 }
 
-bool imm::isTrackingParentDefault(const ImmAdapter& node) {
+bool imm::isTrackingParentDefault(ImmAdapter const& node) {
     return !SemSet{
         OrgSemKind::Space,
         OrgSemKind::Word,
@@ -1295,11 +1296,11 @@ struct RadioTargetSearchResult {
 
 
 RadioTargetSearchResult tryRadioTargetSearch(
-    auto const&         words,
-    CR<Vec<ImmAdapter>> sub,
-    CR<int>             groupingIdx,
-    ImmId               targetId,
-    ImmAstContext::Ptr  ctx) {
+    auto const&            words,
+    Vec<ImmAdapter> const& sub,
+    int const&             groupingIdx,
+    ImmId                  targetId,
+    ImmAstContext::Ptr     ctx) {
     int                     sourceOffset = 0;
     int                     radioOffset  = 0;
     RadioTargetSearchResult result;
@@ -1362,7 +1363,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
 
 Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     std::shared_ptr<ImmAstContext> const& ctx,
-    CR<ImmAdapter>                        node,
+    ImmAdapter const&                     node,
     bool                                  withPath) {
     ImmAstTrackingMap const& track = *ctx->currentTrack;
     Vec<ImmAdapter>          sub   = node.sub(withPath);
@@ -1498,11 +1499,11 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     for (auto const& it : result) {
         std::visit(
             overloaded{
-                [&](CR<ImmSubnodeGroup::RadioTarget> t) {
+                [&](ImmSubnodeGroup::RadioTarget const& t) {
                     totalNodes += t.nodes.size();
                 },
-                [&](CR<ImmSubnodeGroup::Single>) { totalNodes += 1; },
-                [&](CR<ImmSubnodeGroup::TrackedHashtag>) {
+                [&](ImmSubnodeGroup::Single const&) { totalNodes += 1; },
+                [&](ImmSubnodeGroup::TrackedHashtag const&) {
                     totalNodes += 1;
                 },
             },
@@ -1519,7 +1520,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 }
 
 std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
-    const org::imm::ImmReflPathItemBase& it) const noexcept {
+    org::imm::ImmReflPathItemBase const& it) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     hstd::hax_hash_combine(result, it.getKind());
@@ -1541,7 +1542,7 @@ std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
 }
 
 std::size_t std::hash<org::imm::ImmPathStep>::operator()(
-    const org::imm::ImmPathStep& step) const noexcept {
+    org::imm::ImmPathStep const& step) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     for (int i = 0; i < step.path.path.size(); ++i) {
@@ -1553,7 +1554,7 @@ std::size_t std::hash<org::imm::ImmPathStep>::operator()(
 }
 
 std::size_t std::hash<org::imm::ImmPath>::operator()(
-    const org::imm::ImmPath& it) const noexcept {
+    org::imm::ImmPath const& it) const noexcept {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.root);
     hstd::hax_hash_combine(result, it.path);

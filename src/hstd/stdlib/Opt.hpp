@@ -13,11 +13,11 @@ struct nullopt_optional_err : CRTP_hexception<nullopt_optional_err> {};
 
 template <typename T>
 T opt_value(
-    CR<Opt<T>>  opt,
-    CR<Str>     msg,
-    int         line     = __builtin_LINE(),
-    char const* function = __builtin_FUNCTION(),
-    char const* file     = __builtin_FILE()) {
+    Opt<T> const& opt,
+    Str const&    msg,
+    int           line     = __builtin_LINE(),
+    char const*   function = __builtin_FUNCTION(),
+    char const*   file     = __builtin_FILE()) {
     if (opt) {
         return *opt;
     } else {
@@ -30,7 +30,7 @@ template <
     typename T,
     typename F,
     typename Res = std::invoke_result<T(int)>::type>
-Opt<Res> opt_map(CR<Opt<T>> opt, CR<F> cb) {
+Opt<Res> opt_map(Opt<T> const& opt, F const& cb) {
     if (opt) {
         return cb(*opt);
     } else {

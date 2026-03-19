@@ -133,7 +133,7 @@ struct NodeGroup {
             return *this;
         }
 
-        bool operator!=(const iterator& other) const {
+        bool operator!=(iterator const& other) const {
             return this->id != other.id;
         }
     };

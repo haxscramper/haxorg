@@ -27,7 +27,7 @@ using B = layout::BlockStore;
 layout::BlockId lytProc(
     B&                          b,
     S&                          s,
-    const Vec<layout::BlockId>& args,
+    Vec<layout::BlockId> const& args,
     layout::BlockId&            body) {
     Str             h    = "proc (";
     Str             t    = ") = ";

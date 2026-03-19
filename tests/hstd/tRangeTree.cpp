@@ -12,7 +12,7 @@ bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
 }
 
-void PrintTo(const Slice<int>& t, std::ostream* os) { *os << fmt1(t); }
+void PrintTo(Slice<int> const& t, std::ostream* os) { *os << fmt1(t); }
 
 
 Slice<int> query1(RangeTree<int> const& tree, int point) {

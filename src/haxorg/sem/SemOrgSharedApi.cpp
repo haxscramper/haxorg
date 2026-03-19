@@ -15,7 +15,7 @@ using namespace org;
 using namespace hstd;
 
 std::size_t std::hash<org::sem::OrgJson>::operator()(
-    const org::sem::OrgJson& it) const {
+    org::sem::OrgJson const& it) const {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.getRef());
     return result;
@@ -74,9 +74,9 @@ T const* getConstHandle(imm::ImmAdapterT<T> ptr) {
 namespace {
 template <typename Handle>
 Vec<sem::NamedProperty> subtreeGetPropertiesImpl(
-    Handle       handle,
-    Str const&   kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     Vec<sem::NamedProperty> result;
     for (const auto& prop : getConstHandle(handle)->properties) {
         if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
@@ -86,9 +86,9 @@ Vec<sem::NamedProperty> subtreeGetPropertiesImpl(
 
 template <typename Handle>
 Opt<sem::NamedProperty> subtreeGetPropertyImpl(
-    Handle       handle,
-    Str const&   kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     auto props = subtreeGetPropertiesImpl(handle, kind, subkind);
     if (props.empty()) {
         return std::nullopt;
@@ -423,13 +423,13 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
 
 Vec<sem::AttrValue> Attrs_getAttrs(
     sem::AttrGroup const& attrs,
-    CR<Opt<Str>>          param) {
+    Opt<Str> const&       param) {
     return attrs.getAttrs(param);
 }
 
 Vec<sem::AttrValue> Attrs_getAttrs(
     Opt<sem::AttrGroup> const& attrs,
-    CR<Opt<Str>>               param) {
+    Opt<Str> const&            param) {
     if (attrs) {
         return Attrs_getAttrs(attrs.value(), param);
     } else {
@@ -438,7 +438,7 @@ Vec<sem::AttrValue> Attrs_getAttrs(
 }
 
 template <typename Handle>
-Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
+Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, Opt<Str> const& kind) {
     auto h           = getConstHandle(handle);
     using HandleBase = get_ast_type<Handle>::ast_type;
 
@@ -580,8 +580,8 @@ Vec<sem::SemId<T>> mapNodes(Vec<sem::SemId<sem::Org>> const& nodes) {
 
 template <typename Handle>
 Vec<sem::AttrValue> Cmd_getAttrs(
-    Handle const& handle,
-    CR<Opt<Str>>  param) {
+    Handle const&   handle,
+    Opt<Str> const& param) {
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
     if (!isBoolFalse(h->attrs)) { res = Attrs_getAttrs(h->attrs, param); }
@@ -590,7 +590,7 @@ Vec<sem::AttrValue> Cmd_getAttrs(
 }
 
 template <typename Handle>
-Opt<sem::AttrValue> Stmt_getFirstAttr(Handle handle, CR<Str> kind) {
+Opt<sem::AttrValue> Stmt_getFirstAttr(Handle handle, Str const& kind) {
     auto h   = getConstHandle(handle);
     auto res = Stmt_getAttrs(handle, kind);
 
@@ -617,7 +617,7 @@ Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
 }
 
 template <typename Handle>
-auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
+auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
     using Select = SemOrImmType<
         typename get_ast_type<Handle>::ast_type,
         sem::SemId<sem::Org>,
@@ -685,7 +685,7 @@ Vec<Str> Stmt_getName(Handle handle) {
 }
 
 template <typename Handle>
-Vec<sem::AttrValue> List_getListAttrs(Handle handle, CR<Str> kind) {
+Vec<sem::AttrValue> List_getListAttrs(Handle handle, Str const& kind) {
     Vec<sem::AttrValue> result;
     auto                attached = Stmt_getAttached(handle, "attr_list");
     for (auto const& it : attached) {
@@ -698,9 +698,9 @@ Vec<sem::AttrValue> List_getListAttrs(Handle handle, CR<Str> kind) {
 
 template <typename Handle>
 Vec<sem::NamedProperty> DocumentOptions_getProperties(
-    Handle       handle,
-    Str const&   kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     auto                    h = getConstHandle(handle);
     Vec<sem::NamedProperty> result;
     for (const auto& prop : h->properties) {
@@ -711,9 +711,9 @@ Vec<sem::NamedProperty> DocumentOptions_getProperties(
 
 template <typename Handle>
 Opt<sem::NamedProperty> DocumentOptions_getProperty(
-    Handle       handle,
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     auto h     = getConstHandle(handle);
     auto props = DocumentOptions_getProperties(handle, kind, subkind);
     if (props.empty()) {
@@ -725,9 +725,9 @@ Opt<sem::NamedProperty> DocumentOptions_getProperty(
 
 template <typename Handle>
 Vec<sem::NamedProperty> Document_getProperties(
-    Handle       handle,
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     auto h = getConstHandle(handle);
     if (h->options.isNil()) {
         return {};
@@ -739,9 +739,9 @@ Vec<sem::NamedProperty> Document_getProperties(
 
 template <typename Handle>
 Opt<sem::NamedProperty> Document_getProperty(
-    Handle       handle,
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) {
+    Handle          handle,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     auto h = getConstHandle(handle);
     if (h->options.isNil()) {
         return std::nullopt;
@@ -857,13 +857,13 @@ Opt<sem::AttrValue> imm::ImmAdapterStmtAPI::getFirstAttr(Str const& param) const
   return result;
 }
 
-Vec<sem::AttrValue> imm::ImmAdapterStmtAPI::getAttrs(CR<Opt<Str>> param) const {
+Vec<sem::AttrValue> imm::ImmAdapterStmtAPI::getAttrs(Opt<Str> const& param) const {
   Vec<sem::AttrValue> result;
   CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttrs(a1, a2); }, param);
   return result;
 }
 
-Vec<sem::AttrValue> imm::ImmAdapterCmdAPI::getAttrs(CR<Opt<Str>> param) const {
+Vec<sem::AttrValue> imm::ImmAdapterCmdAPI::getAttrs(Opt<Str> const& param) const {
   Vec<sem::AttrValue> result;
   CallDynamicOrgMethod<imm::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getAttrs(a1, a2); }, param);
   return result;
@@ -886,18 +886,18 @@ Opt<int> imm::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBre
 Opt<int> imm::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
 Str imm::ImmAdapterSubtreeAPI::getCleanTitle() const { return org::getCleanText(getThis()->as<imm::ImmSubtree>().getTitle()); }
-Opt<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertyByKind(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
-Vec<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertiesByKind(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertyByKind(Str const &kind, Opt<Str> const& subkind) const { return subtreeGetPropertyImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getPropertiesByKind(Str const& kind, Opt<Str> const& subkind) const { return subtreeGetPropertiesImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> imm::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<imm::ImmSubtree>(), kinds, withPath); }
 
-Vec<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertiesByKind(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
-Opt<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertyByKind(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
-Vec<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(getThis()->as<imm::ImmDocument>(), kind, subkind); }
-Opt<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(getThis()->as<imm::ImmDocument>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertiesByKind(Str const &kind, Opt<Str> const& subkind) const { return DocumentOptions_getProperties(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getPropertyByKind(Str const& kind, Opt<Str> const& subkind) const { return DocumentOptions_getProperty(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperties(Str const& kind, Opt<Str> const& subkind) const { return Document_getProperties(getThis()->as<imm::ImmDocument>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperty(Str const& kind, Opt<Str> const& subkind) const { return Document_getProperty(getThis()->as<imm::ImmDocument>(), kind, subkind); }
 
 bool imm::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<imm::ImmList>()); }
 bool imm::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<imm::ImmList>()); }
-Vec<sem::AttrValue> imm::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<imm::ImmList>(), param); }
+Vec<sem::AttrValue> imm::ImmAdapterListAPI::getListAttrs(Str const& param) const { return List_getListAttrs(getThis()->as<imm::ImmList>(), param); }
 
 bool imm::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<imm::ImmListItem>()); }
 Opt<Str> imm::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(getHeader().value())) : std::nullopt; }
@@ -933,29 +933,29 @@ Opt<int> sem::Time::getHour() const { return getStaticTime().getBreakdown().hour
 Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
 Str sem::Subtree::getCleanTitle() const { return org::getCleanText(title.asOrg()); }
-Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
-Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
+Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, Opt<Str> const& subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
+Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, Opt<Str> const& subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
 
 
-Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
-Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
+Vec<sem::AttrValue> sem::Stmt::getAttrs(Opt<Str> const& kind) const { return Stmt_getAttrs(this, kind); }
+Opt<sem::AttrValue> sem::Stmt::getFirstAttr(Str const& kind) const { return Stmt_getFirstAttr(this, kind); }
 Vec<sem::SemId<sem::Org>> sem::Stmt::getAttached(Opt<Str> const& kind) const { return Stmt_getAttached(this, kind); }
 Vec<sem::SemId<sem::Org>> sem::Stmt::getCaption() const { return Stmt_getCaption(this); }
 Vec<Str> sem::Stmt::getName() const { return Stmt_getName(this); }
 
-Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
-Vec<sem::AttrValue> sem::Cmd::getAttrs(CR<Opt<Str>> param) const { return Cmd_getAttrs(this, param); }
+Opt<sem::AttrValue> sem::Cmd::getFirstAttr(Str const& kind) const { return Cmd_getFirstAttr(this, kind); }
+Vec<sem::AttrValue> sem::Cmd::getAttrs(Opt<Str> const& param) const { return Cmd_getAttrs(this, param); }
 
 
-Vec<sem::NamedProperty> sem::DocumentOptions::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(this, kind, subkind); }
-Opt<sem::NamedProperty> sem::DocumentOptions::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(this, kind, subkind); }
-Vec<sem::NamedProperty> sem::Document::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(this, kind, subkind); }
-Opt<sem::NamedProperty> sem::Document::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(this, kind, subkind); }
+Vec<sem::NamedProperty> sem::DocumentOptions::getProperties(Str const &kind, Opt<Str> const& subkind) const { return DocumentOptions_getProperties(this, kind, subkind); }
+Opt<sem::NamedProperty> sem::DocumentOptions::getProperty(Str const& kind, Opt<Str> const& subkind) const { return DocumentOptions_getProperty(this, kind, subkind); }
+Vec<sem::NamedProperty> sem::Document::getProperties(Str const& kind, Opt<Str> const& subkind) const { return Document_getProperties(this, kind, subkind); }
+Opt<sem::NamedProperty> sem::Document::getProperty(Str const& kind, Opt<Str> const& subkind) const { return Document_getProperty(this, kind, subkind); }
 
 bool sem::List::isDescriptionList() const { return List_isDescriptionList(this); }
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
-Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
+Vec<sem::AttrValue> sem::List::getListAttrs(Str const& param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
 Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(header.value().asOrg())) : std::nullopt; }
 
@@ -1039,8 +1039,8 @@ Opt<Str> imm::ImmAdapterParagraphAPI::getFootnoteName() const {
 
 Opt<sem::NamedProperty> Org_combinePropertyStack(
     Vec<sem::NamedProperty> const& stack,
-    CR<Str>                        kind,
-    CR<Opt<Str>>                   subKind) {
+    Str const&                     kind,
+    Opt<Str> const&                subKind) {
     if (stack.empty()) {
         return std::nullopt;
     } else if (stack.size() == 1) {
@@ -1094,8 +1094,8 @@ Opt<sem::NamedProperty> Org_combinePropertyStack(
 
 Opt<sem::NamedProperty> getPropertyValue(
     sem::SemId<sem::Org> const& org,
-    CR<Str>                     kind,
-    CR<Opt<Str>>                sub) {
+    Str const&                  kind,
+    Opt<Str> const&             sub) {
     if (auto tree = org.asOpt<sem::Subtree>()) {
         return tree->getProperty(kind, sub);
     } else if (auto doc = org.asOpt<sem::Document>()) {
@@ -1107,8 +1107,8 @@ Opt<sem::NamedProperty> getPropertyValue(
 
 Opt<sem::NamedProperty> getPropertyValue(
     imm::ImmAdapter const& org,
-    CR<Str>                kind,
-    CR<Opt<Str>>           sub) {
+    Str const&             kind,
+    Opt<Str> const&        sub) {
     if (auto tree = org.asOpt<imm::ImmSubtree>()) {
         return tree->getPropertyByKind(kind, sub);
     } else if (auto doc = org.asOpt<imm::ImmDocument>()) {
@@ -1121,8 +1121,8 @@ Opt<sem::NamedProperty> getPropertyValue(
 template <typename Handle>
 Opt<sem::NamedProperty> Org_getFinalProperty(
     Vec<Handle> const& handles,
-    CR<Str>            kind,
-    CR<Opt<Str>>       subKind) {
+    Str const&         kind,
+    Opt<Str> const&    subKind) {
     Vec<sem::NamedProperty> propertyStack;
 
     for (auto const& handle : handles) {
@@ -1134,22 +1134,22 @@ Opt<sem::NamedProperty> Org_getFinalProperty(
 }
 
 Opt<sem::NamedProperty> org::getFinalProperty(
-    CR<Vec<imm::ImmAdapter>> nodes,
-    CR<Str>                  kind,
-    CR<Opt<Str>>             subKind) {
+    Vec<imm::ImmAdapter> const& nodes,
+    Str const&                  kind,
+    Opt<Str> const&             subKind) {
     return Org_getFinalProperty(nodes, kind, subKind);
 }
 
 Opt<sem::NamedProperty> org::getFinalProperty(
-    CR<Vec<sem::SemId<sem::Org>>> nodes,
-    CR<Str>                       kind,
-    CR<Opt<Str>>                  subKind) {
+    Vec<sem::SemId<sem::Org>> const& nodes,
+    Str const&                       kind,
+    Opt<Str> const&                  subKind) {
     return Org_getFinalProperty(nodes, kind, subKind);
 }
 
 Vec<Str> org::getDfsLeafText(
     sem::SemId<sem::Org> id,
-    const SemSet&        filter) {
+    SemSet const&        filter) {
     return getDfsFuncEval<Str>(
         id, [&](sem::SemId<sem::Org> const& id) -> Opt<Str> {
             if (!filter.contains(id->getKind())) {
@@ -1161,8 +1161,8 @@ Vec<Str> org::getDfsLeafText(
 }
 
 Vec<Str> org::getDfsLeafText(
-    const imm::ImmAdapter& id,
-    const SemSet&          filter) {
+    imm::ImmAdapter const& id,
+    SemSet const&          filter) {
     return getDfsFuncEval<Str>(
         id, false, [&](imm::ImmAdapter const& id) -> Opt<Str> {
             if (!filter.contains(id->getKind())) {
@@ -1227,7 +1227,7 @@ Opt<sem::AttrValue> sem::BlockCode::getVariable(Str const& var) const {
 
 
 hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
-    getFsSubnode(const hstd::Str& name, bool withPath) const {
+    getFsSubnode(hstd::Str const& name, bool withPath) const {
 
     auto test = [&](hstd::Str const& path) -> bool {
         return fs::path{path.toBase()}.filename().native() == name;
@@ -1237,8 +1237,9 @@ hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
         if (auto const& dir = sub.asOpt<imm::ImmDirectory>();
             dir.has_value() && test(dir.value()->relPath)) {
             return sub;
-        } else if (auto const& d = sub.asOpt<imm::ImmFile>();
-                   d.has_value() && test(d.value()->relPath)) {
+        } else if (
+            auto const& d = sub.asOpt<imm::ImmFile>();
+            d.has_value() && test(d.value()->relPath)) {
             return sub;
         }
     }

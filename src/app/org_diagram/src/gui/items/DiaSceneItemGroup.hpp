@@ -104,7 +104,7 @@ struct DiaSceneItemGroup : public DiaSceneItemVisual {
             nameEdit,
             &QLineEdit::textChanged,
             widget,
-            [this](const QString& text) {
+            [this](QString const& text) {
                 name = text;
                 update();
             });
@@ -128,7 +128,7 @@ struct DiaSceneItemGroup : public DiaSceneItemVisual {
         return widget;
     }
 
-    QVariant itemChange(GraphicsItemChange change, const QVariant& value)
+    QVariant itemChange(GraphicsItemChange change, QVariant const& value)
         override {
         if (change == ItemPositionHasChanged) {
             updateConnectedEdges();

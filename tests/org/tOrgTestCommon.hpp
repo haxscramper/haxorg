@@ -47,12 +47,12 @@ bool is_full_trace_on_cli_enabled();
 
 void writeTreeRepr(
     imm::ImmAdapter               n,
-    const fs::path&               path,
+    fs::path const&               path,
     imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{
         .withAuxFields = true,
     });
 
-void writeTreeRepr(sem::SemId<sem::Org> node, const fs::path& full);
+void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full);
 
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
@@ -71,20 +71,20 @@ struct compare_report {
 
 template <typename T>
     requires std::formattable<T, char>
-std::string maybe_format(const T& value) {
+std::string maybe_format(T const& value) {
     return std::format("{}", value);
 }
 
 template <typename T>
     requires(!std::formattable<T, char>)
-std::string maybe_format(const T&) {
+std::string maybe_format(T const&) {
     return fmt("<non-formattable {}>", demangle(typeid(T).name()));
 }
 
 template <typename T>
 void equality_compare_impl(
-    CR<T>                       lhs,
-    CR<T>                       rhs,
+    T const&                    lhs,
+    T const&                    rhs,
     Vec<compare_report>&        out,
     Vec<compare_context> const& context) {
     if (!(lhs == rhs)) {
@@ -104,8 +104,8 @@ void equality_compare_impl(
     template <>                                                           \
     struct reporting_comparator<__type> {                                 \
         static void compare(                                              \
-            CR<__type>                  lhs,                              \
-            CR<__type>                  rhs,                              \
+            __type const&               lhs,                              \
+            __type const&               rhs,                              \
             Vec<compare_report>&        out,                              \
             Vec<compare_context> const& context) {                        \
             equality_compare_impl<__type>(lhs, rhs, out, context);        \
@@ -130,8 +130,8 @@ EQUALITY_COMPARE_TRIVIAL(cctz::time_zone);
 template <typename K, typename V, typename Container>
 struct reporting_comparator_key_value {
     static void compare(
-        CR<Container>               lhs,
-        CR<Container>               rhs,
+        Container const&            lhs,
+        Container const&            rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         hstd::UnorderedSet<K> lhs_keys;
@@ -177,8 +177,8 @@ struct reporting_comparator_key_value {
 template <typename T>
 struct reporting_comparator<std::optional<T>> {
     static void compare(
-        CR<std::optional<T>>        lhs,
-        CR<std::optional<T>>        rhs,
+        std::optional<T> const&     lhs,
+        std::optional<T> const&     rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.has_value() != rhs.has_value()) {
@@ -195,8 +195,8 @@ struct reporting_comparator<std::optional<T>> {
 template <IsEnum E>
 struct reporting_comparator<E> {
     static void compare(
-        CR<E>                       lhs,
-        CR<E>                       rhs,
+        E const&                    lhs,
+        E const&                    rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         equality_compare_impl<E>(lhs, rhs, out, context);
@@ -207,8 +207,8 @@ struct reporting_comparator<E> {
 template <typename T>
 struct reporting_comparator<immer::box<T>> {
     static void compare(
-        CR<immer::box<T>>           lhs,
-        CR<immer::box<T>>           rhs,
+        immer::box<T> const&        lhs,
+        immer::box<T> const&        rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         reporting_comparator<T>::compare(
@@ -235,8 +235,8 @@ struct reporting_comparator<hstd::ext::ImmMap<K, V>>
 template <typename T, typename Container>
 struct reporting_comparator_indexed_sequence {
     static void compare(
-        CR<Container>               lhs,
-        CR<Container>               rhs,
+        Container const&            lhs,
+        Container const&            rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.size() != rhs.size()) {
@@ -279,8 +279,8 @@ struct reporting_comparator<immer::flex_vector<T>>
 template <IsVariant V>
 struct reporting_comparator<V> {
     static void compare(
-        CR<V>                       lhs,
-        CR<V>                       rhs,
+        V const&                    lhs,
+        V const&                    rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.index() != rhs.index()) {
@@ -315,8 +315,8 @@ struct reporting_comparator<V> {
 template <DescribedRecord T>
 struct reporting_comparator<T> {
     static void compare(
-        CR<T>                       lhs,
-        CR<T>                       rhs,
+        T const&                    lhs,
+        T const&                    rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         for_each_field_with_bases<std::remove_cvref_t<T>>(
@@ -340,10 +340,10 @@ struct reporting_comparator<T> {
 template <>
 struct reporting_comparator<org::imm::ImmAstStore> {
     static void compare(
-        CR<org::imm::ImmAstStore>   lhs,
-        CR<org::imm::ImmAstStore>   rhs,
-        Vec<compare_report>&        out,
-        Vec<compare_context> const& context) {
+        org::imm::ImmAstStore const& lhs,
+        org::imm::ImmAstStore const& rhs,
+        Vec<compare_report>&         out,
+        Vec<compare_context> const&  context) {
 #define _kind(__Kind)                                                     \
     reporting_comparator<                                                 \
         org::imm::ImmAstKindStore<org::imm::Imm##__Kind>>::               \
@@ -357,8 +357,8 @@ struct reporting_comparator<org::imm::ImmAstStore> {
 template <typename T>
 struct reporting_comparator<sem::SemId<T>> {
     static void compare(
-        CR<sem::SemId<T>>           lhs,
-        CR<sem::SemId<T>>           rhs,
+        sem::SemId<T> const&        lhs,
+        sem::SemId<T> const&        rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.isNil() != rhs.isNil()) {
@@ -380,8 +380,8 @@ struct reporting_comparator<sem::SemId<T>> {
 template <>
 struct reporting_comparator<sem::SemId<sem::Org>> {
     static void compare(
-        CR<sem::SemId<sem::Org>>    lhs,
-        CR<sem::SemId<sem::Org>>    rhs,
+        sem::SemId<sem::Org> const& lhs,
+        sem::SemId<sem::Org> const& rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
         if (lhs.isNil() != rhs.isNil()) {
@@ -416,8 +416,8 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
 
 template <typename Obj, typename Field>
 compare_report cmp_field_value(
-    CR<Obj> lhs,
-    CR<Obj> rhs,
+    Obj const& lhs,
+    Obj const& rhs,
     Field Obj::* fieldPtr) {
     return reporting_comparator<decltype(lhs.*fieldPtr)>::compare(
         lhs.*fieldPtr, rhs.*fieldPtr);
@@ -528,7 +528,7 @@ struct ImmOrgApiTestBase : public ::testing::Test {
     }
 
     void writeGvHistory(
-        const Vec<imm::ImmAstVersion>& history,
+        Vec<imm::ImmAstVersion> const& history,
         std::string                    suffix,
         imm::ImmAstGraphvizConf const& conf = imm::ImmAstGraphvizConf{
             .withAuxNodes    = true,

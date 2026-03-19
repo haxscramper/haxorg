@@ -19,7 +19,7 @@ namespace hstd {
 
 
 template <typename T>
-inline void hax_hash_combine(std::size_t& seed, const T& v) {
+inline void hax_hash_combine(std::size_t& seed, T const& v) {
     std::hash<T> hasher;
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -142,7 +142,7 @@ template <typename E>
 struct enum_serde;
 
 template <typename T>
-concept SerializableEnum = IsEnum<T> && requires(CR<T> value) {
+concept SerializableEnum = IsEnum<T> && requires(T const& value) {
     { enum_serde<T>::to_string(value) } -> std::same_as<std::string>;
 };
 
@@ -320,7 +320,7 @@ void for_each_field_value_with_bases(T& value, Func const& cb) {
 
 
 template <typename T>
-bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
+bool equal_on_all_fields(T const& lhs, T const& rhs) {
     bool equal = true;
 
     for_each_field_with_bases<T>([&](auto const& field) {
@@ -409,8 +409,8 @@ void* get_field_ptr_by_total_index(T& object, int index) {
             T,
             ::boost::describe::mod_any_access
                 | boost::describe::mod_inherited>;
-        constexpr int total_count = boost::mp11::mp_size<
-            all_members>::value;
+        constexpr int
+            total_count = boost::mp11::mp_size<all_members>::value;
 
         if (index < 0 || index >= total_count) {
             throw std::out_of_range{"Field index out of range"};
@@ -528,8 +528,8 @@ int get_total_field_index_by_ptr(F T::* fieldPtr) {
             T,
             ::boost::describe::mod_any_access
                 | boost::describe::mod_inherited>;
-        constexpr int total_count = boost::mp11::mp_size<
-            all_members>::value;
+        constexpr int
+            total_count = boost::mp11::mp_size<all_members>::value;
 
         if constexpr (total_count == 0) {
             throw std::out_of_range{"No fields in object"};

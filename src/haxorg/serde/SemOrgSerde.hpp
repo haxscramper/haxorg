@@ -606,7 +606,7 @@ struct proto_serde<float, float> {
 
 
 inline int64_t civil_second_to_unix_timestamp(
-    const cctz::civil_second& cs) {
+    cctz::civil_second const& cs) {
     const auto tp = cctz::convert(cs, cctz::utc_time_zone());
     return std::chrono::duration_cast<std::chrono::seconds>(
                tp.time_since_epoch())

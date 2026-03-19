@@ -197,7 +197,7 @@ struct [[refl]] GraphNodeConstraint {
     Data data;
 
     GraphNodeConstraint() {}
-    GraphNodeConstraint(CR<Data> data) : data(data) {};
+    GraphNodeConstraint(Data const& data) : data(data) {};
 
     [[refl]] static GraphNodeConstraint InitEmpty(Empty const& arg) {
         return GraphNodeConstraint(arg);
@@ -456,11 +456,11 @@ struct [[refl]] GraphLayoutIR {
         Graphviz        gvc;
         int             graphviz_size_scaling;
 
-        void writeSvg(CR<fs::path> path) const {
+        void writeSvg(fs::path const& path) const {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::SVG);
         }
 
-        void writeXDot(CR<fs::path> path) const {
+        void writeXDot(fs::path const& path) const {
             gvc.writeFile(path, graph, Graphviz::RenderFormat::XDOT);
         }
 
@@ -512,7 +512,7 @@ struct [[refl]] GraphLayoutIR {
         Result convert();
 
         /// \brief write graph layout result into the SVG svg file
-        void writeSvg(CR<Str> path);
+        void writeSvg(Str const& path);
 
         Vec<SPtr<cola::CompoundConstraint>> setupConstraints(
             Vec<GraphSize> const&           rectangles,

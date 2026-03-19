@@ -111,7 +111,10 @@ struct DocBlock : hstd::SharedPtrApi<DocBlock> {
         }
     };
 
-    virtual void render(DocBlockModel& model, DocBlockConfig const& conf, RenderContext& renderContext) = 0;
+    virtual void render(
+        DocBlockModel&        model,
+        DocBlockConfig const& conf,
+        RenderContext&        renderContext) = 0;
 
     DocBlock::Ptr at(int pos) const { return nested.at(pos); }
     DocBlock::Ptr at(hstd::Vec<int> path) const {
@@ -168,7 +171,7 @@ struct DocBlockDocument : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -192,7 +195,7 @@ struct DocBlockAnnotation : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -205,7 +208,7 @@ struct DocBlockExport : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -218,7 +221,7 @@ struct DocBlockFallback : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -233,7 +236,7 @@ struct DocBlockParagraph : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -249,7 +252,7 @@ struct DocBlockSubtree : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 
@@ -262,7 +265,7 @@ struct DocBlockListHeader : public DocBlock {
 
     virtual void render(
         DocBlockModel&        model,
-        const DocBlockConfig& conf,
+        DocBlockConfig const& conf,
         RenderContext&        renderContext) override;
 };
 

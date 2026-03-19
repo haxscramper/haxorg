@@ -68,7 +68,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief  Pointwise comparison between vector and any other indexable
     /// container.
     template <typename Indexable>
-    bool operator==(CR<Indexable> other) const {
+    bool operator==(Indexable const& other) const {
         if (_this()->size() == other.size()) {
             for (int i = 0; i < _this()->size(); ++i) {
                 if (_this()->at(i) != other.at(i)) { return false; }
@@ -129,7 +129,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     }
 
     template <typename A, typename B>
-    Span<T> operator[](CR<HSlice<A, B>> s) {
+    Span<T> operator[](HSlice<A, B> const& s) {
 #ifdef DEBUG
         return _this()->at(s, true);
 #else
@@ -138,7 +138,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     }
 
     template <typename A, typename B>
-    Span<T> operator[](CR<HSlice<A, B>> s) const {
+    Span<T> operator[](HSlice<A, B> const& s) const {
 #ifdef DEBUG
         return _this()->at(s, true);
 #else
@@ -172,12 +172,12 @@ struct IndexedBase : public CRTP_this_method<Container> {
 
 
     /// \brief Append elements from \arg other vector
-    void append(CR<Container> other) {
+    void append(Container const& other) {
         _this()->append(other.begin(), other.end());
     }
 
     /// \brief copy multiple elements referred to by span to the fector
-    void append(CR<std::span<T>> other) {
+    void append(std::span<T> const& other) {
         _this()->append(other.begin(), other.end());
     }
 
@@ -187,28 +187,28 @@ struct IndexedBase : public CRTP_this_method<Container> {
     }
 
     template <typename Indexable>
-    bool operator<(CR<Indexable> other) const {
+    bool operator<(Indexable const& other) const {
         return lessThan(other, std::less<T>{});
     }
 
     template <typename Indexable, typename Cmp>
-    bool lessThan(CR<Indexable> other, Cmp const& cmp) const {
+    bool lessThan(Indexable const& other, Cmp const& cmp) const {
         return itemwise_less_than(*_this(), other, cmp);
     }
 
-    Container operator+(CR<T> other) const {
+    Container operator+(T const& other) const {
         auto result = *_this();
         result.push_back(other);
         return result;
     }
 
-    Container operator+(CR<std::span<T>> other) const {
+    Container operator+(std::span<T> const& other) const {
         auto result = *_this();
         result.append(other);
         return result;
     }
 
-    Container operator+(CR<Container> other) const {
+    Container operator+(Container const& other) const {
         auto result = *_this();
         result.append(other);
         return result;
@@ -239,14 +239,14 @@ struct IndexedBase : public CRTP_this_method<Container> {
 
 
     /// \brief Find item in the vector using default `==` check
-    int indexOf(CR<T> item) const { return index_of(*_this(), item); }
+    int indexOf(T const& item) const { return index_of(*_this(), item); }
     /// \brief Check if vector contains item, using `==`. \note \(O(n)\)
     /// operation, so better used only on small vectors.
-    bool contains(CR<T> item) const {
+    bool contains(T const& item) const {
         return _this()->indexOf(item) != -1;
     }
 
-    int push_back_idx(CR<T> item) {
+    int push_back_idx(T const& item) {
         int result = _this()->size();
         _this()->push_back(item);
         return result;
@@ -298,11 +298,11 @@ class Vec
 
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
-    Vec(int size, const T& value) : std::vector<T>(size, value) {}
+    Vec(int size, T const& value) : std::vector<T>(size, value) {}
     Vec() {}
     explicit Vec(int size) : std::vector<T>(size) {}
 
-    static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
+    static Vec<T> FromValue(Vec<T> const& values) { return values; }
     int           size() const { return static_cast<int>(Base::size()); }
 
 
@@ -310,7 +310,7 @@ class Vec
     ///
     /// \note Made explicit to make it harder to do accidental
     /// low-performance copies of the whole data.
-    explicit Vec(CR<Span<T>> values)
+    explicit Vec(Span<T> const& values)
         : std::vector<T>(values.begin(), values.end()) {}
 
     /// \brief Implicit conversion to the base class
@@ -319,7 +319,7 @@ class Vec
     }
 
     /// \brief implicit conversion to the base class
-    operator CR<std::vector<T>>() const {
+    operator std::vector<T> const&() const {
         return static_cast<std::vector<T>>(*this);
     }
 
@@ -352,14 +352,14 @@ class Vec
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
-    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    Span<T> at(HSlice<A, B> const& s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span<T>(this->data() + start, end - start + 1);
     }
 
     /// \brief  Access span of elements in immutable vector
     template <typename A, typename B>
-    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
+    Span<T> at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span<T>(
             const_cast<T*>(this->data() + start), end - start + 1);
@@ -490,7 +490,7 @@ struct SmallVec
 
     SmallVec(std::initializer_list<T> init) : Base(init) {}
     SmallVec(SmallVec<T, StartSize> const& init) : Base(init) {}
-    SmallVec(int size, const T& value) : Base(size, value) {}
+    SmallVec(int size, T const& value) : Base(size, value) {}
     SmallVec() {}
     explicit SmallVec(int size) : Base(size) {}
 
@@ -537,14 +537,14 @@ struct SmallVec
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
-    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    Span<T> at(HSlice<A, B> const& s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span<T>(this->data() + start, end - start + 1);
     }
 
     /// \brief  Access span of elements in immutable vector
     template <typename A, typename B>
-    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
+    Span<T> at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span<T>(
             const_cast<T*>(this->data() + start), end - start + 1);
@@ -570,7 +570,7 @@ struct std_indexable_hash {
 
 
 template <typename T>
-using CVec = CR<Vec<T>>;
+using CVec = Vec<T> const&;
 
 template <typename T>
 struct value_metadata<Vec<T>> {

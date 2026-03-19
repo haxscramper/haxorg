@@ -9,7 +9,7 @@ void DiaScene::logSceneRoot() {
     }
 }
 
-void DiaScene::drawBackground(QPainter* painter, const QRectF& rect) {
+void DiaScene::drawBackground(QPainter* painter, QRectF const& rect) {
     QGraphicsScene::drawBackground(painter, rect);
 
     if (!showGrid) { return; }
@@ -17,10 +17,10 @@ void DiaScene::drawBackground(QPainter* painter, const QRectF& rect) {
     painter->setPen(QPen{gridColor, 1});
 
     // Calculate grid bounds
-    int left = static_cast<int>(rect.left())
-             - (static_cast<int>(rect.left()) % gridSnap);
-    int top = static_cast<int>(rect.top())
-            - (static_cast<int>(rect.top()) % gridSnap);
+    int left   = static_cast<int>(rect.left())
+               - (static_cast<int>(rect.left()) % gridSnap);
+    int top    = static_cast<int>(rect.top())
+               - (static_cast<int>(rect.top()) % gridSnap);
     int right  = static_cast<int>(rect.right());
     int bottom = static_cast<int>(rect.bottom());
 
@@ -111,11 +111,11 @@ void DiaScene::mouseMoveEvent(QGraphicsSceneMouseEvent* event) {
     QGraphicsScene::mouseMoveEvent(event);
 }
 
-void DiaScene::updateLayoutForAdapter(const DiaAdapter& a) {
+void DiaScene::updateLayoutForAdapter(DiaAdapter const& a) {
     layout = DiaLayout::FromDiagram(a);
 }
 
-DiaSceneItem* DiaScene::setRootAdapter(const DiaAdapter& a) {
+DiaSceneItem* DiaScene::setRootAdapter(DiaAdapter const& a) {
     TRACKED_FUNCTION("setRootAdapter");
     rootNode            = addAdapterRec(a);
     treeModel->rootNode = rootNode.get();
@@ -300,7 +300,7 @@ void DiaScene::applyPartialEditStep(
     }
 }
 
-DiaSceneItem* DiaScene::resetRootAdapter(const hstd::Vec<DiaEdit>& edits) {
+DiaSceneItem* DiaScene::resetRootAdapter(hstd::Vec<DiaEdit> const& edits) {
     TRACKED_FUNCTION("resetRootAdapter");
     if (edits.empty()) { return root(); }
     DiaSceneItem*         originalRoot = root();
@@ -335,7 +335,7 @@ void DiaScene::diaRootChanged(
     }
 }
 
-DiaSceneItem::UPtr DiaScene::addAdapterNonRec(const DiaAdapter& a) {
+DiaSceneItem::UPtr DiaScene::addAdapterNonRec(DiaAdapter const& a) {
     switch (a.getKind()) {
         case DiaNodeKind::Group:
         case DiaNodeKind::Item: {
@@ -382,7 +382,7 @@ DiaSceneItemGroup* DiaScene::findGroupContaining(
 }
 
 std::vector<DiaSceneItemVisual*> DiaScene::findCommonParentNodes(
-    const std::vector<DiaSceneItemVisual*>& nodes) {
+    std::vector<DiaSceneItemVisual*> const& nodes) {
     std::vector<DiaSceneItemVisual*> result;
     std::set<DiaSceneItemVisual*>    processed;
 

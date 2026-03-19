@@ -22,7 +22,7 @@ struct DiaNodeTreeModel : public QAbstractItemModel {
 
     void setNewRoot(
         DiaAdapter const&         root,
-        const hstd::Vec<DiaEdit>& edits);
+        hstd::Vec<DiaEdit> const& edits);
 
     hstd::ColText format();
 
@@ -76,7 +76,7 @@ struct DiaNodeTreeModel : public QAbstractItemModel {
         int                column,
         const QModelIndex& parent = QModelIndex{}) const override;
 
-    QModelIndex parent(const QModelIndex& index) const override;
+    QModelIndex parent(QModelIndex const& index) const override;
 
     DiaAdapter getNode(QModelIndex const& index) const;
 
@@ -87,8 +87,8 @@ struct DiaNodeTreeModel : public QAbstractItemModel {
         return 1;
     }
 
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+    QVariant data(QModelIndex const& index, int role = Qt::DisplayRole)
         const override;
 
-    QModelIndex getIndexForId(const org::imm::ImmUniqId& id) const;
+    QModelIndex getIndexForId(org::imm::ImmUniqId const& id) const;
 };

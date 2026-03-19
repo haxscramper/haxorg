@@ -17,8 +17,8 @@ using namespace hstd;
 namespace {
 
 json sliceJson(
-    const json&                                    input,
-    const Vec<org::sem::AttrValue::DimensionSpan>& spans) {
+    json const&                                    input,
+    Vec<org::sem::AttrValue::DimensionSpan> const& spans) {
     if (!input.is_array()) {
         throw std::invalid_argument("Input JSON must be an array");
     }
@@ -39,7 +39,7 @@ json sliceJson(
 
     std::vector<std::vector<int>> indices(spans.size());
     for (size_t i = 0; i < spans.size(); ++i) {
-        const auto& span     = spans[i];
+        auto const& span     = spans[i];
         int         dim_size = static_cast<int>(dimensions[i]);
 
         int first = span.first;
@@ -59,11 +59,11 @@ json sliceJson(
         }
     }
 
-    std::function<json(const json&, size_t, const std::vector<int>&)>
+    std::function<json(json const&, size_t, std::vector<int> const&)>
         sliceRecursive;
-    sliceRecursive = [&](const json&             arr,
+    sliceRecursive = [&](json const&             arr,
                          size_t                  dim,
-                         const std::vector<int>& path) -> json {
+                         std::vector<int> const& path) -> json {
         if (dim == indices.size()) {
             const json* value = &arr;
             for (int idx : path) { value = &(*value)[idx]; }
@@ -180,11 +180,10 @@ struct EvalContext {
                             "result "
                             "field");
                     } else {
-                        auto value = getContext()
-                                         ->adaptUnrooted(
-                                             code.result.back())
-                                         .as<imm::
-                                                 ImmBlockCodeEvalResult>();
+                        auto
+                            value = getContext()
+                                        ->adaptUnrooted(code.result.back())
+                                        .as<imm::ImmBlockCodeEvalResult>();
                         EVAL_TRACE(fmt(
                             "Target code block evaluated to {}", value));
                         // EVAL_TRACE()
@@ -265,7 +264,7 @@ struct EvalContext {
     sem::SemId<sem::Org> convertOutput(
         sem::OrgCodeEvalOutput const& out,
         sem::OrgCodeEvalInput const&  in,
-        const OrgCodeEvalParameters&  conf) {
+        OrgCodeEvalParameters const&  conf) {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
         std::string activeName = hstd::fmt(
@@ -576,7 +575,7 @@ struct EvalContext {
 
 sem::SemId<sem::Org> org::evaluateCodeBlocks(
     sem::SemId<sem::Org>         document,
-    const OrgCodeEvalParameters& conf) {
+    OrgCodeEvalParameters const& conf) {
     EvalContext ctx{.conf = conf};
     return ctx.evalAll(document);
 }

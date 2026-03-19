@@ -135,12 +135,12 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
 
 template <typename N, typename K, typename V, typename M>
 void NodeGroup<N, K, V, M>::treeRepr(
-    ColStream&       os,
-    Id               node,
-    int              level,
-    CR<TreeReprConf> conf,
-    int              subnodeIdx,
-    Opt<Id>          parent) const {
+    ColStream&          os,
+    Id                  node,
+    int                 level,
+    TreeReprConf const& conf,
+    int                 subnodeIdx,
+    Opt<Id>             parent) const {
     using Pos = TreeReprConf::WritePos;
     using Par = TreeReprConf::WriteParams;
 
@@ -244,8 +244,9 @@ void NodeGroup<N, K, V, M>::treeRepr(
 }
 
 template <typename N, typename K, typename V, typename M>
-std::string NodeGroup<N, K, V, M>::treeRepr(Id node, CR<TreeReprConf> conf)
-    const {
+std::string NodeGroup<N, K, V, M>::treeRepr(
+    Id                  node,
+    TreeReprConf const& conf) const {
     std::stringstream buffer;
     ColStream         text{buffer};
     text.colored = false;

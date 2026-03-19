@@ -88,7 +88,7 @@ template <>
 struct std::formatter<org::imm::ImmReflFieldId>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmReflFieldId& p, FormatContext& ctx)
+    auto format(org::imm::ImmReflFieldId const& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.getName(), ctx);
     }
@@ -164,7 +164,7 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
 template <typename T>
 struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ext::ImmBox<T>& p, FormatContext& ctx) const {
+    auto format(hstd::ext::ImmBox<T> const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(p.get(), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -176,7 +176,7 @@ struct std::formatter<hstd::ext::ImmBox<std::string>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const hstd::ext::ImmBox<std::string>& p,
+        hstd::ext::ImmBox<std::string> const& p,
         FormatContext&                        ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
@@ -188,7 +188,7 @@ template <>
 struct std::formatter<hstd::ext::ImmBox<hstd::Str>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ext::ImmBox<hstd::Str>& p, FormatContext& ctx)
+    auto format(hstd::ext::ImmBox<hstd::Str> const& p, FormatContext& ctx)
         const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
@@ -253,9 +253,9 @@ struct ImmIdT;
 static const hstd::u64 ImmIdMaskSize   = 4 * 6;
 static const hstd::u64 ImmIdMaskOffset = 8 * 8 - ImmIdMaskSize;
 using ImmIdBase                        = hstd::dod::Id<
-                           hstd::u64,
-                           hstd::u64,
-                           std::integral_constant<hstd::u64, ImmIdMaskSize>>;
+    hstd::u64,
+    hstd::u64,
+    std::integral_constant<hstd::u64, ImmIdMaskSize>>;
 
 struct [[refl]] ImmId : ImmIdBase {
     BOOST_DESCRIBE_CLASS(ImmId, (ImmIdBase), (), (), ());
@@ -400,7 +400,7 @@ struct [[refl]] ImmOrg {
 template <>
 struct std::formatter<org::imm::ImmId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::imm::ImmId& p, FormatContext& ctx) const {
+    auto format(org::imm::ImmId const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(p.getReadableId(), ctx);
     }
 };

@@ -182,7 +182,7 @@ struct JsonSerde<llvm::json::Value> {
 
 
 NO_COVERAGE json
-    JsonSerde<llvm::json::Array>::to_json(const llvm::json::Array& obj) {
+    JsonSerde<llvm::json::Array>::to_json(llvm::json::Array const& obj) {
     json result = json::array();
     for (auto const& it : obj) {
         result.push_back(JsonSerde<llvm::json::Value>::to_json(it));
@@ -192,7 +192,7 @@ NO_COVERAGE json
 
 
 NO_COVERAGE json
-    JsonSerde<llvm::json::Object>::to_json(const llvm::json::Object& obj) {
+    JsonSerde<llvm::json::Object>::to_json(llvm::json::Object const& obj) {
     json result = json::object();
     for (auto const& field : obj) {
         result[field.first.str()] = JsonSerde<llvm::json::Value>::to_json(
@@ -205,8 +205,9 @@ NO_COVERAGE json
 template <>
 struct JsonSerde<FunctionRecord> {
     static json to_json(FunctionRecord const& func) {
-        json result = JsonSerdeDescribedRecordBase<
-            FunctionRecord>::to_json(func);
+        json
+            result = JsonSerdeDescribedRecordBase<FunctionRecord>::to_json(
+                func);
 
         result["DemangledName"] = llvm::demangle(func.Name);
 
@@ -308,8 +309,8 @@ NO_COVERAGE llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
     CoverageMapping const& Mapping,
     llvm::StringRef        Filename) {
     size_t FilenameHash = hash_value(Filename);
-    auto   RecordIt     = toCoverageMappingLyt(&Mapping)
-                        ->FilenameHash2RecordIndices.find(FilenameHash);
+    auto   RecordIt = toCoverageMappingLyt(&Mapping)
+                          ->FilenameHash2RecordIndices.find(FilenameHash);
     if (RecordIt
         == toCoverageMappingLyt(&Mapping)
                ->FilenameHash2RecordIndices.end()) {
@@ -319,7 +320,7 @@ NO_COVERAGE llvm::ArrayRef<unsigned> getImpreciseRecordIndicesForFilename(
 }
 
 NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
-    const FunctionRecord& Function) {
+    FunctionRecord const& Function) {
     llvm::SmallBitVector IsNotExpandedFile(
         Function.Filenames.size(), true);
     for (const auto& CR : Function.CountedRegions) {
@@ -334,7 +335,7 @@ NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
 
 NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
     llvm::StringRef       SourceFile,
-    const FunctionRecord& Function) {
+    FunctionRecord const& Function) {
     std::optional<unsigned> I = findMainViewFileID(Function);
     if (I && SourceFile == Function.Filenames[*I]) { return I; }
     return std::nullopt;
@@ -342,7 +343,7 @@ NO_COVERAGE static std::optional<unsigned> findMainViewFileID(
 
 NO_COVERAGE static llvm::SmallBitVector gatherFileIDs(
     llvm::StringRef       SourceFile,
-    const FunctionRecord& Function) {
+    FunctionRecord const& Function) {
     llvm::SmallBitVector FilenameEquivalence(
         Function.Filenames.size(), false);
     for (unsigned I = 0, E = Function.Filenames.size(); I < E; ++I) {
@@ -444,7 +445,7 @@ struct queries {
 };
 
 struct CountedRegionHasher {
-    size_t operator()(const CounterMappingRegion& region) const {
+    size_t operator()(CounterMappingRegion const& region) const {
         return llvm::hash_combine(
             std::hash<unsigned>()(region.FileID),
             std::hash<unsigned>()(region.ExpandedFileID),
@@ -459,8 +460,8 @@ struct CountedRegionHasher {
 
 struct CountedRegionComparator {
     size_t operator()(
-        const CounterMappingRegion& lhs,
-        const CounterMappingRegion& rhs) const {
+        CounterMappingRegion const& lhs,
+        CounterMappingRegion const& rhs) const {
         return lhs.FileID == rhs.FileID
             && lhs.ExpandedFileID == rhs.ExpandedFileID
             && lhs.LineStart == rhs.LineStart
@@ -479,7 +480,7 @@ struct FileSpan {
 };
 
 struct FileSpanHasher {
-    size_t operator()(const FileSpan& region) const {
+    size_t operator()(FileSpan const& region) const {
         return llvm::hash_combine(
             region.LineStart,
             region.LineEnd,
@@ -490,7 +491,7 @@ struct FileSpanHasher {
 
 
 struct FileSpanComparator {
-    size_t operator()(const FileSpan& lhs, const FileSpan& rhs) const {
+    size_t operator()(FileSpan const& lhs, FileSpan const& rhs) const {
         return lhs.LineStart == rhs.LineStart //
             && lhs.ColStart == rhs.ColStart   //
             && lhs.LineEnd == rhs.LineEnd     //
@@ -644,7 +645,7 @@ NO_COVERAGE auto fmt_ctx_field(
 template <>
 struct std::formatter<CountedRegion> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const CountedRegion& p, FormatContext& ctx) const {
+    auto format(CountedRegion const& p, FormatContext& ctx) const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("ExecutionCount", p.ExecutionCount, ctx);
         fmt_ctx_field("FalseExecutionCount", p.FalseExecutionCount, ctx);
@@ -666,7 +667,7 @@ struct std::formatter<CountedRegion> : std::formatter<std::string> {
 template <>
 struct std::formatter<CoverageSegment> : std::formatter<std::string> {
     template <typename FormatContext>
-    NO_COVERAGE auto format(const CoverageSegment& p, FormatContext& ctx)
+    NO_COVERAGE auto format(CoverageSegment const& p, FormatContext& ctx)
         const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("Line", p.Line, ctx);
@@ -690,11 +691,11 @@ NO_COVERAGE void add_file_regions(
     // collisions on the filename, we may get back some records that are
     // not in the file.
     llvm::ArrayRef<unsigned>
-        RecordIndices = getImpreciseRecordIndicesForFilename(
-            Mapping, Filename);
+         RecordIndices = getImpreciseRecordIndicesForFilename(
+             Mapping, Filename);
     auto Access = toCoverageMappingLyt(&Mapping);
     for (unsigned RecordIndex : RecordIndices) {
-        const FunctionRecord& Function = Access->Functions[RecordIndex];
+        FunctionRecord const& Function = Access->Functions[RecordIndex];
         auto MainFileID = findMainViewFileID(Filename, Function);
         auto FileIDs    = gatherFileIDs(Filename, Function);
         // `ExpandedFileID` in the expansion regions points to the file ID
@@ -891,8 +892,8 @@ NO_COVERAGE void add_context(
 }
 
 NO_COVERAGE llvm::MD5::MD5Result getMD5Digest(
-    const std::string& str1,
-    const std::string& str2) {
+    std::string const& str1,
+    std::string const& str2) {
     llvm::MD5 hash;
     hash.update(
         llvm::ArrayRef<uint8_t>(
@@ -1024,7 +1025,7 @@ void process_runs(
             std::execution::par,
             paths.begin(),
             paths.end(),
-            [&](const std::pair<std::string, std::string>& p) {
+            [&](std::pair<std::string, std::string> const& p) {
                 __perf_trace("llvm", "Get coverage mapping task");
                 auto coverage = get_coverage_mapping(p.first, p.second);
                 std::scoped_lock lock{coverage_mutex};
@@ -1132,7 +1133,7 @@ struct BuildProfileCollection {
 };
 
 std::string generateInstantiateFunctionReport(
-    const BuildProfileCollection& collection) {
+    BuildProfileCollection const& collection) {
     __perf_trace("main", "generateInstantiateFunctionReport");
     std::map<std::string, std::vector<BuildProfileEvent>> groupEvents;
 
@@ -1159,7 +1160,7 @@ std::string generateInstantiateFunctionReport(
     std::sort(
         sortedGroups.begin(),
         sortedGroups.end(),
-        [](const auto& a, const auto& b) {
+        [](auto const& a, auto const& b) {
             int totalDurA = 0;
             int totalDurB = 0;
             for (const auto& event : a.second) { totalDurA += event.dur; }
@@ -1194,7 +1195,7 @@ std::string generateInstantiateFunctionReport(
     std::string report;
     // int limit = std::min(40, static_cast<int>(sortedGroups.size()));
     for (int i = 0; i < sortedGroups.size(); ++i) {
-        const auto& [detail, events] = sortedGroups.at(i);
+        auto const& [detail, events] = sortedGroups.at(i);
         int totalDur                 = 0;
         for (const auto& event : events) { totalDur += event.dur; }
         int count  = static_cast<int>(events.size());

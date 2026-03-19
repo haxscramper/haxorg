@@ -261,9 +261,9 @@ LevenshteinDistanceResult hstd::levenshteinDistance(
 }
 
 hstd::ShiftedDiff::ShiftedDiff(
-    CR<BacktrackRes> track,
-    int              lhsMax,
-    int              rhsMax) {
+    BacktrackRes const& track,
+    int                 lhsMax,
+    int                 rhsMax) {
     using sek    = SeqEditKind;
     int prevLhs  = 0;
     int prevRhs  = 0;
@@ -302,7 +302,7 @@ hstd::ShiftedDiff::ShiftedDiff(
     }
 }
 
-hstd::ShiftedDiff::ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
+hstd::ShiftedDiff::ShiftedDiff(Vec<SeqEdit> const&& diff) {
     // Align diff operations against each other, for further
     // formatting.
     using sek = SeqEditKind;
@@ -417,8 +417,8 @@ int FormattedDiff::maxLineNumber() const {
 }
 
 hstd::FormattedDiff::FormattedDiff(
-    const ShiftedDiff& shifted,
-    const Conf&        conf)
+    ShiftedDiff const& shifted,
+    Conf const&        conf)
     : conf{conf} {
     Vec<BufItem> oldText, newText;
 
@@ -460,9 +460,9 @@ hstd::FormattedDiff::FormattedDiff(
 }
 
 hstd::FormattedDiff::FormattedDiff(
-    const Vec<BufItem>& oldText,
-    const Vec<BufItem>& newText,
-    const Conf&         conf)
+    Vec<BufItem> const& oldText,
+    Vec<BufItem> const& newText,
+    Conf const&         conf)
     : conf{conf} {
     bool first = true;
 
@@ -653,18 +653,21 @@ ColText FormattedDiff::format() {
             auto lhsStyle = toStyle(lhs.prefix);
             auto rhsStyle = toStyle(rhs.prefix);
 
-            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
-               << ((lhs.empty() ? ColText("")
-                                : formattedLines.at(lhs.index().value())
-                                      .first.withStyle(lhsStyle))
-                   <<= lhsSize)
-               << splitSeparator //
-               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
-               << ((rhs.empty() ? ColText("")
-                                : formattedLines.at(rhs.index().value())
-                                      .second.withStyle(rhsStyle))
-                   <<= rhsSize)
-               << "\n";
+            os
+                << (ColText(
+                        lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
+                << ((lhs.empty()
+                         ? ColText("")
+                         : formattedLines.at(lhs.index().value())
+                               .first.withStyle(lhsStyle)) <<= lhsSize)
+                << splitSeparator //
+                << (ColText(
+                        rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
+                << ((rhs.empty()
+                         ? ColText("")
+                         : formattedLines.at(rhs.index().value())
+                               .second.withStyle(rhsStyle)) <<= rhsSize)
+                << "\n";
         }
     } else {
         logic_todo_impl();
@@ -674,14 +677,14 @@ ColText FormattedDiff::format() {
 }
 
 hstd::ColText formatInlineDiff(
-    const Vec<Str>&     src,
-    const Vec<Str>&     target,
-    const Vec<SeqEdit>& diffed,
+    Vec<Str> const&     src,
+    Vec<Str> const&     target,
+    Vec<SeqEdit> const& diffed,
     DiffFormatConf      conf) {
     CharSet      start = Invis + CharSet{' '};
     Vec<ColText> chunks;
 
-    auto push = [&](const Str&  text,
+    auto push = [&](Str const&  text,
                     SeqEditKind mode,
                     SeqEditKind secondary,
                     bool        toLast   = false,
@@ -704,7 +707,7 @@ hstd::ColText formatInlineDiff(
     Vec<Span<SeqEdit const>> groups;
     if (conf.groupInline) {
         groups = partition<SeqEdit, SeqEditKind>(
-            diffed, [](CR<SeqEdit> edit) { return edit.kind; });
+            diffed, [](SeqEdit const& edit) { return edit.kind; });
     } else {
         for (int i = 0; i < diffed.size(); ++i) {
             groups[i] = {diffed[slice(i, i)]};
@@ -897,7 +900,7 @@ fuzzy_result fuzzy_match_recursive(
 } // namespace
 
 FuzzyMatcher::ScoreFunc hstd::FuzzyMatcher::getLinearScore(
-    const LinearScoreConfig& conf) {
+    LinearScoreConfig const& conf) {
     return [&conf](
                Range const&    _str,
                int             nextMatch,

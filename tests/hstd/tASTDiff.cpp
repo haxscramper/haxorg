@@ -37,23 +37,23 @@ struct TestNodeStore : NodeStore {
         return id.ToPtr<TestNode>()->value;
     }
 
-    virtual int getSubnodeCount(const Id& id) override {
+    virtual int getSubnodeCount(Id const& id) override {
         return id.ToPtr<TestNode>()->subnodes.size();
     }
 
-    virtual Id getSubnodeAt(const Id& node, int index) override {
+    virtual Id getSubnodeAt(Id const& node, int index) override {
         return NodeStore::Id::FromPtr(
             node.ToPtr<TestNode>()->subnodes.at(index).get());
     }
 
     virtual Id getRoot() override { return NodeStore::Id::FromPtr(root); }
 
-    virtual ASTNodeKind getNodeKind(const Id& node) const override {
+    virtual ASTNodeKind getNodeKind(Id const& node) const override {
         return node.ToPtr<TestNode>()->kind;
     }
 
-    Func<ColText(CR<NodeStore::Id>)> getToStr() {
-        return [](CR<NodeStore::Id> arg) -> ColText {
+    Func<ColText(NodeStore::Id const&)> getToStr() {
+        return [](NodeStore::Id const& arg) -> ColText {
             return std::format("{}", arg.ToPtr<TestNode>()->value);
         };
     }

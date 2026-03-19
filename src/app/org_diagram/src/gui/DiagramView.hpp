@@ -24,13 +24,13 @@ class DiagramView : public QGraphicsView {
   signals:
     void zoomChanged(int zoomPercent);
     void sceneSelectionChanged(
-        const QList<DiaSceneItemVisual*>& selectedNodes);
+        QList<DiaSceneItemVisual*> const& selectedNodes);
 
   public:
     void wheelEvent(QWheelEvent* event) override;
 
   public slots:
-    void selectNodes(const QList<DiaSceneItemVisual*>& nodes);
+    void selectNodes(QList<DiaSceneItemVisual*> const& nodes);
 
   private slots:
     void onSceneSelectionChanged() { emitSelectionChanged(); }

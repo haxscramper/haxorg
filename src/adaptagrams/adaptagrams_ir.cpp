@@ -18,7 +18,7 @@ using namespace hstd::ext;
 template <>
 struct std::formatter<Avoid::Point> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Avoid::Point& p, FormatContext& ctx) const {
+    auto format(Avoid::Point const& p, FormatContext& ctx) const {
         return fmt_ctx(fmt("({:.2f}, {:.2f})", p.x, p.y), ctx);
     }
 };
@@ -26,7 +26,7 @@ struct std::formatter<Avoid::Point> : std::formatter<std::string> {
 template <>
 struct std::formatter<Avoid::Box> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Avoid::Box& p, FormatContext& ctx) const {
+    auto format(Avoid::Box const& p, FormatContext& ctx) const {
         return fmt_ctx(
             fmt("[{}+{:.2f}/{:.2f}]", p.min, p.width(), p.height()), ctx);
     }
@@ -55,7 +55,9 @@ GraphPoint toGvPoint(pointf p, int height) {
 }
 
 /// \brief Get bounding gox for the nested subtraph
-GraphRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<GraphRect> bbox) {
+GraphRect getSubgraphBBox(
+    Graphviz::Graph const& g,
+    GraphRect const&       bbox) {
     boxf      rect = g.info()->bb;
     GraphRect res{};
     LOGIC_ASSERTION_CHECK(0 <= bbox.height, "");
@@ -69,7 +71,7 @@ GraphRect getSubgraphBBox(CR<Graphviz::Graph> g, CR<GraphRect> bbox) {
     return res;
 }
 
-GraphRect getGraphBBox(CR<Graphviz::Graph> g) {
+GraphRect getGraphBBox(Graphviz::Graph const& g) {
     boxf rect = g.info()->bb;
 
     // +----[UR]
@@ -81,8 +83,8 @@ GraphRect getGraphBBox(CR<Graphviz::Graph> g) {
 }
 
 std::string getEdgePropertiesAsString(
-    CR<Graphviz::Graph> graph,
-    CR<Graphviz::Edge>  edge) {
+    Graphviz::Graph const& graph,
+    Graphviz::Edge const&  edge) {
     std::stringstream ss;
     Agsym_t*          sym;
     char*             value;
@@ -100,7 +102,7 @@ std::string getEdgePropertiesAsString(
     return result;
 }
 
-std::string getGraphPropertiesAsString(CR<Graphviz::Graph> graph) {
+std::string getGraphPropertiesAsString(Graphviz::Graph const& graph) {
     std::stringstream ss;
     Agsym_t*          sym;
     char*             value;
@@ -119,8 +121,8 @@ std::string getGraphPropertiesAsString(CR<Graphviz::Graph> graph) {
 }
 
 std::string getNodePropertiesAsString(
-    CR<Graphviz::Graph> graph,
-    CR<Graphviz::Node>  node) {
+    Graphviz::Graph const& graph,
+    Graphviz::Node const&  node) {
     std::stringstream ss;
     Agsym_t*          sym;
     char*             value;
@@ -141,10 +143,10 @@ std::string getNodePropertiesAsString(
 }
 
 GraphRect getNodeRectangle(
-    CR<Graphviz::Graph> g,
-    CR<Graphviz::Node>  node,
-    int                 scaling,
-    CR<GraphRect>       bbox) {
+    Graphviz::Graph const& g,
+    Graphviz::Node const&  node,
+    int                    scaling,
+    GraphRect const&       bbox) {
     double width  = node.info()->width * scaling;
     double height = node.info()->height * scaling;
     double x      = node.info()->coord.x;
@@ -161,9 +163,9 @@ GraphRect getNodeRectangle(
 }
 
 GraphPath getEdgeSpline(
-    CR<Graphviz::Edge> edge,
-    int                scaling,
-    CR<GraphRect>      bbox) {
+    Graphviz::Edge const& edge,
+    int                   scaling,
+    GraphRect const&      bbox) {
     GraphPath path;
     splines*  spl = edge.info()->spl;
     path.bezier   = true;
@@ -191,7 +193,7 @@ GraphPath getEdgeSpline(
 
 
 GraphNodeConstraint::Res GraphNodeConstraint::FixedRelative::toCola(
-    const std::vector<vpsc::Rectangle*>& allRects) const {
+    std::vector<vpsc::Rectangle*> const& allRects) const {
     return std::make_shared<cola::FixedRelativeConstraint>(
         allRects,
         nodes //
@@ -201,7 +203,7 @@ GraphNodeConstraint::Res GraphNodeConstraint::FixedRelative::toCola(
 }
 
 bool GraphLayoutIR::Subgraph::isEmpty() const {
-    return nodes.empty() && rs::all_of(subgraphs, [](CR<Subgraph> s) {
+    return nodes.empty() && rs::all_of(subgraphs, [](Subgraph const& s) {
                return s.isEmpty();
            });
 }
@@ -222,7 +224,7 @@ void GraphLayoutIR::validate() {
     }
 }
 
-void GraphLayoutIR::ColaResult::writeSvg(CR<Str> path) {
+void GraphLayoutIR::ColaResult::writeSvg(Str const& path) {
     auto e //
         = edges | rv::transform([](EdgeData const& e) -> Pair<uint, uint> {
               return std::make_pair(
@@ -252,8 +254,8 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     // Add node to a specified subgraph
     auto add_node = [&](Graphviz::Graph& graph,
                         int              index) -> Graphviz::Node {
-        CR<GraphSize> r    = rectangles.at(index);
-        auto          node = graph.node(fmt1(index));
+        GraphSize const& r    = rectangles.at(index);
+        auto             node = graph.node(fmt1(index));
         // default DPI used by graphviz to convert from
         // inches.
         node.setHeight(r.height() / float(graphviz_size_scaling));
@@ -365,9 +367,10 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
             }
         }
 
-        rs::sort(result, [](CR<SubgraphSet> lhs, CR<SubgraphSet> rhs) {
-            return lhs.first.size() < rhs.first.size();
-        });
+        rs::sort(
+            result, [](SubgraphSet const& lhs, SubgraphSet const& rhs) {
+                return lhs.first.size() < rhs.first.size();
+            });
 
         return result;
     };
@@ -382,7 +385,7 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
         // parts and insert an intermediate node in between, so large
         // labels will not overlap with the graph structure later on.
         if (edgeLabels.contains(e)) {
-            CR<GraphSize> r = edgeLabels.at(e);
+            GraphSize const& r = edgeLabels.at(e);
 
             auto target_graph = //
                 get_subgraph_containers({e.source, e.target}).at(0).second;
@@ -471,8 +474,8 @@ GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
 
 Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
     setupConstraints(
-        const Vec<GraphSize>&           rectangles,
-        const Vec<GraphNodeConstraint>& constraints) {
+        Vec<GraphSize> const&           rectangles,
+        Vec<GraphNodeConstraint> const& constraints) {
     baseRectangles.reserve(rectangles.size());
     for (auto const& r : rectangles) {
         baseRectangles.push_back(
@@ -485,7 +488,7 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
         | rs::to<Vec>();
 
     return constraints //
-         | rv::transform([&](CR<GraphNodeConstraint> c) {
+         | rv::transform([&](GraphNodeConstraint const& c) {
                return c.toCola(rectPointers);
            })
          | rv::join //
@@ -943,7 +946,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
-    graph.eachNode([&](CR<Graphviz::Node> node) {
+    graph.eachNode([&](Graphviz::Node const& node) {
         // 'edge label' nodes do not correspond to any specific rectangle
         // and are instead pushed out to edge properties.
         if (auto prop = node.getAttr<bool>("is_edge_label");
@@ -958,12 +961,13 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
 
         } else {
             // assign to a specific index to match original rectangle.
-            res.fixed.resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
+            res.fixed
+                .resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
                 graph, node, graphviz_size_scaling, res.bbox);
         }
     });
 
-    graph.eachEdge([&](CR<Graphviz::Edge> edge) {
+    graph.eachEdge([&](Graphviz::Edge const& edge) {
         auto key = GraphEdge{
             .source = edge.getAttr<int>(source_index_prop).value(),
             .target = edge.getAttr<int>(target_index_prop).value(),
@@ -975,10 +979,10 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
             getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
     });
 
-    auto set_graph = [&](this auto&&         self,
-                         Result::Subgraph&   out_parent,
-                         CR<Graphviz::Graph> in_subgraph,
-                         Span<int>           path) -> void {
+    auto set_graph = [&](this auto&&            self,
+                         Result::Subgraph&      out_parent,
+                         Graphviz::Graph const& in_subgraph,
+                         Span<int>              path) -> void {
         if (path.empty()) {
             std::string str //
                 = in_subgraph.getAttr<Str>(original_subgraph_nodes_prop)
@@ -996,8 +1000,8 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
         }
     };
 
-    Func<void(CR<Graphviz::Graph>)> rec_subgraph;
-    rec_subgraph = [&](CR<Graphviz::Graph> g) {
+    Func<void(Graphviz::Graph const&)> rec_subgraph;
+    rec_subgraph = [&](Graphviz::Graph const& g) {
         auto original_path = from_json_eval<Vec<int>>(json::parse(
             g.getAttr<Str>(original_subgraph_path_prop).value().toBase()));
 
@@ -1024,7 +1028,7 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
 
     res.fixed            //
         = baseRectangles //
-        | rv::transform([](CR<vpsc::Rectangle> r) {
+        | rv::transform([](vpsc::Rectangle const& r) {
               return GraphRect(
                   r.getMinX(),               // top left x
                   r.getMinY(),               // top left y
@@ -1058,10 +1062,10 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
         for (auto const& p : route.ps) { register_point(p.x, p.y); }
     }
 
-    res.bbox.left  = x_min - baseIr->leftBBoxMargin;
-    res.bbox.top   = y_min - baseIr->topBBoxMargin;
-    res.bbox.width = x_max - x_min
-                   + (baseIr->leftBBoxMargin + baseIr->rightBBoxMargin);
+    res.bbox.left   = x_min - baseIr->leftBBoxMargin;
+    res.bbox.top    = y_min - baseIr->topBBoxMargin;
+    res.bbox.width  = x_max - x_min
+                    + (baseIr->leftBBoxMargin + baseIr->rightBBoxMargin);
     res.bbox.height = y_max - y_min
                     + (baseIr->topBBoxMargin + baseIr->bottomBBoxMargin);
     double x_offset = -res.bbox.left;
@@ -1152,7 +1156,7 @@ std::string GraphNodeConstraint::MultiSeparate::toColaString() const {
 }
 
 std::string GraphNodeConstraint::toColaString(
-    const std::vector<vpsc::Rectangle*>& allRects) const {
+    std::vector<vpsc::Rectangle*> const& allRects) const {
     return joinCola(toCola(allRects));
 }
 
@@ -1206,7 +1210,7 @@ Vec<GraphNodeConstraint::Res> GraphNodeConstraint::MultiSeparate::toCola()
 
 
 Vec<GraphNodeConstraint::Res> GraphNodeConstraint::toCola(
-    const std::vector<vpsc::Rectangle*>& allRects) const {
+    std::vector<vpsc::Rectangle*> const& allRects) const {
     return std::visit(
         overloaded{
             [&](FixedRelative const& fixed) -> Vec<Res> {
@@ -1244,7 +1248,7 @@ GraphNodeConstraint::Res GraphNodeConstraint::PageBoundary::toCola(
     return result;
 }
 
-void GraphRect::extend(const GraphPoint& point) {
+void GraphRect::extend(GraphPoint const& point) {
     int min_x = std::min(left, point.x);
     int max_x = std::max(left + width, point.x);
     int min_y = std::min(top, point.y);

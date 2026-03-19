@@ -286,10 +286,10 @@ struct log_graph_tracker {
 
     template <typename... Args>
     hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> format_args_with_vars(
-        const hstd::Vec<hstd::Str>& names,
+        hstd::Vec<hstd::Str> const& names,
         const Args&... args) {
         hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> result;
-        auto format_var = [](const auto& var) -> std::string {
+        auto format_var = [](auto const& var) -> std::string {
             using VarType = std::decay_t<decltype(var)>;
             if constexpr (hstd::log::has_log_value_formatter<VarType>) {
                 return hstd::log::log_value_formatter<VarType>{}.format(
@@ -387,13 +387,20 @@ struct log_graph_tracker {
                         this_callsite())));
 
 
-#    define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                   \
-        auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_function( \
-            ::hstd::log::log_graph_processor::function_info(                 \
-                #method,                                                     \
-                HSLOG_VARNAMES_TO_ARG_VECTOR(__tracker, __VA_ARGS__),        \
-                ::hstd::log::log_graph_processor::callsite::                 \
-                    this_callsite()));
+#    define HSLOG_TRACKED_FUNCTION(__tracker, method, ...)                \
+        auto BOOST_PP_CAT(                                                \
+            __scope,                                                      \
+            __COUNTER__) = __tracker                                      \
+                               ->track_function(                          \
+                                   ::hstd::log::log_graph_processor::     \
+                                       function_info(                     \
+                                           #method,                       \
+                                           HSLOG_VARNAMES_TO_ARG_VECTOR(  \
+                                               __tracker, __VA_ARGS__),   \
+                                           ::hstd::log::                  \
+                                               log_graph_processor::      \
+                                                   callsite::             \
+                                                       this_callsite()));
 
 #    define HSLOG_TRACKED_SCOPE(__tracker, description)                   \
         auto BOOST_PP_CAT(__scope, __COUNTER__) = __tracker->track_scope( \
@@ -523,10 +530,10 @@ struct SignalDebugger : public QObject {
 
   private:
     void connectToAllSignals();
-    void connectToSignal(const QMetaMethod& signal);
+    void connectToSignal(QMetaMethod const& signal);
     void disconnectAll();
     hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> formatParameterInfo(
-        const QMetaMethod& method);
+        QMetaMethod const& method);
 
   private slots:
     void onSignalTriggered();

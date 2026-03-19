@@ -19,7 +19,7 @@
 template <>
 struct std::formatter<std::any> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const std::any& p, FormatContext& ctx) const {
+    auto format(std::any const& p, FormatContext& ctx) const {
         return ::hstd::fmt_ctx(p.type().name(), ctx);
     }
 };
@@ -28,13 +28,13 @@ namespace hstd {
 
 template <typename... Ts>
 struct AnyFormatter {
-    std::string operator()(const std::any& a) const {
+    std::string operator()(std::any const& a) const {
         return format_impl<Ts...>(a);
     }
 
   private:
     template <typename T, typename... Rest>
-    std::string format_impl(const std::any& a) const {
+    std::string format_impl(std::any const& a) const {
         if (a.type() == typeid(T)) {
             return fmt1(*std::any_cast<T>(&a));
         } else if constexpr (sizeof...(Rest) > 0) {
@@ -47,13 +47,13 @@ struct AnyFormatter {
 
 template <typename... Ts>
 struct AnyHasher {
-    std::size_t operator()(const std::any& a) const {
+    std::size_t operator()(std::any const& a) const {
         return hash_impl<Ts...>(a);
     }
 
   private:
     template <typename T, typename... Rest>
-    std::size_t hash_impl(const std::any& a) const {
+    std::size_t hash_impl(std::any const& a) const {
         if (a.type() == typeid(T)) {
             return std::hash<T>{}(*std::any_cast<T>(&a));
         } else if constexpr (sizeof...(Rest) > 0) {
@@ -66,13 +66,13 @@ struct AnyHasher {
 
 template <typename... Ts>
 struct AnyEqual {
-    bool operator()(const std::any& a, const std::any& b) const {
+    bool operator()(std::any const& a, std::any const& b) const {
         return equal_impl<Ts...>(a, b);
     }
 
   private:
     template <typename T, typename... Rest>
-    bool equal_impl(const std::any& a, const std::any& b) const {
+    bool equal_impl(std::any const& a, std::any const& b) const {
         if (a.type() == typeid(T) && b.type() == typeid(T)) {
             return *std::any_cast<T>(&a) == *std::any_cast<T>(&b);
         } else if constexpr (sizeof...(Rest) > 0) {
@@ -129,7 +129,7 @@ struct ReflPathItem {
         bool operator==(Deref const& other) const { return true; }
     };
 
-    ReflPathItem(const ReflPathItem& other) : kind(other.kind) {
+    ReflPathItem(ReflPathItem const& other) : kind(other.kind) {
         switch (kind) {
             case Kind::Index:
                 new (&data.index) Index(other.data.index);
@@ -158,11 +158,11 @@ struct ReflPathItem {
         }
     }
 
-    ReflPathItem(const Index& idx) : kind(Kind::Index), data(idx) {}
-    ReflPathItem(const FieldName& field)
+    ReflPathItem(Index const& idx) : kind(Kind::Index), data(idx) {}
+    ReflPathItem(FieldName const& field)
         : kind(Kind::FieldName), data(field) {}
-    ReflPathItem(const AnyKey& key) : kind(Kind::AnyKey), data(key) {}
-    ReflPathItem(const Deref& ref) : kind(Kind::Deref), data(ref) {}
+    ReflPathItem(AnyKey const& key) : kind(Kind::AnyKey), data(key) {}
+    ReflPathItem(Deref const& ref) : kind(Kind::Deref), data(ref) {}
 
     static ReflPathItem FromFieldName(Tag::field_name_type const& name) {
         return ReflPathItem{FieldName{.name = name}};
@@ -335,7 +335,7 @@ struct ReflPathItem {
 template <typename Tag>
 struct ReflPathItemFormatter : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
+    auto format(ReflPathItem<Tag> const& step, FormatContext& ctx) const {
         typename ReflTypeTraits<Tag>::AnyFormatterType anyFmt;
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
@@ -472,7 +472,7 @@ struct ReflPathComparator {
 template <typename Tag>
 struct ReflPathFormatter : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPath<Tag>& step, FormatContext& ctx) const {
+    auto format(ReflPath<Tag> const& step, FormatContext& ctx) const {
         ReflPathItemFormatter<Tag> fmt{};
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
@@ -1077,7 +1077,7 @@ inline std::size_t get_registered_field_count(std::type_index type_id) {
 template <typename Tag>
 struct std::formatter<hstd::ReflPath<Tag>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ReflPath<Tag>& step, FormatContext& ctx)
+    auto format(hstd::ReflPath<Tag> const& step, FormatContext& ctx)
         const {
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { ::hstd::fmt_ctx(">>", ctx); }
@@ -1101,7 +1101,7 @@ template <typename Tag>
 struct std::formatter<hstd::ReflPathItem<Tag>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::ReflPathItem<Tag>& step, FormatContext& ctx)
+    auto format(hstd::ReflPathItem<Tag> const& step, FormatContext& ctx)
         const {
         step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });
         return ::hstd::fmt_ctx("", ctx);

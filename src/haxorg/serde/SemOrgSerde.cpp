@@ -9,21 +9,21 @@ using namespace hstd;
 
 
 void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::read(
-    const orgproto::OrgJson&           out,
+    orgproto::OrgJson const&           out,
     proto_write_accessor<sem::OrgJson> in) {
     in.get() = org::sem::OrgJson(json::parse(out.raw()));
 }
 
 void proto_serde<::orgproto::OrgJson, org::sem::OrgJson>::write(
     orgproto::OrgJson*  out,
-    const sem::OrgJson& in) {
+    sem::OrgJson const& in) {
     out->set_raw(in.getRef().dump());
 }
 
 
 void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     orgproto::AnyNode*          out,
-    const sem::SemId<sem::Org>& in) {
+    sem::SemId<sem::Org> const& in) {
 
 #    define _case(_fieldEnum, _field, __Kind)                             \
         case OrgSemKind::__Kind: {                                        \
@@ -40,7 +40,7 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
 }
 
 void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
-    const orgproto::AnyNode&                   out,
+    orgproto::AnyNode const&                   out,
     proto_write_accessor<sem::SemId<sem::Org>> in) {
 #    define _case(_fieldEnum, _field, __Kind)                             \
         case orgproto::AnyNode::KindCase::_fieldEnum: {                   \
@@ -75,14 +75,14 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
 }
 
 template <typename Proto>
-void proto_serde<Proto, sem::Cmd>::write(Proto* out, const sem::Cmd& in) {
+void proto_serde<Proto, sem::Cmd>::write(Proto* out, sem::Cmd const& in) {
     proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(
         out->mutable_attrs(), in.attrs);
 }
 
 template <typename Proto>
 void proto_serde<Proto, sem::Cmd>::read(
-    const Proto&                   out,
+    Proto const&                   out,
     proto_write_accessor<sem::Cmd> in) {
     if (out.has_attrs()) {
         proto_serde<orgproto::AttrGroup, sem::AttrGroup>::read(
@@ -93,11 +93,11 @@ void proto_serde<Proto, sem::Cmd>::read(
 template <typename Proto>
 void proto_serde<Proto, sem::Block>::write(
     Proto*            out,
-    const sem::Block& in) {}
+    sem::Block const& in) {}
 
 template <typename Proto>
 void proto_serde<Proto, sem::Block>::read(
-    const Proto&                     out,
+    Proto const&                     out,
     proto_write_accessor<sem::Block> in) {}
 
 namespace org::algo {

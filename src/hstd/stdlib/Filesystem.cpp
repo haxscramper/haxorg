@@ -5,7 +5,7 @@
 
 using namespace hstd;
 
-void hstd::writeFile(const fs::path& target, const std::string& content) {
+void hstd::writeFile(fs::path const& target, std::string const& content) {
     std::ofstream file{target.native()};
     // REFACTOR truncate file on write
     // REFACTOR add error message on write failure
@@ -17,7 +17,7 @@ void hstd::writeFile(const fs::path& target, const std::string& content) {
     }
 }
 
-std::string hstd::readFile(const fs::path& target) {
+std::string hstd::readFile(fs::path const& target) {
     std::ifstream in{target.native()};
     if (in.is_open()) {
         std::stringstream result;
@@ -30,8 +30,8 @@ std::string hstd::readFile(const fs::path& target) {
 }
 
 void hstd::writeFileOrStdout(
-    const fs::path&    target,
-    const std::string& content,
+    fs::path const&    target,
+    std::string const& content,
     bool               useFile,
     bool               useStdoutStream) {
     if (useFile) {
@@ -43,10 +43,10 @@ void hstd::writeFileOrStdout(
 }
 
 void hstd::writeDebugFile(
-    const std::string& content,
-    const std::string& extension,
+    std::string const& content,
+    std::string const& extension,
     bool               writeLog,
-    const std::string& stem_suffix,
+    std::string const& stem_suffix,
     int                line,
     const char*        function,
     const char*        file) {
@@ -58,7 +58,7 @@ void hstd::writeDebugFile(
 }
 
 void hstd::createDirectory(
-    const fs::path& target,
+    fs::path const& target,
     bool            parents,
     bool            existsOk) {
     if (target.native().empty()) {

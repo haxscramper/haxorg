@@ -87,7 +87,7 @@ struct OrgTokenizer
 
     void print(
         OrgLexer&          lex,
-        const std::string& msg,
+        std::string const& msg,
         int                line        = __builtin_LINE(),
         char const*        function    = __builtin_FUNCTION(),
         int                extraIndent = 0);

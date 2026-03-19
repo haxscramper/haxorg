@@ -25,7 +25,7 @@ json ExporterJson::newRes(sem::SemId<sem::Org> org) {
     }
 }
 
-void ExporterJson::visit(json& res, const sem::SemId<sem::Space>& arg) {
+void ExporterJson::visit(json& res, sem::SemId<sem::Space> const& arg) {
     if (normalizeSpaces) {
         res["text"] = " ";
     } else {
@@ -50,14 +50,14 @@ void ExporterJson::visitSubtreeValueFields(
 
 
 template json ExporterJson::eval<sem::SemId<sem::Org>>(
-    CR<sem::SemId<sem::Org>>);
+    sem::SemId<sem::Org> const&);
 
 
 template <typename T>
 void ExporterJson::visitField(
-    json&       j,
-    const char* name,
-    CR<Opt<T>>  value) {
+    json&         j,
+    const char*   name,
+    Opt<T> const& value) {
     if (value) {
         j[name] = eval(value.value());
     } else if (!skipNullFields) {
@@ -66,21 +66,21 @@ void ExporterJson::visitField(
 }
 
 template <typename T>
-json ExporterJson::eval(CR<UnorderedMap<Str, T>> map) {
+json ExporterJson::eval(UnorderedMap<Str, T> const& map) {
     json tmp = json::object();
     for (const auto& [key, val] : map) { tmp[key] = eval(val); }
     return tmp;
 }
 
 template <typename T>
-json ExporterJson::eval(CR<Vec<T>> values) {
+json ExporterJson::eval(Vec<T> const& values) {
     json tmp = json::array();
     for (const auto& it : values) { tmp.push_back(eval(it)); }
     return tmp;
 }
 
 template <typename T>
-json ExporterJson::eval(CR<T> arg) {
+json ExporterJson::eval(T const& arg) {
     if constexpr (std::is_enum<T>::value) {
         return json(fmt1(arg));
     } else {

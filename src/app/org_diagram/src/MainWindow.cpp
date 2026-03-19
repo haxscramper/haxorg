@@ -21,7 +21,7 @@ DiaSelectionManager::DiaSelectionManager(
 }
 
 void DiaSelectionManager::onSceneSelectionChanged(
-    const QList<DiaSceneItemVisual*>& selectedNodes) {
+    QList<DiaSceneItemVisual*> const& selectedNodes) {
     TRACKED_SLOT("onSceneSelectionChanged", selectedNodes);
     if (updatingSelection) { return; }
     updatingSelection = true;
@@ -33,8 +33,8 @@ void DiaSelectionManager::onSceneSelectionChanged(
 }
 
 void DiaSelectionManager::onTreeSelectionChanged(
-    const QItemSelection& selected,
-    const QItemSelection& deselected) {
+    QItemSelection const& selected,
+    QItemSelection const& deselected) {
     TRACKED_SLOT("onTreeSelectionChanged", selected, deselected);
     Q_UNUSED(deselected)
     if (updatingSelection) { return; }
@@ -48,8 +48,8 @@ void DiaSelectionManager::onTreeSelectionChanged(
         if (index.isValid()) {
             DiaSceneItem* node = static_cast<DiaSceneItem*>(
                 index.internalPointer());
-            DiaSceneItemVisual* visualNode = dynamic_cast<
-                DiaSceneItemVisual*>(node);
+            DiaSceneItemVisual*
+                visualNode = dynamic_cast<DiaSceneItemVisual*>(node);
             if (visualNode) { visualNodes.append(visualNode); }
         }
     }
@@ -61,7 +61,7 @@ void DiaSelectionManager::onTreeSelectionChanged(
 }
 
 void DiaSelectionManager::onTreeNodesSelected(
-    const QList<QModelIndex>& indexes) {
+    QList<QModelIndex> const& indexes) {
     TRACKED_SLOT("onTreeNodesSelected", indexes);
 
     // if (updatingSelection) { return; }
@@ -99,7 +99,7 @@ void DiaSelectionManager::setupConnections() {
         &DiaSelectionManager::onTreeNodesSelected);
 }
 
-MainWindow::MainWindow(const StartupArgc& conf)
+MainWindow::MainWindow(StartupArgc const& conf)
     : QMainWindow{nullptr}
     , conf{conf}
     , imm_context{org::imm::ImmAstContext::init_start_context()}
@@ -335,7 +335,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event) {
 }
 
 
-void MainWindow::loadFile(const QString& path) {
+void MainWindow::loadFile(QString const& path) {
     TRACKED_FUNCTION("loadFile");
     auto p = path.toStdString();
     HSLOG_INFO("Loading document from {}", p);

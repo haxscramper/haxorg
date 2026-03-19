@@ -7,7 +7,7 @@
 template <hstd::DescribedSubVariantType V>
 struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const V& p, FormatContext& ctx) const {
+    auto format(V const& p, FormatContext& ctx) const {
         ::hstd::fmt_ctx(p.sub_variant_get_kind(), ctx);
         ::hstd::fmt_ctx("(", ctx);
         std::visit(
@@ -32,13 +32,13 @@ struct std::formatter<V> : std::formatter<std::string> {
 template <hstd::IsVariant V>
 struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(const V& p, FormatContext& ctx) const {
+    FormatContext::iterator format(V const& p, FormatContext& ctx) const {
         std::string res;
         ::hstd::fmt_ctx("Var(", ctx);
         ::hstd::fmt_ctx(p.index(), ctx);
         ::hstd::fmt_ctx(": ", ctx);
         std::visit(
-            [&ctx](const auto& value) { ::hstd::fmt_ctx(value, ctx); }, p);
+            [&ctx](auto const& value) { ::hstd::fmt_ctx(value, ctx); }, p);
         return ::hstd::fmt_ctx(")", ctx);
     }
 };

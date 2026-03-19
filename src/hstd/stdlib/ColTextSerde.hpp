@@ -6,7 +6,7 @@
 
 namespace hstd {
 
-json to_formatting_json(const Vec<ColRune>& runes);
+json to_formatting_json(Vec<ColRune> const& runes);
 
 template <>
 struct JsonSerde<hstd::ColText> {

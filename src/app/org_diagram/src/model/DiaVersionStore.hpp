@@ -181,8 +181,8 @@ struct DiaVersionStore
     /// triggering the update.
     EditApplyResult applyDiaEdits(EditGroup const& edits);
     void            stepEditForward(
-                   org::imm::ImmAstVersion& vEdit,
-                   EditCmd const&           edit);
+        org::imm::ImmAstVersion& vEdit,
+        EditCmd const&           edit);
 
     org::imm::ImmAstContext::Ptr                        imm_context;
     DiaContext::Ptr                                     dia_context;
@@ -236,7 +236,7 @@ struct DiaVersionStore
     hstd::Vec<DiaEdit> getDiaEdits(
         int                lhsVer,
         int                rhsVer,
-        const DiaEditConf& conf);
+        DiaEditConf const& conf);
 
   signals:
     /// \brief Emitted every time the active tree changes. Returns the root

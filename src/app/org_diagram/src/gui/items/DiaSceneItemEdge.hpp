@@ -203,8 +203,8 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
 
     void paintOrthogonal(
         QPainter*      _painter,
-        const QPointF& source,
-        const QPointF& target) {
+        QPointF const& source,
+        QPointF const& target) {
         auto painter = std::make_unique<DebugPainter>(
             _painter, TraceState, "", CALL_LOC());
         QPointF mid{target.x(), source.y()};
@@ -214,8 +214,8 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
 
     void paintPolyline(
         QPainter*      _painter,
-        const QPointF& source,
-        const QPointF& target) {
+        QPointF const& source,
+        QPointF const& target) {
         auto painter = std::make_unique<DebugPainter>(
             _painter, TraceState, "", CALL_LOC());
         if (controlPoints.empty()) {
@@ -233,8 +233,8 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
 
     void paintBezier(
         QPainter*      _painter,
-        const QPointF& source,
-        const QPointF& target) {
+        QPointF const& source,
+        QPointF const& target) {
         auto painter = std::make_unique<DebugPainter>(
             _painter, TraceState, "", CALL_LOC());
         QPainterPath path{source};
@@ -262,7 +262,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
         painter->drawPath(path);
     }
 
-    void paintArrowHead(QPainter* _painter, const QPointF& target) {
+    void paintArrowHead(QPainter* _painter, QPointF const& target) {
         auto painter = std::make_unique<DebugPainter>(
             _painter, TraceState, "", CALL_LOC());
         QPointF direction{};
@@ -275,10 +275,10 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
 
         if (direction.x() == 0 && direction.y() == 0) { return; }
 
-        direction = direction
-                  / std::sqrt(
-                        direction.x() * direction.x()
-                        + direction.y() * direction.y());
+        direction          = direction
+                           / std::sqrt(
+                                 direction.x() * direction.x()
+                                 + direction.y() * direction.y());
         QPointF arrowHead1 = target - direction * 10
                            + QPointF{
                                -direction.y() * 5, direction.x() * 5};
@@ -302,7 +302,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
         }
     }
 
-    void addControlPoint(const QPointF& point) {
+    void addControlPoint(QPointF const& point) {
         controlPoints.push_back(point);
         updateBounds();
     }
@@ -314,7 +314,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
         }
     }
 
-    int findControlPoint(const QPointF& point) const {
+    int findControlPoint(QPointF const& point) const {
         for (int i = 0; i < static_cast<int>(controlPoints.size()); ++i) {
             QRectF handle{
                 controlPoints.at(i) - QPointF{4, 4}, QSizeF{8, 8}};
@@ -414,7 +414,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
             nameEdit,
             &QLineEdit::textChanged,
             widget,
-            [this](const QString& text) {
+            [this](QString const& text) {
                 name = text;
                 update();
             });

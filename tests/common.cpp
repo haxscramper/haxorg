@@ -1,7 +1,7 @@
 #include "common.hpp"
 
 namespace {
-hstd::fs::path getDebugPath(const hstd::Str& suffix) {
+hstd::fs::path getDebugPath(hstd::Str const& suffix) {
     auto dir = std::filesystem::temp_directory_path()
              / hstd::fs::path{hstd::fmt(
                  "haxorg_tests/{}",
@@ -9,9 +9,9 @@ hstd::fs::path getDebugPath(const hstd::Str& suffix) {
                      ->current_test_info()
                      ->test_suite_name())};
 
-    auto testname = ::testing::UnitTest::GetInstance()
-                        ->current_test_info()
-                        ->name();
+    auto           testname = ::testing::UnitTest::GetInstance()
+                                  ->current_test_info()
+                                  ->name();
     hstd::fs::path outPath;
 
     if (suffix.empty()) {
@@ -26,7 +26,7 @@ hstd::fs::path getDebugPath(const hstd::Str& suffix) {
 }
 } // namespace
 
-hstd::fs::path getDebugFile(const hstd::Str& suffix, bool cleanParent) {
+hstd::fs::path getDebugFile(hstd::Str const& suffix, bool cleanParent) {
     auto file = getDebugPath(suffix);
 
     if (cleanParent) {
@@ -47,7 +47,7 @@ hstd::fs::path getDebugFile(const hstd::Str& suffix, bool cleanParent) {
     return file;
 }
 
-hstd::fs::path getDebugDir(const hstd::Str& suffix, bool clean) {
+hstd::fs::path getDebugDir(hstd::Str const& suffix, bool clean) {
     auto dir = getDebugPath(suffix);
 
     if (clean) {
@@ -63,7 +63,7 @@ hstd::fs::path getDebugDir(const hstd::Str& suffix, bool clean) {
 
 
 hstd::log::log_sink_scope getDebugLogScope(
-    const hstd::Str& suffix,
+    hstd::Str const& suffix,
     bool             cleanParent) {
     return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
         return ::hstd::log::init_file_sink(

@@ -51,7 +51,7 @@ std::string fmt_key_value(KeyValueWhatever const& map) {
 
 void StoryNode::Text::render(
     StoryGridModel&        model,
-    const StoryNodeId&     id,
+    StoryNodeId const&     id,
     StoryGridConfig const& conf) {
     auto& ctx = model.ctx;
 
@@ -201,7 +201,7 @@ void run_story_grid_annotated_cycle(
 Opt<json> story_grid_loop(
     GLFWwindow*      window,
     Vec<Str> const&  file,
-    const Opt<json>& in_state,
+    Opt<json> const& in_state,
     StoryGridConfig& conf) {
     auto start        = org::imm::ImmAstContext::init_start_context();
     auto parseContext = std::make_shared<org::parse::ParseContext>();
@@ -388,9 +388,9 @@ void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
 
 StoryGridGraph::FlatNodeStore::Ptr StoryGridGraph::FlatNodeStore::
     init_store(
-        const SemGraphStore&   semGraph,
+        SemGraphStore const&   semGraph,
         StoryGridContext&      ctx,
-        const StoryGridConfig& conf) {
+        StoryGridConfig const& conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Flat grid init store");
     auto res  = FlatNodeStore::shared();
     res->data = Store{};
@@ -464,7 +464,7 @@ void StoryGridGraph::FlatNodeStore::Store::setOrgNodeOrigin(
 LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     int                       laneIdx,
     StoryNodeId               id,
-    const StoryGridConfig&    conf,
+    StoryGridConfig const&    conf,
     FlatNodeStore::Ptr const& nodes) {
     BlockNodeId block    = BlockGraphStore::toInitialBlockId(id);
     auto [iter, success] = irMapping.insert({id, block});
@@ -580,12 +580,12 @@ void StoryGridGraph::BlockGraphStore::setPartition(
                     [&](StoryNode const&           flat,
                         org::imm::ImmUniqId const& node) -> Opt<int> {
                     if (flat.isTreeGrid()) {
-                        int row_idx = flat.getTreeGrid()
-                                          .node.getRow(node)
-                                          .value();
-                        auto offset = flat.getTreeGrid()
-                                          .node.getRowCenterOffset(
-                                              row_idx);
+                        int  row_idx = flat.getTreeGrid()
+                                           .node.getRow(node)
+                                           .value();
+                        auto offset  = flat.getTreeGrid()
+                                           .node.getRowCenterOffset(
+                                               row_idx);
                         return offset;
                     } else if (flat.isLinkList()) {
                         // CTX_MSG(
@@ -957,8 +957,8 @@ bool isSubtreeDescriptionList(org::imm::ImmAdapter const& list) {
 } // namespace
 
 StoryNodeId StoryGridGraph::FlatNodeStore::Store::add(
-    const org::imm::ImmAdapter& node,
-    const StoryGridConfig&      conf,
+    org::imm::ImmAdapter const& node,
+    StoryGridConfig const&      conf,
     StoryGridContext&           ctx) {
     if (orgToFlatIdx.contains(node.uniq())) {
         auto annotation = orgToFlatIdx.at(node.uniq());
@@ -1016,7 +1016,7 @@ StoryNodeId StoryGridGraph::FlatNodeStore::Store::add(
 }
 
 void StoryGridModel::apply(
-    const GridAction&      act,
+    GridAction const&      act,
     StoryGridConfig const& conf) {
     __perf_trace("model", "Apply grid action");
     CTX_MSG(fmt("Apply story grid action {}", act));
@@ -1118,7 +1118,7 @@ void StoryGridModel::apply(
 }
 
 void StoryGridContext::message(
-    const std::string& value,
+    std::string const& value,
     int                line,
     const char*        function,
     const char*        file) const {
@@ -1339,8 +1339,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
 
 
 TreeGridDocument TreeGridDocument::from_root(
-    const org::imm::ImmAdapter& node,
-    const StoryGridConfig&      conf,
+    org::imm::ImmAdapter const& node,
+    StoryGridConfig const&      conf,
     StoryGridContext&           ctx) {
     TreeGridDocument doc = conf.getDefaultDoc();
     doc.origin           = node.as<org::imm::ImmDocument>();
@@ -1382,8 +1382,8 @@ TreeGridDocument TreeGridDocument::from_root(
 }
 
 void StoryGridGraph::SemGraphStore::addDocNode(
-    const org::imm::ImmAdapter& node,
-    const StoryGridConfig&      conf,
+    org::imm::ImmAdapter const& node,
+    StoryGridConfig const&      conf,
     StoryGridContext&           ctx) {
 
     auto doc  = TreeGridDocument::from_root(node, conf, ctx);
@@ -1448,7 +1448,7 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
 }
 
 void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
-    const org::imm::ImmAdapterT<org::imm::ImmList>& list,
+    org::imm::ImmAdapterT<org::imm::ImmList> const& list,
     StoryGridContext&                               ctx) {
 
     if (!rs::any_of(
@@ -1487,7 +1487,7 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
 }
 
 bool StoryGridGraph::FlatNodeStore::isVisible(
-    const org::imm::ImmUniqId& id) const {
+    org::imm::ImmUniqId const& id) const {
     Opt<StoryNodeId> node = getStoryNodeId(id);
     if (!node) { return false; }
     StoryNode const& ref = getStoryNode(node.value());
@@ -1499,10 +1499,10 @@ bool StoryGridGraph::FlatNodeStore::isVisible(
 }
 
 StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
-    const SemGraphStore&      semGraph,
+    SemGraphStore const&      semGraph,
     FlatNodeStore::Ptr const& storyNodes,
     StoryGridContext&         ctx,
-    const StoryGridConfig&    conf) {
+    StoryGridConfig const&    conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Update block graph store");
     BlockGraphStore res;
     res.ir.setVisible(conf.gridViewport);
@@ -1580,7 +1580,7 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
 }
 
 void StoryGridGraph::BlockGraphStore::updateBlockNodes(
-    const StoryGridConfig&    conf,
+    StoryGridConfig const&    conf,
     StoryGridContext&         ctx,
     FlatNodeStore::Ptr const& storyNodes) {
     ir.syncSize([&](BlockNodeId id) -> ImVec2 {
@@ -1591,10 +1591,10 @@ void StoryGridGraph::BlockGraphStore::updateBlockNodes(
 }
 
 void StoryGridGraph::cascadeScrollingUpdate(
-    const ImVec2&          graphPos,
+    ImVec2 const&          graphPos,
     float                  direction,
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Add scrolling to graph");
         getLayer().block.ir.addScrolling(
@@ -1604,9 +1604,9 @@ void StoryGridGraph::cascadeScrollingUpdate(
 }
 
 void StoryGridGraph::cascadeSemanticUpdate(
-    const Vec<org::imm::ImmAdapter>& root,
+    Vec<org::imm::ImmAdapter> const& root,
     StoryGridContext&                ctx,
-    const StoryGridConfig&           conf) {
+    StoryGridConfig const&           conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Semantic update");
         getLayer().updateSemanticGraph(root, ctx, conf);
@@ -1616,7 +1616,7 @@ void StoryGridGraph::cascadeSemanticUpdate(
 
 void StoryGridGraph::cascadeStoryNodeUpdate(
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Story node update");
         getLayer().updateStoryNodes(ctx, conf);
@@ -1626,7 +1626,7 @@ void StoryGridGraph::cascadeStoryNodeUpdate(
 
 void StoryGridGraph::cascadeBlockGraphUpdate(
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Block graph update");
         getLayer().updateNodeLanePlacement(ctx, conf);
@@ -1636,7 +1636,7 @@ void StoryGridGraph::cascadeBlockGraphUpdate(
 
 void StoryGridGraph::cascadeNodePositionsUpdate(
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Node positions update");
         getLayer().updateNodePositions(ctx, conf);
@@ -1644,9 +1644,9 @@ void StoryGridGraph::cascadeNodePositionsUpdate(
 }
 
 void StoryGridGraph::cascadeGeometryUpdate(
-    const StoryNodeId&     id,
+    StoryNodeId const&     id,
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, fmt("Geometry update for {}", id));
         getLayer().updateGeometry(id);
@@ -1655,7 +1655,7 @@ void StoryGridGraph::cascadeGeometryUpdate(
 }
 
 template <typename T>
-Vec<Vec<Opt<T>>> pivot_with_nullopt(const Vec<Vec<T>>& input) {
+Vec<Vec<Opt<T>>> pivot_with_nullopt(Vec<Vec<T>> const& input) {
     Vec<Vec<Opt<T>>> result;
     for (auto const& [row_idx, row] : enumerate(input)) {
         for (auto const& [col_idx, col] : enumerate(row)) {
@@ -1667,7 +1667,7 @@ Vec<Vec<Opt<T>>> pivot_with_nullopt(const Vec<Vec<T>>& input) {
 }
 
 std::string StoryGridGraph::FlatNodeStore::Partition::toString(
-    const SemGraphStore& semGraph) const {
+    SemGraphStore const& semGraph) const {
 
     auto format_map_node =
         [&](org::graph::MapNode const& p) -> std::string {
@@ -1751,7 +1751,7 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
 
 void StoryGridGraph::cascadeLinkListTargetsUpdate(
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) {
+    StoryGridConfig const& conf) {
     STORY_GRID_MSG_SCOPE(ctx, fmt("Cascade link list target update"));
     base.updateLinkListTargetRows(ctx);
 
@@ -1776,12 +1776,12 @@ void StoryGridGraph::cascadeLinkListTargetsUpdate(
 }
 
 StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
-    const StoryNodeId& id) {
+    StoryNodeId const& id) {
     return source->getStoryNode(getUnderlying(id));
 }
 
 const StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
-    const StoryNodeId& id) const {
+    StoryNodeId const& id) const {
     return source->getStoryNode(getUnderlying(id));
 }
 
@@ -1790,37 +1790,37 @@ struct lambda_bfs_visitor : public boost::default_bfs_visitor {
     using VD = typename boost::graph_traits<Graph>::vertex_descriptor;
     using ED = typename boost::graph_traits<Graph>::edge_descriptor;
 
-    std::function<void(CR<VD>, CR<Graph>)> initialize_vertex_fn;
-    std::function<void(CR<VD>, CR<Graph>)> discover_vertex_fn;
-    std::function<void(CR<VD>, CR<Graph>)> examine_vertex_fn;
-    std::function<void(CR<ED>, CR<Graph>)> examine_edge_fn;
-    std::function<void(CR<ED>, CR<Graph>)> tree_edge_fn;
-    std::function<void(CR<ED>, CR<Graph>)> non_tree_edge_fn;
-    std::function<void(CR<ED>, CR<Graph>)> gray_target_fn;
-    std::function<void(CR<ED>, CR<Graph>)> black_target_fn;
-    std::function<void(CR<VD>, CR<Graph>)> finish_vertex_fn;
+    std::function<void(VD const&, Graph const&)> initialize_vertex_fn;
+    std::function<void(VD const&, Graph const&)> discover_vertex_fn;
+    std::function<void(VD const&, Graph const&)> examine_vertex_fn;
+    std::function<void(ED const&, Graph const&)> examine_edge_fn;
+    std::function<void(ED const&, Graph const&)> tree_edge_fn;
+    std::function<void(ED const&, Graph const&)> non_tree_edge_fn;
+    std::function<void(ED const&, Graph const&)> gray_target_fn;
+    std::function<void(ED const&, Graph const&)> black_target_fn;
+    std::function<void(VD const&, Graph const&)> finish_vertex_fn;
 
 
     // clang-format off
-    void initialize_vertex                     (VD v, CR<Graph> g) { if (initialize_vertex_fn) { initialize_vertex_fn               (v, g); } }
-    void discover_vertex                       (VD v, CR<Graph> g) { if (discover_vertex_fn) { discover_vertex_fn                   (v, g); } }
-    void examine_vertex                        (VD v, CR<Graph> g) { if (examine_vertex_fn) { examine_vertex_fn                     (v, g); } }
-    void examine_edge                          (ED e, CR<Graph> g) { if (examine_edge_fn) { examine_edge_fn                         (e, g); } }
-    void tree_edge                             (ED e, CR<Graph> g) { if (tree_edge_fn) { tree_edge_fn                               (e, g); } }
-    void non_tree_edge                         (ED e, CR<Graph> g) { if (non_tree_edge_fn) { non_tree_edge_fn                       (e, g); } }
-    void gray_target                           (ED e, CR<Graph> g) { if (gray_target_fn) { gray_target_fn                           (e, g); } }
-    void black_target                          (ED e, CR<Graph> g) { if (black_target_fn) { black_target_fn                         (e, g); } }
-    void finish_vertex                         (VD v, CR<Graph> g) { if (finish_vertex_fn) { finish_vertex_fn                       (v, g); } }
+    void initialize_vertex                     (VD v, Graph const& g) { if (initialize_vertex_fn) { initialize_vertex_fn               (v, g); } }
+    void discover_vertex                       (VD v, Graph const& g) { if (discover_vertex_fn) { discover_vertex_fn                   (v, g); } }
+    void examine_vertex                        (VD v, Graph const& g) { if (examine_vertex_fn) { examine_vertex_fn                     (v, g); } }
+    void examine_edge                          (ED e, Graph const& g) { if (examine_edge_fn) { examine_edge_fn                         (e, g); } }
+    void tree_edge                             (ED e, Graph const& g) { if (tree_edge_fn) { tree_edge_fn                               (e, g); } }
+    void non_tree_edge                         (ED e, Graph const& g) { if (non_tree_edge_fn) { non_tree_edge_fn                       (e, g); } }
+    void gray_target                           (ED e, Graph const& g) { if (gray_target_fn) { gray_target_fn                           (e, g); } }
+    void black_target                          (ED e, Graph const& g) { if (black_target_fn) { black_target_fn                         (e, g); } }
+    void finish_vertex                         (VD v, Graph const& g) { if (finish_vertex_fn) { finish_vertex_fn                       (v, g); } }
 
-    lambda_bfs_visitor &with_initialize_vertex (std::function<void (CR<VD>, CR<Graph>)> fn) { initialize_vertex_fn = std::move (fn); return *this; }
-    lambda_bfs_visitor &with_discover_vertex   (std::function<void (CR<VD>, CR<Graph>)> fn) { discover_vertex_fn = std::move   (fn); return *this; }
-    lambda_bfs_visitor &with_examine_vertex    (std::function<void (CR<VD>, CR<Graph>)> fn) { examine_vertex_fn = std::move    (fn); return *this; }
-    lambda_bfs_visitor &with_examine_edge      (std::function<void (CR<ED>, CR<Graph>)> fn) { examine_edge_fn = std::move      (fn); return *this; }
-    lambda_bfs_visitor &with_tree_edge         (std::function<void (CR<ED>, CR<Graph>)> fn) { tree_edge_fn = std::move         (fn); return *this; }
-    lambda_bfs_visitor &with_non_tree_edge     (std::function<void (CR<ED>, CR<Graph>)> fn) { non_tree_edge_fn = std::move     (fn); return *this; }
-    lambda_bfs_visitor &with_gray_target       (std::function<void (CR<ED>, CR<Graph>)> fn) { gray_target_fn = std::move       (fn); return *this; }
-    lambda_bfs_visitor &with_black_target      (std::function<void (CR<ED>, CR<Graph>)> fn) { black_target_fn = std::move      (fn); return *this; }
-    lambda_bfs_visitor &with_finish_vertex     (std::function<void (CR<VD>, CR<Graph>)> fn) { finish_vertex_fn = std::move     (fn); return *this; }
+    lambda_bfs_visitor &with_initialize_vertex (std::function<void (VD const&, Graph const&)> fn) { initialize_vertex_fn = std::move (fn); return *this; }
+    lambda_bfs_visitor &with_discover_vertex   (std::function<void (VD const&, Graph const&)> fn) { discover_vertex_fn = std::move   (fn); return *this; }
+    lambda_bfs_visitor &with_examine_vertex    (std::function<void (VD const&, Graph const&)> fn) { examine_vertex_fn = std::move    (fn); return *this; }
+    lambda_bfs_visitor &with_examine_edge      (std::function<void (ED const&, Graph const&)> fn) { examine_edge_fn = std::move      (fn); return *this; }
+    lambda_bfs_visitor &with_tree_edge         (std::function<void (ED const&, Graph const&)> fn) { tree_edge_fn = std::move         (fn); return *this; }
+    lambda_bfs_visitor &with_non_tree_edge     (std::function<void (ED const&, Graph const&)> fn) { non_tree_edge_fn = std::move     (fn); return *this; }
+    lambda_bfs_visitor &with_gray_target       (std::function<void (ED const&, Graph const&)> fn) { gray_target_fn = std::move       (fn); return *this; }
+    lambda_bfs_visitor &with_black_target      (std::function<void (ED const&, Graph const&)> fn) { black_target_fn = std::move      (fn); return *this; }
+    lambda_bfs_visitor &with_finish_vertex     (std::function<void (VD const&, Graph const&)> fn) { finish_vertex_fn = std::move     (fn); return *this; }
     // clang-format on
 };
 
@@ -1847,7 +1847,7 @@ struct lambda_bfs_visitor : public boost::default_bfs_visitor {
 
 StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
     StoryGridContext&      ctx,
-    const StoryGridConfig& conf) const {
+    StoryGridConfig const& conf) const {
     SemGraphStore result;
 
     using namespace org::graph;
@@ -1899,7 +1899,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
     {
         STORY_GRID_MSG_SCOPE(ctx, "DFS visit");
 
-        auto visit_node = [&](CR<MapNode> n) {
+        auto visit_node = [&](MapNode const& n) {
             CTX_MSG(fmt("Node {}", n.id.id));
             auto& g = res.graph;
             if (!g->hasNode(n)) {
@@ -1913,7 +1913,7 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
             }
         };
 
-        auto visit_edge = [&](CR<MapEdge> e) {
+        auto visit_edge = [&](MapEdge const& e) {
             CTX_MSG(
                 fmt("Visiting {}->{}", e.source.id.id, e.target.id.id));
             auto& g = res.graph;
@@ -1923,9 +1923,9 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 
         // TODO implement undirected and inverted mind map overlay to reuse
         // the boost BFS traversal algorithm.
-        Func<void(CR<MapNode> node)> inverseBfs;
-        UnorderedSet<MapNode>        visited;
-        inverseBfs = [&](CR<MapNode> node) {
+        Func<void(MapNode const& node)> inverseBfs;
+        UnorderedSet<MapNode>           visited;
+        inverseBfs = [&](MapNode const& node) {
             CTX_MSG(fmt("Inverse visit {}", node));
             if (visited.contains(node)) {
                 return;
@@ -1949,11 +1949,11 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
                 boost::visitor( //
                     lambda_bfs_visitor<MapGraph>{}
                         .with_examine_vertex(
-                            [&](CR<MapNode> n, CR<MapGraph>) {
+                            [&](MapNode const& n, MapGraph const&) {
                                 visit_node(n);
                             })
                         .with_examine_edge(
-                            [&](CR<MapEdge> e, CR<MapGraph>) {
+                            [&](MapEdge const& e, MapGraph const&) {
                                 visit_edge(e);
                             }))
                     .color_map(colorMap.map));
@@ -1970,8 +1970,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 }
 
 void StoryGridGraph::FlatNodeStore::Proxy::add(
-    const StoryNodeId& underlying,
-    const StoryNodeId& proxy) {
+    StoryNodeId const& underlying,
+    StoryNodeId const& proxy) {
     LOGIC_ASSERTION_CHECK_FMT(
         underlying.getMask() + 1 == proxy.getMask(),
         "Underlying ID and proxy ID must have mask exactly "

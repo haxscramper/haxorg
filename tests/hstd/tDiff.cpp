@@ -5,7 +5,10 @@
 using namespace hstd;
 
 template <typename T>
-Str formatDiffedEx(CR<Vec<SeqEdit>> ops, Span<T> oldSeq, Span<T> newSeq) {
+Str formatDiffedEx(
+    Vec<SeqEdit> const& ops,
+    Span<T>             oldSeq,
+    Span<T>             newSeq) {
     Str result;
     for (const auto& op : ops) {
         switch (op.kind) {
@@ -36,7 +39,7 @@ using IVec = Vec<int>;
 
 
 template <typename T>
-Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
+Vec<T> expandOn(BacktrackRes const& back, Vec<T> const& in, bool onX) {
     Vec<T> result;
     if (onX) {
         for (int i : back.lhsIndex) { result.push_back(in[i]); }
@@ -47,7 +50,7 @@ Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
 }
 
 
-Str levEditText(const Str& a, const Str& b) {
+Str levEditText(Str const& a, Str const& b) {
     Vec<SeqEdit> ops = levenshteinDistance<const char>(
                            a.toSpan(), b.toSpan())
                            .operations;
@@ -72,17 +75,19 @@ TEST_F(LevenshteinEditOperationsTest, SimpleEdits) {
 class DiffTest : public ::testing::Test {
   protected:
     void SetUp() override {
-        cmp = [](CR<int> lhs, CR<int> rhs) -> bool { return lhs == rhs; };
+        cmp = [](int const& lhs, int const& rhs) -> bool {
+            return lhs == rhs;
+        };
 
-        cmpValue = [](CR<int> lhs, CR<int> rhs) -> float {
+        cmpValue = [](int const& lhs, int const& rhs) -> float {
             return lhs == rhs ? 1.0 : 0.0;
         };
     }
 
-    Func<bool(CR<int>, CR<int>)>  cmp;
-    Func<float(CR<int>, CR<int>)> cmpValue;
+    Func<bool(int const&, int const&)>  cmp;
+    Func<float(int const&, int const&)> cmpValue;
 
-    BacktrackRes lcs(CR<IVec> lhs, CR<IVec> rhs) {
+    BacktrackRes lcs(IVec const& lhs, IVec const& rhs) {
         return longestCommonSubsequence(lhs, rhs, cmp, cmpValue)[0];
     }
 };
@@ -242,10 +247,11 @@ class DiffTestFuzzy : public ::testing::Test {
 
     Vec<int> runMatcher(
         FuzzyMatcher& matcher,
-        const Str&    lhs,
-        const Str&    rhs) {
+        Str const&    lhs,
+        Str const&    rhs) {
         int score       = 0;
-        matcher.isEqual = [&](CR<int> lhsIdx, CR<int> rhsIdx) -> bool {
+        matcher.isEqual = [&](int const& lhsIdx,
+                              int const& rhsIdx) -> bool {
             return lhs.at(lhsIdx) == rhs.at(rhsIdx);
         };
 
@@ -258,14 +264,14 @@ class DiffTestFuzzy : public ::testing::Test {
     }
 
     auto getMatches(
-        const Str&           lhs,
-        const Str&           rhs,
+        Str const&           lhs,
+        Str const&           rhs,
         hstd::Opt<hstd::Str> debugFullPath = std::nullopt) -> Vec<int> {
         FuzzyMatcher matcher = initMatcher(debugFullPath);
 
         matcher.matchScore = matcher.getLinearScore(
             FuzzyMatcher::LinearScoreConfig{
-                .isSeparator = [](CR<char> sep) -> bool {
+                .isSeparator = [](char const& sep) -> bool {
                     return false;
                 }});
         return runMatcher(matcher, lhs, rhs);

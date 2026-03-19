@@ -56,12 +56,13 @@ org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
 }
 
 struct ErrorTable {
-#define P_ERROR(__fieldname, __short, __long)                                                  \
-    static const inline org::sem::OrgDiagnostics::ConvertError __fieldname = ConvertErrorInit( \
-        #__fieldname,                                                                          \
-        ::org::fieldname_to_code(#__fieldname),                                                \
-        __short,                                                                               \
-        __long);
+#define P_ERROR(__fieldname, __short, __long)                             \
+    static const inline org::sem::OrgDiagnostics::ConvertError            \
+        __fieldname = ConvertErrorInit(                                   \
+            #__fieldname,                                                 \
+            ::org::fieldname_to_code(#__fieldname),                       \
+            __short,                                                      \
+            __long);
 
     P_ERROR(
         MissingLogHashtag,
@@ -152,7 +153,7 @@ using Err      = OrgConverter::Errors;
 using Property = org::sem::NamedProperty;
 
 namespace {
-bool org_streq(CR<Str> str1, CR<Str> str2) {
+bool org_streq(Str const& str1, Str const& str2) {
     return normalize(str1) == normalize(str2);
 }
 
@@ -364,7 +365,7 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
 };
 
 template <sem::IsOrg T>
-Vec<SemId<T>> filter_subnodes(sem::OrgArg node, CR<SemSet> limiter) {
+Vec<SemId<T>> filter_subnodes(sem::OrgArg node, SemSet const& limiter) {
     return node->subnodes //
          | rv::take_while([&limiter](sem::OrgArg arg) {
                return !limiter.contains(arg->getKind());
@@ -393,8 +394,9 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             [](OrgArg arg) { return normalize(arg.as<Word>()->text); })
         | rs::to<Vec>();
 
-    auto node_after = [&](CR<Str>    word,
-                          CR<SemSet> target) -> Opt<sem::SemId<sem::Org>> {
+    auto node_after =
+        [&](Str const&    word,
+            SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
         auto __trace = trace(a, "node_after");
         print(
             fmt("Searching for '{}' after '{}' in {}",
@@ -425,7 +427,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
         return std::nullopt;
     };
 
-    auto time_after = [&](CR<Str> word) -> Opt<sem::SemId<sem::Time>> {
+    auto time_after = [&](Str const& word) -> Opt<sem::SemId<sem::Time>> {
         auto t = node_after(word, SemSet{osk::Time});
         if (t) {
             return t.value().as<sem::Time>();
@@ -939,10 +941,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         handled();
         NamedProperty::CustomArgs prop;
         auto                      name = strip(
-                        get_text(one(a, N::Name)),
-                        CharSet{':'},
-                        CharSet{':'})
-                        .split(':');
+                                             get_text(one(a, N::Name)),
+                                             CharSet{':'},
+                                             CharSet{':'})
+                                             .split(':');
 
         prop.name = name.at(0);
         if (name.has(1)) { prop.sub = name.at(1); }
@@ -1172,9 +1174,9 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                         r_out.mode = M::Exact;
                     }
 
-                    auto period = get_text(r.at(1));
-                    r_out.count = Str{period.substr(0, period.size() - 1)}
-                                      .toInt();
+                    auto period  = get_text(r.at(1));
+                    r_out.count  = Str{period.substr(0, period.size() - 1)}
+                                       .toInt();
                     r_out.period = which_period(period.at(1_B));
 
                     s.repeat.push_back(r_out);
@@ -1617,10 +1619,10 @@ struct axis_name {
 };
 
 struct axis_pos {
-    using type   = sem::Tblfm::Expr::AxisRef::Position;
-    sc auto rule = (dsl::peek(dsl::ascii::digit / dsl::lit_c<'-'>)
-                    >> dsl::p<axis_spec>)
-                 | (dsl::peek(dsl::ascii::alpha) >> dsl::p<axis_name>);
+    using type    = sem::Tblfm::Expr::AxisRef::Position;
+    sc auto rule  = (dsl::peek(dsl::ascii::digit / dsl::lit_c<'-'>)
+                     >> dsl::p<axis_spec>)
+                  | (dsl::peek(dsl::ascii::alpha) >> dsl::p<axis_name>);
     sc auto value = lexy::callback<type>(
         [](axis_spec::type const& t) {
             type res;
@@ -1675,7 +1677,7 @@ sem::Tblfm::Expr fold_expression_stack(
     std::stack<sem::Tblfm::Expr> output;
     std::stack<std::string>      operators;
 
-    auto precedence = [](const std::string& op) {
+    auto precedence = [](std::string const& op) {
         return operator_precedence.contains(op) ? operator_precedence[op]
                                                 : -1;
     };
@@ -1876,8 +1878,8 @@ struct CollectErrors {
 
         template <typename Input, typename Reader, typename Tag>
         void operator()(
-            const lexy::error_context<Input>& context,
-            const lexy::error<Reader, Tag>&   error) {
+            lexy::error_context<Input> const& context,
+            lexy::error<Reader, Tag> const&   error) {
             std::string out;
             lexy_ext::_detail::write_error(
                 std::back_inserter(out), context, error, {}, nullptr);
@@ -2967,7 +2969,7 @@ void OrgConverter::convertDocumentOptions(
     SemId<DocumentOptions> opts,
     org::parse::OrgAdapter a) {
     auto item      = a.at(0);
-    auto parseBool = [](CR<Str> value) {
+    auto parseBool = [](Str const& value) {
         return value == "t" || value == "T";
     };
     for (auto const& value : get_text(item).split(' ')) {
@@ -2985,14 +2987,15 @@ void OrgConverter::convertDocumentOptions(
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->exportConfig.tocExport = DocumentExportConfig::
-                        DoExport{true};
+                    opts->exportConfig
+                        .tocExport = DocumentExportConfig::DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.tocExport = DocumentExportConfig::
-                        DoExport{false};
+                    opts->exportConfig
+                        .tocExport = DocumentExportConfig::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->exportConfig.tocExport = DocumentExportConfig::
-                        ExportFixed{tail.toInt()};
+                    opts->exportConfig
+                        .tocExport = DocumentExportConfig::ExportFixed{
+                        tail.toInt()};
                 }
             } else if (org_streq(head, "inline")) {
                 opts->exportConfig.inlinetasks = parseBool(tail);
@@ -3052,13 +3055,16 @@ void OrgConverter::convertDocumentOptions(
                 opts->exportConfig.headlineLevels = tail.toInt();
             } else if (org_streq(head, "arch")) {
                 if (org_streq(tail, "headline")) {
-                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                    opts->exportConfig
+                        .archivedTrees = DocumentExportConfig::
                         ArchivedTrees::Headline;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                    opts->exportConfig
+                        .archivedTrees = DocumentExportConfig::
                         ArchivedTrees::All;
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.archivedTrees = DocumentExportConfig::
+                    opts->exportConfig
+                        .archivedTrees = DocumentExportConfig::
                         ArchivedTrees::Skip;
                 }
             } else if (org_streq(head, "tags")) {
@@ -3066,21 +3072,24 @@ void OrgConverter::convertDocumentOptions(
                     opts->exportConfig.tagExport = DocumentExportConfig::
                         TagExport::NotInToc;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.tagExport = DocumentExportConfig::
-                        TagExport::All;
+                    opts->exportConfig
+                        .tagExport = DocumentExportConfig::TagExport::All;
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.tagExport = DocumentExportConfig::
-                        TagExport::None;
+                    opts->exportConfig
+                        .tagExport = DocumentExportConfig::TagExport::None;
                 }
             } else if (org_streq(head, "tasks")) {
                 if (org_streq(tail, "nil")) {
-                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                    opts->exportConfig
+                        .taskFiltering = DocumentExportConfig::
                         TaskFiltering::None;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                    opts->exportConfig
+                        .taskFiltering = DocumentExportConfig::
                         TaskFiltering::All;
                 } else if (org_streq(tail, "todo")) {
-                    opts->exportConfig.taskFiltering = DocumentExportConfig::
+                    opts->exportConfig
+                        .taskFiltering = DocumentExportConfig::
                         TaskFiltering::Done;
                 }
             } else {
@@ -3116,7 +3125,7 @@ using Prop = NamedProperty;
 
 bool OrgConverter::updateDocument(
     SemId<Document>&         doc,
-    const parse::OrgAdapter& sub) {
+    parse::OrgAdapter const& sub) {
     switch (sub.kind()) {
         case onk::CmdColumns: {
             if (auto columns = convertCmdColumns(sub)) {
@@ -3223,7 +3232,7 @@ bool OrgConverter::updateDocument(
 }
 
 OrgConverter::ConvResult<Document> OrgConverter::convertDocumentFragments(
-    const hstd::Vec<InFragment>& fragments) {
+    hstd::Vec<InFragment> const& fragments) {
     auto __trace        = trace(std::nullopt, "document-fragment-list");
     SemId<Document> doc = Sem<Document>(fragments.front().node);
     doc->options        = Sem<DocumentOptions>(fragments.front().node);

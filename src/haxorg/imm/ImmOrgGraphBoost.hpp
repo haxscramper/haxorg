@@ -31,7 +31,7 @@ struct map_graph_vertices_iterator {
         return *this;
     }
 
-    bool operator!=(const map_graph_vertices_iterator& other) const {
+    bool operator!=(map_graph_vertices_iterator const& other) const {
         return iter != other.iter;
     }
 };
@@ -72,11 +72,11 @@ struct map_graph_buffered_iterator {
         return res;
     }
 
-    bool operator==(const map_graph_buffered_iterator& other) const {
+    bool operator==(map_graph_buffered_iterator const& other) const {
         return index == other.index;
     }
 
-    bool operator!=(const map_graph_buffered_iterator& other) const {
+    bool operator!=(map_graph_buffered_iterator const& other) const {
         return index != other.index;
     }
 };
@@ -134,11 +134,11 @@ struct map_graph_edges_iterator {
         return *this;
     }
 
-    bool operator==(const map_graph_edges_iterator& other) const {
+    bool operator==(map_graph_edges_iterator const& other) const {
         return outEdgeIndex == other.outEdgeIndex && iter == other.iter;
     }
 
-    bool operator!=(const map_graph_edges_iterator& other) const {
+    bool operator!=(map_graph_edges_iterator const& other) const {
         return outEdgeIndex != other.outEdgeIndex || iter != other.iter;
     }
 };
@@ -309,17 +309,17 @@ struct unordered_map_property_map {
 
     const hstd::UnorderedMap<Key, Value>& map_ref;
 
-    unordered_map_property_map(const hstd::UnorderedMap<Key, Value>& map)
+    unordered_map_property_map(hstd::UnorderedMap<Key, Value> const& map)
         : map_ref(map) {}
 
-    reference operator[](const key_type& key) const {
+    reference operator[](key_type const& key) const {
         return map_ref.at(key);
     }
 };
 
 template <typename Key, typename Value>
 unordered_map_property_map<Key, Value> make_unordered_map_property_map(
-    const hstd::UnorderedMap<Key, Value>& map) {
+    hstd::UnorderedMap<Key, Value> const& map) {
     return unordered_map_property_map<Key, Value>(map);
 }
 

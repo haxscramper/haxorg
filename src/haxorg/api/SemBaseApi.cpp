@@ -41,7 +41,7 @@ void org::exportToJsonFile(
 
 std::string org::exportToYamlString(
     sem::SemId<sem::Org> const& node,
-    const OrgYamlExportOpts&    opts) {
+    OrgYamlExportOpts const&    opts) {
     std::stringstream os;
 
     org::algo::ExporterYaml exp{
@@ -60,7 +60,7 @@ std::string org::exportToYamlString(
 void org::exportToYamlFile(
     sem::SemId<sem::Org> const& node,
     std::string                 path,
-    const OrgYamlExportOpts&    opts) {
+    OrgYamlExportOpts const&    opts) {
     writeFile(fs::path{path}, exportToYamlString(node, opts));
 }
 
@@ -101,7 +101,7 @@ void org::exportToTreeFile(
 }
 
 
-sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
+sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
@@ -124,7 +124,7 @@ sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
 
 void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
-    const std::string&        file) {
+    std::string const&        file) {
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     std::ofstream     stream{file};
     orgproto::AnyNode result;
@@ -148,40 +148,42 @@ std::string org::formatToString(sem::SemId<sem::Org> arg) {
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<org::SemSubnodeVisitor> visitor,
-    SemId<Org>                 org,
-    bool                       originalBase);
+    org::SemSubnodeVisitor const& visitor,
+    SemId<Org>                    org,
+    bool                          originalBase);
 
 template <sem::NotOrg T>
-void visitField(CR<org::SemSubnodeVisitor>, CR<T>) {}
+void visitField(org::SemSubnodeVisitor const&, T const&) {}
 
 
-void visitField(CR<org::SemSubnodeVisitor> visitor, SemId<Org> node) {
+void visitField(org::SemSubnodeVisitor const& visitor, SemId<Org> node) {
     if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
 template <sem::IsOrg T>
-void visitField(CR<org::SemSubnodeVisitor> visitor, CR<T> node) {
+void visitField(org::SemSubnodeVisitor const& visitor, T const& node) {
     visitField(visitor, node.asOrg());
 }
 
 
 template <typename T>
-void visitField(CR<org::SemSubnodeVisitor> visitor, CVec<T> value) {
+void visitField(org::SemSubnodeVisitor const& visitor, CVec<T> value) {
     for (const auto& it : value) { visitField(visitor, it); }
 }
 
 
 template <typename T>
-void visitField(CR<org::SemSubnodeVisitor> visitor, CR<Opt<T>> value) {
+void visitField(
+    org::SemSubnodeVisitor const& visitor,
+    Opt<T> const&                 value) {
     if (value) { visitField(visitor, *value); }
 }
 
 template <typename T>
 void recVisitOrgNodesImpl(
-    CR<org::SemSubnodeVisitor> visitor,
-    SemId<T>                   tree,
-    bool                       originalBase) {
+    org::SemSubnodeVisitor const& visitor,
+    SemId<T>                      tree,
+    bool                          originalBase) {
     if (tree.isNil()) { return; }
     if (originalBase) { visitor(tree); }
     using Bd = describe_bases<T, mod_any_access>;
@@ -199,11 +201,11 @@ void recVisitOrgNodesImpl(
 
 
 void eachSubnodeRecImpl(
-    CR<org::SemSubnodeVisitor> visitor,
-    SemId<Org>                 org,
-    bool                       originalBase) {
+    org::SemSubnodeVisitor const& visitor,
+    SemId<Org>                    org,
+    bool                          originalBase) {
     std::visit(
-        [&](const auto& node) {
+        [&](auto const& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
         },
         asVariant(org));
@@ -216,7 +218,7 @@ void org::eachSubnodeRec(SemId<Org> id, org::SemSubnodeVisitor cb) {
 }
 
 
-Opt<UserTime> org::getCreationTime(const SemId<Org>& node) {
+Opt<UserTime> org::getCreationTime(SemId<Org> const& node) {
     if (node->is(osk::Paragraph)) {
         auto time = node.as<sem::Paragraph>()->getTimestamps();
         return time.get(0);
@@ -282,8 +284,8 @@ void addSubnodes(
 
 template <typename T>
 Vec<SemId<Org>> getDirectSubnodes(
-    sem::SemId<T> node,
-    CR<Opt<Str>>  targetField = std::nullopt) {
+    sem::SemId<T>   node,
+    Opt<Str> const& targetField = std::nullopt) {
     Vec<SemId<Org>> result;
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
@@ -301,7 +303,7 @@ Vec<SemId<Org>> getDirectSubnodes(
 
 Vec<SemId<Org>> getDirectSubnodes(
     sem::SemId<Org> node,
-    CR<Opt<Str>>    targetField = std::nullopt) {
+    Opt<Str> const& targetField = std::nullopt) {
     switch (node->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
@@ -319,7 +321,7 @@ Vec<SemId<Org>> getDirectSubnodes(
 } // namespace
 
 
-cctz::time_zone LoadTimeZone(CR<Str> name) {
+cctz::time_zone LoadTimeZone(Str const& name) {
     cctz::time_zone result;
     if (cctz::load_time_zone(name, &result)) {
         return result;
@@ -329,7 +331,7 @@ cctz::time_zone LoadTimeZone(CR<Str> name) {
 }
 
 sem::SemId<Time> org::newSemTimeStatic(
-    const UserTimeBreakdown& breakdown,
+    UserTimeBreakdown const& breakdown,
     bool                     isActive) {
 
     sem::SemId<Time> result = sem::SemId<Time>::New();
@@ -385,7 +387,7 @@ sem::SemId<Org> org::asOneNode(org::sem::SemId<org::sem::Org> const& arg) {
 }
 
 
-int org::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
+int org::getListHeaderIndex(sem::SemId<List> const& it, Str const& text) {
     for (auto const& [idx, sub] : enumerate(it->subnodes)) {
         if (auto it = sub.asOpt<sem::ListItem>();
             it && it->isDescriptionItem()
@@ -441,15 +443,15 @@ void org::eachSubnodeRecSimplePath(
     aux(id, {});
 }
 
-AstTrackingMap org::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
+AstTrackingMap org::getAstTrackingMap(Vec<sem::SemId<Org>> const& nodes) {
     AstTrackingMap res;
 
     for (auto const& node : nodes) {
         org::eachSubnodeRecSimplePath(
-            node, [&](sem::OrgArg node, CR<Vec<SemId<Org>>> path) {
+            node, [&](sem::OrgArg node, Vec<SemId<Org>> const& path) {
                 auto add_string_tracking =
                     [&](UnorderedMap<Str, AstTrackingAlternatives>& map,
-                        CR<Str>                                     key,
+                        Str const&                                  key,
                         Vec<SemId<Org>> target) {
                         map.get_or_insert(key, AstTrackingAlternatives{})
                             .alternatives.push_back(
@@ -513,10 +515,10 @@ struct RadioTargetSearchResult {
 
 /// Mirror of the `tryRadioTargetSearch` implementation for immutable AST.
 RadioTargetSearchResult tryRadioTargetSearch(
-    auto const&         words,
-    OrgVecArg           sub,
-    CR<int>             groupingIdx,
-    CR<AstTrackingPath> target) {
+    auto const&            words,
+    OrgVecArg              sub,
+    int const&             groupingIdx,
+    AstTrackingPath const& target) {
     // FIXME After this code is properly tested for both implementations I
     // might move it to the shared API in some form.
     int                     sourceOffset = 0;
@@ -555,7 +557,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
 
 Vec<AstTrackingGroup> org::getSubnodeGroups(
     sem::SemId<Org>       node,
-    const AstTrackingMap& map) {
+    AstTrackingMap const& map) {
     using G = AstTrackingGroup;
     Vec<G>      res;
     auto const& sub = node->subnodes;
@@ -569,7 +571,7 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
                 res.push_back(G{G::Single{it}});
             } else {
                 RadioTargetSearchResult search;
-                for (CR<AstTrackingPath> alt :
+                for (AstTrackingPath const& alt :
                      radioTargets->second.alternatives) {
                     if (auto tree = alt.getNode().asOpt<Subtree>()) {
                         for (auto const& prop : org::getSubtreeProperties<

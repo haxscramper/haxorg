@@ -50,7 +50,7 @@ struct DiaSceneItemVisual : public DiaSceneItem {
     }
 
 
-    void setPosition(const QPointF& pos, int gridSnap) {
+    void setPosition(QPointF const& pos, int gridSnap) {
         int x = (static_cast<int>(pos.x()) / gridSnap) * gridSnap;
         int y = (static_cast<int>(pos.y()) / gridSnap) * gridSnap;
         setPos(x, y);
@@ -59,7 +59,7 @@ struct DiaSceneItemVisual : public DiaSceneItem {
     void updateConnectedEdges();
 
 
-    QVariant itemChange(GraphicsItemChange change, const QVariant& value)
+    QVariant itemChange(GraphicsItemChange change, QVariant const& value)
         override {
         if (change == ItemPositionHasChanged) { updateConnectedEdges(); }
         return QGraphicsItem::itemChange(change, value);

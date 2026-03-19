@@ -19,7 +19,7 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     Str(const char* conv);
     Str(const char* conv, int size);
-    Str(CR<std::string> it);
+    Str(std::string const& it);
     explicit Str(int count, char c);
     Str(char c);
     Str()                 = default;
@@ -31,14 +31,14 @@ struct Str : public std::string {
     Str substr(int start, int count = -1) const;
 
 
-    Str      dropPrefix(CR<Str> prefix) const;
-    Str      dropSuffix(CR<Str> suffix) const;
+    Str      dropPrefix(Str const& prefix) const;
+    Str      dropSuffix(Str const& suffix) const;
     char     at(int pos) const;
     char&    at(int pos);
-    Str      replaceAll(const Str& from, const Str& to) const;
+    Str      replaceAll(Str const& from, Str const& to) const;
     char&    at(BackwardsIndex pos);
     Vec<Str> split(char delimiter) const;
-    Vec<Str> split(const Str& delimiter) const;
+    Vec<Str> split(Str const& delimiter) const;
     float    toFloat() const;
     float    toDouble() const;
     int      toInt() const;
@@ -51,25 +51,26 @@ struct Str : public std::string {
     Str repeated(int N) const;
 
     template <typename A, typename B>
-    std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    std::string_view at(HSlice<A, B> const& s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::string_view(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    const std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true)
-        const {
+    const std::string_view at(
+        HSlice<A, B> const& s,
+        bool                checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::string_view(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    std::string_view operator[](CR<HSlice<A, B>> s) {
+    std::string_view operator[](HSlice<A, B> const& s) {
         return at(s, false);
     }
 
     template <typename A, typename B>
-    const std::string_view operator[](CR<HSlice<A, B>> s) const {
+    const std::string_view operator[](HSlice<A, B> const& s) const {
         return at(s, false);
     }
 
@@ -80,7 +81,7 @@ struct Str : public std::string {
     bool               empty() const;
     std::string const& toBase() const;
 
-    inline Str operator+(CR<Str> other) {
+    inline Str operator+(Str const& other) {
         Str res;
         res.append(*this);
         res.append(other);
@@ -93,15 +94,15 @@ struct Str : public std::string {
 
 
 inline hstd::Str operator+(
-    hstd::CR<std::string> in,
-    hstd::CR<hstd::Str>   other) {
+    hstd::std::string const& in,
+    hstd::hstd::Str const&   other) {
     hstd::Str res;
     res.append(in);
     res.append(other);
     return res;
 }
 
-inline hstd::Str operator+(const char* in, hstd::CR<hstd::Str> other) {
+inline hstd::Str operator+(const char* in, hstd::hstd::Str const& other) {
     hstd::Str res;
     res.append(in);
     res.append(other);
@@ -113,7 +114,7 @@ template <class CharT>
 struct std::formatter<hstd::Str, CharT>
     : std::formatter<std::string, CharT> {
     template <typename FormatContext>
-    auto format(const hstd::Str& p, FormatContext& ctx) const {
+    auto format(hstd::Str const& p, FormatContext& ctx) const {
         return std::formatter<std::string, CharT>::format(p.toBase(), ctx);
     }
 };

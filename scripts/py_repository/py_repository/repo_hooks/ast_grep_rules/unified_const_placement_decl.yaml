@@ -1,0 +1,7 @@
+id: west-to-east-const-ref-decl-init
+language: cpp
+rule:
+  pattern:
+    context: 'const $T &$V = $E;'
+    selector: declaration
+fix: '$T const& $V = $E;'

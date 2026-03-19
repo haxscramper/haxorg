@@ -55,7 +55,7 @@ ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
 
 void ExporterTree::treeRepr(
     sem::SemId<sem::Org>         org,
-    const std::filesystem::path& path) {
+    std::filesystem::path const& path) {
     std::ofstream file{path.native()};
     if (file.is_open()) {
         ColStream os{file};
@@ -70,7 +70,7 @@ void ExporterTree::treeRepr(
 
 ColText ExporterTree::treeRepr(
     sem::SemId<sem::Org> org,
-    CR<TreeReprConf>     conf) {
+    TreeReprConf const&  conf) {
     ColStream    os{};
     ExporterTree exporter{os};
     exporter.conf = conf;
@@ -104,8 +104,8 @@ bool ExporterTree::skipAsTooNested() const {
 }
 
 void ExporterTree::writeSkip(
-    CR<Str>     message,
-    CR<Str>     trail,
+    Str const&  message,
+    Str const&  trail,
     int         line,
     const char* function) {
     // indent();
@@ -114,7 +114,7 @@ void ExporterTree::writeSkip(
 
 
 template <typename T>
-void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
+void ExporterTree::visitField(int& arg, const char* name, T const& value) {
     if (skipAsEmpty(value)) {
         writeSkip(fmt("  empty field {}", name), "\n");
         return;
@@ -165,7 +165,7 @@ void ExporterTree::visit(int& arg, sem::SemId<T> org) {
 }
 
 template <typename T>
-void ExporterTree::visit(int& arg, CR<T> opt) {
+void ExporterTree::visit(int& arg, T const& opt) {
     if (skipAsTooNested()) {
         writeSkip("too nested");
         return;
@@ -190,7 +190,7 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
 }
 
 template <typename T>
-void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
+void ExporterTree::visit(int& arg, Opt<T> const& opt) {
     if (opt) {
         visit(arg, *opt);
     } else {
@@ -200,7 +200,7 @@ void ExporterTree::visit(int& arg, CR<Opt<T>> opt) {
 }
 
 template <typename T>
-void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
+void ExporterTree::visit(int& arg, Vec<T> const& value) {
     if (skipAsTooNested()) {
         writeSkip("too nested");
         return;
@@ -221,7 +221,7 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
 }
 
 template <typename V>
-void ExporterTree::visit(int& arg, CR<UnorderedMap<Str, V>> opt) {
+void ExporterTree::visit(int& arg, UnorderedMap<Str, V> const& opt) {
     __scope();
     for (auto const& [key, value] : opt) {
         visitField(arg, key.c_str(), value);

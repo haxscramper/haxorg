@@ -19,20 +19,20 @@
 namespace fs = std::filesystem;
 
 std::unordered_map<std::string, double> getOrgFileTimes(
-    const fs::path& infile);
+    fs::path const& infile);
 
 bool checkOrgFilesChanged(
-    const fs::path& infile,
-    const fs::path& cache_file);
+    fs::path const& infile,
+    fs::path const& cache_file);
 
-void writeOrgFileCache(const fs::path& infile, const fs::path& cache_file);
+void writeOrgFileCache(fs::path const& infile, fs::path const& cache_file);
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
-    const fs::path&               infile,
-    const fs::path&               graph_path,
-    const fs::path&               context_path,
-    const fs::path&               epoch_path,
-    const fs::path&               cache_file,
+    fs::path const&               infile,
+    fs::path const&               graph_path,
+    fs::path const&               context_path,
+    fs::path const&               epoch_path,
+    fs::path const&               cache_file,
     org::parse::ParseContext::Ptr parse_context,
     bool                          use_cache = true);
 

@@ -43,12 +43,12 @@ struct log_value_formatter {};
 
 #    if ORG_BUILD_WITH_QT
 template <typename T>
-concept QDebugFormattable = requires(QDebug debug, const T& value) {
+concept QDebugFormattable = requires(QDebug debug, T const& value) {
     debug << value;
 };
 
 template <QDebugFormattable T>
-std::string formatQtToString(const T& value) {
+std::string formatQtToString(T const& value) {
     QBuffer buffer{};
     buffer.open(QIODevice::WriteOnly);
     QDebug debug{&buffer};
@@ -77,7 +77,7 @@ struct log_value_formatter<hstd::ColText> {
 };
 
 template <typename T>
-concept has_log_value_formatter = requires(const T& value) {
+concept has_log_value_formatter = requires(T const& value) {
     {
         hstd::log::log_value_formatter<T>{}.format(value)
     } -> std::convertible_to<std::string>;
@@ -94,13 +94,13 @@ using LogFormatStr = std::format_string<std::conditional_t<
 
 template <typename T>
 auto format_logger_argument1(T const& arg) {
-    if constexpr (hstd::log::has_log_value_formatter<
-                      std::decay_t<decltype(arg)>>) {
+    if constexpr (
+        hstd::log::has_log_value_formatter<std::decay_t<decltype(arg)>>) {
         return hstd::log::log_value_formatter<
                    std::decay_t<decltype(arg)>>{}
             .format(arg);
-    } else if constexpr (hstd::StdFormattable<
-                             std::decay_t<decltype(arg)>>) {
+    } else if constexpr (
+        hstd::StdFormattable<std::decay_t<decltype(arg)>>) {
         return arg;
     } else {
         return hstd::fmt(
@@ -323,7 +323,7 @@ struct log_record {
     log_record& source_scope_add(hstd::Str const& scope);
     log_record& source_id(hstd::Str const& id);
     log_record& metadata(std::shared_ptr<json> const& metadata);
-    log_record& metadata(hstd::Str const& field, const json& value);
+    log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
 
     log_record& as_trace();
@@ -432,8 +432,8 @@ struct log_builder {
 
     log_builder() = default;
 
-    log_builder(const log_builder&)            = delete;
-    log_builder& operator=(const log_builder&) = delete;
+    log_builder(log_builder const&)            = delete;
+    log_builder& operator=(log_builder const&) = delete;
 
     log_builder(log_builder&& other) {
         this->rec         = std::move(other.rec);
@@ -751,7 +751,7 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
         names_width = std::max<int>(names_width, n.size());
     }
 
-    auto format_arg = [&](int index, const auto& value) {
+    auto format_arg = [&](int index, auto const& value) {
         if (index > 0) {
             if (stack) {
                 result += "\n";

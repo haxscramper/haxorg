@@ -15,8 +15,8 @@ using namespace hstd;
 
 
 Opt<DocBlock::Ptr> to_doc_block(
-    const org::imm::ImmAdapter& it,
-    const DocBlockConfig&       conf,
+    org::imm::ImmAdapter const& it,
+    DocBlockConfig const&       conf,
     DocBlockContext&            ctx) {
 
     struct AuxCtx {
@@ -29,7 +29,7 @@ Opt<DocBlock::Ptr> to_doc_block(
             return r;
         }
 
-        int getThisWidth(const DocBlockConfig& conf) const {
+        int getThisWidth(DocBlockConfig const& conf) const {
             if (lane == 0) {
                 return conf.editLaneWidth
                      - (conf.nestingBlockOffset * depth);
@@ -46,13 +46,15 @@ Opt<DocBlock::Ptr> to_doc_block(
         }
     };
 
-    Func<Opt<DocBlock::Ptr>(org::imm::ImmAdapter const&, CR<AuxCtx> actx)>
+    Func<Opt<DocBlock::Ptr>(
+        org::imm::ImmAdapter const&, AuxCtx const& actx)>
         auxAnnotation;
-    Func<Opt<DocBlock::Ptr>(org::imm::ImmAdapter const&, CR<AuxCtx> actx)>
+    Func<Opt<DocBlock::Ptr>(
+        org::imm::ImmAdapter const&, AuxCtx const& actx)>
         auxNode;
 
     auxAnnotation = [&](org::imm::ImmAdapter const& it,
-                        CR<AuxCtx> actx) -> Opt<DocBlock::Ptr> {
+                        AuxCtx const& actx) -> Opt<DocBlock::Ptr> {
         CTX_MSG(fmt("Aux annotation from {}", it));
         auto __scope = ctx.scopeLevel();
         auto tmp     = std::make_shared<DocBlockAnnotation>();
@@ -74,7 +76,7 @@ Opt<DocBlock::Ptr> to_doc_block(
     };
 
     auxNode = [&](org::imm::ImmAdapter const& it,
-                  CR<AuxCtx>                  actx) -> Opt<DocBlock::Ptr> {
+                  AuxCtx const&               actx) -> Opt<DocBlock::Ptr> {
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
@@ -140,7 +142,7 @@ Opt<DocBlock::Ptr> to_doc_block(
     return auxNode(it, AuxCtx{});
 }
 
-void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
+void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf) {
     DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
     model.root->render(model, conf, renderContext);
@@ -176,7 +178,7 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
 void apply_doc_block_actions(
     EditableOrgDocGroup&  history,
     DocBlockModel&        model,
-    const DocBlockConfig& conf) {
+    DocBlockConfig const& conf) {
     if (model.ctx.actions.empty()) { return; }
 
     auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
@@ -258,13 +260,13 @@ Vec<DocBlock::Ptr> DocBlock::getFlatAnnotations() {
 
 
 void DocBlockModel::syncRoot(
-    const org::imm::ImmAdapter& root,
-    const DocBlockConfig&       conf) {
+    org::imm::ImmAdapter const& root,
+    DocBlockConfig const&       conf) {
     this->root = std::dynamic_pointer_cast<DocBlockDocument>(
         to_doc_block(root, conf, ctx).value());
 }
 
-void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
+void DocBlockModel::syncBlockGraph(DocBlockConfig const& conf) {
     CTX_MSG("Sync block graph");
     auto __scope = ctx.scopeLevel();
 
@@ -283,9 +285,9 @@ void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
 
     for (auto const& block : root->getFlatBlocks()) {
         if (block->dyn_cast<DocBlockDocument>()) { continue; }
-        BlockNodeId flatPos                  = add_graph_rect(block);
-        g.at(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
-                                             * block->getDepth();
+        BlockNodeId flatPos                    = add_graph_rect(block);
+        g.at(flatPos).horizontalCenterOffset   = conf.nestingBlockOffset
+                                               * block->getDepth();
         flatGrid.resize_at(flatPos.getIndex()) = block;
 
         Func<void(DocBlock::Ptr annotation)> aux;
@@ -296,7 +298,7 @@ void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
     }
 }
 
-void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
+void DocBlockModel::syncLayout(DocBlockConfig const& conf) {
     CTX_MSG("Sync layout graph");
     auto __scope = ctx.scopeLevel();
     lyt          = g.getLayout();
@@ -322,7 +324,7 @@ void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
 
 
 void DocBlockContext::message(
-    const std::string& value,
+    std::string const& value,
     int                line,
     const char*        function,
     const char*        file) const {
@@ -437,7 +439,7 @@ int DocBlock::getLane() const {
     }
 }
 
-void DocBlock::syncSize(int thisLane, const DocBlockConfig& conf) {
+void DocBlock::syncSize(int thisLane, DocBlockConfig const& conf) {
     int depth           = getDepth();
     int widthWithOffset = conf.editLaneWidth
                         - (conf.nestingBlockOffset * depth);
@@ -475,7 +477,7 @@ void configure_window_render(
     DocBlockModel&           model,
     DocBlock*                block,
     DocBlock::RenderContext& renderContext,
-    const DocBlockConfig&    conf) {
+    DocBlockConfig const&    conf) {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
@@ -499,7 +501,7 @@ void post_render(DocBlock::RenderContext& renderContext) {
 void render_sub_entries(
     DocBlockModel&           model,
     DocBlock*                block,
-    const DocBlockConfig&    conf,
+    DocBlockConfig const&    conf,
     DocBlock::RenderContext& renderContext) {
     for (auto& sub : block->nested) {
         sub->render(model, conf, renderContext);
@@ -531,7 +533,7 @@ void debug_render(
 
 void DocBlockDocument::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     debug_render(this, renderContext);
     post_render(renderContext);
@@ -540,7 +542,7 @@ void DocBlockDocument::render(
 
 void DocBlockParagraph::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     if (!isVisible) { return; }
     configure_window_render(model, this, renderContext, conf);
@@ -557,7 +559,7 @@ void DocBlockParagraph::render(
 
 void DocBlockAnnotation::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     if (!isVisible) { return; }
     configure_window_render(model, this, renderContext, conf);
@@ -576,14 +578,14 @@ void DocBlockAnnotation::render(
 
 void DocBlockExport::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     if (!isVisible) { return; }
 }
 
 void DocBlockSubtree::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     if (isVisible) {
         configure_window_render(model, this, renderContext, conf);
@@ -603,7 +605,7 @@ void DocBlockSubtree::render(
 
 void DocBlockListHeader::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     post_render(renderContext);
     debug_render(this, renderContext);
@@ -612,7 +614,7 @@ void DocBlockListHeader::render(
 
 void DocBlockFallback::render(
     DocBlockModel&        model,
-    const DocBlockConfig& conf,
+    DocBlockConfig const& conf,
     RenderContext&        renderContext) {
     if (isVisible) {
         configure_window_render(model, this, renderContext, conf);

@@ -269,7 +269,7 @@ c::FieldDecl* findFieldForDecl(c::Decl const* Decl, c::ASTContext* Ctx) {
 
 std::string getAbsoluteDeclLocation(c::Decl const* Decl) {
     c::SourceLocation       loc           = Decl->getLocation();
-    const c::ASTContext&    astContext    = Decl->getASTContext();
+    c::ASTContext const&    astContext    = Decl->getASTContext();
     c::SourceManager const& sourceManager = astContext.getSourceManager();
 
     std::string filePath;
@@ -338,7 +338,7 @@ std::ostream& errs(
 
 
 std::string formatSourceLocation(
-    const c::SourceLocation& loc,
+    c::SourceLocation const& loc,
     c::SourceManager&        srcMgr) {
     if (loc.isValid()) {
         c::PresumedLoc presumedLoc = srcMgr.getPresumedLoc(loc);
@@ -429,7 +429,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
 void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
-    const std::vector<QualType>& Namespaces,
+    std::vector<QualType> const& Namespaces,
     int                          line,
     const char*                  function) {
     std::vector<QualType const*> newNamespaces;
@@ -525,7 +525,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     c::Decl*                                Decl,
-    const std::optional<c::SourceLocation>& Loc) {
+    std::optional<c::SourceLocation> const& Loc) {
     c::DeclContext*       dc = Decl->getDeclContext();
     std::vector<QualType> result;
 
@@ -915,8 +915,8 @@ void ReflASTVisitor::fillTypeRec(
 
 void ReflASTVisitor::fillType(
     QualType*                               Out,
-    const c::QualType&                      In,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
     HSLOG_TRACE("Fill type");
     if (Loc) {
         add_debug(
@@ -929,8 +929,8 @@ void ReflASTVisitor::fillType(
 
 void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
-    const c::TemplateArgument&              Arg,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::TemplateArgument const&              Arg,
+    std::optional<c::SourceLocation> const& Loc) {
 
     switch (Arg.getKind()) {
         case c::TemplateArgument::Type: {
@@ -984,7 +984,7 @@ std::optional<std::string> getExprAsString(
 void ReflASTVisitor::fillExpr(
     Expr*                                   Out,
     const c::Expr*                          In,
-    const std::optional<c::SourceLocation>& Loc) {
+    std::optional<c::SourceLocation> const& Loc) {
     if (const auto*
             boolLiteral = llvm::dyn_cast<clang::CXXBoolLiteralExpr>(In)) {
         bool outValue = boolLiteral->getValue();
@@ -1217,7 +1217,7 @@ bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
 }
 
 std::optional<std::string> ReflASTVisitor::getDoc(c::Decl const* Decl) {
-    const c::ASTContext& astContext = Decl->getASTContext();
+    c::ASTContext const& astContext = Decl->getASTContext();
     const c::RawComment*
         rawComment = astContext.getRawCommentForDeclNoCache(Decl);
     if (rawComment) {
@@ -1240,7 +1240,7 @@ bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {
                 && target_files.find(DeclLoc) != target_files.end();
         }
         case VisitMode::AllMainTranslationUnit: {
-            const c::ASTContext& astContext = Decl->getASTContext();
+            c::ASTContext const& astContext = Decl->getASTContext();
             return astContext.getSourceManager().isInMainFile(
                 Decl->getLocation());
         }
@@ -1663,8 +1663,8 @@ bool ReflASTVisitor::IndirectFieldDecl(c::IndirectFieldDecl* Decl) {
 }
 
 bool SaveProtobufToJsonFile(
-    const google::protobuf::Message& message,
-    const std::string&               filename,
+    google::protobuf::Message const& message,
+    std::string const&               filename,
     bool                             pretty_print = true) {
     // Configure JSON options
     google::protobuf::util::JsonPrintOptions options;
@@ -1701,8 +1701,8 @@ bool SaveProtobufToJsonFile(
 }
 
 std::string getMainFileAbsolutePath(
-    const clang::CompilerInstance& compilerInstance) {
-    const clang::SourceManager& sourceManager = compilerInstance
+    clang::CompilerInstance const& compilerInstance) {
+    clang::SourceManager const& sourceManager = compilerInstance
                                                     .getSourceManager();
     clang::FileID               mainFileID = sourceManager.getMainFileID();
 
@@ -1716,7 +1716,7 @@ std::string getMainFileAbsolutePath(
 
 ReflASTConsumer::ReflASTConsumer(
     clang::CompilerInstance& CI,
-    const ReflectionCLI&     cli)
+    ReflectionCLI const&     cli)
     : out(std::make_unique<TU>())
     , Visitor(&CI.getASTContext(), out.get(), cli)
     , CI(CI)
@@ -1783,7 +1783,7 @@ c::DiagnosticBuilder Diag(
 c::ParsedAttrInfo::AttrHandling ReflAttrInfo::handleDeclAttribute(
     c::Sema&             S,
     c::Decl*             D,
-    const c::ParsedAttr& Attr) const {
+    c::ParsedAttr const& Attr) const {
     c::AnnotateAttr* created = c::AnnotateAttr::Create(
         S.Context,
         Attr.getAttrName()->deuglifiedName(),

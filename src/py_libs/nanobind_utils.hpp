@@ -51,7 +51,7 @@ class PyEnumIterator {
         return *this;
     }
 
-    bool operator!=(const PyEnumIterator& other) const {
+    bool operator!=(PyEnumIterator const& other) const {
         return hstd::value_domain<E>::ord(value)
             != hstd::value_domain<E>::ord(other.value);
     }
@@ -290,22 +290,22 @@ nb::class_<Set> bind_set(nb::module_& m, const char* PyNameType) {
                     result->insert(nb::cast<Value>(h));
                 }
             })
-        .def("__len__", [](const Set& s) { return s.size(); })
-        .def("__bool__", [](const Set& s) { return !s.empty(); })
+        .def("__len__", [](Set const& s) { return s.size(); })
+        .def("__bool__", [](Set const& s) { return !s.empty(); })
         .def(
             "__contains__",
-            [](const Set& s, const Value& v) { return s.contains(v); })
+            [](Set const& s, Value const& v) { return s.contains(v); })
         .def(
             "__iter__",
-            [](const Set& s) {
+            [](Set const& s) {
                 return nb::make_iterator(
                     nb::type<Set>(), "iterator", s.begin(), s.end());
             },
             nb::keep_alive<0, 1>())
-        .def("add", [](Set& s, const Value& v) { s.insert(v); })
-        .def("discard", [](Set& s, const Value& v) { s.erase(v); })
+        .def("add", [](Set& s, Value const& v) { s.insert(v); })
+        .def("discard", [](Set& s, Value const& v) { s.erase(v); })
         .def("clear", &Set::clear)
-        .def("copy", [](const Set& s) { return Set(s); })
+        .def("copy", [](Set const& s) { return Set(s); })
         .def("update", [](Set& s, nb::iterable it) {
             for (nb::handle h : it) { s.insert(nb::cast<Value>(h)); }
         });

@@ -5,7 +5,7 @@
 using namespace hstd;
 using namespace org::algo;
 
-void ExporterEventBase::report(CR<VisitReport> ev) {
+void ExporterEventBase::report(VisitReport const& ev) {
     using K = typename VisitReport::Kind;
     auto os = getStream();
 

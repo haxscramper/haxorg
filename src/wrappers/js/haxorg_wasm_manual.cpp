@@ -21,9 +21,9 @@ org::sem::SemId<T> cast_impl(
 }
 
 
-emscripten::val convert_to_uint8_array(const std::string& data) {
-    emscripten::val result = emscripten::val::global("Uint8Array")
-                                 .new_(data.size());
+emscripten::val convert_to_uint8_array(std::string const& data) {
+    emscripten::val result     = emscripten::val::global("Uint8Array")
+                                     .new_(data.size());
     emscripten::val memory     = result["buffer"];
     emscripten::val memoryView = emscripten::val::global("Uint8Array")
                                      .new_(memory);
@@ -154,7 +154,7 @@ void haxorg_wasm_manual_register() {
             "at",
             static_cast<char (hstd::Str::*)(int) const>(&hstd::Str::at))
         .function(
-            "toString", +[](const hstd::Str& self) -> std::string {
+            "toString", +[](hstd::Str const& self) -> std::string {
                 return static_cast<const std::string&>(self);
             });
 

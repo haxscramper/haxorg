@@ -103,7 +103,7 @@ class TestOrgParseCorpus : public ::testing::TestWithParam<TestParams> {
 
 
 std::string getTestName(
-    const testing::TestParamInfo<TestOrgParseCorpus::ParamType>& info) {
+    testing::TestParamInfo<TestOrgParseCorpus::ParamType> const& info) {
     return info.param.testName();
 }
 

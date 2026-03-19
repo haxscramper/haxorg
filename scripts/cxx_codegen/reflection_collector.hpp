@@ -42,7 +42,7 @@ struct ReflAttrInfo : public clang::ParsedAttrInfo {
     AttrHandling handleDeclAttribute(
         clang::Sema&             S,
         clang::Decl*             D,
-        const clang::ParsedAttr& Attr) const override;
+        clang::ParsedAttr const& Attr) const override;
 };
 
 

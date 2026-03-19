@@ -95,7 +95,7 @@ void im_ctx_act_impl(
 IM_FMT_DECL(std::string);
 IM_FMT_DECL(hstd::Str);
 
-hstd::Str getDebugFile(ImGuiTest* t, const hstd::Str& suffix);
+hstd::Str getDebugFile(ImGuiTest* t, hstd::Str const& suffix);
 
 struct ImTestFuncStartupParams {
     ImVec2      windowSize{250, 250};
@@ -188,7 +188,7 @@ inline std::string __im_test_utils_format_va_args_list(
         ", {}{}", head, __im_test_utils_format_va_args_list(args...));
 }
 
-inline float ImVec2Length(const ImVec2& vec) {
+inline float ImVec2Length(ImVec2 const& vec) {
     return std::sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 

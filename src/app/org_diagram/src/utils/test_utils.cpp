@@ -4,7 +4,7 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 
-std::string test::makeItemText(const DiaNodeItemParams& conf) {
+std::string test::makeItemText(DiaNodeItemParams const& conf) {
     return hstd::fmt(
         R"(
 {} {}
@@ -19,8 +19,8 @@ std::string test::makeItemText(const DiaNodeItemParams& conf) {
 }
 
 std::string test::makeLayerText(
-    const DiaNodeLayerParams&           layer,
-    const hstd::Vec<DiaNodeItemParams>& items) {
+    DiaNodeLayerParams const&           layer,
+    hstd::Vec<DiaNodeItemParams> const& items) {
     return hstd::fmt(
         R"(
 * {}
@@ -37,7 +37,7 @@ std::string test::makeLayerText(
 
 void test::visualizeTestDiff(
     QObject*                   obj,
-    const ScopeV12DiagramDiff& scope) {
+    ScopeV12DiagramDiff const& scope) {
     auto gv = getEditMappingGraphviz(
         scope.srcAdapter, scope.dstAdapter, scope.edits);
     gv.render(getDebugFile(obj, "edits.png"));
@@ -48,8 +48,8 @@ void test::visualizeTestDiff(
 }
 
 test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
-    const std::string& src,
-    const std::string& dst) {
+    std::string const& src,
+    std::string const& dst) {
     HSLOG_INFO("src:\n{}", src);
     HSLOG_INFO("dst:\n{}", dst);
 
@@ -83,7 +83,7 @@ test::ScopeV12DiagramDiff::ScopeV12DiagramDiff(
 }
 
 test::ScopeDiaContextEdits::TextSetResult test::ScopeDiaContextEdits::
-    setText(const std::string& text) {
+    setText(std::string const& text) {
     HSLOG_INFO("text:\n{}", text);
     TextSetResult res;
 

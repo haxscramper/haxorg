@@ -461,7 +461,7 @@ namespace std {
 /// \brief Hash for git OID
 template <>
 struct hash<git_oid> {
-    inline std::size_t operator()(const git_oid& it) const {
+    inline std::size_t operator()(git_oid const& it) const {
         return std::hash<hstd::Str>()(hstd::Str(
             reinterpret_cast<const char*>(&it.id[0]), sizeof(it.id)));
     }
