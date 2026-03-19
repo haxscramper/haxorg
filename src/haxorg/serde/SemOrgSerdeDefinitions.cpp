@@ -1200,23 +1200,15 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
     out->set_headlinelevels(*in.headlineLevels);
   }
   out->set_brokenlinks(static_cast<orgproto::DocumentExportConfig_BrokenLinks>(in.brokenLinks));
+  out->set_tagexport(static_cast<orgproto::DocumentExportConfig_TagExport>(in.tagExport));
+  out->set_taskfiltering(static_cast<orgproto::DocumentExportConfig_TaskFiltering>(in.taskFiltering));
+  out->set_archivedtrees(static_cast<orgproto::DocumentExportConfig_ArchivedTrees>(in.archivedTrees));
   switch (in.tocExport.index()) {
     case 0:
       proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::write(out->mutable_tocexport()->mutable_doexport(), std::get<0>(in.tocExport));
       break;
     case 1:
       proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::write(out->mutable_tocexport()->mutable_exportfixed(), std::get<1>(in.tocExport));
-      break;
-  }
-  out->set_tagexport(static_cast<orgproto::DocumentExportConfig_TagExport>(in.tagExport));
-  out->set_taskfiltering(static_cast<orgproto::DocumentExportConfig_TaskFiltering>(in.taskFiltering));
-  out->set_archivedtrees(static_cast<orgproto::DocumentExportConfig_ArchivedTrees>(in.archivedTrees));
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::write(out->mutable_data()->mutable_exportfixed(), std::get<1>(in.data));
       break;
   }
 }
@@ -1307,6 +1299,9 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
     proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.headlinelevels(), in.for_field(&org::sem::DocumentExportConfig::headlineLevels));
   }
   in.for_field(&org::sem::DocumentExportConfig::brokenLinks).get() = static_cast<org::sem::DocumentExportConfig::BrokenLinks>(out.brokenlinks());
+  in.for_field(&org::sem::DocumentExportConfig::tagExport).get() = static_cast<org::sem::DocumentExportConfig::TagExport>(out.tagexport());
+  in.for_field(&org::sem::DocumentExportConfig::taskFiltering).get() = static_cast<org::sem::DocumentExportConfig::TaskFiltering>(out.taskfiltering());
+  in.for_field(&org::sem::DocumentExportConfig::archivedTrees).get() = static_cast<org::sem::DocumentExportConfig::ArchivedTrees>(out.archivedtrees());
   switch (out.tocexport().kind_case()) {
     case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
       in.for_field_variant<0>(&org::sem::DocumentExportConfig::tocExport).get();
@@ -1315,23 +1310,6 @@ void org::algo::proto_serde<::orgproto::DocumentExportConfig, org::sem::Document
     case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
       in.for_field_variant<1>(&org::sem::DocumentExportConfig::tocExport).get();
       proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::read(out.tocexport().exportfixed(), in.for_field_variant<1>(&org::sem::DocumentExportConfig::tocExport));
-      break;
-    case ::orgproto::DocumentExportConfig::TocExport::KIND_NOT_SET: {
-      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
-      break;
-    }
-  }
-  in.for_field(&org::sem::DocumentExportConfig::tagExport).get() = static_cast<org::sem::DocumentExportConfig::TagExport>(out.tagexport());
-  in.for_field(&org::sem::DocumentExportConfig::taskFiltering).get() = static_cast<org::sem::DocumentExportConfig::TaskFiltering>(out.taskfiltering());
-  in.for_field(&org::sem::DocumentExportConfig::archivedTrees).get() = static_cast<org::sem::DocumentExportConfig::ArchivedTrees>(out.archivedtrees());
-  switch (out.data().kind_case()) {
-    case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
-      in.for_field_variant<0>(&org::sem::DocumentExportConfig::data).get();
-      proto_serde<orgproto::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&org::sem::DocumentExportConfig::data));
-      break;
-    case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
-      in.for_field_variant<1>(&org::sem::DocumentExportConfig::data).get();
-      proto_serde<orgproto::DocumentExportConfig::ExportFixed, org::sem::DocumentExportConfig::ExportFixed>::read(out.data().exportfixed(), in.for_field_variant<1>(&org::sem::DocumentExportConfig::data));
       break;
     case ::orgproto::DocumentExportConfig::TocExport::KIND_NOT_SET: {
       throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");

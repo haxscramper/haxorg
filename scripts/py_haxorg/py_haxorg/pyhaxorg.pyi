@@ -1936,7 +1936,7 @@ class DocumentExportConfigTocExportKind(Enum):
     ExportFixed = 2
 
 class DocumentExportConfig:
-    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], smartQuotes: Optional[bool], fixedWidth: Optional[bool], timestamps: Optional[bool], preserveBreaks: Optional[bool], subSuperscripts: Optional[bool], expandLinks: Optional[bool], creator: Optional[bool], drawers: Optional[bool], date: Optional[bool], entities: Optional[bool], email: Optional[bool], sectionNumbers: Optional[bool], planning: Optional[bool], priority: Optional[bool], latex: Optional[bool], timestamp: Optional[bool], title: Optional[bool], tables: Optional[bool], headlineLevels: Optional[int], brokenLinks: DocumentExportConfigBrokenLinks, tocExport: DocumentExportConfigTocExport, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees) -> None: ...
+    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], smartQuotes: Optional[bool], fixedWidth: Optional[bool], timestamps: Optional[bool], preserveBreaks: Optional[bool], subSuperscripts: Optional[bool], expandLinks: Optional[bool], creator: Optional[bool], drawers: Optional[bool], date: Optional[bool], entities: Optional[bool], email: Optional[bool], sectionNumbers: Optional[bool], planning: Optional[bool], priority: Optional[bool], latex: Optional[bool], timestamp: Optional[bool], title: Optional[bool], tables: Optional[bool], headlineLevels: Optional[int], brokenLinks: DocumentExportConfigBrokenLinks, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def isDoExport(self) -> bool: ...
     def getDoExport(self) -> DocumentExportConfigDoExport: ...
@@ -1979,7 +1979,6 @@ class DocumentExportConfig:
     tables: Optional[bool]
     headlineLevels: Optional[int]
     brokenLinks: DocumentExportConfigBrokenLinks
-    tocExport: DocumentExportConfigTocExport
     tagExport: DocumentExportConfigTagExport
     taskFiltering: DocumentExportConfigTaskFiltering
     archivedTrees: DocumentExportConfigArchivedTrees

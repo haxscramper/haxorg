@@ -50,6 +50,9 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["hstd", "ext", "ImmVec", _]:
                 return QualType(Name=prefix + "ImmVec")
 
+            case ["immer", "flex_vector", _]:
+                return QualType(Name=prefix + "immer_flex_vector")
+
             case ["org", "imm", "ImmAdapterT", _]:
                 return QualType(Name=prefix + self.getTypeBindName(Type.par0()) +
                                 "Adapter")

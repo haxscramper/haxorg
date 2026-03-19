@@ -317,11 +317,11 @@ struct AstPatternRange {
     AstRange<Name>                          range;
     hstd::Vec<AstPattern<Node, Kind, Name>> alts;
     AstPatternRange(
-        hstd::AstRange<Name> const&               range,
-        hstd::AstPattern<Node, Kind, Name> const& pattern)
+        AstRange<Name> const&               range,
+        AstPattern<Node, Kind, Name> const& pattern)
         : range(range), alts({pattern}) {}
     AstPatternRange(
-        hstd::AstRange<Name> const&                    range,
+        AstRange<Name> const&                          range,
         hstd::Vec<AstPattern<Node, Kind, Name>> const& alts = {})
         : range(range), alts(alts) {}
 };
@@ -710,9 +710,9 @@ struct AstSpec {
 
     FieldAccessError makeMissingSlice(
         Kind                        kind,
-        hstd::Name const&           name,
+        Name const&                 name,
         hstd::Opt<hstd::Slice<int>> slice,
-        hstd::AstRange<Name> const& range) const {
+        AstRange<Name> const&       range) const {
         return FieldAccessError::init(
             std::format(
                 "Range {} for node kind {} was resolved into slice {} "
@@ -723,9 +723,8 @@ struct AstSpec {
                 hstd::fmt1(range)));
     }
 
-    FieldAccessError makeMissingPositional(
-        Kind              kind,
-        hstd::Name const& name) const {
+    FieldAccessError makeMissingPositional(Kind kind, Name const& name)
+        const {
         hstd::Str names;
         if (nodeRanges.at(kind).empty()) {
             names = "No named subnodes specified.";

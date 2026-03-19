@@ -952,11 +952,10 @@ struct DocumentExportConfig {
                                                           tables,
                                                           headlineLevels,
                                                           brokenLinks,
-                                                          tocExport,
                                                           tagExport,
                                                           taskFiltering,
                                                           archivedTrees,
-                                                          data));
+                                                          tocExport));
   /// \brief Toggle inclusion of inlinetasks
   hstd::Opt<bool> inlinetasks = std::nullopt;
   /// \brief Toggle the inclusion of footnotes
@@ -1014,22 +1013,21 @@ struct DocumentExportConfig {
   /// \brief Set the number of headline levels for export
   hstd::Opt<int> headlineLevels = std::nullopt;
   org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::None;
-  org::sem::DocumentExportConfig::TocExport tocExport;
   org::sem::DocumentExportConfig::TagExport tagExport = org::sem::DocumentExportConfig::TagExport::NotInToc;
   org::sem::DocumentExportConfig::TaskFiltering taskFiltering = org::sem::DocumentExportConfig::TaskFiltering::All;
   org::sem::DocumentExportConfig::ArchivedTrees archivedTrees = org::sem::DocumentExportConfig::ArchivedTrees::Headline;
-  org::sem::DocumentExportConfig::TocExport data;
+  org::sem::DocumentExportConfig::TocExport tocExport;
   bool operator==(org::sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
-  org::sem::DocumentExportConfig::DoExport const& getDoExport() const { return hstd::variant_get<0>(data); }
-  org::sem::DocumentExportConfig::DoExport& getDoExport() { return hstd::variant_get<0>(data); }
+  org::sem::DocumentExportConfig::DoExport const& getDoExport() const { return hstd::variant_get<0>(tocExport); }
+  org::sem::DocumentExportConfig::DoExport& getDoExport() { return hstd::variant_get<0>(tocExport); }
   bool isExportFixed() const { return getTocExportKind() == TocExportKind::ExportFixed; }
-  org::sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return hstd::variant_get<1>(data); }
-  org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return hstd::variant_get<1>(data); }
+  org::sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return hstd::variant_get<1>(tocExport); }
+  org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return hstd::variant_get<1>(tocExport); }
   static org::sem::DocumentExportConfig::TocExportKind getTocExportKind(org::sem::DocumentExportConfig::TocExport const& __input) { return static_cast<org::sem::DocumentExportConfig::TocExportKind>(__input.index()); }
-  org::sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
-  char const* sub_variant_get_name() const { return "data"; }
-  org::sem::DocumentExportConfig::TocExport const& sub_variant_get_data() const { return data; }
+  org::sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(tocExport); }
+  char const* sub_variant_get_name() const { return "tocExport"; }
+  org::sem::DocumentExportConfig::TocExport const& sub_variant_get_data() const { return tocExport; }
   org::sem::DocumentExportConfig::TocExportKind sub_variant_get_kind() const { return getTocExportKind(); }
 };
 

@@ -2698,7 +2698,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_field(t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                           "brokenLinks",
                           Value="sem::DocumentExportConfig::BrokenLinks::None"),
-                org_field(t_nest("TocExport", [t("DocumentExportConfig")]), "tocExport"),
                 org_field(t_nest("TagExport", [t("DocumentExportConfig")]),
                           "tagExport",
                           Value="org::sem::DocumentExportConfig::TagExport::NotInToc"),
@@ -2777,6 +2776,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     variantName=t_nest("TocExport", [t("DocumentExportConfig")]),
                     enumName=t_nest("TocExportKind", [t("DocumentExportConfig")]),
                     kindGetter="getTocExportKind",
+                    variantField="tocExport",
                 ),
             ]),
         org_struct(

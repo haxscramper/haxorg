@@ -3150,11 +3150,10 @@ export interface DocumentExportConfig {
   tables: haxorg_wasm.Optional<boolean>
   headlineLevels: haxorg_wasm.Optional<number>
   brokenLinks: DocumentExportConfigBrokenLinks
-  tocExport: DocumentExportConfigTocExport
   tagExport: DocumentExportConfigTagExport
   taskFiltering: DocumentExportConfigTaskFiltering
   archivedTrees: DocumentExportConfigArchivedTrees
-  data: DocumentExportConfigTocExport
+  tocExport: DocumentExportConfigTocExport
 }
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
 export interface DocumentExportConfigTaskExport {

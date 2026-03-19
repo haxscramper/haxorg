@@ -341,7 +341,6 @@ void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig const& object) {
   __obj_field(res, object, tables);
   __obj_field(res, object, headlineLevels);
   __obj_field(res, object, brokenLinks);
-  __obj_field(res, object, tocExport);
   __obj_field(res, object, tagExport);
   __obj_field(res, object, taskFiltering);
   __obj_field(res, object, archivedTrees);

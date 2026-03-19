@@ -2675,7 +2675,7 @@ struct haxorg_ImmPathStep {
   haxorg_shared_ptr_payload data;
 };
 
-typedef haxorg_ImmVecOfImmPathStep haxorg_ImmPathStore;
+typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
 /// \brief ['org', 'imm', 'ImmPath']
 struct haxorg_ImmPath {
   haxorg_ImmPath_vtable const* vtable;
@@ -2862,6 +2862,8 @@ struct haxorg_GraphMapEdge {
   haxorg_shared_ptr_payload data;
 };
 
+typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
+typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
 /// \brief ['org', 'graph', 'MapGraph']
 struct haxorg_GraphMapGraph {
   haxorg_GraphMapGraph_vtable const* vtable;
@@ -2869,8 +2871,6 @@ struct haxorg_GraphMapGraph {
 };
 
 typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
-typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
-typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 /// \brief ['org', 'graph', 'MapConfig']
 struct haxorg_GraphMapConfig {
   haxorg_GraphMapConfig_vtable const* vtable;
@@ -6899,7 +6899,6 @@ struct haxorg_DocumentExportConfig_vtable {
   haxorg_HstdOpt const* (*get_tables)(haxorg_DocumentExportConfig const*);
   haxorg_HstdOpt const* (*get_headlineLevels)(haxorg_DocumentExportConfig const*);
   haxorg_DocumentExportConfigBrokenLinks const* (*get_brokenLinks)(haxorg_DocumentExportConfig const*);
-  haxorg_DocumentExportConfigTocExport const* (*get_tocExport)(haxorg_DocumentExportConfig const*);
   haxorg_DocumentExportConfigTagExport const* (*get_tagExport)(haxorg_DocumentExportConfig const*);
   haxorg_DocumentExportConfigTaskFiltering const* (*get_taskFiltering)(haxorg_DocumentExportConfig const*);
   haxorg_DocumentExportConfigArchivedTrees const* (*get_archivedTrees)(haxorg_DocumentExportConfig const*);
