@@ -310,10 +310,13 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         case _:
             result_type = field_type
 
-    return codegen_ir.GenTuFunction(Name=f"get{astbuilder_utils.pascal_case(f.Name)}",
-                                    IsConst=True,
-                                    ReturnType=result_type,
-                                    Body=ast.Return(field_access))
+    return codegen_ir.GenTuFunction(
+        Name=f"get{astbuilder_utils.pascal_case(f.Name)}",
+        IsConst=True,
+        ReturnType=result_type,
+        Body=ast.Return(field_access),
+        IsExposedForWrap=f.IsExposedForWrap,
+    )
 
 
 @beartype

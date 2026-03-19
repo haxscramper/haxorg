@@ -2368,6 +2368,14 @@ export interface GraphMapGraphState {
   graph: GraphMapGraph
   ast: ImmAstContext
 }
+export type I8 = Int8_t;
+export type U8 = char;
+export type I16 = Int16_t;
+export type U16 = Unsigned short;
+export type I32 = Int32_t;
+export type U32 = Unsigned int;
+export type I64 = Int64_t;
+export type U64 = Unsigned long long;
 export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
 export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
 export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
@@ -4473,6 +4481,8 @@ export enum ImmCmdIncludeKind {
 }
 export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
 export interface ImmAdapterOrgAPI {  }
+export type ImmIdNodeIdxT = U32;
+export type ImmIdIdType = U64;
 export interface CmdConstructor { new(): Cmd; }
 export interface Cmd {
   getAttrs(key: haxorg_wasm.Optional<Str>): haxorg_wasm.HstdVec<AttrValue>;

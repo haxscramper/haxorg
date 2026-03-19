@@ -293,6 +293,7 @@ def rec_expand_group(
                 IsStatic=True,
                 Doc=codegen_ir.GenTuDoc(""),
                 Name=record.kindGetter,
+                IsExposedForWrap=False,
                 ReflectionParams=codegen_ir.GenTuReflParams(
                     unique_name=record.kindGetter + "Static"),
                 ReturnType=enum_type,
@@ -322,6 +323,7 @@ def rec_expand_group(
                 Body=ast.Return(ast.StringLiteral(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(
@@ -331,6 +333,7 @@ def rec_expand_group(
                 Body=ast.Return(ast.string(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(
@@ -340,6 +343,7 @@ def rec_expand_group(
                 Body=ast.Return(ast.XCall(record.kindGetter)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(

@@ -1,4 +1,4 @@
-from py_codegen.astbuilder_base_config import AstbulderConfig
+from py_codegen.astbuilder_base_config import BUILTIN_TYPES, AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
 from beartype.typing import Optional
@@ -26,6 +26,9 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["hstd", "Opt", _]:
                 return QualType(Name=prefix + "HstdOpt")
 
+            case ["hstd", "IntSet", _]:
+                return QualType(Name=prefix + "HstdIntSet")
+
             case ["hstd", "Str"]:
                 return QualType(Name=prefix + "HstdStr")
 
@@ -47,6 +50,9 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["hstd", "ext", "ImmBox", _]:
                 return self.getBackendType(Type.par0())
 
+            case ["hstd", "SPtr", _] | ["std", "shared_ptr", _]:
+                return self.getBackendType(Type.par0())
+
             case ["hstd", "ext", "ImmVec", _]:
                 return QualType(Name=prefix + "ImmVec")
 
@@ -66,13 +72,7 @@ class CAstbuilderConfig(AstbulderConfig):
                     return QualType(Name=prefix +
                                     self.getTypeBindName(Type, withParams=True))
 
-            case [builtin] if builtin in {
-                "void",
-                "int",
-                "float",
-                "double",
-                "bool",
-            }:
+            case builtin if builtin in BUILTIN_TYPES:
                 return Type
 
             case _:

@@ -259,8 +259,8 @@ using ImmIdBase                        = hstd::dod::Id<
 
 struct [[refl]] ImmId : ImmIdBase {
     BOOST_DESCRIBE_CLASS(ImmId, (ImmIdBase), (), (), ());
-    using IdType   = hstd::u64;
-    using NodeIdxT = hstd::u32;
+    [[refl]] typedef hstd::u64 IdType;
+    [[refl]] typedef hstd::u32 NodeIdxT;
 
     static const hstd::u64 NodeIdxMask;
     static const hstd::u64 NodeIdxOffset;

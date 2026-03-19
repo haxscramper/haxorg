@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, replace
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
 from beartype import beartype
-from beartype.typing import List, cast
+from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_scriptutils.script_logging import log
 
@@ -17,8 +17,25 @@ _CONTEXT_ARG = codegen_ir.GenTuIdent(
 
 
 @beartype
-def _gen_func(func: codegen_ir.GenTuFunction, ast: cpp.ASTBuilder,
-              conf: CAstbuilderConfig) -> codegen_ir.GenTuFunction:
+def _gen_func(
+    func: codegen_ir.GenTuFunction,
+    ast: cpp.ASTBuilder,
+    conf: CAstbuilderConfig,
+    Class: Optional[QualType] = None,
+) -> codegen_ir.GenTuFunction:
+
+    FuncArgs = []
+
+    if Class:
+        FuncArgs.append(codegen_ir.GenTuIdent(conf.getBackendType(Class), "__this"))
+
+    for arg in func.Args:
+        FuncArgs.append(
+            codegen_ir.GenTuIdent(
+                Type=conf.getBackendType(arg.Type),
+                Name=arg.Name,
+            ))
+
     impl_call = ast.XCall(
         "org::bind::c::execute_cpp",
         args=[
@@ -31,23 +48,31 @@ def _gen_func(func: codegen_ir.GenTuFunction, ast: cpp.ASTBuilder,
         ] + [conf.getBackendType(arg.Type) for arg in func.Args],
     )
 
+    if func.ReflectionParams.unique_name:
+        FuncBaseName = func.ReflectionParams.unique_name
+
+    else:
+        FuncBaseName = codegen_ir.sanitize_ident(func.Name, set())
+
+    if Class:
+        FuncName = f"haxorg_{conf.getTypeBindName(Class)}_{FuncBaseName}"
+
+    else:
+        FuncName = f"haxorg_{FuncBaseName}"
+
     if func.ReturnType != "void":
         impl_call = ast.Return(impl_call)
 
     return codegen_ir.GenTuFunction(
         ReturnType=conf.getBackendType(func.ReturnType),
-        Name=func.Name,
-        Args=[
-            codegen_ir.GenTuIdent(
-                Type=conf.getBackendType(arg.Type),
-                Name=arg.Name,
-            ) for arg in func.Args
-        ] + [_CONTEXT_ARG],
+        Name=FuncName,
+        Args=FuncArgs + [_CONTEXT_ARG],
         Body=ast.stack([impl_call]),
         Annotations=[
             codegen_ir.GenTuAnnotation(Attribute=codegen_ir.GenTuAnnotation.Freeform(
                 Body="HAXORG_C_API_LINKAGE"))
-        ])
+        ],
+    )
 
 
 @beartype
@@ -127,6 +152,16 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
         Type=payload_type,
         Name="data",
     ))
+
+    for _meth in struct.Methods:
+        if conf.isAcceptedByBackend(_meth):
+            result.wrappers.append(
+                _gen_func(
+                    _meth,
+                    ast,
+                    conf,
+                    Class=struct.declarationQualName(),
+                ))
 
     for entry in struct.Nested:
         match entry:

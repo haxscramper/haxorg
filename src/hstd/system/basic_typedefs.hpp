@@ -9,14 +9,14 @@ namespace hstd {
 template <typename... Args>
 struct arg_pack {};
 
-using i8  = int8_t;
-using u8  = unsigned char;
-using i16 = int16_t;
-using u16 = unsigned short;
-using i32 = int32_t;
-using u32 = unsigned int;
-using i64 = int64_t;
-using u64 = unsigned long long;
+[[refl]] typedef int8_t             i8;
+[[refl]] typedef unsigned char      u8;
+[[refl]] typedef int16_t            i16;
+[[refl]] typedef unsigned short     u16;
+[[refl]] typedef int32_t            i32;
+[[refl]] typedef unsigned int       u32;
+[[refl]] typedef int64_t            i64;
+[[refl]] typedef unsigned long long u64;
 // clang-format off
 
 static_assert(sizeof(u32) == 4, "Expected 4 bytes for u32");

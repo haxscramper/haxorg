@@ -42,6 +42,14 @@ class GraphEdgeConstraintPort(Enum):
     East = 5
     Center = 6
 
+I8 = Int8_t
+U8 = char
+I16 = Int16_t
+U16 = Unsigned short
+I32 = Int32_t
+U32 = Unsigned int
+I64 = int
+U64 = Unsigned long long
 class GraphPoint:
     def __init__(self, x: float, y: float) -> None: ...
     def __repr__(self) -> str: ...

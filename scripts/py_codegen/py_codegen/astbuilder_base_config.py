@@ -9,6 +9,30 @@ from py_scriptutils.script_logging import log
 
 CAT = __name__
 
+BUILTIN_TYPES = [
+    ["char"],
+    ["bool"],
+    ["void"],
+    ["int8_t"],
+    ["int16_t"],
+    ["int32_t"],
+    ["int64_t"],
+    ["uint8_t"],
+    ["uint16_t"],
+    ["uint32_t"],
+    ["uint64_t"],
+    ["unsigned short"],
+    ["unsigned int"],
+    ["unsigned long"],
+    ["unsigned long long"],
+    ["short"],
+    ["int"],
+    ["long"],
+    ["long long"],
+    ["float"],
+    ["double"],
+]
+
 
 @beartype
 class AstbulderConfig(abc.ABC):
@@ -24,7 +48,7 @@ class AstbulderConfig(abc.ABC):
                                 backend: str) -> bool:
         match entry:
             case codegen_ir.GenTuStruct() | codegen_ir.GenTuField(
-            ) | codegen_ir.GenTuFunction | codegen_ir.GenTuTypedef():
+            ) | codegen_ir.GenTuFunction() | codegen_ir.GenTuTypedef():
                 if not entry.IsExposedForWrap:
                     return False
 
@@ -53,12 +77,7 @@ class AstbulderConfig(abc.ABC):
                 # it can override the method to return false.
                 ["std", "string"],
                 ["hstd", "Str"],
-                ["int"],
-                ["int64_t"],
-                ["char"],
-                ["bool"],
-                ["void"],
-            ]:
+            ] + BUILTIN_TYPES:
                 return True
 
             case ["hstd", "SharedPtrApi", _]:
