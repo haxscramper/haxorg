@@ -1,0 +1,11 @@
+id: replace-cr-with-const-ref
+language: cpp
+rule:
+  any:
+    - pattern:
+        context: void f(CR<$T> p);
+        selector: template_type
+    - pattern:
+        context: void f(hstd::CR<$T> p);
+        selector: template_type
+fix: '$T const&'

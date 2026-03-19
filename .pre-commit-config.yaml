@@ -72,9 +72,16 @@ repos:
   - repo: local
     hooks:
       - id: no-undocumented-api
-        name: Prevent undocumented Python/C++ functions/classes (whole file)
+        name: Prevent undocumented Python/C++ functions/classes
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_documentation_changes.py
         language: system
         pass_filenames: true
-        # args: [--whole-file]
         files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$
+
+  - repo: local
+    hooks:
+      - id: pre-commit-sg-rewrite
+        name: Remove and unify code styles
+        language: system
+        entry: ast-grep scan -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
+        types: [c++]
