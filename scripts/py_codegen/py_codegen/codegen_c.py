@@ -10,12 +10,17 @@ from py_scriptutils.script_logging import log
 
 CAT = __name__
 
+_CONTEXT_ARG = codegen_ir.GenTuIdent(
+    Type=QualType(Name="OrgContext", PtrCount=1),
+    Name="org_context",
+)
+
 
 @beartype
 def _gen_func(func: codegen_ir.GenTuFunction, ast: cpp.ASTBuilder,
               conf: CAstbuilderConfig) -> codegen_ir.GenTuFunction:
     impl_call = ast.XCall(
-        "convert_cpp_execution",
+        "org::bind::c::execute_cpp",
         args=[
             ast.Addr(ast.Type(func.get_full_qualified_name())),
             ast.string("org_context"),
@@ -37,12 +42,7 @@ def _gen_func(func: codegen_ir.GenTuFunction, ast: cpp.ASTBuilder,
                 Type=conf.getBackendType(arg.Type),
                 Name=arg.Name,
             ) for arg in func.Args
-        ] + [
-            codegen_ir.GenTuIdent(
-                Type=QualType(Name="OrgContext", PtrCount=1),
-                Name="org_context",
-            )
-        ],
+        ] + [_CONTEXT_ARG],
         Body=ast.stack([impl_call]),
         Annotations=[
             codegen_ir.GenTuAnnotation(Attribute=codegen_ir.GenTuAnnotation.Freeform(
@@ -112,7 +112,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                     Name=f"get_{f.Name}",
                     Type=QualType.ForFunction(
                         ReturnType=conf.getBackendType(f.Type).asConstPtr(),
-                        Args=[wrap_struct.Name.asConstPtr()],
+                        Args=[wrap_struct.Name.asConstPtr(), _CONTEXT_ARG.Type],
                     ),
                 ))
 
@@ -122,12 +122,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
             Name="vtable",
         ))
 
-    if struct.ReflectionParams and struct.ReflectionParams.backend.c.holder_type == "shared":
-        payload_type = QualType(Name="haxorg_ptr_payload")
-
-    else:
-        payload_type = QualType(Name="haxorg_shared_ptr_payload")
-
+    payload_type = QualType(Name="haxorg_ptr_payload")
     wrap_struct.Fields.append(codegen_ir.GenTuField(
         Type=payload_type,
         Name="data",
@@ -166,7 +161,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                                       Type=wrap_struct.Name.copy_update(PtrCount=1))
             ],
             Body=ast.XCall(
-                "execute_destroy",
+                "org::bind::c::execute_destroy",
                 args=[ast.string("obj")],
                 Params=[struct.Name],
                 Stmt=True,
