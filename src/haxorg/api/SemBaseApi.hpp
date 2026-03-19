@@ -339,7 +339,7 @@ hstd::Str getCleanText(imm::ImmAdapter const& id);
 /// \brief Get index of the list item with given text
 int getListHeaderIndex(
     sem::SemId<sem::List> const& it,
-    hstd::hstd::Str const&       text);
+    hstd::Str const&             text);
 /// \brief Assign body to the list item at the given position.
 void setListItemBody(
     sem::SemId<sem::List>           id,
@@ -390,13 +390,13 @@ hstd::Opt<hstd::UserTime> getCreationTime(
     sem::SemId<sem::Org> const& node);
 
 hstd::Opt<sem::NamedProperty> getFinalProperty(
-    hstd::hstd::Vec<sem::SemId<sem::Org>> const& nodes,
-    hstd::hstd::Str const&                       kind,
-    hstd::hstd::Opt<hstd::Str> const&            subKind = std::nullopt);
+    hstd::Vec<sem::SemId<sem::Org>> const& nodes,
+    hstd::Str const&                       kind,
+    hstd::Opt<hstd::Str> const&            subKind = std::nullopt);
 
 hstd::Opt<sem::NamedProperty> getFinalProperty(
-    hstd::hstd::Vec<imm::ImmAdapter> const& nodes,
-    hstd::hstd::Str const&                  kind,
-    hstd::hstd::Opt<hstd::Str> const&       subKind = std::nullopt);
+    hstd::Vec<imm::ImmAdapter> const& nodes,
+    hstd::Str const&                  kind,
+    hstd::Opt<hstd::Str> const&       subKind = std::nullopt);
 
 } // namespace org

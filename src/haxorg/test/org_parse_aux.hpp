@@ -60,7 +60,7 @@ struct MockFull {
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
     void tokenizeBase(
-        hstd::std::string const&       content,
+        std::string const&             content,
         org::parse::LexerParams const& p,
         org::parse::SourceFileId       file_id) {
         baseTokens = org::parse::tokenize(content, p, file_id);
@@ -71,7 +71,7 @@ struct MockFull {
     void parse() { (void)parser->parseFull(lex); }
 
     void run(
-        hstd::std::string const&       content,
+        std::string const&             content,
         org::parse::LexerParams const& p = org::parse::LexerParams{}) {
         auto file_id = parseContext->addSource("<mock-full-run>", content);
         tokenizeBase(content, p, file_id);

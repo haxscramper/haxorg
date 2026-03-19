@@ -205,7 +205,9 @@ def run_reflection_tool_provider(
             commands,
             reflection_tool_profraw_path=reflection_tool_profraw_path,
         )
+        assert wrap
         wraps.append(wrap)
+        pprint_to_file(wrap, output_dir.joinpath(wrap.name).with_suffix(".py"))
         assert wrap
 
     assert wraps

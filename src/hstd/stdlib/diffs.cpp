@@ -302,7 +302,7 @@ hstd::ShiftedDiff::ShiftedDiff(
     }
 }
 
-hstd::ShiftedDiff::ShiftedDiff(Vec<SeqEdit> const&& diff) {
+hstd::ShiftedDiff::ShiftedDiff(Vec<SeqEdit> const& diff) {
     // Align diff operations against each other, for further
     // formatting.
     using sek = SeqEditKind;

@@ -163,22 +163,22 @@ struct TreeGridDocument {
     }
     int getRowYPos(int index) { return rowPositions.at(index); }
 
-    int getColumnXPos(hstd::hstd::Str const& name) {
+    int getColumnXPos(hstd::Str const& name) {
         return colPositions.at(getColumnIndex(name));
     }
 
-    TreeGridCell& getExistingCell(int row, hstd::hstd::Str const& column) {
+    TreeGridCell& getExistingCell(int row, hstd::Str const& column) {
         return flatRows(true).at(row)->columns.at(column);
     }
 
 
-    ImVec2 getCellPos(int row, hstd::hstd::Str const& column) {
+    ImVec2 getCellPos(int row, hstd::Str const& column) {
         return ImVec2(getColumnXPos(column), getRowYPos(row));
     }
 
     ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
 
-    int getColumnIndex(hstd::hstd::Str const& name) {
+    int getColumnIndex(hstd::Str const& name) {
         auto iter = hstd::rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
@@ -191,7 +191,7 @@ struct TreeGridDocument {
         }
     }
 
-    TreeGridColumn& getColumn(hstd::hstd::Str const& name) {
+    TreeGridColumn& getColumn(hstd::Str const& name) {
         return columns.at(getColumnIndex(name));
     }
 

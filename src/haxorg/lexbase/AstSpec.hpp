@@ -73,7 +73,7 @@ struct AstRange {
     int last  = 0; /*!End of the subnode range, right part of `..` */
 
     /// \brief Set field documentation
-    AstRange<Name>& doc(hstd::hstd::Str const& _doc) {
+    AstRange<Name>& doc(hstd::Str const& _doc) {
         fieldDoc = _doc;
         return *this;
     }
@@ -321,8 +321,8 @@ struct AstPatternRange {
         hstd::AstPattern<Node, Kind, Name> const& pattern)
         : range(range), alts({pattern}) {}
     AstPatternRange(
-        hstd::AstRange<Name> const&                          range,
-        hstd::hstd::Vec<AstPattern<Node, Kind, Name>> const& alts = {})
+        hstd::AstRange<Name> const&                    range,
+        hstd::Vec<AstPattern<Node, Kind, Name>> const& alts = {})
         : range(range), alts(alts) {}
 };
 
@@ -343,19 +343,17 @@ struct AstPattern {
 
     /// \brief Construt upper-level AST patter specification, containing
     /// one or more pattern ranges for fields
-    AstPattern(
-        hstd::hstd::Vec<AstPatternRange<Node, Kind, Name>> const& ranges)
+    AstPattern(hstd::Vec<AstPatternRange<Node, Kind, Name>> const& ranges)
         : ranges(ranges) {}
     /// \brief Construct leaf-level AST pattern specification, containing
     /// set of expected nodes
-    AstPattern(hstd::hstd::IntSet<Kind> const& expected)
-        : expected(expected) {}
+    AstPattern(hstd::IntSet<Kind> const& expected) : expected(expected) {}
     AstPattern(Kind expected) : expected(hstd::IntSet<Kind>{expected}) {}
     /// \brief Appent subranges to the already constructed pattern object.
     /// Used for constructing patterns that have constrained kind and
     /// pattern range.
     AstPattern& sub(
-        hstd::hstd::Vec<AstPatternRange<Node, Kind, Name>> const& subr) {
+        hstd::Vec<AstPatternRange<Node, Kind, Name>> const& subr) {
         ranges.append(subr);
         return *this;
     }

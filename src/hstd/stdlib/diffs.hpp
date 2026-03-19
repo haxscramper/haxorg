@@ -395,7 +395,7 @@ struct ShiftedDiff {
     /// \brief Construct shifted diff pairing from LCS trace information
     ShiftedDiff(BacktrackRes const& track, int lhsMax, int rhsMax);
 
-    ShiftedDiff(Vec<SeqEdit> const&& diff);
+    ShiftedDiff(Vec<SeqEdit> const& diff);
 };
 
 struct BufItem {

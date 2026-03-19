@@ -113,9 +113,9 @@ struct ParseSpec {
     };
 
     hstd::fs::path debugFile(
-        std::string              relativePath,
-        hstd::std::string const& relDebug,
-        bool                     create = true) const;
+        std::string        relativePath,
+        std::string const& relDebug,
+        bool               create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(std::string const& message)
@@ -141,9 +141,9 @@ struct ParseSpec {
     }
 
     ParseSpec(
-        hstd::yaml const&        node,
-        hstd::std::string const& specFile,
-        hstd::std::string const& testRoot);
+        hstd::yaml const&  node,
+        std::string const& specFile,
+        std::string const& testRoot);
 
     template <typename N, typename K, typename V, typename M>
     org::parse::NodeGroup<N, K, V, M> getNodeGroup() {
@@ -201,9 +201,9 @@ struct ParseSpec {
 
 struct ParseSpecGroup {
     ParseSpecGroup(
-        hstd::yaml const&        node,
-        hstd::std::string const& from,
-        hstd::std::string const& testRoot);
+        hstd::yaml const&  node,
+        std::string const& from,
+        std::string const& testRoot);
 
     hstd::Vec<ParseSpec> specs;
 };

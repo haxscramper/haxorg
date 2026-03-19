@@ -95,6 +95,12 @@ class QualType(BaseModel, extra="forbid"):
     Kind: QualTypeKind = QualTypeKind.RegularType
     "Kind of the qualified type"
 
+    IsTemplateTypeParam: bool = False
+    "Type refers to the template type parameter for the struct/function"
+
+    IsTemplateInjectedType: bool = False
+    "Type refers to the type injected by the template parametr `T::nested` -- the nested is injected"
+
     @beartype
     class Function(BaseModel, extra="forbid"):
         "Pointer to function signature"

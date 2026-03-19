@@ -304,7 +304,7 @@ struct [[refl(R"({
     }
 
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
-    bool          is(hstd::hstd::IntSet<OrgSemKind> const& kinds) const {
+    bool          is(hstd::IntSet<OrgSemKind> const& kinds) const {
         return kinds.contains(getKind());
     }
 

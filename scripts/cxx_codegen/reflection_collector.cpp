@@ -1265,6 +1265,13 @@ void ReflASTVisitor::fillCxxRecordDecl(
         clang::TemplateParameterList*
             templateParams = CTD->getTemplateParameters();
 
+        // TODO: Check if it is possible to determine whether a structure
+        // is an instantiation of something else (and link it in some
+        // additional field), or it is a standalone template that is just
+        // defined. Also separate partial specialization and final
+        // specialization.
+        rec->set_istemplaterecord(true);
+
         auto template_spec = rec->add_templates();
 
         // This code is obviously far too primitive to handle all C++
@@ -1291,7 +1298,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
                     clang::TemplateDecl* TD = TC->getNamedConcept();
                     if (auto* Concept = dyn_cast<clang::ConceptDecl>(TD)) {
                         clang::ConceptDecl* CD = Concept;
-                        spec_param->set_name(
+                        spec_param->set_concept_(
                             CD->getCanonicalDecl()->getNameAsString());
                     } else {
                         HSLOG_TRACE("Not a concept type constraint");

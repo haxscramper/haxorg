@@ -123,6 +123,9 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
         pb.ReferenceKind.RValue: ReferenceKind.RValue,
     }[typ.ref_kind]
 
+    res.IsTemplateTypeParam = typ.is_template_type_param
+    res.IsTemplateInjectedType = typ.is_template_injected_type
+
     res.PtrCount = len([it for it in typ.qualifiers if it.is_pointer])
 
     return res
@@ -157,6 +160,21 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
     for arg in record.explicit_template_params:
         result.ExplicitTemplateParams.append(conv_proto_type(arg))
+
+    if result.IsTemplateRecord:
+        result.TemplateParams = GenTuTemplateParams(Stacks=[])
+        for _template in record.templates:
+            group = GenTuTemplateGroup()
+            for _param in _template.parameters:
+                group.Params.append(
+                    GenTuTemplateTypename(
+                        Variadic=_param.is_variadic,
+                        Placeholder=_param.is_placeholder,
+                        Name=_param.name,
+                        Concept=_param.concept,
+                    ))
+
+            result.TemplateParams.Stacks.append(group)
 
     for _field in record.fields:
         if _field.is_type_decl:

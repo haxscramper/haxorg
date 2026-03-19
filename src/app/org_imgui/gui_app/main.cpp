@@ -52,9 +52,7 @@ struct OutlineConfig {
     DESC_FIELDS(OutlineConfig, (showDone));
 };
 
-long GetTimeDelta(
-    hstd::hstd::UserTime const& from,
-    hstd::hstd::UserTime const& to) {
+long GetTimeDelta(hstd::UserTime const& from, hstd::UserTime const& to) {
     auto from_utc = cctz::convert(
         from.time, from.zone ? *from.zone : cctz::utc_time_zone());
     auto to_utc = cctz::convert(

@@ -402,7 +402,7 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_templates_record(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
-    value = refl_test_driver.get_struct(
+    s = refl_test_driver.get_struct(
         """
 
         template <typename Arg>
@@ -424,3 +424,45 @@ def test_templates_record(stable_test_dir: Path) -> None:
         only_annotated=True,
         reflection_run_verbose=True,
     )
+
+    assert s.Name.Name == "Templated"
+    assert len(s.Fields) == 1
+    assert len(s.Methods) == 3
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert s.TemplateParams.Stacks[0].Params[0].Name == "T"
+    assert s.TemplateParams.Stacks[0].Params[0].Concept == "ILabel"
+
+    m0 = s.Methods[0]
+    m1 = s.Methods[1]
+    m2 = s.Methods[2]
+
+    assert m0.Name == "get_content"
+    assert m0.ReturnType.Name == "T"
+    assert m0.ReturnType.IsTemplateTypeParam == True
+    assert len(m0.ReturnType.Spaces) == 0
+
+    assert m1.Name == "get_nested"
+    assert m1.ReturnType.Name == "nested"
+    assert m1.ReturnType.IsTemplateInjectedType == True
+    assert m1.ReturnType.IsTemplateTypeParam == False
+    assert len(m1.ReturnType.Spaces) == 1
+    assert m1.ReturnType.flatQualScope()[0].Name == "T"
+    assert m1.ReturnType.flatQualScope()[0].IsTemplateTypeParam == True
+    assert m1.ReturnType.flatQualScope()[0].IsTemplateInjectedType == False
+
+    assert m2.Name == "get_multi_nested"
+    assert m2.ReturnType.Name == "second"
+    assert m2.ReturnType.IsTemplateInjectedType == True
+    assert m2.ReturnType.IsTemplateTypeParam == False
+
+    assert len(m2.ReturnType.flatQualScope()) == 2
+
+    assert m2.ReturnType.flatQualScope()[0].Name == "T"
+    assert m2.ReturnType.flatQualScope()[0].IsTemplateTypeParam == True
+    assert m2.ReturnType.flatQualScope()[0].IsTemplateInjectedType == False
+
+    assert m2.ReturnType.flatQualScope()[1].Name == "multi_nested"
+    assert m2.ReturnType.flatQualScope()[1].IsTemplateTypeParam == False
+    assert m2.ReturnType.flatQualScope()[1].IsTemplateInjectedType == True

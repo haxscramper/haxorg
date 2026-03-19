@@ -54,9 +54,9 @@ class CorpusRunner : public hstd::OperationsTracer {
 
     void writeFile(
         hstd::ParseSpec const& spec,
-        hstd::hstd::Str const& name,
-        hstd::hstd::Str const& content,
-        hstd::hstd::Str const& relDebug);
+        hstd::Str const&       name,
+        hstd::Str const&       content,
+        hstd::Str const&       relDebug);
 
     json toTextLyt(
         hstd::layout::BlockStore&                   b,
@@ -143,16 +143,16 @@ class CorpusRunner : public hstd::OperationsTracer {
         hstd::org::parse::OrgNodeGroup const& expected);
 
     hstd::Opt<RunResult> runSpecInitial(
-        hstd::ParseSpec const&   spec,
-        hstd::std::string const& from,
-        hstd::hstd::Str const&   relDebug,
-        MockFull&                p);
+        hstd::ParseSpec const& spec,
+        std::string const&     from,
+        hstd::Str const&       relDebug,
+        MockFull&              p);
 
     RunResult runSpecFormatted(
-        hstd::ParseSpec const&   spec,
-        hstd::std::string const& from,
-        hstd::hstd::Str const&   relDebug,
-        MockFull&                p);
+        hstd::ParseSpec const& spec,
+        std::string const&     from,
+        hstd::Str const&       relDebug,
+        MockFull&              p);
 
 
     RunResult::SemCompare compareSem(
@@ -162,26 +162,26 @@ class CorpusRunner : public hstd::OperationsTracer {
         org::parse::ParseContext::Ptr parse_context);
 
     RunResult runSpec(
-        hstd::ParseSpec const&   spec,
-        hstd::std::string const& from,
-        hstd::hstd::Str const&   relDebug);
+        hstd::ParseSpec const& spec,
+        std::string const&     from,
+        hstd::Str const&       relDebug);
 
     RunResult::LexCompare runSpecBaseLex(
         MockFull&              p,
         hstd::ParseSpec const& spec,
-        hstd::hstd::Str const& relDebug);
+        hstd::Str const&       relDebug);
     RunResult::LexCompare runSpecLex(
         MockFull&              p,
         hstd::ParseSpec const& spec,
-        hstd::hstd::Str const& relDebug);
+        hstd::Str const&       relDebug);
     RunResult::NodeCompare runSpecParse(
         MockFull&              p,
         hstd::ParseSpec const& spec,
-        hstd::hstd::Str const& relDebug);
+        hstd::Str const&       relDebug);
     RunResult::SemCompare runSpecSem(
         MockFull&              p,
         hstd::ParseSpec const& spec,
-        hstd::hstd::Str const& relDebug);
+        hstd::Str const&       relDebug);
 };
 
 struct TestParams {
