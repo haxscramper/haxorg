@@ -175,7 +175,7 @@ class GTestClass(pytest.Class):
 @dataclass
 class GTestRunError(Exception):
     shell_error: ProcessExecutionError
-    item: 'GTestItem'
+    item: "GTestItem"
 
     def __str__(self) -> str:
         result = []

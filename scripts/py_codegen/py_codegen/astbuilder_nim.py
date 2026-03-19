@@ -25,7 +25,7 @@ class TypeKind(Enum):
 class Type:
     Name: str
     Kind: TypeKind = TypeKind.RegularType
-    Parameters: List['Type'] = field(default_factory=list)
+    Parameters: List["Type"] = field(default_factory=list)
     Expr: Optional[BlockId] = None
 
 

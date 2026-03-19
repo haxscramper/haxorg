@@ -226,7 +226,7 @@ echo "method field", value.run_method()
 """)
 
         assert stdout.split("\n")[0:3] == [
-            'value field 0', '-- default constructor', 'method field24'
+            "value field 0", "-- default constructor", "method field24"
         ]
 
 

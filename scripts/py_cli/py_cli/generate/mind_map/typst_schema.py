@@ -20,14 +20,14 @@ class Text(TypstNode):
 class Command(TypstNode):
     """Typst command (prefixed with #)"""
     name: str
-    args: Optional[List[Union['Expression', 'NamedArg']]] = Field(default_factory=list)
-    content: Optional[List['TypstNode']] = None
+    args: Optional[List[Union["Expression", "NamedArg"]]] = Field(default_factory=list)
+    content: Optional[List["TypstNode"]] = None
 
 
 class NamedArg(TypstNode):
     """Named argument in a function call"""
     name: str
-    value: 'Expression'
+    value: "Expression"
 
 
 class Expression(TypstNode):

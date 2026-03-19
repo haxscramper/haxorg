@@ -98,11 +98,11 @@ class QualType(BaseModel, extra="forbid"):
     @beartype
     class Function(BaseModel, extra="forbid"):
         "Pointer to function signature"
-        ReturnType: 'QualType'
+        ReturnType: "QualType"
         "Type of the function return type"
-        Args: List['QualType']
+        Args: List["QualType"]
         "Types of the function arguments"
-        Class: Optional['QualType'] = None
+        Class: Optional["QualType"] = None
         "Type of the method's class"
         IsConst: bool = False
         "For const methods"
@@ -547,7 +547,7 @@ class QualType(BaseModel, extra="forbid"):
 
     @classmethod
     def from_name_and_parameters(cls, name: str,
-                                 parameters: List['QualType']) -> "QualType":
+                                 parameters: List["QualType"]) -> "QualType":
         return cls(Name=name, Params=parameters)
 
     @classmethod
@@ -561,7 +561,7 @@ class GenTuTemplateTypename:
     Placeholder: bool = False
     Variadic: bool = False
     Name: str = ""
-    Nested: List['GenTuTemplateTypename'] = field(default_factory=list)
+    Nested: List["GenTuTemplateTypename"] = field(default_factory=list)
     Concept: Optional[str] = None
 
 
@@ -843,7 +843,7 @@ class GenTuFunction:
     "Is class method pure virtual"
     IsOverride: bool = False
     "Does method override parent implementation"
-    ParentClass: Optional['GenTuStruct'] = None
+    ParentClass: Optional["GenTuStruct"] = None
     """
     Optional specification for the parent struct -- might be set up by the codegen, is
     not set up by the reflection tool.
@@ -920,7 +920,7 @@ class GenTuField:
     Name: str
     "Field name as seen in the source code"
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    Decl: Optional[Union['GenTuStruct', 'GenTuEnum']] = None
+    Decl: Optional[Union["GenTuStruct", "GenTuEnum"]] = None
     Value: Optional[Union[str, BlockId]] = None
     IsConst: bool = False
     IsStatic: bool = False
@@ -1476,17 +1476,17 @@ def sanitize_ident(
     # Replace invalid characters with underscores
     result = ""
     for char in name:
-        if char.isalnum() or char == '_':
+        if char.isalnum() or char == "_":
             result += char
         else:
-            result += '_'
+            result += "_"
 
     # Ensure the identifier doesn't start with a digit
     if result and result[0].isdigit():
-        result = '_' + result
+        result = "_" + result
 
     # Ensure the identifier isn't empty
     if not result:
-        result = '_empty_'
+        result = "_empty_"
 
     return result

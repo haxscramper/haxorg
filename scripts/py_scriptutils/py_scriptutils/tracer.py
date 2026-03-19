@@ -161,7 +161,7 @@ class TraceCollector:
         if not filename.parent.exists():
             filename.parent.mkdir(parents=True)
 
-        with open(str(filename), 'w+') as f:
+        with open(str(filename), "w+") as f:
             json.dump(data, f, indent=4)
 
 

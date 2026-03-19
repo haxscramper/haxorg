@@ -89,20 +89,20 @@ class SvgPathBuilder:
     def __init__(self) -> None:
         self.commands: list[str] = []
 
-    def move_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
+    def move_to(self, x: Number, y: Number) -> "SvgPathBuilder":
         self.commands.append(f"M {x:.3f} {y:.3f}")
         return self
 
-    def line_to(self, x: Number, y: Number) -> 'SvgPathBuilder':
+    def line_to(self, x: Number, y: Number) -> "SvgPathBuilder":
         self.commands.append(f"L {x:.3f} {y:.3f}")
         return self
 
     def curve_to(self, x1: Number, y1: Number, x2: Number, y2: Number, x: Number,
-                 y: Number) -> 'SvgPathBuilder':
+                 y: Number) -> "SvgPathBuilder":
         self.commands.append(f"C {x1:.3f} {y1:.3f}, {x2:.3f} {y2:.3f}, {x:.3f} {y:.3f}")
         return self
 
-    def close_path(self) -> 'SvgPathBuilder':
+    def close_path(self) -> "SvgPathBuilder":
         self.commands.append("Z")
         return self
 

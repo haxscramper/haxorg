@@ -472,8 +472,8 @@ def run_cmake_build(
             *build_args,
         ],
         env={
-            'NINJA_FORCE_COLOR': '1',
-            **kwargs.get('env', {})
+            "NINJA_FORCE_COLOR": "1",
+            **kwargs.get("env", {})
         },
         **kwargs,
     )
@@ -498,7 +498,7 @@ def get_python_develop_env_File(ctx: TaskContext) -> Path:
     taken from the main build directory.
     """
     import sysconfig
-    sysconfig.get_config_var('EXT_SUFFIX').lstrip('.')
+    sysconfig.get_config_var("EXT_SUFFIX").lstrip(".")
 
     from py_repository.repo_tasks.common import (
         ctx_write_text,
@@ -568,7 +568,7 @@ def clone_repo_with_uncommitted_changes(
     ])
 
     if stdout.strip():
-        file_list = stdout.strip().split('\n')
+        file_list = stdout.strip().split("\n")
         for file in file_list:
             src_file = Path(f"{src_repo}/{file}")
             dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")

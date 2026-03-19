@@ -14,11 +14,11 @@ from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 
 class AstLineCtx:
 
-    def __init__(self, builder: 'AstbuilderBase') -> None:
+    def __init__(self, builder: "AstbuilderBase") -> None:
         self.builder = builder
         self.block_ids: List[BlockId] = []
 
-    def __enter__(self) -> 'AstLineCtx':
+    def __enter__(self) -> "AstLineCtx":
         self.builder.context_stack.append(self)
         return self
 

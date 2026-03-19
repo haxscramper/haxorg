@@ -41,7 +41,7 @@ def strip_comment_prefixes(comment: str) -> List[str]:
         # Removing the leading /** or /*! and trailing */
         content = comment[3:-2].strip()
         # Remove any '*' prefixes that might exist on each line
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        content = "\n".join(line.strip().lstrip("* ") for line in content.splitlines())
         return content.splitlines()
     elif comment.startswith("//"):
         return comment[2:].splitlines()
@@ -50,7 +50,7 @@ def strip_comment_prefixes(comment: str) -> List[str]:
         content = comment[2:]
         if content.endswith("*/"):
             content = content[:-2]
-        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
+        content = "\n".join(line.strip().lstrip("* ") for line in content.splitlines())
         return content.splitlines()
     else:
         raise ValueError(f"Unrecognized comment style: {comment}")
@@ -77,7 +77,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
             else:
                 full.append(line)
 
-        return GenTuDoc('\n'.join(brief), '\n'.join(full))
+        return GenTuDoc("\n".join(brief), "\n".join(full))
 
     return process_content(strip_comment_prefixes(comment))
 

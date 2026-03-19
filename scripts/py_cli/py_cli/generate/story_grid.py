@@ -265,8 +265,8 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
 
     doc = dominate.document(title="story_grid")
 
-    table = tags.table(border=1, style='border-collapse: collapse; width: 100%;')
-    thead = tags.thead(style='position: sticky; top: 0; background-color: #ddd;')
+    table = tags.table(border=1, style="border-collapse: collapse; width: 100%;")
+    thead = tags.thead(style="position: sticky; top: 0; background-color: #ddd;")
     header_row = tags.tr()
 
     for field in fields(Header([], 0)):

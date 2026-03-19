@@ -23,7 +23,7 @@ class DocParams:
 @beartype
 @dataclass
 class ParmVarParams:
-    type: 'QualType'
+    type: "QualType"
     name: str
     IsConst: bool = False
     storage: StorageClass = StorageClass.None_
@@ -191,7 +191,7 @@ class RecordField:
 
 
 RecordMember = Union[MethodDeclParams, MethodDefParams, RecordField]
-RecordNested = Union[EnumParams, 'RecordParams', BlockId]
+RecordNested = Union[EnumParams, "RecordParams", BlockId]
 
 
 @beartype
@@ -272,7 +272,7 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.string("default:") if params.IsDefault else self.b.line(
             [self.string("case "), params.Expr or self.string(""),
              self.string(":")])
-        Body: List[BlockId] = params.Body + ([self.XStmt('break')]
+        Body: List[BlockId] = params.Body + ([self.XStmt("break")]
                                              if params.Autobreak else [])
 
         if params.Compound:

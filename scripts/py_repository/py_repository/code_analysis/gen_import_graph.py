@@ -104,7 +104,7 @@ def _find_fully_qualified_imports(module_name: str) -> set[ImportStmt]:
 
     for node in ast.walk(tree):
         # Determine if this is a top-level import
-        toplevel = getattr(node, 'col_offset', 0) == 0
+        toplevel = getattr(node, "col_offset", 0) == 0
 
         if isinstance(node, ast.Import):
             for alias in node.names:

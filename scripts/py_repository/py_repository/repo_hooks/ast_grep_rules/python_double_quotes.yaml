@@ -1,0 +1,14 @@
+id: single-to-double-quotes
+language: python
+rule:
+  kind: string
+  all:
+    - any:
+        - pattern: "'$STR'"
+        - pattern: "''"
+    - not:
+        inside:
+          kind: interpolation
+          stopBy: end
+  regex: "^''$|^'[^'\"][^\"]*'$"
+fix: '"$STR"'

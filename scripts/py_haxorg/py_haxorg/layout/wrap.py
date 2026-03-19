@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 else:
     from py_textlayout_cpp import TextOptions
     import py_textlayout_cpp as lyt
-    BlockId = NewType('BlockId', int)
+    BlockId = NewType("BlockId", int)
 
 
 @beartype

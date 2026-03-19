@@ -306,7 +306,7 @@ class NbEnumField:
         self.CxxName = Field.Name
         self.Doc = Field.Doc
 
-    def build_bind(self, Enum: 'NbEnum', ast: cpp.ASTBuilder) -> BlockId:
+    def build_bind(self, Enum: "NbEnum", ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for enum field"
         return ast.XCall(".value", [
             ast.Literal(self.PyName),

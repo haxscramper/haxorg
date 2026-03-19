@@ -29,7 +29,6 @@ repos:
         name: Remove and unify code styles
         language: system
         entry: ast-grep scan --color=never -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
-        types: [c++]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

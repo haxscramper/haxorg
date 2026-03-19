@@ -104,7 +104,7 @@ def _create_tar_archive(filename: str, content: bytes) -> bytes:
     import tarfile
 
     tar_buffer = io.BytesIO()
-    with tarfile.open(fileobj=tar_buffer, mode='w') as tar:
+    with tarfile.open(fileobj=tar_buffer, mode="w") as tar:
         tarinfo = tarfile.TarInfo(name=filename)
         tarinfo.size = len(content)
         tar.addfile(tarinfo, io.BytesIO(content))
@@ -232,7 +232,7 @@ def find_process(
     root_dir: Optional[Path] = None,
     args: Optional[list[str]] = None,
 ) -> Optional[psutil.Process]:
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
         try:
             if ((proc.name() == name) and
                 (root_dir is None or proc.cwd() == str(root_dir)) and

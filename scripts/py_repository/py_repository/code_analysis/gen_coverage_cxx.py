@@ -707,8 +707,8 @@ def format_sequence_segments(
     @param get_segment_name callback to append optional name to each segment. CB arguments are group index
         and segment index within this group.
     """
-    visible_chars = {' ': '␣', '\n': '␤'}
-    formatted_text = ''.join(visible_chars.get(c, c) for c in text)
+    visible_chars = {" ": "␣", "\n": "␤"}
+    formatted_text = "".join(visible_chars.get(c, c) for c in text)
 
     # Text render data is represented as a list of 'rows' with each cell optionally having any string size.
     # the data build is done by appending new rows to the final list, then the whole thing is transposed
@@ -851,7 +851,7 @@ def get_flat_coverage(
                 Last,
             )
 
-            DbgText = '{}'.format(
+            DbgText = "{}".format(
                 extract_text(
                     Lines,
                     start=(segment.LineStart, segment.ColumnStart),

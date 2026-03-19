@@ -23,7 +23,7 @@ def run_lualatex(filename: Path) -> None:
     log_file = filename.with_suffix(".log")
 
     parser = LatexLogParser()
-    with log_file.open('r', encoding='utf-8') as f:
+    with log_file.open("r", encoding="utf-8") as f:
         parser.process(f)
 
     if parser.errors:

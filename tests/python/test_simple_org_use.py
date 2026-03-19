@@ -123,7 +123,7 @@ def as_multiline(txt: str) -> List[util.text]:
     return result
 
 
-borders = dict(border=1, style='border-collapse: collapse; width: 100%;')
+borders = dict(border=1, style="border-collapse: collapse; width: 100%;")
 
 
 def test_unexpected_field_passed() -> None:

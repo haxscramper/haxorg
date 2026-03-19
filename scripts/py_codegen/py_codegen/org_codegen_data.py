@@ -2119,7 +2119,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         ),
                         org_struct(
                             t_nest_shared("Deadline", [t("SubtreeLogHead")]),
-                            GenTuDoc('Change of the subtree deadline'),
+                            GenTuDoc("Change of the subtree deadline"),
                             Fields=[
                                 opt_field(t_user_time(), "from", GenTuDoc("")),
                                 org_field(t_user_time(), "to", GenTuDoc("")),
@@ -2133,7 +2133,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         ),
                         org_struct(
                             t_nest_shared("Schedule", [t("SubtreeLogHead")]),
-                            GenTuDoc('Change of the subtree Schedule'),
+                            GenTuDoc("Change of the subtree Schedule"),
                             Fields=[
                                 opt_field(t_user_time(), "from", GenTuDoc("")),
                                 org_field(t_user_time(), "to", GenTuDoc("")),

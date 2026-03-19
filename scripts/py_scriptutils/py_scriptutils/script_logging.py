@@ -205,7 +205,7 @@ class ExceptionContextNote:
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> Literal[False]:
         if exc_value is not None:
-            if not hasattr(exc_value, '__notes__'):
+            if not hasattr(exc_value, "__notes__"):
                 exc_value.__notes__ = []
             exc_value.__notes__.append(self.note)
 
@@ -351,7 +351,7 @@ def get_custom_traceback_handler(
                     else:
                         import pprint
                         formatted_value = pprint.pformat(arg_value, width=available_width)
-                        lines = formatted_value.split('\n')
+                        lines = formatted_value.split("\n")
 
                         print(
                             f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"

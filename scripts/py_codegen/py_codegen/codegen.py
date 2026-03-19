@@ -156,7 +156,7 @@ def to_base_types(obj: Any) -> Any:
 
         obj_id = id(obj)
         if obj_id in seen:
-            return 'recursive - {}'.format(type(obj).__name__)
+            return "recursive - {}".format(type(obj).__name__)
 
         seen.add(obj_id)
 
@@ -166,14 +166,14 @@ def to_base_types(obj: Any) -> Any:
         elif isinstance(obj, list):
             return [aux(i, seen) for i in obj]
 
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
             return aux(obj.__dict__, seen)
 
-        elif hasattr(obj, '__iter__') and not isinstance(obj, str):
+        elif hasattr(obj, "__iter__") and not isinstance(obj, str):
             return [aux(i, seen) for i in obj]
 
         else:
-            return 'Type({}) - {}'.format(type(obj).__name__, str(obj))
+            return "Type({}) - {}".format(type(obj).__name__, str(obj))
 
     seen: set[Any] = set()
     return aux(obj, seen)
