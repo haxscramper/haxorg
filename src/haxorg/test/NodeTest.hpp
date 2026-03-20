@@ -13,8 +13,8 @@
 
 namespace org::test {
 
-json toJson(hstd::yaml const& node);
-yaml toYaml(hstd::json const& node);
+json toJson(yaml const& node);
+yaml toYaml(json const& node);
 
 struct ParseSpec {
     std::string getLocMsg() const {
@@ -141,7 +141,7 @@ struct ParseSpec {
     }
 
     ParseSpec(
-        hstd::yaml const&  node,
+        yaml const&        node,
         std::string const& specFile,
         std::string const& testRoot);
 
@@ -201,7 +201,7 @@ struct ParseSpec {
 
 struct ParseSpecGroup {
     ParseSpecGroup(
-        hstd::yaml const&  node,
+        yaml const&        node,
         std::string const& from,
         std::string const& testRoot);
 

@@ -17,6 +17,20 @@ _CONTEXT_ARG = codegen_ir.GenTuIdent(
 
 
 @beartype
+def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
+    if func.ReflectionParams.unique_name:
+        FuncBaseName = func.ReflectionParams.unique_name
+
+    else:
+        FuncBaseName = codegen_ir.sanitize_ident(func.Name, set())
+
+    if func.IsConst:
+        FuncBaseName += "_const"
+
+    return FuncBaseName
+
+
+@beartype
 def _gen_func(
     func: codegen_ir.GenTuFunction,
     ast: cpp.ASTBuilder,
@@ -48,17 +62,11 @@ def _gen_func(
         ] + [conf.getBackendType(arg.Type) for arg in func.Args],
     )
 
-    if func.ReflectionParams.unique_name:
-        FuncBaseName = func.ReflectionParams.unique_name
-
-    else:
-        FuncBaseName = codegen_ir.sanitize_ident(func.Name, set())
-
     if Class:
-        FuncName = f"haxorg_{conf.getTypeBindName(Class)}_{FuncBaseName}"
+        FuncName = f"haxorg_{conf.getTypeBindName(Class)}_{_get_func_base_name(func)}"
 
     else:
-        FuncName = f"haxorg_{FuncBaseName}"
+        FuncName = f"haxorg_{_get_func_base_name(func)}"
 
     if func.ReturnType != "void":
         impl_call = ast.Return(impl_call)
@@ -155,12 +163,15 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
 
     for _meth in struct.Methods:
         if conf.isAcceptedByBackend(_meth):
-            result.wrappers.append(
-                _gen_func(
-                    _meth,
-                    ast,
-                    conf,
-                    Class=struct.declarationQualName(),
+            vtable_struct.Fields.append(
+                codegen_ir.GenTuField(
+                    Name=_get_func_base_name(_meth),
+                    Type=QualType.ForFunction(
+                        ReturnType=conf.getBackendType(_meth.ReturnType),
+                        Args=[wrap_struct.Name] +
+                        [conf.getBackendType(a.Type) for a in _meth.Args] +
+                        [_CONTEXT_ARG.Type],
+                    ),
                 ))
 
     for entry in struct.Nested:
@@ -198,7 +209,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
             Body=ast.XCall(
                 "org::bind::c::execute_destroy",
                 args=[ast.string("obj")],
-                Params=[struct.Name],
+                Params=[struct.declarationQualName()],
                 Stmt=True,
             ),
         ))

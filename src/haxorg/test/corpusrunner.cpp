@@ -615,10 +615,10 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 }
 
 hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
-    hstd::ParseSpec const& spec,
-    std::string const&     from,
-    hstd::Str const&       relDebug,
-    MockFull&              p) {
+    ParseSpec const&   spec,
+    std::string const& from,
+    hstd::Str const&   relDebug,
+    MockFull&          p) {
 
     auto skip = RunResult{RunResult::Skip{}};
 
@@ -698,10 +698,10 @@ hstd::Opt<CorpusRunner::RunResult> CorpusRunner::runSpecInitial(
 }
 
 CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
-    hstd::ParseSpec const& spec,
-    std::string const&     from,
-    hstd::Str const&       relDebug,
-    MockFull&              p) {
+    ParseSpec const&   spec,
+    std::string const& from,
+    hstd::Str const&   relDebug,
+    MockFull&          p) {
 
     auto skip = RunResult{RunResult::Skip{}};
 
@@ -1393,10 +1393,10 @@ hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const&)> org
 }
 
 void CorpusRunner::writeFile(
-    hstd::ParseSpec const& spec,
-    hstd::Str const&       name,
-    hstd::Str const&       content,
-    hstd::Str const&       relDebug) {
+    ParseSpec const& spec,
+    hstd::Str const& name,
+    hstd::Str const& content,
+    hstd::Str const& relDebug) {
     files.push_back(
         TestResult::File{
             .path  = name,

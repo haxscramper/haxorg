@@ -63,6 +63,15 @@ class CAstbuilderConfig(AstbulderConfig):
                 return QualType(Name=prefix + self.getTypeBindName(Type.par0()) +
                                 "Adapter")
 
+            case ["hstd", bit_int
+                 ] if bit_int in {"i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64"}:
+                sign = bit_int[0]
+                if sign == "u":
+                    return QualType(Name=f"uint{bit_int[1:]}_t")
+
+                else:
+                    return QualType(Name=f"int{bit_int[1:]}_t")
+
             case ["std", "shared_ptr", _]:
                 refl = self.getReflectionParams(Type.par0())
                 if refl and refl.backend.c.holder_type == "shared":

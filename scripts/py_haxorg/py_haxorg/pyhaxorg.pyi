@@ -1069,14 +1069,8 @@ class ExporterPython:
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-I8 = Int8_t
-U8 = char
-I16 = Int16_t
-U16 = Unsigned short
-I32 = Int32_t
-U32 = Unsigned int
-I64 = int
-U64 = Unsigned long long
+ImmIdIdType = U64
+ImmIdNodeIdxT = U32
 ImmPathStore = ImmFlexVector[ImmPathStep]
 GraphNodeProps = Dict[GraphMapNode, GraphMapNodeProp]
 GraphEdgeProps = Dict[GraphMapEdge, GraphMapEdgeProp]
@@ -3399,8 +3393,6 @@ class ImmCmdIncludeKind(Enum):
 class ImmAdapterOrgAPI(ImmAdapterVirtualBase):
     def __init__(self) -> None: ...
 
-ImmIdNodeIdxT = U32
-ImmIdIdType = U64
 class Cmd(Stmt):
     def __init__(self, attrs: AttrGroup) -> None: ...
     def getAttrs(self, key: Optional[str]) -> list[AttrValue]: ...

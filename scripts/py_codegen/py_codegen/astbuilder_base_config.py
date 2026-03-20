@@ -31,6 +31,14 @@ BUILTIN_TYPES = [
     ["long long"],
     ["float"],
     ["double"],
+    ["hstd", "u8"],
+    ["hstd", "u16"],
+    ["hstd", "u32"],
+    ["hstd", "u64"],
+    ["hstd", "i8"],
+    ["hstd", "i16"],
+    ["hstd", "i32"],
+    ["hstd", "i64"],
 ]
 
 

@@ -53,10 +53,10 @@ class CorpusRunner : public hstd::OperationsTracer {
     bool                        inRerun = false;
 
     void writeFile(
-        hstd::ParseSpec const& spec,
-        hstd::Str const&       name,
-        hstd::Str const&       content,
-        hstd::Str const&       relDebug);
+        ParseSpec const& spec,
+        hstd::Str const& name,
+        hstd::Str const& content,
+        hstd::Str const& relDebug);
 
     json toTextLyt(
         hstd::layout::BlockStore&                   b,
@@ -121,7 +121,7 @@ class CorpusRunner : public hstd::OperationsTracer {
             SemCompare);
 
         RunResult() {}
-        RunResult(hstd::Data const& data) : data(data) {}
+        RunResult(Data const& data) : data(data) {}
         Data data;
 
         DESC_FIELDS(RunResult, (data));
@@ -129,9 +129,9 @@ class CorpusRunner : public hstd::OperationsTracer {
         bool isOk() const {
             return std::visit(
                 hstd::overloaded{
-                    [](hstd::CompareBase const& n) { return n.isOk; },
-                    [](hstd::Skip const& n) { return true; },
-                    [](hstd::None const& n) { return true; },
+                    [](CompareBase const& n) { return n.isOk; },
+                    [](Skip const& n) { return true; },
+                    [](None const& n) { return true; },
                 },
                 data);
         }
@@ -139,49 +139,49 @@ class CorpusRunner : public hstd::OperationsTracer {
 
 
     RunResult::NodeCompare compareNodes(
-        hstd::org::parse::OrgNodeGroup const& parsed,
-        hstd::org::parse::OrgNodeGroup const& expected);
+        org::parse::OrgNodeGroup const& parsed,
+        org::parse::OrgNodeGroup const& expected);
 
     hstd::Opt<RunResult> runSpecInitial(
-        hstd::ParseSpec const& spec,
-        std::string const&     from,
-        hstd::Str const&       relDebug,
-        MockFull&              p);
+        ParseSpec const&   spec,
+        std::string const& from,
+        hstd::Str const&   relDebug,
+        MockFull&          p);
 
     RunResult runSpecFormatted(
-        hstd::ParseSpec const& spec,
-        std::string const&     from,
-        hstd::Str const&       relDebug,
-        MockFull&              p);
+        ParseSpec const&   spec,
+        std::string const& from,
+        hstd::Str const&   relDebug,
+        MockFull&          p);
 
 
     RunResult::SemCompare compareSem(
-        hstd::ParseSpec const&        spec,
+        ParseSpec const&              spec,
         sem::SemId<sem::Org>          node,
         json                          expected,
         org::parse::ParseContext::Ptr parse_context);
 
     RunResult runSpec(
-        hstd::ParseSpec const& spec,
-        std::string const&     from,
-        hstd::Str const&       relDebug);
+        ParseSpec const&   spec,
+        std::string const& from,
+        hstd::Str const&   relDebug);
 
     RunResult::LexCompare runSpecBaseLex(
-        MockFull&              p,
-        hstd::ParseSpec const& spec,
-        hstd::Str const&       relDebug);
+        MockFull&        p,
+        ParseSpec const& spec,
+        hstd::Str const& relDebug);
     RunResult::LexCompare runSpecLex(
-        MockFull&              p,
-        hstd::ParseSpec const& spec,
-        hstd::Str const&       relDebug);
+        MockFull&        p,
+        ParseSpec const& spec,
+        hstd::Str const& relDebug);
     RunResult::NodeCompare runSpecParse(
-        MockFull&              p,
-        hstd::ParseSpec const& spec,
-        hstd::Str const&       relDebug);
+        MockFull&        p,
+        ParseSpec const& spec,
+        hstd::Str const& relDebug);
     RunResult::SemCompare runSpecSem(
-        MockFull&              p,
-        hstd::ParseSpec const& spec,
-        hstd::Str const&       relDebug);
+        MockFull&        p,
+        ParseSpec const& spec,
+        hstd::Str const& relDebug);
 };
 
 struct TestParams {
@@ -197,8 +197,8 @@ struct TestParams {
 
 
 TestResult gtest_run_spec(
-    hstd::TestParams const& params,
-    hstd::fs::path const&   testDir);
+    TestParams const&     params,
+    hstd::fs::path const& testDir);
 
 hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& params)> getOrgParseWriteParams(
     OrgSpec const*                               spec,
