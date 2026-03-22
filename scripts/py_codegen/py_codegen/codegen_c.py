@@ -56,12 +56,10 @@ def _gen_func(
     Class: Optional[QualType] = None,
 ) -> codegen_ir.GenTuFunction:
 
-    FuncArgs = []
+    FuncArgs = [_CONTEXT_ARG]
 
     if Class and not func.IsConstructor:
         FuncArgs.append(codegen_ir.GenTuIdent(conf.getBackendType(Class), "__this"))
-
-    FuncArgs.append(_CONTEXT_ARG)
 
     for arg in func.Args:
         FuncArgs.append(
@@ -192,10 +190,12 @@ def _gen_vtable_specialization(
                         args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
                         Params=[_meth.get_function_type()],
                     )
-                ] +
-                [ast.string("self"), ast.string(_CONTEXT_ARG.Name)] +
-                [ast.string(a.Name) for a in _meth.Args],
-                Params=[c_type, c_type_vtable],
+                ] + [ast.string(_CONTEXT_ARG.Name),
+                     ast.string("self")] + [ast.string(a.Name) for a in _meth.Args],
+                Params=[
+                    conf.getBackendType(_meth.ReturnType),
+                    _get_vtable_type(_meth.ReturnType, conf),
+                ],
             )
 
             Impl = ast.Return(Impl)
@@ -204,8 +204,8 @@ def _gen_vtable_specialization(
                 codegen_ir.GenTuFunction(
                     ReturnType=conf.getBackendType(_meth.ReturnType),
                     Args=[
-                        codegen_ir.GenTuIdent(Type=c_type, Name="self"),
                         _CONTEXT_ARG,
+                        codegen_ir.GenTuIdent(Type=c_type, Name="self"),
                     ] + [
                         codegen_ir.GenTuIdent(Type=conf.getBackendType(A.Type),
                                               Name=A.Name) for A in _meth.Args
@@ -269,7 +269,8 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                     Name=f"get_{f.Name}",
                     Type=QualType.ForFunction(
                         ReturnType=conf.getBackendType(f.Type).asConstPtr(),
-                        Args=[wrap_struct.Name.asConstPtr(), _CONTEXT_ARG.Type],
+                        Args=[_CONTEXT_ARG.Type,
+                              wrap_struct.Name.asConstPtr()],
                     ),
                 ))
 
@@ -306,7 +307,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                         Name=_get_func_base_name(_meth),
                         Type=QualType.ForFunction(
                             ReturnType=conf.getBackendType(_meth.ReturnType),
-                            Args=[wrap_struct.Name, _CONTEXT_ARG.Type] +
+                            Args=[_CONTEXT_ARG.Type, wrap_struct.Name] +
                             [conf.getBackendType(a.Type) for a in _meth.Args],
                         ),
                     ))
