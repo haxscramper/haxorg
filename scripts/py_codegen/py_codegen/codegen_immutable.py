@@ -151,6 +151,7 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
     Rewrite all nested structure content and the structure name
     for use in the immutable AST
     """
+    new_type = rewrite_type_to_immutable(obj.Name)
     new_fields = [rewrite_field_to_immutable(f) for f in obj.Fields]
 
     new_methods = [
@@ -189,9 +190,9 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
 
     return replace(
         obj,
-        Name=rewrite_type_to_immutable(obj.Name),
+        Name=new_type,
         Fields=new_fields,
-        Methods=new_methods,
+        Methods=[replace(M, ParentClass=new_type) for M in new_methods],
         Nested=prefix_nested + new_nested,
         GenDescribeMethods=False,
         Bases=[rewrite_type_to_immutable(b) for b in obj.Bases],
@@ -318,6 +319,7 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         ReturnType=result_type,
         Body=ast.Return(field_access),
         IsExposedForWrap=f.IsExposedForWrap,
+        ParentClass=T,
     )
 
 

@@ -2852,25 +2852,25 @@ struct haxorg_GraphMapEdge {
   haxorg_ptr_payload data;
 };
 
+typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
+typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
-typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 /// \brief ['org', 'graph', 'MapGraph']
 struct haxorg_GraphMapGraph {
   haxorg_GraphMapGraph_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
-typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
 /// \brief ['org', 'graph', 'MapConfig']
 struct haxorg_GraphMapConfig {
   haxorg_GraphMapConfig_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'graph', 'MapGraphState']
-struct haxorg_GraphMapGraphState {
-  haxorg_GraphMapGraphState_vtable const* vtable;
+/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmLink']]]
+struct haxorg_ImmLinkAdapter {
+  haxorg_ImmLinkAdapter_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
@@ -2880,9 +2880,9 @@ struct haxorg_ImmSubtreeAdapter {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmLink']]]
-struct haxorg_ImmLinkAdapter {
-  haxorg_ImmLinkAdapter_vtable const* vtable;
+/// \brief ['org', 'graph', 'MapGraphState']
+struct haxorg_GraphMapGraphState {
+  haxorg_GraphMapGraphState_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 

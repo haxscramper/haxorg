@@ -173,9 +173,33 @@ def _gen_vtable_specialization(
 
     Methods = list()
 
+    cpp_vtable_type = QualType(Name="VTable",
+                               Spaces=[
+                                   QualType.ForSpace("org"),
+                                   QualType.ForSpace("bind"),
+                                   QualType.ForSpace("c"),
+                               ])
+
     for _meth in struct.Methods:
         if conf.isAcceptedByBackend(_meth) and not _meth.IsConstructor:
-            assert _meth.ParentClass
+            assert _meth.ParentClass, f"No parent class for method {_meth.Name} of class {struct.declarationQualName()}"
+
+            Impl = ast.XCall(
+                "org::bind::c::execute_cpp",
+                args=[
+                    ast.XCall(
+                        "static_cast",
+                        args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
+                        Params=[_meth.get_function_type()],
+                    )
+                ] +
+                [ast.string("self"), ast.string(_CONTEXT_ARG.Name)] +
+                [ast.string(a.Name) for a in _meth.Args],
+                Params=[c_type, c_type_vtable],
+            )
+
+            Impl = ast.Return(Impl)
+
             Methods.append(
                 codegen_ir.GenTuFunction(
                     ReturnType=conf.getBackendType(_meth.ReturnType),
@@ -188,30 +212,12 @@ def _gen_vtable_specialization(
                     ],
                     IsStatic=True,
                     Name=_get_func_base_name(_meth),
-                    Body=ast.XCall(
-                        "org::bind::c::execute_cpp",
-                        args=[
-                            ast.XCall(
-                                "static_cast",
-                                args=[
-                                    ast.Addr(ast.Type(_meth.get_full_qualified_name()))
-                                ],
-                                Params=[_meth.get_function_type()],
-                            )
-                        ] + [ast.string("self"),
-                             ast.string(_CONTEXT_ARG.Name)] +
-                        [ast.string(a.Name) for a in _meth.Args],
-                        Params=[c_type, c_type_vtable],
-                    ),
+                    Body=Impl,
+                    ParentClass=cpp_vtable_type,
                 ))
 
     return codegen_ir.GenTuStruct(
-        Name=QualType(Name="VTable",
-                      Spaces=[
-                          QualType.ForSpace("org"),
-                          QualType.ForSpace("bind"),
-                          QualType.ForSpace("c"),
-                      ]),
+        Name=cpp_vtable_type,
         IsExplicitInstantiation=True,
         IsTemplateRecord=True,
         ExplicitTemplateParams=[c_type, c_type_vtable],

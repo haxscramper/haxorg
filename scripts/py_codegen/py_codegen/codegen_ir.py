@@ -1027,6 +1027,10 @@ class GenTuStruct():
         else:
             return None
 
+    def __post_init__(self) -> None:
+        for _meth in self.Methods:
+            assert _meth.ParentClass, f"Parent class is not set for method {_meth.Name} of class {self.declarationQualName()}"
+
 
 @beartype
 @dataclass

@@ -95,7 +95,7 @@ def org_struct(
     DefaultEq: bool = False,
 ) -> GenTuStruct:
 
-    MethodsTmp = copy.copy(Methods)
+    MethodsTmp = [replace(M, ParentClass=Type) for M in Methods]
 
     if DefaultConstructor:
         MethodsTmp.append(default_constructor_method(Type))
@@ -199,6 +199,7 @@ def eq_method(name: QualType) -> GenTuFunction:
         Name="operator==",
         Args=[GenTuIdent(Type=name.asConstRef(), Name="other")],
         IsConst=True,
+        ParentClass=name,
     )
 
 
@@ -215,18 +216,20 @@ def default_constructor_method(Class: QualType) -> GenTuFunction:
 #endregion
 
 
-def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
+def d_org(name: str, *args: Any, Methods: List[GenTuFunction] = list(),
+          **kwargs: Any) -> GenTuStruct:
     "Create codegen struct for AST data"
-    res = GenTuStruct(
-        QualType(
-            Name=name,
-            Meta=dict(isOrgType=True),
-            Spaces=[n_sem()],
-            DbgOrigin="d_org",
-        ),
-        *args,
-        **kwargs,
+    Type = QualType(
+        Name=name,
+        Meta=dict(isOrgType=True),
+        Spaces=[n_sem()],
+        DbgOrigin="d_org",
     )
+
+    res = GenTuStruct(Type,
+                      *args,
+                      **kwargs,
+                      Methods=[replace(M, ParentClass=Type) for M in Methods])
 
     res.__setattr__("isOrgType", True)
     kind: str = res.Name.Name
@@ -270,6 +273,7 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
                 IsConst=True,
                 IsVirtual=True,
                 IsPureVirtual=False,
+                ParentClass=res.declarationQualName(),
                 Body=f"return {t_osk().Name}::{kind};",
                 IsExposedForWrap=False,
             ),

@@ -165,7 +165,7 @@ def rec_expand_type(ast: cpp.ASTBuilder,
                 converted.append(rec_expand_type(ast, item))
 
             case codegen_ir.GenTuTypeGroup():
-                for res in rec_expand_group(ast, item):
+                for res in rec_expand_group(ast, item, typ.declarationQualName()):
                     if isinstance(res, codegen_ir.GenTuField):
                         fields.append(res)
 
@@ -200,7 +200,9 @@ def rec_expand_type(ast: cpp.ASTBuilder,
 
 @beartype
 def rec_expand_group(
-    ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup
+    ast: cpp.ASTBuilder,
+    record: codegen_ir.GenTuTypeGroup,
+    parent_class: QualType,
 ) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
     """
     Recursively expand all the types in the type group, generating a new
@@ -260,6 +262,7 @@ def rec_expand_group(
                     Name="is" + kindName,
                     ReturnType=QualType.ForName("bool"),
                     IsConst=True,
+                    ParentClass=parent_class,
                     Body=ast.Return(
                         ast.XCall("==", [
                             ast.XCall(record.kindGetter, []),
@@ -272,6 +275,7 @@ def rec_expand_group(
                     codegen_ir.GenTuFunction(
                         Doc=codegen_ir.GenTuDoc(""),
                         Name="get" + kindName,
+                        ParentClass=parent_class,
                         ReturnType=T.copy_update(
                             RefKind=codegen_ir.ReferenceKind.LValue,
                             IsConst=IsConst,
@@ -294,6 +298,7 @@ def rec_expand_group(
                 Doc=codegen_ir.GenTuDoc(""),
                 Name=record.kindGetter,
                 IsExposedForWrap=False,
+                ParentClass=parent_class,
                 ReflectionParams=codegen_ir.GenTuReflParams(
                     unique_name=record.kindGetter + "Static"),
                 ReturnType=enum_type,
@@ -310,6 +315,7 @@ def rec_expand_group(
             codegen_ir.GenTuFunction(
                 Name=record.kindGetter,
                 ReturnType=enum_type,
+                ParentClass=parent_class,
                 Body=ast.Return(
                     ast.XCall(record.kindGetter, [ast.string(record.variantField)])),
                 Doc=codegen_ir.GenTuDoc(""),
@@ -319,6 +325,7 @@ def rec_expand_group(
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_name",
+                ParentClass=parent_class,
                 ReturnType=QualType(Name="char", PtrCount=1, IsConst=True),
                 Body=ast.Return(ast.StringLiteral(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
@@ -329,6 +336,7 @@ def rec_expand_group(
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_data",
+                ParentClass=parent_class,
                 ReturnType=record.variantName.asConstRef(),
                 Body=ast.Return(ast.string(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
@@ -339,6 +347,7 @@ def rec_expand_group(
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_kind",
+                ParentClass=parent_class,
                 ReturnType=record.enumName,
                 Body=ast.Return(ast.XCall(record.kindGetter)),
                 Doc=codegen_ir.GenTuDoc(""),
