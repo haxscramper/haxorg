@@ -5,7 +5,7 @@
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
-#include <format>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 template <typename A, typename B>
@@ -191,12 +191,11 @@ struct std::formatter<hstd::HSlice<A, B>> : std::formatter<std::string> {
     FormatContext::iterator format(
         hstd::HSlice<A, B> const& p,
         FormatContext&            ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        std::format_to(ctx.out(), "{}", p.first);
-        fmt.format("..", ctx);
-        std::format_to(ctx.out(), "{}", p.last);
-        return fmt.format("]", ctx);
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.first, ctx);
+        ::hstd::fmt_ctx("..", ctx);
+        ::hstd::fmt_ctx(p.last, ctx);
+        return ::hstd::fmt_ctx("]", ctx);
     }
 };
 
@@ -206,13 +205,11 @@ struct std::formatter<hstd::Slice<T>> : std::formatter<std::string> {
     FormatContext::iterator format(
         hstd::Slice<T> const& p,
         FormatContext&        ctx) const {
-        std::formatter<std::string> fmt;
-        std::formatter<T>           fmt_t;
-        fmt.format("[", ctx);
-        fmt_t.format(p.first, ctx);
-        fmt.format("..", ctx);
-        fmt_t.format(p.last, ctx);
-        return fmt.format("]", ctx);
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.first, ctx);
+        ::hstd::fmt_ctx("..", ctx);
+        ::hstd::fmt_ctx(p.last, ctx);
+        return ::hstd::fmt_ctx("]", ctx);
     }
 };
 

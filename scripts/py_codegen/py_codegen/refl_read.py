@@ -228,7 +228,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             IsStatic=meth.is_static,
             OriginalPath=original,
             Args=[conv_proto_arg(arg) for arg in meth.args],
-            ParentClass=result,
+            ParentClass=result.declarationQualName(),
             OriginName="refl",
             IsConstructor=IsConstructor,
             IsVirtual=meth.is_virtual,

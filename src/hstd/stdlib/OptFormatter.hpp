@@ -11,12 +11,11 @@ struct std::formatter<hstd::Opt<T>> : std::formatter<std::string> {
         FormatContext&      ctx) const {
         std::formatter<std::string> fmt;
         if (p.has_value()) {
-            fmt.format("some(", ctx);
-            ::hstd::with_std_formatter(p.value());
-            std::formatter<T>{}.format(p.value(), ctx);
-            return fmt.format(")", ctx);
+            ::hstd::fmt_ctx("some(", ctx);
+            ::hstd::fmt_ctx(p.value(), ctx);
+            return ::hstd::fmt_ctx(")", ctx);
         } else {
-            return fmt.format("none()", ctx);
+            return ::hstd::fmt_ctx("none()", ctx);
         }
     }
 };
@@ -27,6 +26,6 @@ struct std::formatter<std::nullopt_t> : std::formatter<std::string> {
     FormatContext::iterator format(
         std::nullopt_t const& p,
         FormatContext&        ctx) const {
-        return fmt_ctx("nullopt", ctx);
+        return ::hstd::fmt_ctx("nullopt", ctx);
     }
 };

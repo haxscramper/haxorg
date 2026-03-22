@@ -1150,6 +1150,24 @@ NB_MODULE(pyhaxorg, m) {
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::parse::SourceManager>(m, "ParseSourceManager")
+    .def("getPath",
+         static_cast<std::string(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getPath),
+         nanobind::arg("id"))
+    .def("getId",
+         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getId),
+         nanobind::arg("path"))
+    .def("getSourceContent",
+         static_cast<std::string const&(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getSourceContent),
+         nanobind::arg("id"))
+    .def("getContentTextForPath",
+         static_cast<std::string const&(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getContentTextForPath),
+         nanobind::arg("path"))
+    .def("addSource",
+         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&, std::string const&)>(&org::parse::SourceManager::addSource),
+         nanobind::arg("path"),
+         nanobind::arg("content"))
+    ;
   nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
     .def("__init__",
          [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
@@ -1331,6 +1349,8 @@ node can have subnodes.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::parse::ParseContext>(m, "ParseContext")
+    .def(nanobind::init<>())
+    .def(nanobind::init<std::shared_ptr<org::parse::SourceManager> const&>())
     .def("__init__",
          [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::parse::ParseContext();
@@ -2546,6 +2566,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Index>(m, "TblfmExprAxisRefPositionIndex")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Index* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position::Index();
@@ -2566,6 +2587,7 @@ ingoing elements.)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Name>(m, "TblfmExprAxisRefPositionName")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Name* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position::Name();
@@ -2609,6 +2631,7 @@ ingoing elements.)RAW")
          })
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position* result, nanobind::kwargs const& kwargs) -> void {
          new(result) org::sem::Tblfm::Expr::AxisRef::Position();
@@ -5847,6 +5870,9 @@ ingoing elements.)RAW")
     .def_rw("mode", &org::sem::Time::Repeat::mode, R"RAW(mode)RAW")
     .def_rw("period", &org::sem::Time::Repeat::period, R"RAW(period)RAW")
     .def_rw("count", &org::sem::Time::Repeat::count, R"RAW(count)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::Time::Repeat::*)(org::sem::Time::Repeat const&) const>(&org::sem::Time::Repeat::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Time::Repeat const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5867,6 +5893,9 @@ ingoing elements.)RAW")
     .def_rw("repeat", &org::sem::Time::Static::repeat)
     .def_rw("warn", &org::sem::Time::Static::warn)
     .def_rw("time", &org::sem::Time::Static::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::Time::Static::*)(org::sem::Time::Static const&) const>(&org::sem::Time::Static::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Time::Static const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5885,6 +5914,9 @@ ingoing elements.)RAW")
          },
          nanobind::arg("result"))
     .def_rw("expr", &org::sem::Time::Dynamic::expr)
+    .def("__eq__",
+         static_cast<bool(org::sem::Time::Dynamic::*)(org::sem::Time::Dynamic const&) const>(&org::sem::Time::Dynamic::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Time::Dynamic const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6531,6 +6563,9 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::IncludeBase::*)(org::sem::CmdInclude::IncludeBase const&) const>(&org::sem::CmdInclude::IncludeBase::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::IncludeBase const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6548,6 +6583,9 @@ ingoing elements.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::Example::*)(org::sem::CmdInclude::Example const&) const>(&org::sem::CmdInclude::Example::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::Example const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6566,6 +6604,9 @@ ingoing elements.)RAW")
          },
          nanobind::arg("result"))
     .def_rw("language", &org::sem::CmdInclude::Export::language, R"RAW(Source code language for export)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::Export::*)(org::sem::CmdInclude::Export const&) const>(&org::sem::CmdInclude::Export::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::Export const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6584,6 +6625,9 @@ ingoing elements.)RAW")
          },
          nanobind::arg("result"))
     .def_rw("blockName", &org::sem::CmdInclude::Custom::blockName, R"RAW(Block name not covered by the default values)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::Custom::*)(org::sem::CmdInclude::Custom const&) const>(&org::sem::CmdInclude::Custom::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::Custom const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6602,6 +6646,9 @@ ingoing elements.)RAW")
          },
          nanobind::arg("result"))
     .def_rw("language", &org::sem::CmdInclude::Src::language, R"RAW(Source code language for code block)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::Src::*)(org::sem::CmdInclude::Src const&) const>(&org::sem::CmdInclude::Src::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::Src const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -6623,6 +6670,9 @@ ingoing elements.)RAW")
     .def_rw("subtreePath", &org::sem::CmdInclude::OrgDocument::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
     .def_rw("minLevel", &org::sem::CmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
     .def_rw("customIdTarget", &org::sem::CmdInclude::OrgDocument::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::CmdInclude::OrgDocument::*)(org::sem::CmdInclude::OrgDocument const&) const>(&org::sem::CmdInclude::OrgDocument::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::CmdInclude::OrgDocument const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })

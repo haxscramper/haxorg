@@ -68,6 +68,7 @@ class LambdaParams:
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
     IsLine: bool = True
+    IsPtrCast: bool = False
 
 
 class AccessSpecifier(Enum):
@@ -976,7 +977,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Lambda(self, p: LambdaParams) -> BlockId:
         head = self.b.line([
-            self.string("["),
+            self.string("+[" if p.IsPtrCast else "["),
             self.csv([self.Capture(cap) for cap in p.CaptureList]),
             self.string("]"),
             self.Arguments(p)

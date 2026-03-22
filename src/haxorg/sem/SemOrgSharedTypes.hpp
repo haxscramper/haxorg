@@ -16,58 +16,58 @@ struct LispCode {
     BOOST_DESCRIBE_CLASS(Call, (), (), (), (name, args));
     hstd::Str name = "";
     hstd::Vec<org::sem::LispCode> args = {};
-    bool operator==(org::sem::LispCode::Call const& other) const;
     Call() {  }
+    bool operator==(org::sem::LispCode::Call const& other) const;
   };
 
   struct List {
     BOOST_DESCRIBE_CLASS(List, (), (), (), (items));
     hstd::Vec<org::sem::LispCode> items = {};
-    bool operator==(org::sem::LispCode::List const& other) const;
     List() {  }
+    bool operator==(org::sem::LispCode::List const& other) const;
   };
 
   struct KeyValue {
     BOOST_DESCRIBE_CLASS(KeyValue, (), (), (), (name, value));
     hstd::Str name = "";
     hstd::Vec<org::sem::LispCode> value = {};
-    bool operator==(org::sem::LispCode::KeyValue const& other) const;
     KeyValue() {  }
+    bool operator==(org::sem::LispCode::KeyValue const& other) const;
   };
 
   struct Number {
     BOOST_DESCRIBE_CLASS(Number, (), (), (), (value));
     int value;
-    bool operator==(org::sem::LispCode::Number const& other) const;
     Number() {  }
+    bool operator==(org::sem::LispCode::Number const& other) const;
   };
 
   struct Text {
     BOOST_DESCRIBE_CLASS(Text, (), (), (), (value));
     hstd::Str value = "";
-    bool operator==(org::sem::LispCode::Text const& other) const;
     Text() {  }
+    bool operator==(org::sem::LispCode::Text const& other) const;
   };
 
   struct Ident {
     BOOST_DESCRIBE_CLASS(Ident, (), (), (), (name));
     hstd::Str name = "";
-    bool operator==(org::sem::LispCode::Ident const& other) const;
     Ident() {  }
+    bool operator==(org::sem::LispCode::Ident const& other) const;
   };
 
   struct Boolean {
     BOOST_DESCRIBE_CLASS(Boolean, (), (), (), (value));
     bool value = false;
-    bool operator==(org::sem::LispCode::Boolean const& other) const;
     Boolean() {  }
+    bool operator==(org::sem::LispCode::Boolean const& other) const;
   };
 
   struct Real {
     BOOST_DESCRIBE_CLASS(Real, (), (), (), (value));
     float value;
-    bool operator==(org::sem::LispCode::Real const& other) const;
     Real() {  }
+    bool operator==(org::sem::LispCode::Real const& other) const;
   };
 
   using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>;
@@ -77,8 +77,8 @@ struct LispCode {
   using variant_data_type = org::sem::LispCode::Data;
   BOOST_DESCRIBE_CLASS(LispCode, (), (), (), (data));
   org::sem::LispCode::Data data;
-  bool operator==(org::sem::LispCode const& other) const;
   LispCode() {  }
+  bool operator==(org::sem::LispCode const& other) const;
   bool isCall() const { return getKind() == Kind::Call; }
   org::sem::LispCode::Call const& getCall() const { return hstd::variant_get<0>(data); }
   org::sem::LispCode::Call& getCall() { return hstd::variant_get<0>(data); }
@@ -115,16 +115,16 @@ struct Tblfm {
     struct AxisRef {
       struct Position {
         struct Index {
-          Index () {}
           BOOST_DESCRIBE_CLASS(Index, (), (), (), (index));
           int index;
+          Index() {  }
           bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
         };
 
         struct Name {
-          Name () {}
           BOOST_DESCRIBE_CLASS(Name, (), (), (), (name));
           hstd::Str name = "";
+          Name() {  }
           bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
         };
 
@@ -133,9 +133,9 @@ struct Tblfm {
         BOOST_DESCRIBE_NESTED_ENUM(Kind, Index, Name)
         using variant_enum_type = org::sem::Tblfm::Expr::AxisRef::Position::Kind;
         using variant_data_type = org::sem::Tblfm::Expr::AxisRef::Position::Data;
-        Position () {}
         BOOST_DESCRIBE_CLASS(Position, (), (), (), (data));
         org::sem::Tblfm::Expr::AxisRef::Position::Data data;
+        Position() {  }
         bool operator==(org::sem::Tblfm::Expr::AxisRef::Position const& other) const;
         bool isIndex() const { return getKind() == Kind::Index; }
         org::sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return hstd::variant_get<0>(data); }
@@ -289,8 +289,8 @@ struct AttrValue {
   struct TextValue {
     BOOST_DESCRIBE_CLASS(TextValue, (), (), (), (value));
     hstd::Str value = "";
-    bool operator==(org::sem::AttrValue::TextValue const& other) const;
     TextValue() {  }
+    bool operator==(org::sem::AttrValue::TextValue const& other) const;
   };
 
   struct FileReference {
@@ -304,8 +304,8 @@ struct AttrValue {
   struct LispValue {
     BOOST_DESCRIBE_CLASS(LispValue, (), (), (), (code));
     org::sem::LispCode code;
-    bool operator==(org::sem::AttrValue::LispValue const& other) const;
     LispValue() {  }
+    bool operator==(org::sem::AttrValue::LispValue const& other) const;
   };
 
   using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::LispValue>;
@@ -324,8 +324,8 @@ struct AttrValue {
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
   hstd::Opt<double> getDouble() const;
-  bool operator==(org::sem::AttrValue const& other) const;
   AttrValue() {  }
+  bool operator==(org::sem::AttrValue const& other) const;
   bool isTextValue() const { return getKind() == Kind::TextValue; }
   org::sem::AttrValue::TextValue const& getTextValue() const { return hstd::variant_get<0>(data); }
   org::sem::AttrValue::TextValue& getTextValue() { return hstd::variant_get<0>(data); }
@@ -687,8 +687,8 @@ struct OrgCodeEvalInput {
     BOOST_DESCRIBE_CLASS(Var, (), (), (), (name, value));
     hstd::Str name = "";
     org::sem::OrgJson value;
-    bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
     Var() {  }
+    bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
   };
 
   /// \brief What context to use for results

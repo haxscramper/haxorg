@@ -3,6 +3,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/api/ParseContext.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <wrappers/c/haxorg_c_api.h>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/serde/SemOrgCereal.hpp>
@@ -193,6 +194,7 @@ struct ResultTypeBuilder {
     }
 };
 
+
 namespace detail {
 
 // Trait to infer MemoryPolicy from a C++ return type
@@ -219,15 +221,18 @@ struct InferMemoryPolicy<T&> {
 template <
     typename ResultCType,
     typename ReturnVTableType,
-    typename Ret,
-    typename Callable,
+    typename ResultCppType,
+    typename CppCallable,
     typename... CppArgs,
     typename... CArgs>
 ResultCType execute_cpp_impl(
-    Callable const& callable,
-    OrgContext*     ctx,
+    CppCallable const& callable,
+    OrgContext*        ctx,
     CArgs... c_args) {
-    constexpr MemoryPolicy Policy = InferMemoryPolicy<Ret>::value;
+    constexpr MemoryPolicy
+                   Policy        = InferMemoryPolicy<ResultCppType>::value;
+    constexpr bool IsPassthrough = std::
+        is_same_v<ReturnVTableType, haxorg_builtin_vtable>;
     clear_context(ctx);
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
@@ -236,33 +241,47 @@ ResultCType execute_cpp_impl(
         } else {
             decltype(auto) result = callable(
                 ArgUnwrapper<CppArgs, CArgs>::unwrap(c_args, ctx)...);
-            void* raw_ptr = nullptr;
+            if constexpr (IsPassthrough) {
+                return result;
+            } else {
+                void* raw_ptr = nullptr;
 
-            if constexpr (
-                Policy == MemoryPolicy::Unique
-                || Policy == MemoryPolicy::Shared) {
-                using DecayedT = std::decay_t<decltype(result)>;
-                raw_ptr        = new DecayedT(
-                    std::forward<decltype(result)>(result));
-            } else if constexpr (Policy == MemoryPolicy::Reference) {
-                raw_ptr = (void*)(&result);
+                if constexpr (
+                    Policy == MemoryPolicy::Unique
+                    || Policy == MemoryPolicy::Shared) {
+                    using DecayedT = std::decay_t<decltype(result)>;
+                    raw_ptr        = new DecayedT(
+                        std::forward<decltype(result)>(result));
+                } else if constexpr (Policy == MemoryPolicy::Reference) {
+                    raw_ptr = (void*)(&result);
+                }
+
+                void* tagged_ptr = tag_pointer(raw_ptr, Policy);
+                return ResultTypeBuilder<
+                    ResultCType,
+                    ResultCppType,
+                    ReturnVTableType>::build(tagged_ptr);
             }
-
-            void* tagged_ptr = tag_pointer(raw_ptr, Policy);
-            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
-                build(tagged_ptr);
         }
     } catch (std::exception const& e) {
         set_context_error(ctx, e.what());
-        if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
-                build_null();
+        if constexpr (IsPassthrough) {
+            return ResultCType{};
+        } else if constexpr (!std::is_same_v<ResultCType, void>) {
+            return ResultTypeBuilder<
+                ResultCType,
+                ResultCppType,
+                ReturnVTableType>::build_null();
         }
     } catch (...) {
         set_context_error(ctx, "Unknown C++ exception");
-        if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
-                build_null();
+        if constexpr (IsPassthrough) {
+            return ResultCType{};
+        } else if constexpr (!std::is_same_v<ResultCType, void>) {
+            return ResultTypeBuilder<
+                ResultCType,
+                ResultCppType,
+                ReturnVTableType>::build_null();
         }
     }
 }
@@ -273,17 +292,17 @@ ResultCType execute_cpp_impl(
 template <
     typename ResultCType,
     typename ReturnVTableType,
-    typename Ret,
+    typename ResultCppType,
     typename... CppArgs,
     typename... CArgs>
 ResultCType execute_cpp(
-    Ret (*func)(CppArgs...),
+    ResultCppType (*func)(CppArgs...),
     OrgContext* ctx,
     CArgs... c_args) {
     return detail::execute_cpp_impl<
         ResultCType,
         ReturnVTableType,
-        Ret,
+        ResultCppType,
         decltype(func),
         CppArgs...>(func, ctx, c_args...);
 }
@@ -293,23 +312,24 @@ template <
     typename ResultCType,
     typename ReturnVTableType,
     typename Class,
-    typename Ret,
+    typename ResultCppType,
     typename... CppArgs,
     typename CFirstArg,
     typename... CArgs>
 ResultCType execute_cpp(
-    Ret (Class::*method)(CppArgs...),
+    ResultCppType (Class::*method)(CppArgs...),
     OrgContext* ctx,
     CFirstArg   c_self,
     CArgs... c_args) {
     Class& self_ref = ArgUnwrapper<Class&, CFirstArg>::unwrap(c_self, ctx);
-    auto   bound    = [&self_ref, method](CppArgs... cpp_args) -> Ret {
+    auto   bound    = [&self_ref,
+                       method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
     };
     return detail::execute_cpp_impl<
         ResultCType,
         ReturnVTableType,
-        Ret,
+        ResultCppType,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);
 }
@@ -319,24 +339,25 @@ template <
     typename ResultCType,
     typename ReturnVTableType,
     typename Class,
-    typename Ret,
+    typename ResultCppType,
     typename... CppArgs,
     typename CFirstArg,
     typename... CArgs>
 ResultCType execute_cpp(
-    Ret (Class::*method)(CppArgs...) const,
+    ResultCppType (Class::*method)(CppArgs...) const,
     OrgContext* ctx,
     CFirstArg   c_self,
     CArgs... c_args) {
     Class const& self_ref = ArgUnwrapper<const Class&, CFirstArg>::unwrap(
         c_self, ctx);
-    auto bound = [&self_ref, method](CppArgs... cpp_args) -> Ret {
+    auto bound = [&self_ref,
+                  method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
     };
     return detail::execute_cpp_impl<
         ResultCType,
         ReturnVTableType,
-        Ret,
+        ResultCppType,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);
 }

@@ -41,6 +41,8 @@ void haxorg_destroy_UserTime(haxorg_UserTime* obj) { org::bind::c::execute_destr
 
 void haxorg_destroy_ParseSourceFileId(haxorg_ParseSourceFileId* obj) { org::bind::c::execute_destroy<org::parse::SourceFileId>(obj); }
 
+void haxorg_destroy_ParseSourceManager(haxorg_ParseSourceManager* obj) { org::bind::c::execute_destroy<org::parse::SourceManager>(obj); }
+
 void haxorg_destroy_ParseSourceLoc(haxorg_ParseSourceLoc* obj) { org::bind::c::execute_destroy<org::parse::SourceLoc>(obj); }
 
 void haxorg_destroy_OrgJson(haxorg_OrgJson* obj) { org::bind::c::execute_destroy<org::sem::OrgJson>(obj); }
@@ -56,6 +58,10 @@ void haxorg_destroy_ParseOrgParseFragment(haxorg_ParseOrgParseFragment* obj) { o
 void haxorg_destroy_OrgParseParameters(haxorg_OrgParseParameters* obj) { org::bind::c::execute_destroy<org::parse::OrgParseParameters>(obj); }
 
 void haxorg_destroy_OrgDirectoryParseParameters(haxorg_OrgDirectoryParseParameters* obj) { org::bind::c::execute_destroy<org::parse::OrgDirectoryParseParameters>(obj); }
+
+haxorg_ParseContext haxorg_create_ParseContext_ParseContextDefault(OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_ParseContext, haxorg_ParseContext_vtable>(+[]() -> org::parse::ParseContext { return org::parse::ParseContext(); }, org_context); }
+
+haxorg_ParseContext haxorg_create_ParseContext_ParseContextWithManager(haxorg_ParseSourceManager source, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_ParseContext, haxorg_ParseContext_vtable>(+[](std::shared_ptr<org::parse::SourceManager> const& source) -> org::parse::ParseContext { return org::parse::ParseContext(source); }, org_context, source); }
 
 void haxorg_destroy_ParseContext(haxorg_ParseContext* obj) { org::bind::c::execute_destroy<org::parse::ParseContext>(obj); }
 
@@ -129,25 +135,49 @@ void haxorg_destroy_GraphMapConfig(haxorg_GraphMapConfig* obj) { org::bind::c::e
 
 void haxorg_destroy_GraphMapGraphState(haxorg_GraphMapGraphState* obj) { org::bind::c::execute_destroy<org::graph::MapGraphState>(obj); }
 
+void haxorg_create_LispCode_LispCode(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode { return org::sem::LispCode(); }, org_context); }
+
+void haxorg_create_LispCodeCall_Call(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Call { return org::sem::LispCode::Call(); }, org_context); }
+
 void haxorg_destroy_LispCodeCall(haxorg_LispCodeCall* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Call>(obj); }
+
+void haxorg_create_LispCodeList_List(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::List { return org::sem::LispCode::List(); }, org_context); }
 
 void haxorg_destroy_LispCodeList(haxorg_LispCodeList* obj) { org::bind::c::execute_destroy<org::sem::LispCode::List>(obj); }
 
+void haxorg_create_LispCodeKeyValue_KeyValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::KeyValue { return org::sem::LispCode::KeyValue(); }, org_context); }
+
 void haxorg_destroy_LispCodeKeyValue(haxorg_LispCodeKeyValue* obj) { org::bind::c::execute_destroy<org::sem::LispCode::KeyValue>(obj); }
+
+void haxorg_create_LispCodeNumber_Number(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Number { return org::sem::LispCode::Number(); }, org_context); }
 
 void haxorg_destroy_LispCodeNumber(haxorg_LispCodeNumber* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Number>(obj); }
 
+void haxorg_create_LispCodeText_Text(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Text { return org::sem::LispCode::Text(); }, org_context); }
+
 void haxorg_destroy_LispCodeText(haxorg_LispCodeText* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Text>(obj); }
+
+void haxorg_create_LispCodeIdent_Ident(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Ident { return org::sem::LispCode::Ident(); }, org_context); }
 
 void haxorg_destroy_LispCodeIdent(haxorg_LispCodeIdent* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Ident>(obj); }
 
+void haxorg_create_LispCodeBoolean_Boolean(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Boolean { return org::sem::LispCode::Boolean(); }, org_context); }
+
 void haxorg_destroy_LispCodeBoolean(haxorg_LispCodeBoolean* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Boolean>(obj); }
+
+void haxorg_create_LispCodeReal_Real(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::LispCode::Real { return org::sem::LispCode::Real(); }, org_context); }
 
 void haxorg_destroy_LispCodeReal(haxorg_LispCodeReal* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Real>(obj); }
 
 void haxorg_destroy_LispCode(haxorg_LispCode* obj) { org::bind::c::execute_destroy<org::sem::LispCode>(obj); }
 
+void haxorg_create_TblfmExprAxisRefPosition_Position(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Tblfm::Expr::AxisRef::Position { return org::sem::Tblfm::Expr::AxisRef::Position(); }, org_context); }
+
+void haxorg_create_TblfmExprAxisRefPositionIndex_Index(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Tblfm::Expr::AxisRef::Position::Index { return org::sem::Tblfm::Expr::AxisRef::Position::Index(); }, org_context); }
+
 void haxorg_destroy_TblfmExprAxisRefPositionIndex(haxorg_TblfmExprAxisRefPositionIndex* obj) { org::bind::c::execute_destroy<org::sem::Tblfm::Expr::AxisRef::Position::Index>(obj); }
+
+void haxorg_create_TblfmExprAxisRefPositionName_Name(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Tblfm::Expr::AxisRef::Position::Name { return org::sem::Tblfm::Expr::AxisRef::Position::Name(); }, org_context); }
 
 void haxorg_destroy_TblfmExprAxisRefPositionName(haxorg_TblfmExprAxisRefPositionName* obj) { org::bind::c::execute_destroy<org::sem::Tblfm::Expr::AxisRef::Position::Name>(obj); }
 
@@ -173,11 +203,21 @@ void haxorg_destroy_TblfmAssign(haxorg_TblfmAssign* obj) { org::bind::c::execute
 
 void haxorg_destroy_Tblfm(haxorg_Tblfm* obj) { org::bind::c::execute_destroy<org::sem::Tblfm>(obj); }
 
+void haxorg_create_AttrValue_AttrValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::AttrValue { return org::sem::AttrValue(); }, org_context); }
+
+void haxorg_create_AttrValueDimensionSpan_DimensionSpan(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::AttrValue::DimensionSpan { return org::sem::AttrValue::DimensionSpan(); }, org_context); }
+
 void haxorg_destroy_AttrValueDimensionSpan(haxorg_AttrValueDimensionSpan* obj) { org::bind::c::execute_destroy<org::sem::AttrValue::DimensionSpan>(obj); }
+
+void haxorg_create_AttrValueTextValue_TextValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::AttrValue::TextValue { return org::sem::AttrValue::TextValue(); }, org_context); }
 
 void haxorg_destroy_AttrValueTextValue(haxorg_AttrValueTextValue* obj) { org::bind::c::execute_destroy<org::sem::AttrValue::TextValue>(obj); }
 
+void haxorg_create_AttrValueFileReference_FileReference(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::AttrValue::FileReference { return org::sem::AttrValue::FileReference(); }, org_context); }
+
 void haxorg_destroy_AttrValueFileReference(haxorg_AttrValueFileReference* obj) { org::bind::c::execute_destroy<org::sem::AttrValue::FileReference>(obj); }
+
+void haxorg_create_AttrValueLispValue_LispValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::AttrValue::LispValue { return org::sem::AttrValue::LispValue(); }, org_context); }
 
 void haxorg_destroy_AttrValueLispValue(haxorg_AttrValueLispValue* obj) { org::bind::c::execute_destroy<org::sem::AttrValue::LispValue>(obj); }
 
@@ -238,6 +278,8 @@ void haxorg_destroy_SubtreeCompletion(haxorg_SubtreeCompletion* obj) { org::bind
 void haxorg_destroy_AttrList(haxorg_AttrList* obj) { org::bind::c::execute_destroy<org::sem::AttrList>(obj); }
 
 void haxorg_destroy_AttrGroup(haxorg_AttrGroup* obj) { org::bind::c::execute_destroy<org::sem::AttrGroup>(obj); }
+
+void haxorg_create_OrgCodeEvalInputVar_Var(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::OrgCodeEvalInput::Var { return org::sem::OrgCodeEvalInput::Var(); }, org_context); }
 
 void haxorg_destroy_OrgCodeEvalInputVar(haxorg_OrgCodeEvalInputVar* obj) { org::bind::c::execute_destroy<org::sem::OrgCodeEvalInput::Var>(obj); }
 
@@ -359,9 +401,15 @@ void haxorg_destroy_Empty(haxorg_Empty* obj) { org::bind::c::execute_destroy<org
 
 void haxorg_destroy_Leaf(haxorg_Leaf* obj) { org::bind::c::execute_destroy<org::sem::Leaf>(obj); }
 
+void haxorg_create_TimeRepeat_Repeat(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Time::Repeat { return org::sem::Time::Repeat(); }, org_context); }
+
 void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj) { org::bind::c::execute_destroy<org::sem::Time::Repeat>(obj); }
 
+void haxorg_create_TimeStatic_Static(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Time::Static { return org::sem::Time::Static(); }, org_context); }
+
 void haxorg_destroy_TimeStatic(haxorg_TimeStatic* obj) { org::bind::c::execute_destroy<org::sem::Time::Static>(obj); }
+
+void haxorg_create_TimeDynamic_Dynamic(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Time::Dynamic { return org::sem::Time::Dynamic(); }, org_context); }
 
 void haxorg_destroy_TimeDynamic(haxorg_TimeDynamic* obj) { org::bind::c::execute_destroy<org::sem::Time::Dynamic>(obj); }
 
@@ -419,15 +467,27 @@ void haxorg_destroy_Directory(haxorg_Directory* obj) { org::bind::c::execute_des
 
 void haxorg_destroy_Symlink(haxorg_Symlink* obj) { org::bind::c::execute_destroy<org::sem::Symlink>(obj); }
 
+void haxorg_create_CmdIncludeIncludeBase_IncludeBase(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::IncludeBase { return org::sem::CmdInclude::IncludeBase(); }, org_context); }
+
 void haxorg_destroy_CmdIncludeIncludeBase(haxorg_CmdIncludeIncludeBase* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::IncludeBase>(obj); }
+
+void haxorg_create_CmdIncludeExample_Example(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Example { return org::sem::CmdInclude::Example(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeExample(haxorg_CmdIncludeExample* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Example>(obj); }
 
+void haxorg_create_CmdIncludeExport_Export(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Export { return org::sem::CmdInclude::Export(); }, org_context); }
+
 void haxorg_destroy_CmdIncludeExport(haxorg_CmdIncludeExport* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Export>(obj); }
+
+void haxorg_create_CmdIncludeCustom_Custom(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Custom { return org::sem::CmdInclude::Custom(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeCustom(haxorg_CmdIncludeCustom* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Custom>(obj); }
 
+void haxorg_create_CmdIncludeSrc_Src(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Src { return org::sem::CmdInclude::Src(); }, org_context); }
+
 void haxorg_destroy_CmdIncludeSrc(haxorg_CmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Src>(obj); }
+
+void haxorg_create_CmdIncludeOrgDocument_OrgDocument(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::OrgDocument { return org::sem::CmdInclude::OrgDocument(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::OrgDocument>(obj); }
 
@@ -449,9 +509,15 @@ void haxorg_destroy_ImmEmpty(haxorg_ImmEmpty* obj) { org::bind::c::execute_destr
 
 void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj) { org::bind::c::execute_destroy<org::imm::ImmLeaf>(obj); }
 
+void haxorg_create_ImmTimeRepeat_Repeat(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmTime::Repeat { return org::imm::ImmTime::Repeat(); }, org_context); }
+
 void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj) { org::bind::c::execute_destroy<org::imm::ImmTime::Repeat>(obj); }
 
+void haxorg_create_ImmTimeStatic_Static(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmTime::Static { return org::imm::ImmTime::Static(); }, org_context); }
+
 void haxorg_destroy_ImmTimeStatic(haxorg_ImmTimeStatic* obj) { org::bind::c::execute_destroy<org::imm::ImmTime::Static>(obj); }
+
+void haxorg_create_ImmTimeDynamic_Dynamic(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmTime::Dynamic { return org::imm::ImmTime::Dynamic(); }, org_context); }
 
 void haxorg_destroy_ImmTimeDynamic(haxorg_ImmTimeDynamic* obj) { org::bind::c::execute_destroy<org::imm::ImmTime::Dynamic>(obj); }
 
@@ -509,15 +575,27 @@ void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj) { org::bind::c::execu
 
 void haxorg_destroy_ImmSymlink(haxorg_ImmSymlink* obj) { org::bind::c::execute_destroy<org::imm::ImmSymlink>(obj); }
 
+void haxorg_create_ImmCmdIncludeIncludeBase_IncludeBase(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::IncludeBase { return org::imm::ImmCmdInclude::IncludeBase(); }, org_context); }
+
 void haxorg_destroy_ImmCmdIncludeIncludeBase(haxorg_ImmCmdIncludeIncludeBase* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::IncludeBase>(obj); }
+
+void haxorg_create_ImmCmdIncludeExample_Example(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Example { return org::imm::ImmCmdInclude::Example(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeExample(haxorg_ImmCmdIncludeExample* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Example>(obj); }
 
+void haxorg_create_ImmCmdIncludeExport_Export(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Export { return org::imm::ImmCmdInclude::Export(); }, org_context); }
+
 void haxorg_destroy_ImmCmdIncludeExport(haxorg_ImmCmdIncludeExport* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Export>(obj); }
+
+void haxorg_create_ImmCmdIncludeCustom_Custom(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Custom { return org::imm::ImmCmdInclude::Custom(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeCustom(haxorg_ImmCmdIncludeCustom* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Custom>(obj); }
 
+void haxorg_create_ImmCmdIncludeSrc_Src(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Src { return org::imm::ImmCmdInclude::Src(); }, org_context); }
+
 void haxorg_destroy_ImmCmdIncludeSrc(haxorg_ImmCmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Src>(obj); }
+
+void haxorg_create_ImmCmdIncludeOrgDocument_OrgDocument(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::OrgDocument { return org::imm::ImmCmdInclude::OrgDocument(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeOrgDocument(haxorg_ImmCmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::OrgDocument>(obj); }
 
@@ -765,21 +843,39 @@ void haxorg_destroy_ImmAdapterParagraphAPI(haxorg_ImmAdapterParagraphAPI* obj) {
 
 void haxorg_destroy_ImmAdapterListAPI(haxorg_ImmAdapterListAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterListAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmStmt_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmStmt> { return org::imm::ImmAdapterT<org::imm::ImmStmt>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmStmtAdapter(haxorg_ImmStmtAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmStmt>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmSubtree_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSubtree> { return org::imm::ImmAdapterT<org::imm::ImmSubtree>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmSubtreeAdapter(haxorg_ImmSubtreeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmSubtree>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmNoNode_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmNoNode> { return org::imm::ImmAdapterT<org::imm::ImmNoNode>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmNoNodeAdapter(haxorg_ImmNoNodeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmNoNode>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmErrorItem_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmErrorItem> { return org::imm::ImmAdapterT<org::imm::ImmErrorItem>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmErrorItemAdapter(haxorg_ImmErrorItemAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmErrorItem>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmErrorGroup_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmErrorGroup> { return org::imm::ImmAdapterT<org::imm::ImmErrorGroup>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmErrorGroupAdapter(haxorg_ImmErrorGroupAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmErrorSkipGroup_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup> { return org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmErrorSkipGroupAdapter(haxorg_ImmErrorSkipGroupAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmErrorSkipToken_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken> { return org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmErrorSkipTokenAdapter(haxorg_ImmErrorSkipTokenAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmStmtList_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmStmtList> { return org::imm::ImmAdapterT<org::imm::ImmStmtList>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmStmtListAdapter(haxorg_ImmStmtListAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmEmpty_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmEmpty> { return org::imm::ImmAdapterT<org::imm::ImmEmpty>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmEmptyAdapter(haxorg_ImmEmptyAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmEmpty>>(obj); }
 
@@ -789,13 +885,23 @@ void haxorg_destroy_ImmAdapterInlineFootnoteAPI(haxorg_ImmAdapterInlineFootnoteA
 
 void haxorg_destroy_ImmAdapterSubtreeCompletionAPI(haxorg_ImmAdapterSubtreeCompletionAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterSubtreeCompletionAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmInline_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmInline> { return org::imm::ImmAdapterT<org::imm::ImmInline>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmInlineAdapter(haxorg_ImmInlineAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmInline>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmTime_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmTime> { return org::imm::ImmAdapterT<org::imm::ImmTime>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmTimeAdapter(haxorg_ImmTimeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmTime>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmTimeRange_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmTimeRange> { return org::imm::ImmAdapterT<org::imm::ImmTimeRange>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmTimeRangeAdapter(haxorg_ImmTimeRangeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmTimeRange>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmMacro_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmMacro> { return org::imm::ImmAdapterT<org::imm::ImmMacro>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmMacroAdapter(haxorg_ImmMacroAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmMacro>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmSymbol_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSymbol> { return org::imm::ImmAdapterT<org::imm::ImmSymbol>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmSymbolAdapter(haxorg_ImmSymbolAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmSymbol>>(obj); }
 
@@ -819,6 +925,8 @@ void haxorg_destroy_ImmAdapterBigIdentAPI(haxorg_ImmAdapterBigIdentAPI* obj) { o
 
 void haxorg_destroy_ImmAdapterTextTargetAPI(haxorg_ImmAdapterTextTargetAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterTextTargetAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmLeaf_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmLeaf> { return org::imm::ImmAdapterT<org::imm::ImmLeaf>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmLeafAdapter(haxorg_ImmLeafAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmLeaf>>(obj); }
 
 void haxorg_destroy_ImmAdapterBoldAPI(haxorg_ImmAdapterBoldAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterBoldAPI>(obj); }
@@ -839,37 +947,71 @@ void haxorg_destroy_ImmAdapterStrikeAPI(haxorg_ImmAdapterStrikeAPI* obj) { org::
 
 void haxorg_destroy_ImmAdapterParAPI(haxorg_ImmAdapterParAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterParAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmMarkup_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmMarkup> { return org::imm::ImmAdapterT<org::imm::ImmMarkup>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmMarkupAdapter(haxorg_ImmMarkupAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmMarkup>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmLatex_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmLatex> { return org::imm::ImmAdapterT<org::imm::ImmLatex>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmLatexAdapter(haxorg_ImmLatexAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmLatex>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmSubtreeLog_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog> { return org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmSubtreeLogAdapter(haxorg_ImmSubtreeLogAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmColonExample_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmColonExample> { return org::imm::ImmAdapterT<org::imm::ImmColonExample>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmColonExampleAdapter(haxorg_ImmColonExampleAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmColonExample>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCall_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCall> { return org::imm::ImmAdapterT<org::imm::ImmCall>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCallAdapter(haxorg_ImmCallAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCall>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmFile_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmFile> { return org::imm::ImmAdapterT<org::imm::ImmFile>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmFileAdapter(haxorg_ImmFileAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmFile>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmDirectory_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDirectory> { return org::imm::ImmAdapterT<org::imm::ImmDirectory>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmDirectoryAdapter(haxorg_ImmDirectoryAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDirectory>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmSymlink_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSymlink> { return org::imm::ImmAdapterT<org::imm::ImmSymlink>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmSymlinkAdapter(haxorg_ImmSymlinkAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmSymlink>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmDocumentFragment_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDocumentFragment> { return org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmDocumentFragmentAdapter(haxorg_ImmDocumentFragmentAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCriticMarkup_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCriticMarkup> { return org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCriticMarkupAdapter(haxorg_ImmCriticMarkupAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmListItem_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmListItem> { return org::imm::ImmAdapterT<org::imm::ImmListItem>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmListItemAdapter(haxorg_ImmListItemAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmListItem>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmDocumentOptions_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDocumentOptions> { return org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmDocumentOptionsAdapter(haxorg_ImmDocumentOptionsAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmDocument_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDocument> { return org::imm::ImmAdapterT<org::imm::ImmDocument>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmDocumentAdapter(haxorg_ImmDocumentAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDocument>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmFileTarget_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmFileTarget> { return org::imm::ImmAdapterT<org::imm::ImmFileTarget>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmFileTargetAdapter(haxorg_ImmFileTargetAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmFileTarget>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmTextSeparator_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmTextSeparator> { return org::imm::ImmAdapterT<org::imm::ImmTextSeparator>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmTextSeparatorAdapter(haxorg_ImmTextSeparatorAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdInclude_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdInclude> { return org::imm::ImmAdapterT<org::imm::ImmCmdInclude>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdIncludeAdapter(haxorg_ImmCmdIncludeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmDocumentGroup_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDocumentGroup> { return org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmDocumentGroupAdapter(haxorg_ImmDocumentGroupAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>>(obj); }
 
@@ -937,59 +1079,115 @@ void haxorg_destroy_ImmAdapterCellAPI(haxorg_ImmAdapterCellAPI* obj) { org::bind
 
 void haxorg_destroy_ImmAdapterRowAPI(haxorg_ImmAdapterRowAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterRowAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmd_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmd> { return org::imm::ImmAdapterT<org::imm::ImmCmd>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdAdapter(haxorg_ImmCmdAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmd>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdCustomRaw_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw> { return org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdCustomRawAdapter(haxorg_ImmCmdCustomRawAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdCustomText_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCustomText> { return org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdCustomTextAdapter(haxorg_ImmCmdCustomTextAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmLink_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmLink> { return org::imm::ImmAdapterT<org::imm::ImmLink>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmLinkAdapter(haxorg_ImmLinkAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmLink>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlockComment_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockComment> { return org::imm::ImmAdapterT<org::imm::ImmBlockComment>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockCommentAdapter(haxorg_ImmBlockCommentAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockComment>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmParagraph_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmParagraph> { return org::imm::ImmAdapterT<org::imm::ImmParagraph>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmParagraphAdapter(haxorg_ImmParagraphAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmList_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmList> { return org::imm::ImmAdapterT<org::imm::ImmList>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmListAdapter(haxorg_ImmListAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmList>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmHashTag_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmHashTag> { return org::imm::ImmAdapterT<org::imm::ImmHashTag>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmHashTagAdapter(haxorg_ImmHashTagAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmHashTag>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmInlineFootnote_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmInlineFootnote> { return org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmInlineFootnoteAdapter(haxorg_ImmInlineFootnoteAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmEscaped_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmEscaped> { return org::imm::ImmAdapterT<org::imm::ImmEscaped>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmEscapedAdapter(haxorg_ImmEscapedAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmEscaped>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmNewline_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmNewline> { return org::imm::ImmAdapterT<org::imm::ImmNewline>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmNewlineAdapter(haxorg_ImmNewlineAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmNewline>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmSpace_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSpace> { return org::imm::ImmAdapterT<org::imm::ImmSpace>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmSpaceAdapter(haxorg_ImmSpaceAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmSpace>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmWord_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmWord> { return org::imm::ImmAdapterT<org::imm::ImmWord>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmWordAdapter(haxorg_ImmWordAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmWord>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmAtMention_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmAtMention> { return org::imm::ImmAdapterT<org::imm::ImmAtMention>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmAtMentionAdapter(haxorg_ImmAtMentionAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmAtMention>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmRawText_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmRawText> { return org::imm::ImmAdapterT<org::imm::ImmRawText>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmRawTextAdapter(haxorg_ImmRawTextAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmRawText>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmPunctuation_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmPunctuation> { return org::imm::ImmAdapterT<org::imm::ImmPunctuation>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmPunctuationAdapter(haxorg_ImmPunctuationAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmPunctuation>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmPlaceholder_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmPlaceholder> { return org::imm::ImmAdapterT<org::imm::ImmPlaceholder>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmPlaceholderAdapter(haxorg_ImmPlaceholderAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBigIdent_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBigIdent> { return org::imm::ImmAdapterT<org::imm::ImmBigIdent>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBigIdentAdapter(haxorg_ImmBigIdentAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBigIdent>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmTextTarget_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmTextTarget> { return org::imm::ImmAdapterT<org::imm::ImmTextTarget>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmTextTargetAdapter(haxorg_ImmTextTargetAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmTextTarget>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBold_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBold> { return org::imm::ImmAdapterT<org::imm::ImmBold>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBoldAdapter(haxorg_ImmBoldAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBold>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmUnderline_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmUnderline> { return org::imm::ImmAdapterT<org::imm::ImmUnderline>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmUnderlineAdapter(haxorg_ImmUnderlineAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmUnderline>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmMonospace_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmMonospace> { return org::imm::ImmAdapterT<org::imm::ImmMonospace>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmMonospaceAdapter(haxorg_ImmMonospaceAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmMonospace>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmMarkQuote_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmMarkQuote> { return org::imm::ImmAdapterT<org::imm::ImmMarkQuote>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmMarkQuoteAdapter(haxorg_ImmMarkQuoteAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmRadioTarget_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmRadioTarget> { return org::imm::ImmAdapterT<org::imm::ImmRadioTarget>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmRadioTargetAdapter(haxorg_ImmRadioTargetAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmVerbatim_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmVerbatim> { return org::imm::ImmAdapterT<org::imm::ImmVerbatim>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmVerbatimAdapter(haxorg_ImmVerbatimAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmVerbatim>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmItalic_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmItalic> { return org::imm::ImmAdapterT<org::imm::ImmItalic>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmItalicAdapter(haxorg_ImmItalicAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmItalic>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmStrike_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmStrike> { return org::imm::ImmAdapterT<org::imm::ImmStrike>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmStrikeAdapter(haxorg_ImmStrikeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmStrike>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmPar_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmPar> { return org::imm::ImmAdapterT<org::imm::ImmPar>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmParAdapter(haxorg_ImmParAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmPar>>(obj); }
 
@@ -1019,17 +1217,31 @@ void haxorg_destroy_ImmCmdExport(haxorg_ImmCmdExport* obj) { org::bind::c::execu
 
 void haxorg_destroy_ImmAdapterAttachedAPI(haxorg_ImmAdapterAttachedAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterAttachedAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmLineCommand_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmLineCommand> { return org::imm::ImmAdapterT<org::imm::ImmLineCommand>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmLineCommandAdapter(haxorg_ImmLineCommandAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmLineCommand>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdCustomArgs_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs> { return org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdCustomArgsAdapter(haxorg_ImmCmdCustomArgsAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdCreator_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCreator> { return org::imm::ImmAdapterT<org::imm::ImmCmdCreator>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdCreatorAdapter(haxorg_ImmCmdCreatorAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdAuthor_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdAuthor> { return org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdAuthorAdapter(haxorg_ImmCmdAuthorAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdEmail_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdEmail> { return org::imm::ImmAdapterT<org::imm::ImmCmdEmail>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdEmailAdapter(haxorg_ImmCmdEmailAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdLanguage_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdLanguage> { return org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdLanguageAdapter(haxorg_ImmCmdLanguageAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdTblfm_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdTblfm> { return org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdTblfmAdapter(haxorg_ImmCmdTblfmAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>>(obj); }
 
@@ -1057,9 +1269,15 @@ void haxorg_destroy_ImmAdapterBlockCodeAPI(haxorg_ImmAdapterBlockCodeAPI* obj) {
 
 void haxorg_destroy_ImmAdapterTableAPI(haxorg_ImmAdapterTableAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterTableAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlock_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlock> { return org::imm::ImmAdapterT<org::imm::ImmBlock>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockAdapter(haxorg_ImmBlockAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlock>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCell_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCell> { return org::imm::ImmAdapterT<org::imm::ImmCell>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCellAdapter(haxorg_ImmCellAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCell>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmRow_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmRow> { return org::imm::ImmAdapterT<org::imm::ImmRow>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmRowAdapter(haxorg_ImmRowAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmRow>>(obj); }
 
@@ -1075,39 +1293,75 @@ void haxorg_destroy_ImmAdapterCmdResultsAPI(haxorg_ImmAdapterCmdResultsAPI* obj)
 
 void haxorg_destroy_ImmAdapterCmdAttrAPI(haxorg_ImmAdapterCmdAttrAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterCmdAttrAPI>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmAttached_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmAttached> { return org::imm::ImmAdapterT<org::imm::ImmAttached>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmAttachedAdapter(haxorg_ImmAttachedAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmAttached>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBlockCenter_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockCenter> { return org::imm::ImmAdapterT<org::imm::ImmBlockCenter>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBlockCenterAdapter(haxorg_ImmBlockCenterAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlockQuote_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockQuote> { return org::imm::ImmAdapterT<org::imm::ImmBlockQuote>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockQuoteAdapter(haxorg_ImmBlockQuoteAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBlockVerse_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockVerse> { return org::imm::ImmAdapterT<org::imm::ImmBlockVerse>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBlockVerseAdapter(haxorg_ImmBlockVerseAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlockExample_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockExample> { return org::imm::ImmAdapterT<org::imm::ImmBlockExample>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockExampleAdapter(haxorg_ImmBlockExampleAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockExample>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmInlineExport_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmInlineExport> { return org::imm::ImmAdapterT<org::imm::ImmInlineExport>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmInlineExportAdapter(haxorg_ImmInlineExportAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmInlineExport>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdExport_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdExport> { return org::imm::ImmAdapterT<org::imm::ImmCmdExport>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdExportAdapter(haxorg_ImmCmdExportAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdExport>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBlockExport_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockExport> { return org::imm::ImmAdapterT<org::imm::ImmBlockExport>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBlockExportAdapter(haxorg_ImmBlockExportAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockExport>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlockDynamicFallback_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback> { return org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockDynamicFallbackAdapter(haxorg_ImmBlockDynamicFallbackAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBlockAdmonition_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition> { return org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBlockAdmonitionAdapter(haxorg_ImmBlockAdmonitionAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmBlockCodeEvalResult_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult> { return org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmBlockCodeEvalResultAdapter(haxorg_ImmBlockCodeEvalResultAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmBlockCode_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmBlockCode> { return org::imm::ImmAdapterT<org::imm::ImmBlockCode>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmBlockCodeAdapter(haxorg_ImmBlockCodeAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockCode>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmTable_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmTable> { return org::imm::ImmAdapterT<org::imm::ImmTable>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmTableAdapter(haxorg_ImmTableAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmTable>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdCaption_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCaption> { return org::imm::ImmAdapterT<org::imm::ImmCmdCaption>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdCaptionAdapter(haxorg_ImmCmdCaptionAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdColumns_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdColumns> { return org::imm::ImmAdapterT<org::imm::ImmCmdColumns>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdColumnsAdapter(haxorg_ImmCmdColumnsAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdName_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdName> { return org::imm::ImmAdapterT<org::imm::ImmCmdName>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdNameAdapter(haxorg_ImmCmdNameAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdName>>(obj); }
 
+void haxorg_create_ImmAdapterTOfImmCmdCall_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdCall> { return org::imm::ImmAdapterT<org::imm::ImmCmdCall>(other); }, org_context, other); }
+
 void haxorg_destroy_ImmCmdCallAdapter(haxorg_ImmCmdCallAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCall>>(obj); }
+
+void haxorg_create_ImmAdapterTOfImmCmdAttr_ImmAdapterT(haxorg_ImmAdapter other, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdAttr> { return org::imm::ImmAdapterT<org::imm::ImmCmdAttr>(other); }, org_context, other); }
 
 void haxorg_destroy_ImmCmdAttrAdapter(haxorg_ImmCmdAttrAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>>(obj); }
 

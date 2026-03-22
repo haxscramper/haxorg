@@ -102,8 +102,9 @@ struct [[refl(
 })")]] ParseContext : public hstd::SharedPtrApi<ParseContext> {
     hstd::SPtr<SourceManager> source;
 
-    ParseContext();
-    ParseContext(hstd::SPtr<SourceManager> const& source);
+    [[refl(R"({"unique-name": "ParseContextDefault"})")]] ParseContext();
+    [[refl(R"({"unique-name": "ParseContextWithManager"})")]] ParseContext(
+        hstd::SPtr<SourceManager> const& source);
 
     BOOST_DESCRIBE_CLASS(ParseContext, (), (), (), ());
 

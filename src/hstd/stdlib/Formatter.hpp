@@ -10,6 +10,9 @@ namespace hstd {
 template <typename T, typename CharT>
 using Fmt = ::std::formatter<T, CharT>;
 
+/// \brief Early-fail the instantiation if the formatter is
+/// invalid. This function is a no-op at runtime and serves only for the
+/// developer's sanity to make the formatter failures more apparent.
 template <typename T>
 void with_std_formatter(T const& value) {
     if (false) {

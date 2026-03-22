@@ -1,4 +1,5 @@
 from copy import deepcopy
+import copy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 
@@ -90,13 +91,24 @@ def org_struct(
     Nested: List[GenTuEntry] = [],
     Methods: List[GenTuFunction] = [],
     Bases: List[QualType] = [],
+    DefaultConstructor: bool = False,
+    DefaultEq: bool = False,
 ) -> GenTuStruct:
+
+    MethodsTmp = copy.copy(Methods)
+
+    if DefaultConstructor:
+        MethodsTmp.append(default_constructor_method(Type))
+
+    if DefaultEq:
+        MethodsTmp.append(eq_method(Type))
+
     return GenTuStruct(
         Name=Type,
         Doc=org_doc(Doc),
         Fields=Fields,
         Nested=Nested,
-        Methods=Methods,
+        Methods=MethodsTmp,
         Bases=Bases,
         IsDescribedRecord=True,
     )
@@ -191,16 +203,12 @@ def eq_method(name: QualType) -> GenTuFunction:
 
 
 @beartype
-def default_constructor(name: str) -> GenTuPass:
-    return GenTuPass(f"{name} () {{}}")
-
-
-@beartype
-def default_constructor_method(name: str) -> GenTuFunction:
+def default_constructor_method(Class: QualType) -> GenTuFunction:
     return GenTuFunction(
-        Name=name,
+        Name=Class.Name,
         Body="",
         IsConstructor=True,
+        ParentClass=Class,
     )
 
 
@@ -1066,9 +1074,8 @@ def get_sem_text() -> List[GenTuStruct]:
                 org_struct(
                     t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
-                    Methods=[
-                        default_constructor_method("Repeat"),
-                    ],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
                     Nested=[
                         GenTuEnum(
                             t_nest("Mode", [t_org("Time"), t("Repeat")]),
@@ -1129,9 +1136,8 @@ def get_sem_text() -> List[GenTuStruct]:
                                 opt_field(t_nest("Repeat", [t_org("Time")]), "warn"),
                                 GenTuField(t_user_time(), "time"),
                             ],
-                            Methods=[
-                                default_constructor_method("Static"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
@@ -1140,9 +1146,8 @@ def get_sem_text() -> List[GenTuStruct]:
                                 GenTuField(t_nest_shared("LispCode"), "expr",
                                            GenTuDoc(""))
                             ],
-                            Methods=[
-                                default_constructor_method("Dynamic"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                     ],
                     kindGetter="getTimeKind",
@@ -1466,10 +1471,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     axis_ref_types = org_struct(
         t_nest_shared("Position",
                       [t("Tblfm"), t("Expr"), t("AxisRef")]),
-        Methods=[
-            eq_method(t_nest_shared(
-                "Position", [t("Tblfm"), t("Expr"), t("AxisRef")]))
-        ],
+        DefaultConstructor=True,
+        DefaultEq=True,
         Nested=[
             GenTuTypeGroup(
                 [
@@ -1480,16 +1483,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                       t("AxisRef"),
                                       t("Position")]),
                         Fields=[org_field(t_int(), "index")],
-                        Methods=[
-                            eq_method(
-                                t_nest_shared(
-                                    "Index",
-                                    [t("Tblfm"),
-                                     t("Expr"),
-                                     t("AxisRef"),
-                                     t("Position")]))
-                        ],
-                        Nested=[default_constructor("Index")],
+                        DefaultConstructor=True,
+                        DefaultEq=True,
                     ),
                     org_struct(
                         t_nest_shared(
@@ -1498,16 +1493,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                      t("AxisRef"),
                                      t("Position")]),
                         Fields=[str_field("name")],
-                        Methods=[
-                            eq_method(
-                                t_nest_shared(
-                                    "Name",
-                                    [t("Tblfm"),
-                                     t("Expr"),
-                                     t("AxisRef"),
-                                     t("Position")]))
-                        ],
-                        Nested=[default_constructor("Name")],
+                        DefaultConstructor=True,
+                        DefaultEq=True,
                     ),
                 ],
                 enumName=t_nest_shared(
@@ -1519,17 +1506,14 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     [t("Tblfm"), t("Expr"),
                      t("AxisRef"), t("Position")]),
             ),
-            default_constructor("Position"),
         ],
     )
 
     return [
         org_struct(
             t_nest_shared("LispCode"),
-            Methods=[
-                eq_method(t_nest_shared("LispCode")),
-                default_constructor_method("LispCode"),
-            ],
+            DefaultConstructor=True,
+            DefaultEq=True,
             Nested=[
                 GenTuTypeGroup(
                     [
@@ -1539,20 +1523,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("name"),
                                 vec_field(t_nest_shared("LispCode"), "args"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Call", [t("LispCode")])),
-                                default_constructor_method("Call"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("List", [t("LispCode")]),
                             Fields=[
                                 vec_field(t_nest_shared("LispCode"), "items"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("List", [t("LispCode")])),
-                                default_constructor_method("List"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("KeyValue", [t("LispCode")]),
@@ -1560,60 +1540,48 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("name"),
                                 vec_field(t_nest_shared("LispCode"), "value")
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("KeyValue", [t("LispCode")])),
-                                default_constructor_method("KeyValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Number", [t("LispCode")]),
                             Fields=[
                                 int_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Number", [t("LispCode")])),
-                                default_constructor_method("Number"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Text", [t("LispCode")]),
                             Fields=[
                                 str_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Text", [t("LispCode")])),
-                                default_constructor_method("Text"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Ident", [t("LispCode")]),
                             Fields=[
                                 str_field("name"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Ident", [t("LispCode")])),
-                                default_constructor_method("Ident"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Boolean", [t("LispCode")]),
                             Fields=[
                                 bool_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Boolean", [t("LispCode")])),
-                                default_constructor_method("Boolean"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Real", [t("LispCode")]),
                             Fields=[
                                 org_field(t("float"), "value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Real", [t("LispCode")])),
-                                default_constructor_method("Real"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                     ],
                     enumName=t_nest_shared("Kind", [t("LispCode")]),
@@ -1768,16 +1736,15 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         org_struct(
             t_nest_shared("AttrValue"),
             Nested=[
-                org_struct(t_nest_shared("DimensionSpan", [t("AttrValue")]),
-                           Fields=[
-                               int_field("first"),
-                               opt_field(t_int(), "last"),
-                           ],
-                           Methods=[
-                               default_constructor_method("DimensionSpan"),
-                               eq_method(t_nest_shared("DimensionSpan",
-                                                       [t("AttrValue")])),
-                           ]),
+                org_struct(
+                    t_nest_shared("DimensionSpan", [t("AttrValue")]),
+                    Fields=[
+                        int_field("first"),
+                        opt_field(t_int(), "last"),
+                    ],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
+                ),
                 GenTuTypeGroup(
                     [
                         org_struct(
@@ -1785,10 +1752,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             Fields=[
                                 str_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("TextValue", [t("AttrValue")])),
-                                default_constructor_method("TextValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("FileReference", [t("AttrValue")]),
@@ -1796,21 +1761,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("file"),
                                 str_field("reference"),
                             ],
-                            Methods=[
-                                default_constructor_method("FileReference"),
-                                eq_method(t_nest_shared("FileReference",
-                                                        [t("AttrValue")])),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("LispValue", [t("AttrValue")]),
                             Fields=[
                                 org_field(t_nest_shared("LispCode"), "code"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("LispValue", [t("AttrValue")])),
-                                default_constructor_method("LispValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                     ],
                     kindGetter="getKind",
@@ -1832,9 +1792,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_function(t_opt(t_int()), "getInt", IsConst=True),
                 org_function(t_str(), "getString", IsConst=True),
                 org_function(t_opt(QualType(Name="double")), "getDouble", IsConst=True),
-                eq_method(t_nest_shared("AttrValue")),
-                default_constructor_method("AttrValue")
             ],
+            DefaultConstructor=True,
+            DefaultEq=True,
         ),
         org_struct(
             t_nest_shared("HashTagFlat"),
@@ -2372,15 +2332,15 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 vec_field(t_nest_shared("Var", [t("OrgCodeEvalInput")]), "argList"),
             ],
             Nested=[
-                org_struct(t_nest_shared("Var", [t("OrgCodeEvalInput")]),
-                           Fields=[
-                               str_field("name"),
-                               org_field(t_nest_shared("OrgJson"), "value"),
-                           ],
-                           Methods=[
-                               eq_method(t_nest_shared("Var", [t("OrgCodeEvalInput")])),
-                               default_constructor_method("Var"),
-                           ]),
+                org_struct(
+                    t_nest_shared("Var", [t("OrgCodeEvalInput")]),
+                    Fields=[
+                        str_field("name"),
+                        org_field(t_nest_shared("OrgJson"), "value"),
+                    ],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
+                ),
                 d_simple_enum(
                     t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
                     "What context to use for results",
@@ -3231,24 +3191,27 @@ def get_types() -> Sequence[GenTuStruct]:
             Nested=[
                 org_struct(
                     t_nest("IncludeBase", [t_org("CmdInclude")]),
-                    Methods=[default_constructor_method("IncludeBase")],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
                     Fields=[],
                 ),
                 GenTuTypeGroup(
                     [
                         org_struct(
                             t_nest("Example", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Example")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Export", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Export")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "language",
                                           "Source code language for export"),
                             ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Custom", [t_org("CmdInclude")]),
@@ -3256,24 +3219,26 @@ def get_types() -> Sequence[GenTuStruct]:
                             "Second positional argument in the include command can have any arbitrary value -- "
                             "default src/export/example have additional properties, but user "
                             "can provide anything else there.",
-                            Methods=[default_constructor_method("Custom")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "blockName",
                                           "Block name not covered by the default values")
-                            ]),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
                         org_struct(
                             t_nest("Src", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Src")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "language",
                                           "Source code language for code block"),
                             ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("OrgDocument", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("OrgDocument")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 opt_field(
@@ -3296,7 +3261,10 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "customIdTarget",
                                     "Include target subtree content with `file.org::#custom`",
                                 ),
-                            ]),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
                     ],
                     kindGetter="getIncludeKind",
                     enumName=t_nest("Kind", [t_org("CmdInclude")]),

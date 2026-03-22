@@ -140,6 +140,8 @@ def rewrite_function_to_immutable(
         ReturnType=rewrite_any_to_immutable(func.ReturnType),
         Args=rewrite_any_to_immutable(func.Args),
         Params=rewrite_any_to_immutable(func.Params),
+        ParentClass=rewrite_type_to_immutable(func.ParentClass)
+        if func.ParentClass else None,
     )
 
 
@@ -336,49 +338,52 @@ def generate_adapter_specializations(
         Api = QualType(Name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
         Base = QualType(Name="ImmAdapterTBase", Spaces=imm_space, Params=[Derived])
 
-        adapters.append(
-            codegen_ir.GenTuStruct(
-                Name=QualType(Name="ImmAdapterT", Spaces=imm_space),
-                IsTemplateRecord=True,
-                IsExplicitInstantiation=True,
-                ExplicitTemplateParams=[Derived],
-                Bases=[Base, Api],
-                TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
-                ReflectionParams=codegen_ir.GenTuReflParams(
-                    wrapper_has_params=False,
-                    wrapper_name=f"{Derived.Name}Adapter",
-                    default_constructor=False,
-                ),
-                Nested=[
-                    codegen_ir.GenTuPass(
-                        ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
-                    codegen_ir.GenTuPass(
-                        ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+        Specialization = codegen_ir.GenTuStruct(
+            Name=QualType(Name="ImmAdapterT", Spaces=imm_space),
+            IsTemplateRecord=True,
+            IsExplicitInstantiation=True,
+            ExplicitTemplateParams=[Derived],
+            Bases=[Base, Api],
+            TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
+            ReflectionParams=codegen_ir.GenTuReflParams(
+                wrapper_has_params=False,
+                wrapper_name=f"{Derived.Name}Adapter",
+                default_constructor=False,
+            ),
+            Nested=[
+                codegen_ir.GenTuPass(
+                    ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
+                codegen_ir.GenTuPass(
+                    ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+            ],
+            Methods=[
+                get_adapter_field_getter(ast, f, Derived)
+                for f in sem_base.Fields
+                if not f.IsStatic
+            ])
+
+        Specialization.Methods.append(
+            codegen_ir.GenTuFunction(
+                Args=[
+                    codegen_ir.GenTuIdent(
+                        Type=QualType(Name="ImmAdapter", Spaces=imm_space).asConstRef(),
+                        Name="other",
+                    )
                 ],
-                Methods=[
-                    codegen_ir.GenTuFunction(
-                        Args=[
-                            codegen_ir.GenTuIdent(
-                                Type=QualType(Name="ImmAdapter",
-                                              Spaces=imm_space).asConstRef(),
-                                Name="other",
-                            )
-                        ],
-                        Name="ImmAdapterT",
-                        IsConstructor=True,
-                        InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
-                        Body=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
-                            ast.Literal(
-                                "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
-                            ),
-                            ast.Literal(derived_base),
-                            ast.XCallRef(ast.string("other"), "getKind"),
-                        ])), *[
-                            get_adapter_field_getter(ast, f, Derived)
-                            for f in sem_base.Fields
-                            if not f.IsStatic
-                        ]
-                ]))
+                Name="ImmAdapterT",
+                IsConstructor=True,
+                ParentClass=Specialization.declarationQualName(),
+                InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
+                Body=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
+                    ast.Literal(
+                        "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
+                    ),
+                    ast.Literal(derived_base),
+                    ast.XCallRef(ast.string("other"), "getKind"),
+                ]),
+            ))
+
+        adapters.append(Specialization)
 
     for t in types:
         for_final_type(t)

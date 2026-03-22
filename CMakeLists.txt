@@ -309,15 +309,6 @@ if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
   add_subdirectory(src/adaptagrams)
 endif()
-add_subdirectory(src/haxorg)
-if(NOT ${ORG_BUILD_EMCC})
-  add_subdirectory(src/py_libs)
-endif()
-
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
-  add_subdirectory(scripts/cxx_repository)
-  add_subdirectory(scripts/cxx_codegen)
-endif()
 
 if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
@@ -325,6 +316,17 @@ endif()
 
 if(NOT ${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/c)
+endif()
+
+add_subdirectory(src/haxorg)
+
+if(NOT ${ORG_BUILD_EMCC})
+  add_subdirectory(src/py_libs)
+endif()
+
+if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+  add_subdirectory(scripts/cxx_repository)
+  add_subdirectory(scripts/cxx_codegen)
 endif()
 
 if(${ORG_BUILD_QT_GUI})

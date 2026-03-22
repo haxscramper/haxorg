@@ -849,7 +849,7 @@ class GenTuFunction:
     "Is class method pure virtual"
     IsOverride: bool = False
     "Does method override parent implementation"
-    ParentClass: Optional["GenTuStruct"] = None
+    ParentClass: Optional["QualType"] = None
     """
     Optional specification for the parent struct -- might be set up by the codegen, is
     not set up by the reflection tool.
@@ -882,7 +882,11 @@ class GenTuFunction:
 
     def get_full_qualified_name(self) -> QualType:
         "Get a single type with the fully qualified spaces and function name"
-        return QualType(Name=self.Name, Spaces=self.Spaces)
+        if self.IsConstructor:
+            assert self.ParentClass, f"Method {self.Name} is missing parent class"
+            return QualType(Name=self.Name, Spaces=self.Spaces + [self.ParentClass])
+        else:
+            return QualType(Name=self.Name, Spaces=self.Spaces)
 
     def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
         "Get a qualified type for the function signature"

@@ -16,6 +16,9 @@ _CONTEXT_ARG = codegen_ir.GenTuIdent(
     Name="org_context",
 )
 
+_LINK_ANNOTATION = codegen_ir.GenTuAnnotation(
+    Attribute=codegen_ir.GenTuAnnotation.Freeform(Body="HAXORG_C_API_LINKAGE"))
+
 
 @beartype
 def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
@@ -55,7 +58,7 @@ def _gen_func(
 
     FuncArgs = []
 
-    if Class:
+    if Class and not func.IsConstructor:
         FuncArgs.append(codegen_ir.GenTuIdent(conf.getBackendType(Class), "__this"))
 
     for arg in func.Args:
@@ -65,23 +68,61 @@ def _gen_func(
                 Name=arg.Name,
             ))
 
+    if func.IsConstructor:
+        Params = cpp.LambdaParams(IsPtrCast=True,)
+        assert func.ParentClass
+
+        Params.Args = [cpp.ParmVarParams(type=a.Type, name=a.Name) for a in func.Args]
+
+        if func.ReflectionParams.backend.c.holder_type == "shared":
+            Params.ResultTy = QualType(
+                Name="make_shared",
+                Spaces=[QualType(Name="std")],
+                Params=[func.ParentClass],
+            )
+
+            Params.Body = [
+                ast.Return(
+                    ast.XCall(
+                        "std::make_shared",
+                        args=[ast.string(a.name) for a in Params.Args],
+                    ))
+            ]
+
+        else:
+            Params.ResultTy = func.ParentClass
+
+            Params.Body = [
+                ast.Return(
+                    ast.Call(
+                        ast.Type(func.ParentClass),
+                        Args=[ast.string(a.name) for a in Params.Args],
+                    ))
+            ]
+
+        FuncPtr = ast.Lambda(Params)
+    else:
+        FuncPtr = ast.XCall(
+            "static_cast",
+            args=[ast.Addr(ast.Type(func.get_full_qualified_name()))],
+            Params=[func.get_function_type()],
+        )
+
     impl_call = ast.XCall(
         "org::bind::c::execute_cpp",
-        args=[
-            ast.XCall(
-                "static_cast",
-                args=[ast.Addr(ast.Type(func.get_full_qualified_name()))],
-                Params=[func.get_function_type()],
-            ),
-            ast.string("org_context"),
-        ] + [ast.string(a.Name) for a in func.Args],
+        args=[FuncPtr, ast.string("org_context")] +
+        [ast.string(a.Name) for a in func.Args],
         Params=[
             conf.getBackendType(func.ReturnType),
             _get_vtable_type(func.ReturnType, conf),
         ],
     )
 
-    if Class:
+    if func.IsConstructor:
+        assert func.ParentClass
+        FuncName = f"haxorg_create_{conf.getTypeBindName(func.ParentClass)}_{_get_func_base_name(func)}"
+
+    elif Class:
         FuncName = f"haxorg_{conf.getTypeBindName(Class)}_{_get_func_base_name(func)}"
 
     else:
@@ -95,10 +136,7 @@ def _gen_func(
         Name=FuncName,
         Args=FuncArgs + [_CONTEXT_ARG],
         Body=ast.stack([impl_call]),
-        Annotations=[
-            codegen_ir.GenTuAnnotation(Attribute=codegen_ir.GenTuAnnotation.Freeform(
-                Body="HAXORG_C_API_LINKAGE"))
-        ],
+        Annotations=[_LINK_ANNOTATION],
     )
 
 
@@ -182,16 +220,21 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
 
     for _meth in struct.Methods:
         if conf.isAcceptedByBackend(_meth):
-            vtable_struct.Fields.append(
-                codegen_ir.GenTuField(
-                    Name=_get_func_base_name(_meth),
-                    Type=QualType.ForFunction(
-                        ReturnType=conf.getBackendType(_meth.ReturnType),
-                        Args=[wrap_struct.Name] +
-                        [conf.getBackendType(a.Type) for a in _meth.Args] +
-                        [_CONTEXT_ARG.Type],
-                    ),
-                ))
+            if _meth.IsConstructor:
+                gen_fu = _gen_func(_meth, ast, conf, struct.declarationQualName())
+                result.wrappers.append(gen_fu)
+
+            else:
+                vtable_struct.Fields.append(
+                    codegen_ir.GenTuField(
+                        Name=_get_func_base_name(_meth),
+                        Type=QualType.ForFunction(
+                            ReturnType=conf.getBackendType(_meth.ReturnType),
+                            Args=[wrap_struct.Name] +
+                            [conf.getBackendType(a.Type) for a in _meth.Args] +
+                            [_CONTEXT_ARG.Type],
+                        ),
+                    ))
 
     for entry in struct.Nested:
         match entry:
@@ -231,6 +274,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                 Params=[struct.declarationQualName()],
                 Stmt=True,
             ),
+            Annotations=[_LINK_ANNOTATION],
         ))
 
     return result

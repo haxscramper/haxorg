@@ -16,7 +16,14 @@ struct haxorg_ptr_payload {
 };
 
 struct haxorg_builtin_vtable {};
-struct haxorg_StdString_vtable {};
+
+struct haxorg_StdString;
+
+struct haxorg_StdString_vtable {
+    int (*size)(haxorg_StdString, OrgContext*);
+    char const* (*data)(haxorg_StdString, OrgContext*);
+};
+
 struct haxorg_StdString {
     haxorg_StdString_vtable const* vtable;
     haxorg_ptr_payload             data;
@@ -42,3 +49,7 @@ struct haxorg_ImmVec {};
 struct haxorg_HstdUnorderedSet {};
 struct haxorg_immer_flex_vector {};
 struct haxorg_HstdIntSet {};
+
+
+HAXORG_C_API_LINKAGE haxorg_StdString
+    haxorg_create_StdString_ConstChar(char const* text, OrgContext* ctx);
