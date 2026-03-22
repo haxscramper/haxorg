@@ -478,9 +478,7 @@ class QualType(BaseModel, extra="forbid"):
 
             return result
 
-        # return self.model_dump_json() + "  --- " + aux(self)
         return aux(self, depth=0)
-        # return str(self.flat_repr_flatten())
 
     def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
 
@@ -498,8 +496,6 @@ class QualType(BaseModel, extra="forbid"):
             origin = f" FROM:{Typ.DbgOrigin}" if (dbgOrigin and Typ.DbgOrigin) else ""
 
             spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
-            # if spaces:
-            #     spaces = f"{spaces}"
 
             match Typ.Kind:
                 case QualTypeKind.FunctionPtr:
@@ -528,7 +524,6 @@ class QualType(BaseModel, extra="forbid"):
                         cvref=cvref,
                         origin=origin,
                         spaces=spaces,
-                        # namespace=("NSP" if Typ.isNamespace else ""),
                     )
 
                 case QualTypeKind.TypeExpr:
@@ -539,9 +534,7 @@ class QualType(BaseModel, extra="forbid"):
 
             return "{" + result + "}"
 
-        # return self.model_dump_json() + "  --- " + aux(self)
         return aux(self)
-        # return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace: bool = True) -> "QualType":
         self.IsNamespace = is_namespace
@@ -888,17 +881,20 @@ class GenTuFunction:
         "Get a single type with the fully qualified spaces and function name"
         if self.IsConstructor:
             assert self.ParentClass, f"Method {self.Name} is missing parent class"
+
+        if self.ParentClass:
             return QualType(Name=self.Name, Spaces=self.Spaces + [self.ParentClass])
+
         else:
             return QualType(Name=self.Name, Spaces=self.Spaces)
 
-    def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
+    def get_function_type(self) -> QualType:
         "Get a qualified type for the function signature"
         return QualType(
             Func=QualType.Function(
                 ReturnType=self.ReturnType,
                 Args=[A.Type for A in self.Args],
-                Class=Class,
+                Class=None if self.IsStatic else self.ParentClass,
                 IsConst=self.IsConst,
             ),
             Kind=QualTypeKind.FunctionPtr,
@@ -1030,6 +1026,11 @@ class GenTuStruct():
     def __post_init__(self) -> None:
         for _meth in self.Methods:
             assert _meth.ParentClass, f"Parent class is not set for method {_meth.Name} of class {self.declarationQualName()}"
+            assert _meth.ParentClass.flatQualName() == self.Name.flatQualName(), (
+                "Mismatch between fully method parent class and the struct parent class: "
+                f"Method parent class flat name is {_meth.ParentClass.flatQualName()}, struct flat name is {self.Name.flatQualName()}, "
+                f"(full repr for method parent is {_meth.ParentClass}, for struct {self.declarationQualName()})"
+            )
 
 
 @beartype

@@ -257,8 +257,8 @@ def rewrite_to_immutable(
 
 
 @beartype
-def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
-                             T: QualType) -> codegen_ir.GenTuFunction:
+def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: QualType,
+                             ParentClass: QualType) -> codegen_ir.GenTuFunction:
     "Generate getter function for immutable data access for adapter specialization"
     field_access = ast.Dot(ast.XCallPtr(
         ast.string("this"),
@@ -267,9 +267,6 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
 
     field_type = rewrite_field_to_immutable(f).Type
     assert field_type
-
-    # log(CAT).info(
-    #     f"{T.Name}::{f.Name} {field_type.flatQualNameWithParams()} {field_type}")
 
     def use_get_adapter_field(field_par0: QualType) -> QualType:
         is_specialization = field_par0.Name != "ImmOrg"
@@ -281,7 +278,6 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         ])
 
         if is_specialization:
-            # log(CAT).info(f"field_par0 = {field_par0}")
             return QualType(Name="ImmAdapterT",
                             Spaces=[codegen_ir.n_imm()],
                             Params=[field_par0])
@@ -319,7 +315,7 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         ReturnType=result_type,
         Body=ast.Return(field_access),
         IsExposedForWrap=f.IsExposedForWrap,
-        ParentClass=T,
+        ParentClass=ParentClass,
     )
 
 
@@ -358,11 +354,17 @@ def generate_adapter_specializations(
                 codegen_ir.GenTuPass(
                     ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
             ],
-            Methods=[
-                get_adapter_field_getter(ast, f, Derived)
-                for f in sem_base.Fields
-                if not f.IsStatic
-            ])
+        )
+
+        for f in sem_base.Fields:
+            if not f.IsStatic:
+                Specialization.Methods.append(
+                    get_adapter_field_getter(
+                        ast,
+                        f,
+                        Derived,
+                        Specialization.declarationQualName(),
+                    ))
 
         Specialization.Methods.append(
             codegen_ir.GenTuFunction(

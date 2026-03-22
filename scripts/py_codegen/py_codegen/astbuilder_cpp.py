@@ -1082,7 +1082,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         def get_dbg_str() -> str:
             if codegen_ir.DEBUG_TYPE_ORIGIN and type_.DbgOrigin:
-                return f" /* {type_.DbgOrigin} */"
+                return f" /* {type_.DbgOrigin} {type_.flatQualNameWithParams()} */"
 
             else:
                 return ""

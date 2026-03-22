@@ -127,7 +127,7 @@ class NbFunction:
     ) -> BlockId:
         "Generate nanobind wrapper block passing the function to the `.def*`"
         if self.Body is None:
-            function_type = self.Func.get_function_type(Class=Class)
+            function_type = self.Func.get_function_type()
 
             return ast.XCall(
                 "static_cast",

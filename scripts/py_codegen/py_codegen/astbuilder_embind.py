@@ -145,7 +145,7 @@ class WasmFunction():
                 ))
 
         else:
-            function_type = self.Func.get_function_type(Class=Class)
+            function_type = self.Func.get_function_type()
 
             return ast.XCall(
                 "static_cast",
