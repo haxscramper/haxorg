@@ -42,18 +42,16 @@ inline void set_context_error(OrgContext* ctx, const char* msg) {
 
 
 template <typename CoreT>
-CoreT* unwrap_instance(void* tagged_instance, OrgContext* ctx = nullptr) {
-    if (!tagged_instance) {
+CoreT* unwrap_instance(
+    haxorg_ptr_payload const& payload,
+    OrgContext*               ctx = nullptr) {
+    if (!payload.data) {
         set_context_error(ctx, "Instance pointer is null");
         return nullptr;
     }
 
-    MemoryPolicy policy  = get_pointer_policy(tagged_instance);
-    void*        raw_ptr = untag_pointer(tagged_instance);
-
-    if (policy == MemoryPolicy::Shared) {
-        return static_cast<std::shared_ptr<CoreT>*>(raw_ptr)->get();
-    }
+    MemoryPolicy policy  = get_pointer_policy(payload.data);
+    void*        raw_ptr = untag_pointer(payload.data);
 
     return static_cast<CoreT*>(raw_ptr);
 }
@@ -96,21 +94,80 @@ struct CoreUnwrapper {
     }
 };
 
+template <typename T, typename CVtable>
+struct VTable {
+    static CVtable const* get_vtable() {
+        static CVtable vtable{};
+        return &vtable;
+    }
+};
+
+template <typename T>
+concept IsCWrapped = requires(T t) {
+    requires std::is_pointer_v<decltype(t.vtable)>;
+    requires std::is_const_v<std::remove_pointer_t<decltype(t.vtable)>>;
+    requires std::same_as<decltype(t.data), haxorg_ptr_payload>;
+};
+
+template <typename T>
+concept IsExactlyValue = std::same_as<std::remove_cvref_t<T>, T>;
+
 template <typename CppType, typename CType>
 struct ArgUnwrapper;
 
 // Fallback for primitives passed as-is (e.g., int, double)
 template <typename CppType, typename CType>
 struct ArgUnwrapper {
-    static CppType unwrap(CType val, OrgContext*) {
-        return static_cast<CppType>(val);
+    static CppType unwrap(CType val, OrgContext* ctx) { return val; }
+};
+
+template <typename CppType, typename CType>
+struct ArgUnwrapper<CppType const&, CType> {
+    static CppType const& unwrap(CType val, OrgContext* ctx) {
+        return *unwrap_instance<CppType>(val.data, ctx);
+    }
+};
+
+template <IsExactlyValue CppType, IsCWrapped CType>
+struct ArgUnwrapper<CppType, CType> {
+    static CppType const& unwrap(CType val, OrgContext* ctx) {
+        return *unwrap_instance<CppType>(val.data, ctx);
+    }
+};
+
+template <typename CppType, typename CType>
+struct ArgUnwrapper<std::shared_ptr<CppType>, CType> {
+    static std::shared_ptr<CppType> const& unwrap(
+        CType       val,
+        OrgContext* ctx) {
+        return *unwrap_instance<std::shared_ptr<CppType>>(val.data, ctx);
     }
 };
 
 
-template <typename CppRetT>
-struct VTable;
+template <typename CppType, typename CType>
+struct ArgUnwrapper<org::sem::SemId<CppType>, CType> {
+    static org::sem::SemId<CppType> const& unwrap(
+        CType       val,
+        OrgContext* ctx) {
+        return *unwrap_instance<org::sem::SemId<CppType>>(val.data, ctx);
+    }
+};
 
+
+template <typename CppType, IsCWrapped CType>
+struct ArgUnwrapper<CppType, CType> {
+    static CppType unwrap(CType val, OrgContext* ctx) {
+        return unwrap_instance<CppType>(val.data, ctx);
+    }
+};
+
+template <hstd::IsEnum CppType, hstd::IsEnum CType>
+struct ArgUnwrapper<CppType, CType> {
+    static CppType unwrap(CType val, OrgContext*) {
+        return static_cast<CppType>(val);
+    }
+};
 
 template <typename T>
 struct ExtractCoreType {
@@ -121,30 +178,56 @@ struct ExtractCoreType<std::shared_ptr<T>> {
     using Type = T;
 };
 
-template <typename CType, typename CppRetT>
+
+template <typename CType, typename CppRetT, typename CVtable>
 struct ResultTypeBuilder {
     using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
     static CType build(void* t) {
-        return {t, VTable<CppRetT>::get_vtable()};
+        return {
+            VTable<CppRetT, CVtable>::get_vtable(),
+            haxorg_ptr_payload{.data = t}};
     }
     static CType build_null() {
-        return {nullptr, VTable<CppRetT>::get_vtable()};
+        return {
+            VTable<CppRetT, CVtable>::get_vtable(), haxorg_ptr_payload{}};
     }
 };
 
 namespace detail {
 
+// Trait to infer MemoryPolicy from a C++ return type
+template <typename T>
+struct InferMemoryPolicy {
+    static constexpr MemoryPolicy value = MemoryPolicy::Unique;
+};
+
+template <typename T>
+struct InferMemoryPolicy<std::shared_ptr<T>> {
+    static constexpr MemoryPolicy value = MemoryPolicy::Shared;
+};
+
+template <typename T>
+struct InferMemoryPolicy<T const&> {
+    static constexpr MemoryPolicy value = MemoryPolicy::Reference;
+};
+
+template <typename T>
+struct InferMemoryPolicy<T&> {
+    static constexpr MemoryPolicy value = MemoryPolicy::Reference;
+};
+
 template <
     typename ResultCType,
-    MemoryPolicy Policy,
+    typename ReturnVTableType,
     typename Ret,
     typename Callable,
     typename... CppArgs,
     typename... CArgs>
 ResultCType execute_cpp_impl(
-    Callable&&  callable,
-    OrgContext* ctx,
+    Callable const& callable,
+    OrgContext*     ctx,
     CArgs... c_args) {
+    constexpr MemoryPolicy Policy = InferMemoryPolicy<Ret>::value;
     clear_context(ctx);
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
@@ -166,17 +249,20 @@ ResultCType execute_cpp_impl(
             }
 
             void* tagged_ptr = tag_pointer(raw_ptr, Policy);
-            return ResultTypeBuilder<ResultCType, Ret>::build(tagged_ptr);
+            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
+                build(tagged_ptr);
         }
     } catch (std::exception const& e) {
         set_context_error(ctx, e.what());
         if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, Ret>::build_null();
+            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
+                build_null();
         }
     } catch (...) {
         set_context_error(ctx, "Unknown C++ exception");
         if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, Ret>::build_null();
+            return ResultTypeBuilder<ResultCType, Ret, ReturnVTableType>::
+                build_null();
         }
     }
 }
@@ -186,7 +272,7 @@ ResultCType execute_cpp_impl(
 // Free function overload
 template <
     typename ResultCType,
-    MemoryPolicy Policy,
+    typename ReturnVTableType,
     typename Ret,
     typename... CppArgs,
     typename... CArgs>
@@ -196,7 +282,7 @@ ResultCType execute_cpp(
     CArgs... c_args) {
     return detail::execute_cpp_impl<
         ResultCType,
-        Policy,
+        ReturnVTableType,
         Ret,
         decltype(func),
         CppArgs...>(func, ctx, c_args...);
@@ -205,7 +291,7 @@ ResultCType execute_cpp(
 // Non-const member function overload
 template <
     typename ResultCType,
-    MemoryPolicy Policy,
+    typename ReturnVTableType,
     typename Class,
     typename Ret,
     typename... CppArgs,
@@ -222,7 +308,7 @@ ResultCType execute_cpp(
     };
     return detail::execute_cpp_impl<
         ResultCType,
-        Policy,
+        ReturnVTableType,
         Ret,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);
@@ -231,7 +317,7 @@ ResultCType execute_cpp(
 // Const member function overload
 template <
     typename ResultCType,
-    MemoryPolicy Policy,
+    typename ReturnVTableType,
     typename Class,
     typename Ret,
     typename... CppArgs,
@@ -249,49 +335,15 @@ ResultCType execute_cpp(
     };
     return detail::execute_cpp_impl<
         ResultCType,
-        Policy,
+        ReturnVTableType,
         Ret,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);
 }
 
+
 template <typename BaseType, typename WrappedType>
 void execute_destroy(WrappedType* type) {}
-
-
-template <typename T>
-struct VTable<hstd::Vec<T>> {
-    static haxorg_HstdVec_vtable const* vtable_get() {
-        using Self = VTable<hstd::Vec<T>>;
-        static haxorg_HstdVec_vtable data{
-            .size = &Self::size,
-        };
-        return &data;
-    }
-
-    static int size(const haxorg_HstdVec* self, OrgContext* ctx) {
-        return execute_cpp(&hstd::Vec<T>::size, self, ctx);
-    }
-
-    static T const& back(const haxorg_HstdVec* self, OrgContext* ctx) {
-        return execute_cpp(&hstd::Vec<T>::back, self, ctx);
-    }
-
-    static void* at(
-        const haxorg_HstdVec* self,
-        size_t                index,
-        OrgContext*           ctx) {
-        return execute_cpp(&hstd::Vec<T>::at, self, index, ctx);
-    }
-
-    static void pop_back(haxorg_HstdVec* self, OrgContext* ctx) {
-        return execute_cpp(&hstd::Vec<T>::at, ctx);
-    }
-
-    static void destroy(haxorg_HstdVec* self, OrgContext* ctx) {
-        return execute_destroy<hstd::Vec<T>>(self);
-    }
-};
 
 
 } // namespace org::bind::c

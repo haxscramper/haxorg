@@ -1111,50 +1111,50 @@ void haxorg_destroy_ImmCmdCallAdapter(haxorg_ImmCmdCallAdapter* obj) { org::bind
 
 void haxorg_destroy_ImmCmdAttrAdapter(haxorg_ImmCmdAttrAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>>(obj); }
 
-haxorg_SemId haxorg_newSemTimeStatic(haxorg_UserTimeBreakdown breakdown, bool isActive, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool), haxorg_UserTimeBreakdown, bool>(&org::newSemTimeStatic, org_context, breakdown, isActive); }
+haxorg_SemId haxorg_newSemTimeStatic(haxorg_UserTimeBreakdown breakdown, bool isActive, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic), org_context, breakdown, isActive); }
 
-haxorg_ImmAstContext haxorg_initImmutableAstContext(OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_ImmAstContext, std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext, org_context); }
+haxorg_ImmAstContext haxorg_initImmutableAstContext(OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_ImmAstContext, haxorg_ImmAstContext_vtable>(static_cast<std::shared_ptr<org::imm::ImmAstContext>(*)()>(&org::initImmutableAstContext), org_context); }
 
-haxorg_SemId haxorg_asOneNode(haxorg_SemId arg, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&), haxorg_SemId>(&org::asOneNode, org_context, arg); }
+haxorg_SemId haxorg_asOneNode(haxorg_SemId arg, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org> const&)>(&org::asOneNode), org_context, arg); }
 
-haxorg_StdString haxorg_formatToString(haxorg_SemId arg, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(org::sem::SemId<org::sem::Org>), haxorg_SemId>(&org::formatToString, org_context, arg); }
+haxorg_StdString haxorg_formatToString(haxorg_SemId arg, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(org::sem::SemId<org::sem::Org>)>(&org::formatToString), org_context, arg); }
 
-haxorg_StdString haxorg_exportToYamlString(haxorg_SemId node, haxorg_OrgYamlExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&), haxorg_SemId, haxorg_OrgYamlExportOpts>(&org::exportToYamlString, org_context, node, opts); }
+haxorg_StdString haxorg_exportToYamlString(haxorg_SemId node, haxorg_OrgYamlExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString), org_context, node, opts); }
 
-void haxorg_exportToYamlFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgYamlExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&), haxorg_SemId, haxorg_StdString, haxorg_OrgYamlExportOpts>(&org::exportToYamlFile, org_context, node, path, opts); }
+void haxorg_exportToYamlFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgYamlExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile), org_context, node, path, opts); }
 
-haxorg_StdString haxorg_exportToJsonString(haxorg_SemId node, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(org::sem::SemId<org::sem::Org> const&), haxorg_SemId>(&org::exportToJsonString, org_context, node); }
+haxorg_StdString haxorg_exportToJsonString(haxorg_SemId node, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&)>(&org::exportToJsonString), org_context, node); }
 
-void haxorg_exportToJsonFile(haxorg_SemId node, haxorg_StdString path, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(org::sem::SemId<org::sem::Org> const&, std::string), haxorg_SemId, haxorg_StdString>(&org::exportToJsonFile, org_context, node, path); }
+void haxorg_exportToJsonFile(haxorg_SemId node, haxorg_StdString path, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string)>(&org::exportToJsonFile), org_context, node, path); }
 
-haxorg_SemId haxorg_readProtobufFile(haxorg_StdString file, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, org::sem::SemId<org::sem::Document>(*)(std::string const&), haxorg_StdString>(&org::readProtobufFile, org_context, file); }
+haxorg_SemId haxorg_readProtobufFile(haxorg_StdString file, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const&)>(&org::readProtobufFile), org_context, file); }
 
-void haxorg_exportToProtobufFile(haxorg_SemId doc, haxorg_StdString file, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(org::sem::SemId<org::sem::Document>, std::string const&), haxorg_SemId, haxorg_StdString>(&org::exportToProtobufFile, org_context, doc, file); }
+void haxorg_exportToProtobufFile(haxorg_SemId doc, haxorg_StdString file, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(org::sem::SemId<org::sem::Document>, std::string const&)>(&org::exportToProtobufFile), org_context, doc, file); }
 
-haxorg_StdString haxorg_exportToTreeString(haxorg_SemId node, haxorg_OrgTreeExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgTreeExportOpts const&), haxorg_SemId, haxorg_OrgTreeExportOpts>(&org::exportToTreeString, org_context, node, opts); }
+haxorg_StdString haxorg_exportToTreeString(haxorg_SemId node, haxorg_OrgTreeExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgTreeExportOpts const&)>(&org::exportToTreeString), org_context, node, opts); }
 
-void haxorg_exportToTreeFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgTreeExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgTreeExportOpts const&), haxorg_SemId, haxorg_StdString, haxorg_OrgTreeExportOpts>(&org::exportToTreeFile, org_context, node, path, opts); }
+void haxorg_exportToTreeFile(haxorg_SemId node, haxorg_StdString path, haxorg_OrgTreeExportOpts opts, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgTreeExportOpts const&)>(&org::exportToTreeFile), org_context, node, path, opts); }
 
-haxorg_AstTrackingMap haxorg_getAstTrackingMap(haxorg_HstdVec nodes, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_AstTrackingMap, org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&), haxorg_HstdVec>(&org::getAstTrackingMap, org_context, nodes); }
+haxorg_AstTrackingMap haxorg_getAstTrackingMap(haxorg_HstdVec nodes, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_AstTrackingMap, haxorg_AstTrackingMap_vtable>(static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap), org_context, nodes); }
 
-haxorg_HstdVec haxorg_getSubnodeGroups(haxorg_SemId node, haxorg_AstTrackingMap map, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_HstdVec, hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&), haxorg_SemId, haxorg_AstTrackingMap>(&org::getSubnodeGroups, org_context, node, map); }
+haxorg_HstdVec haxorg_getSubnodeGroups(haxorg_SemId node, haxorg_AstTrackingMap map, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_HstdVec, haxorg_HstdVec_vtable>(static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups), org_context, node, map); }
 
-haxorg_HstdVec haxorg_annotateSequence(haxorg_HstdVec groups, int first, int last, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_HstdVec, hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int), haxorg_HstdVec, int, int>(&hstd::annotateSequence, org_context, groups, first, last); }
+haxorg_HstdVec haxorg_annotateSequence(haxorg_HstdVec groups, int first, int last, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_HstdVec, haxorg_HstdVec_vtable>(static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence), org_context, groups, first, last); }
 
-haxorg_GraphMapGraphState haxorg_initMapGraphState(haxorg_ImmAstContext ast, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_GraphMapGraphState, std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>), haxorg_ImmAstContext>(&org::graph::initMapGraphState, org_context, ast); }
+haxorg_GraphMapGraphState haxorg_initMapGraphState(haxorg_ImmAstContext ast, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_GraphMapGraphState, haxorg_GraphMapGraphState_vtable>(static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState), org_context, ast); }
 
-haxorg_StdString haxorg_serializeAstContextToText(haxorg_ImmAstContext store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&), haxorg_ImmAstContext>(&org::imm::serializeToText, org_context, store); }
+haxorg_StdString haxorg_serializeAstContextToText(haxorg_ImmAstContext store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText), org_context, store); }
 
-void haxorg_serializeAstContextFromText(haxorg_StdString binary, haxorg_ImmAstContext store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&), haxorg_StdString, haxorg_ImmAstContext>(&org::imm::serializeFromText, org_context, binary, store); }
+void haxorg_serializeAstContextFromText(haxorg_StdString binary, haxorg_ImmAstContext store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText), org_context, binary, store); }
 
-haxorg_StdString haxorg_serializeAstEpochToText(haxorg_ImmAstReplaceEpoch store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&), haxorg_ImmAstReplaceEpoch>(&org::imm::serializeToText, org_context, store); }
+haxorg_StdString haxorg_serializeAstEpochToText(haxorg_ImmAstReplaceEpoch store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText), org_context, store); }
 
-void haxorg_serializeAstEpochFromText(haxorg_StdString binary, haxorg_ImmAstReplaceEpoch store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&), haxorg_StdString, haxorg_ImmAstReplaceEpoch>(&org::imm::serializeFromText, org_context, binary, store); }
+void haxorg_serializeAstEpochFromText(haxorg_StdString binary, haxorg_ImmAstReplaceEpoch store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText), org_context, binary, store); }
 
-haxorg_StdString haxorg_serializeMapGraphToText(haxorg_GraphMapGraph store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(std::shared_ptr<org::graph::MapGraph> const&), haxorg_GraphMapGraph>(&org::imm::serializeToText, org_context, store); }
+haxorg_StdString haxorg_serializeMapGraphToText(haxorg_GraphMapGraph store, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText), org_context, store); }
 
-void haxorg_serializeMapGraphFromText(haxorg_StdString binary, haxorg_GraphMapGraph store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&), haxorg_StdString, haxorg_GraphMapGraph>(&org::imm::serializeFromText, org_context, binary, store); }
+void haxorg_serializeMapGraphFromText(haxorg_StdString binary, haxorg_GraphMapGraph store, OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText), org_context, binary, store); }
 
-haxorg_StdString haxorg_serializeFromTextToTreeDump(haxorg_StdString binary, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, std::string(*)(std::string const&), haxorg_StdString>(&org::imm::serializeFromTextToTreeDump, org_context, binary); }
+haxorg_StdString haxorg_serializeFromTextToTreeDump(haxorg_StdString binary, OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump), org_context, binary); }
 
 /* clang-format on */

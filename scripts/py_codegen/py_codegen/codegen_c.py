@@ -1,3 +1,4 @@
+from py_codegen.astbuilder_base_config import BUILTIN_TYPES
 from py_codegen.astbuilder_c_config import CAstbuilderConfig
 import py_codegen.astbuilder_cpp as cpp
 from dataclasses import dataclass, field, replace
@@ -31,6 +32,20 @@ def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
 
 
 @beartype
+def _get_vtable_type(Type: QualType, conf: CAstbuilderConfig) -> QualType:
+    match Type.flatQualNameWithParams():
+        case ["std", "shared_ptr", _]:
+            return _get_vtable_type(Type.par0(), conf)
+
+        case builtin if builtin in BUILTIN_TYPES:
+            return QualType(Name="haxorg_builtin_vtable")
+
+        case _:
+            Name = conf.getBackendType(Type)
+            return QualType(Name=f"{Name.Name}_vtable")
+
+
+@beartype
 def _gen_func(
     func: codegen_ir.GenTuFunction,
     ast: cpp.ASTBuilder,
@@ -53,13 +68,17 @@ def _gen_func(
     impl_call = ast.XCall(
         "org::bind::c::execute_cpp",
         args=[
-            ast.Addr(ast.Type(func.get_full_qualified_name())),
+            ast.XCall(
+                "static_cast",
+                args=[ast.Addr(ast.Type(func.get_full_qualified_name()))],
+                Params=[func.get_function_type()],
+            ),
             ast.string("org_context"),
         ] + [ast.string(a.Name) for a in func.Args],
         Params=[
             conf.getBackendType(func.ReturnType),
-            func.get_function_type(),
-        ] + [conf.getBackendType(arg.Type) for arg in func.Args],
+            _get_vtable_type(func.ReturnType, conf),
+        ],
     )
 
     if Class:
@@ -280,6 +299,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
             header=codegen_ir.GenTu(
                 "{root}/src/wrappers/c/haxorg_c.h",
                 [
+                    codegen_ir.GenTuPass(ast.string("#pragma once")),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_api.h", True),
                 ] + header_only + wrapped_structs + standalone_funcs,
             ),

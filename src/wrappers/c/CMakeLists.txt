@@ -1,5 +1,13 @@
-add_executable(haxorg_c haxorg_c.cpp haxorg_c.h haxorg_c_api.cpp haxorg_c_api.h haxorg_c_utils.hpp
-                        haxorg_c_utils.hpp)
+add_library(
+  haxorg_c
+  haxorg_c.cpp
+  haxorg_c.h
+  haxorg_c_api.cpp
+  haxorg_c_api.h
+  haxorg_c_utils.hpp
+  haxorg_c_utils.hpp
+  haxorg_c_vtables.hpp
+  haxorg_c_vtables_manual.hpp)
 
 target_link_libraries(haxorg_c PUBLIC hstd haxorg)
 
