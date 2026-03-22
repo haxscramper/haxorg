@@ -156,6 +156,10 @@ class QualType(BaseModel, extra="forbid"):
         return self.Meta.get("isOrgType", False)
 
     @staticmethod
+    def ForSpace(name: str, **args: Any) -> "QualType":
+        return QualType(Name=name, IsNamespace=True, **args)
+
+    @staticmethod
     def ForName(name: str, **args: Any) -> "QualType":
         return QualType(Name=name, **args)
 
@@ -1193,7 +1197,7 @@ class GenTu:
 @beartype
 @dataclass(kw_only=True)
 class GenUnit:
-    header: GenTu
+    header: Optional[GenTu] = None
     source: Optional[GenTu] = None
 
 

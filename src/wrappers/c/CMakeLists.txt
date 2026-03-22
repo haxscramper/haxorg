@@ -1,16 +1,13 @@
-add_library(
+haxorg_add_library(haxorg_c)
+
+glob_add_sources2(
+  TARGET
   haxorg_c
-  haxorg_c.cpp
-  haxorg_c.h
-  haxorg_c_api.cpp
-  haxorg_c_api.h
-  haxorg_c_utils.hpp
-  haxorg_c_utils.hpp
-  haxorg_c_vtables.hpp
-  haxorg_c_vtables_manual.hpp)
+  LS_REGEX
+  "${BASE}/src/wrappers/c/.*"
+  SEARCH_BASE
+  "${BASE}"
+  ARG_EXTENSIONS
+  "hpp;cpp;c;h")
 
 target_link_libraries(haxorg_c PUBLIC hstd haxorg)
-
-set_common_files(haxorg_c)
-set_target_output(haxorg_c)
-set_target_flags(haxorg_c)
