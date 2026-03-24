@@ -65,21 +65,20 @@ struct SemValue {
 struct Org;
 
 template <typename O>
-struct SemId {
+struct [[refl]] SemId {
     hstd::SPtr<O> value;
 
-    bool isNil() const { return value.get() == nullptr; }
-    bool operator==(SemId const& other) const {
+    [[refl]] bool isNil() const { return value.get() == nullptr; }
+    [[refl]] bool operator==(SemId const& other) const {
         return value == other.value;
     }
-
 
     template <typename... Args>
     static SemId<O> New(Args&&... args) {
         return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
-    static SemId Nil() { return SemId(hstd::SPtr<O>{}); }
+    [[refl]] static SemId Nil() { return SemId(hstd::SPtr<O>{}); }
 
     SemId() { value = nullptr; }
     SemId(hstd::SPtr<O> const& value) : value(value) {}
@@ -90,19 +89,21 @@ struct SemId {
     /// \name Get pointer to the associated sem org node from ID
     ///
     /// {@
-    O*              get() { return value.get(); }
-    O const*        get() const { return value.get(); }
-    O*              operator->() { return get(); }
-    O const*        operator->() const { return get(); }
-    O&              operator*() { return *value; }
-    O const&        operator*() const { return *value; }
-    SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
+    [[refl]] O*              get() { return value.get(); }
+    [[refl]] O const*        get() const { return value.get(); }
+    O*                       operator->() { return get(); }
+    O const*                 operator->() const { return get(); }
+    O&                       operator*() { return *value; }
+    O const&                 operator*() const { return *value; }
+    [[refl]] SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
-    SemId<sem::Org> at(int idx) { return value->at(idx); }
-    SemId<sem::Org> at(hstd::BackwardsIndex idx) { return value->at(idx); }
+    [[refl]] SemId<sem::Org> at(int idx) { return value->at(idx); }
+    [[refl]] SemId<sem::Org> at(hstd::BackwardsIndex idx) {
+        return value->at(idx);
+    }
 
-    SemId<sem::Org> get(int idx) { return value->get(idx); }
-    SemId<sem::Org> get(hstd::BackwardsIndex idx) {
+    [[refl]] SemId<sem::Org> get(int idx) { return value->get(idx); }
+    [[refl]] SemId<sem::Org> get(hstd::BackwardsIndex idx) {
         return value->get(idx);
     }
 
@@ -117,7 +118,7 @@ struct SemId {
         return value->subnodes.end();
     }
 
-    int size() const { return value->subnodes.size(); }
+    [[refl]] int size() const { return value->subnodes.size(); }
 
     template <typename T>
     SemId<T> asOpt() const {

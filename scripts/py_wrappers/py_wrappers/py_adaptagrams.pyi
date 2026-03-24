@@ -42,6 +42,10 @@ class GraphEdgeConstraintPort(Enum):
     East = 5
     Center = 6
 
+class BackwardsIndex:
+    def __init__(self, value: int) -> None: ...
+    value: int
+
 class GraphPoint:
     def __init__(self, x: float, y: float) -> None: ...
     def __repr__(self) -> str: ...

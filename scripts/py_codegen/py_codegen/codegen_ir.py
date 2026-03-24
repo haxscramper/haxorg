@@ -393,6 +393,25 @@ class QualType(BaseModel, extra="forbid"):
 
         return result
 
+    def visit_recursive(self, callback: Callable[["QualType"], None]) -> None:
+
+        def aux(Type: QualType):
+            callback(Type)
+            match Type.Kind:
+                case QualTypeKind.RegularType | QualTypeKind.Array:
+                    list(map(aux, Type.Spaces))
+                    list(map(aux, Type.Params))
+
+                case QualTypeKind.FunctionPtr:
+                    assert Type.Func
+                    list(map(aux, Type.Func.Args))
+                    if Type.Func.Class:
+                        aux(Type.Func.Class)
+
+                    aux(Type.Func.ReturnType)
+
+        aux(self)
+
     def qual_hash(self) -> int:
         return hash(self.flat_repr_flatten(with_modifiers=False))
 

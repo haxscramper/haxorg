@@ -79,6 +79,10 @@ class AstbulderConfig(abc.ABC):
         an explicit class to be wrapped, or as a backend-specific type that is already
         present by default
         """
+
+        if Type.IsTemplateInjectedType or Type.IsTemplateTypeParam:
+            return True
+
         match Type.flatQualNameWithParams():
             case l if l in [
                 # Universally registered types -- if some backend does not expose them,

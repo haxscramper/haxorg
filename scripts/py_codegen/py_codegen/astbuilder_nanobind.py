@@ -964,7 +964,7 @@ class NbModule:
                                 "Imm"):
                             pass
 
-                        else:
+                        elif self.conf.isAcceptedByBackend(value):
                             append_decl(NbClass(ast=ast, value=value, conf=self.conf))
 
                     elif isinstance(value, codegen_ir.GenTuEnum):

@@ -8,7 +8,14 @@ class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
 
     def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
-        return self._isExposedByBackendImpl(entry, "python")
+        if isinstance(entry, codegen_ir.GenTuStruct
+                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+            # Auto-generation of the classes from the template classes is not
+            # yet supported on the python backend.
+            return False
+
+        else:
+            return self._isExposedByBackendImpl(entry, "python")
 
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"

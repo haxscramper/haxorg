@@ -167,6 +167,9 @@ NB_MODULE(py_adaptagrams, m) {
          return static_cast<int>(it);
          })
     ;
+  nanobind::class_<hstd::BackwardsIndex>(m, "BackwardsIndex")
+    .def_rw("value", &hstd::BackwardsIndex::value)
+    ;
   nanobind::class_<hstd::ext::GraphPoint>(m, "GraphPoint")
     .def("__init__",
          [](hstd::ext::GraphPoint* result, nanobind::kwargs const& kwargs) -> void {

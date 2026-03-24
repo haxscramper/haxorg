@@ -1,3 +1,4 @@
+from dataclasses import dataclass, replace
 import itertools
 
 from beartype.typing import List, Any, Set, Optional
@@ -7,6 +8,7 @@ from py_codegen.codegen_ir import QualType, TypeSpecialization
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log
+import functools
 
 CAT = __name__
 
@@ -76,3 +78,133 @@ def collect_type_specializations(
         visit_entry(e)
 
     return res
+
+
+@beartype
+def _get_template_parameters(Type: QualType) -> List[QualType]:
+    found = list()
+
+    def aux(Type: QualType):
+        nonlocal found
+        if Type.IsTemplateTypeParam:
+            found.append(Type)
+
+    Type.visit_recursive(aux)
+
+    return found
+
+
+@beartype
+@dataclass
+class _InstantiateCtx():
+    substitution_map: dict[str, QualType]
+    type_map: codegen_ir.GenTypeMap
+
+
+@beartype
+def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType | None:
+
+    def aux(Type: QualType | None) -> QualType | None:
+        if not Type:
+            return Type
+
+        if Type.Name in ctx.substitution_map:
+            return ctx.substitution_map[Type.Name]
+
+        match Type.Kind:
+            case codegen_ir.QualTypeKind.RegularType | codegen_ir.QualTypeKind.Array:
+                return Type.copy_update(
+                    Params=map(aux, Type.Params),
+                    Spaces=map(aux, Type.Spaces),
+                )
+
+            case codegen_ir.QualTypeKind.FunctionPtr:
+                assert Type.Func
+                return Type.copy_update(Func=Type.Func.model_copy(update=dict(
+                    ReturnType=aux(Type.Func.ReturnType),
+                    Args=map(aux, Type.Func.Args),
+                    Class=aux(Type.Func.Class),
+                )))
+
+            case _:
+                return Type
+
+    return aux(Type)
+
+
+@beartype
+def _map_template_struct(ctx: _InstantiateCtx,
+                         base: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
+    if not base.TemplateParams:
+        return base
+
+    updated_stack = codegen_ir.GenTuTemplateParams()
+
+    for _stack in base.TemplateParams.Stacks:
+        updated_group = codegen_ir.GenTuTemplateGroup()
+        for _param in _stack.Params:
+            if _param.Name in ctx.substitution_map:
+                for _nested in _get_template_parameters(
+                        ctx.substitution_map[_param.Name]):
+                    updated_group.Params.append(
+                        codegen_ir.GenTuTemplateTypename(Name=_nested.Name))
+
+            else:
+                updated_group.Params.append(_param)
+
+        updated_stack.Stacks.append(updated_group)
+
+    _map = functools.partial(_instantiate_template, ctx)
+
+    return replace(
+        base,
+        IsTemplateRecord=True,
+        IsExplicitInstantiation=True,
+        TemplateParams=updated_stack,
+        Nested=list(map(_map, base.Nested)),
+        Methods=list(map(_map, base.Methods)),
+        Fields=list(map(_map, base.Fields)),
+    )
+
+
+@beartype
+def _map_template_function(ctx: _InstantiateCtx,
+                           func: codegen_ir.GenTuFunction) -> codegen_ir.GenTuFunction:
+    return replace(
+        func,
+        Args=[replace(Arg, Type=_map_template_type(Arg.Type, ctx)) for Arg in func.Args],
+        ParentClass=_map_template_type(func.ParentClass, ctx),
+        ReturnType=_map_template_type(func.ReturnType, ctx),
+    )
+
+
+@beartype
+def _instantiate_template(_ctx: _InstantiateCtx,
+                          Base: codegen_ir.GenTuEntry) -> codegen_ir.GenTuEntry:
+    match Base:
+        case codegen_ir.GenTuStruct():
+            return _map_template_struct(_ctx, Base)
+
+        case codegen_ir.GenTuPass():
+            return Base
+
+        case codegen_ir.GenTuFunction():
+            return _map_template_function(_ctx, Base)
+
+        case codegen_ir.GenTuField():
+            return replace(Base, Type=_map_template_type(Base.Type, _ctx))
+
+        case _:
+            raise TypeError(type(Base))
+
+
+@beartype
+def instantiate_template(
+    Base: codegen_ir.GenTuDeclaration,
+    substitution_map: dict[str, QualType],
+    type_map: codegen_ir.GenTypeMap,
+) -> codegen_ir.GenTuDeclaration:
+    return _instantiate_template(  # type: ignore
+        _InstantiateCtx(substitution_map=substitution_map, type_map=type_map),
+        Base,
+    )

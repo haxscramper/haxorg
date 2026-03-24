@@ -8,6 +8,7 @@ from beartype import beartype
 from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_scriptutils.script_logging import log
+from py_codegen.codegen_algo import instantiate_template
 
 CAT = __name__
 
@@ -417,6 +418,14 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
     wrapped_structs: List[codegen_ir.GenTuEntry] = list()
     header_only: list[codegen_ir.GenTuEntry] = list()
     vtables: list[codegen_ir.GenTuEntry] = list()
+
+    for entry in groups.get_entries_for_wrapping():
+        if isinstance(entry, codegen_ir.GenTuStruct
+                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+            match entry.declarationQualName().flatQualNameWithParams():
+                case ["org", "sem", "SemId"]:
+                    log(CAT).info("Found sem ID emplate structure without parameters")
+                    # instantiated = instantiate_template(entry, {"O": })
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry):

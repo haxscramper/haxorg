@@ -4,6 +4,12 @@
 #include <wrappers/c/haxorg_c_utils.hpp>
 #include <wrappers/c/haxorg_c_vtables_manual.hpp>
 template <>
+struct org::bind::c::VTable<hstd::BackwardsIndex, haxorg_BackwardsIndex_vtable> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_BackwardsIndex_vtable const* get_vtable();
+};
+
+template <>
 struct org::bind::c::VTable<hstd::UserTimeBreakdown, haxorg_UserTimeBreakdown_vtable> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_UserTimeBreakdown_vtable const* get_vtable();
@@ -57,6 +63,23 @@ struct org::bind::c::VTable<org::sem::OrgJson, haxorg_OrgJson_vtable> {
   static haxorg_HstdVec getArray_const(OrgContext* org_context, haxorg_OrgJson self);
   static haxorg_StdString dump_const(OrgContext* org_context, haxorg_OrgJson self, int indent);
   static haxorg_OrgJson_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static bool isNil_const(OrgContext* org_context, haxorg_SemId self);
+  static bool __eq___const(OrgContext* org_context, haxorg_SemId self, haxorg_SemId other);
+  static haxorg_SemId Nil(OrgContext* org_context, haxorg_SemId self);
+  static haxorg_O get(OrgContext* org_context, haxorg_SemId self);
+  static haxorg_O get_const(OrgContext* org_context, haxorg_SemId self);
+  static haxorg_SemId asOrg_const(OrgContext* org_context, haxorg_SemId self);
+  static haxorg_SemId at(OrgContext* org_context, haxorg_SemId self, int idx);
+  static haxorg_SemId at(OrgContext* org_context, haxorg_SemId self, haxorg_BackwardsIndex idx);
+  static haxorg_SemId get(OrgContext* org_context, haxorg_SemId self, int idx);
+  static haxorg_SemId get(OrgContext* org_context, haxorg_SemId self, haxorg_BackwardsIndex idx);
+  static int size_const(OrgContext* org_context, haxorg_SemId self);
+  static haxorg_SemId_vtable const* get_vtable();
 };
 
 template <>

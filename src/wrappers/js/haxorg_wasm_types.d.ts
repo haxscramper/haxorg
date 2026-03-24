@@ -557,6 +557,7 @@ export interface haxorg_wasm_module_auto {
     Link: GraphMapLinkKind,
   }
   format_GraphMapLinkKind(value: GraphMapLinkKind): string;
+  BackwardsIndex: BackwardsIndexConstructor;
   UserTimeBreakdown: UserTimeBreakdownConstructor;
   UserTime: UserTimeConstructor;
   ParseSourceFileId: ParseSourceFileIdConstructor;
@@ -2040,6 +2041,8 @@ export enum GraphMapLinkKind {
   Radio,
   Link = 1,
 }
+export interface BackwardsIndexConstructor { new(): BackwardsIndex; }
+export interface BackwardsIndex { value: number }
 export interface UserTimeBreakdownConstructor { new(): UserTimeBreakdown; }
 export interface UserTimeBreakdown {
   year: haxorg_wasm.Optional<number>

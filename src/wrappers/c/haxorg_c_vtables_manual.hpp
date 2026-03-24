@@ -17,14 +17,6 @@ template <typename T, typename CVtable>
 struct VTable<T&, CVtable> : public VTable<T, CVtable> {};
 
 template <typename T, typename CVtable>
-struct VTable<org::sem::SemId<T>, CVtable> {
-    static CVtable const* get_vtable() {
-        static CVtable vtable{};
-        return &vtable;
-    }
-};
-
-template <typename T, typename CVtable>
 struct VTable<hstd::Vec<T>, CVtable> {
     static haxorg_HstdVec_vtable const* get_vtable() {
         using Self = VTable<hstd::Vec<T>, CVtable>;

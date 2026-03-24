@@ -37,6 +37,8 @@
 
 
 
+void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj) { org::bind::c::execute_destroy<hstd::BackwardsIndex>(org_context, obj); }
+
 void haxorg_destroy_UserTimeBreakdown(OrgContext* org_context, haxorg_UserTimeBreakdown* obj) { org::bind::c::execute_destroy<hstd::UserTimeBreakdown>(org_context, obj); }
 
 void haxorg_destroy_UserTime(OrgContext* org_context, haxorg_UserTime* obj) { org::bind::c::execute_destroy<hstd::UserTime>(org_context, obj); }
@@ -48,6 +50,8 @@ void haxorg_destroy_ParseSourceManager(OrgContext* org_context, haxorg_ParseSour
 void haxorg_destroy_ParseSourceLoc(OrgContext* org_context, haxorg_ParseSourceLoc* obj) { org::bind::c::execute_destroy<org::parse::SourceLoc>(org_context, obj); }
 
 void haxorg_destroy_OrgJson(OrgContext* org_context, haxorg_OrgJson* obj) { org::bind::c::execute_destroy<org::sem::OrgJson>(org_context, obj); }
+
+void haxorg_destroy_SemId(OrgContext* org_context, haxorg_SemId* obj) { org::bind::c::execute_destroy<org::sem::SemId>(org_context, obj); }
 
 void haxorg_destroy_Org(OrgContext* org_context, haxorg_Org* obj) { org::bind::c::execute_destroy<org::sem::Org>(org_context, obj); }
 

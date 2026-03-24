@@ -353,6 +353,7 @@ struct [[refl]] ImmOrg {
     hstd::ext::ImmVec<ImmId>         subnodes;
     hstd::Opt<org::parse::SourceLoc> loc             = std::nullopt;
     virtual OrgSemKind               getKind() const = 0;
+    virtual ~ImmOrg()                                = default;
 
     ImmId at(int pos) const { return subnodes.at(pos); }
     auto  begin() const { return subnodes.begin(); }

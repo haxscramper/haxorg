@@ -3,6 +3,11 @@
 #include <wrappers/c/haxorg_c_utils.hpp>
 #include <wrappers/c/haxorg_c_vtables.hpp>
 #include <wrappers/c/haxorg_c_vtables_manual.hpp>
+haxorg_BackwardsIndex_vtable const* org::bind::c::VTable<hstd::BackwardsIndex, haxorg_BackwardsIndex_vtable>::get_vtable() {
+  using Self = org::bind::c::VTable<hstd::BackwardsIndex, haxorg_BackwardsIndex_vtable>;
+  static haxorg_BackwardsIndex_vtable const vtable{};
+  return &vtable;
+}
 haxorg_UserTimeBreakdown_vtable const* org::bind::c::VTable<hstd::UserTimeBreakdown, haxorg_UserTimeBreakdown_vtable>::get_vtable() {
   using Self = org::bind::c::VTable<hstd::UserTimeBreakdown, haxorg_UserTimeBreakdown_vtable>;
   static haxorg_UserTimeBreakdown_vtable const vtable{};
@@ -108,6 +113,54 @@ haxorg_OrgJson_vtable const* org::bind::c::VTable<org::sem::OrgJson, haxorg_OrgJ
                                             .getBool_const = &Self::getBool_const,
                                             .getArray_const = &Self::getArray_const,
                                             .dump_const = &Self::dump_const,};
+  return &vtable;
+}
+bool org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::isNil_const(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<bool, haxorg_builtin_vtable>(static_cast<bool(org::sem::SemId::*)() const>(&org::sem::SemId::isNil), org_context, self);
+}
+bool org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::__eq___const(OrgContext* org_context, haxorg_SemId self, haxorg_SemId other) {
+  return org::bind::c::execute_cpp<bool, haxorg_builtin_vtable>(static_cast<bool(org::sem::SemId::*)(org::sem::SemId const&) const>(&org::sem::SemId::operator==), org_context, self, other);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::Nil(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId(*)()>(&org::sem::SemId::Nil), org_context);
+}
+haxorg_O org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::get(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<haxorg_O, haxorg_O_vtable>(static_cast<O*(org::sem::SemId::*)()>(&org::sem::SemId::get), org_context, self);
+}
+haxorg_O org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::get_const(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<haxorg_O, haxorg_O_vtable>(static_cast<O const*(org::sem::SemId::*)() const>(&org::sem::SemId::get), org_context, self);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::asOrg_const(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId::*)() const>(&org::sem::SemId::asOrg), org_context, self);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::at(OrgContext* org_context, haxorg_SemId self, int idx) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId::*)(int)>(&org::sem::SemId::at), org_context, self, idx);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::at(OrgContext* org_context, haxorg_SemId self, haxorg_BackwardsIndex idx) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId::*)(hstd::BackwardsIndex)>(&org::sem::SemId::at), org_context, self, idx);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::get(OrgContext* org_context, haxorg_SemId self, int idx) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId::*)(int)>(&org::sem::SemId::get), org_context, self, idx);
+}
+haxorg_SemId org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::get(OrgContext* org_context, haxorg_SemId self, haxorg_BackwardsIndex idx) {
+  return org::bind::c::execute_cpp<haxorg_SemId, haxorg_SemId_vtable>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId::*)(hstd::BackwardsIndex)>(&org::sem::SemId::get), org_context, self, idx);
+}
+int org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::size_const(OrgContext* org_context, haxorg_SemId self) {
+  return org::bind::c::execute_cpp<int, haxorg_builtin_vtable>(static_cast<int(org::sem::SemId::*)() const>(&org::sem::SemId::size), org_context, self);
+}
+haxorg_SemId_vtable const* org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>::get_vtable() {
+  using Self = org::bind::c::VTable<org::sem::SemId, haxorg_SemId_vtable>;
+  static haxorg_SemId_vtable const vtable{.isNil_const = &Self::isNil_const,
+                                          .__eq___const = &Self::__eq___const,
+                                          .Nil = &Self::Nil,
+                                          .get = &Self::get,
+                                          .get_const = &Self::get_const,
+                                          .asOrg_const = &Self::asOrg_const,
+                                          .at = &Self::at,
+                                          .at = &Self::at,
+                                          .get = &Self::get,
+                                          .get = &Self::get,
+                                          .size_const = &Self::size_const,};
   return &vtable;
 }
 haxorg_OrgSemKind org::bind::c::VTable<org::sem::Org, haxorg_Org_vtable>::getKind_const(OrgContext* org_context, haxorg_Org self) {

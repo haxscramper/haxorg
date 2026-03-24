@@ -336,7 +336,7 @@ def gen_pyhaxorg_napi_wrappers(
     )
 
     for decl in groups.get_entries_for_wrapping():
-        if decl.ReflectionParams.isAcceptedBackend("wasm"):
+        if conf.isAcceptedByBackend(decl):
             res.add_decl(decl)
 
     res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))

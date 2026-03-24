@@ -76,6 +76,8 @@ class [[refl]] Cache {
     virtual std::optional<std::string> display(Id const& id) const = 0;
 
     DESC_FIELDS(Cache, (fetch, display));
+
+    virtual ~Cache() = default;
 };
 
 

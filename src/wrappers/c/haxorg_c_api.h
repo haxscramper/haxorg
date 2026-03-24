@@ -28,11 +28,6 @@ struct haxorg_StdString {
     haxorg_StdString_vtable const* vtable;
     haxorg_ptr_payload             data;
 };
-struct haxorg_SemId_vtable {};
-struct haxorg_SemId {
-    haxorg_SemId_vtable const* vtable;
-    haxorg_ptr_payload         data;
-};
 struct haxorg_HstdVec;
 struct haxorg_HstdVec_vtable {
     int (*size)(OrgContext*, haxorg_HstdVec);
