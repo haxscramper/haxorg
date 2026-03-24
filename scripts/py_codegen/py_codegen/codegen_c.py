@@ -390,12 +390,14 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
         codegen_ir.GenTuFunction(
             Name=f"haxorg_destroy_{basename}",
             Args=[
+                _CONTEXT_ARG,
                 codegen_ir.GenTuIdent(Name="obj",
                                       Type=wrap_struct.Name.copy_update(PtrCount=1))
             ],
             Body=ast.XCall(
                 "org::bind::c::execute_destroy",
-                args=[ast.string("obj")],
+                args=[ast.string(_CONTEXT_ARG.Name),
+                      ast.string("obj")],
                 Params=[struct.declarationQualName()],
                 Stmt=True,
             ),

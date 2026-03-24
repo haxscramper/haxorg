@@ -44,8 +44,8 @@ inline void set_context_error(OrgContext* ctx, const char* msg) {
 
 template <typename CoreT>
 CoreT* unwrap_instance(
-    haxorg_ptr_payload const& payload,
-    OrgContext*               ctx = nullptr) {
+    OrgContext*               ctx,
+    haxorg_ptr_payload const& payload) {
     if (!payload.data) {
         set_context_error(ctx, "Instance pointer is null");
         return nullptr;
@@ -80,21 +80,6 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
     }
 }
 
-template <typename CoreT, typename CHandleT>
-struct CoreUnwrapper {
-    static CoreT* unwrap_ptr(CHandleT handle, OrgContext* ctx) {
-        return unwrap_instance<CoreT>(handle.instance, ctx);
-    }
-    static CoreT& unwrap_ref(CHandleT handle, OrgContext* ctx) {
-        CoreT* ptr = unwrap_ptr(handle, ctx);
-        if (!ptr) {
-            throw std::runtime_error(
-                "Attempted to bind null handle to C++ reference/value");
-        }
-        return *ptr;
-    }
-};
-
 template <typename T, typename CVtable>
 struct VTable;
 
@@ -114,36 +99,36 @@ struct ArgUnwrapper;
 // Fallback for primitives passed as-is (e.g., int, double)
 template <typename CppType, typename CType>
 struct ArgUnwrapper {
-    static CppType unwrap(CType val, OrgContext* ctx) { return val; }
+    static CppType unwrap(OrgContext* ctx, CType val) { return val; }
 };
 
 template <typename CppType, typename CType>
 struct ArgUnwrapper<CppType&, CType> {
-    static CppType& unwrap(CType val, OrgContext* ctx) {
-        return *unwrap_instance<CppType>(val.data, ctx);
+    static CppType& unwrap(OrgContext* ctx, CType val) {
+        return *unwrap_instance<CppType>(ctx, val.data);
     }
 };
 
 template <typename CppType, typename CType>
 struct ArgUnwrapper<CppType const&, CType> {
-    static CppType const& unwrap(CType val, OrgContext* ctx) {
-        return *unwrap_instance<CppType>(val.data, ctx);
+    static CppType const& unwrap(OrgContext* ctx, CType val) {
+        return *unwrap_instance<CppType>(ctx, val.data);
     }
 };
 
 template <IsExactlyValue CppType, IsCWrapped CType>
 struct ArgUnwrapper<CppType, CType> {
-    static CppType const& unwrap(CType val, OrgContext* ctx) {
-        return *unwrap_instance<CppType>(val.data, ctx);
+    static CppType const& unwrap(OrgContext* ctx, CType val) {
+        return *unwrap_instance<CppType>(ctx, val.data);
     }
 };
 
 template <typename CppType, typename CType>
 struct ArgUnwrapper<std::shared_ptr<CppType>, CType> {
     static std::shared_ptr<CppType> const& unwrap(
-        CType       val,
-        OrgContext* ctx) {
-        return *unwrap_instance<std::shared_ptr<CppType>>(val.data, ctx);
+        OrgContext* ctx,
+        CType       val) {
+        return *unwrap_instance<std::shared_ptr<CppType>>(ctx, val.data);
     }
 };
 
@@ -151,23 +136,23 @@ struct ArgUnwrapper<std::shared_ptr<CppType>, CType> {
 template <typename CppType, typename CType>
 struct ArgUnwrapper<org::sem::SemId<CppType>, CType> {
     static org::sem::SemId<CppType> const& unwrap(
-        CType       val,
-        OrgContext* ctx) {
-        return *unwrap_instance<org::sem::SemId<CppType>>(val.data, ctx);
+        OrgContext* ctx,
+        CType       val) {
+        return *unwrap_instance<org::sem::SemId<CppType>>(ctx, val.data);
     }
 };
 
 
 template <typename CppType, IsCWrapped CType>
 struct ArgUnwrapper<CppType, CType> {
-    static CppType unwrap(CType val, OrgContext* ctx) {
-        return unwrap_instance<CppType>(val.data, ctx);
+    static CppType unwrap(OrgContext* ctx, CType val) {
+        return unwrap_instance<CppType>(ctx, val.data);
     }
 };
 
 template <hstd::IsEnum CppType, hstd::IsEnum CType>
 struct ArgUnwrapper<CppType, CType> {
-    static CppType unwrap(CType val, OrgContext*) {
+    static CppType unwrap(OrgContext*, CType val) {
         return static_cast<CppType>(val);
     }
 };
@@ -238,11 +223,11 @@ ResultCType execute_cpp_impl(
     clear_context(ctx);
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
-            callable(ArgUnwrapper<CppArgs, CArgs>::unwrap(c_args, ctx)...);
+            callable(ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);
             return;
         } else {
             decltype(auto) result = callable(
-                ArgUnwrapper<CppArgs, CArgs>::unwrap(c_args, ctx)...);
+                ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);
             if constexpr (IsPassthrough && std::is_enum_v<ResultCppType>) {
                 return static_cast<ResultCType>(result);
             } else if constexpr (IsPassthrough) {
@@ -325,7 +310,7 @@ ResultCType execute_cpp(
     OrgContext* ctx,
     CFirstArg   c_self,
     CArgs... c_args) {
-    Class& self_ref = ArgUnwrapper<Class&, CFirstArg>::unwrap(c_self, ctx);
+    Class& self_ref = ArgUnwrapper<Class&, CFirstArg>::unwrap(ctx, c_self);
     auto   bound    = [&self_ref,
                        method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
@@ -353,7 +338,7 @@ ResultCType execute_cpp(
     CFirstArg   c_self,
     CArgs... c_args) {
     Class const& self_ref = ArgUnwrapper<const Class&, CFirstArg>::unwrap(
-        c_self, ctx);
+        ctx, c_self);
     auto bound = [&self_ref,
                   method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
@@ -368,7 +353,10 @@ ResultCType execute_cpp(
 
 
 template <typename BaseType, typename WrappedType>
-void execute_destroy(WrappedType* type) {}
+void execute_destroy(OrgContext* ctx, WrappedType* type) {
+    delete unwrap_instance<BaseType>(ctx, type->data);
+    type->data.data = nullptr;
+}
 
 
 } // namespace org::bind::c

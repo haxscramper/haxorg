@@ -81,4 +81,8 @@ struct haxorg_HstdIntSet {
 
 
 HAXORG_C_API_LINKAGE haxorg_StdString
-    haxorg_create_StdString_ConstChar(char const* text, OrgContext* ctx);
+    haxorg_create_StdString_ConstChar(OrgContext* ctx, char const* text);
+
+HAXORG_C_API_LINKAGE void haxorg_destroy_SemId(
+    OrgContext*   ctx,
+    haxorg_SemId* obj);

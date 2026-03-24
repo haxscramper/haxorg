@@ -18,14 +18,15 @@ TEST(OrgCApi, TestSimpleParsing) {
     ASSERT_TRUE(parse_context.data.data != nullptr);
 
     haxorg_StdString input_string = haxorg_create_StdString_ConstChar(
-        R"(*bold input*)", &ctx);
-
+        &ctx, R"(*bold input*)");
 
     haxorg_StdString source_name = haxorg_create_StdString_ConstChar(
-        "<test>", &ctx);
+        &ctx, "<test>");
 
     ASSERT_TRUE(parse_context.vtable->parseString != nullptr);
 
-    parse_context.vtable->parseString(
+    haxorg_SemId parsed_node = parse_context.vtable->parseString(
         &ctx, parse_context, input_string, source_name);
+
+    haxorg_destroy_SemId(&ctx, &parsed_node);
 }

@@ -137,9 +137,3 @@ struct VTable<immer::flex_vector<T>, haxorg_immer_flex_vector_vtable> {
 
 
 } // namespace org::bind::c
-
-using namespace org::bind;
-
-
-HAXORG_C_API_LINKAGE haxorg_StdString
-    haxorg_create_StdString_ConstChar(char const* text, OrgContext* ctx);
