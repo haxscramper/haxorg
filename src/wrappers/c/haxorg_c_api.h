@@ -61,11 +61,6 @@ struct haxorg_HstdUnorderedMap {
     haxorg_HstdUnorderedMap_vtable const* vtable;
     haxorg_ptr_payload                    data;
 };
-struct haxorg_ImmVec_vtable {};
-struct haxorg_ImmVec {
-    haxorg_ImmVec_vtable const* vtable;
-    haxorg_ptr_payload          data;
-};
 struct haxorg_HstdUnorderedSet_vtable {};
 struct haxorg_HstdUnorderedSet {
     haxorg_HstdUnorderedSet_vtable const* vtable;
@@ -76,6 +71,8 @@ struct haxorg_immer_flex_vector {
     haxorg_immer_flex_vector_vtable const* vtable;
     haxorg_ptr_payload                     data;
 };
+typedef haxorg_immer_flex_vector_vtable haxorg_ImmVec_vtable;
+typedef haxorg_immer_flex_vector        haxorg_ImmVec;
 struct haxorg_HstdIntSet_vtable {};
 struct haxorg_HstdIntSet {
     haxorg_HstdIntSet_vtable const* vtable;

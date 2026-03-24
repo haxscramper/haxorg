@@ -2654,13 +2654,13 @@ struct haxorg_ImmReflFieldId {
   haxorg_ptr_payload data;
 };
 
-typedef uint32_t haxorg_ImmIdNodeIdxT;
 /// \brief ['org', 'imm', 'ImmId']
 struct haxorg_ImmId {
   haxorg_ImmId_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
+typedef uint32_t haxorg_ImmIdNodeIdxT;
 struct haxorg_ImmOrg_vtable {};
 
 /// \brief ['org', 'imm', 'ImmOrg']
@@ -2852,10 +2852,10 @@ struct haxorg_GraphMapEdge {
   haxorg_ptr_payload data;
 };
 
+typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
+typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
 typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
-typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
-typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
 /// \brief ['org', 'graph', 'MapGraph']
 struct haxorg_GraphMapGraph {
   haxorg_GraphMapGraph_vtable const* vtable;
@@ -2868,9 +2868,9 @@ struct haxorg_GraphMapConfig {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'graph', 'MapGraphState']
-struct haxorg_GraphMapGraphState {
-  haxorg_GraphMapGraphState_vtable const* vtable;
+/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmSubtree']]]
+struct haxorg_ImmSubtreeAdapter {
+  haxorg_ImmSubtreeAdapter_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
@@ -2880,9 +2880,9 @@ struct haxorg_ImmLinkAdapter {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmSubtree']]]
-struct haxorg_ImmSubtreeAdapter {
-  haxorg_ImmSubtreeAdapter_vtable const* vtable;
+/// \brief ['org', 'graph', 'MapGraphState']
+struct haxorg_GraphMapGraphState {
+  haxorg_GraphMapGraphState_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
@@ -3781,11 +3781,15 @@ struct haxorg_Symlink {
   haxorg_ptr_payload data;
 };
 
+struct haxorg_CmdIncludeIncludeBase_vtable {};
+
 /// \brief ['org', 'sem', 'CmdInclude', 'IncludeBase']
 struct haxorg_CmdIncludeIncludeBase {
   haxorg_CmdIncludeIncludeBase_vtable const* vtable;
   haxorg_ptr_payload data;
 };
+
+struct haxorg_CmdIncludeExample_vtable {};
 
 /// \brief ['org', 'sem', 'CmdInclude', 'Example']
 struct haxorg_CmdIncludeExample {
@@ -6487,18 +6491,6 @@ struct haxorg_GraphMapConfig_vtable {
   haxorg_OperationsTracer const* (*get_dbg)(OrgContext*, haxorg_GraphMapConfig const*);
 };
 
-struct haxorg_GraphMapGraphState_vtable {
-  haxorg_GraphMapGraph const* (*get_graph)(OrgContext*, haxorg_GraphMapGraphState const*);
-  haxorg_ImmAstContext const* (*get_ast)(OrgContext*, haxorg_GraphMapGraphState const*);
-  haxorg_GraphMapGraph (*getGraph_const)(OrgContext*, haxorg_GraphMapGraphState);
-  haxorg_GraphMapGraphState (*FromAstContext)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext);
-  void (*registerNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_GraphMapNodeProp, haxorg_GraphMapConfig);
-  void (*addNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAdapter, haxorg_GraphMapConfig);
-  void (*addNodeRec)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext, haxorg_ImmAdapter, haxorg_GraphMapConfig);
-  haxorg_HstdVec (*getUnresolvedSubtreeLinks_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmSubtreeAdapter, haxorg_GraphMapConfig);
-  haxorg_StdOptional (*getUnresolvedLink_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmLinkAdapter, haxorg_GraphMapConfig);
-};
-
 struct haxorg_ImmSubtreeAdapter_vtable {
   int (*getLevel_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   haxorg_HstdOpt (*getTreeId_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
@@ -6515,6 +6507,18 @@ struct haxorg_ImmSubtreeAdapter_vtable {
   bool (*getIsComment_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   bool (*getIsArchived_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   haxorg_HstdOpt (*getPriority_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
+};
+
+struct haxorg_GraphMapGraphState_vtable {
+  haxorg_GraphMapGraph const* (*get_graph)(OrgContext*, haxorg_GraphMapGraphState const*);
+  haxorg_ImmAstContext const* (*get_ast)(OrgContext*, haxorg_GraphMapGraphState const*);
+  haxorg_GraphMapGraph (*getGraph_const)(OrgContext*, haxorg_GraphMapGraphState);
+  haxorg_GraphMapGraphState (*FromAstContext)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext);
+  void (*registerNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_GraphMapNodeProp, haxorg_GraphMapConfig);
+  void (*addNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAdapter, haxorg_GraphMapConfig);
+  void (*addNodeRec)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext, haxorg_ImmAdapter, haxorg_GraphMapConfig);
+  haxorg_HstdVec (*getUnresolvedSubtreeLinks_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmSubtreeAdapter, haxorg_GraphMapConfig);
+  haxorg_StdOptional (*getUnresolvedLink_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmLinkAdapter, haxorg_GraphMapConfig);
 };
 
 struct haxorg_LispCodeCall_vtable {
@@ -7473,19 +7477,16 @@ struct haxorg_TimeRepeat_vtable {
   haxorg_TimeRepeatMode const* (*get_mode)(OrgContext*, haxorg_TimeRepeat const*);
   haxorg_TimeRepeatPeriod const* (*get_period)(OrgContext*, haxorg_TimeRepeat const*);
   int const* (*get_count)(OrgContext*, haxorg_TimeRepeat const*);
-  bool (*__eq___const)(OrgContext*, haxorg_TimeRepeat, haxorg_TimeRepeat);
 };
 
 struct haxorg_TimeStatic_vtable {
   haxorg_HstdVec const* (*get_repeat)(OrgContext*, haxorg_TimeStatic const*);
   haxorg_HstdOpt const* (*get_warn)(OrgContext*, haxorg_TimeStatic const*);
   haxorg_UserTime const* (*get_time)(OrgContext*, haxorg_TimeStatic const*);
-  bool (*__eq___const)(OrgContext*, haxorg_TimeStatic, haxorg_TimeStatic);
 };
 
 struct haxorg_TimeDynamic_vtable {
   haxorg_LispCode const* (*get_expr)(OrgContext*, haxorg_TimeDynamic const*);
-  bool (*__eq___const)(OrgContext*, haxorg_TimeDynamic, haxorg_TimeDynamic);
 };
 
 struct haxorg_Time_vtable {
@@ -7654,27 +7655,16 @@ struct haxorg_Symlink_vtable {
   haxorg_HstdStr const* (*get_absPath)(OrgContext*, haxorg_Symlink const*);
 };
 
-struct haxorg_CmdIncludeIncludeBase_vtable {
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeIncludeBase, haxorg_CmdIncludeIncludeBase);
-};
-
-struct haxorg_CmdIncludeExample_vtable {
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeExample, haxorg_CmdIncludeExample);
-};
-
 struct haxorg_CmdIncludeExport_vtable {
   haxorg_HstdStr const* (*get_language)(OrgContext*, haxorg_CmdIncludeExport const*);
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeExport, haxorg_CmdIncludeExport);
 };
 
 struct haxorg_CmdIncludeCustom_vtable {
   haxorg_HstdStr const* (*get_blockName)(OrgContext*, haxorg_CmdIncludeCustom const*);
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeCustom, haxorg_CmdIncludeCustom);
 };
 
 struct haxorg_CmdIncludeSrc_vtable {
   haxorg_HstdStr const* (*get_language)(OrgContext*, haxorg_CmdIncludeSrc const*);
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeSrc, haxorg_CmdIncludeSrc);
 };
 
 struct haxorg_CmdIncludeOrgDocument_vtable {
@@ -7682,7 +7672,6 @@ struct haxorg_CmdIncludeOrgDocument_vtable {
   haxorg_HstdOpt const* (*get_subtreePath)(OrgContext*, haxorg_CmdIncludeOrgDocument const*);
   haxorg_HstdOpt const* (*get_minLevel)(OrgContext*, haxorg_CmdIncludeOrgDocument const*);
   haxorg_HstdOpt const* (*get_customIdTarget)(OrgContext*, haxorg_CmdIncludeOrgDocument const*);
-  bool (*__eq___const)(OrgContext*, haxorg_CmdIncludeOrgDocument, haxorg_CmdIncludeOrgDocument);
 };
 
 struct haxorg_CmdInclude_vtable {
@@ -8863,7 +8852,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_Inline(haxorg_Inline* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_StmtList(haxorg_StmtList* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Empty(haxorg_Empty* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Leaf(haxorg_Leaf* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_TimeRepeat_Repeat(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj);
 HAXORG_C_API_LINKAGE void haxorg_create_TimeStatic_Static(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_TimeStatic(haxorg_TimeStatic* obj);
@@ -8896,17 +8884,11 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_FileSource(haxorg_FileSource* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_File(haxorg_File* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Directory(haxorg_Directory* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Symlink(haxorg_Symlink* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeIncludeBase_IncludeBase(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeIncludeBase(haxorg_CmdIncludeIncludeBase* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeExample_Example(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeExample(haxorg_CmdIncludeExample* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeExport_Export(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeExport(haxorg_CmdIncludeExport* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeCustom_Custom(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeCustom(haxorg_CmdIncludeCustom* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeSrc_Src(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeSrc(haxorg_CmdIncludeSrc* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_CmdIncludeOrgDocument_OrgDocument(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdInclude(haxorg_CmdInclude* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmNoNode(haxorg_ImmNoNode* obj);
@@ -8917,7 +8899,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_ImmInline(haxorg_ImmInline* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmStmtList(haxorg_ImmStmtList* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmEmpty(haxorg_ImmEmpty* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmTimeRepeat_Repeat(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj);
 HAXORG_C_API_LINKAGE void haxorg_create_ImmTimeStatic_Static(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmTimeStatic(haxorg_ImmTimeStatic* obj);
@@ -8950,17 +8931,11 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_ImmFileSource(haxorg_ImmFileSource* obj
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmFile(haxorg_ImmFile* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmSymlink(haxorg_ImmSymlink* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeIncludeBase_IncludeBase(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeIncludeBase(haxorg_ImmCmdIncludeIncludeBase* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeExample_Example(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeExample(haxorg_ImmCmdIncludeExample* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeExport_Export(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeExport(haxorg_ImmCmdIncludeExport* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeCustom_Custom(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeCustom(haxorg_ImmCmdIncludeCustom* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeSrc_Src(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeSrc(haxorg_ImmCmdIncludeSrc* obj);
-HAXORG_C_API_LINKAGE void haxorg_create_ImmCmdIncludeOrgDocument_OrgDocument(OrgContext* org_context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeOrgDocument(haxorg_ImmCmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdInclude(haxorg_ImmCmdInclude* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAdapterOrgAPI(haxorg_ImmAdapterOrgAPI* obj);

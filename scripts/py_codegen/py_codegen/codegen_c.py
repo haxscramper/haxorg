@@ -38,7 +38,6 @@ def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
 def _get_vtable_type(Type: QualType, conf: CAstbuilderConfig) -> QualType:
     Unwrap = conf.getResolvedType(Type)
     if isinstance(conf.getTypeDefinition(Unwrap), codegen_ir.GenTuEnum):
-        log(CAT).info(f"{Unwrap} is enum")
         return QualType(Name="haxorg_builtin_vtable")
 
     match Unwrap.flatQualNameWithParams():
@@ -229,14 +228,50 @@ def _gen_vtable_specialization(
                     ParentClass=cpp_vtable_type,
                 ))
 
-    return codegen_ir.GenTuStruct(
+    vtable_struct = codegen_ir.GenTuStruct(
         Name=cpp_vtable_type,
         IsExplicitInstantiation=True,
         IsTemplateRecord=True,
-        ExplicitTemplateParams=[c_type, c_type_vtable],
+        ExplicitTemplateParams=[struct.declarationQualName(), c_type_vtable],
         TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
         Methods=Methods,
     )
+
+    get_vtable_method = codegen_ir.GenTuFunction(
+        Name="get_vtable",
+        IsStatic=True,
+        ReturnType=c_type_vtable.asConstPtr(),
+        Body=ast.stack([
+            ast.Using(
+                cpp.UsingParams(newName="Self",
+                                baseType=vtable_struct.declarationQualName())),
+            ast.VarDecl(
+                cpp.ParmVarParams(
+                    type=c_type_vtable,
+                    name="vtable",
+                    IsConst=True,
+                    storage=cpp.StorageClass.Static,
+                    defWithAssign=False,
+                    defArg=ast.pars(
+                        ast.stack([
+                            ast.line([
+                                ast.string(f".{_meth.Name} = "),
+                                ast.Addr(
+                                    ast.Scoped(QualType(Name="Self"),
+                                               ast.string(_meth.Name))),
+                                ast.string(","),
+                            ]) for _meth in vtable_struct.Methods
+                        ]),
+                        left="{",
+                        right="}",
+                    ),
+                )),
+            ast.Return(ast.Addr(ast.string("vtable"))),
+        ]))
+
+    vtable_struct.Methods.append(get_vtable_method)
+
+    return vtable_struct
 
 
 @beartype
@@ -443,6 +478,9 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                 "{root}/src/wrappers/c/haxorg_c.cpp",
                 [
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c.h", True),
+                    codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables.hpp", True),
+                    codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables_manual.hpp",
+                                            True),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
                 ] + wrapped_structs + standalone_funcs,
             ),
@@ -451,6 +489,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
             header=codegen_ir.GenTu(
                 "{root}/src/wrappers/c/haxorg_c_vtables.hpp",
                 [
+                    codegen_ir.GenTuPass(ast.string("#pragma once")),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c.h", True),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables_manual.hpp",

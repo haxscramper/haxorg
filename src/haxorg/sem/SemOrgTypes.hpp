@@ -339,8 +339,6 @@ struct Time : public org::sem::Org {
     org::sem::Time::Repeat::Period period;
     /// \brief count
     int count;
-    Repeat() {  }
-    bool operator==(org::sem::Time::Repeat const& other) const;
   };
 
   struct Static {
@@ -349,14 +347,12 @@ struct Time : public org::sem::Org {
     hstd::Opt<org::sem::Time::Repeat> warn = std::nullopt;
     hstd::UserTime time;
     Static() {  }
-    bool operator==(org::sem::Time::Static const& other) const;
   };
 
   struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr));
     org::sem::LispCode expr;
     Dynamic() {  }
-    bool operator==(org::sem::Time::Dynamic const& other) const;
   };
 
   using TimeVariant = std::variant<org::sem::Time::Static, org::sem::Time::Dynamic>;
@@ -1150,22 +1146,16 @@ struct CmdInclude : public org::sem::Org {
   virtual ~CmdInclude() = default;
   struct IncludeBase {
     BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), ());
-    IncludeBase() {  }
-    bool operator==(org::sem::CmdInclude::IncludeBase const& other) const;
   };
 
   struct Example : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ());
-    Example() {  }
-    bool operator==(org::sem::CmdInclude::Example const& other) const;
   };
 
   struct Export : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language));
     /// \brief Source code language for export
     hstd::Str language;
-    Export() {  }
-    bool operator==(org::sem::CmdInclude::Export const& other) const;
   };
 
   /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
@@ -1173,16 +1163,12 @@ struct CmdInclude : public org::sem::Org {
     BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName));
     /// \brief Block name not covered by the default values
     hstd::Str blockName;
-    Custom() {  }
-    bool operator==(org::sem::CmdInclude::Custom const& other) const;
   };
 
   struct Src : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language));
     /// \brief Source code language for code block
     hstd::Str language;
-    Src() {  }
-    bool operator==(org::sem::CmdInclude::Src const& other) const;
   };
 
   struct OrgDocument : public org::sem::CmdInclude::IncludeBase {
@@ -1195,8 +1181,6 @@ struct CmdInclude : public org::sem::Org {
     hstd::Opt<int> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`
     hstd::Opt<hstd::Str> customIdTarget = std::nullopt;
-    OrgDocument() {  }
-    bool operator==(org::sem::CmdInclude::OrgDocument const& other) const;
   };
 
   using Data = std::variant<org::sem::CmdInclude::Example, org::sem::CmdInclude::Export, org::sem::CmdInclude::Custom, org::sem::CmdInclude::Src, org::sem::CmdInclude::OrgDocument>;

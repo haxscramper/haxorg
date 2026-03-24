@@ -3646,8 +3646,6 @@ export interface Time {
 }
 export interface TimeRepeatConstructor { new(): TimeRepeat; }
 export interface TimeRepeat {
-  Repeat(): void;
-  __eq__(other: TimeRepeat): boolean;
   mode: TimeRepeatMode
   period: TimeRepeatPeriod
   count: number
@@ -3669,7 +3667,6 @@ export enum TimeRepeatPeriod {
 export interface TimeStaticConstructor { new(): TimeStatic; }
 export interface TimeStatic {
   Static(): void;
-  __eq__(other: TimeStatic): boolean;
   repeat: haxorg_wasm.HstdVec<TimeRepeat>
   warn: haxorg_wasm.Optional<TimeRepeat>
   time: UserTime
@@ -3677,7 +3674,6 @@ export interface TimeStatic {
 export interface TimeDynamicConstructor { new(): TimeDynamic; }
 export interface TimeDynamic {
   Dynamic(): void;
-  __eq__(other: TimeDynamic): boolean;
   expr: LispCode
 }
 export type TimeTimeVariant = haxorg_wasm.StdVariant<TimeStatic, TimeDynamic>;
@@ -3913,37 +3909,17 @@ export interface CmdInclude {
   data: CmdIncludeData
 }
 export interface CmdIncludeIncludeBaseConstructor { new(): CmdIncludeIncludeBase; }
-export interface CmdIncludeIncludeBase {
-  IncludeBase(): void;
-  __eq__(other: CmdIncludeIncludeBase): boolean;
-}
+export interface CmdIncludeIncludeBase {  }
 export interface CmdIncludeExampleConstructor { new(): CmdIncludeExample; }
-export interface CmdIncludeExample {
-  Example(): void;
-  __eq__(other: CmdIncludeExample): boolean;
-}
+export interface CmdIncludeExample {  }
 export interface CmdIncludeExportConstructor { new(): CmdIncludeExport; }
-export interface CmdIncludeExport {
-  Export(): void;
-  __eq__(other: CmdIncludeExport): boolean;
-  language: Str
-}
+export interface CmdIncludeExport { language: Str }
 export interface CmdIncludeCustomConstructor { new(): CmdIncludeCustom; }
-export interface CmdIncludeCustom {
-  Custom(): void;
-  __eq__(other: CmdIncludeCustom): boolean;
-  blockName: Str
-}
+export interface CmdIncludeCustom { blockName: Str }
 export interface CmdIncludeSrcConstructor { new(): CmdIncludeSrc; }
-export interface CmdIncludeSrc {
-  Src(): void;
-  __eq__(other: CmdIncludeSrc): boolean;
-  language: Str
-}
+export interface CmdIncludeSrc { language: Str }
 export interface CmdIncludeOrgDocumentConstructor { new(): CmdIncludeOrgDocument; }
 export interface CmdIncludeOrgDocument {
-  OrgDocument(): void;
-  __eq__(other: CmdIncludeOrgDocument): boolean;
   onlyContent: haxorg_wasm.Optional<boolean>
   subtreePath: haxorg_wasm.Optional<SubtreePath>
   minLevel: haxorg_wasm.Optional<number>
@@ -4192,7 +4168,6 @@ export interface ImmTime {
 }
 export interface ImmTimeRepeatConstructor { new(): ImmTimeRepeat; }
 export interface ImmTimeRepeat {
-  Repeat(): void;
   __eq__(other: ImmTimeRepeat): boolean;
   mode: ImmTimeRepeatMode
   period: ImmTimeRepeatPeriod
@@ -4456,36 +4431,26 @@ export interface ImmCmdInclude {
   data: ImmCmdIncludeData
 }
 export interface ImmCmdIncludeIncludeBaseConstructor { new(): ImmCmdIncludeIncludeBase; }
-export interface ImmCmdIncludeIncludeBase {
-  IncludeBase(): void;
-  __eq__(other: ImmCmdIncludeIncludeBase): boolean;
-}
+export interface ImmCmdIncludeIncludeBase { __eq__(other: ImmCmdIncludeIncludeBase): boolean; }
 export interface ImmCmdIncludeExampleConstructor { new(): ImmCmdIncludeExample; }
-export interface ImmCmdIncludeExample {
-  Example(): void;
-  __eq__(other: ImmCmdIncludeExample): boolean;
-}
+export interface ImmCmdIncludeExample { __eq__(other: ImmCmdIncludeExample): boolean; }
 export interface ImmCmdIncludeExportConstructor { new(): ImmCmdIncludeExport; }
 export interface ImmCmdIncludeExport {
-  Export(): void;
   __eq__(other: ImmCmdIncludeExport): boolean;
   language: ImmBox<Str>
 }
 export interface ImmCmdIncludeCustomConstructor { new(): ImmCmdIncludeCustom; }
 export interface ImmCmdIncludeCustom {
-  Custom(): void;
   __eq__(other: ImmCmdIncludeCustom): boolean;
   blockName: ImmBox<Str>
 }
 export interface ImmCmdIncludeSrcConstructor { new(): ImmCmdIncludeSrc; }
 export interface ImmCmdIncludeSrc {
-  Src(): void;
   __eq__(other: ImmCmdIncludeSrc): boolean;
   language: ImmBox<Str>
 }
 export interface ImmCmdIncludeOrgDocumentConstructor { new(): ImmCmdIncludeOrgDocument; }
 export interface ImmCmdIncludeOrgDocument {
-  OrgDocument(): void;
   __eq__(other: ImmCmdIncludeOrgDocument): boolean;
   onlyContent: ImmBox<haxorg_wasm.Optional<boolean>>
   subtreePath: ImmBox<haxorg_wasm.Optional<SubtreePath>>

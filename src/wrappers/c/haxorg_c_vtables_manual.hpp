@@ -3,10 +3,18 @@
 #include <wrappers/c/haxorg_c.h>
 #include <wrappers/c/haxorg_c_utils.hpp>
 
+#include <wrappers/c/haxorg_c_vtables.hpp>
+
 namespace org::bind::c {
 
 template <typename T, typename CVtable>
 struct VTable<std::shared_ptr<T>, CVtable> : public VTable<T, CVtable> {};
+
+template <typename T, typename CVtable>
+struct VTable<T const&, CVtable> : public VTable<T, CVtable> {};
+
+template <typename T, typename CVtable>
+struct VTable<T&, CVtable> : public VTable<T, CVtable> {};
 
 template <typename T, typename CVtable>
 struct VTable<org::sem::SemId<T>, CVtable> {
@@ -56,10 +64,10 @@ struct VTable<hstd::Vec<T>, CVtable> {
 };
 
 template <>
-struct VTable<haxorg_StdString, haxorg_StdString_vtable> {
+struct VTable<std::string, haxorg_StdString_vtable> {
     using Type  = haxorg_StdString;
     using VType = haxorg_StdString_vtable;
-    using Self  = VTable<Type, VType>;
+    using Self  = VTable<std::string, VType>;
     static VType const* get_vtable() {
         static VType vtable{
             .size = &Self::size,
@@ -82,17 +90,56 @@ struct VTable<haxorg_StdString, haxorg_StdString_vtable> {
     }
 };
 
+template <>
+struct VTable<hstd::Str, haxorg_HstdStr_vtable> {
+    using Type  = haxorg_HstdStr;
+    using VType = haxorg_HstdStr_vtable;
+    using Self  = VTable<hstd::Str, VType>;
+    static VType const* get_vtable() {
+        static VType vtable{};
+        return &vtable;
+    }
+};
+
+template <typename T>
+struct VTable<std::optional<T>, haxorg_StdOptional_vtable> {
+    using Type  = haxorg_StdOptional;
+    using VType = haxorg_StdOptional_vtable;
+    using Self  = VTable<std::optional<T>, VType>;
+    static VType const* get_vtable() {
+        static VType vtable{};
+        return &vtable;
+    }
+};
+
+template <typename T>
+struct VTable<std::optional<T>, haxorg_HstdOpt_vtable> {
+    using Type  = haxorg_HstdOpt;
+    using VType = haxorg_HstdOpt_vtable;
+    using Self  = VTable<std::optional<T>, VType>;
+    static VType const* get_vtable() {
+        static VType vtable{};
+        return &vtable;
+    }
+};
+
+
+template <typename T>
+struct VTable<immer::flex_vector<T>, haxorg_immer_flex_vector_vtable> {
+    using Type  = haxorg_immer_flex_vector;
+    using VType = haxorg_immer_flex_vector_vtable;
+    using Self  = VTable<immer::flex_vector<T>, VType>;
+    static VType const* get_vtable() {
+        static VType vtable{};
+        return &vtable;
+    }
+};
+
+
 } // namespace org::bind::c
 
 using namespace org::bind;
 
 
 HAXORG_C_API_LINKAGE haxorg_StdString
-    haxorg_create_StdString_ConstChar(char const* text, OrgContext* ctx) {
-    return c::execute_cpp<haxorg_StdString, haxorg_StdString_vtable>(
-        +[](char const* value) -> std::string {
-            return std::string{value};
-        },
-        ctx,
-        text);
-}
+    haxorg_create_StdString_ConstChar(char const* text, OrgContext* ctx);

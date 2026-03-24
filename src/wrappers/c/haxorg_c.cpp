@@ -1,5 +1,7 @@
 /* clang-format off */
 #include <wrappers/c/haxorg_c.h>
+#include <wrappers/c/haxorg_c_vtables.hpp>
+#include <wrappers/c/haxorg_c_vtables_manual.hpp>
 #include <wrappers/c/haxorg_c_utils.hpp>
 
 
@@ -401,8 +403,6 @@ void haxorg_destroy_Empty(haxorg_Empty* obj) { org::bind::c::execute_destroy<org
 
 void haxorg_destroy_Leaf(haxorg_Leaf* obj) { org::bind::c::execute_destroy<org::sem::Leaf>(obj); }
 
-void haxorg_create_TimeRepeat_Repeat(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Time::Repeat { return org::sem::Time::Repeat(); }, org_context); }
-
 void haxorg_destroy_TimeRepeat(haxorg_TimeRepeat* obj) { org::bind::c::execute_destroy<org::sem::Time::Repeat>(obj); }
 
 void haxorg_create_TimeStatic_Static(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::Time::Static { return org::sem::Time::Static(); }, org_context); }
@@ -467,27 +467,15 @@ void haxorg_destroy_Directory(haxorg_Directory* obj) { org::bind::c::execute_des
 
 void haxorg_destroy_Symlink(haxorg_Symlink* obj) { org::bind::c::execute_destroy<org::sem::Symlink>(obj); }
 
-void haxorg_create_CmdIncludeIncludeBase_IncludeBase(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::IncludeBase { return org::sem::CmdInclude::IncludeBase(); }, org_context); }
-
 void haxorg_destroy_CmdIncludeIncludeBase(haxorg_CmdIncludeIncludeBase* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::IncludeBase>(obj); }
-
-void haxorg_create_CmdIncludeExample_Example(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Example { return org::sem::CmdInclude::Example(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeExample(haxorg_CmdIncludeExample* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Example>(obj); }
 
-void haxorg_create_CmdIncludeExport_Export(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Export { return org::sem::CmdInclude::Export(); }, org_context); }
-
 void haxorg_destroy_CmdIncludeExport(haxorg_CmdIncludeExport* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Export>(obj); }
-
-void haxorg_create_CmdIncludeCustom_Custom(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Custom { return org::sem::CmdInclude::Custom(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeCustom(haxorg_CmdIncludeCustom* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Custom>(obj); }
 
-void haxorg_create_CmdIncludeSrc_Src(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::Src { return org::sem::CmdInclude::Src(); }, org_context); }
-
 void haxorg_destroy_CmdIncludeSrc(haxorg_CmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Src>(obj); }
-
-void haxorg_create_CmdIncludeOrgDocument_OrgDocument(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::sem::CmdInclude::OrgDocument { return org::sem::CmdInclude::OrgDocument(); }, org_context); }
 
 void haxorg_destroy_CmdIncludeOrgDocument(haxorg_CmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::OrgDocument>(obj); }
 
@@ -508,8 +496,6 @@ void haxorg_destroy_ImmStmtList(haxorg_ImmStmtList* obj) { org::bind::c::execute
 void haxorg_destroy_ImmEmpty(haxorg_ImmEmpty* obj) { org::bind::c::execute_destroy<org::imm::ImmEmpty>(obj); }
 
 void haxorg_destroy_ImmLeaf(haxorg_ImmLeaf* obj) { org::bind::c::execute_destroy<org::imm::ImmLeaf>(obj); }
-
-void haxorg_create_ImmTimeRepeat_Repeat(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmTime::Repeat { return org::imm::ImmTime::Repeat(); }, org_context); }
 
 void haxorg_destroy_ImmTimeRepeat(haxorg_ImmTimeRepeat* obj) { org::bind::c::execute_destroy<org::imm::ImmTime::Repeat>(obj); }
 
@@ -575,27 +561,15 @@ void haxorg_destroy_ImmDirectory(haxorg_ImmDirectory* obj) { org::bind::c::execu
 
 void haxorg_destroy_ImmSymlink(haxorg_ImmSymlink* obj) { org::bind::c::execute_destroy<org::imm::ImmSymlink>(obj); }
 
-void haxorg_create_ImmCmdIncludeIncludeBase_IncludeBase(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::IncludeBase { return org::imm::ImmCmdInclude::IncludeBase(); }, org_context); }
-
 void haxorg_destroy_ImmCmdIncludeIncludeBase(haxorg_ImmCmdIncludeIncludeBase* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::IncludeBase>(obj); }
-
-void haxorg_create_ImmCmdIncludeExample_Example(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Example { return org::imm::ImmCmdInclude::Example(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeExample(haxorg_ImmCmdIncludeExample* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Example>(obj); }
 
-void haxorg_create_ImmCmdIncludeExport_Export(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Export { return org::imm::ImmCmdInclude::Export(); }, org_context); }
-
 void haxorg_destroy_ImmCmdIncludeExport(haxorg_ImmCmdIncludeExport* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Export>(obj); }
-
-void haxorg_create_ImmCmdIncludeCustom_Custom(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Custom { return org::imm::ImmCmdInclude::Custom(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeCustom(haxorg_ImmCmdIncludeCustom* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Custom>(obj); }
 
-void haxorg_create_ImmCmdIncludeSrc_Src(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::Src { return org::imm::ImmCmdInclude::Src(); }, org_context); }
-
 void haxorg_destroy_ImmCmdIncludeSrc(haxorg_ImmCmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Src>(obj); }
-
-void haxorg_create_ImmCmdIncludeOrgDocument_OrgDocument(OrgContext* org_context) { return org::bind::c::execute_cpp<void, haxorg_builtin_vtable>(+[]() -> org::imm::ImmCmdInclude::OrgDocument { return org::imm::ImmCmdInclude::OrgDocument(); }, org_context); }
 
 void haxorg_destroy_ImmCmdIncludeOrgDocument(haxorg_ImmCmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::OrgDocument>(obj); }
 

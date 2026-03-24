@@ -28,6 +28,7 @@ class ParmVarParams:
     IsConst: bool = False
     storage: StorageClass = StorageClass.None_
     defArg: Optional[BlockId] = None
+    defWithAssign: bool = True
 
 
 @beartype
@@ -677,9 +678,15 @@ class ASTBuilder(base.AstbuilderBase):
         return self.brace(p.Stmts)
 
     def VarDecl(self, p: ParmVarParams) -> BlockId:
+        decl = []
+
+        match p.storage:
+            case StorageClass.Static:
+                decl.append(self.string("static "))
+
         if p.type.Kind == codegen_ir.QualTypeKind.FunctionPtr:
             assert p.type.Func
-            return self.b.line([
+            decl.extend([
                 self.Type(p.type.Func.ReturnType),
                 self.string(" (*"),
                 self.string(p.name),
@@ -688,19 +695,25 @@ class ASTBuilder(base.AstbuilderBase):
                 self.csv([self.Type(a) for a in p.type.Func.Args]),
                 self.string(")"),
                 self.string("const " if p.IsConst else ""),
-                *([self.string(" = "), p.defArg] if p.defArg else []),
-                self.string(";"),
             ])
 
         else:
-            return self.b.line([
+            decl.extend([
                 self.Type(p.type),
                 self.string(" "),
                 self.string("const " if p.IsConst else ""),
                 self.string(p.name),
-                *([self.string(" = "), p.defArg] if p.defArg else []),
-                self.string(";"),
             ])
+
+        if p.defArg:
+            if p.defWithAssign:
+                decl.append(self.string(" = "))
+
+            decl.append(p.defArg)
+
+        decl.append(self.string(";"))
+
+        return self.line(decl)
 
     def block(
         self,

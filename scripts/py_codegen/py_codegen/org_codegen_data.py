@@ -1078,8 +1078,6 @@ def get_sem_text() -> List[GenTuStruct]:
                 org_struct(
                     t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
-                    DefaultConstructor=True,
-                    DefaultEq=True,
                     Nested=[
                         GenTuEnum(
                             t_nest("Mode", [t_org("Time"), t("Repeat")]),
@@ -1141,7 +1139,6 @@ def get_sem_text() -> List[GenTuStruct]:
                                 GenTuField(t_user_time(), "time"),
                             ],
                             DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
@@ -1151,7 +1148,6 @@ def get_sem_text() -> List[GenTuStruct]:
                                            GenTuDoc(""))
                             ],
                             DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                     ],
                     kindGetter="getTimeKind",
@@ -3195,8 +3191,6 @@ def get_types() -> Sequence[GenTuStruct]:
             Nested=[
                 org_struct(
                     t_nest("IncludeBase", [t_org("CmdInclude")]),
-                    DefaultConstructor=True,
-                    DefaultEq=True,
                     Fields=[],
                 ),
                 GenTuTypeGroup(
@@ -3204,8 +3198,6 @@ def get_types() -> Sequence[GenTuStruct]:
                         org_struct(
                             t_nest("Example", [t_org("CmdInclude")]),
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
-                            DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Export", [t_org("CmdInclude")]),
@@ -3214,8 +3206,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                 org_field(t_str(), "language",
                                           "Source code language for export"),
                             ],
-                            DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Custom", [t_org("CmdInclude")]),
@@ -3228,8 +3218,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                 org_field(t_str(), "blockName",
                                           "Block name not covered by the default values")
                             ],
-                            DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("Src", [t_org("CmdInclude")]),
@@ -3238,8 +3226,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                 org_field(t_str(), "language",
                                           "Source code language for code block"),
                             ],
-                            DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest("OrgDocument", [t_org("CmdInclude")]),
@@ -3266,8 +3252,6 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "Include target subtree content with `file.org::#custom`",
                                 ),
                             ],
-                            DefaultConstructor=True,
-                            DefaultEq=True,
                         ),
                     ],
                     kindGetter="getIncludeKind",

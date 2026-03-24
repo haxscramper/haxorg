@@ -1620,7 +1620,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("mode", &org::sem::Time::Repeat::mode)
     .property("period", &org::sem::Time::Repeat::period)
     .property("count", &org::sem::Time::Repeat::count)
-    .function("__eq__", static_cast<bool(org::sem::Time::Repeat::*)(org::sem::Time::Repeat const&) const>(&org::sem::Time::Repeat::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::Time::Repeat::Mode>("TimeRepeatMode");
@@ -1629,12 +1628,10 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("repeat", &org::sem::Time::Static::repeat)
     .property("warn", &org::sem::Time::Static::warn)
     .property("time", &org::sem::Time::Static::time)
-    .function("__eq__", static_cast<bool(org::sem::Time::Static::*)(org::sem::Time::Static const&) const>(&org::sem::Time::Static::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Time::Dynamic>("TimeDynamic")
     .property("expr", &org::sem::Time::Dynamic::expr)
-    .function("__eq__", static_cast<bool(org::sem::Time::Dynamic::*)(org::sem::Time::Dynamic const&) const>(&org::sem::Time::Dynamic::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::Time::TimeKind>("TimeTimeKind");
@@ -1886,26 +1883,21 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::CmdInclude>>)
     ;
   emscripten::class_<org::sem::CmdInclude::IncludeBase>("CmdIncludeIncludeBase")
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::IncludeBase::*)(org::sem::CmdInclude::IncludeBase const&) const>(&org::sem::CmdInclude::IncludeBase::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::CmdInclude::Example, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeExample")
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::Example::*)(org::sem::CmdInclude::Example const&) const>(&org::sem::CmdInclude::Example::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::CmdInclude::Export, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeExport")
     .property("language", &org::sem::CmdInclude::Export::language)
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::Export::*)(org::sem::CmdInclude::Export const&) const>(&org::sem::CmdInclude::Export::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::CmdInclude::Custom, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeCustom")
     .property("blockName", &org::sem::CmdInclude::Custom::blockName)
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::Custom::*)(org::sem::CmdInclude::Custom const&) const>(&org::sem::CmdInclude::Custom::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::CmdInclude::Src, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeSrc")
     .property("language", &org::sem::CmdInclude::Src::language)
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::Src::*)(org::sem::CmdInclude::Src const&) const>(&org::sem::CmdInclude::Src::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::CmdInclude::OrgDocument, emscripten::base<org::sem::CmdInclude::IncludeBase>>("CmdIncludeOrgDocument")
@@ -1913,7 +1905,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .property("subtreePath", &org::sem::CmdInclude::OrgDocument::subtreePath)
     .property("minLevel", &org::sem::CmdInclude::OrgDocument::minLevel)
     .property("customIdTarget", &org::sem::CmdInclude::OrgDocument::customIdTarget)
-    .function("__eq__", static_cast<bool(org::sem::CmdInclude::OrgDocument::*)(org::sem::CmdInclude::OrgDocument const&) const>(&org::sem::CmdInclude::OrgDocument::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::CmdInclude::Kind>("CmdIncludeKind");

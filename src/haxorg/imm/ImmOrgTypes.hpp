@@ -321,7 +321,6 @@ struct ImmTime : public org::imm::ImmOrg {
     org::imm::ImmTime::Repeat::Period period;
     /// \brief count
     int count;
-    Repeat() {  }
     bool operator==(org::imm::ImmTime::Repeat const& other) const;
   };
 
@@ -1144,13 +1143,11 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   virtual ~ImmCmdInclude() = default;
   struct IncludeBase {
     BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), ());
-    IncludeBase() {  }
     bool operator==(org::imm::ImmCmdInclude::IncludeBase const& other) const;
   };
 
   struct Example : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ());
-    Example() {  }
     bool operator==(org::imm::ImmCmdInclude::Example const& other) const;
   };
 
@@ -1158,7 +1155,6 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language));
     /// \brief Source code language for export
     hstd::ext::ImmBox<hstd::Str> language;
-    Export() {  }
     bool operator==(org::imm::ImmCmdInclude::Export const& other) const;
   };
 
@@ -1167,7 +1163,6 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName));
     /// \brief Block name not covered by the default values
     hstd::ext::ImmBox<hstd::Str> blockName;
-    Custom() {  }
     bool operator==(org::imm::ImmCmdInclude::Custom const& other) const;
   };
 
@@ -1175,7 +1170,6 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language));
     /// \brief Source code language for code block
     hstd::ext::ImmBox<hstd::Str> language;
-    Src() {  }
     bool operator==(org::imm::ImmCmdInclude::Src const& other) const;
   };
 
@@ -1189,7 +1183,6 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     hstd::ext::ImmBox<hstd::Opt<int>> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`
     hstd::ext::ImmBox<hstd::Opt<hstd::Str>> customIdTarget = std::nullopt;
-    OrgDocument() {  }
     bool operator==(org::imm::ImmCmdInclude::OrgDocument const& other) const;
   };
 

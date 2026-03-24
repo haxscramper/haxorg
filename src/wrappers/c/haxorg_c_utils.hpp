@@ -96,12 +96,7 @@ struct CoreUnwrapper {
 };
 
 template <typename T, typename CVtable>
-struct VTable {
-    static CVtable const* get_vtable() {
-        static CVtable vtable{};
-        return &vtable;
-    }
-};
+struct VTable;
 
 template <typename T>
 concept IsCWrapped = requires(T t) {
