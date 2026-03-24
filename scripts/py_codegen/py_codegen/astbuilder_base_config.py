@@ -115,11 +115,14 @@ class AstbulderConfig(abc.ABC):
             return Type
 
     def getTypeDefinition(
-            self, t: QualType) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct]:
+        self, t: QualType
+    ) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct |
+                  codegen_ir.GenTuTypedef]:
         mapped = self.type_map.get_types_for_qual_name(t)
         if 0 < len(mapped):
             assert len(mapped) == 1, f"{t} maps to more than one type"
-            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct))
+            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct,
+                                          codegen_ir.GenTuTypedef)), type(mapped[0])
             return mapped[0]
 
         else:

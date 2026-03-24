@@ -36,15 +36,20 @@ def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
 
 @beartype
 def _get_vtable_type(Type: QualType, conf: CAstbuilderConfig) -> QualType:
-    match Type.flatQualNameWithParams():
+    Unwrap = conf.getResolvedType(Type)
+    if isinstance(conf.getTypeDefinition(Unwrap), codegen_ir.GenTuEnum):
+        log(CAT).info(f"{Unwrap} is enum")
+        return QualType(Name="haxorg_builtin_vtable")
+
+    match Unwrap.flatQualNameWithParams():
         case ["std", "shared_ptr", _]:
-            return _get_vtable_type(Type.par0(), conf)
+            return _get_vtable_type(Unwrap.par0(), conf)
 
         case builtin if builtin in BUILTIN_TYPES:
             return QualType(Name="haxorg_builtin_vtable")
 
         case _:
-            Name = conf.getBackendType(Type)
+            Name = conf.getBackendType(Unwrap)
             return QualType(Name=f"{Name.Name}_vtable")
 
 
@@ -182,16 +187,24 @@ def _gen_vtable_specialization(
         if conf.isAcceptedByBackend(_meth) and not _meth.IsConstructor:
             assert _meth.ParentClass, f"No parent class for method {_meth.Name} of class {struct.declarationQualName()}"
 
+            ExecuteArgs = list()
+            ExecuteArgs.append(
+                ast.XCall(
+                    "static_cast",
+                    args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
+                    Params=[_meth.get_function_type()],
+                ))
+
+            ExecuteArgs.append(ast.string(_CONTEXT_ARG.Name))
+            if not _meth.IsStatic:
+                ExecuteArgs.append(ast.string("self"))
+
+            for _arg in _meth.Args:
+                ExecuteArgs.append(ast.string(_arg.Name))
+
             Impl = ast.XCall(
                 "org::bind::c::execute_cpp",
-                args=[
-                    ast.XCall(
-                        "static_cast",
-                        args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
-                        Params=[_meth.get_function_type()],
-                    )
-                ] + [ast.string(_CONTEXT_ARG.Name),
-                     ast.string("self")] + [ast.string(a.Name) for a in _meth.Args],
+                args=ExecuteArgs,
                 Params=[
                     conf.getBackendType(_meth.ReturnType),
                     _get_vtable_type(_meth.ReturnType, conf),

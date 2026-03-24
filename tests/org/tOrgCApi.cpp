@@ -27,5 +27,5 @@ TEST(OrgCApi, TestSimpleParsing) {
     ASSERT_TRUE(parse_context.vtable->parseString != nullptr);
 
     parse_context.vtable->parseString(
-        parse_context, input_string, source_name, &ctx);
+        &ctx, parse_context, input_string, source_name);
 }

@@ -2677,13 +2677,13 @@ struct haxorg_ImmPathStep {
   haxorg_ptr_payload data;
 };
 
-typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
 /// \brief ['org', 'imm', 'ImmPath']
 struct haxorg_ImmPath {
   haxorg_ImmPath_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
+typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
 struct haxorg_ImmUniqId_vtable {};
 
 /// \brief ['org', 'imm', 'ImmUniqId']
@@ -2852,10 +2852,10 @@ struct haxorg_GraphMapEdge {
   haxorg_ptr_payload data;
 };
 
+typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
 typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
 typedef haxorg_HstdVec haxorg_GraphAdjNodesList;
-typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
 /// \brief ['org', 'graph', 'MapGraph']
 struct haxorg_GraphMapGraph {
   haxorg_GraphMapGraph_vtable const* vtable;
@@ -2868,9 +2868,9 @@ struct haxorg_GraphMapConfig {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmSubtree']]]
-struct haxorg_ImmSubtreeAdapter {
-  haxorg_ImmSubtreeAdapter_vtable const* vtable;
+/// \brief ['org', 'graph', 'MapGraphState']
+struct haxorg_GraphMapGraphState {
+  haxorg_GraphMapGraphState_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
@@ -2880,9 +2880,9 @@ struct haxorg_ImmLinkAdapter {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'graph', 'MapGraphState']
-struct haxorg_GraphMapGraphState {
-  haxorg_GraphMapGraphState_vtable const* vtable;
+/// \brief ['org', 'imm', 'ImmAdapterT', [['org', 'imm', 'ImmSubtree']]]
+struct haxorg_ImmSubtreeAdapter {
+  haxorg_ImmSubtreeAdapter_vtable const* vtable;
   haxorg_ptr_payload data;
 };
 
@@ -6487,6 +6487,18 @@ struct haxorg_GraphMapConfig_vtable {
   haxorg_OperationsTracer const* (*get_dbg)(OrgContext*, haxorg_GraphMapConfig const*);
 };
 
+struct haxorg_GraphMapGraphState_vtable {
+  haxorg_GraphMapGraph const* (*get_graph)(OrgContext*, haxorg_GraphMapGraphState const*);
+  haxorg_ImmAstContext const* (*get_ast)(OrgContext*, haxorg_GraphMapGraphState const*);
+  haxorg_GraphMapGraph (*getGraph_const)(OrgContext*, haxorg_GraphMapGraphState);
+  haxorg_GraphMapGraphState (*FromAstContext)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext);
+  void (*registerNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_GraphMapNodeProp, haxorg_GraphMapConfig);
+  void (*addNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAdapter, haxorg_GraphMapConfig);
+  void (*addNodeRec)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext, haxorg_ImmAdapter, haxorg_GraphMapConfig);
+  haxorg_HstdVec (*getUnresolvedSubtreeLinks_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmSubtreeAdapter, haxorg_GraphMapConfig);
+  haxorg_StdOptional (*getUnresolvedLink_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmLinkAdapter, haxorg_GraphMapConfig);
+};
+
 struct haxorg_ImmSubtreeAdapter_vtable {
   int (*getLevel_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   haxorg_HstdOpt (*getTreeId_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
@@ -6503,18 +6515,6 @@ struct haxorg_ImmSubtreeAdapter_vtable {
   bool (*getIsComment_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   bool (*getIsArchived_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
   haxorg_HstdOpt (*getPriority_const)(OrgContext*, haxorg_ImmSubtreeAdapter);
-};
-
-struct haxorg_GraphMapGraphState_vtable {
-  haxorg_GraphMapGraph const* (*get_graph)(OrgContext*, haxorg_GraphMapGraphState const*);
-  haxorg_ImmAstContext const* (*get_ast)(OrgContext*, haxorg_GraphMapGraphState const*);
-  haxorg_GraphMapGraph (*getGraph_const)(OrgContext*, haxorg_GraphMapGraphState);
-  haxorg_GraphMapGraphState (*FromAstContext)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext);
-  void (*registerNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_GraphMapNodeProp, haxorg_GraphMapConfig);
-  void (*addNode)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAdapter, haxorg_GraphMapConfig);
-  void (*addNodeRec)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmAstContext, haxorg_ImmAdapter, haxorg_GraphMapConfig);
-  haxorg_HstdVec (*getUnresolvedSubtreeLinks_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmSubtreeAdapter, haxorg_GraphMapConfig);
-  haxorg_StdOptional (*getUnresolvedLink_const)(OrgContext*, haxorg_GraphMapGraphState, haxorg_ImmLinkAdapter, haxorg_GraphMapConfig);
 };
 
 struct haxorg_LispCodeCall_vtable {

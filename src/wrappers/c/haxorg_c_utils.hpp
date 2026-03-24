@@ -123,6 +123,13 @@ struct ArgUnwrapper {
 };
 
 template <typename CppType, typename CType>
+struct ArgUnwrapper<CppType&, CType> {
+    static CppType& unwrap(CType val, OrgContext* ctx) {
+        return *unwrap_instance<CppType>(val.data, ctx);
+    }
+};
+
+template <typename CppType, typename CType>
 struct ArgUnwrapper<CppType const&, CType> {
     static CppType const& unwrap(CType val, OrgContext* ctx) {
         return *unwrap_instance<CppType>(val.data, ctx);
@@ -241,7 +248,9 @@ ResultCType execute_cpp_impl(
         } else {
             decltype(auto) result = callable(
                 ArgUnwrapper<CppArgs, CArgs>::unwrap(c_args, ctx)...);
-            if constexpr (IsPassthrough) {
+            if constexpr (IsPassthrough && std::is_enum_v<ResultCppType>) {
+                return static_cast<ResultCType>(result);
+            } else if constexpr (IsPassthrough) {
                 return result;
             } else {
                 void* raw_ptr = nullptr;

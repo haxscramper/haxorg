@@ -26,15 +26,15 @@ struct VTable<hstd::Vec<T>, CVtable> {
         return &data;
     }
 
-    static int size(const haxorg_HstdVec* self, OrgContext* ctx) {
+    static int size(OrgContext* ctx, haxorg_HstdVec self) {
         return org::bind::c::execute_cpp<int, haxorg_builtin_vtable>(
-            &hstd::Vec<T>::size, self, ctx);
+            &hstd::Vec<T>::size, ctx, self);
     }
 
     static void const* back(const haxorg_HstdVec* self, OrgContext* ctx) {
         return org::bind::c::
             execute_cpp<void const*, haxorg_builtin_vtable>(
-                &hstd::Vec<T>::back, self, ctx);
+                &hstd::Vec<T>::back, ctx, self);
     }
 
     static void const* at(
@@ -68,7 +68,7 @@ struct VTable<haxorg_StdString, haxorg_StdString_vtable> {
         return &vtable;
     }
 
-    static char const* data(Type self, OrgContext* ctx) {
+    static char const* data(OrgContext* ctx, Type self) {
         return execute_cpp<char const*, haxorg_builtin_vtable>(
             static_cast<char const* (std::string ::*)() const>(
                 &std::string::data),
@@ -76,7 +76,7 @@ struct VTable<haxorg_StdString, haxorg_StdString_vtable> {
             self);
     }
 
-    static int size(Type self, OrgContext* ctx) {
+    static int size(OrgContext* ctx, Type self) {
         return execute_cpp<int, haxorg_builtin_vtable>(
             &std::string::size, ctx, self);
     }
