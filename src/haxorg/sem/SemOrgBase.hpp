@@ -106,11 +106,12 @@ struct [[refl]] SemId {
         return value->at(idx);
     }
 
-    [[refl(R"({"unique-name": "getIndex"})")]] SemId<sem::Org> get(
+    [[refl(R"({"unique-name": "getIndex"})")]] hstd::Opt<SemId<sem::Org>> get(
         int idx) {
         return value->get(idx);
     }
-    [[refl(R"({"unique-name": "getIndexBackwards"})")]] SemId<sem::Org> get(
+
+    [[refl(R"({"unique-name": "getIndexBackwards"})")]] hstd::Opt<SemId<sem::Org>> get(
         hstd::BackwardsIndex idx) {
         return value->get(idx);
     }

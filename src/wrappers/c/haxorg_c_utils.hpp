@@ -80,13 +80,9 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
     }
 }
 
-template <typename T, typename CVtable>
-struct VTable;
 
 template <typename T>
 concept IsCWrapped = requires(T t) {
-    requires std::is_pointer_v<decltype(t.vtable)>;
-    requires std::is_const_v<std::remove_pointer_t<decltype(t.vtable)>>;
     requires std::same_as<decltype(t.data), haxorg_ptr_payload>;
 };
 
@@ -167,18 +163,11 @@ struct ExtractCoreType<std::shared_ptr<T>> {
 };
 
 
-template <typename CType, typename CppRetT, typename CVtable>
+template <typename CType, typename CppRetT>
 struct ResultTypeBuilder {
     using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
-    static CType build(void* t) {
-        return {
-            VTable<CppRetT, CVtable>::get_vtable(),
-            haxorg_ptr_payload{.data = t}};
-    }
-    static CType build_null() {
-        return {
-            VTable<CppRetT, CVtable>::get_vtable(), haxorg_ptr_payload{}};
-    }
+    static CType build(void* t) { return {haxorg_ptr_payload{.data = t}}; }
+    static CType build_null() { return {haxorg_ptr_payload{}}; }
 };
 
 
@@ -207,7 +196,6 @@ struct InferMemoryPolicy<T&> {
 
 template <
     typename ResultCType,
-    typename ReturnVTableType,
     typename ResultCppType,
     typename CppCallable,
     typename... CppArgs,
@@ -217,10 +205,11 @@ ResultCType execute_cpp_impl(
     OrgContext*        ctx,
     CArgs... c_args) {
     constexpr MemoryPolicy
-                   Policy        = InferMemoryPolicy<ResultCppType>::value;
-    constexpr bool IsPassthrough = std::
-        is_same_v<ReturnVTableType, haxorg_builtin_vtable>;
+        Policy = InferMemoryPolicy<ResultCppType>::value;
     clear_context(ctx);
+    constexpr bool
+        IsPassthrough = std::is_same_v<ResultCType, ResultCppType>
+                     || std::is_enum_v<ResultCppType>;
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
             callable(ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);
@@ -228,10 +217,8 @@ ResultCType execute_cpp_impl(
         } else {
             decltype(auto) result = callable(
                 ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);
-            if constexpr (IsPassthrough && std::is_enum_v<ResultCppType>) {
+            if constexpr (IsPassthrough) {
                 return static_cast<ResultCType>(result);
-            } else if constexpr (IsPassthrough) {
-                return result;
             } else {
                 void* raw_ptr = nullptr;
 
@@ -246,10 +233,8 @@ ResultCType execute_cpp_impl(
                 }
 
                 void* tagged_ptr = tag_pointer(raw_ptr, Policy);
-                return ResultTypeBuilder<
-                    ResultCType,
-                    ResultCppType,
-                    ReturnVTableType>::build(tagged_ptr);
+                return ResultTypeBuilder<ResultCType, ResultCppType>::
+                    build(tagged_ptr);
             }
         }
     } catch (std::exception const& e) {
@@ -257,20 +242,16 @@ ResultCType execute_cpp_impl(
         if constexpr (IsPassthrough) {
             return ResultCType{};
         } else if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<
-                ResultCType,
-                ResultCppType,
-                ReturnVTableType>::build_null();
+            return ResultTypeBuilder<ResultCType, ResultCppType>::
+                build_null();
         }
     } catch (...) {
         set_context_error(ctx, "Unknown C++ exception");
         if constexpr (IsPassthrough) {
             return ResultCType{};
         } else if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<
-                ResultCType,
-                ResultCppType,
-                ReturnVTableType>::build_null();
+            return ResultTypeBuilder<ResultCType, ResultCppType>::
+                build_null();
         }
     }
 }
@@ -280,7 +261,6 @@ ResultCType execute_cpp_impl(
 // Free function overload
 template <
     typename ResultCType,
-    typename ReturnVTableType,
     typename ResultCppType,
     typename... CppArgs,
     typename... CArgs>
@@ -290,7 +270,6 @@ ResultCType execute_cpp(
     CArgs... c_args) {
     return detail::execute_cpp_impl<
         ResultCType,
-        ReturnVTableType,
         ResultCppType,
         decltype(func),
         CppArgs...>(func, ctx, c_args...);
@@ -299,7 +278,6 @@ ResultCType execute_cpp(
 // Non-const member function overload
 template <
     typename ResultCType,
-    typename ReturnVTableType,
     typename Class,
     typename ResultCppType,
     typename... CppArgs,
@@ -317,7 +295,6 @@ ResultCType execute_cpp(
     };
     return detail::execute_cpp_impl<
         ResultCType,
-        ReturnVTableType,
         ResultCppType,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);
@@ -326,7 +303,6 @@ ResultCType execute_cpp(
 // Const member function overload
 template <
     typename ResultCType,
-    typename ReturnVTableType,
     typename Class,
     typename ResultCppType,
     typename... CppArgs,
@@ -345,7 +321,6 @@ ResultCType execute_cpp(
     };
     return detail::execute_cpp_impl<
         ResultCType,
-        ReturnVTableType,
         ResultCppType,
         decltype(bound),
         CppArgs...>(std::move(bound), ctx, c_args...);

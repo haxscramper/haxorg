@@ -4,6 +4,7 @@ import logging
 import os
 from pathlib import Path
 import sys
+import plumbum
 import traceback
 from typing import Dict
 
@@ -136,6 +137,29 @@ def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
         print("# pyright: reportUndefinedVariable=false", file=file)
         from py_scriptutils.rich_utils import render_rich_pprint
         print(render_rich_pprint(value, width=width, color=False), file=file)
+
+
+def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
+    """
+    Convert the document to the debug JSON and print it to the document
+    """
+    import json
+    formatted = json.dumps(to_debug_json(value), indent=2)
+    Path(path).write_text(formatted)
+    try:
+        # Attempt to pretty-print JSON if the FracturedJSON is installed in the system.
+        # Install fjson with `cargo install fracturedjson`
+        cmd = plumbum.local["fjson"]
+        cmd.run([
+            "--comments",
+            "preserve",
+            "--max-width",
+            str(width),
+            str(path),
+        ])
+
+    except plumbum.CommandNotFound:
+        pass
 
 
 def pprint_to_string(value: Any, width: int = 120) -> str:

@@ -105,26 +105,47 @@ class _InstantiateCtx():
 def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType | None:
 
     def aux(Type: QualType | None) -> QualType | None:
+
+        def aux_type(Func: QualType.Function) -> QualType.Function:
+            return Func.model_copy(update=dict(
+                ReturnType=aux(Func.ReturnType),
+                Args=list(map(aux, Func.Args)),
+                Class=aux(Func.Class),
+            ))
+
         if not Type:
             return Type
 
         if Type.Name in ctx.substitution_map:
-            return ctx.substitution_map[Type.Name]
+            subst = ctx.substitution_map[Type.Name]
+            if subst.Kind == codegen_ir.QualTypeKind.TypeExpr:
+                return subst
+
+            elif subst.isFunction():
+                assert subst.Func
+                return Type.copy_update(
+                    Func=aux_type(subst.Func),
+                    Kind=subst.Kind,
+                )
+
+            else:
+                return Type.copy_update(
+                    Name=subst.Name,
+                    Params=list(map(aux, subst.Params)),
+                    Spaces=list(map(aux, subst.Spaces)),
+                    Kind=subst.Kind,
+                )
 
         match Type.Kind:
             case codegen_ir.QualTypeKind.RegularType | codegen_ir.QualTypeKind.Array:
                 return Type.copy_update(
-                    Params=map(aux, Type.Params),
-                    Spaces=map(aux, Type.Spaces),
+                    Params=list(map(aux, Type.Params)),
+                    Spaces=list(map(aux, Type.Spaces)),
                 )
 
             case codegen_ir.QualTypeKind.FunctionPtr:
                 assert Type.Func
-                return Type.copy_update(Func=Type.Func.model_copy(update=dict(
-                    ReturnType=aux(Type.Func.ReturnType),
-                    Args=map(aux, Type.Func.Args),
-                    Class=aux(Type.Func.Class),
-                )))
+                return Type.copy_update(Func=aux_type(Type.Func))
 
             case _:
                 return Type
