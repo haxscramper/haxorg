@@ -265,6 +265,8 @@ enum class haxorg_AstTrackingGroupKind : short int { RadioTarget, Single, Tracke
 enum class haxorg_GraphMapLinkKind : short int { Radio, Link, };
 struct haxorg_BackwardsIndex;
 
+struct haxorg_HstdStr;
+
 struct haxorg_UserTimeBreakdown;
 
 struct haxorg_UserTime;
@@ -1497,6 +1499,11 @@ struct haxorg_SemIdOfOrg {
 
 /// \brief ['hstd', 'BackwardsIndex']
 struct haxorg_BackwardsIndex {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['hstd', 'Str']
+struct haxorg_HstdStr {
   haxorg_ptr_payload data;
 };
 
@@ -4219,6 +4226,14 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgC
 HAXORG_C_API_LINKAGE int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);
+HAXORG_C_API_LINKAGE char* haxorg_Str_data(OrgContext* org_context, haxorg_HstdStr __this);
+HAXORG_C_API_LINKAGE char const* haxorg_Str_data_const(OrgContext* org_context, haxorg_HstdStr __this);
+HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropPrefix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr prefix);
+HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropSuffix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr suffix);
+HAXORG_C_API_LINKAGE char haxorg_Str_atIndex_const(OrgContext* org_context, haxorg_HstdStr __this, int pos);
+HAXORG_C_API_LINKAGE int haxorg_Str_size_const(OrgContext* org_context, haxorg_HstdStr __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_HstdStr(OrgContext* org_context, haxorg_HstdStr* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_UserTimeBreakdown(OrgContext* org_context, haxorg_UserTimeBreakdown* obj);
 HAXORG_C_API_LINKAGE haxorg_UserTimeBreakdown haxorg_UserTime_getBreakdown_const(OrgContext* org_context, haxorg_UserTime __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_UserTime_format_const(OrgContext* org_context, haxorg_UserTime __this);

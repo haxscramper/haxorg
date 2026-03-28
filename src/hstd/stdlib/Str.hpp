@@ -9,7 +9,8 @@
 
 namespace hstd {
 
-struct Str : public std::string {
+struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
+    : public std::string {
     using std::string::operator[];
     using std::string::reserve;
 
@@ -17,7 +18,7 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     explicit Str(std::string_view view)
         : std::string(view.data(), view.size()) {}
-    Str(const char* conv);
+    [[refl(R"({"unique-name": "StrFromCString"})")]] Str(const char* conv);
     Str(const char* conv, int size);
     Str(std::string const& it);
     explicit Str(int count, char c);
@@ -25,27 +26,27 @@ struct Str : public std::string {
     Str()                 = default;
     Str(Str const& other) = default;
 
-    char*       data();
-    const char* data() const;
+    [[refl]] char*       data();
+    [[refl]] const char* data() const;
 
     Str substr(int start, int count = -1) const;
 
 
-    Str      dropPrefix(Str const& prefix) const;
-    Str      dropSuffix(Str const& suffix) const;
-    char     at(int pos) const;
-    char&    at(int pos);
-    Str      replaceAll(Str const& from, Str const& to) const;
-    char&    at(BackwardsIndex pos);
-    Vec<Str> split(char delimiter) const;
-    Vec<Str> split(Str const& delimiter) const;
-    float    toFloat() const;
-    float    toDouble() const;
-    int      toInt() const;
-    void     append(Str const& str);
-    int      size() const;
-    bool     contains(char ch) const;
-    bool     contains(Str const& ch) const;
+    [[refl]] Str dropPrefix(Str const& prefix) const;
+    [[refl]] Str dropSuffix(Str const& suffix) const;
+    [[refl(R"({"unique-name": "atIndex"})")]] char at(int pos) const;
+    char&                                          at(int pos);
+    Str          replaceAll(Str const& from, Str const& to) const;
+    char&        at(BackwardsIndex pos);
+    Vec<Str>     split(char delimiter) const;
+    Vec<Str>     split(Str const& delimiter) const;
+    float        toFloat() const;
+    float        toDouble() const;
+    int          toInt() const;
+    void         append(Str const& str);
+    [[refl]] int size() const;
+    bool         contains(char ch) const;
+    bool         contains(Str const& ch) const;
 
     Str join(Vec<Str> const& items) const;
     Str repeated(int N) const;
