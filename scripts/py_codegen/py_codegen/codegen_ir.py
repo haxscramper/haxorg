@@ -1011,10 +1011,31 @@ class GenTuStruct():
     "When generating header source files, the structure would be exposed for public API"
 
     def __str__(self) -> str:
-        return f"GenTuStruct({self.Name.format()})"
+        return "GenTuStruct({})".format(" ".join([
+            f"{self.declarationQualName().format()}",
+            f"{self.declarationQualName().flatQualNameWithParams()}",
+            f"IsTemplateRecord={self.IsTemplateRecord}",
+            f"IsExplicitInstantiation={self.IsExplicitInstantiation}",
+        ]))
 
     def declarationQualName(self) -> QualType:
-        return self.Name.copy_update(Params=self.ExplicitTemplateParams)
+        if self.IsExplicitInstantiation:
+            return self.Name.copy_update(Params=self.ExplicitTemplateParams)
+
+        elif self.IsTemplateRecord:
+            return self.Name.copy_update(Params=self.getTemplateParams())
+
+        else:
+            return self.Name
+
+    def getTemplateParams(self) -> list[QualType]:
+        result = list()
+        if self.TemplateParams:
+            for _stack in self.TemplateParams.Stacks:
+                for _param in _stack.Params:
+                    result.append(QualType(Name=_param.Name, IsTemplateTypeParam=True))
+
+        return result
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.Name.format(dbgOrigin=dbgOrigin)
@@ -1050,6 +1071,13 @@ class GenTuStruct():
                 f"Method parent class flat name is {_meth.ParentClass.flatQualName()}, struct flat name is {self.Name.flatQualName()}, "
                 f"(full repr for method parent is {_meth.ParentClass}, for struct {self.declarationQualName()})"
             )
+
+        if self.ExplicitTemplateParams:
+            assert self.IsTemplateRecord, "Explicit template parameters specified for non-template record, expected IsTemplateRecord=True"
+            assert self.IsExplicitInstantiation, "Is explicit instantiation must be set if parameters are provided, expected IsExplicitInstantiation=True"
+
+        if self.TemplateParams:
+            assert self.IsTemplateRecord, "Template parameters are set for non-template record type, expected IsTemplateRecord=True"
 
 
 @beartype

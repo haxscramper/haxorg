@@ -34,7 +34,10 @@ def topological_sort_entries(
         match it:
             case codegen_ir.GenTuStruct():
                 qual_hash = it.declarationQualName().qual_hash()
-                assert qual_hash not in entry_by_hash, f"Duplicate hash for {it.declarationQualName()}, already mapped to {it}"
+                assert qual_hash not in entry_by_hash, (
+                    f"Duplicate hash for {it.declarationQualName()}, already mapped to {it} "
+                    f"IsExplicitInstantiation={it.IsExplicitInstantiation} IsTemplateRecord={it.IsTemplateRecord}"
+                )
                 entry_by_hash[qual_hash] = it
 
             case codegen_ir.GenTuTypedef():
@@ -535,6 +538,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
             codegen_ir.GenTuStruct(
                 Name=Base,
                 IsTemplateRecord=True,
+                IsExplicitInstantiation=True,
                 ExplicitTemplateParams=[Derived],
                 ReflectionParams=codegen_ir.GenTuReflParams(
                     backend=codegen_ir.GenTuBackendParams(target_backends=["python"]),
@@ -549,6 +553,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                 OriginName="imm ID explicit",
                 Name=QualType.ForName("ImmIdT", Spaces=imm_space),
                 IsExplicitInstantiation=True,
+                IsTemplateRecord=True,
                 ExplicitTemplateParams=[gen_imm.rewrite_type_to_immutable(org_type.Name)],
                 ReflectionParams=codegen_ir.GenTuReflParams(wrapper_name="ImmIdT" +
                                                             org_type.Name.Name),

@@ -15,7 +15,3 @@ haxorg_StdString haxorg_create_StdString_ConstChar(
         ctx,
         text);
 }
-
-void haxorg_destroy_SemId(OrgContext* ctx, haxorg_SemId* obj) {
-    c::execute_destroy<org::sem::SemId<org::sem::Org>>(ctx, obj);
-}

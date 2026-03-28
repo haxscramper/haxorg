@@ -42,7 +42,14 @@ class CAstbuilderConfig(AstbulderConfig):
                 return QualType(Name=prefix + "HstdMap")
 
             case ["org", "sem", "SemId", _]:
-                return QualType(Name=prefix + "SemId")
+                # To avoid creating almost a hundred distinct type instantiations,
+                # all versions of the sem ID are mapped to the same type, and in the
+                # C code the developer can cast the results of `get()` to retrieve the
+                # correct type of the node.
+                return QualType(
+                    Name=prefix + self.getTypeBindName(Type, withParams=False) + "OfOrg",
+                    DbgOrigin=str(Type.flatQualNameWithParams()),
+                )
 
             case ["org", "imm", "ImmIdT", _]:
                 return QualType(Name=prefix + "ImmId")

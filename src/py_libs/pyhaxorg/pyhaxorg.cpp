@@ -5511,6 +5511,182 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmNoNode>>(m, "ImmAdapterNoNodeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmErrorItem>>(m, "ImmAdapterErrorItemBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmErrorGroup>>(m, "ImmAdapterErrorGroupBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmStmt>>(m, "ImmAdapterStmtBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmInline>>(m, "ImmAdapterInlineBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmStmtList>>(m, "ImmAdapterStmtListBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmEmpty>>(m, "ImmAdapterEmptyBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmd>>(m, "ImmAdapterCmdBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlock>>(m, "ImmAdapterBlockBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmLineCommand>>(m, "ImmAdapterLineCommandBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmAttached>>(m, "ImmAdapterAttachedBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmLeaf>>(m, "ImmAdapterLeafBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCaption>>(m, "ImmAdapterCmdCaptionBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCreator>>(m, "ImmAdapterCmdCreatorBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdAuthor>>(m, "ImmAdapterCmdAuthorBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdEmail>>(m, "ImmAdapterCmdEmailBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdLanguage>>(m, "ImmAdapterCmdLanguageBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdColumns>>(m, "ImmAdapterCmdColumnsBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdName>>(m, "ImmAdapterCmdNameBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomArgs>>(m, "ImmAdapterCmdCustomArgsBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomRaw>>(m, "ImmAdapterCmdCustomRawBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCustomText>>(m, "ImmAdapterCmdCustomTextBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdCall>>(m, "ImmAdapterCmdCallBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdTblfm>>(m, "ImmAdapterCmdTblfmBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmHashTag>>(m, "ImmAdapterHashTagBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmInlineFootnote>>(m, "ImmAdapterInlineFootnoteBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmInlineExport>>(m, "ImmAdapterInlineExportBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmTime>>(m, "ImmAdapterTimeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmTimeRange>>(m, "ImmAdapterTimeRangeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmMacro>>(m, "ImmAdapterMacroBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSymbol>>(m, "ImmAdapterSymbolBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmEscaped>>(m, "ImmAdapterEscapedBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmNewline>>(m, "ImmAdapterNewlineBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSpace>>(m, "ImmAdapterSpaceBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmWord>>(m, "ImmAdapterWordBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmAtMention>>(m, "ImmAdapterAtMentionBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmRawText>>(m, "ImmAdapterRawTextBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmPunctuation>>(m, "ImmAdapterPunctuationBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmPlaceholder>>(m, "ImmAdapterPlaceholderBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBigIdent>>(m, "ImmAdapterBigIdentBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmTextTarget>>(m, "ImmAdapterTextTargetBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipToken>>(m, "ImmAdapterErrorSkipTokenBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmErrorSkipGroup>>(m, "ImmAdapterErrorSkipGroupBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmMarkup>>(m, "ImmAdapterMarkupBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBold>>(m, "ImmAdapterBoldBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmUnderline>>(m, "ImmAdapterUnderlineBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmMonospace>>(m, "ImmAdapterMonospaceBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmMarkQuote>>(m, "ImmAdapterMarkQuoteBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmVerbatim>>(m, "ImmAdapterVerbatimBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmItalic>>(m, "ImmAdapterItalicBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmStrike>>(m, "ImmAdapterStrikeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmPar>>(m, "ImmAdapterParBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmRadioTarget>>(m, "ImmAdapterRadioTargetBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmLatex>>(m, "ImmAdapterLatexBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmLink>>(m, "ImmAdapterLinkBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>>(m, "ImmAdapterBlockCenterBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>>(m, "ImmAdapterBlockQuoteBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>>(m, "ImmAdapterBlockCommentBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>>(m, "ImmAdapterBlockVerseBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>>(m, "ImmAdapterBlockDynamicFallbackBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>>(m, "ImmAdapterBlockExampleBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>>(m, "ImmAdapterBlockExportBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>>(m, "ImmAdapterBlockAdmonitionBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>>(m, "ImmAdapterBlockCodeEvalResultBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>>(m, "ImmAdapterBlockCodeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSubtreeLog>>(m, "ImmAdapterSubtreeLogBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSubtree>>(m, "ImmAdapterSubtreeBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCell>>(m, "ImmAdapterCellBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmRow>>(m, "ImmAdapterRowBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmTable>>(m, "ImmAdapterTableBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmParagraph>>(m, "ImmAdapterParagraphBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmColonExample>>(m, "ImmAdapterColonExampleBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdAttr>>(m, "ImmAdapterCmdAttrBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdExport>>(m, "ImmAdapterCmdExportBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCall>>(m, "ImmAdapterCallBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmList>>(m, "ImmAdapterListBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmListItem>>(m, "ImmAdapterListItemBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmDocumentOptions>>(m, "ImmAdapterDocumentOptionsBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmDocumentFragment>>(m, "ImmAdapterDocumentFragmentBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCriticMarkup>>(m, "ImmAdapterCriticMarkupBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmDocument>>(m, "ImmAdapterDocumentBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmFileTarget>>(m, "ImmAdapterFileTargetBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmTextSeparator>>(m, "ImmAdapterTextSeparatorBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmDocumentGroup>>(m, "ImmAdapterDocumentGroupBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmFile>>(m, "ImmAdapterFileBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmDirectory>>(m, "ImmAdapterDirectoryBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSymlink>>(m, "ImmAdapterSymlinkBase")
+    ;
+  nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>>(m, "ImmAdapterCmdIncludeBase")
+    ;
   nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
     .def("__init__",
          [](org::sem::NoNode* result, nanobind::kwargs const& kwargs) -> void {

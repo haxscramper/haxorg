@@ -140,14 +140,18 @@ def _map_template_struct(ctx: _InstantiateCtx,
 
     updated_stack = codegen_ir.GenTuTemplateParams()
 
+    explicit_params = list()
+
     for _stack in base.TemplateParams.Stacks:
         updated_group = codegen_ir.GenTuTemplateGroup()
         for _param in _stack.Params:
             if _param.Name in ctx.substitution_map:
-                for _nested in _get_template_parameters(
-                        ctx.substitution_map[_param.Name]):
+                substituted = ctx.substitution_map[_param.Name]
+                for _nested in _get_template_parameters(substituted):
                     updated_group.Params.append(
                         codegen_ir.GenTuTemplateTypename(Name=_nested.Name))
+
+                explicit_params.append(substituted)
 
             else:
                 updated_group.Params.append(_param)
@@ -164,18 +168,21 @@ def _map_template_struct(ctx: _InstantiateCtx,
         Nested=list(map(_map, base.Nested)),
         Methods=list(map(_map, base.Methods)),
         Fields=list(map(_map, base.Fields)),
+        ExplicitTemplateParams=base.ExplicitTemplateParams + explicit_params,
     )
 
 
 @beartype
 def _map_template_function(ctx: _InstantiateCtx,
                            func: codegen_ir.GenTuFunction) -> codegen_ir.GenTuFunction:
-    return replace(
+    result = replace(
         func,
         Args=[replace(Arg, Type=_map_template_type(Arg.Type, ctx)) for Arg in func.Args],
         ParentClass=_map_template_type(func.ParentClass, ctx),
         ReturnType=_map_template_type(func.ReturnType, ctx),
     )
+
+    return result
 
 
 @beartype

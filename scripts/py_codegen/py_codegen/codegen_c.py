@@ -3,10 +3,11 @@ from py_codegen.astbuilder_c_config import CAstbuilderConfig
 import py_codegen.astbuilder_cpp as cpp
 from dataclasses import dataclass, field, replace
 from py_codegen import codegen_ir
-from py_codegen.codegen_ir import QualType
+from py_codegen.codegen_ir import QualType, n_org, n_sem
 from beartype import beartype
 from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
+from py_codegen.org_codegen_data import get_types
 from py_scriptutils.script_logging import log
 from py_codegen.codegen_algo import instantiate_template
 
@@ -419,13 +420,40 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
     header_only: list[codegen_ir.GenTuEntry] = list()
     vtables: list[codegen_ir.GenTuEntry] = list()
 
+    def _add_struct(entry: codegen_ir.GenTuStruct):
+        structs = _gen_struct(entry, ast, conf)
+        wrapped_structs.extend(structs.wrappers)
+        header_only.extend(structs.forward_decls)
+        vtables.extend(structs.vtables)
+
+    def _add_instantiated_struct(entry: codegen_ir.GenTuStruct,
+                                 substitution_map: dict[str, QualType]):
+        instantiated = instantiate_template(
+            entry,
+            substitution_map=substitution_map,
+            type_map=conf.type_map,
+        )
+
+        assert isinstance(instantiated, codegen_ir.GenTuStruct)
+
+        log(CAT).info(f"Created struct {instantiated.declarationQualName()}")
+        _add_struct(instantiated)
+
     for entry in groups.get_entries_for_wrapping():
+        if isinstance(entry, codegen_ir.GenTuStruct) and "SemId" in str(entry.Name):
+            log(CAT).info(f"declaration qual name: {entry}")
+
         if isinstance(entry, codegen_ir.GenTuStruct
                      ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
             match entry.declarationQualName().flatQualNameWithParams():
-                case ["org", "sem", "SemId"]:
+                case ["org", "sem", "SemId", _]:
                     log(CAT).info("Found sem ID emplate structure without parameters")
-                    # instantiated = instantiate_template(entry, {"O": })
+                    _add_instantiated_struct(
+                        entry, {"O": QualType(Name="Org", Spaces=[n_sem()])})
+
+                    # for org_type in get_types():
+                    #     if org_type.Name.isOrgType():
+                    #         _add_instantiated_struct(entry, {"O": org_type.Name})
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry):
@@ -434,6 +462,9 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     standalone_funcs.append(_gen_func(entry, ast, conf))
 
                 case codegen_ir.GenTuStruct():
+                    if entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+                        continue
+
                     match entry.declarationQualName().flatQualNameWithParams():
                         case ["org", "imm", "ImmIdT", _]:
                             # Ignore explicit specializations for immutable ID
@@ -441,23 +472,13 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                             continue
 
                         case _:
-                            structs = _gen_struct(entry, ast, conf)
-                            wrapped_structs.extend(structs.wrappers)
-                            header_only.extend(structs.forward_decls)
-                            vtables.extend(structs.vtables)
+                            _add_struct(entry)
 
                 case codegen_ir.GenTuEnum():
                     header_only.append(_gen_enum(entry, ast, conf))
 
                 case codegen_ir.GenTuTypedef():
                     tdef = _gen_typedef(entry, ast, conf)
-                    # wrapped_structs.append(
-                    #     codegen_ir.GenTuPass(
-                    #         ast.Comment([
-                    #             str(entry.Base.flatQualNameWithParams()),
-                    #             str(tdef.Base.flatQualNameWithParams()),
-                    #         ])))
-
                     wrapped_structs.append(tdef)
 
                 case _:

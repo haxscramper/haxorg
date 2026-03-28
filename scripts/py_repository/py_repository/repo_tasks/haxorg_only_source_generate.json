@@ -1,4 +1,4 @@
 {
-  "use_dependencies": false,
+  "use_dependencies": true,
   "log_level": "VERBOSE"
 }

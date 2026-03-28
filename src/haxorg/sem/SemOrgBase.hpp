@@ -69,7 +69,7 @@ struct [[refl]] SemId {
     hstd::SPtr<O> value;
 
     [[refl]] bool isNil() const { return value.get() == nullptr; }
-    [[refl]] bool operator==(SemId const& other) const {
+    [[refl]] bool operator==(SemId<O> const& other) const {
         return value == other.value;
     }
 
@@ -78,7 +78,7 @@ struct [[refl]] SemId {
         return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
-    [[refl]] static SemId Nil() { return SemId(hstd::SPtr<O>{}); }
+    [[refl]] static SemId<O> Nil() { return SemId(hstd::SPtr<O>{}); }
 
     SemId() { value = nullptr; }
     SemId(hstd::SPtr<O> const& value) : value(value) {}
@@ -96,14 +96,22 @@ struct [[refl]] SemId {
     O&                       operator*() { return *value; }
     O const&                 operator*() const { return *value; }
     [[refl]] SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
+    [[refl]] OrgSemKind getNodeKind() const { return get()->getKind(); }
 
-    [[refl]] SemId<sem::Org> at(int idx) { return value->at(idx); }
-    [[refl]] SemId<sem::Org> at(hstd::BackwardsIndex idx) {
+    [[refl(R"({"unique-name": "atIndex"})")]] SemId<sem::Org> at(int idx) {
+        return value->at(idx);
+    }
+    [[refl(R"({"unique-name": "atIndexBackwards"})")]] SemId<sem::Org> at(
+        hstd::BackwardsIndex idx) {
         return value->at(idx);
     }
 
-    [[refl]] SemId<sem::Org> get(int idx) { return value->get(idx); }
-    [[refl]] SemId<sem::Org> get(hstd::BackwardsIndex idx) {
+    [[refl(R"({"unique-name": "getIndex"})")]] SemId<sem::Org> get(
+        int idx) {
+        return value->get(idx);
+    }
+    [[refl(R"({"unique-name": "getIndexBackwards"})")]] SemId<sem::Org> get(
+        hstd::BackwardsIndex idx) {
         return value->get(idx);
     }
 
