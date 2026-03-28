@@ -24,9 +24,8 @@ enum TypeKind {
     FunctionPtr = 1;
     // Pointer to class method. Return type is stored as a first
     // parameter, class type is a second, argument are trailing.
-    MethodPtr = 2;
-    Array = 3;
-    TypeExpr = 4;
+    Array = 2;
+    TypeExpr = 3;
 }
 
 enum ReferenceKind {

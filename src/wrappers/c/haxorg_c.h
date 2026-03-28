@@ -1,6 +1,8 @@
 /* clang-format off */
 #pragma once
 #include <wrappers/c/haxorg_c_api.h>
+struct haxorg_SemIdOfOrg;
+
 struct haxorg_HstdVecOfOrgJson;
 
 struct haxorg_HstdVecOfSemIdOfOrg;
@@ -88,8 +90,6 @@ struct haxorg_HstdVecOfAstTrackingGroup;
 struct haxorg_HstdVecOfSequenceAnnotation;
 
 struct haxorg_HstdVecOfSequenceSegmentGroup;
-
-struct haxorg_SemIdOfOrg;
 
 enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
 /// \brief Where to take todo completion statistics from
@@ -1582,6 +1582,11 @@ enum class haxorg_CmdIncludeKind : short int { Example, Export, Custom, Src, Org
 enum class haxorg_ImmTimeTimeKind : short int { Static, Dynamic, };
 enum class haxorg_ImmFileKind : short int { Document, Attachment, Source, };
 enum class haxorg_ImmCmdIncludeKind : short int { Example, Export, Custom, Src, OrgDocument, };
+/// \brief ['org', 'sem', 'SemId', [['org', 'sem', 'Org']]]
+struct haxorg_SemIdOfOrg {
+  haxorg_ptr_payload data;
+};
+
 /// \brief ['hstd', 'Vec', [['org', 'sem', 'OrgJson']]]
 struct haxorg_HstdVecOfOrgJson {
   haxorg_ptr_payload data;
@@ -1799,11 +1804,6 @@ struct haxorg_HstdVecOfSequenceAnnotation {
 
 /// \brief ['hstd', 'Vec', [['hstd', 'SequenceSegmentGroup']]]
 struct haxorg_HstdVecOfSequenceSegmentGroup {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'sem', 'SemId', [['org', 'sem', 'Org']]]
-struct haxorg_SemIdOfOrg {
   haxorg_ptr_payload data;
 };
 
@@ -4527,6 +4527,19 @@ struct haxorg_ImmCmdAttrAdapter {
 };
 
 typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
+HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context);
+HAXORG_C_API_LINKAGE haxorg_Org haxorg_SemIdOfOrg_get(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE haxorg_Org haxorg_SemIdOfOrg_get_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_asOrg_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx);
+HAXORG_C_API_LINKAGE int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj);
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfOrgJson_size_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this);
 HAXORG_C_API_LINKAGE haxorg_OrgJson haxorg_HstdVecOfOrgJson_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfOrgJson(OrgContext* org_context, haxorg_HstdVecOfOrgJson* obj);
@@ -4659,19 +4672,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceAnnotation(OrgContext*
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSequenceSegmentGroup_size_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this);
 HAXORG_C_API_LINKAGE haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj);
-HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context);
-HAXORG_C_API_LINKAGE haxorg_Org haxorg_SemIdOfOrg_get(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE haxorg_Org haxorg_SemIdOfOrg_get_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_asOrg_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx);
-HAXORG_C_API_LINKAGE int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);
 HAXORG_C_API_LINKAGE char* haxorg_Str_data(OrgContext* org_context, haxorg_HstdStr __this);

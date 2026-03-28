@@ -268,7 +268,14 @@ struct IndexedBase : public CRTP_this_method<Container> {
 /// append two vectors, check if it `contains()` someting and so on, even
 /// though these operations are \(O(n)\)
 template <typename T>
-class [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Vec
+class [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "each-specialization"
+        }
+    }
+})")]] Vec
     : public std::vector<T>
     , public IndexedBase<T, Vec<T>> {
   public:

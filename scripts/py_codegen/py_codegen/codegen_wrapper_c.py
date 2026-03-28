@@ -9,7 +9,7 @@ from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_codegen.org_codegen_data import get_types
 from py_scriptutils.script_logging import log
-from py_codegen.codegen_algo import collect_type_specializations, instantiate_template
+from py_codegen.codegen_algo import collect_type_specializations, instantiate_template, match_specializations
 
 CAT = __name__
 
@@ -236,6 +236,56 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
 
 
 @beartype
+def _gen_haxorg_c_template_instantiations(
+        groups: PyhaxorgTypeGroups,
+        conf: CAstbuilderConfig) -> list[codegen_ir.GenTuStruct]:
+    result = list()
+
+    def _add_instantiated_struct(entry: codegen_ir.GenTuStruct,
+                                 substitution_map: dict[str, QualType]):
+        instantiated = instantiate_template(
+            entry,
+            substitution_map=substitution_map,
+            type_map=conf.type_map,
+        )
+
+        assert isinstance(instantiated, codegen_ir.GenTuStruct)
+
+        log(CAT).info(f"Created struct {instantiated.declarationQualName()}")
+        result.append(instantiated)
+
+    specializations = collect_type_specializations(groups.get_entries_for_wrapping(),
+                                                   conf)
+
+    reflection_template_types: List[codegen_ir.GenTuStruct] = list()
+
+    for entry in groups.get_entries_for_wrapping():
+        if isinstance(entry, codegen_ir.GenTuStruct
+                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+            match entry.declarationQualName().flatQualNameWithParams():
+                case ["org", "sem", "SemId", _]:
+                    _add_instantiated_struct(
+                        entry, {"O": QualType(Name="Org", Spaces=[n_sem()])})
+
+                case _:
+                    reflection_template_types.append(entry)
+
+    for template_type in reflection_template_types:
+        if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
+            log(CAT).info(f"Found template type with each-specialization {template_type}")
+            for specialization, substitution_map in match_specializations(
+                    specializations=[spec.used_type for spec in specializations],
+                    template=template_type.declarationQualName(),
+            ):
+                _add_instantiated_struct(template_type, substitution_map=substitution_map)
+
+        elif template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
+            log(CAT).info(f"Found void-handle type {template_type}")
+
+    return result
+
+
+@beartype
 def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                           ast: cpp.ASTBuilder) -> codegen_ir.GenFiles:
     "Generate C wrappers"
@@ -250,49 +300,8 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         wrapped_structs.extend(structs.wrappers)
         header_only.extend(structs.forward_decls)
 
-    def _add_instantiated_struct(entry: codegen_ir.GenTuStruct,
-                                 substitution_map: dict[str, QualType]):
-        instantiated = instantiate_template(
-            entry,
-            substitution_map=substitution_map,
-            type_map=conf.type_map,
-        )
-
-        assert isinstance(instantiated, codegen_ir.GenTuStruct)
-
-        log(CAT).info(f"Created struct {instantiated.declarationQualName()}")
-        _add_struct(instantiated)
-
-    specializations = collect_type_specializations(groups.get_entries_for_wrapping(),
-                                                   conf)
-
-    for entry in groups.get_entries_for_wrapping():
-        if isinstance(entry, codegen_ir.GenTuStruct) and "SemId" in str(entry.Name):
-            log(CAT).info(f"declaration qual name: {entry}")
-
-        if isinstance(entry, codegen_ir.GenTuStruct
-                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
-            match entry.declarationQualName().flatQualNameWithParams():
-                case ["org", "sem", "SemId", _]:
-                    log(CAT).info("Found sem ID emplate structure without parameters")
-                    _add_instantiated_struct(
-                        entry, {"O": QualType(Name="Org", Spaces=[n_sem()])})
-
-                case ["hstd", "Vec", _]:
-                    log(CAT).info("Found vec instantiation")
-                    for spec in specializations:
-                        match spec.used_type.flatQualNameWithParams():
-                            case ["hstd", "Vec", _]:
-                                _add_instantiated_struct(
-                                    entry,
-                                    substitution_map={
-                                        entry.getTemplateParams()[0].Name:
-                                            spec.used_type.par0(),
-                                    })
-
-                    # for org_type in get_types():
-                    #     if org_type.Name.isOrgType():
-                    #         _add_instantiated_struct(entry, {"O": org_type.Name})
+    for template_instantition in _gen_haxorg_c_template_instantiations(groups, conf):
+        _add_struct(template_instantition)
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry):

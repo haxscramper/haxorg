@@ -33,8 +33,6 @@ class QualTypeKind(str, Enum):
     "Built-in or user-defined type for struct, class, union, enum"
     FunctionPtr = "FunctionPtr"
     "Pointer to function"
-    MethodPtr = "MethodPtr"
-    "Pointer to method"
     Array = "Array"
     "Constant or dynamic array type. The array parameters are stored in `Params` field"
     TypeExpr = "TypeExpr"
@@ -307,7 +305,8 @@ class QualType(BaseModel, extra="forbid"):
                     **base_override,
                 )
 
-            case QualTypeKind.FunctionPtr | QualTypeKind.MethodPtr:
+            case QualTypeKind.FunctionPtr:
+                assert self.Func
                 return self.copy_update(
                     func=QualType.Function(
                         ReturnType=self.Func.ReturnType.withoutCVRef(),
@@ -668,6 +667,16 @@ class GenTuBackendCParams(BaseModel, extra="forbid"):
         default=None,
         description="Which type to use as a holder type for C")
 
+    instantiation_mode: Optional[
+        Literal["each-specialization"] | Literal["void-handle"]] = Field(
+            alias=AliasChoices(  # type: ignore
+                "instantiation_mode", "instantiation-mode"),
+            default=None,
+            description="How template records are handled. "
+            "`each-specialization` would create a separate structure for each instantiation of the template. "
+            "`void-handle` will create a proxy type with all original templates replaced with the ptr holder. "
+        )
+
 
 @beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
@@ -687,14 +696,16 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
     target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
-        alias=AliasChoices("target_backends", "target-backends"),
+        alias=AliasChoices(  # type: ignore
+            "target_backends", "target-backends"),
     )
 
 
 @beartype
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
-    has_begin_end_iteration: bool = Field(  # type: ignore
-        alias=AliasChoices("has-begin-end-iteration", "has_begin_end_iteration"),
+    has_begin_end_iteration: bool = Field(
+        alias=AliasChoices(  # type: ignore
+            "has-begin-end-iteration", "has_begin_end_iteration"),
         default=False,
         description="Type provides `begin()` and `end()` method to construct iterator pair"
     )
@@ -704,35 +715,55 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
-    is_get_item: bool = Field(  # type: ignore
-        alias=AliasChoices("is-getitem", "is_getitem"),
+    is_get_item: bool = Field(
+        alias=AliasChoices(  # type: ignore
+            "is-getitem", "is_getitem"),
         default=False,
         description="This method can provide __getitem__ implementation")
 
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(  # type: ignore
+    default_constructor: bool = Field(
         default=True,
-        alias=AliasChoices("default-constructor", "default_constructor"))
-    wrapper_name: Optional[str] = Field(  # type: ignore
-        default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
-    wrapper_has_params: bool = Field(  # type: ignore
-        default=True,
-        alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
-    unique_name: Optional[str] = Field(  # type: ignore
+        alias=AliasChoices(  # type: ignore
+            "default-constructor", "default_constructor"),
+    )
+
+    wrapper_name: Optional[str] = Field(
         default=None,
-        alias=AliasChoices("unique-name", "unique_name"),
+        alias=AliasChoices(  # type: ignore
+            "wrapper-name", "wrapper_name"),
+    )
+
+    wrapper_has_params: bool = Field(
+        default=True,
+        alias=AliasChoices(  # type: ignore
+            "wrapper-has-params", "wrapper_has_params"),
+    )
+
+    unique_name: Optional[str] = Field(
+        default=None,
+        alias=AliasChoices(  # type: ignore
+            "unique-name", "unique_name"),
         description=
         "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
     )
+
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
-    function_api: Optional[GenTuFunctionApiTraits] = Field(  # type: ignore
+
+    function_api: Optional[GenTuFunctionApiTraits] = Field(
         default=None,
-        alias=AliasChoices("function-api", "function_api"),
-        description="Reflection entity has a function/method API")
+        alias=AliasChoices(  # type: ignore
+            "function-api", "function_api"),
+        description="Reflection entity has a function/method API",
+    )
+
     type_api: Optional[GenTuTypeApiTraits] = Field(
-        default=None, alias="type-api", description="Reflection entity has a type API")
+        default=None,
+        alias="type-api",
+        description="Reflection entity has a type API",
+    )
 
     def isAcceptedBackend(self, backend: str) -> bool:
         return len(
@@ -981,10 +1012,17 @@ class GenTuStruct():
     Intermediate representation of the C++ record
     """
     Name: QualType
+    """
+    Name of the structure declaration, excluding the template type parameters
+    and explicit specialization parameters. To get a full name including
+    un-substituted and explicitly specialized template type parameters use
+    `declarationQualName` method.
+    """
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     Fields: List[GenTuField] = field(default_factory=list)
     "Field directly in the structure"
     Methods: List[GenTuFunction] = field(default_factory=list)
+    "List of methods directly in the structure"
     Bases: List[QualType] = field(default_factory=list)
     Nested: List[Union[
         GenTuEnum,
@@ -1009,6 +1047,7 @@ class GenTuStruct():
     IsExplicitInstantiation: bool = False
     "Whether the class is an explicit instantiation of the template"
     IsTemplateRecord: bool = False
+    "The structure is a partially or fully specialized template type record"
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     """
     Template parameters explicitly specified in the structure declaration.
@@ -1389,7 +1428,7 @@ def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
                 scope.append(s.Name)
 
             case GenTuNamespace():
-                scope.append(QualType.ForName(s.Name.Name))
+                scope.append(QualType.ForName(s.name.Name))
 
     return scope
 

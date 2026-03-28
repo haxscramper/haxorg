@@ -37,6 +37,32 @@
 
 
 
+bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::isNil), org_context, __this); }
+
+bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)(org::sem::SemId<org::sem::Org> const&) const>(&org::sem::SemId<org::sem::Org>::operator==), org_context, __this, other); }
+
+haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(*)()>(&org::sem::SemId<org::sem::Org>::Nil), org_context); }
+
+haxorg_Org haxorg_SemIdOfOrg_get(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_Org>(static_cast<org::sem::Org*(org::sem::SemId<org::sem::Org>::*)()>(&org::sem::SemId<org::sem::Org>::get), org_context, __this); }
+
+haxorg_Org haxorg_SemIdOfOrg_get_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_Org>(static_cast<org::sem::Org const*(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::get), org_context, __this); }
+
+haxorg_SemIdOfOrg haxorg_SemIdOfOrg_asOrg_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::asOrg), org_context, __this); }
+
+haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::getNodeKind), org_context, __this); }
+
+haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)(int)>(&org::sem::SemId<org::sem::Org>::at), org_context, __this, idx); }
+
+haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)(hstd::BackwardsIndex)>(&org::sem::SemId<org::sem::Org>::at), org_context, __this, idx); }
+
+haxorg_StdOptional haxorg_SemIdOfOrg_getIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::sem::SemId<org::sem::Org>::*)(int)>(&org::sem::SemId<org::sem::Org>::get), org_context, __this, idx); }
+
+haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::sem::SemId<org::sem::Org>::*)(hstd::BackwardsIndex)>(&org::sem::SemId<org::sem::Org>::get), org_context, __this, idx); }
+
+int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<int>(static_cast<int(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::size), org_context, __this); }
+
+void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj) { org::bind::c::execute_destroy<org::sem::SemId<org::sem::Org>>(org_context, obj); }
+
 int haxorg_HstdVecOfOrgJson_size_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<org::sem::OrgJson>::*)() const>(&hstd::Vec<org::sem::OrgJson>::size), org_context, __this); }
 
 haxorg_OrgJson haxorg_HstdVecOfOrgJson_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this, int idx) { return org::bind::c::execute_cpp<haxorg_OrgJson>(static_cast<org::sem::OrgJson const&(hstd::Vec<org::sem::OrgJson>::*)(int) const>(&hstd::Vec<org::sem::OrgJson>::at), org_context, __this, idx); }
@@ -300,32 +326,6 @@ int haxorg_HstdVecOfSequenceSegmentGroup_size_const(OrgContext* org_context, hax
 haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this, int idx) { return org::bind::c::execute_cpp<haxorg_SequenceSegmentGroup>(static_cast<hstd::SequenceSegmentGroup const&(hstd::Vec<hstd::SequenceSegmentGroup>::*)(int) const>(&hstd::Vec<hstd::SequenceSegmentGroup>::at), org_context, __this, idx); }
 
 void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceSegmentGroup>>(org_context, obj); }
-
-bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::isNil), org_context, __this); }
-
-bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)(org::sem::SemId<org::sem::Org> const&) const>(&org::sem::SemId<org::sem::Org>::operator==), org_context, __this, other); }
-
-haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(*)()>(&org::sem::SemId<org::sem::Org>::Nil), org_context); }
-
-haxorg_Org haxorg_SemIdOfOrg_get(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_Org>(static_cast<org::sem::Org*(org::sem::SemId<org::sem::Org>::*)()>(&org::sem::SemId<org::sem::Org>::get), org_context, __this); }
-
-haxorg_Org haxorg_SemIdOfOrg_get_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_Org>(static_cast<org::sem::Org const*(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::get), org_context, __this); }
-
-haxorg_SemIdOfOrg haxorg_SemIdOfOrg_asOrg_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::asOrg), org_context, __this); }
-
-haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::getNodeKind), org_context, __this); }
-
-haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)(int)>(&org::sem::SemId<org::sem::Org>::at), org_context, __this, idx); }
-
-haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)(hstd::BackwardsIndex)>(&org::sem::SemId<org::sem::Org>::at), org_context, __this, idx); }
-
-haxorg_StdOptional haxorg_SemIdOfOrg_getIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::sem::SemId<org::sem::Org>::*)(int)>(&org::sem::SemId<org::sem::Org>::get), org_context, __this, idx); }
-
-haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::sem::SemId<org::sem::Org>::*)(hstd::BackwardsIndex)>(&org::sem::SemId<org::sem::Org>::get), org_context, __this, idx); }
-
-int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<int>(static_cast<int(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::size), org_context, __this); }
-
-void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj) { org::bind::c::execute_destroy<org::sem::SemId<org::sem::Org>>(org_context, obj); }
 
 void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj) { org::bind::c::execute_destroy<hstd::BackwardsIndex>(org_context, obj); }
 

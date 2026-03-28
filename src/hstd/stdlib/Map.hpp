@@ -50,7 +50,14 @@ struct MapBase : public CRTP_this_method<Map> {
 };
 
 template <typename K, typename V, typename Hash = std::hash<K>>
-struct UnorderedMap
+struct [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "void-handle"
+        }
+    }
+})")]] UnorderedMap
     : public std::unordered_map<K, V, Hash>
     , public MapBase<UnorderedMap<K, V>, K, V> {
     using Base = std::unordered_map<K, V, Hash>;
