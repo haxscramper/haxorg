@@ -567,6 +567,7 @@ export interface haxorg_wasm_module_auto {
   Org: OrgConstructor;
   OperationsTracer: OperationsTracerConstructor;
   Cache: CacheConstructor;
+  Report: ReportConstructor;
   ParseOrgParseFragment: ParseOrgParseFragmentConstructor;
   OrgParseParameters: OrgParseParametersConstructor;
   OrgDirectoryParseParameters: OrgDirectoryParseParametersConstructor;
@@ -2116,6 +2117,8 @@ export interface OperationsTracer {
 }
 export interface CacheConstructor { new(): Cache; }
 export interface Cache {  }
+export interface ReportConstructor { new(): Report; }
+export interface Report {  }
 export interface ParseOrgParseFragmentConstructor { new(): ParseOrgParseFragment; }
 export interface ParseOrgParseFragment {
   baseLine: number

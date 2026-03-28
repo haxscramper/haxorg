@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wcxx-attribute-extension"
 
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
@@ -267,7 +268,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
 /// append two vectors, check if it `contains()` someting and so on, even
 /// though these operations are \(O(n)\)
 template <typename T>
-class Vec
+class [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Vec
     : public std::vector<T>
     , public IndexedBase<T, Vec<T>> {
   public:
@@ -294,7 +295,8 @@ class Vec
     using Base::begin;
     using Base::end;
     using Base::insert;
-    using Base::push_back;
+
+    [[refl]] using Base::push_back;
 
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
@@ -303,7 +305,7 @@ class Vec
     explicit Vec(int size) : std::vector<T>(size) {}
 
     static Vec<T> FromValue(Vec<T> const& values) { return values; }
-    int           size() const { return static_cast<int>(Base::size()); }
+    [[refl]] int  size() const { return static_cast<int>(Base::size()); }
 
 
     /// \brief Construct vector from the span of elements.
@@ -329,7 +331,7 @@ class Vec
     }
 
 
-    T const& at(int idx) const {
+    [[refl(R"({"unique-name": "atIndex"})")]] T const& at(int idx) const {
         checkIdx(idx);
         return Base::at(idx);
     }

@@ -9,7 +9,7 @@ from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_codegen.org_codegen_data import get_types
 from py_scriptutils.script_logging import log
-from py_codegen.codegen_algo import instantiate_template
+from py_codegen.codegen_algo import collect_type_specializations, instantiate_template
 
 CAT = __name__
 
@@ -263,6 +263,9 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         log(CAT).info(f"Created struct {instantiated.declarationQualName()}")
         _add_struct(instantiated)
 
+    specializations = collect_type_specializations(groups.get_entries_for_wrapping(),
+                                                   conf)
+
     for entry in groups.get_entries_for_wrapping():
         if isinstance(entry, codegen_ir.GenTuStruct) and "SemId" in str(entry.Name):
             log(CAT).info(f"declaration qual name: {entry}")
@@ -274,6 +277,18 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     log(CAT).info("Found sem ID emplate structure without parameters")
                     _add_instantiated_struct(
                         entry, {"O": QualType(Name="Org", Spaces=[n_sem()])})
+
+                case ["hstd", "Vec", _]:
+                    log(CAT).info("Found vec instantiation")
+                    for spec in specializations:
+                        match spec.used_type.flatQualNameWithParams():
+                            case ["hstd", "Vec", _]:
+                                _add_instantiated_struct(
+                                    entry,
+                                    substitution_map={
+                                        entry.getTemplateParams()[0].Name:
+                                            spec.used_type.par0(),
+                                    })
 
                     # for org_type in get_types():
                     #     if org_type.Name.isOrgType():

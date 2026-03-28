@@ -25,5 +25,8 @@ TEST(OrgCApi, TestSimpleParsing) {
     haxorg_SemIdOfOrg parsed_node = haxorg_ParseContext_parseString(
         &ctx, parse_context, input_string, source_name);
 
+    haxorg_StdOptional first_item = haxorg_SemIdOfOrg_getIndex(
+        &ctx, parsed_node, 0);
+
     haxorg_destroy_SemIdOfOrg(&ctx, &parsed_node);
 }

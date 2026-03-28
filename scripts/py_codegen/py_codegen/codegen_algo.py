@@ -36,6 +36,11 @@ def collect_type_specializations(
         if value is None:
             return
 
+        # Not all template parameters were substituted in this instance
+        # -- the type is not a full specialization, ignoring.
+        if value.getTemplateParameters():
+            return
+
         T = conf.getResolvedType(value)
         visit_type(T)
 
@@ -45,7 +50,7 @@ def collect_type_specializations(
         for P in T.Params:
             visit_type_rec(P)
 
-    def visit_entry(entry: codegen_ir.GenTuUnion | codegen_ir.GenTuField):
+    def visit_entry(entry: Any):
         match entry:
             case codegen_ir.GenTuField():
                 if entry.IsExposedForWrap:
@@ -78,20 +83,6 @@ def collect_type_specializations(
         visit_entry(e)
 
     return res
-
-
-@beartype
-def _get_template_parameters(Type: QualType) -> List[QualType]:
-    found = list()
-
-    def aux(Type: QualType):
-        nonlocal found
-        if Type.IsTemplateTypeParam:
-            found.append(Type)
-
-    Type.visit_recursive(aux)
-
-    return found
 
 
 @beartype
@@ -168,7 +159,7 @@ def _map_template_struct(ctx: _InstantiateCtx,
         for _param in _stack.Params:
             if _param.Name in ctx.substitution_map:
                 substituted = ctx.substitution_map[_param.Name]
-                for _nested in _get_template_parameters(substituted):
+                for _nested in substituted.getTemplateParameters():
                     updated_group.Params.append(
                         codegen_ir.GenTuTemplateTypename(Name=_nested.Name))
 

@@ -405,7 +405,7 @@ struct Config {
          debug_scopes));
 };
 
-class Report {
+class [[refl(R"({"default-constructor": false})")]] Report {
   public:
     ReportKind                 kind     = ReportKind::Error;
     std::optional<std::string> code     = std::nullopt;

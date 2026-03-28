@@ -1296,6 +1296,16 @@ node can have subnodes.)RAW")
     ;
   nanobind::class_<hstd::ext::Cache>(m, "Cache")
     ;
+  nanobind::class_<hstd::ext::Report>(m, "Report")
+    .def("__repr__", [](hstd::ext::Report const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::ext::Report const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
   nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
     .def("__init__",
          [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {

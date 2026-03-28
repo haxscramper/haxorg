@@ -17,8 +17,8 @@ class CAstbuilderConfig(AstbulderConfig):
     def getBackendType(self, Type: QualType) -> QualType:
         prefix = "haxorg_"
         match Type.flatQualNameWithParams():
-            case ["hstd", "Vec", _]:
-                return QualType(Name=prefix + "HstdVec")
+        # case ["hstd", "Vec", _]:
+        #     return QualType(Name=prefix + "HstdVec")
 
             case ["hstd", "UnorderedSet", _]:
                 return QualType(Name=prefix + "HstdUnorderedSet")

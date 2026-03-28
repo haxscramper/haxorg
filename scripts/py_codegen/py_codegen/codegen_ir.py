@@ -243,6 +243,19 @@ class QualType(BaseModel, extra="forbid"):
         """
         return self.flatQualName() + [[P.flatQualNameWithParams()] for P in self.Params]
 
+    @beartype
+    def getTemplateParameters(self) -> List["QualType"]:
+        found = list()
+
+        def aux(Type: QualType):
+            nonlocal found
+            if Type.IsTemplateTypeParam:
+                found.append(Type)
+
+        self.visit_recursive(aux)
+
+        return found
+
     def asSpaceFor(self, other: "QualType") -> "QualType":
         "Use the current type as a wrapper space for other type"
         return other.copy_update(
