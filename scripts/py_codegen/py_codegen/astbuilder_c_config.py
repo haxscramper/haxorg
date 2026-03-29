@@ -3,6 +3,9 @@ from py_codegen.codegen_ir import QualType
 from py_codegen import codegen_ir
 from beartype.typing import Optional
 from beartype import beartype
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 
 @beartype
@@ -16,6 +19,7 @@ class CAstbuilderConfig(AstbulderConfig):
 
     def getBackendType(self, Type: QualType) -> QualType:
         prefix = "haxorg_"
+
         match Type.flatQualNameWithParams():
         # case ["hstd", "Vec", _]:
         #     return QualType(Name=prefix + "HstdVec")
@@ -35,11 +39,11 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["std", "optional", _]:
                 return QualType(Name=prefix + "StdOptional")
 
-            case ["hstd", "UnorderedMap", _, _]:
-                return QualType(Name=prefix + "HstdUnorderedMap")
-
             case ["hstd", "SortedMap", _, _]:
                 return QualType(Name=prefix + "HstdMap")
+
+            case ["haxorg_ptr_payload"]:
+                return Type
 
             case ["org", "sem", "SemId", _]:
                 # To avoid creating almost a hundred distinct type instantiations,
@@ -92,7 +96,20 @@ class CAstbuilderConfig(AstbulderConfig):
                 return Type
 
             case _:
+                template_type = self.type_map.get_structs_for_template_name(Type)
+                # FIXME: This assumes the type does not have a template specializations
+                # that are wrapped as independent structures.
+                if template_type and template_type[
+                        0].ReflectionParams.backend.c.instantiation_mode == "void-handle":
+                    log(CAT).info(
+                        f"Found usage of the void-handle type in the API: {Type} -> {template_type[0].Name}"
+                    )
+                    useParams = False
+
+                else:
+                    useParams = True
+
                 return QualType(
-                    Name=prefix + self.getTypeBindName(Type, withParams=True),
+                    Name=prefix + self.getTypeBindName(Type, withParams=useParams),
                     DbgOrigin=str(Type.flatQualNameWithParams()),
                 )

@@ -80,8 +80,10 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
     }
 }
 
-template <typename T, typename CVtable>
-struct VTable;
+template <typename T>
+struct VTable {
+    static void const* get_vtable() { return nullptr; }
+};
 
 template <typename T>
 concept IsCWrapped = requires(T t) {
@@ -168,7 +170,12 @@ struct ExtractCoreType<std::shared_ptr<T>> {
 template <typename CType, typename CppRetT>
 struct ResultTypeBuilder {
     using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
-    static CType build(void* t) { return {haxorg_ptr_payload{.data = t}}; }
+    static CType build(void* t) {
+        return {haxorg_ptr_payload{
+            .data   = t,
+            .vtable = VTable<CppRetT>::get_vtable(),
+        }};
+    }
     static CType build_null() { return {haxorg_ptr_payload{}}; }
 };
 

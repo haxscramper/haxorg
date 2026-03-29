@@ -121,6 +121,8 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
             task=task,
             reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
             is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
+            manual_tu_path=get_script_root(
+                ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"),
         )
 
         log(CAT).info("Updated code definitions")

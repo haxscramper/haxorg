@@ -327,15 +327,15 @@ haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(O
 
 void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceSegmentGroup>>(org_context, obj); }
 
-void haxorg_destroy_HstdUnorderedMap(OrgContext* org_context, haxorg_HstdUnorderedMap* obj) { org::bind::c::execute_destroy<hstd::UnorderedMap<haxorg_ptr_payload, haxorg_ptr_payload>>(org_context, obj); }
+void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj) { org::bind::c::execute_destroy<hstd::UnorderedMap<haxorg_ptr_payload, haxorg_ptr_payload>>(org_context, obj); }
 
-haxorg_HstdOpt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this, haxorg_Haxorg_ptr_payload key) { return org::bind::c::execute_cpp<haxorg_HstdOpt>(static_cast<hstd::Opt<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::get), org_context, __this, key); }
+haxorg_HstdOpt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return org::bind::c::execute_cpp<haxorg_HstdOpt>(static_cast<hstd::Opt<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::get), org_context, __this, key); }
 
-bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this, haxorg_Haxorg_ptr_payload key) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::contains), org_context, __this, key); }
+bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::contains), org_context, __this, key); }
 
-haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfHaxorg_ptr_payload>(static_cast<hstd::Vec<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)() const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::keys), org_context, __this); }
+haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfHaxorg_ptr_payload>(static_cast<hstd::Vec<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)() const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::keys), org_context, __this); }
 
-void haxorg_destroy_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload* obj) { org::bind::c::execute_destroy<hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>>(org_context, obj); }
+void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj) { org::bind::c::execute_destroy<hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>>(org_context, obj); }
 
 int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this) {  }
 
@@ -691,23 +691,23 @@ void haxorg_destroy_AstTrackingGroupSingle(OrgContext* org_context, haxorg_AstTr
 
 haxorg_SemIdOfOrg haxorg_AstTrackingGroupTrackedHashtag_get_tag(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingGroupTrackedHashtag_get_targets(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this) {  }
+haxorg_HstdMap haxorg_AstTrackingGroupTrackedHashtag_get_targets(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this) {  }
 
 void haxorg_destroy_AstTrackingGroupTrackedHashtag(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag* obj) { org::bind::c::execute_destroy<org::AstTrackingGroup::TrackedHashtag>(org_context, obj); }
 
 void haxorg_destroy_AstTrackingGroup(OrgContext* org_context, haxorg_AstTrackingGroup* obj) { org::bind::c::execute_destroy<org::AstTrackingGroup>(org_context, obj); }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_footnotes(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_footnotes(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_subtrees(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_subtrees(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_names(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_names(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_anchorTargets(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_anchorTargets(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_radioTargets(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_radioTargets(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_hashtagDefinitions(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
+haxorg_HstdMap haxorg_AstTrackingMap_get_hashtagDefinitions(OrgContext* org_context, haxorg_AstTrackingMap __this) {  }
 
 haxorg_StdOptional haxorg_AstTrackingMap_getIdPath_const(OrgContext* org_context, haxorg_AstTrackingMap __this, haxorg_HstdStr id) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath), org_context, __this, id); }
 
@@ -1555,7 +1555,7 @@ void haxorg_destroy_AttrList(OrgContext* org_context, haxorg_AttrList* obj) { or
 
 haxorg_AttrList haxorg_AttrGroup_get_positional(OrgContext* org_context, haxorg_AttrGroup __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_AttrGroup_get_named(OrgContext* org_context, haxorg_AttrGroup __this) {  }
+haxorg_HstdMap haxorg_AttrGroup_get_named(OrgContext* org_context, haxorg_AttrGroup __this) {  }
 
 haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getFlatArgs_const(OrgContext* org_context, haxorg_AttrGroup __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::AttrGroup::*)() const>(&org::sem::AttrGroup::getFlatArgs), org_context, __this); }
 
@@ -2131,7 +2131,7 @@ void haxorg_destroy_NamedPropertyVisibility(OrgContext* org_context, haxorg_Name
 
 haxorg_HstdStr haxorg_NamedPropertyExportOptions_get_backend(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this) {  }
 
-haxorg_HstdUnorderedMap haxorg_NamedPropertyExportOptions_get_values(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this) {  }
+haxorg_HstdMap haxorg_NamedPropertyExportOptions_get_values(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this) {  }
 
 bool haxorg_NamedPropertyExportOptions___eq___const(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this, haxorg_NamedPropertyExportOptions other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::NamedProperty::ExportOptions::*)(org::sem::NamedProperty::ExportOptions const&) const>(&org::sem::NamedProperty::ExportOptions::operator==), org_context, __this, other); }
 

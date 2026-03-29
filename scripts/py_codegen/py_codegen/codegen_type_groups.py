@@ -400,6 +400,7 @@ class PyhaxorgTypeGroups():
     immutable: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     adapter_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     conv_tu: ConvTu = field(default_factory=lambda: ConvTu())
+    manual_tu: ConvTu = field(default_factory=lambda: ConvTu())
     type_map: codegen_ir.GenTypeMap = field(
         default_factory=lambda: codegen_ir.GenTypeMap())  # type: ignore[assignment]
     full_enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
@@ -425,9 +426,13 @@ class PyhaxorgTypeGroups():
             self.conv_tu.enums + \
             self.conv_tu.structs + \
             self.conv_tu.typedefs + \
+            self.manual_tu.enums + \
+            self.manual_tu.structs + \
+            self.manual_tu.typedefs + \
             self.shared_types + \
             self.expanded + \
             self.conv_tu.functions + \
+            self.manual_tu.functions + \
             self.immutable + \
             self.imm_id_specializations + \
             self.adapter_specializations + \
@@ -520,8 +525,11 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
 
 
 @beartype
-def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
-                             reflection_path: Path) -> PyhaxorgTypeGroups:
+def get_pyhaxorg_type_groups(
+    ast: cpp.ASTBuilder,
+    reflection_path: Path,
+    manual_tu_path: Path,
+) -> PyhaxorgTypeGroups:
     """
     Get type groups and method implementations for the haxorg library
     source file generation and wrappers.
@@ -535,6 +543,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
     res.conv_tu = refl_read.conv_proto_file(reflection_path)
+    res.manual_tu = refl_read.conv_proto_file(manual_tu_path)
 
     res.full_enums = org_data.get_shared_sem_enums() + org_data.get_enums() + [
         get_osk_enum(res.expanded)

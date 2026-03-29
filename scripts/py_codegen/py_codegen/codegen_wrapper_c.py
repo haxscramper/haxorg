@@ -270,7 +270,7 @@ def _gen_vtable_specialization(
         Name=cpp_vtable_type,
         IsExplicitInstantiation=True,
         IsTemplateRecord=True,
-        ExplicitTemplateParams=[struct.declarationQualName(), c_type_vtable],
+        ExplicitTemplateParams=[struct.declarationQualName()],
         TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
         Methods=Methods,
     )
@@ -471,7 +471,6 @@ def _gen_haxorg_c_template_instantiations(
 
         assert isinstance(instantiated, codegen_ir.GenTuStruct)
 
-        log(CAT).info(f"Created struct {instantiated.declarationQualName()}")
         result.append(instantiated)
 
     specializations = collect_type_specializations(groups.get_entries_for_wrapping(),

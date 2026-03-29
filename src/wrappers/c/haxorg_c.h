@@ -91,9 +91,9 @@ struct haxorg_HstdVecOfSequenceAnnotation;
 
 struct haxorg_HstdVecOfSequenceSegmentGroup;
 
-struct haxorg_HstdUnorderedMap;
+struct haxorg_HstdMap;
 
-struct haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload;
+struct haxorg_ImmMap;
 
 enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
 /// \brief Where to take todo completion statistics from
@@ -1812,12 +1812,12 @@ struct haxorg_HstdVecOfSequenceSegmentGroup {
 };
 
 /// \brief ['hstd', 'UnorderedMap', [['haxorg_ptr_payload']], [['haxorg_ptr_payload']]]
-struct haxorg_HstdUnorderedMap {
+struct haxorg_HstdMap {
   haxorg_ptr_payload data;
 };
 
 /// \brief ['hstd', 'ext', 'ImmMap', [['haxorg_ptr_payload']], [['haxorg_ptr_payload']]]
-struct haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload {
+struct haxorg_ImmMap {
   haxorg_ptr_payload data;
 };
 
@@ -4538,9 +4538,9 @@ struct haxorg_ImmCmdAttrAdapter {
 };
 
 typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
-typedef haxorg_HstdUnorderedMap haxorg_GraphNodeProps;
-typedef haxorg_HstdUnorderedMap haxorg_GraphEdgeProps;
-typedef haxorg_HstdUnorderedMap haxorg_GraphAdjList;
+typedef haxorg_HstdMap haxorg_GraphNodeProps;
+typedef haxorg_HstdMap haxorg_GraphEdgeProps;
+typedef haxorg_HstdMap haxorg_GraphAdjList;
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context);
@@ -4686,11 +4686,11 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceAnnotation(OrgContext*
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSequenceSegmentGroup_size_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this);
 HAXORG_C_API_LINKAGE haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_HstdUnorderedMap(OrgContext* org_context, haxorg_HstdUnorderedMap* obj);
-HAXORG_C_API_LINKAGE haxorg_HstdOpt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this, haxorg_Haxorg_ptr_payload key);
-HAXORG_C_API_LINKAGE bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this, haxorg_Haxorg_ptr_payload key);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload(OrgContext* org_context, haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdOpt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
+HAXORG_C_API_LINKAGE bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMap __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj);
 HAXORG_C_API_LINKAGE int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);
@@ -4868,15 +4868,15 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_AstTrackingGroupRadioTarget(OrgContext*
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_AstTrackingGroupSingle_get_node(OrgContext* org_context, haxorg_AstTrackingGroupSingle __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_AstTrackingGroupSingle(OrgContext* org_context, haxorg_AstTrackingGroupSingle* obj);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_AstTrackingGroupTrackedHashtag_get_tag(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingGroupTrackedHashtag_get_targets(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingGroupTrackedHashtag_get_targets(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_AstTrackingGroupTrackedHashtag(OrgContext* org_context, haxorg_AstTrackingGroupTrackedHashtag* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_AstTrackingGroup(OrgContext* org_context, haxorg_AstTrackingGroup* obj);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_footnotes(OrgContext* org_context, haxorg_AstTrackingMap __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_subtrees(OrgContext* org_context, haxorg_AstTrackingMap __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_names(OrgContext* org_context, haxorg_AstTrackingMap __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_anchorTargets(OrgContext* org_context, haxorg_AstTrackingMap __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_radioTargets(OrgContext* org_context, haxorg_AstTrackingMap __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AstTrackingMap_get_hashtagDefinitions(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_footnotes(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_subtrees(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_names(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_anchorTargets(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_radioTargets(OrgContext* org_context, haxorg_AstTrackingMap __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AstTrackingMap_get_hashtagDefinitions(OrgContext* org_context, haxorg_AstTrackingMap __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_AstTrackingMap_getIdPath_const(OrgContext* org_context, haxorg_AstTrackingMap __this, haxorg_HstdStr id);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_AstTrackingMap_getNamePath_const(OrgContext* org_context, haxorg_AstTrackingMap __this, haxorg_HstdStr id);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_AstTrackingMap_getAnchorTarget_const(OrgContext* org_context, haxorg_AstTrackingMap __this, haxorg_HstdStr id);
@@ -5300,7 +5300,7 @@ HAXORG_C_API_LINKAGE haxorg_HstdVecOfAttrValue haxorg_AttrList_get_items(OrgCont
 HAXORG_C_API_LINKAGE bool haxorg_AttrList___eq___const(OrgContext* org_context, haxorg_AttrList __this, haxorg_AttrList other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_AttrList(OrgContext* org_context, haxorg_AttrList* obj);
 HAXORG_C_API_LINKAGE haxorg_AttrList haxorg_AttrGroup_get_positional(OrgContext* org_context, haxorg_AttrGroup __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_AttrGroup_get_named(OrgContext* org_context, haxorg_AttrGroup __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_AttrGroup_get_named(OrgContext* org_context, haxorg_AttrGroup __this);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getFlatArgs_const(OrgContext* org_context, haxorg_AttrGroup __this);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getAttrs_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdOpt key);
 HAXORG_C_API_LINKAGE void haxorg_AttrGroup_setNamedAttr(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr key, haxorg_HstdVecOfAttrValue attrs);
@@ -5588,7 +5588,7 @@ HAXORG_C_API_LINKAGE haxorg_NamedPropertyVisibilityLevel haxorg_NamedPropertyVis
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyVisibility___eq___const(OrgContext* org_context, haxorg_NamedPropertyVisibility __this, haxorg_NamedPropertyVisibility other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyVisibility(OrgContext* org_context, haxorg_NamedPropertyVisibility* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_NamedPropertyExportOptions_get_backend(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this);
-HAXORG_C_API_LINKAGE haxorg_HstdUnorderedMap haxorg_NamedPropertyExportOptions_get_values(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this);
+HAXORG_C_API_LINKAGE haxorg_HstdMap haxorg_NamedPropertyExportOptions_get_values(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this);
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyExportOptions___eq___const(OrgContext* org_context, haxorg_NamedPropertyExportOptions __this, haxorg_NamedPropertyExportOptions other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyExportOptions(OrgContext* org_context, haxorg_NamedPropertyExportOptions* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfStr haxorg_NamedPropertyBlocker_get_blockers(OrgContext* org_context, haxorg_NamedPropertyBlocker __this);

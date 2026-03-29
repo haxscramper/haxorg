@@ -12,7 +12,8 @@ struct OrgContext {
 };
 
 struct haxorg_ptr_payload {
-    void* data;
+    void*       data;
+    void const* vtable;
 };
 
 struct haxorg_StdString {
@@ -28,10 +29,6 @@ struct haxorg_HstdOpt {
 };
 
 struct haxorg_StdOptional {
-    haxorg_ptr_payload data;
-};
-
-struct haxorg_HstdUnorderedMap {
     haxorg_ptr_payload data;
 };
 

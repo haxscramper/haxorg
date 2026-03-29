@@ -461,6 +461,7 @@ def run_codegen_pyhaxorg(
     pyast: pya.ASTBuilder,
     reflection_path: Path,
     t: TextLayout,
+    manual_tu_path: Path,
 ) -> None:
     """
     Generate sources for the haxorg library
@@ -472,6 +473,7 @@ def run_codegen_pyhaxorg(
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_path=Path(reflection_path),
+        manual_tu_path=manual_tu_path,
     )
 
     groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_groups.yaml")
@@ -523,8 +525,12 @@ def run_codegen_pyhaxorg(
 
 
 @beartype
-def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: Path,
-                     is_tmp_codegen: bool) -> None:
+def run_codegen_task(
+    task: Literal["adaptagrams", "pyhaxorg"],
+    reflection_path: Path,
+    is_tmp_codegen: bool,
+    manual_tu_path: Path,
+) -> None:
     t = TextLayout()
     pyast = pya.ASTBuilder(t)
     builder = cpp.ASTBuilder(t)
@@ -547,20 +553,5 @@ def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: 
                     builder=builder,
                     pyast=pyast,
                     t=t,
+                    manual_tu_path=manual_tu_path,
                 )
-
-
-@click.command()
-@codegen_options
-@click.pass_context
-def impl(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
-    opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
-    run_codegen_task(
-        is_tmp_codegen=opts.tmp,
-        reflection_path=Path(opts.reflection_path),
-        task=opts.codegen_task,
-    )
-
-
-if __name__ == "__main__":
-    impl()

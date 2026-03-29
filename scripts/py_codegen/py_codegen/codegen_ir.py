@@ -17,6 +17,7 @@ from beartype.typing import (
     Tuple,
     TypeAlias,
     Union,
+    cast,
 )
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
@@ -1205,8 +1206,18 @@ class GenTypeMap:
     entries: List[GenTuUnion] = field(default_factory=list)
     name_to_index: defaultdict[str, List[int]] = field(
         default_factory=lambda: defaultdict(list))
+    "Map record name to the list of matching entries"
     qual_hash_to_index: defaultdict[int, List[int]] = field(
         default_factory=lambda: defaultdict(list))
+    "Map hash of the fully qualified name to the entry indices"
+
+    template_name_to_index: defaultdict[int, List[int]] = field(
+        default_factory=lambda: defaultdict(list))
+    """
+    Map template type name -- without parameters but with all spaces -- to the entry indices.
+    A single ID will map to one or more entries, especially if the partial template
+    specializations were added to the list.
+    """
 
     def is_typedef(self, t: QualType) -> bool:
         decl = self.get_one_type_for_qual_name(t)
@@ -1226,6 +1237,12 @@ class GenTypeMap:
     def get_types_for_qual_name(self, name: QualType) -> List[GenTuUnion]:
         return [
             self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])
+        ]
+
+    def get_structs_for_template_name(self, name: QualType) -> List[GenTuStruct]:
+        return [
+            cast(GenTuStruct, self.entries[i]) for i in self.template_name_to_index.get(
+                name.withTemplateParams([]).qual_hash(), [])
         ]
 
     def get_struct_for_qual_name(self, name: QualType) -> Optional[GenTuStruct]:
@@ -1293,6 +1310,9 @@ class GenTypeMap:
 
         self.qual_hash_to_index[qual_hash].append(new_index)
         self.name_to_index[qual_name.Name].append(new_index)
+
+        if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
+            self.template_name_to_index[typ.Name.qual_hash()].append(new_index)
 
         self.entries.append(typ)
 
