@@ -142,6 +142,7 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
 
     protoc_bin = get_deps_install_dir(ctx).joinpath("protobuf/bin/protoc")
     proto_include_dir = get_script_root(ctx, "scripts/cxx_codegen")
+    thirdparty_include_dir = get_script_root(ctx, "thirdparty/protobuf/src")
     proto_path = get_script_root(ctx, "scripts/py_codegen/py_codegen/reflection_tool")
 
     run_command(
@@ -151,8 +152,11 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
             f"--plugin={protoc_plugin}",
             "-I",
             proto_include_dir,
+            "-I",
+            thirdparty_include_dir,
             "--proto_path=" + str(proto_path),
             "--python_betterproto_out=" + str(proto_lib),
+            "--python_betterproto_opt=GOOGLE_PROTOBUF_SPECIAL_PACKAGE",
             proto_config,
         ],
         env=dict(LD_PRELOAD=""),

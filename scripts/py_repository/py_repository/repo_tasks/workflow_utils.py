@@ -15,7 +15,7 @@ import igraph as ig
 from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = __name__
 
@@ -286,14 +286,14 @@ args: {args}
                 continue
 
             def run_op():
-                try:
-                    op.python_callable(ctx=self)
-                    log(CAT).info(f"Done {task_id}")
-                    ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
-                except Exception as e:
-                    log(CAT).info(f"Failed {task_id}")
-                    ui_notify(f"FAIL {task_id:<40}", is_ok=False)
-                    raise e from None
+                with ExceptionContextNote(f"Running task {task_id}"):
+                    try:
+                        op.python_callable(ctx=self)
+                        log(CAT).info(f"Done {task_id}")
+                        ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
+                    except Exception as e:
+                        ui_notify(f"FAIL {task_id:<40}", is_ok=False)
+                        raise e from None
 
             if operation and not self.config.use_unchanged_tasks:
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):

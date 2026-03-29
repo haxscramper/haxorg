@@ -24,6 +24,55 @@
 namespace c = clang;
 using llvm::dyn_cast;
 
+namespace {
+void jsonToProtobufValue(
+    llvm::json::Value const& json_val,
+    google::protobuf::Value* pb_val);
+
+void jsonToProtobufStruct(
+    llvm::json::Object const& json_obj,
+    google::protobuf::Struct* pb_struct) {
+    for (const auto& [key, val] : json_obj) {
+        auto* pb_val = &(*pb_struct->mutable_fields())[key.str()];
+        jsonToProtobufValue(val, pb_val);
+    }
+}
+
+void jsonToProtobufValue(
+    llvm::json::Value const& json_val,
+    google::protobuf::Value* pb_val) {
+    if (auto* obj = json_val.getAsObject()) {
+        jsonToProtobufStruct(*obj, pb_val->mutable_struct_value());
+    } else if (auto* arr = json_val.getAsArray()) {
+        auto* list = pb_val->mutable_list_value();
+        for (const auto& elem : *arr) {
+            jsonToProtobufValue(elem, list->add_values());
+        }
+    } else if (auto str = json_val.getAsString()) {
+        pb_val->set_string_value(str->str());
+    } else if (auto num = json_val.getAsNumber()) {
+        pb_val->set_number_value(*num);
+    } else if (auto b = json_val.getAsBoolean()) {
+        pb_val->set_bool_value(*b);
+    } else if (json_val.getAsNull()) {
+        pb_val->set_null_value(google::protobuf::NULL_VALUE);
+    }
+}
+
+void setReflectionParamsFromJson(
+    google::protobuf::Struct* pb_struct,
+    std::string const&        json_str) {
+    auto parsed = llvm::json::parse(json_str);
+    if (!parsed) {
+        llvm::consumeError(parsed.takeError());
+        llvm_unreachable("Failed to parse reflection params JSON");
+    }
+    auto* obj = parsed->getAsObject();
+    assert(obj && "reflection_params must be a JSON object");
+    jsonToProtobufStruct(*obj, pb_struct);
+}
+} // namespace
+
 
 bool ReflASTVisitor::isDescribedRecord(
     const clang::RecordDecl* recordDecl) {
@@ -1075,7 +1124,8 @@ void ReflASTVisitor::fillMethodDecl(
     c::CXXMethodDecl const* method) {
 
     if (auto args = get_refl_params(method)) {
-        sub->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            sub->mutable_reflectionparams(), args.value());
     }
 
     sub->set_name(method->getNameAsString());
@@ -1133,7 +1183,8 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
 
 
     if (auto args = get_refl_params(Decl)) {
-        rec->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            rec->mutable_reflectionparams(), args.value());
     }
 
     fillSharedRecordData(rec, Decl);
@@ -1257,7 +1308,8 @@ void ReflASTVisitor::fillCxxRecordDecl(
         Decl->getLocation());
 
     if (auto args = get_refl_params(Decl)) {
-        rec->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            rec->mutable_reflectionparams(), args.value());
     }
 
     if (clang::
@@ -1414,7 +1466,8 @@ void ReflASTVisitor::fillCxxRecordDecl(
             auto* sub = rec->add_methods();
 
             if (auto args = get_refl_params(templ)) {
-                sub->set_reflectionparams(args.value());
+                setReflectionParamsFromJson(
+                    sub->mutable_reflectionparams(), args.value());
             }
 
             clang::Decl const* templatedDecl = templ->getTemplatedDecl();
@@ -1511,7 +1564,8 @@ bool ReflASTVisitor::VisitFunctionDecl(c::FunctionDecl* Decl) {
         Function* func = out->add_functions();
 
         if (auto args = get_refl_params(Decl)) {
-            func->set_reflectionparams(args.value());
+            setReflectionParamsFromJson(
+                func->mutable_reflectionparams(), args.value());
         }
 
         func->set_name(Decl->getNameAsString());
@@ -1550,7 +1604,8 @@ bool ReflASTVisitor::VisitEnumDecl(c::EnumDecl* Decl) {
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
 
         if (auto args = get_refl_params(Decl)) {
-            rec->set_reflectionparams(args.value());
+            setReflectionParamsFromJson(
+                rec->mutable_reflectionparams(), args.value());
         }
 
         std::string origin = (Typedef

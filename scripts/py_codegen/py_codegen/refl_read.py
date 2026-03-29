@@ -7,10 +7,12 @@ import json
 from pathlib import Path
 import re
 
+from pydantic import ValidationError
 from beartype import beartype
 from py_codegen.codegen_ir import *
 import py_codegen.proto_lib.reflection_defs as pb
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import ExceptionContextNote, log
+from betterproto.lib.google import protobuf as pb_google
 
 CAT = __name__
 
@@ -131,6 +133,36 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
     return res
 
 
+def unwrap_struct_value(val: Any) -> Any:
+    if isinstance(val, dict):
+        if "structValue" in val:
+            return unwrap_struct_value(val["structValue"])
+        if "listValue" in val:
+            return [unwrap_struct_value(v) for v in val["listValue"].get("values", [])]
+        if "stringValue" in val:
+            return val["stringValue"]
+        if "numberValue" in val:
+            return val["numberValue"]
+        if "boolValue" in val:
+            return val["boolValue"]
+        if "nullValue" in val:
+            return None
+        return {k: unwrap_struct_value(v) for k, v in val.items()}
+    return val
+
+
+@beartype
+def conv_proto_reflection_params(
+        reflection_params: Optional[pb_google.Struct]) -> GenTuReflParams:
+    if reflection_params:
+        refl_dict = unwrap_struct_value(reflection_params.to_dict())
+        with ExceptionContextNote(f"Original text is '{refl_dict}'"):
+            return GenTuReflParams.model_validate(refl_dict)
+
+    else:
+        return GenTuReflParams()
+
+
 @beartype
 def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
     "Convert reflection tool protobuf record to codgen IR struct"
@@ -139,16 +171,8 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         GenTuDoc(""),
     )
 
-    if record.reflection_params:
-        try:
-            result.ReflectionParams = GenTuReflParams.model_validate_json(
-                record.reflection_params)
-
-        except json.JSONDecodeError as e:
-            e.add_note(f"While parsing reflection parameters for {result.Name.format()}")
-            e.add_note(f"Original text is '{record.reflection_params}'")
-
-            raise e from None
+    with ExceptionContextNote(f"{result.Name}"):
+        result.ReflectionParams = conv_proto_reflection_params(record.reflection_params)
 
     result.IsExplicitInstantiation = record.is_explicit_instantiation
     result.IsTemplateRecord = record.is_template_record
@@ -201,9 +225,6 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         result.Bases.append(conv_proto_type(base.name))
 
     for meth in record.methods:
-        # if meth.kind != pb.RecordMethodKind.Base:
-        #     continue
-
         IsConstructor = meth.kind in [
             pb.RecordMethodKind.ConvertingConstructor,
             pb.RecordMethodKind.MoveConstructor,
@@ -235,9 +256,8 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
             IsPureVirtual=meth.is_pure_virtual,
         )
 
-        if meth.reflection_params:
-            func.ReflectionParams = GenTuReflParams.model_validate_json(
-                meth.reflection_params)
+        with ExceptionContextNote(f"{result.Name}::{func.Name}"):
+            func.ReflectionParams = conv_proto_reflection_params(meth.reflection_params)
 
         result.Methods.append(func)
 
@@ -265,9 +285,8 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
                 OriginName="refl",
             ))
 
-    if en.reflection_params:
-        result.ReflectionParams = GenTuReflParams.model_validate_json(
-            en.reflection_params)
+    with ExceptionContextNote(f"{result.Name}"):
+        result.ReflectionParams = conv_proto_reflection_params(en.reflection_params)
 
     return result
 
@@ -294,9 +313,8 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
         OriginName="refl",
     )
 
-    if rec.reflection_params:
-        result.ReflectionParams = GenTuReflParams.model_validate_json(
-            rec.reflection_params)
+    with ExceptionContextNote(f"{result.Name}"):
+        result.ReflectionParams = conv_proto_reflection_params(rec.reflection_params)
 
     return result
 
@@ -338,12 +356,13 @@ def open_proto_file(path: Path) -> pb.TU:
     unit = pb.TU()
     assert path.exists(), f"Reflection file {path} does not exist"
 
-    if path.suffix == ".json":
-        unit = unit.from_json(path.read_text())
+    with ExceptionContextNote(f"Parsing file {path}"):
+        if path.suffix == ".json":
+            unit = unit.from_json(path.read_text())
 
-    else:
-        with open(path, "rb") as f:
-            unit = pb.TU.FromString(f.read())
+        else:
+            with open(path, "rb") as f:
+                unit = pb.TU.FromString(f.read())
 
     return unit
 
