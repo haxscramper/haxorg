@@ -481,6 +481,11 @@ def run_codegen_pyhaxorg(
         yaml.safe_dump(to_base_types(groups.conv_tu), stream=file)
         log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
 
+    groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_manual_groups.yaml")
+    with groups_dump_yaml.open("w") as file:
+        yaml.safe_dump(to_base_types(groups.manual_tu), stream=file)
+        log(CAT).info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
+
     _write_files_group(
         gen_haxorg_c_wrappers(
             groups=groups,

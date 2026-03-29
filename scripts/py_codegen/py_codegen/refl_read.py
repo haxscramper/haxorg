@@ -7,12 +7,14 @@ import json
 from pathlib import Path
 import re
 
-from pydantic import ValidationError
 from beartype import beartype
-from py_codegen.codegen_ir import *
+from py_codegen import codegen_ir
+from py_codegen.codegen_ir import QualType
+from beartype.typing import Optional, List, Any
 import py_codegen.proto_lib.reflection_defs as pb
 from py_scriptutils.script_logging import ExceptionContextNote, log
 from betterproto.lib.google import protobuf as pb_google
+from dataclasses import dataclass, field
 
 CAT = __name__
 
@@ -59,12 +61,12 @@ def strip_comment_prefixes(comment: str) -> List[str]:
 
 
 @beartype
-def conv_doc_comment(comment: str) -> GenTuDoc:
+def conv_doc_comment(comment: str) -> codegen_ir.GenTuDoc:
     if not comment:
-        return GenTuDoc("")
+        return codegen_ir.GenTuDoc("")
 
     # Helper function to process content after stripping comment markers
-    def process_content(content: List[str]) -> GenTuDoc:
+    def process_content(content: List[str]) -> codegen_ir.GenTuDoc:
         brief, full = [], []
         is_brief = True
 
@@ -79,7 +81,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
             else:
                 full.append(line)
 
-        return GenTuDoc("\n".join(brief), "\n".join(full))
+        return codegen_ir.GenTuDoc("\n".join(brief), "\n".join(full))
 
     return process_content(strip_comment_prefixes(comment))
 
@@ -102,27 +104,27 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
             #     assert res.name != "", typ
 
         case pb.TypeKind.FunctionPtr:
-            res.Kind = QualTypeKind.FunctionPtr
+            res.Kind = codegen_ir.QualTypeKind.FunctionPtr
             res.Func = QualType.Function(
                 ReturnType=conv_proto_type(typ.parameters[0]),
                 Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
                 if 1 < len(typ.parameters) else [])
 
         case pb.TypeKind.Array:
-            res.Kind = QualTypeKind.Array
+            res.Kind = codegen_ir.QualTypeKind.Array
             res.Params = [conv_proto_type(t) for t in typ.parameters]
 
         case pb.TypeKind.TypeExpr:
-            res.Kind = QualTypeKind.TypeExpr
+            res.Kind = codegen_ir.QualTypeKind.TypeExpr
             res.Expr = typ.type_value.value
 
     res.IsConst = any([it.is_const for it in typ.qualifiers])
     res.IsNamespace = typ.is_namespace
     res.IsGlobalNamespace = typ.is_global_namespace
     res.RefKind = {
-        pb.ReferenceKind.NotRef: ReferenceKind.NotRef,
-        pb.ReferenceKind.LValue: ReferenceKind.LValue,
-        pb.ReferenceKind.RValue: ReferenceKind.RValue,
+        pb.ReferenceKind.NotRef: codegen_ir.ReferenceKind.NotRef,
+        pb.ReferenceKind.LValue: codegen_ir.ReferenceKind.LValue,
+        pb.ReferenceKind.RValue: codegen_ir.ReferenceKind.RValue,
     }[typ.ref_kind]
 
     res.IsTemplateTypeParam = typ.is_template_type_param
@@ -153,22 +155,23 @@ def unwrap_struct_value(val: Any) -> Any:
 
 @beartype
 def conv_proto_reflection_params(
-        reflection_params: Optional[pb_google.Struct]) -> GenTuReflParams:
+        reflection_params: Optional[pb_google.Struct]) -> codegen_ir.GenTuReflParams:
     if reflection_params:
         refl_dict = unwrap_struct_value(reflection_params.to_dict())
         with ExceptionContextNote(f"Original text is '{refl_dict}'"):
-            return GenTuReflParams.model_validate(refl_dict)
+            return codegen_ir.GenTuReflParams.model_validate(refl_dict)
 
     else:
-        return GenTuReflParams()
+        return codegen_ir.GenTuReflParams()
 
 
 @beartype
-def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
+def conv_proto_record(record: pb.Record,
+                      original: Optional[Path]) -> codegen_ir.GenTuStruct:
     "Convert reflection tool protobuf record to codgen IR struct"
-    result = GenTuStruct(
+    result = codegen_ir.GenTuStruct(
         conv_proto_type(record.name, is_anon_name=not record.has_name),
-        GenTuDoc(""),
+        codegen_ir.GenTuDoc(""),
     )
 
     with ExceptionContextNote(f"{result.Name}"):
@@ -186,12 +189,12 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         result.ExplicitTemplateParams.append(conv_proto_type(arg))
 
     if result.IsTemplateRecord:
-        result.TemplateParams = GenTuTemplateParams(Stacks=[])
+        result.TemplateParams = codegen_ir.GenTuTemplateParams(Stacks=[])
         for _template in record.templates:
-            group = GenTuTemplateGroup()
+            group = codegen_ir.GenTuTemplateGroup()
             for _param in _template.parameters:
                 group.Params.append(
-                    GenTuTemplateTypename(
+                    codegen_ir.GenTuTemplateTypename(
                         Variadic=_param.is_variadic,
                         Placeholder=_param.is_placeholder,
                         Name=_param.name,
@@ -203,7 +206,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
     for _field in record.fields:
         if _field.is_type_decl:
             result.Fields.append(
-                GenTuField(
+                codegen_ir.GenTuField(
                     Type=None,
                     Name=_field.name,
                     Doc=conv_doc_comment(_field.doc),
@@ -214,7 +217,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
         else:
             result.Fields.append(
-                GenTuField(
+                codegen_ir.GenTuField(
                     Type=conv_proto_type(_field.type),
                     Name=_field.name,
                     Doc=conv_doc_comment(_field.doc),
@@ -241,7 +244,7 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
         else:
             final_result = conv_proto_type(meth.return_ty)
 
-        func = GenTuFunction(
+        func = codegen_ir.GenTuFunction(
             ReturnType=final_result,
             Name=meth.name,
             Doc=conv_doc_comment(meth.doc),
@@ -271,16 +274,16 @@ def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruc
 
 
 @beartype
-def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
-    result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
+def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> codegen_ir.GenTuEnum:
+    result = codegen_ir.GenTuEnum(conv_proto_type(en.name), codegen_ir.GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
     result.OriginalPath = copy(original)
     result.IsDescribedEnum = en.is_described_enum
     for _field in en.fields:
         result.Fields.append(
-            GenTuEnumField(
+            codegen_ir.GenTuEnumField(
                 _field.name,
-                GenTuDoc(""),
+                codegen_ir.GenTuDoc(""),
                 Value=_field.value,
                 OriginName="refl",
             ))
@@ -292,8 +295,8 @@ def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
 
 
 @beartype
-def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
-    return GenTuIdent(
+def conv_proto_arg(arg: pb.Arg) -> codegen_ir.GenTuIdent:
+    return codegen_ir.GenTuIdent(
         Name=arg.name,
         Type=conv_proto_type(arg.type),
         Value=conv_proto_default(arg.default),
@@ -302,12 +305,13 @@ def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
 
 
 @beartype
-def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunction:
-    result = GenTuFunction(
+def conv_proto_function(rec: pb.Function,
+                        original: Optional[Path]) -> codegen_ir.GenTuFunction:
+    result = codegen_ir.GenTuFunction(
         ReturnType=conv_proto_type(rec.result_ty),
         Name=rec.name,
         Args=[conv_proto_arg(arg) for arg in rec.arguments],
-        Doc=GenTuDoc(""),
+        Doc=codegen_ir.GenTuDoc(""),
         OriginalPath=copy(original),
         Spaces=[conv_proto_type(T) for T in rec.spaces],
         OriginName="refl",
@@ -320,8 +324,9 @@ def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunc
 
 
 @beartype
-def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypedef:
-    return GenTuTypedef(
+def conv_proto_typedef(rec: pb.Typedef,
+                       original: Optional[Path]) -> codegen_ir.GenTuTypedef:
+    return codegen_ir.GenTuTypedef(
         Name=conv_proto_type(rec.name),
         Base=conv_proto_type(rec.base_type),
         Original=original,
@@ -330,8 +335,9 @@ def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypede
 
 
 @beartype
-def conv_proto_include(rec: pb.Include, original: Optional[Path]) -> GenTuInclude:
-    return GenTuInclude(
+def conv_proto_include(rec: pb.Include,
+                       original: Optional[Path]) -> codegen_ir.GenTuInclude:
+    return codegen_ir.GenTuInclude(
         what=rec.relative_path,
         absolutePath=rec.absolute_path,
     )
@@ -340,14 +346,14 @@ def conv_proto_include(rec: pb.Include, original: Optional[Path]) -> GenTuInclud
 @beartype
 @dataclass
 class ConvTu:
-    structs: List[GenTuStruct] = field(default_factory=list)
-    functions: List[GenTuFunction] = field(default_factory=list)
-    enums: List[GenTuEnum] = field(default_factory=list)
-    typedefs: List[GenTuTypedef] = field(default_factory=list)
-    includes: List[GenTuInclude] = field(default_factory=list)
+    structs: List[codegen_ir.GenTuStruct] = field(default_factory=list)
+    functions: List[codegen_ir.GenTuFunction] = field(default_factory=list)
+    enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
+    typedefs: List[codegen_ir.GenTuTypedef] = field(default_factory=list)
+    includes: List[codegen_ir.GenTuInclude] = field(default_factory=list)
     absoluteOriginal: Optional[str] = None
 
-    def get_all(self) -> List[GenTuUnion]:
+    def get_all(self) -> List[codegen_ir.GenTuUnion]:
         return self.enums + self.typedefs + self.structs + self.functions
 
 
@@ -358,7 +364,8 @@ def open_proto_file(path: Path) -> pb.TU:
 
     with ExceptionContextNote(f"Parsing file {path}"):
         if path.suffix == ".json":
-            unit = unit.from_json(path.read_text())
+            import commentjson
+            unit = unit.from_dict(commentjson.loads(path.read_text()))
 
         else:
             with open(path, "rb") as f:

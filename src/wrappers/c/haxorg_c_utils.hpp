@@ -338,9 +338,37 @@ ResultCType execute_cpp(
 }
 
 
+template <
+    typename ResultCType,
+    typename CppRecordType,
+    typename ResultCppType,
+    typename CRecordType>
+ResultCType get_cpp_field(
+    OrgContext*   ctx,
+    CRecordType   __this,
+    ResultCppType CppRecordType::* field_ptr) {
+    auto lambda = [field_ptr](CppRecordType const* _class) {
+        return _class.*field_ptr;
+    };
+    return execute_cpp_impl<
+        ResultCType,
+        ResultCppType,
+        decltype(lambda),
+        CppRecordType const*,
+        CRecordType>(lambda, ctx, __this);
+}
+
+
 template <typename BaseType, typename WrappedType>
 void execute_destroy(OrgContext* ctx, WrappedType* type) {
     delete unwrap_instance<BaseType>(ctx, type->data);
+    type->data.data = nullptr;
+}
+
+template <typename VTableType, typename WrappedType>
+void execute_destroy_vtable(OrgContext* ctx, WrappedType* type) {
+    static_cast<VTableType>(type->data.vtable)->destroy(ctx, type);
+    // delete unwrap_instance<BaseType>(ctx, type->data);
     type->data.data = nullptr;
 }
 

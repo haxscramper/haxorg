@@ -1170,6 +1170,9 @@ class ASTBuilder(base.AstbuilderBase):
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.b.line([lhs, self.string("."), rhs])
 
+    def Arrow(self, lhs: BlockId, rhs: BlockId) -> BlockId:
+        return self.b.line([lhs, self.string("->"), rhs])
+
     def Doc(self, doc: DocParams) -> BlockId:
         content: List[str] = []
         isFirst = True

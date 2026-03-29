@@ -22,6 +22,7 @@ from beartype.typing import (
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
 from pydantic import AliasChoices, BaseModel, Field
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -1312,6 +1313,7 @@ class GenTypeMap:
         self.name_to_index[qual_name.Name].append(new_index)
 
         if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
+            log(CAT).info(f"Registered type {typ} as a template in type map")
             self.template_name_to_index[typ.Name.qual_hash()].append(new_index)
 
         self.entries.append(typ)

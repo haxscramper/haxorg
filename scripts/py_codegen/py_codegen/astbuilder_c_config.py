@@ -21,14 +21,8 @@ class CAstbuilderConfig(AstbulderConfig):
         prefix = "haxorg_"
 
         match Type.flatQualNameWithParams():
-        # case ["hstd", "Vec", _]:
-        #     return QualType(Name=prefix + "HstdVec")
-
             case ["hstd", "UnorderedSet", _]:
                 return QualType(Name=prefix + "HstdUnorderedSet")
-
-            case ["hstd", "Opt", _]:
-                return QualType(Name=prefix + "HstdOpt")
 
             case ["hstd", "IntSet", _]:
                 return QualType(Name=prefix + "HstdIntSet")
@@ -50,6 +44,12 @@ class CAstbuilderConfig(AstbulderConfig):
                 # all versions of the sem ID are mapped to the same type, and in the
                 # C code the developer can cast the results of `get()` to retrieve the
                 # correct type of the node.
+                #
+                # TODO: This hardcoded edge case can be replaced with the custom
+                # reflection configuration: similar to `void-handle`, I can define a
+                # `common-parameter-base` or something like that, and instead of
+                # using `void*` for all placeholder returns, I can use `{"Name": "Org"}`
+                # as a default template type parameter and map all types to this one.
                 return QualType(
                     Name=prefix + self.getTypeBindName(Type, withParams=False) + "OfOrg",
                     DbgOrigin=str(Type.flatQualNameWithParams()),
@@ -101,9 +101,6 @@ class CAstbuilderConfig(AstbulderConfig):
                 # that are wrapped as independent structures.
                 if template_type and template_type[
                         0].ReflectionParams.backend.c.instantiation_mode == "void-handle":
-                    log(CAT).info(
-                        f"Found usage of the void-handle type in the API: {Type} -> {template_type[0].Name}"
-                    )
                     useParams = False
 
                 else:

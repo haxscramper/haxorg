@@ -1,6 +1,7 @@
 import copy
 from dataclasses import dataclass, field, replace
 from graphlib import CycleError, TopologicalSorter
+import itertools
 from pathlib import Path
 
 from beartype import beartype
@@ -21,7 +22,7 @@ CAT = __name__
 
 @beartype
 def topological_sort_entries(
-    entries: Sequence[codegen_ir.GenTuUnion],
+    entries: Sequence[codegen_ir.GenTuEntry],
     use_bases: bool = True,
     use_api: bool = False,
     is_forward_declared: Callable[[QualType], bool] = lambda it: False,
@@ -422,23 +423,25 @@ class PyhaxorgTypeGroups():
                     for sub in e.Nested:
                         aux(sub, ind + 1)
 
-        result = self.full_enums + \
-            self.conv_tu.enums + \
-            self.conv_tu.structs + \
-            self.conv_tu.typedefs + \
-            self.manual_tu.enums + \
-            self.manual_tu.structs + \
-            self.manual_tu.typedefs + \
-            self.shared_types + \
-            self.expanded + \
-            self.conv_tu.functions + \
-            self.manual_tu.functions + \
-            self.immutable + \
-            self.imm_id_specializations + \
-            self.adapter_specializations + \
-            self.only_wrap_entries
-
-        return topological_sort_entries(result)
+        return topological_sort_entries(
+            list(
+                itertools.chain(
+                    self.full_enums,
+                    self.conv_tu.enums,
+                    self.conv_tu.structs,
+                    self.conv_tu.typedefs,
+                    self.manual_tu.enums,
+                    self.manual_tu.structs,
+                    self.manual_tu.typedefs,
+                    self.shared_types,
+                    self.expanded,
+                    self.conv_tu.functions,
+                    self.manual_tu.functions,
+                    self.immutable,
+                    self.imm_id_specializations,
+                    self.adapter_specializations,
+                    self.only_wrap_entries,
+                )))
 
 
 @beartype
@@ -549,9 +552,21 @@ def get_pyhaxorg_type_groups(
         get_osk_enum(res.expanded)
     ]
 
+    import itertools
     res.type_map = codegen_ir.get_type_map(
-        res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
-        res.conv_tu.structs + res.conv_tu.typedefs + res.full_enums,)
+        list(
+            itertools.chain(
+                res.expanded,
+                res.shared_types,
+                res.immutable,
+                res.conv_tu.enums,
+                res.conv_tu.structs,
+                res.conv_tu.typedefs,
+                res.manual_tu.enums,
+                res.manual_tu.structs,
+                res.manual_tu.typedefs,
+                res.full_enums,
+            )))
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
     for sem_base in res.expanded:

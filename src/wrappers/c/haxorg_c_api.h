@@ -20,14 +20,6 @@ struct haxorg_StdString {
     haxorg_ptr_payload data;
 };
 
-struct haxorg_HstdVec {
-    haxorg_ptr_payload data;
-};
-
-struct haxorg_HstdOpt {
-    haxorg_ptr_payload data;
-};
-
 struct haxorg_StdOptional {
     haxorg_ptr_payload data;
 };

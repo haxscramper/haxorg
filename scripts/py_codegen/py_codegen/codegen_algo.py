@@ -125,6 +125,8 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
                     Params=list(map(aux, subst.Params)),
                     Spaces=list(map(aux, subst.Spaces)),
                     Kind=subst.Kind,
+                    IsTemplateTypeParam=subst.IsTemplateTypeParam,
+                    IsTemplateInjectedType=subst.IsTemplateInjectedType,
                 )
 
         match Type.Kind:

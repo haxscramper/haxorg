@@ -126,8 +126,20 @@ def _gen_vtable_function_call(
     conf: CAstbuilderConfig,
     ThisIdent: Optional[codegen_ir.GenTuIdent],
     VTable: QualType,
+    Class: QualType,
 ) -> BlockId:
-    pass
+    assert ThisIdent
+    return ast.Call(
+        ast.pars(
+            ast.Arrow(
+                ast.XCall("static_cast", Params=[_get_vtable_type(Class, conf)]),
+                ast.string(_get_func_base_name(func)),
+            )),
+        Args=[
+            ast.string("org_context"),
+            ast.string(ThisIdent.Name),
+        ] + [ast.string(a.Name) for a in func.Args],
+    )
 
 
 @beartype
@@ -165,7 +177,8 @@ def _gen_func(
         FuncName = f"haxorg_{_get_func_base_name(func)}"
 
     if VTable:
-        impl_call = _gen_vtable_function_call(func, ast, conf, ThisIdent, VTable)
+        assert Class
+        impl_call = _gen_vtable_function_call(func, ast, conf, ThisIdent, VTable, Class)
 
     else:
         impl_call = _gen_direct_function_call(func, ast, conf, ThisIdent)
@@ -242,10 +255,7 @@ def _gen_vtable_specialization(
             Impl = ast.XCall(
                 "org::bind::c::execute_cpp",
                 args=ExecuteArgs,
-                Params=[
-                    conf.getBackendType(_meth.ReturnType),
-                    _get_vtable_type(_meth.ReturnType, conf),
-                ],
+                Params=[conf.getBackendType(_meth.ReturnType)],
             )
 
             Impl = ast.Return(Impl)
@@ -322,11 +332,35 @@ class _StructGenResult():
 
 @beartype
 def _gen_struct_destructor(
+    *,
     struct: codegen_ir.GenTuStruct,
     basename: str,
     ast: cpp.ASTBuilder,
     wrap_struct: codegen_ir.GenTuStruct,
+    vtable_struct: Optional[codegen_ir.GenTuStruct],
+    conf: CAstbuilderConfig,
 ) -> codegen_ir.GenTuFunction:
+
+    if vtable_struct:
+        Impl = ast.XCall(
+            "org::bind::c::execute_destroy_vtable",
+            args=[
+                ast.string(_CONTEXT_ARG.Name),
+                ast.string("obj"),
+            ],
+            Params=[_get_vtable_type(struct.declarationQualName(), conf)],
+            Stmt=True,
+        )
+
+    else:
+        Impl = ast.XCall(
+            "org::bind::c::execute_destroy",
+            args=[ast.string(_CONTEXT_ARG.Name),
+                  ast.string("obj")],
+            Params=[struct.declarationQualName()],
+            Stmt=True,
+        )
+
     return codegen_ir.GenTuFunction(
         Name=f"haxorg_destroy_{basename}",
         Args=[
@@ -334,15 +368,65 @@ def _gen_struct_destructor(
             codegen_ir.GenTuIdent(Name="obj",
                                   Type=wrap_struct.Name.copy_update(PtrCount=1))
         ],
-        Body=ast.XCall(
-            "org::bind::c::execute_destroy",
-            args=[ast.string(_CONTEXT_ARG.Name),
-                  ast.string("obj")],
-            Params=[struct.declarationQualName()],
-            Stmt=True,
-        ),
+        Body=Impl,
         Annotations=[_LINK_ANNOTATION],
     )
+
+
+@beartype
+def _gen_struct_fields(
+    *,
+    struct: codegen_ir.GenTuStruct,
+    vtable_struct: Optional[codegen_ir.GenTuStruct],
+    result: _StructGenResult,
+    conf: CAstbuilderConfig,
+    wrap_struct: codegen_ir.GenTuStruct,
+    ast: cpp.ASTBuilder,
+):
+
+    for f in struct.Fields:
+        if conf.isAcceptedByBackend(f):
+            assert f.Type
+            if vtable_struct:
+                vtable_struct.Fields.append(
+                    codegen_ir.GenTuField(
+                        Name=f"get_{f.Name}",
+                        Type=QualType.ForFunction(
+                            ReturnType=conf.getBackendType(f.Type).asConstPtr(),
+                            Args=[_CONTEXT_ARG.Type,
+                                  wrap_struct.Name.asConstPtr()],
+                        )))
+
+            else:
+                result.wrappers.append(
+                    codegen_ir.GenTuFunction(
+                        Name=f"{wrap_struct.Name.Name}_get_{f.Name}",
+                        ReturnType=conf.getBackendType(f.Type),
+                        Args=[
+                            _CONTEXT_ARG,
+                            codegen_ir.GenTuIdent(wrap_struct.Name, "__this")
+                        ],
+                        Body=ast.Return(
+                            ast.XCall(
+                                "org::bind::c::get_cpp_field",
+                                args=[
+                                    ast.string(_CONTEXT_ARG.Name),
+                                    ast.string("__this"),
+                                    ast.Addr(
+                                        ast.Scoped(
+                                            struct.declarationQualName(),
+                                            ast.string(f.Name),
+                                        )),
+                                ],
+                                Params=[
+                                    conf.getBackendType(f.Type),
+                                    struct.declarationQualName(),
+                                    f.Type,
+                                    conf.getBackendType(struct.declarationQualName()),
+                                ],
+                            )),
+                        Annotations=[_LINK_ANNOTATION],
+                    ))
 
 
 @beartype
@@ -372,31 +456,14 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
     result.forward_decls.append(
         codegen_ir.GenTuStruct(Name=wrap_struct.Name, IsForwardDecl=True))
 
-    for f in struct.Fields:
-        if conf.isAcceptedByBackend(f):
-            assert f.Type
-            if vtable_struct:
-                vtable_struct.Fields.append(
-                    codegen_ir.GenTuField(
-                        Name=f"get_{f.Name}",
-                        Type=QualType.ForFunction(
-                            ReturnType=conf.getBackendType(f.Type).asConstPtr(),
-                            Args=[_CONTEXT_ARG.Type,
-                                  wrap_struct.Name.asConstPtr()],
-                        )))
-
-            else:
-                result.wrappers.append(
-                    codegen_ir.GenTuFunction(
-                        Name=f"{wrap_struct.Name.Name}_get_{f.Name}",
-                        ReturnType=conf.getBackendType(f.Type),
-                        Args=[
-                            _CONTEXT_ARG,
-                            codegen_ir.GenTuIdent(wrap_struct.Name, "__this")
-                        ],
-                        Body=ast.string(""),
-                        Annotations=[_LINK_ANNOTATION],
-                    ))
+    _gen_struct_fields(
+        struct=struct,
+        vtable_struct=vtable_struct,
+        result=result,
+        conf=conf,
+        wrap_struct=wrap_struct,
+        ast=ast,
+    )
 
     wrap_struct.Fields.append(codegen_ir.GenTuField(
         Type=_PAYLOAD_TYPE,
@@ -450,6 +517,8 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
             basename=basename,
             ast=ast,
             wrap_struct=wrap_struct,
+            vtable_struct=vtable_struct,
+            conf=conf,
         ))
 
     return result
@@ -461,8 +530,9 @@ def _gen_haxorg_c_template_instantiations(
         conf: CAstbuilderConfig) -> list[codegen_ir.GenTuStruct]:
     result = list()
 
-    def _add_instantiated_struct(entry: codegen_ir.GenTuStruct,
-                                 substitution_map: dict[str, QualType]):
+    def _add_instantiated_struct(
+            entry: codegen_ir.GenTuStruct,
+            substitution_map: dict[str, QualType]) -> codegen_ir.GenTuStruct:
         instantiated = instantiate_template(
             entry,
             substitution_map=substitution_map,
@@ -472,9 +542,7 @@ def _gen_haxorg_c_template_instantiations(
         assert isinstance(instantiated, codegen_ir.GenTuStruct)
 
         result.append(instantiated)
-
-    specializations = collect_type_specializations(groups.get_entries_for_wrapping(),
-                                                   conf)
+        return instantiated
 
     reflection_template_types: List[codegen_ir.GenTuStruct] = list()
 
@@ -483,11 +551,37 @@ def _gen_haxorg_c_template_instantiations(
                      ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
             match entry.declarationQualName().flatQualNameWithParams():
                 case ["org", "sem", "SemId", _]:
+                    # TODO: This edge case can be replaced by the reflection
+                    # parameters in the type annotations.
                     _add_instantiated_struct(
                         entry, {"O": QualType(Name="Org", Spaces=[n_sem()])})
 
                 case _:
                     reflection_template_types.append(entry)
+
+    instantiated_void_handles = list()
+    for template_type in reflection_template_types:
+        if template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
+            log(CAT).info(f"Found void-handle type {template_type}")
+            assert template_type.ReflectionParams.backend.c.value_template_parameters, (
+                "void-handle must provide names for the template type parameters")
+
+            instantiated_void_handles.append(
+                _add_instantiated_struct(
+                    template_type,
+                    {
+                        K: _PAYLOAD_TYPE for K in
+                        template_type.ReflectionParams.backend.c.value_template_parameters
+                    },
+                ))
+
+    for _inst in instantiated_void_handles:
+        log(CAT).info(f"_inst = {_inst}")
+
+    specializations = collect_type_specializations(
+        groups.get_entries_for_wrapping() + instantiated_void_handles,
+        conf,
+    )
 
     for template_type in reflection_template_types:
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
@@ -497,19 +591,6 @@ def _gen_haxorg_c_template_instantiations(
                     template=template_type.declarationQualName(),
             ):
                 _add_instantiated_struct(template_type, substitution_map=substitution_map)
-
-        elif template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
-            log(CAT).info(f"Found void-handle type {template_type}")
-            assert template_type.ReflectionParams.backend.c.value_template_parameters, (
-                "void-handle must provide names for the template type parameters")
-
-            _add_instantiated_struct(
-                template_type,
-                {
-                    K: _PAYLOAD_TYPE for K in
-                    template_type.ReflectionParams.backend.c.value_template_parameters
-                },
-            )
 
     return result
 

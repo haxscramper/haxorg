@@ -2,13 +2,25 @@
   "$schema": "proto_lib/TU.schema.json",
   "records": [
     {
-      "name": {
-        "spaces": [
-          {"name": "hstd"}
-        ],
-        "name": "Opt"
+      "name"              : {
+        "Spaces": [ {"Name": "hstd"} ],
+        "Name"  : "Opt"
       },
-      "reflection_params": {}
+      "reflection_params" : {
+        "backend": {
+          "target_backends": ["c"],
+          "c"              : {
+            "instantiation_mode"       : "void-handle",
+            "value_template_parameters": ["T"]
+          }
+        }
+      },
+      "is_template_record": true,
+      "templates"         : [
+        {
+          "parameters": [ {"name": "T"} ]
+        }
+      ]
     }
   ]
 }

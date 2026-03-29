@@ -37,93 +37,7 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
-def betterproto_to_jsonschema(msg_class, defs=None):
-    if defs is None:
-        defs = {}
-
-    class_name = msg_class.__name__
-    if class_name in defs:
-        return {"$ref": f"#/$defs/{class_name}"}
-
-    defs[class_name] = {}
-    properties = {}
-
-    resolved_hints = typing.get_type_hints(msg_class)
-
-    for f in fields(msg_class):
-        if f.name.startswith("_"):
-            continue
-
-        resolved_type = resolved_hints.get(f.name, f.type)
-        prop = _field_to_schema(resolved_type, defs)
-        if prop is not None:
-            properties[f.name] = prop
-
-    schema = {"type": "object", "properties": properties}
-    defs[class_name] = schema
-    return {"$ref": f"#/$defs/{class_name}"}
-
-
-def _field_to_schema(tp, defs):
-    origin = typing.get_origin(tp)
-    args = typing.get_args(tp)
-
-    if origin is list:
-        inner = args[0] if args else str
-        return {"type": "array", "items": _type_to_schema(inner, defs)}
-
-    if origin is typing.Optional or origin is typing.Union:
-        # Optional[X] is Union[X, None]
-        non_none = [a for a in args if a is not type(None)]
-        if non_none:
-            return _type_to_schema(non_none[0], defs)
-
-    return _type_to_schema(tp, defs)
-
-
-def _type_to_schema(tp, defs):
-    if tp is bool:
-        return {"type": "boolean"}
-    if tp is int:
-        return {"type": "integer"}
-    if tp is float:
-        return {"type": "number"}
-    if tp is str:
-        return {"type": "string"}
-    if tp is bytes:
-        return {"type": "string", "contentEncoding": "base64"}
-
-    try:
-        if isinstance(tp, type) and issubclass(tp, betterproto.Enum):
-            return {"type": "string", "enum": [e.name for e in tp]}
-    except TypeError:
-        pass
-
-    try:
-        if isinstance(tp, type) and issubclass(tp, betterproto.Message):
-            return betterproto_to_jsonschema(tp, defs)
-    except TypeError:
-        pass
-
-    return {}
-
-
-def _generate_schema(msg_class) -> dict:
-    defs = {}
-    root = betterproto_to_jsonschema(msg_class, defs)
-    return {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        **root,
-        "$defs": defs,
-    }
-
-
-def _write_schema(msg_class, output_path: Path):
-    schema = _generate_schema(msg_class)
-    output_path.write_text(json.dumps(schema, indent=2))
-
-
-@haxorg_task(dependencies=[symlink_build])
+@haxorg_task(dependencies=[symlink_build, build_and_setup_text_layout_lib])
 def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
@@ -163,8 +77,8 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     )
 
     from py_codegen.proto_lib.reflection_defs import TU
-    ensure_existing_dir(ctx, proto_lib)
-    _write_schema(TU, proto_lib / "TU.schema.json")
+    from py_codegen.refl_schema_gen import write_schema
+    write_schema(TU, proto_lib / "TU.schema.json")
 
 
 CODEGEN_TASKS = [
