@@ -54,7 +54,8 @@ struct [[refl(R"({
     "backend": {
         "target-backends": ["c"],
         "c": {
-            "instantiation-mode": "void-handle"
+            "instantiation-mode": "void-handle",
+            "value-template-parameters": ["K", "V"]
         }
     }
 })")]] UnorderedMap

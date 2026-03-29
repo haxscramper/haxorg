@@ -670,12 +670,23 @@ class GenTuBackendCParams(BaseModel, extra="forbid"):
     instantiation_mode: Optional[
         Literal["each-specialization"] | Literal["void-handle"]] = Field(
             alias=AliasChoices(  # type: ignore
-                "instantiation_mode", "instantiation-mode"),
+                "instantiation_mode",
+                "instantiation-mode",
+            ),
             default=None,
             description="How template records are handled. "
             "`each-specialization` would create a separate structure for each instantiation of the template. "
             "`void-handle` will create a proxy type with all original templates replaced with the ptr holder. "
         )
+
+    value_template_parameters: Optional[List[str]] = Field(
+        default=None,
+        description=
+        "Which template type parameters refer to the value stored in the structure",
+        alias=AliasChoices(  # type: ignore
+            "value_template_parameters",
+            "value-template-parameters",
+        ))
 
 
 @beartype
@@ -705,7 +716,9 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
     has_begin_end_iteration: bool = Field(
         alias=AliasChoices(  # type: ignore
-            "has-begin-end-iteration", "has_begin_end_iteration"),
+            "has-begin-end-iteration",
+            "has_begin_end_iteration",
+        ),
         default=False,
         description="Type provides `begin()` and `end()` method to construct iterator pair"
     )
@@ -717,7 +730,9 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
     is_get_item: bool = Field(
         alias=AliasChoices(  # type: ignore
-            "is-getitem", "is_getitem"),
+            "is-getitem",
+            "is_getitem",
+        ),
         default=False,
         description="This method can provide __getitem__ implementation")
 
@@ -727,25 +742,33 @@ class GenTuReflParams(BaseModel, extra="forbid"):
     default_constructor: bool = Field(
         default=True,
         alias=AliasChoices(  # type: ignore
-            "default-constructor", "default_constructor"),
+            "default-constructor",
+            "default_constructor",
+        ),
     )
 
     wrapper_name: Optional[str] = Field(
         default=None,
         alias=AliasChoices(  # type: ignore
-            "wrapper-name", "wrapper_name"),
+            "wrapper-name",
+            "wrapper_name",
+        ),
     )
 
     wrapper_has_params: bool = Field(
         default=True,
         alias=AliasChoices(  # type: ignore
-            "wrapper-has-params", "wrapper_has_params"),
+            "wrapper-has-params",
+            "wrapper_has_params",
+        ),
     )
 
     unique_name: Optional[str] = Field(
         default=None,
         alias=AliasChoices(  # type: ignore
-            "unique-name", "unique_name"),
+            "unique-name",
+            "unique_name",
+        ),
         description=
         "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
     )
@@ -755,7 +778,9 @@ class GenTuReflParams(BaseModel, extra="forbid"):
     function_api: Optional[GenTuFunctionApiTraits] = Field(
         default=None,
         alias=AliasChoices(  # type: ignore
-            "function-api", "function_api"),
+            "function-api",
+            "function_api",
+        ),
         description="Reflection entity has a function/method API",
     )
 

@@ -43,7 +43,15 @@ struct std::formatter<hstd::ext::ImmVec<T>>
 
 namespace hstd::ext {
 template <typename K, typename V>
-struct ImmMap : immer::map<K, V> {
+struct [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "void-handle",
+            "value-template-parameters": ["K", "V"]
+        }
+    }
+})")]] ImmMap : immer::map<K, V> {
     using base = immer::map<K, V>;
     using base::at;
     using base::base;
@@ -51,7 +59,7 @@ struct ImmMap : immer::map<K, V> {
 
     ImmMap(base const& val) : base{val} {}
 
-    Opt<V> get(K const& key) const {
+    [[refl]] Opt<V> get(K const& key) const {
         if (auto val = find(key)) {
             return *val;
         } else {
@@ -59,9 +67,11 @@ struct ImmMap : immer::map<K, V> {
         }
     }
 
-    bool contains(K const& key) const { return find(key) != nullptr; }
+    [[refl]] bool contains(K const& key) const {
+        return find(key) != nullptr;
+    }
 
-    Vec<K> keys() const {
+    [[refl]] Vec<K> keys() const {
         Vec<K> result;
         for (const auto& [key, value] : *this) { result.push_back(key); }
         return result;

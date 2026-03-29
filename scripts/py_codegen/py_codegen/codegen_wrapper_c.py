@@ -8,6 +8,7 @@ from beartype import beartype
 from beartype.typing import List, Optional, cast
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_codegen.org_codegen_data import get_types
+from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.script_logging import log
 from py_codegen.codegen_algo import collect_type_specializations, instantiate_template, match_specializations
 
@@ -20,6 +21,9 @@ _CONTEXT_ARG = codegen_ir.GenTuIdent(
 
 _LINK_ANNOTATION = codegen_ir.GenTuAnnotation(
     Attribute=codegen_ir.GenTuAnnotation.Freeform(Body="HAXORG_C_API_LINKAGE"))
+
+_PAYLOAD_TYPE = QualType(Name="haxorg_ptr_payload")
+_VOID_TYPE = QualType(Name="void", PtrCount=1, IsConst=True)
 
 
 @beartype
@@ -37,28 +41,30 @@ def _get_func_base_name(func: codegen_ir.GenTuFunction) -> str:
 
 
 @beartype
-def _gen_func(
+def _get_vtable_type(Type: QualType, conf: CAstbuilderConfig) -> QualType:
+    Unwrap = conf.getResolvedType(Type)
+    if isinstance(conf.getTypeDefinition(Unwrap), codegen_ir.GenTuEnum):
+        return QualType(Name="haxorg_builtin_vtable")
+
+    match Unwrap.flatQualNameWithParams():
+        case ["std", "shared_ptr", _]:
+            return _get_vtable_type(Unwrap.par0(), conf)
+
+        case builtin if builtin in BUILTIN_TYPES:
+            return QualType(Name="haxorg_builtin_vtable")
+
+        case _:
+            Name = conf.getBackendType(Unwrap)
+            return QualType(Name=f"{Name.Name}_vtable")
+
+
+@beartype
+def _gen_direct_function_call(
     func: codegen_ir.GenTuFunction,
     ast: cpp.ASTBuilder,
     conf: CAstbuilderConfig,
-    Class: Optional[QualType] = None,
-) -> codegen_ir.GenTuFunction:
-
-    FuncArgs = [_CONTEXT_ARG]
-
-    ThisIdent: Optional[codegen_ir.GenTuIdent] = None
-
-    if Class and not func.IsConstructor and not func.IsStatic:
-        ThisIdent = codegen_ir.GenTuIdent(conf.getBackendType(Class), "__this")
-        FuncArgs.append(ThisIdent)
-
-    for arg in func.Args:
-        FuncArgs.append(
-            codegen_ir.GenTuIdent(
-                Type=conf.getBackendType(arg.Type),
-                Name=arg.Name,
-            ))
-
+    ThisIdent: Optional[codegen_ir.GenTuIdent],
+) -> BlockId:
     if func.IsConstructor:
         Params = cpp.LambdaParams(IsPtrCast=True,)
         assert func.ParentClass
@@ -106,11 +112,47 @@ def _gen_func(
 
     pass_args += [ast.string(a.Name) for a in func.Args]
 
-    impl_call = ast.XCall(
+    return ast.XCall(
         "org::bind::c::execute_cpp",
         args=pass_args,
         Params=[conf.getBackendType(func.ReturnType)],
     )
+
+
+@beartype
+def _gen_vtable_function_call(
+    func: codegen_ir.GenTuFunction,
+    ast: cpp.ASTBuilder,
+    conf: CAstbuilderConfig,
+    ThisIdent: Optional[codegen_ir.GenTuIdent],
+    VTable: QualType,
+) -> BlockId:
+    pass
+
+
+@beartype
+def _gen_func(
+    func: codegen_ir.GenTuFunction,
+    ast: cpp.ASTBuilder,
+    conf: CAstbuilderConfig,
+    Class: Optional[QualType] = None,
+    VTable: Optional[QualType] = None,
+) -> codegen_ir.GenTuFunction:
+
+    FuncArgs = [_CONTEXT_ARG]
+
+    ThisIdent: Optional[codegen_ir.GenTuIdent] = None
+
+    if Class and not func.IsConstructor and not func.IsStatic:
+        ThisIdent = codegen_ir.GenTuIdent(conf.getBackendType(Class), "__this")
+        FuncArgs.append(ThisIdent)
+
+    for arg in func.Args:
+        FuncArgs.append(
+            codegen_ir.GenTuIdent(
+                Type=conf.getBackendType(arg.Type),
+                Name=arg.Name,
+            ))
 
     if func.IsConstructor:
         assert func.ParentClass
@@ -121,6 +163,12 @@ def _gen_func(
 
     else:
         FuncName = f"haxorg_{_get_func_base_name(func)}"
+
+    if VTable:
+        impl_call = _gen_vtable_function_call(func, ast, conf, ThisIdent, VTable)
+
+    else:
+        impl_call = _gen_direct_function_call(func, ast, conf, ThisIdent)
 
     if func.ReturnType != "void":
         impl_call = ast.Return(impl_call)
@@ -155,10 +203,146 @@ def _gen_enum(en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder,
 
 
 @beartype
+def _gen_vtable_specialization(
+    struct: codegen_ir.GenTuStruct,
+    ast: cpp.ASTBuilder,
+    conf: CAstbuilderConfig,
+    c_type: QualType,
+    c_type_vtable: QualType,
+) -> codegen_ir.GenTuStruct:
+
+    Methods = list()
+
+    cpp_vtable_type = QualType(Name="VTable",
+                               Spaces=[
+                                   QualType.ForSpace("org"),
+                                   QualType.ForSpace("bind"),
+                                   QualType.ForSpace("c"),
+                               ])
+
+    for _meth in struct.Methods:
+        if conf.isAcceptedByBackend(_meth) and not _meth.IsConstructor:
+            assert _meth.ParentClass, f"No parent class for method {_meth.Name} of class {struct.declarationQualName()}"
+
+            ExecuteArgs = list()
+            ExecuteArgs.append(
+                ast.XCall(
+                    "static_cast",
+                    args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
+                    Params=[_meth.get_function_type()],
+                ))
+
+            ExecuteArgs.append(ast.string(_CONTEXT_ARG.Name))
+            if not _meth.IsStatic:
+                ExecuteArgs.append(ast.string("self"))
+
+            for _arg in _meth.Args:
+                ExecuteArgs.append(ast.string(_arg.Name))
+
+            Impl = ast.XCall(
+                "org::bind::c::execute_cpp",
+                args=ExecuteArgs,
+                Params=[
+                    conf.getBackendType(_meth.ReturnType),
+                    _get_vtable_type(_meth.ReturnType, conf),
+                ],
+            )
+
+            Impl = ast.Return(Impl)
+
+            Methods.append(
+                codegen_ir.GenTuFunction(
+                    ReturnType=conf.getBackendType(_meth.ReturnType),
+                    Args=[
+                        _CONTEXT_ARG,
+                        codegen_ir.GenTuIdent(Type=c_type, Name="self"),
+                    ] + [
+                        codegen_ir.GenTuIdent(Type=conf.getBackendType(A.Type),
+                                              Name=A.Name) for A in _meth.Args
+                    ],
+                    IsStatic=True,
+                    Name=_get_func_base_name(_meth),
+                    Body=Impl,
+                    ParentClass=cpp_vtable_type,
+                ))
+
+    vtable_struct = codegen_ir.GenTuStruct(
+        Name=cpp_vtable_type,
+        IsExplicitInstantiation=True,
+        IsTemplateRecord=True,
+        ExplicitTemplateParams=[struct.declarationQualName(), c_type_vtable],
+        TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
+        Methods=Methods,
+    )
+
+    get_vtable_method = codegen_ir.GenTuFunction(
+        Name="get_vtable",
+        IsStatic=True,
+        ReturnType=c_type_vtable.asConstPtr(),
+        Body=ast.stack([
+            ast.Using(
+                cpp.UsingParams(newName="Self",
+                                baseType=vtable_struct.declarationQualName())),
+            ast.VarDecl(
+                cpp.ParmVarParams(
+                    type=c_type_vtable,
+                    name="vtable",
+                    IsConst=True,
+                    storage=cpp.StorageClass.Static,
+                    defWithAssign=False,
+                    defArg=ast.pars(
+                        ast.stack([
+                            ast.line([
+                                ast.string(f".{_meth.Name} = "),
+                                ast.Addr(
+                                    ast.Scoped(QualType(Name="Self"),
+                                               ast.string(_meth.Name))),
+                                ast.string(","),
+                            ]) for _meth in vtable_struct.Methods
+                        ]),
+                        left="{",
+                        right="}",
+                    ),
+                )),
+            ast.Return(ast.Addr(ast.string("vtable"))),
+        ]))
+
+    vtable_struct.Methods.append(get_vtable_method)
+
+    return vtable_struct
+
+
+@beartype
 @dataclass
 class _StructGenResult():
     wrappers: list[codegen_ir.GenTuEntry] = field(default_factory=list)
     forward_decls: list[codegen_ir.GenTuEntry] = field(default_factory=list)
+    vtables: list[codegen_ir.GenTuEntry] = field(default_factory=list)
+
+
+@beartype
+def _gen_struct_destructor(
+    struct: codegen_ir.GenTuStruct,
+    basename: str,
+    ast: cpp.ASTBuilder,
+    wrap_struct: codegen_ir.GenTuStruct,
+) -> codegen_ir.GenTuFunction:
+    return codegen_ir.GenTuFunction(
+        Name=f"haxorg_destroy_{basename}",
+        Args=[
+            _CONTEXT_ARG,
+            codegen_ir.GenTuIdent(Name="obj",
+                                  Type=wrap_struct.Name.copy_update(PtrCount=1))
+        ],
+        Body=ast.XCall(
+            "org::bind::c::execute_destroy",
+            args=[ast.string(_CONTEXT_ARG.Name),
+                  ast.string("obj")],
+            Params=[struct.declarationQualName()],
+            Stmt=True,
+        ),
+        Annotations=[_LINK_ANNOTATION],
+    )
 
 
 @beartype
@@ -176,14 +360,59 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
         Doc=codegen_ir.GenTuDoc(
             f"{struct.declarationQualName().flatQualNameWithParams()}"))
 
+    vtable_struct: Optional[codegen_ir.GenTuStruct] = None
+
+    if struct.ReflectionParams.backend.c.instantiation_mode == "void-handle":
+        vtable_struct = codegen_ir.GenTuStruct(
+            Name=QualType(Name=f"haxorg_{basename}_vtable"),
+            GenDescribeFields=False,
+            GenDescribeMethods=False,
+        )
+
     result.forward_decls.append(
         codegen_ir.GenTuStruct(Name=wrap_struct.Name, IsForwardDecl=True))
 
-    payload_type = QualType(Name="haxorg_ptr_payload")
+    for f in struct.Fields:
+        if conf.isAcceptedByBackend(f):
+            assert f.Type
+            if vtable_struct:
+                vtable_struct.Fields.append(
+                    codegen_ir.GenTuField(
+                        Name=f"get_{f.Name}",
+                        Type=QualType.ForFunction(
+                            ReturnType=conf.getBackendType(f.Type).asConstPtr(),
+                            Args=[_CONTEXT_ARG.Type,
+                                  wrap_struct.Name.asConstPtr()],
+                        )))
+
+            else:
+                result.wrappers.append(
+                    codegen_ir.GenTuFunction(
+                        Name=f"{wrap_struct.Name.Name}_get_{f.Name}",
+                        ReturnType=conf.getBackendType(f.Type),
+                        Args=[
+                            _CONTEXT_ARG,
+                            codegen_ir.GenTuIdent(wrap_struct.Name, "__this")
+                        ],
+                        Body=ast.string(""),
+                        Annotations=[_LINK_ANNOTATION],
+                    ))
+
     wrap_struct.Fields.append(codegen_ir.GenTuField(
-        Type=payload_type,
+        Type=_PAYLOAD_TYPE,
         Name="data",
     ))
+
+    if vtable_struct:
+        result.vtables.append(vtable_struct)
+        result.vtables.append(
+            _gen_vtable_specialization(
+                struct=struct,
+                ast=ast,
+                conf=conf,
+                c_type=wrap_struct.Name,
+                c_type_vtable=vtable_struct.Name,
+            ))
 
     for _meth in struct.Methods:
         if conf.isAcceptedByBackend(_meth):
@@ -197,6 +426,7 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
                     conv = _gen_struct(entry, ast, conf)
                     result.forward_decls.extend(conv.forward_decls)
                     result.wrappers.extend(conv.wrappers)
+                    result.vtables.extend(conv.vtables)
 
             case codegen_ir.GenTuEnum():
                 if conf.isAcceptedByBackend(entry):
@@ -215,21 +445,11 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
     result.wrappers.append(wrap_struct)
 
     result.wrappers.append(
-        codegen_ir.GenTuFunction(
-            Name=f"haxorg_destroy_{basename}",
-            Args=[
-                _CONTEXT_ARG,
-                codegen_ir.GenTuIdent(Name="obj",
-                                      Type=wrap_struct.Name.copy_update(PtrCount=1))
-            ],
-            Body=ast.XCall(
-                "org::bind::c::execute_destroy",
-                args=[ast.string(_CONTEXT_ARG.Name),
-                      ast.string("obj")],
-                Params=[struct.declarationQualName()],
-                Stmt=True,
-            ),
-            Annotations=[_LINK_ANNOTATION],
+        _gen_struct_destructor(
+            struct=struct,
+            basename=basename,
+            ast=ast,
+            wrap_struct=wrap_struct,
         ))
 
     return result
@@ -281,6 +501,16 @@ def _gen_haxorg_c_template_instantiations(
 
         elif template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
             log(CAT).info(f"Found void-handle type {template_type}")
+            assert template_type.ReflectionParams.backend.c.value_template_parameters, (
+                "void-handle must provide names for the template type parameters")
+
+            _add_instantiated_struct(
+                template_type,
+                {
+                    K: _PAYLOAD_TYPE for K in
+                    template_type.ReflectionParams.backend.c.value_template_parameters
+                },
+            )
 
     return result
 
@@ -294,11 +524,13 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
     standalone_funcs: List[codegen_ir.GenTuFunction] = list()
     wrapped_structs: List[codegen_ir.GenTuEntry] = list()
     header_only: list[codegen_ir.GenTuEntry] = list()
+    vtables: list[codegen_ir.GenTuEntry] = list()
 
     def _add_struct(entry: codegen_ir.GenTuStruct):
         structs = _gen_struct(entry, ast, conf)
         wrapped_structs.extend(structs.wrappers)
         header_only.extend(structs.forward_decls)
+        vtables.extend(structs.vtables)
 
     for template_instantition in _gen_haxorg_c_template_instantiations(groups, conf):
         _add_struct(template_instantition)
@@ -370,7 +602,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables_manual.hpp",
                                             True),
-                ],
+                ] + vtables,
             ),
             source=codegen_ir.GenTu(
                 "{root}/src/wrappers/c/haxorg_c_vtables.cpp",
@@ -380,7 +612,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables.hpp", True),
                     codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables_manual.hpp",
                                             True),
-                ],
+                ] + vtables,
             ),
         )
     ])

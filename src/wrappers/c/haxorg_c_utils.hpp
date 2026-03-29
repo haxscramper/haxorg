@@ -80,6 +80,8 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
     }
 }
 
+template <typename T, typename CVtable>
+struct VTable;
 
 template <typename T>
 concept IsCWrapped = requires(T t) {

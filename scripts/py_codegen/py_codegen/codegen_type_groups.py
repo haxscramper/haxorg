@@ -446,6 +446,14 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
 
     def aux(entry: codegen_ir.GenTuEntry | codegen_ir.GenTuField | codegen_ir.QualType |
             codegen_ir.GenTuIdent | None):
+
+        if isinstance(entry, (
+                codegen_ir.GenTuStruct,
+                codegen_ir.GenTuField,
+                codegen_ir.GenTuFunction,
+        )) and not conf.isAcceptedByBackend(entry):
+            return
+
         match entry:
             case None:
                 pass
@@ -454,8 +462,15 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                 aux(entry.Type)
 
             case codegen_ir.QualType():
-                if not conf.isRegisteredForBacked(entry) and entry.qual_hash(
-                ) not in specialization_map:
+                # Type with unresolved template parameters should not be a part of the API
+                assert len(entry.getTemplateParameters(
+                )) == 0, f"Found type {entry} with unresolved template parameters"
+
+                if all([
+                        not conf.isRegisteredForBacked(entry),
+                        #
+                        entry.qual_hash() not in specialization_map,
+                ]):
                     raise ValueError(
                         f"Type {entry} is not registered in the the API map or the list of specializations. "
                         f"List match is {entry.flatQualNameWithParams()}.")
