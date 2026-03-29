@@ -607,6 +607,7 @@ export interface haxorg_wasm_module_auto {
   GraphMapGraph: GraphMapGraphConstructor;
   GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
+  Opt: OptConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -2392,6 +2393,8 @@ export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>
 export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
 export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;
 export type GraphAdjList = haxorg_wasm.HstdMap<GraphMapNode, GraphAdjNodesList>;
+export interface OptConstructor { new(): Opt; }
+export interface Opt {  }
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;

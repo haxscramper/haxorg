@@ -881,6 +881,8 @@ haxorg_StdOptional haxorg_GraphMapGraphState_getUnresolvedLink_const(OrgContext*
 
 void haxorg_destroy_GraphMapGraphState(OrgContext* org_context, haxorg_GraphMapGraphState* obj) { org::bind::c::execute_destroy<org::graph::MapGraphState>(org_context, obj); }
 
+void haxorg_destroy_Opt(OrgContext* org_context, haxorg_Opt* obj) { org::bind::c::execute_destroy<hstd::Opt>(org_context, obj); }
+
 void haxorg_create_LispCode_LispCode(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::LispCode { return org::sem::LispCode(); }, org_context); }
 
 bool haxorg_LispCode___eq___const(OrgContext* org_context, haxorg_LispCode __this, haxorg_LispCode other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==), org_context, __this, other); }

@@ -1093,6 +1093,9 @@ GraphNodeProps = Dict[GraphMapNode, GraphMapNodeProp]
 GraphEdgeProps = Dict[GraphMapEdge, GraphMapEdgeProp]
 GraphAdjNodesList = list[GraphMapNode]
 GraphAdjList = Dict[GraphMapNode, GraphAdjNodesList]
+class Opt:
+    def __init__(self) -> None: ...
+
 class LispCodeCall:
     def __init__(self, name: str, args: list[LispCode]) -> None: ...
     def __eq__(self, other: object) -> bool: ...

@@ -2342,6 +2342,8 @@ ingoing elements.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<hstd::Opt>(m, "Opt")
+    ;
   nanobind::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
     .def(nanobind::init<>())
     .def("__init__",

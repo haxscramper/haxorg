@@ -1,3 +1,14 @@
 {
-
+  "$schema": "proto_lib/TU.schema.json",
+  "records": [
+    {
+      "name": {
+        "spaces": [
+          {"name": "hstd"}
+        ],
+        "name": "Opt"
+      },
+      "reflection_params": ""
+    }
+  ]
 }

@@ -457,6 +457,8 @@ struct haxorg_GraphMapConfig;
 
 struct haxorg_GraphMapGraphState;
 
+struct haxorg_Opt;
+
 struct haxorg_LispCode;
 
 struct haxorg_LispCodeCall;
@@ -2079,6 +2081,11 @@ struct haxorg_GraphMapGraphState {
 typedef uint64_t haxorg_ImmIdIdType;
 typedef uint32_t haxorg_ImmIdNodeIdxT;
 typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
+/// \brief ['hstd', 'Opt']
+struct haxorg_Opt {
+  haxorg_ptr_payload data;
+};
+
 /// \brief ['org', 'sem', 'LispCode', 'Call']
 struct haxorg_LispCodeCall {
   haxorg_ptr_payload data;
@@ -4963,6 +4970,7 @@ HAXORG_C_API_LINKAGE void haxorg_GraphMapGraphState_addNodeRec(OrgContext* org_c
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfGraphMapLink haxorg_GraphMapGraphState_getUnresolvedSubtreeLinks_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmSubtreeAdapter node, haxorg_GraphMapConfig conf);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapGraphState_getUnresolvedLink_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmLinkAdapter node, haxorg_GraphMapConfig conf);
 HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapGraphState(OrgContext* org_context, haxorg_GraphMapGraphState* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_Opt(OrgContext* org_context, haxorg_Opt* obj);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCode_LispCode(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode___eq___const(OrgContext* org_context, haxorg_LispCode __this, haxorg_LispCode other);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isCall_const(OrgContext* org_context, haxorg_LispCode __this);
