@@ -331,35 +331,24 @@ class _StructGenResult():
 
 
 @beartype
-def _gen_struct_destructor(
+def _gen_struct_destructor_vtable(
     *,
     struct: codegen_ir.GenTuStruct,
     basename: str,
     ast: cpp.ASTBuilder,
     wrap_struct: codegen_ir.GenTuStruct,
-    vtable_struct: Optional[codegen_ir.GenTuStruct],
     conf: CAstbuilderConfig,
 ) -> codegen_ir.GenTuFunction:
 
-    if vtable_struct:
-        Impl = ast.XCall(
-            "org::bind::c::execute_destroy_vtable",
-            args=[
-                ast.string(_CONTEXT_ARG.Name),
-                ast.string("obj"),
-            ],
-            Params=[_get_vtable_type(struct.declarationQualName(), conf)],
-            Stmt=True,
-        )
-
-    else:
-        Impl = ast.XCall(
-            "org::bind::c::execute_destroy",
-            args=[ast.string(_CONTEXT_ARG.Name),
-                  ast.string("obj")],
-            Params=[struct.declarationQualName()],
-            Stmt=True,
-        )
+    Impl = ast.XCall(
+        "org::bind::c::execute_destroy_vtable",
+        args=[
+            ast.string(_CONTEXT_ARG.Name),
+            ast.string("obj"),
+        ],
+        Params=[_get_vtable_type(struct.declarationQualName(), conf)],
+        Stmt=True,
+    )
 
     return codegen_ir.GenTuFunction(
         Name=f"haxorg_destroy_{basename}",
@@ -374,59 +363,77 @@ def _gen_struct_destructor(
 
 
 @beartype
-def _gen_struct_fields(
+def _gen_struct_destructor_direct(
+        *, struct: codegen_ir.GenTuStruct, basename: str, ast: cpp.ASTBuilder,
+        wrap_struct: codegen_ir.GenTuStruct) -> codegen_ir.GenTuFunction:
+    Impl = ast.XCall(
+        "org::bind::c::execute_destroy",
+        args=[ast.string(_CONTEXT_ARG.Name),
+              ast.string("obj")],
+        Params=[struct.declarationQualName()],
+        Stmt=True,
+    )
+
+    return codegen_ir.GenTuFunction(
+        Name=f"haxorg_destroy_{basename}",
+        Args=[
+            _CONTEXT_ARG,
+            codegen_ir.GenTuIdent(Name="obj",
+                                  Type=wrap_struct.Name.copy_update(PtrCount=1))
+        ],
+        Body=Impl,
+        Annotations=[_LINK_ANNOTATION],
+    )
+
+
+@beartype
+def _gen_struct_field_vtable(
+        *, conf: CAstbuilderConfig, f: codegen_ir.GenTuField,
+        wrap_struct: codegen_ir.GenTuStruct) -> codegen_ir.GenTuField:
+    assert f.Type
+    return codegen_ir.GenTuField(
+        Name=f"get_{f.Name}",
+        Type=QualType.ForFunction(
+            ReturnType=conf.getBackendType(f.Type).asConstPtr(),
+            Args=[_CONTEXT_ARG.Type, wrap_struct.Name.asConstPtr()],
+        ))
+
+
+@beartype
+def _gen_struct_field_getter(
     *,
-    struct: codegen_ir.GenTuStruct,
-    vtable_struct: Optional[codegen_ir.GenTuStruct],
-    result: _StructGenResult,
     conf: CAstbuilderConfig,
     wrap_struct: codegen_ir.GenTuStruct,
+    struct: codegen_ir.GenTuStruct,
+    f: codegen_ir.GenTuField,
     ast: cpp.ASTBuilder,
-):
-
-    for f in struct.Fields:
-        if conf.isAcceptedByBackend(f):
-            assert f.Type
-            if vtable_struct:
-                vtable_struct.Fields.append(
-                    codegen_ir.GenTuField(
-                        Name=f"get_{f.Name}",
-                        Type=QualType.ForFunction(
-                            ReturnType=conf.getBackendType(f.Type).asConstPtr(),
-                            Args=[_CONTEXT_ARG.Type,
-                                  wrap_struct.Name.asConstPtr()],
-                        )))
-
-            else:
-                result.wrappers.append(
-                    codegen_ir.GenTuFunction(
-                        Name=f"{wrap_struct.Name.Name}_get_{f.Name}",
-                        ReturnType=conf.getBackendType(f.Type),
-                        Args=[
-                            _CONTEXT_ARG,
-                            codegen_ir.GenTuIdent(wrap_struct.Name, "__this")
-                        ],
-                        Body=ast.Return(
-                            ast.XCall(
-                                "org::bind::c::get_cpp_field",
-                                args=[
-                                    ast.string(_CONTEXT_ARG.Name),
-                                    ast.string("__this"),
-                                    ast.Addr(
-                                        ast.Scoped(
-                                            struct.declarationQualName(),
-                                            ast.string(f.Name),
-                                        )),
-                                ],
-                                Params=[
-                                    conf.getBackendType(f.Type),
-                                    struct.declarationQualName(),
-                                    f.Type,
-                                    conf.getBackendType(struct.declarationQualName()),
-                                ],
-                            )),
-                        Annotations=[_LINK_ANNOTATION],
-                    ))
+) -> codegen_ir.GenTuFunction:
+    assert f.Type
+    return codegen_ir.GenTuFunction(
+        Name=f"{wrap_struct.Name.Name}_get_{f.Name}",
+        ReturnType=conf.getBackendType(f.Type),
+        Args=[_CONTEXT_ARG,
+              codegen_ir.GenTuIdent(wrap_struct.Name, "__this")],
+        Body=ast.Return(
+            ast.XCall(
+                "org::bind::c::get_cpp_field",
+                args=[
+                    ast.string(_CONTEXT_ARG.Name),
+                    ast.string("__this"),
+                    ast.Addr(ast.Scoped(
+                        struct.declarationQualName(),
+                        ast.string(f.Name),
+                    )),
+                ],
+                Params=[
+                    conf.getBackendType(f.Type),
+                    struct.declarationQualName(),
+                    f.Type,
+                    conf.getBackendType(struct.declarationQualName()),
+                ],
+            )),
+        Annotations=[_LINK_ANNOTATION],
+    )
 
 
 @beartype
@@ -456,14 +463,20 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
     result.forward_decls.append(
         codegen_ir.GenTuStruct(Name=wrap_struct.Name, IsForwardDecl=True))
 
-    _gen_struct_fields(
-        struct=struct,
-        vtable_struct=vtable_struct,
-        result=result,
-        conf=conf,
-        wrap_struct=wrap_struct,
-        ast=ast,
-    )
+    for f in struct.Fields:
+        if conf.isAcceptedByBackend(f):
+
+            if vtable_struct:
+                vtable_struct.Fields.append(
+                    _gen_struct_field_vtable(f=f, conf=conf, wrap_struct=wrap_struct))
+
+            else:
+                result.wrappers.append(
+                    _gen_struct_field_getter(f=f,
+                                             struct=struct,
+                                             conf=conf,
+                                             wrap_struct=wrap_struct,
+                                             ast=ast))
 
     wrap_struct.Fields.append(codegen_ir.GenTuField(
         Type=_PAYLOAD_TYPE,
@@ -511,15 +524,24 @@ def _gen_struct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
 
     result.wrappers.append(wrap_struct)
 
-    result.wrappers.append(
-        _gen_struct_destructor(
-            struct=struct,
-            basename=basename,
-            ast=ast,
-            wrap_struct=wrap_struct,
-            vtable_struct=vtable_struct,
-            conf=conf,
-        ))
+    if vtable_struct:
+        result.wrappers.append(
+            _gen_struct_destructor_vtable(
+                struct=struct,
+                basename=basename,
+                ast=ast,
+                wrap_struct=wrap_struct,
+                conf=conf,
+            ))
+
+    else:
+        result.wrappers.append(
+            _gen_struct_destructor_direct(
+                struct=struct,
+                basename=basename,
+                ast=ast,
+                wrap_struct=wrap_struct,
+            ))
 
     return result
 
@@ -559,33 +581,25 @@ def _gen_haxorg_c_template_instantiations(
                 case _:
                     reflection_template_types.append(entry)
 
-    instantiated_void_handles = list()
-    for template_type in reflection_template_types:
-        if template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
-            log(CAT).info(f"Found void-handle type {template_type}")
-            assert template_type.ReflectionParams.backend.c.value_template_parameters, (
-                "void-handle must provide names for the template type parameters")
-
-            instantiated_void_handles.append(
-                _add_instantiated_struct(
-                    template_type,
-                    {
-                        K: _PAYLOAD_TYPE for K in
-                        template_type.ReflectionParams.backend.c.value_template_parameters
-                    },
-                ))
-
-    for _inst in instantiated_void_handles:
-        log(CAT).info(f"_inst = {_inst}")
-
     specializations = collect_type_specializations(
-        groups.get_entries_for_wrapping() + instantiated_void_handles,
+        groups.get_entries_for_wrapping(),
         conf,
     )
 
     for template_type in reflection_template_types:
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
             log(CAT).info(f"Found template type with each-specialization {template_type}")
+            for specialization, substitution_map in match_specializations(
+                    specializations=[spec.used_type for spec in specializations],
+                    template=template_type.declarationQualName(),
+            ):
+                _add_instantiated_struct(template_type, substitution_map=substitution_map)
+
+        elif template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
+            log(CAT).info(f"Found void-handle type {template_type}")
+            assert template_type.ReflectionParams.backend.c.value_template_parameters, (
+                "void-handle must provide names for the template type parameters")
+
             for specialization, substitution_map in match_specializations(
                     specializations=[spec.used_type for spec in specializations],
                     template=template_type.declarationQualName(),
