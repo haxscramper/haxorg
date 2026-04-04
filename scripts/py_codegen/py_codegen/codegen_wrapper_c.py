@@ -1,16 +1,22 @@
+from dataclasses import dataclass, field, replace
+
+from beartype import beartype
+from beartype.typing import cast, List, Optional
+from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import BUILTIN_TYPES
 from py_codegen.astbuilder_c_config import CAstbuilderConfig
 import py_codegen.astbuilder_cpp as cpp
-from dataclasses import dataclass, field, replace
-from py_codegen import codegen_ir
-from py_codegen.codegen_ir import QualType, n_org, n_sem
-from beartype import beartype
-from beartype.typing import List, Optional, cast
+from py_codegen.codegen_algo import (
+    collect_type_specializations,
+    instantiate_template,
+    match_specializations,
+    SpecializationMatchResult,
+)
+from py_codegen.codegen_ir import n_org, n_sem, QualType
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_codegen.org_codegen_data import get_types
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.script_logging import log
-from py_codegen.codegen_algo import collect_type_specializations, instantiate_template, match_specializations, SpecializationMatchResult
 
 CAT = __name__
 
@@ -18,6 +24,8 @@ _CONTEXT_ARG = codegen_ir.GenTuIdent(
     Type=QualType(Name="OrgContext", PtrCount=1),
     Name="org_context",
 )
+
+_SELF_IDENT_STR = "__self"
 
 _LINK_ANNOTATION = codegen_ir.GenTuAnnotation(
     Attribute=codegen_ir.GenTuAnnotation.Freeform(Body="HAXORG_C_API_LINKAGE"))
@@ -235,16 +243,48 @@ def _gen_vtable_specialization(
             assert _meth.ParentClass, f"No parent class for method {_meth.Name} of class {struct.declarationQualName()}"
 
             ExecuteArgs = list()
-            ExecuteArgs.append(
-                ast.XCall(
-                    "static_cast",
-                    args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
-                    Params=[_meth.get_function_type()],
-                ))
+
+            if _meth.ReflectionParams.backend.c.pointer_through_lambda:
+                ExecuteArgs.append(
+                    ast.Lambda(
+                        cpp.LambdaParams(
+                            Args=[
+                                cpp.ParmVarParams(
+                                    type=struct.declarationQualName().asConstRef(),
+                                    name=_SELF_IDENT_STR,
+                                ),
+                            ] + [
+                                cpp.ParmVarParams(type=p.Type, name=p.Name)
+                                for p in _meth.Args
+                            ],
+                            IsPtrCast=True,
+                            ResultTy=_meth.ReturnType,
+                            Body=[
+                                ast.Return(
+                                    ast.XCallRef(
+                                        ast.string(_SELF_IDENT_STR),
+                                        _meth.Name,
+                                        args=[ast.string(arg.Name) for arg in _meth.Args
+                                             ]))
+                            ])),
+                    # ast.XCall(
+                    #     "static_cast",
+                    #     args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
+                    #     Params=[_meth.get_function_type()],
+                    # )
+                )
+
+            else:
+                ExecuteArgs.append(
+                    ast.XCall(
+                        "static_cast",
+                        args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
+                        Params=[_meth.get_function_type()],
+                    ))
 
             ExecuteArgs.append(ast.string(_CONTEXT_ARG.Name))
             if not _meth.IsStatic:
-                ExecuteArgs.append(ast.string("self"))
+                ExecuteArgs.append(ast.string(_SELF_IDENT_STR))
 
             for _arg in _meth.Args:
                 ExecuteArgs.append(ast.string(_arg.Name))
@@ -262,7 +302,7 @@ def _gen_vtable_specialization(
                     ReturnType=conf.getBackendType(_meth.ReturnType),
                     Args=[
                         _CONTEXT_ARG,
-                        codegen_ir.GenTuIdent(Type=c_type, Name="self"),
+                        codegen_ir.GenTuIdent(Type=c_type, Name=_SELF_IDENT_STR),
                     ] + [
                         codegen_ir.GenTuIdent(Type=conf.getBackendType(A.Type),
                                               Name=A.Name) for A in _meth.Args
@@ -288,7 +328,7 @@ def _gen_vtable_specialization(
         ReturnType=c_type_vtable.asConstPtr(),
         Body=ast.stack([
             ast.Using(
-                cpp.UsingParams(newName="Self",
+                cpp.UsingParams(newName="VtableType",
                                 baseType=vtable_struct.declarationQualName())),
             ast.VarDecl(
                 cpp.ParmVarParams(
@@ -302,7 +342,7 @@ def _gen_vtable_specialization(
                             ast.line([
                                 ast.string(f".{_meth.Name} = "),
                                 ast.Addr(
-                                    ast.Scoped(QualType(Name="Self"),
+                                    ast.Scoped(QualType(Name="VtableType"),
                                                ast.string(_meth.Name))),
                                 ast.string(","),
                             ]) for _meth in vtable_struct.Methods
