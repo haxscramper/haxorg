@@ -70,6 +70,8 @@ struct [[refl(R"({
     using Base::begin;
     using Base::end;
     using Base::operator[];
+
+    [[refl]] Vec<K> keys() const { return API::keys(); }
 };
 
 

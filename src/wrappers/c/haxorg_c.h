@@ -1812,21 +1812,15 @@ struct haxorg_HstdMap {
   haxorg_ptr_payload data;
 };
 
-struct haxorg_HstdMap_vtable {};
-
 /// \brief ['hstd', 'ext', 'ImmMap', [['K']], [['V']]]
 struct haxorg_ImmMap {
   haxorg_ptr_payload data;
 };
 
-struct haxorg_ImmMap_vtable {};
-
 /// \brief ['hstd', 'Opt', [['T']]]
 struct haxorg_Opt {
   haxorg_ptr_payload data;
 };
-
-struct haxorg_Opt_vtable {};
 
 /// \brief ['hstd', 'BackwardsIndex']
 struct haxorg_BackwardsIndex {
@@ -4545,9 +4539,23 @@ struct haxorg_ImmCmdAttrAdapter {
 };
 
 typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
+struct haxorg_HstdMap_vtable {
+  haxorg_HstdVecOfHaxorg_ptr_payload (*keys_const)(OrgContext*, haxorg_HstdMap);
+};
+
 typedef haxorg_HstdMap haxorg_GraphNodeProps;
 typedef haxorg_HstdMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdMap haxorg_GraphAdjList;
+struct haxorg_ImmMap_vtable {
+  haxorg_Opt (*get_const)(OrgContext*, haxorg_ImmMap, haxorg_ptr_payload const&);
+  bool (*contains_const)(OrgContext*, haxorg_ImmMap, haxorg_ptr_payload const&);
+  haxorg_HstdVecOfHaxorg_ptr_payload (*keys_const)(OrgContext*, haxorg_ImmMap);
+};
+
+struct haxorg_Opt_vtable {
+  haxorg_ptr_payload const& (*value)(OrgContext*, haxorg_Opt);
+};
+
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context);
@@ -4693,6 +4701,7 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceAnnotation(OrgContext*
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSequenceSegmentGroup_size_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this);
 HAXORG_C_API_LINKAGE haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfK haxorg_HstdMapOfKVHash_keys_const(OrgContext* org_context, haxorg_HstdMap __this);
 HAXORG_C_API_LINKAGE haxorg_Opt haxorg_ImmMapOfKV_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key);
 HAXORG_C_API_LINKAGE bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfK haxorg_ImmMapOfKV_keys_const(OrgContext* org_context, haxorg_ImmMap __this);

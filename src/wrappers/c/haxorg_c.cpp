@@ -327,6 +327,8 @@ haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(O
 
 void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceSegmentGroup>>(org_context, obj); }
 
+haxorg_HstdVecOfK haxorg_HstdMapOfKVHash_keys_const(OrgContext* org_context, haxorg_HstdMap __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfK>(static_cast<hstd::Vec<K>(hstd::UnorderedMap<K, V, Hash>::*)() const>(&hstd::UnorderedMap<K, V, Hash>::keys), org_context, __this); }
+
 haxorg_Opt haxorg_ImmMapOfKV_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<V>(hstd::ext::ImmMap<K, V>::*)(K const&) const>(&hstd::ext::ImmMap<K, V>::get), org_context, __this, key); }
 
 bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::ext::ImmMap<K, V>::*)(K const&) const>(&hstd::ext::ImmMap<K, V>::contains), org_context, __this, key); }

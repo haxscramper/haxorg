@@ -520,7 +520,7 @@ class QualType(BaseModel, extra="forbid"):
 
         return aux(self, depth=0)
 
-    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
+    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN, native: bool = True) -> str:
 
         def aux(Typ: QualType) -> str:
             cvref = "{const}{ptr}{ref}".format(
@@ -541,11 +541,17 @@ class QualType(BaseModel, extra="forbid"):
                 case QualTypeKind.FunctionPtr:
                     assert Typ.Func
                     assert Typ.Func.ReturnType, "Missing return type for function pointer"
-                    result = "{spaces}FUNC:{origin}({args})".format(
-                        spaces=spaces,
-                        origin=aux(Typ.Func.ReturnType),
-                        args=", ".join([aux(T) for T in Typ.Func.Args]),
-                    )
+                    if native:
+                        result = "{origin}(*)({args})".format(
+                            origin=aux(Typ.Func.ReturnType),
+                            args=", ".join([aux(T) for T in Typ.Func.Args]),
+                        )
+                    else:
+                        result = "{spaces}FUNC:{origin}({args})".format(
+                            spaces=spaces,
+                            origin=aux(Typ.Func.ReturnType),
+                            args=", ".join([aux(T) for T in Typ.Func.Args]),
+                        )
 
                 case QualTypeKind.Array:
                     result = "{spaces}ARR:{first}[{expr}]{cvref}{origin}".format(
@@ -557,14 +563,22 @@ class QualType(BaseModel, extra="forbid"):
                     )
 
                 case QualTypeKind.RegularType:
-                    result = "{spaces}REC:({name}{args}{cvref}{origin})".format(
+                    body = "{name}{args}{cvref}{origin}".format(
                         name=Typ.Name or "?",
                         args="<{}>".format(", ".join([aux(T) for T in Typ.Params]))
                         if Typ.Params else "",
                         cvref=cvref,
                         origin=origin,
-                        spaces=spaces,
                     )
+
+                    if native:
+                        result = f"{spaces}{body}"
+
+                    else:
+                        result = "{spaces}REC:({body})".format(
+                            body=body,
+                            spaces=spaces,
+                        )
 
                 case QualTypeKind.TypeExpr:
                     result = f"[E:{Typ.Expr}]"
@@ -572,7 +586,11 @@ class QualType(BaseModel, extra="forbid"):
                 case _:
                     assert False, Typ.Kind
 
-            return "{" + result + "}"
+            if native:
+                return result
+
+            else:
+                return "{" + result + "}"
 
         return aux(self)
 

@@ -1,8 +1,8 @@
-from py_codegen.astbuilder_base_config import BUILTIN_TYPES, AstbulderConfig
-from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
-from beartype.typing import Optional
 from beartype import beartype
+from beartype.typing import Optional
+from py_codegen import codegen_ir
+from py_codegen.astbuilder_base_config import AstbulderConfig, BUILTIN_TYPES
+from py_codegen.codegen_ir import QualType
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -18,6 +18,9 @@ class CAstbuilderConfig(AstbulderConfig):
         return super().getTypeBindName(Type, withParams)
 
     def getBackendType(self, Type: QualType) -> QualType:
+        if Type.Kind != codegen_ir.QualTypeKind.RegularType:
+            return super().getBackendType(Type)
+
         prefix = "haxorg_"
 
         match Type.flatQualNameWithParams():

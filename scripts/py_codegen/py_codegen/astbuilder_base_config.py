@@ -1,9 +1,9 @@
 import abc
-from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
+
 from beartype import beartype
 from beartype.typing import List, Optional
-
+from py_codegen import codegen_ir
+from py_codegen.codegen_ir import QualType
 from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_scriptutils.script_logging import log
 
@@ -68,10 +68,18 @@ class AstbulderConfig(abc.ABC):
         "Check if the entry with these reflection params is accepted for the backend"
         ...
 
-    @abc.abstractmethod
     def getBackendType(self, Type: QualType) -> QualType:
         "Rewrite the IR type to the backend-specific counterpart"
-        ...
+        match Type.Kind:
+            case codegen_ir.QualTypeKind.FunctionPtr:
+                assert Type.Func
+                return Type.copy_update(Func=Type.Func.model_copy(update=dict(
+                    ReturnType=self.getBackendType(Type.Func.ReturnType),
+                    Args=[self.getBackendType(A) for A in Type.Func.Args],
+                )))
+
+            case _:
+                return Type
 
     def isRegisteredForBacked(self, Type: QualType) -> bool:
         """

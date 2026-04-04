@@ -605,6 +605,19 @@ def _gen_struct_direct(struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder,
 
 
 @beartype
+def _gen_void_handle_template_instantiation(
+        struct: codegen_ir.GenTuStruct,
+        conf: CAstbuilderConfig) -> codegen_ir.GenTuStruct:
+    return cast(
+        codegen_ir.GenTuStruct,
+        instantiate_template(
+            struct,
+            substitution_map={T.Name: _PAYLOAD_TYPE for T in struct.getTemplateParams()},
+            type_map=conf.type_map,
+        ))
+
+
+@beartype
 def _gen_haxorg_vtable_template_instantiation(
     *,
     struct: codegen_ir.GenTuStruct,
@@ -615,23 +628,33 @@ def _gen_haxorg_vtable_template_instantiation(
     result = _StructGenResult()
 
     wrap_struct = _gen_wrap_struct_base(struct, conf)
-    public_instrantiation_api = cast(
-        codegen_ir.GenTuStruct,
-        instantiate_template(
-            struct,
-            substitution_map={T.Name: _PAYLOAD_TYPE for T in struct.getTemplateParams()},
-            type_map=conf.type_map,
-        ))
+    public_instrantiation_api = _gen_void_handle_template_instantiation(struct, conf)
 
     result.wrappers.append(wrap_struct)
     vtable_type = _get_vtable_type(struct.Name, conf=conf)
 
     vtable_struct = _make_vtable_struct(_gen_struct_basename(struct, conf))
 
-    for f in struct.Fields:
+    for f in public_instrantiation_api.Fields:
         if conf.isAcceptedByBackend(f):
             vtable_struct.Fields.append(
                 _gen_struct_field_vtable(f=f, conf=conf, wrap_struct=wrap_struct))
+
+    for m in public_instrantiation_api.Methods:
+        if conf.isAcceptedByBackend(m):
+            vtable_method_type = conf.getBackendType(
+                m.get_function_type().model_copy(deep=True))
+
+            assert vtable_method_type.Func
+            if not m.IsStatic:
+                vtable_method_type.Func.Args.insert(0, wrap_struct.declarationQualName())
+
+            vtable_method_type.Func.Args.insert(0, _CONTEXT_ARG.Type)
+            vtable_struct.Fields.append(
+                codegen_ir.GenTuField(
+                    Type=vtable_method_type,
+                    Name=_get_func_base_name(m),
+                ))
 
     _add_gen_struct_methods(result, struct, ast, conf)
 
@@ -703,13 +726,16 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         conf,
     )
 
+    void_handle_instantiations = list()
     for template_type in reflection_template_types:
+        template_usage_types = match_specializations(
+            specializations=[spec.used_type for spec in specializations],
+            template=template_type.declarationQualName(),
+        )
+
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
             log(CAT).info(f"Found template type with each-specialization {template_type}")
-            for match in match_specializations(
-                    specializations=[spec.used_type for spec in specializations],
-                    template=template_type.declarationQualName(),
-            ):
+            for match in template_usage_types:
                 _add_struct(
                     cast(
                         codegen_ir.GenTuStruct,
@@ -724,16 +750,48 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
             assert template_type.ReflectionParams.backend.c.value_template_parameters, (
                 "void-handle must provide names for the template type parameters")
 
+            for s in specializations:
+                if template_type.Name.Name in str(s):
+                    log(CAT).info(f"specialization with {s}")
+
+            for inst in template_usage_types:
+                log(CAT).info(f"{template_type} uses {inst}")
+                void_handle_instantiations.append(
+                    cast(
+                        codegen_ir.GenTuStruct,
+                        instantiate_template(
+                            template_type,
+                            substitution_map=inst.substitution_map,
+                            type_map=conf.type_map,
+                        )))
+
             _add_struct_result(
                 _gen_haxorg_vtable_template_instantiation(
                     struct=template_type,
-                    specializations=match_specializations(
-                        specializations=[spec.used_type for spec in specializations],
-                        template=template_type.declarationQualName(),
-                    ),
+                    specializations=template_usage_types,
                     conf=conf,
                     ast=ast,
                 ))
+
+    void_handle_specializations = collect_type_specializations(void_handle_instantiations,
+                                                               conf)
+
+    for spec in void_handle_specializations:
+        log(CAT).info(f"void-handle uses {spec.used_type}")
+
+    for template_type in reflection_template_types:
+        if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
+            matches = match_specializations(
+                specializations=[spec.used_type for spec in void_handle_specializations],
+                template=template_type.declarationQualName(),
+            )
+
+            if 0 < len(matches):
+                raise RuntimeError(
+                    f"{template_type.Name} was used with multiple different "
+                    f"type parameters when substituting the public API for void-handle types: "
+                    f"API for void-handle needs to the type with distinct instances."
+                    "\n".join([m.instantiated_name.format(native=True) for m in matches]))
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry):
