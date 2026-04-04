@@ -8,6 +8,7 @@ from beartype import beartype
 from beartype.typing import (
     Any,
     Callable,
+    cast,
     Dict,
     List,
     Literal,
@@ -17,12 +18,11 @@ from beartype.typing import (
     Tuple,
     TypeAlias,
     Union,
-    cast,
 )
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
-from pydantic import AliasChoices, BaseModel, Field
 from py_scriptutils.script_logging import log
+from pydantic import AliasChoices, BaseModel, Field
 
 CAT = __name__
 
@@ -688,6 +688,14 @@ class GenTuBackendCParams(BaseModel, extra="forbid"):
         alias=AliasChoices(  # type: ignore
             "value_template_parameters",
             "value-template-parameters",
+        ))
+
+    pointer_through_lambda: bool = Field(
+        default=False,
+        description="Use proxy lambda to call the method",
+        alias=AliasChoices(  # type: ignore
+            "pointer_through_lambda",
+            "pointer-through-lambda",
         ))
 
 

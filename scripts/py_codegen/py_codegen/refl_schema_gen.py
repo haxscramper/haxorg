@@ -20,6 +20,7 @@ _FIELD_SCHEMA_OVERRIDES: dict[tuple[type[Any], str], type[BaseModel]] = {
     (pb.Function, "reflection_params"): codegen_ir.GenTuReflParams,
     (pb.Enum, "reflection_params"): codegen_ir.GenTuReflParams,
     (pb.RecordField, "reflection_params"): codegen_ir.GenTuReflParams,
+    (pb.RecordMethod, "reflection_params"): codegen_ir.GenTuReflParams,
 }
 
 
@@ -30,42 +31,6 @@ def proto_identifier_to_snake(name: str) -> str:
 
 
 @beartype
-def betterproto_to_jsonschema(
-    msg_class: type[Any],
-    defs: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    if defs is None:
-        defs = {}
-
-    class_name = f"{msg_class.__module__}.{msg_class.__name__}"
-    if class_name in defs:
-        return {"$ref": f"#/$defs/{class_name}"}
-
-    defs[class_name] = {}
-    properties: dict[str, Any] = {}
-
-    resolved_hints: dict[str, Any] = typing.get_type_hints(msg_class)
-
-    for f in fields(msg_class):
-        if f.name.startswith("_"):
-            continue
-
-        override_key = (msg_class, f.name)
-        if override_key in _FIELD_SCHEMA_OVERRIDES:
-            prop = _pydantic_override_schema(_FIELD_SCHEMA_OVERRIDES[override_key], defs)
-        else:
-            resolved_type = resolved_hints.get(f.name, f.type)
-            prop = _field_to_schema(resolved_type, defs)
-
-        if prop is not None:
-            properties[proto_identifier_to_snake(f.name)] = prop
-
-    schema: dict[str, Any] = {"type": "object", "properties": properties}
-    defs[class_name] = schema
-    return {"$ref": f"#/$defs/{class_name}"}
-
-
-@beartype
 def _rewrite_pydantic_refs(obj: Any, ref_map: dict[str, str]) -> None:
     if isinstance(obj, dict):
         if "$ref" in obj and isinstance(obj["$ref"], str):
@@ -73,7 +38,7 @@ def _rewrite_pydantic_refs(obj: Any, ref_map: dict[str, str]) -> None:
             if ref.startswith("#/$defs/"):
                 ref_name = ref.split("/")[-1]
                 if ref_name in ref_map:
-                    obj["$ref"] = f"#/$defs/{ref_map[ref_name]}"
+                    obj["$ref"] = f"#/$defs/pydantic_{ref_name}"
         for v in obj.values():
             _rewrite_pydantic_refs(v, ref_map)
     elif isinstance(obj, list):
@@ -82,22 +47,57 @@ def _rewrite_pydantic_refs(obj: Any, ref_map: dict[str, str]) -> None:
 
 
 @beartype
-def _pydantic_override_schema(
-    pydantic_cls: type[BaseModel],
-    defs: dict[str, Any],
+def betterproto_to_jsonschema(
+    msg_class: type[Any],
+    defs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    pydantic_schema: dict[str, Any] = pydantic_cls.model_json_schema()
+    if defs is None:
+        defs = {}
 
-    prefix = f"pydantic__{pydantic_cls.__name__}__"
-    pydantic_defs = pydantic_schema.pop("$defs", {})
-    ref_map = {name: f"{prefix}{name}" for name in pydantic_defs}
+    class_name = f"{msg_class.__name__}"
 
-    for def_name, def_schema in pydantic_defs.items():
-        _rewrite_pydantic_refs(def_schema, ref_map)
-        defs[ref_map[def_name]] = def_schema
+    if issubclass(msg_class, BaseModel):
+        class_name = f"pydantic_{class_name}"
 
-    _rewrite_pydantic_refs(pydantic_schema, ref_map)
-    return pydantic_schema
+    if class_name in defs:
+        return {"$ref": f"#/$defs/{class_name}"}
+
+    defs[class_name] = {}
+    properties: dict[str, Any] = {}
+
+    if issubclass(msg_class, BaseModel):
+        pydantic_schema: dict[str, Any] = msg_class.model_json_schema()
+        prefix = f"pydantic_"
+        pydantic_defs = pydantic_schema.pop("$defs", {})
+        ref_map = {name: f"{prefix}{name}" for name in pydantic_defs}
+
+        for def_name, def_schema in pydantic_defs.items():
+            _rewrite_pydantic_refs(def_schema, ref_map)
+            defs[ref_map[def_name]] = def_schema
+
+        _rewrite_pydantic_refs(pydantic_schema, ref_map)
+        properties = pydantic_schema["properties"]
+
+    else:
+        resolved_hints: dict[str, Any] = typing.get_type_hints(msg_class)
+
+        for f in fields(msg_class):
+            if f.name.startswith("_"):
+                continue
+
+            override_key = (msg_class, f.name)
+            if override_key in _FIELD_SCHEMA_OVERRIDES:
+                prop = _field_to_schema(_FIELD_SCHEMA_OVERRIDES[override_key], defs)
+            else:
+                resolved_type = resolved_hints.get(f.name, f.type)
+                prop = _field_to_schema(resolved_type, defs)
+
+            if prop is not None:
+                properties[proto_identifier_to_snake(f.name)] = prop
+
+    schema: dict[str, Any] = {"type": "object", "properties": properties}
+    defs[class_name] = schema
+    return {"$ref": f"#/$defs/{class_name}"}
 
 
 @beartype
@@ -133,7 +133,7 @@ def _type_to_schema(tp: Any, defs: dict[str, Any]) -> dict[str, Any]:
     if isinstance(tp, type) and issubclass(tp, betterproto.Enum):
         return {"type": "string", "enum": [e.name for e in tp]}
 
-    if isinstance(tp, type) and issubclass(tp, betterproto.Message):
+    if isinstance(tp, type) and issubclass(tp, (betterproto.Message, BaseModel)):
         return betterproto_to_jsonschema(tp, defs)
 
     return {}

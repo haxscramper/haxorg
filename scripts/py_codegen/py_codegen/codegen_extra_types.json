@@ -29,6 +29,13 @@
             "name": "T",
             "is_template_type_param": true,
             "qualifiers": [ {"is_const": true} ]
+          },
+          "reflection_params": {
+            "backend": {
+              "c": {
+                "pointer_through_lambda": true
+              }
+            }
           }
         }
       ]
