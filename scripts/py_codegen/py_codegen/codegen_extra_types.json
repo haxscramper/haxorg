@@ -3,8 +3,8 @@
   "records": [
     {
       "name"              : {
-        "Spaces": [ {"Name": "hstd"} ],
-        "Name"  : "Opt"
+        "spaces": [ {"name": "hstd"} ],
+        "name"  : "Opt"
       },
       "reflection_params" : {
         "backend": {
@@ -19,6 +19,17 @@
       "templates"         : [
         {
           "parameters": [ {"name": "T"} ]
+        }
+      ],
+      "methods"           : [
+        {
+          "name"     : "value",
+          "return_ty": {
+            "ref_kind": "LValue",
+            "name": "T",
+            "is_template_type_param": true,
+            "qualifiers": [ {"is_const": true} ]
+          }
         }
       ]
     }

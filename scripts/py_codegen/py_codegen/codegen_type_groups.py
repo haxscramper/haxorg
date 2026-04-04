@@ -14,7 +14,7 @@ from py_codegen.codegen_ir import QualType
 from py_codegen.astbuilder_base_config import AstbulderConfig
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import log, ExceptionContextNote
+from py_scriptutils.script_logging import log, ExceptionContextNote, pprint_to_file_json
 import more_itertools
 
 CAT = __name__
@@ -547,6 +547,8 @@ def get_pyhaxorg_type_groups(
 
     res.conv_tu = refl_read.conv_proto_file(reflection_path)
     res.manual_tu = refl_read.conv_proto_file(manual_tu_path)
+
+    pprint_to_file_json(res.manual_tu, Path("/tmp/manual_tu_haxorg.json"))
 
     res.full_enums = org_data.get_shared_sem_enums() + org_data.get_enums() + [
         get_osk_enum(res.expanded)

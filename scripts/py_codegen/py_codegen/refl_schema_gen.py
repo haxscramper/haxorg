@@ -1,4 +1,5 @@
 from beartype.typing import Any
+from beartype import beartype
 import json
 from pathlib import Path
 from py_scriptutils.script_logging import log
@@ -8,9 +9,14 @@ from pydantic import BaseModel
 import py_codegen.proto_lib.reflection_defs as pb
 from dataclasses import fields
 import betterproto
+import re
+
+from py_scriptutils.script_logging import log
+
+CAT = __name__
 
 # Map of (parent_class, field_name) -> pydantic model class for override
-_FIELD_SCHEMA_OVERRIDES: dict[tuple[type, str], type[BaseModel]] = {
+_FIELD_SCHEMA_OVERRIDES: dict[tuple[type[Any], str], type[BaseModel]] = {
     (pb.Record, "reflection_params"): codegen_ir.GenTuReflParams,
     (pb.Function, "reflection_params"): codegen_ir.GenTuReflParams,
     (pb.Enum, "reflection_params"): codegen_ir.GenTuReflParams,
@@ -18,7 +24,17 @@ _FIELD_SCHEMA_OVERRIDES: dict[tuple[type, str], type[BaseModel]] = {
 }
 
 
-def betterproto_to_jsonschema(msg_class, defs=None):
+def proto_identifier_to_snake(name: str) -> str:
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    name = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name)
+    return name.lower()
+
+
+@beartype
+def betterproto_to_jsonschema(
+    msg_class: type[Any],
+    defs: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if defs is None:
         defs = {}
 
@@ -27,9 +43,9 @@ def betterproto_to_jsonschema(msg_class, defs=None):
         return {"$ref": f"#/$defs/{class_name}"}
 
     defs[class_name] = {}
-    properties = {}
+    properties: dict[str, Any] = {}
 
-    resolved_hints = typing.get_type_hints(msg_class)
+    resolved_hints: dict[str, Any] = typing.get_type_hints(msg_class)
 
     for f in fields(msg_class):
         if f.name.startswith("_"):
@@ -43,35 +59,50 @@ def betterproto_to_jsonschema(msg_class, defs=None):
             prop = _field_to_schema(resolved_type, defs)
 
         if prop is not None:
-            properties[f.name] = prop
+            properties[proto_identifier_to_snake(f.name)] = prop
 
-    schema = {"type": "object", "properties": properties}
+    schema: dict[str, Any] = {"type": "object", "properties": properties}
     defs[class_name] = schema
     return {"$ref": f"#/$defs/{class_name}"}
 
 
-def _rewrite_pydantic_refs(obj):
+@beartype
+def _rewrite_pydantic_refs(obj: Any, ref_map: dict[str, str]) -> None:
     if isinstance(obj, dict):
-        if "$ref" in obj and obj["$ref"].startswith("#/$defs/"):
-            ref_name = obj["$ref"].split("/")[-1]
-            obj["$ref"] = f"#/$defs/{ref_name}"
+        if "$ref" in obj and isinstance(obj["$ref"], str):
+            ref = obj["$ref"]
+            if ref.startswith("#/$defs/"):
+                ref_name = ref.split("/")[-1]
+                if ref_name in ref_map:
+                    obj["$ref"] = f"#/$defs/{ref_map[ref_name]}"
         for v in obj.values():
-            _rewrite_pydantic_refs(v)
+            _rewrite_pydantic_refs(v, ref_map)
     elif isinstance(obj, list):
         for v in obj:
-            _rewrite_pydantic_refs(v)
+            _rewrite_pydantic_refs(v, ref_map)
 
 
-def _pydantic_override_schema(pydantic_cls, defs):
-    pydantic_schema = pydantic_cls.model_json_schema()
-    if "$defs" in pydantic_schema:
-        for def_name, def_schema in pydantic_schema.pop("$defs").items():
-            defs[f"{def_name}"] = def_schema
-    _rewrite_pydantic_refs(pydantic_schema)
+@beartype
+def _pydantic_override_schema(
+    pydantic_cls: type[BaseModel],
+    defs: dict[str, Any],
+) -> dict[str, Any]:
+    pydantic_schema: dict[str, Any] = pydantic_cls.model_json_schema()
+
+    prefix = f"pydantic__{pydantic_cls.__name__}__"
+    pydantic_defs = pydantic_schema.pop("$defs", {})
+    ref_map = {name: f"{prefix}{name}" for name in pydantic_defs}
+
+    for def_name, def_schema in pydantic_defs.items():
+        _rewrite_pydantic_refs(def_schema, ref_map)
+        defs[ref_map[def_name]] = def_schema
+
+    _rewrite_pydantic_refs(pydantic_schema, ref_map)
     return pydantic_schema
 
 
-def _field_to_schema(tp, defs):
+@beartype
+def _field_to_schema(tp: Any, defs: dict[str, Any]) -> dict[str, Any]:
     origin = typing.get_origin(tp)
     args = typing.get_args(tp)
 
@@ -87,7 +118,8 @@ def _field_to_schema(tp, defs):
     return _type_to_schema(tp, defs)
 
 
-def _type_to_schema(tp, defs):
+@beartype
+def _type_to_schema(tp: Any, defs: dict[str, Any]) -> dict[str, Any]:
     if tp is bool:
         return {"type": "boolean"}
     if tp is int:
@@ -99,23 +131,18 @@ def _type_to_schema(tp, defs):
     if tp is bytes:
         return {"type": "string", "contentEncoding": "base64"}
 
-    try:
-        if isinstance(tp, type) and issubclass(tp, betterproto.Enum):
-            return {"type": "string", "enum": [e.name for e in tp]}
-    except TypeError:
-        pass
+    if isinstance(tp, type) and issubclass(tp, betterproto.Enum):
+        return {"type": "string", "enum": [e.name for e in tp]}
 
-    try:
-        if isinstance(tp, type) and issubclass(tp, betterproto.Message):
-            return betterproto_to_jsonschema(tp, defs)
-    except TypeError:
-        pass
+    if isinstance(tp, type) and issubclass(tp, betterproto.Message):
+        return betterproto_to_jsonschema(tp, defs)
 
     return {}
 
 
-def _generate_schema(msg_class) -> dict:
-    defs = {}
+@beartype
+def _generate_schema(msg_class: type[Any]) -> dict[str, Any]:
+    defs: dict[str, Any] = {}
     root = betterproto_to_jsonschema(msg_class, defs)
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -124,6 +151,7 @@ def _generate_schema(msg_class) -> dict:
     }
 
 
-def write_schema(msg_class, output_path: Path):
+@beartype
+def write_schema(msg_class: type[Any], output_path: Path) -> None:
     schema = _generate_schema(msg_class)
     output_path.write_text(json.dumps(schema, indent=2))

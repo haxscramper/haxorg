@@ -196,6 +196,10 @@ def _map_template_function(ctx: _InstantiateCtx,
         ReturnType=_map_template_type(func.ReturnType, ctx),
     )
 
+    log(CAT).info(
+        f"Map return type {func.ReturnType} of {func.Name} to {result.ReturnType} with substitution map {ctx.substitution_map}"
+    )
+
     return result
 
 
@@ -440,10 +444,17 @@ def find_matching_template(
 
 
 @beartype
+@dataclass
+class SpecializationMatchResult():
+    instantiated_name: QualType
+    substitution_map: Dict[str, QualType]
+
+
+@beartype
 def match_specializations(
     specializations: List[QualType],
     template: QualType,
-) -> List[Tuple[QualType, Dict[str, QualType]]]:
+) -> List[SpecializationMatchResult]:
     """
     Given a list of specializations and a single template, return a list of
     (specialization, substitution_map) pairs for each specialization that
@@ -453,7 +464,11 @@ def match_specializations(
     for spec in specializations:
         subst = unify_qualtype(spec, template)
         if subst is not None:
-            results.append((spec, subst))
+            results.append(
+                SpecializationMatchResult(
+                    instantiated_name=spec,
+                    substitution_map=subst,
+                ))
     return results
 
 
@@ -461,7 +476,7 @@ def match_specializations(
 def group_by_template(
     templates: List[QualType],
     specializations: List[QualType],
-) -> Dict[int, List[Tuple[QualType, Dict[str, QualType]]]]:
+) -> Dict[int, List[SpecializationMatchResult]]:
     """
     Given a list of templates and a list of specializations, produce a mapping
     from template index to the list of (specialization, substitution_map) pairs
@@ -470,12 +485,16 @@ def group_by_template(
     Each specialization is assigned to the first template it matches.
     Specializations that don't match any template are omitted.
     """
-    groups: Dict[int, List[Tuple[QualType, Dict[str, QualType]]]] = {}
+    groups: Dict[int, List[SpecializationMatchResult]] = {}
     for spec in specializations:
         result = find_matching_template(spec, templates)
         if result is not None:
             idx, subst = result
             if idx not in groups:
                 groups[idx] = []
-            groups[idx].append((spec, subst))
+            groups[idx].append(
+                SpecializationMatchResult(
+                    instantiated_name=spec,
+                    substitution_map=subst,
+                ))
     return groups

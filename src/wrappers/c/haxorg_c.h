@@ -3,12 +3,6 @@
 #include <wrappers/c/haxorg_c_api.h>
 struct haxorg_SemIdOfOrg;
 
-struct haxorg_HstdMap;
-
-struct haxorg_ImmMap;
-
-struct haxorg_Opt;
-
 struct haxorg_HstdVecOfOrgJson;
 
 struct haxorg_HstdVecOfSemIdOfOrg;
@@ -96,8 +90,6 @@ struct haxorg_HstdVecOfAstTrackingGroup;
 struct haxorg_HstdVecOfSequenceAnnotation;
 
 struct haxorg_HstdVecOfSequenceSegmentGroup;
-
-struct haxorg_HstdVecOfHaxorg_ptr_payload;
 
 enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
 /// \brief Where to take todo completion statistics from
@@ -1595,21 +1587,6 @@ struct haxorg_SemIdOfOrg {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['hstd', 'UnorderedMap', [['haxorg_ptr_payload']], [['haxorg_ptr_payload']]]
-struct haxorg_HstdMap {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'ext', 'ImmMap', [['haxorg_ptr_payload']], [['haxorg_ptr_payload']]]
-struct haxorg_ImmMap {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'Opt', [['haxorg_ptr_payload']]]
-struct haxorg_Opt {
-  haxorg_ptr_payload data;
-};
-
 /// \brief ['hstd', 'Vec', [['org', 'sem', 'OrgJson']]]
 struct haxorg_HstdVecOfOrgJson {
   haxorg_ptr_payload data;
@@ -1830,10 +1807,26 @@ struct haxorg_HstdVecOfSequenceSegmentGroup {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['hstd', 'Vec', [['haxorg_ptr_payload']]]
-struct haxorg_HstdVecOfHaxorg_ptr_payload {
+/// \brief ['hstd', 'UnorderedMap', [['K']], [['V']], [['Hash']]]
+struct haxorg_HstdMap {
   haxorg_ptr_payload data;
 };
+
+struct haxorg_HstdMap_vtable {};
+
+/// \brief ['hstd', 'ext', 'ImmMap', [['K']], [['V']]]
+struct haxorg_ImmMap {
+  haxorg_ptr_payload data;
+};
+
+struct haxorg_ImmMap_vtable {};
+
+/// \brief ['hstd', 'Opt', [['T']]]
+struct haxorg_Opt {
+  haxorg_ptr_payload data;
+};
+
+struct haxorg_Opt_vtable {};
 
 /// \brief ['hstd', 'BackwardsIndex']
 struct haxorg_BackwardsIndex {
@@ -4551,10 +4544,10 @@ struct haxorg_ImmCmdAttrAdapter {
   haxorg_ptr_payload data;
 };
 
+typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
 typedef haxorg_HstdMap haxorg_GraphNodeProps;
 typedef haxorg_HstdMap haxorg_GraphEdgeProps;
 typedef haxorg_HstdMap haxorg_GraphAdjList;
-typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_SemIdOfOrg_Nil(OrgContext* org_context);
@@ -4568,12 +4561,6 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndex(OrgContext* o
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_SemIdOfOrg_getIndexBackwards(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_BackwardsIndex idx);
 HAXORG_C_API_LINKAGE int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj);
-HAXORG_C_API_LINKAGE haxorg_Opt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
-HAXORG_C_API_LINKAGE bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMap __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_Opt(OrgContext* org_context, haxorg_Opt* obj);
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfOrgJson_size_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this);
 HAXORG_C_API_LINKAGE haxorg_OrgJson haxorg_HstdVecOfOrgJson_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfOrgJson(OrgContext* org_context, haxorg_HstdVecOfOrgJson* obj);
@@ -4706,9 +4693,10 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceAnnotation(OrgContext*
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSequenceSegmentGroup_size_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this);
 HAXORG_C_API_LINKAGE haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj);
-HAXORG_C_API_LINKAGE int haxorg_HstdVecOfHaxorg_ptr_payload_size_const(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload __this);
-HAXORG_C_API_LINKAGE haxorg_ptr_payload const& haxorg_HstdVecOfHaxorg_ptr_payload_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload __this, int idx);
-HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfHaxorg_ptr_payload(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload* obj);
+HAXORG_C_API_LINKAGE haxorg_Opt haxorg_ImmMapOfKV_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key);
+HAXORG_C_API_LINKAGE bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfK haxorg_ImmMapOfKV_keys_const(OrgContext* org_context, haxorg_ImmMap __this);
+HAXORG_C_API_LINKAGE haxorg_T haxorg_OptOfT_value(OrgContext* org_context, haxorg_Opt __this);
 HAXORG_C_API_LINKAGE int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);

@@ -63,18 +63,6 @@ int haxorg_SemIdOfOrg_size_const(OrgContext* org_context, haxorg_SemIdOfOrg __th
 
 void haxorg_destroy_SemIdOfOrg(OrgContext* org_context, haxorg_SemIdOfOrg* obj) { org::bind::c::execute_destroy<org::sem::SemId<org::sem::Org>>(org_context, obj); }
 
-void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj) { org::bind::c::execute_destroy_vtable<haxorg_HstdMap_vtable>(org_context, obj); }
-
-haxorg_Opt haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::get), org_context, __this, key); }
-
-bool haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)(haxorg_ptr_payload const&) const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::contains), org_context, __this, key); }
-
-haxorg_HstdVecOfHaxorg_ptr_payload haxorg_ImmMapOfHaxorg_ptr_payloadHaxorg_ptr_payload_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfHaxorg_ptr_payload>(static_cast<hstd::Vec<haxorg_ptr_payload>(hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::*)() const>(&hstd::ext::ImmMap<haxorg_ptr_payload, haxorg_ptr_payload>::keys), org_context, __this); }
-
-void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj) { org::bind::c::execute_destroy_vtable<haxorg_ImmMap_vtable>(org_context, obj); }
-
-void haxorg_destroy_Opt(OrgContext* org_context, haxorg_Opt* obj) { org::bind::c::execute_destroy_vtable<haxorg_Opt_vtable>(org_context, obj); }
-
 int haxorg_HstdVecOfOrgJson_size_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<org::sem::OrgJson>::*)() const>(&hstd::Vec<org::sem::OrgJson>::size), org_context, __this); }
 
 haxorg_OrgJson haxorg_HstdVecOfOrgJson_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfOrgJson __this, int idx) { return org::bind::c::execute_cpp<haxorg_OrgJson>(static_cast<org::sem::OrgJson const&(hstd::Vec<org::sem::OrgJson>::*)(int) const>(&hstd::Vec<org::sem::OrgJson>::at), org_context, __this, idx); }
@@ -339,11 +327,13 @@ haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(O
 
 void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceSegmentGroup>>(org_context, obj); }
 
-int haxorg_HstdVecOfHaxorg_ptr_payload_size_const(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<haxorg_ptr_payload>::*)() const>(&hstd::Vec<haxorg_ptr_payload>::size), org_context, __this); }
+haxorg_Opt haxorg_ImmMapOfKV_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<V>(hstd::ext::ImmMap<K, V>::*)(K const&) const>(&hstd::ext::ImmMap<K, V>::get), org_context, __this, key); }
 
-haxorg_ptr_payload const& haxorg_HstdVecOfHaxorg_ptr_payload_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload __this, int idx) { return org::bind::c::execute_cpp<haxorg_ptr_payload const&>(static_cast<haxorg_ptr_payload const&(hstd::Vec<haxorg_ptr_payload>::*)(int) const>(&hstd::Vec<haxorg_ptr_payload>::at), org_context, __this, idx); }
+bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_K key) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::ext::ImmMap<K, V>::*)(K const&) const>(&hstd::ext::ImmMap<K, V>::contains), org_context, __this, key); }
 
-void haxorg_destroy_HstdVecOfHaxorg_ptr_payload(OrgContext* org_context, haxorg_HstdVecOfHaxorg_ptr_payload* obj) { org::bind::c::execute_destroy<hstd::Vec<haxorg_ptr_payload>>(org_context, obj); }
+haxorg_HstdVecOfK haxorg_ImmMapOfKV_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfK>(static_cast<hstd::Vec<K>(hstd::ext::ImmMap<K, V>::*)() const>(&hstd::ext::ImmMap<K, V>::keys), org_context, __this); }
+
+haxorg_T haxorg_OptOfT_value(OrgContext* org_context, haxorg_Opt __this) { return org::bind::c::execute_cpp<haxorg_T>(static_cast<T&(hstd::Opt<T>::*)()>(&hstd::Opt<T>::value), org_context, __this); }
 
 int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this) { return org::bind::c::get_cpp_field<int, hstd::BackwardsIndex, int, haxorg_BackwardsIndex>(org_context, __this, &hstd::BackwardsIndex::value); }
 

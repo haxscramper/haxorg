@@ -14,7 +14,7 @@ from beartype.typing import Optional, List, Any
 import py_codegen.proto_lib.reflection_defs as pb
 from py_scriptutils.script_logging import ExceptionContextNote, log
 from betterproto.lib.google import protobuf as pb_google
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 
 CAT = __name__
 
@@ -357,6 +357,103 @@ class ConvTu:
         return self.enums + self.typedefs + self.structs + self.functions
 
 
+from dataclasses import MISSING, fields, is_dataclass
+from typing import Any, get_args, get_origin, get_type_hints, Union
+
+
+def dict_to_dataclass(
+    data: Any,
+    cls: type[Any],
+    allow_extra_fields: set[tuple[type, str]],
+) -> Any:
+
+    def format_path(path: tuple[Any, ...]) -> str:
+        if not path:
+            return "$"
+
+        result = "$"
+        for part in path:
+            if isinstance(part, int):
+                result += f"[{part}]"
+            else:
+                result += f".{part}"
+        return result
+
+    def aux(data: Any, cls: type[Any], path: tuple[Any, ...]) -> Any:
+        if data is None:
+            return None
+
+        origin = get_origin(cls)
+
+        if origin is Union:
+            args = [arg for arg in get_args(cls) if arg is not type(None)]
+            for arg in args:
+                try:
+                    return aux(data, arg, path)
+                except Exception:
+                    pass
+            return data
+
+        if origin is list:
+            (item_type,) = get_args(cls)
+            return [
+                aux(item, item_type, path + (index,)) for index, item in enumerate(data)
+            ]
+
+        if origin is tuple:
+            item_types = get_args(cls)
+            if len(item_types) == 2 and item_types[1] is Ellipsis:
+                return tuple(
+                    aux(item, item_types[0], path + (index,))
+                    for index, item in enumerate(data))
+            return tuple(
+                aux(item, item_type, path + (index,))
+                for index, (item, item_type) in enumerate(zip(data, item_types)))
+
+        if origin is dict:
+            key_type, value_type = get_args(cls)
+            return {
+                aux(key, key_type, path + (f"<key:{key}>",)):
+                    aux(value, value_type, path + (key,)) for key, value in data.items()
+            }
+
+        if is_dataclass(cls):
+            if not isinstance(data, dict):
+                raise TypeError(
+                    f"At {format_path(path)}: expected dict for {cls.__name__}, got {type(data).__name__}"
+                )
+
+            cls_fields = fields(cls)
+            field_names = {field.name for field in cls_fields}
+            unknown_fields = [
+                f for f in set(data) - field_names if (cls, f) not in allow_extra_fields
+            ]
+            if unknown_fields:
+                raise KeyError(
+                    f"At {format_path(path)}: unknown fields for {cls.__name__}: "
+                    f"{sorted(unknown_fields)}, has fields {field_names}")
+
+            type_hints = get_type_hints(cls)
+            kwargs = {}
+
+            for field in cls_fields:
+                field_path = path + (field.name,)
+                if field.name not in data:
+                    if field.default is not MISSING or field.default_factory is not MISSING:
+                        continue
+                    raise KeyError(
+                        f"At {format_path(field_path)}: missing required field")
+
+                field_type = type_hints[field.name]
+                kwargs[field.name] = aux(data[field.name], field_type, field_path)
+
+            return cls(**kwargs)
+
+        return data
+
+    return aux(data, cls, ())
+
+
 @beartype
 def open_proto_file(path: Path) -> pb.TU:
     unit = pb.TU()
@@ -365,7 +462,13 @@ def open_proto_file(path: Path) -> pb.TU:
     with ExceptionContextNote(f"Parsing file {path}"):
         if path.suffix == ".json":
             import commentjson
-            unit = unit.from_dict(commentjson.loads(path.read_text()))
+            unit = dict_to_dataclass(
+                commentjson.loads(path.read_text()),
+                pb.TU,
+                allow_extra_fields={
+                    (pb.TU, "$schema"),
+                },
+            )
 
         else:
             with open(path, "rb") as f:
