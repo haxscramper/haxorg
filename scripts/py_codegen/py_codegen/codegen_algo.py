@@ -115,13 +115,15 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
         if Type.Name in ctx.substitution_map:
             subst = ctx.substitution_map[Type.Name]
             if subst.Kind == codegen_ir.QualTypeKind.TypeExpr:
-                return subst
+                return subst.copy_update(
+                    OriginalSubstitutedTemplate=Type.model_copy(deep=True),)
 
             elif subst.isFunction():
                 assert subst.Func
                 return Type.copy_update(
                     Func=aux_type(subst.Func),
                     Kind=subst.Kind,
+                    OriginalSubstitutedTemplate=Type.model_copy(deep=True),
                 )
 
             else:
@@ -132,6 +134,7 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
                     Kind=subst.Kind,
                     IsTemplateTypeParam=subst.IsTemplateTypeParam,
                     IsTemplateInjectedType=subst.IsTemplateInjectedType,
+                    OriginalSubstitutedTemplate=Type.model_copy(deep=True),
                 )
 
         match Type.Kind:

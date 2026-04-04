@@ -101,6 +101,13 @@ class QualType(BaseModel, extra="forbid"):
     IsTemplateInjectedType: bool = False
     "Type refers to the type injected by the template parametr `T::nested` -- the nested is injected"
 
+    OriginalSubstitutedTemplate: Optional["QualType"] = None
+    """
+    Original template type parameter that was replaced by a newly substituted type.
+    This field is populated during the template type instantiation to avoid information
+    loss during substitution.
+    """
+
     @beartype
     class Function(BaseModel, extra="forbid"):
         "Pointer to function signature"

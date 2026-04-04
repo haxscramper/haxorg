@@ -220,6 +220,26 @@ def _gen_enum(en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder,
     )
 
 
+def _should_substitude_for_payload(Type: QualType, conf: CAstbuilderConfig) -> bool:
+    # Public API of the method is a template type parameter
+    # to create a static methods for vtable with all signature
+    # types matching, it is necessary to unpack the result
+    # into the opaque handle.
+    if Type.OriginalSubstitutedTemplate and conf.isKnownClass(Type):
+        return True
+
+    else:
+        return False
+
+
+def _aux_public_api_type(Type: QualType, conf: CAstbuilderConfig) -> QualType:
+    if _should_substitude_for_payload(Type, conf):
+        return _PAYLOAD_TYPE
+
+    else:
+        return conf.getBackendType(Type)
+
+
 @beartype
 def _gen_vtable_specialization(
     struct: codegen_ir.GenTuStruct,
@@ -266,13 +286,7 @@ def _gen_vtable_specialization(
                                         _meth.Name,
                                         args=[ast.string(arg.Name) for arg in _meth.Args
                                              ]))
-                            ])),
-                    # ast.XCall(
-                    #     "static_cast",
-                    #     args=[ast.Addr(ast.Type(_meth.get_full_qualified_name()))],
-                    #     Params=[_meth.get_function_type()],
-                    # )
-                )
+                            ])))
 
             else:
                 ExecuteArgs.append(
@@ -295,16 +309,19 @@ def _gen_vtable_specialization(
                 Params=[conf.getBackendType(_meth.ReturnType)],
             )
 
+            if _should_substitude_for_payload(_meth.ReturnType, conf):
+                Impl = ast.Dot(Impl, ast.string("data"))
+
             Impl = ast.Return(Impl)
 
             Methods.append(
                 codegen_ir.GenTuFunction(
-                    ReturnType=conf.getBackendType(_meth.ReturnType),
+                    ReturnType=_aux_public_api_type(_meth.ReturnType, conf),
                     Args=[
                         _CONTEXT_ARG,
                         codegen_ir.GenTuIdent(Type=c_type, Name=_SELF_IDENT_STR),
                     ] + [
-                        codegen_ir.GenTuIdent(Type=conf.getBackendType(A.Type),
+                        codegen_ir.GenTuIdent(Type=_aux_public_api_type(A.Type, conf),
                                               Name=A.Name) for A in _meth.Args
                     ],
                     IsStatic=True,

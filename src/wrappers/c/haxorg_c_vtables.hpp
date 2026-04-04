@@ -6,14 +6,14 @@
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_TblfmExprAxisRefPosition value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::Tblfm::Expr::AxisRef>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_TblfmExprAxisRef value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -41,7 +41,7 @@ struct org::bind::c::VTable<hstd::Opt<double>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<hstd::Str>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_HstdStr value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -55,63 +55,63 @@ struct org::bind::c::VTable<hstd::Opt<std::string>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<hstd::UserTime>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_UserTime value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::AttrValue>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_AttrValue value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::AttrList>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_AttrList value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::OrgCodeEvalInput::Var>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_OrgCodeEvalInputVar value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::ColumnView::Summary>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ColumnViewSummary value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::parse::SourceLoc>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ParseSourceLoc value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::AttrValue::LispValue>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_AttrValueLispValue value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::AttrValue::Kind>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_AttrValueKind value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::Time::Repeat>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_TimeRepeat value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -132,14 +132,14 @@ struct org::bind::c::VTable<hstd::Opt<org::sem::SemId<org::sem::StmtList>>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::NamedProperty>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_NamedProperty value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::SubtreeCompletion>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_SubtreeCompletion value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -160,7 +160,7 @@ struct org::bind::c::VTable<hstd::Opt<org::sem::SemId<org::sem::Time>>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::ColumnView>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ColumnView value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -174,14 +174,14 @@ struct org::bind::c::VTable<hstd::Opt<org::sem::SemId<org::sem::RawText>>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::sem::SubtreePath>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_SubtreePath value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::imm::ImmTime::Repeat>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ImmTimeRepeat value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -258,7 +258,7 @@ struct org::bind::c::VTable<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText
 template <>
 struct org::bind::c::VTable<hstd::Opt<org::imm::ImmAdapter>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ImmAdapter value(OrgContext* org_context, haxorg_ptr_payload __self);
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_ptr_payload __self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
