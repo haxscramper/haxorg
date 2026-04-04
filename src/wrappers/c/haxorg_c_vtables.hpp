@@ -20,21 +20,21 @@ struct org::bind::c::VTable<hstd::Opt<org::sem::Tblfm::Expr::AxisRef>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<bool>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static bool& value(OrgContext* org_context, haxorg_ptr_payload self);
+  static bool const& value(OrgContext* org_context, haxorg_ptr_payload self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<int>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static int& value(OrgContext* org_context, haxorg_ptr_payload self);
+  static int const& value(OrgContext* org_context, haxorg_ptr_payload self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
 template <>
 struct org::bind::c::VTable<hstd::Opt<double>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static double& value(OrgContext* org_context, haxorg_ptr_payload self);
+  static double const& value(OrgContext* org_context, haxorg_ptr_payload self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 
@@ -118,7 +118,7 @@ struct org::bind::c::VTable<hstd::Opt<org::sem::Time::Repeat>> {
 template <>
 struct org::bind::c::VTable<hstd::Opt<int64_t>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static int64_t& value(OrgContext* org_context, haxorg_ptr_payload self);
+  static int64_t const& value(OrgContext* org_context, haxorg_ptr_payload self);
   static haxorg_Opt_vtable const* get_vtable();
 };
 

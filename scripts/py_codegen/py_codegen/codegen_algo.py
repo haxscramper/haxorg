@@ -1,14 +1,19 @@
 from dataclasses import dataclass, replace
+import functools
 import itertools
 
-from beartype.typing import List, Any, Set, Optional, Dict, Tuple
 from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Set, Tuple
 from py_codegen import codegen_ir
-from py_codegen.codegen_ir import QualType, QualTypeKind, ReferenceKind, TypeSpecialization
 from py_codegen.astbuilder_base_config import AstbulderConfig
+from py_codegen.codegen_ir import (
+    QualType,
+    QualTypeKind,
+    ReferenceKind,
+    TypeSpecialization,
+)
 from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log
-import functools
 
 CAT = __name__
 
@@ -194,10 +199,6 @@ def _map_template_function(ctx: _InstantiateCtx,
         Args=[replace(Arg, Type=_map_template_type(Arg.Type, ctx)) for Arg in func.Args],
         ParentClass=_map_template_type(func.ParentClass, ctx),
         ReturnType=_map_template_type(func.ReturnType, ctx),
-    )
-
-    log(CAT).info(
-        f"Map return type {func.ReturnType} of {func.Name} to {result.ReturnType} with substitution map {ctx.substitution_map}"
     )
 
     return result

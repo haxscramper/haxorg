@@ -333,7 +333,7 @@ bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __t
 
 haxorg_HstdVecOfK haxorg_ImmMapOfKV_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfK>(static_cast<hstd::Vec<K>(hstd::ext::ImmMap<K, V>::*)() const>(&hstd::ext::ImmMap<K, V>::keys), org_context, __this); }
 
-haxorg_T haxorg_OptOfT_value(OrgContext* org_context, haxorg_Opt __this) { return org::bind::c::execute_cpp<haxorg_T>(static_cast<T&(hstd::Opt<T>::*)()>(&hstd::Opt<T>::value), org_context, __this); }
+haxorg_T haxorg_OptOfT_value(OrgContext* org_context, haxorg_Opt __this) { return org::bind::c::execute_cpp<haxorg_T>(static_cast<T const&(hstd::Opt<T>::*)()>(&hstd::Opt<T>::value), org_context, __this); }
 
 int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this) { return org::bind::c::get_cpp_field<int, hstd::BackwardsIndex, int, haxorg_BackwardsIndex>(org_context, __this, &hstd::BackwardsIndex::value); }
 

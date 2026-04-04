@@ -1,17 +1,16 @@
-from beartype.typing import Any
-from beartype import beartype
+from dataclasses import fields
 import json
 from pathlib import Path
-from py_scriptutils.script_logging import log
-from py_codegen import codegen_ir
-import typing
-from pydantic import BaseModel
-import py_codegen.proto_lib.reflection_defs as pb
-from dataclasses import fields
-import betterproto
 import re
+import typing
 
+from beartype import beartype
+from beartype.typing import Any
+import betterproto
+from py_codegen import codegen_ir
+import py_codegen.proto_lib.reflection_defs as pb
 from py_scriptutils.script_logging import log
+from pydantic import BaseModel
 
 CAT = __name__
 
@@ -38,7 +37,7 @@ def betterproto_to_jsonschema(
     if defs is None:
         defs = {}
 
-    class_name = msg_class.__name__
+    class_name = f"{msg_class.__module__}.{msg_class.__name__}"
     if class_name in defs:
         return {"$ref": f"#/$defs/{class_name}"}
 
