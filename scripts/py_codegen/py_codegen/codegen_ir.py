@@ -644,11 +644,20 @@ class GenTuTemplateTypename:
 
     Kind: TemplateParamKind = TemplateParamKind.Type
     TypeExpr: QualType = field(default_factory=QualType)
+    "Name/definition of the template type, `typename N` -- this field will hold `N`"
     Variadic: bool = False
+    "Whether template type parameter was declared as variadic"
     Concept: Optional[str] = None
+    "Constraining concept for the template type"
     Default: Optional[QualType] = None
+    "Default type for the parameter"
     TemplateParams: Optional["GenTuTemplateParams"] = None
+    "Template template parameters, `template <typename, typename> ..."
     NonTypeConstraint: Optional[QualType] = None
+    "Type constraint for non-type template parameters `<int N>` -- this field will hold `int`"
+
+    def hasName(self) -> bool:
+        return bool(self.TypeExpr.Name)
 
     def getName(self) -> str:
         """
@@ -665,6 +674,7 @@ class GenTuTemplateTypename:
 @beartype
 @dataclass
 class GenTuTemplateGroup:
+    "Single `template <...>` group"
     Params: List[GenTuTemplateTypename] = field(default_factory=list)
 
 
@@ -676,11 +686,22 @@ class GenTuTemplateParams:
 
     Most ordinary templates use a single stack. Nested stacks are preserved
     because the existing IR already models template parameter lists this way.
+
+    Template params stores a full list of stacks, to correctly represent the
+
+    ```
+    template <typename A>
+    template <typename B>
+    ```
+
+    The reflection-based processing of entries will return one stack.
     """
     Stacks: List[GenTuTemplateGroup] = field(default_factory=list)
+    "Vertical stack of template type parameters for type/function"
 
     @staticmethod
     def FinalSpecialization() -> "GenTuTemplateParams":
+        "Create a template type parameter with one empty stack"
         return GenTuTemplateParams(Stacks=[GenTuTemplateGroup()])
 
     @staticmethod

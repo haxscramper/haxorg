@@ -1212,36 +1212,113 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Template(
-        self, Param: Union[codegen_ir.GenTuTemplateTypename,
-                           codegen_ir.GenTuTemplateGroup, GenTuTemplateParams]
+        self,
+        Param: Union[
+            codegen_ir.GenTuTemplateTypename,
+            codegen_ir.GenTuTemplateGroup,
+            GenTuTemplateParams,
+        ],
     ) -> BlockId:
         if isinstance(Param, codegen_ir.GenTuTemplateTypename):
-            concept_str = Param.Concept if Param.Concept else (
-                "typename" if not Param.Nested else "template")
-            placeholder_str = "" if Param.Placeholder else " "
-            name_str = "" if Param.Placeholder else Param.Name
+            if Param.Kind == codegen_ir.TemplateParamKind.Type:
+                parts: List[BlockId] = []
 
-            nested_content = self.b.join([self.Template(Sub) for Sub in Param.Nested],
-                                         self.string(", "))
-            return self.b.line([
-                self.string(concept_str),
-                self.string(placeholder_str),
-                self.string(name_str),
-                self.b.surround_non_empty(nested_content, self.string("<"),
-                                          self.string(">"))
-            ])
+                if Param.Concept:
+                    parts.append(self.string(Param.Concept))
+                else:
+                    parts.append(self.string("typename"))
+
+                if Param.Variadic:
+                    parts.append(self.string("..."))
+
+                if Param.hasName():
+                    parts.append(self.string(" "))
+                    parts.append(self.Type(Param.TypeExpr))
+
+                result = self.b.line(parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
+
+            elif Param.Kind == codegen_ir.TemplateParamKind.NonType:
+                assert Param.NonTypeConstraint is not None
+
+                decl_parts: List[BlockId] = [self.Type(Param.NonTypeConstraint)]
+
+                if Param.Variadic:
+                    decl_parts.append(self.string("..."))
+
+                if Param.hasName():
+                    decl_parts.append(self.string(Param.getName()))
+
+                result = self.b.line(decl_parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
+
+            else:
+                assert Param.Kind == codegen_ir.TemplateParamKind.Template
+                assert Param.TemplateParams is not None
+
+                header = self.b.line([
+                    self.string("template <"),
+                    self.b.join(
+                        [
+                            self.Template(sub_param)
+                            for sub_param in Param.TemplateParams.Stacks[0].Params
+                        ],
+                        self.string(", "),
+                    ),
+                    self.string(">"),
+                ])
+
+                body_parts: List[BlockId] = [header]
+
+                if Param.Concept:
+                    body_parts.append(self.string(Param.Concept))
+                else:
+                    body_parts.append(self.string("typename"))
+
+                if Param.Variadic:
+                    body_parts.append(self.string("..."))
+
+                if Param.hasName():
+                    body_parts.append(self.string(Param.getName()))
+
+                result = self.b.line(body_parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
 
         elif isinstance(Param, codegen_ir.GenTuTemplateGroup):
             return self.b.line([
                 self.string("template <"),
-                self.b.join([self.Template(Param) for Param in Param.Params],
+                self.b.join([self.Template(param) for param in Param.Params],
                             self.string(", ")),
-                self.string(">")
+                self.string(">"),
             ])
 
         else:
-            assert (isinstance(Param, GenTuTemplateParams))
-            return self.b.stack([self.Template(Spec) for Spec in Param.Stacks])
+            assert isinstance(Param, GenTuTemplateParams)
+            return self.b.stack([self.Template(spec) for spec in Param.Stacks])
 
     def WithTemplate(self, Templ: Optional[GenTuTemplateParams],
                      Body: BlockId) -> BlockId:

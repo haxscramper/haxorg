@@ -172,11 +172,12 @@ def _map_template_struct(ctx: _InstantiateCtx,
     for _stack in base.TemplateParams.Stacks:
         updated_group = codegen_ir.GenTuTemplateGroup()
         for _param in _stack.Params:
-            if _param.Name in ctx.substitution_map:
-                substituted = ctx.substitution_map[_param.Name]
+            if _param.hasName() and _param.getName() in ctx.substitution_map:
+                substituted = ctx.substitution_map[_param.getName()]
                 for _nested in substituted.getTemplateParameters():
                     updated_group.Params.append(
-                        codegen_ir.GenTuTemplateTypename(Name=_nested.Name))
+                        codegen_ir.GenTuTemplateTypename(TypeExpr=QualType(
+                            Name=_nested.Name)))
 
                 explicit_params.append(substituted)
 

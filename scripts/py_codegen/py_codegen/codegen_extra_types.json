@@ -18,24 +18,22 @@
       "is_template_record": true,
       "templates"         : [
         {
-          "parameters": [ {"name": "T"} ]
+          "stacks": [
+            { "params": [ { "type_expr": {"name": "T"} } ] }
+          ]
         }
       ],
       "methods"           : [
         {
-          "name"     : "value",
-          "return_ty": {
+          "name"             : "value",
+          "return_ty"        : {
             "ref_kind": "LValue",
             "name": "T",
             "is_template_type_param": true,
             "qualifiers": [ {"is_const": true} ]
           },
           "reflection_params": {
-            "backend": {
-              "c": {
-                "pointer_through_lambda": true
-              }
-            }
+            "backend": { "c": {"pointer_through_lambda": true} }
           }
         }
       ]
