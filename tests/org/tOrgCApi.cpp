@@ -1,12 +1,13 @@
 /// \brief Tests for the C API
 
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/PairFormatter.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include "tOrgTestCommon.hpp"
-#include <wrappers/c/haxorg_c.h>
+#if ORG_BUILD_WRAPPERS_C
+#    include <hstd/stdlib/OptFormatter.hpp>
+#    include <hstd/stdlib/VariantFormatter.hpp>
+#    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/PairFormatter.hpp>
+#    include <hstd/stdlib/MapFormatter.hpp>
+#    include "tOrgTestCommon.hpp"
+#    include <wrappers/c/haxorg_c.h>
 
 
 TEST(OrgCApi, TestSimpleParsing) {
@@ -30,3 +31,5 @@ TEST(OrgCApi, TestSimpleParsing) {
 
     haxorg_destroy_SemIdOfOrg(&ctx, &parsed_node);
 }
+
+#endif

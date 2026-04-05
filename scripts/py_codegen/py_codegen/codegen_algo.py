@@ -1,15 +1,20 @@
 from dataclasses import dataclass, replace
 import functools
+import inspect
 import itertools
+from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Set, Tuple
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import (
+    GenTuTemplateParams,
+    GenTuTemplateTypename,
     QualType,
     QualTypeKind,
     ReferenceKind,
+    TemplateParamKind,
     TypeSpecialization,
 )
 from py_scriptutils.algorithm import iterate_object_tree
@@ -228,68 +233,879 @@ def _instantiate_template(_ctx: _InstantiateCtx,
 
 
 @beartype
-def instantiate_template(
-    Base: codegen_ir.GenTuDeclaration,
-    substitution_map: dict[str, QualType],
-    type_map: codegen_ir.GenTypeMap,
-) -> codegen_ir.GenTuDeclaration:
-    return _instantiate_template(  # type: ignore
-        _InstantiateCtx(substitution_map=substitution_map, type_map=type_map),
-        Base,
-    )
+@dataclass
+class SpecializationMatchResult:
+    instantiated_name: QualType
+    substitution_map: Dict[str, QualType]
 
 
 @beartype
-def _strip_qualifiers(
-    specialization: QualType,
-    template: QualType,
-) -> Optional[QualType]:
-    """
-    If the template node is a template type parameter with qualifiers/pointers/refs,
-    check that the specialization has at least those qualifiers, and return a
-    stripped copy of the specialization with those qualifiers removed.
+@dataclass
+class TemplateMatchCandidate:
+    template_index: int
+    substitution_map: Dict[str, QualType]
 
-    For a bare `T` (no qualifiers), returns the specialization as-is.
-    For `T const&`, checks the specialization is `const&` and strips those.
-    For `T const**`, checks the specialization has const and >=2 pointers, strips them.
 
-    Returns None if the specialization doesn't have the required qualifiers.
+@beartype
+class TemplateUnificationMatcher:
     """
-    # Check ref kind: template demands a specific ref kind
-    if template.RefKind != ReferenceKind.NotRef:
-        if specialization.RefKind != template.RefKind:
+    Stateful matcher for unifying instantiated qualified types against template
+    declarations represented as `GenTuTemplateParams`.
+
+    The matcher owns:
+    - debug configuration
+    - indentation depth for hierarchical logs
+    - all recursive unification entry points
+
+    Public module-level helper functions can create a fresh instance of this
+    matcher and delegate all work to it.
+    """
+
+    def __init__(
+        self,
+        *,
+        debug: bool = False,
+        debug_sink: Optional[List[str]] = None,
+    ) -> None:
+        self.debug = debug
+        self.debug_sink = debug_sink if debug_sink is not None else []
+        self._indent = 0
+
+    def _log(self, message: str) -> None:
+        """
+        Record a debug message with current indentation if debug is enabled.
+        """
+        if self.debug:
+            current = inspect.currentframe()
+            assert current
+            frame = current.f_back
+
+            while frame is not None:
+                code = frame.f_code
+                name = code.co_name
+                filename = code.co_filename
+
+                if (name != "_log" and name != "wrapper" and name != "wrapped" and
+                        "@beartype" not in filename and "beartype" not in filename):
+                    break
+
+                frame = frame.f_back
+
+            if frame is None:
+                raise RuntimeError("Could not determine caller frame")
+
+            location = f"{frame.f_lineno:<3}"
+            self.debug_sink.append(f'[{location}] {"  " * self._indent}{message} ')
+
+    def get_debug(self) -> str:
+        return "unification matcher log:\n" + "\n".join(self.debug_sink)
+
+    @dataclass
+    class _IndentScope:
+        matcher: "TemplateUnificationMatcher"
+
+        def __enter__(self) -> None:
+            self.matcher._indent += 1
+
+        def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+            self.matcher._indent -= 1
+
+    def _indented(self) -> "_IndentScope":
+        return self._IndentScope(self)
+
+    def _copy_subst(self, subst: Dict[str, QualType]) -> Dict[str, QualType]:
+        """
+        Return a shallow copy of a substitution map.
+
+        Recursive matching uses defensive copies so failed branches do not mutate
+        successful sibling branches.
+        """
+        return dict(subst)
+
+    def _flatten_template_params(
+        self,
+        template_params: GenTuTemplateParams,
+    ) -> List[GenTuTemplateTypename]:
+        """
+        Flatten stacked parameter groups into a single ordered list.
+
+        This preserves the historic behavior of `getTemplateParams()` which also
+        iterated stacks in-order and appended all entries into one sequence.
+        """
+        result: List[GenTuTemplateTypename] = []
+        for stack in template_params.Stacks:
+            result.extend(stack.Params)
+        return result
+
+    def _strip_qualifiers(
+        self,
+        specialization: QualType,
+        template: QualType,
+    ) -> Optional[QualType]:
+        """
+        Strip qualifiers demanded by a template type parameter wrapper.
+
+        When a template parameter is written with wrappers such as `T const&`
+        the specialization must provide at least these wrappers. The returned
+        value is the bound payload that should be assigned to `T`.
+
+        Examples:
+        - template `T`, specialization `int const&` => bind `T = int const&`
+        - template `T const&`, specialization `int const&` => bind `T = int`
+        - template `T**`, specialization `int***` => bind `T = int*`
+        """
+        self._log(
+            f"strip qualifiers specialization={specialization!r} template={template!r}")
+
+        if template.RefKind != ReferenceKind.NotRef:
+            if specialization.RefKind != template.RefKind:
+                self._log("reference kind mismatch while stripping")
+                return None
+        elif specialization.RefKind != ReferenceKind.NotRef:
+            self._log("template does not require reference, keep specialization as-is")
+            return specialization
+
+        if template.PtrCount > specialization.PtrCount:
+            self._log("pointer count mismatch while stripping")
             return None
-    elif specialization.RefKind != ReferenceKind.NotRef:
-        # Template doesn't demand a ref, but specialization has one.
-        # A bare `T` can match `int const&` — T binds to `int const&`.
-        # So we do NOT strip here; return as-is.
-        return specialization
 
-    # Check pointer count: template demands at least this many
-    if template.PtrCount > specialization.PtrCount:
+        if template.IsConst and not specialization.IsConst:
+            self._log("const qualifier missing while stripping")
+            return None
+
+        stripped = specialization.copy_update(
+            RefKind=specialization.RefKind,
+            PtrCount=specialization.PtrCount - template.PtrCount,
+            IsConst=specialization.IsConst and not template.IsConst,
+        )
+
+        if template.RefKind != ReferenceKind.NotRef:
+            stripped = stripped.copy_update(RefKind=ReferenceKind.NotRef)
+
+        self._log(f"stripped specialization -> {stripped!r}")
+        return stripped
+
+    def _bind_named_param(
+        self,
+        name: str,
+        value: QualType,
+        substitution: Dict[str, QualType],
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Bind a substitution name to a qualified type.
+
+        If the name was already bound, the value must match exactly.
+        """
+        self._log(f"bind {name} -> {value!r}")
+        if name in substitution:
+            if substitution[name] == value:
+                self._log(f"binding {name} already present with same value")
+                return substitution
+            self._log(
+                f"binding conflict for {name}: existing={substitution[name]!r} new={value!r}"
+            )
+            return None
+
+        updated = self._copy_subst(substitution)
+        updated[name] = value
+        return updated
+
+    def _param_decl_name(self, param: GenTuTemplateTypename) -> Optional[str]:
+        """
+        Return declared parameter name if present.
+        """
+        return param.TypeExpr.Name if param.TypeExpr.Name else None
+
+    def _substitute_qualtype(
+        self,
+        value: QualType,
+        substitution: Dict[str, QualType],
+    ) -> QualType:
+        """
+        Instantiate a `QualType` using the current substitution map.
+
+        This is used for default template arguments so omitted parameters can be
+        materialized after earlier parameters were already deduced.
+        """
+        if value.IsTemplateTypeParam and value.Name in substitution:
+            bound = substitution[value.Name]
+            return bound.copy_update(OriginalSubstitutedTemplate=value)
+
+        new_spaces = [
+            self._substitute_qualtype(space, substitution) for space in value.Spaces
+        ]
+        new_params = [
+            self._substitute_qualtype(param, substitution) for param in value.Params
+        ]
+
+        new_func = value.Func
+        if value.Func is not None:
+            new_func = QualType.Function(
+                ReturnType=self._substitute_qualtype(value.Func.ReturnType, substitution),
+                Args=[
+                    self._substitute_qualtype(arg, substitution)
+                    for arg in value.Func.Args
+                ],
+                Class=None if value.Func.Class is None else self._substitute_qualtype(
+                    value.Func.Class, substitution),
+                IsConst=value.Func.IsConst,
+            )
+
+        return value.copy_update(
+            Spaces=new_spaces,
+            Params=new_params,
+            Func=new_func,
+        )
+
+    def _qualtype_to_template_param(
+        self,
+        template: QualType,
+    ) -> GenTuTemplateTypename:
+        """
+        Wrap a legacy `QualType` template description into a type-parameter node.
+
+        This preserves the old public API shape where callers pass a `QualType`
+        as the template side.
+        """
+        return GenTuTemplateTypename(
+            Kind=TemplateParamKind.Type,
+            TypeExpr=template,
+        )
+
+    def _unify_template_template_argument(
+        self,
+        specialization: QualType,
+        template_param: GenTuTemplateTypename,
+        substitution: Dict[str, QualType],
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Match a template-template argument.
+
+        The specialization side is represented by a `QualType` naming the passed
+        template entity, while its `Params` list encodes the template parameter
+        pattern of that entity.
+
+        Example:
+            A<std::vector>
+        is represented as:
+            QualType(Name="vector", Params=[QualType(Name="T", IsTemplateTypeParam=True)])
+        """
+        self._log(
+            f"unify template-template specialization={specialization!r} template_param={template_param!r}"
+        )
+        assert template_param.TemplateParams is not None
+
+        expected_params = self._flatten_template_params(template_param.TemplateParams)
+        actual_params = specialization.Params
+
+        with self._indented():
+            subst = self._unify_template_param_list_against_qualtype_params(
+                actual_params=actual_params,
+                expected_params=expected_params,
+                substitution=substitution,
+            )
+            if subst is None:
+                self._log("template-template parameter list mismatch")
+                return None
+
+            name = self._param_decl_name(template_param)
+            if name is not None:
+                subst = self._bind_named_param(name, specialization, subst)
+            return subst
+
+    def _qualtype_non_type_category_matches(
+        self,
+        specialization: QualType,
+        template_expr: QualType,
+    ) -> bool:
+        """
+        Match the category of a non-type template parameter.
+
+        The declared non-type parameter may be:
+        - concrete type like `int`
+        - deduced `auto`
+
+        A specialization argument on the type IR side is also a `QualType`.
+        """
+        if template_expr.Name == "auto":
+            return True
+        return self._qualtype_structural_equal(specialization, template_expr)
+
+    def _qualtype_structural_equal(
+        self,
+        lhs: QualType,
+        rhs: QualType,
+    ) -> bool:
+        """
+        Structural equality helper used for fixed non-deduced comparisons.
+        """
+        return lhs == rhs
+
+    def _unify_param_decl_with_argument(
+        self,
+        specialization: QualType,
+        template_param: GenTuTemplateTypename,
+        substitution: Dict[str, QualType],
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Unify one template parameter declaration against one actual template
+        argument from a specialization.
+        """
+        self._log(
+            f"unify decl param kind={template_param.Kind} specialization={specialization!r}"
+        )
+
+        if template_param.Kind == TemplateParamKind.Type:
+            return self.unify_template_params(
+                specialization=specialization,
+                template_param=template_param,
+                substitution=substitution,
+            )
+
+        if template_param.Kind == TemplateParamKind.NonType:
+            if not self._qualtype_non_type_category_matches(
+                    specialization,
+                    template_param.TypeExpr,
+            ):
+                self._log("non-type template parameter category mismatch")
+                return None
+
+            name = self._param_decl_name(template_param)
+            if name is None:
+                return substitution
+            return self._bind_named_param(name, specialization, substitution)
+
+        if template_param.Kind == TemplateParamKind.Template:
+            return self._unify_template_template_argument(
+                specialization=specialization,
+                template_param=template_param,
+                substitution=substitution,
+            )
+
+        raise ValueError(f"Unsupported template parameter kind: {template_param.Kind}")
+
+    def _unify_template_param_list_against_qualtype_params(
+        self,
+        actual_params: List[QualType],
+        expected_params: List[GenTuTemplateTypename],
+        substitution: Dict[str, QualType],
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Unify a sequence of actual specialization arguments against a sequence
+        of template parameter declarations.
+
+        Supports:
+        - omitted trailing parameters with defaults
+        - variadic final parameters
+        """
+        self._log(
+            f"unify parameter list actual_count={len(actual_params)} expected_count={len(expected_params)}"
+        )
+
+        fixed_expected = expected_params
+        variadic_param: Optional[GenTuTemplateTypename] = None
+        if fixed_expected and fixed_expected[-1].Variadic:
+            variadic_param = fixed_expected[-1]
+            fixed_expected = fixed_expected[:-1]
+
+        min_required = sum(1 for param in fixed_expected if param.Default is None)
+        if len(actual_params) < min_required:
+            self._log("too few actual template arguments")
+            return None
+
+        if variadic_param is None and len(actual_params) > len(expected_params):
+            self._log("too many actual template arguments")
+            return None
+
+        current = self._copy_subst(substitution)
+
+        with self._indented():
+            fixed_actual_count = min(len(actual_params), len(fixed_expected))
+            for idx in range(fixed_actual_count):
+                current = self._unify_param_decl_with_argument(
+                    specialization=actual_params[idx],
+                    template_param=fixed_expected[idx],
+                    substitution=current,
+                )
+                if current is None:
+                    self._log(f"failed to unify fixed parameter at index {idx}")
+                    return None
+
+            if len(actual_params) < len(fixed_expected):
+                for idx in range(len(actual_params), len(fixed_expected)):
+                    default_expr = fixed_expected[idx].Default
+                    if default_expr is None:
+                        self._log(f"missing non-defaulted parameter at index {idx}")
+                        return None
+
+                    instantiated_default = self._substitute_qualtype(
+                        default_expr, current)
+                    self._log(
+                        f"use default for parameter index {idx}: {instantiated_default!r}"
+                    )
+
+                    name = self._param_decl_name(fixed_expected[idx])
+                    if name is not None:
+                        current = self._bind_named_param(
+                            name,
+                            instantiated_default,
+                            current,
+                        )
+                        if current is None:
+                            return None
+
+            if variadic_param is not None:
+                for idx in range(len(fixed_expected), len(actual_params)):
+                    current = self._unify_param_decl_with_argument(
+                        specialization=actual_params[idx],
+                        template_param=variadic_param,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log(f"failed to unify variadic parameter at index {idx}")
+                        return None
+            elif len(actual_params) > len(fixed_expected):
+                extra_start = len(fixed_expected)
+                current_expected = expected_params[extra_start:]
+                for offset, param_decl in enumerate(current_expected):
+                    actual_idx = extra_start + offset
+                    current = self._unify_param_decl_with_argument(
+                        specialization=actual_params[actual_idx],
+                        template_param=param_decl,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log(
+                            f"failed to unify trailing parameter at index {actual_idx}")
+                        return None
+
+        return current
+
+    def unify_template_params(
+        self,
+        specialization: QualType,
+        template_param: GenTuTemplateTypename,
+        substitution: Optional[Dict[str, QualType]] = None,
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Unify a specialization `QualType` against one template parameter
+        declaration.
+
+        For type parameters this generalizes the historic `unify_qualtype`
+        behavior while also supporting richer template parameter declarations.
+
+        Returns:
+            A substitution map if successful, otherwise `None`.
+        """
+        if substitution is None:
+            substitution = {}
+
+        self._log(
+            f"unify_template_params specialization={specialization!r} template_param={template_param!r}"
+        )
+
+        if template_param.Kind != TemplateParamKind.Type:
+            return self._unify_param_decl_with_argument(
+                specialization=specialization,
+                template_param=template_param,
+                substitution=substitution,
+            )
+
+        template = template_param.TypeExpr
+
+        if template.IsTemplateTypeParam:
+            has_qualifiers = (template.IsConst or template.PtrCount > 0 or
+                              template.RefKind != ReferenceKind.NotRef)
+
+            if has_qualifiers:
+                stripped = self._strip_qualifiers(specialization, template)
+                if stripped is None:
+                    self._log("failed to strip qualifiers for template type param")
+                    return None
+                bound_value = stripped
+            else:
+                bound_value = specialization
+
+            param_name = template.Name
+            if param_name:
+                return self._bind_named_param(param_name, bound_value, substitution)
+            return substitution
+
+        if template.Kind != specialization.Kind:
+            self._log(
+                f"type kind mismatch template={template.Kind} specialization={specialization.Kind}"
+            )
+            return None
+
+        if template.Kind == QualTypeKind.TypeExpr:
+            if template.Expr != specialization.Expr:
+                self._log("type expression mismatch")
+                return None
+            return substitution
+
+        if template.Kind == QualTypeKind.FunctionPtr:
+            if template.Func is None or specialization.Func is None:
+                self._log("function pointer payload missing")
+                return None
+
+            if template.IsConst != specialization.IsConst:
+                self._log("function pointer const mismatch")
+                return None
+            if template.PtrCount != specialization.PtrCount:
+                self._log("function pointer ptrcount mismatch")
+                return None
+            if template.RefKind != specialization.RefKind:
+                self._log("function pointer refkind mismatch")
+                return None
+
+            current = self._copy_subst(substitution)
+            with self._indented():
+                current = self.unify_qualtype(
+                    specialization=specialization.Func.ReturnType,
+                    template=template.Func.ReturnType,
+                    substitution=current,
+                )
+                if current is None:
+                    self._log("function return type mismatch")
+                    return None
+
+                if len(template.Func.Args) != len(specialization.Func.Args):
+                    self._log("function arg count mismatch")
+                    return None
+
+                for t_arg, s_arg in zip(template.Func.Args, specialization.Func.Args):
+                    current = self.unify_qualtype(
+                        specialization=s_arg,
+                        template=t_arg,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log("function arg mismatch")
+                        return None
+
+                if (template.Func.Class is None) != (specialization.Func.Class is None):
+                    self._log("function class qualifier presence mismatch")
+                    return None
+
+                if template.Func.Class is not None:
+                    current = self.unify_qualtype(
+                        specialization=specialization.Func.Class,
+                        template=template.Func.Class,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log("member function class mismatch")
+                        return None
+
+                if template.Func.IsConst != specialization.Func.IsConst:
+                    self._log("member function const mismatch")
+                    return None
+
+            return current
+
+        if template.Name != specialization.Name:
+            self._log(
+                f"type name mismatch template={template.Name!r} specialization={specialization.Name!r}"
+            )
+            return None
+
+        if template.IsConst != specialization.IsConst:
+            self._log("const qualifier mismatch")
+            return None
+        if template.PtrCount != specialization.PtrCount:
+            self._log("pointer count mismatch")
+            return None
+        if template.RefKind != specialization.RefKind:
+            self._log("reference kind mismatch")
+            return None
+
+        if len(template.Spaces) != len(specialization.Spaces):
+            self._log("namespace nesting mismatch")
+            return None
+
+        current = self._copy_subst(substitution)
+        with self._indented():
+            for t_space, s_space in zip(template.Spaces, specialization.Spaces):
+                current = self.unify_qualtype(
+                    specialization=s_space,
+                    template=t_space,
+                    substitution=current,
+                )
+                if current is None:
+                    self._log("namespace component mismatch")
+                    return None
+
+            if template.Params and template.Params[-1].IsPackExpansion:
+                non_pack = template.Params[:-1]
+                pack_param = template.Params[-1]
+
+                if len(specialization.Params) < len(non_pack):
+                    self._log("not enough params for pack expansion")
+                    return None
+
+                for t_param, s_param in zip(non_pack,
+                                            specialization.Params[:len(non_pack)]):
+                    current = self.unify_qualtype(
+                        specialization=s_param,
+                        template=t_param,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log("non-pack template param mismatch")
+                        return None
+
+                pack_pattern = pack_param.copy_update(IsPackExpansion=False)
+                for s_param in specialization.Params[len(non_pack):]:
+                    current = self.unify_qualtype(
+                        specialization=s_param,
+                        template=pack_pattern,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log("pack element mismatch")
+                        return None
+            else:
+                if len(template.Params) != len(specialization.Params):
+                    self._log("template parameter count mismatch")
+                    return None
+
+                for t_param, s_param in zip(template.Params, specialization.Params):
+                    current = self.unify_qualtype(
+                        specialization=s_param,
+                        template=t_param,
+                        substitution=current,
+                    )
+                    if current is None:
+                        self._log("template argument mismatch")
+                        return None
+
+        return current
+
+    def unify_qualtype(
+        self,
+        specialization: QualType,
+        template: QualType,
+        substitution: Optional[Dict[str, QualType]] = None,
+    ) -> Optional[Dict[str, QualType]]:
+        """
+        Compatibility wrapper over template-parameter unification.
+
+        The provided `template` qualtype is wrapped into a synthetic
+        `GenTuTemplateTypename` and then unified through the richer
+        template-parameter matching path.
+        """
+        template_param = self._qualtype_to_template_param(template)
+        return self.unify_template_params(
+            specialization=specialization,
+            template_param=template_param,
+            substitution=substitution,
+        )
+
+    def find_matching_template(
+        self,
+        specialization: QualType,
+        templates: List[QualType],
+    ) -> Optional[Tuple[int, Dict[str, QualType]]]:
+        """
+        Find the first matching legacy `QualType` template for a specialization.
+
+        This preserves the old helper behavior and is mainly intended for the
+        compatibility free function API.
+        """
+        for i, template in enumerate(templates):
+            result = self.unify_qualtype(specialization, template)
+            if result is not None:
+                return (i, result)
         return None
 
-    # Check const: if template demands const, specialization must have it
-    if template.IsConst and not specialization.IsConst:
-        return None
+    def match_specializations(
+        self,
+        specializations: List[QualType],
+        template: QualType,
+    ) -> List[SpecializationMatchResult]:
+        """
+        Match a list of instantiated specializations against a single legacy
+        `QualType` template.
+        """
+        results: List[SpecializationMatchResult] = []
+        for spec in specializations:
+            subst = self.unify_qualtype(spec, template)
+            if subst is not None:
+                results.append(
+                    SpecializationMatchResult(
+                        instantiated_name=spec,
+                        substitution_map=subst,
+                    ))
+        return results
 
-    # Now strip what the template demands
-    stripped = specialization.model_copy(
-        update={
-            "RefKind":
-                ReferenceKind.NotRef if template.RefKind !=
-                ReferenceKind.NotRef else specialization.RefKind,
-            "PtrCount":
-                specialization.PtrCount - template.PtrCount,
-            "IsConst":
-                specialization.IsConst and not template.IsConst,
-        })
+    def match_specializations_for_template_params(
+        self,
+        specializations: List[QualType],
+        template_name: QualType,
+        template_params: GenTuTemplateParams,
+    ) -> List[SpecializationMatchResult]:
+        """
+        Match instantiated specializations against a template declaration defined
+        by a type name plus `GenTuTemplateParams`.
 
-    # If template demanded a ref, we already checked it matches, now strip it
-    if template.RefKind != ReferenceKind.NotRef:
-        stripped = stripped.model_copy(update={"RefKind": ReferenceKind.NotRef})
+        This is the primary new API for matching real template declarations.
+        """
+        declared_params = self._flatten_template_params(template_params)
+        results: List[SpecializationMatchResult] = []
 
-    return stripped
+        for spec in specializations:
+            self._log(f"match specialization against template declaration: {spec!r}")
+            if spec.Kind != template_name.Kind:
+                continue
+            if spec.Name != template_name.Name:
+                continue
+            if len(spec.Spaces) != len(template_name.Spaces):
+                continue
+            if spec.IsConst != template_name.IsConst:
+                continue
+            if spec.PtrCount != template_name.PtrCount:
+                continue
+            if spec.RefKind != template_name.RefKind:
+                continue
+
+            current: Dict[str, QualType] = {}
+
+            ok = True
+            for t_space, s_space in zip(template_name.Spaces, spec.Spaces):
+                current = self.unify_qualtype(
+                    specialization=s_space,
+                    template=t_space,
+                    substitution=current,
+                ) or {}
+                if current is None:
+                    ok = False
+                    break
+
+            if not ok:
+                continue
+
+            subst = self._unify_template_param_list_against_qualtype_params(
+                actual_params=spec.Params,
+                expected_params=declared_params,
+                substitution=current,
+            )
+            if subst is not None:
+                results.append(
+                    SpecializationMatchResult(
+                        instantiated_name=spec,
+                        substitution_map=subst,
+                    ))
+
+        return results
+
+    def group_by_template_qualtypes(
+        self,
+        templates: List[QualType],
+        specializations: List[QualType],
+    ) -> Dict[int, List[SpecializationMatchResult]]:
+        """
+        Group specializations by legacy `QualType` templates.
+
+        If a specialization matches more than one template, raises `ValueError`
+        with diagnostics instead of silently taking the first match.
+        """
+        groups: Dict[int, List[SpecializationMatchResult]] = {}
+
+        for spec in specializations:
+            matches: List[TemplateMatchCandidate] = []
+            for idx, template in enumerate(templates):
+                subst = self.unify_qualtype(spec, template)
+                if subst is not None:
+                    matches.append(
+                        TemplateMatchCandidate(
+                            template_index=idx,
+                            substitution_map=subst,
+                        ))
+
+            if len(matches) > 1:
+                raise ValueError(
+                    f"Ambiguous specialization match for {spec!r}: "
+                    f"matched templates {[m.template_index for m in matches]}")
+
+            if len(matches) == 1:
+                match = matches[0]
+                groups.setdefault(match.template_index, []).append(
+                    SpecializationMatchResult(
+                        instantiated_name=spec,
+                        substitution_map=match.substitution_map,
+                    ))
+
+        return groups
+
+    def group_by_template_declarations(
+        self,
+        templates: List[Tuple[QualType, GenTuTemplateParams]],
+        specializations: List[QualType],
+    ) -> Dict[int, List[SpecializationMatchResult]]:
+        """
+        Group specializations by full template declarations.
+
+        Each declaration is provided as:
+            (template_name_without_instantiated_args, template_params)
+
+        If a specialization matches more than one declaration, raises `ValueError`
+        with diagnostics to force the caller to resolve ambiguity explicitly.
+        """
+        groups: Dict[int, List[SpecializationMatchResult]] = {}
+
+        for spec in specializations:
+            matches: List[TemplateMatchCandidate] = []
+
+            for idx, (template_name, template_params) in enumerate(templates):
+                result = self.match_specializations_for_template_params(
+                    specializations=[spec],
+                    template_name=template_name,
+                    template_params=template_params,
+                )
+                if result:
+                    matches.append(
+                        TemplateMatchCandidate(
+                            template_index=idx,
+                            substitution_map=result[0].substitution_map,
+                        ))
+
+            if len(matches) > 1:
+                details = ", ".join(
+                    f"template#{m.template_index} subst={m.substitution_map!r}"
+                    for m in matches)
+                raise ValueError(
+                    f"Ambiguous specialization match for {spec!r}: {details}")
+
+            if len(matches) == 1:
+                match = matches[0]
+                groups.setdefault(match.template_index, []).append(
+                    SpecializationMatchResult(
+                        instantiated_name=spec,
+                        substitution_map=match.substitution_map,
+                    ))
+
+        return groups
+
+
+@beartype
+def unify_template_params(
+    specialization: QualType,
+    template_param: GenTuTemplateTypename,
+    substitution: Dict[str, QualType] | None = None,
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
+) -> Optional[Dict[str, QualType]]:
+    """
+    Public compatibility helper for unifying a specialization against a rich
+    template parameter declaration.
+    """
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.unify_template_params(
+        specialization=specialization,
+        template_param=template_param,
+        substitution=substitution,
+    )
 
 
 @beartype
@@ -297,208 +1113,70 @@ def unify_qualtype(
     specialization: QualType,
     template: QualType,
     substitution: Dict[str, QualType] | None = None,
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
 ) -> Optional[Dict[str, QualType]]:
     """
-    Attempt unification of the template type and its specialization. If unification
-    is successful, the function returns a dictionary with all the template type
-    parameters in the original template substituted for whatever was matched in the
-    specialization.
+    Public compatibility helper for the historic `QualType`-vs-`QualType`
+    unification API.
+
+    Internally the template is wrapped into a synthetic
+    `GenTuTemplateTypename` and unified via `unify_template_params`.
     """
-    if substitution is None:
-        substitution = {}
-
-    # If the template node is a template type parameter, handle variable binding
-    if template.IsTemplateTypeParam:
-        has_qualifiers = (template.IsConst or template.PtrCount > 0 or
-                          template.RefKind != ReferenceKind.NotRef)
-
-        if has_qualifiers:
-            stripped = _strip_qualifiers(specialization, template)
-            if stripped is None:
-                return None
-            bound_value = stripped
-        else:
-            bound_value = specialization
-
-        param_name = template.Name
-        if param_name in substitution:
-            if substitution[param_name] == bound_value:
-                return substitution
-            else:
-                return None
-        else:
-            substitution[param_name] = bound_value
-            return substitution
-
-    # Kind must match
-    if template.Kind != specialization.Kind:
-        return None
-
-    if template.Kind == QualTypeKind.TypeExpr:
-        assert template.Expr is not None
-        assert specialization.Expr is not None
-        if template.Expr != specialization.Expr:
-            return None
-        return substitution
-
-    if template.Kind == QualTypeKind.FunctionPtr:
-        assert template.Func
-        assert template.Func is not None
-        assert specialization.Func is not None
-
-        # Qualifiers on the function pointer type itself
-        if template.IsConst != specialization.IsConst:
-            return None
-        if template.PtrCount != specialization.PtrCount:
-            return None
-        if template.RefKind != specialization.RefKind:
-            return None
-
-        # Return type
-        substitution = unify_qualtype(specialization.Func.ReturnType,
-                                      template.Func.ReturnType, substitution)
-        if substitution is None:
-            return None
-
-        # Args
-        if len(template.Func.Args) != len(specialization.Func.Args):
-            return None
-        for t_arg, s_arg in zip(template.Func.Args, specialization.Func.Args):
-            substitution = unify_qualtype(s_arg, t_arg, substitution)
-            if substitution is None:
-                return None
-
-        # Class (member function pointer)
-        if (template.Func.Class is None) != (specialization.Func.Class is None):
-            return None
-        if template.Func.Class is not None:
-            substitution = unify_qualtype(specialization.Func.Class, template.Func.Class,
-                                          substitution)
-            if substitution is None:
-                return None
-
-        if template.Func.IsConst != specialization.Func.IsConst:
-            return None
-
-        return substitution
-
-    # RegularType and Array both use Name + Params + qualifiers
-
-    # Name must match
-    if template.Name != specialization.Name:
-        return None
-
-    # For concrete types, qualifiers must match exactly
-    if template.IsConst != specialization.IsConst:
-        return None
-    if template.PtrCount != specialization.PtrCount:
-        return None
-    if template.RefKind != specialization.RefKind:
-        return None
-
-    # Namespace spaces must unify
-    if len(template.Spaces) != len(specialization.Spaces):
-        return None
-    for t_space, s_space in zip(template.Spaces, specialization.Spaces):
-        substitution = unify_qualtype(s_space, t_space, substitution)
-        if substitution is None:
-            return None
-
-    # Template parameters / array dimensions — handle pack expansion
-    if template.Params and template.Params[-1].IsPackExpansion:
-        non_pack = template.Params[:-1]
-        pack_param = template.Params[-1]
-        if len(specialization.Params) < len(non_pack):
-            return None
-        for t_param, s_param in zip(non_pack, specialization.Params[:len(non_pack)]):
-            substitution = unify_qualtype(s_param, t_param, substitution)
-            if substitution is None:
-                return None
-        pack_pattern = pack_param.copy_update(IsPackExpansion=False)
-        for s_param in specialization.Params[len(non_pack):]:
-            substitution = unify_qualtype(s_param, pack_pattern, substitution)
-            if substitution is None:
-                return None
-    else:
-        if len(template.Params) != len(specialization.Params):
-            return None
-        for t_param, s_param in zip(template.Params, specialization.Params):
-            substitution = unify_qualtype(s_param, t_param, substitution)
-            if substitution is None:
-                return None
-
-    return substitution
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.unify_qualtype(
+        specialization=specialization,
+        template=template,
+        substitution=substitution,
+    )
 
 
 @beartype
 def find_matching_template(
     specialization: QualType,
     templates: List[QualType],
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
 ) -> Optional[Tuple[int, Dict[str, QualType]]]:
     """
-    Given a specialization and a list of template types, find the first template
-    that the specialization is an instantiation of.
-    Returns (index, substitution_map) or None.
+    Given a specialization and a list of legacy `QualType` templates, find the
+    first template that the specialization unifies with.
     """
-    for i, template in enumerate(templates):
-        result = unify_qualtype(specialization, template)
-        if result is not None:
-            return (i, result)
-    return None
-
-
-@beartype
-@dataclass
-class SpecializationMatchResult():
-    instantiated_name: QualType
-    substitution_map: Dict[str, QualType]
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.find_matching_template(specialization, templates)
 
 
 @beartype
 def match_specializations(
     specializations: List[QualType],
     template: QualType,
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
 ) -> List[SpecializationMatchResult]:
     """
-    Given a list of specializations and a single template, return a list of
-    (specialization, substitution_map) pairs for each specialization that
-    successfully unifies with the template.
+    Match legacy `QualType` specializations against one legacy `QualType`
+    template.
     """
-    results = []
-    for spec in specializations:
-        subst = unify_qualtype(spec, template)
-        if subst is not None:
-            results.append(
-                SpecializationMatchResult(
-                    instantiated_name=spec,
-                    substitution_map=subst,
-                ))
-    return results
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.match_specializations(specializations, template)
 
 
 @beartype
 def group_by_template(
     templates: List[QualType],
     specializations: List[QualType],
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
 ) -> Dict[int, List[SpecializationMatchResult]]:
     """
-    Given a list of templates and a list of specializations, produce a mapping
-    from template index to the list of (specialization, substitution_map) pairs
-    that matched it.
+    Group specializations by legacy `QualType` templates.
 
-    Each specialization is assigned to the first template it matches.
-    Specializations that don't match any template are omitted.
+    Raises:
+        ValueError: if a specialization ambiguously matches multiple templates.
     """
-    groups: Dict[int, List[SpecializationMatchResult]] = {}
-    for spec in specializations:
-        result = find_matching_template(spec, templates)
-        if result is not None:
-            idx, subst = result
-            if idx not in groups:
-                groups[idx] = []
-            groups[idx].append(
-                SpecializationMatchResult(
-                    instantiated_name=spec,
-                    substitution_map=subst,
-                ))
-    return groups
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.group_by_template_qualtypes(templates, specializations)

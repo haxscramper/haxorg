@@ -178,6 +178,9 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     else:
         result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", False))
 
+    for flag in conf.build_conf.cmake_extra_build_flags:
+        result.append(flag)
+
     return result
 
 

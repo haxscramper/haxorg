@@ -67,6 +67,9 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     build_python: bool = Field(default=True, description="Build python bindings")
     build_tests: bool = Field(default=True,
                               description="Build tests for hstd/haxorg project")
+    cmake_extra_build_flags: list[str] = Field(
+        default_factory=list,
+        description="Extra flags provided directly to cmake configuration")
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):

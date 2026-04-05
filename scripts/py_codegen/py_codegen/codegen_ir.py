@@ -616,14 +616,49 @@ class QualType(BaseModel, extra="forbid"):
         return cls(Name=name, Spaces=[cls.from_name(space) for space in spaces])
 
 
+class TemplateParamKind(str, Enum):
+    Type = "Type"
+    NonType = "NonType"
+    Template = "Template"
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+
 @beartype
 @dataclass
 class GenTuTemplateTypename:
-    Placeholder: bool = False
+    """
+    Template parameter description for:
+    - type parameters: `typename T`, `class T`
+    - non-type parameters: `int N`, `auto V`
+    - template-template parameters:
+      `template <typename> typename TT`
+
+    The declaration name is stored in `TypeExpr.Name`. For unnamed parameters
+    the name may be empty.
+    """
+
+    Kind: TemplateParamKind = TemplateParamKind.Type
+    TypeExpr: QualType = field(default_factory=QualType)
     Variadic: bool = False
-    Name: str = ""
-    Nested: List["GenTuTemplateTypename"] = field(default_factory=list)
     Concept: Optional[str] = None
+    Default: Optional[QualType] = None
+    TemplateParams: Optional["GenTuTemplateParams"] = None
+
+    def getName(self) -> str:
+        """
+        Return the declared parameter name.
+
+        Raises:
+            ValueError: if the parameter is unnamed.
+        """
+        if not self.TypeExpr.Name:
+            raise ValueError("Template parameter does not have a declared name")
+        return self.TypeExpr.Name
 
 
 @beartype
@@ -635,6 +670,12 @@ class GenTuTemplateGroup:
 @beartype
 @dataclass
 class GenTuTemplateParams:
+    """
+    Stacked template parameter lists.
+
+    Most ordinary templates use a single stack. Nested stacks are preserved
+    because the existing IR already models template parameter lists this way.
+    """
     Stacks: List[GenTuTemplateGroup] = field(default_factory=list)
 
     @staticmethod
@@ -643,17 +684,34 @@ class GenTuTemplateParams:
 
     @staticmethod
     def FromTypeList(Params: List[QualType]) -> "GenTuTemplateParams":
-        "Create template type parameter from list of qualified types"
+        """
+        Create a template parameter list from qualified type declarations.
+        Every entry becomes a type parameter.
+        """
         return GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(
-                Params=[GenTuTemplateTypename(Name=p.Name) for p in Params])
+            GenTuTemplateGroup(Params=[
+                GenTuTemplateTypename(
+                    Kind=TemplateParamKind.Type,
+                    TypeExpr=QualType(
+                        Name=p.Name,
+                        IsTemplateTypeParam=True,
+                    ),
+                ) for p in Params
+            ])
         ])
 
     @staticmethod
     def FromTypeNameList(Params: List[str]) -> "GenTuTemplateParams":
-        "Create template type parameter from list of template parameter names"
+        """
+        Create a template parameter list from template parameter names.
+        """
         return GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[GenTuTemplateTypename(Name=p) for p in Params])
+            GenTuTemplateGroup(Params=[
+                GenTuTemplateTypename(
+                    Kind=TemplateParamKind.Type,
+                    TypeExpr=QualType(Name=p, IsTemplateTypeParam=True),
+                ) for p in Params
+            ])
         ])
 
 
