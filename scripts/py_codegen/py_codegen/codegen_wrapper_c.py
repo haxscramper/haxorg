@@ -131,6 +131,7 @@ def _gen_direct_function_call(
 
 @beartype
 def _gen_vtable_function_call(
+    *,
     func: codegen_ir.GenTuFunction,
     ast: cpp.ASTBuilder,
     vtable_ptr: BlockId,
@@ -185,7 +186,14 @@ def _gen_func(
 
     if VTable:
         assert Class
-        impl_call = _gen_vtable_function_call(func, ast, conf, ThisIdent, VTable, Class)
+        assert ThisIdent
+        impl_call = _gen_vtable_function_call(
+            func=func,
+            ast=ast,
+            vtable_ptr=ast.Dot(ast.string(ThisIdent.Name), ast.string("data.vtable")),
+            c_vtable_type=VTable,
+            args=[_CONTEXT_ARG, ThisIdent] + func.Args,
+        )
 
     else:
         impl_call = _gen_direct_function_call(func, ast, conf, ThisIdent)
@@ -193,8 +201,14 @@ def _gen_func(
     if func.ReturnType != "void":
         impl_call = ast.Return(impl_call)
 
+    if VTable and func.ReturnType.Name == _PAYLOAD_TYPE.Name:
+        ReturnType = _PAYLOAD_TYPE
+
+    else:
+        ReturnType = conf.getBackendType(func.ReturnType)
+
     return codegen_ir.GenTuFunction(
-        ReturnType=conf.getBackendType(func.ReturnType),
+        ReturnType=ReturnType,
         Name=FuncName,
         Args=FuncArgs,
         Body=ast.stack([impl_call]),
@@ -525,11 +539,20 @@ def _append_forward_decl(result: _StructGenResult,
 
 
 @beartype
-def _add_gen_struct_methods(result: _StructGenResult, struct: codegen_ir.GenTuStruct,
-                            ast: cpp.ASTBuilder, conf: CAstbuilderConfig) -> None:
+def _add_gen_struct_methods(
+    result: _StructGenResult,
+    struct: codegen_ir.GenTuStruct,
+    ast: cpp.ASTBuilder,
+    conf: CAstbuilderConfig,
+    vtable: Optional[QualType] = None,
+) -> None:
     for _meth in struct.Methods:
         if conf.isAcceptedByBackend(_meth):
-            gen_fu = _gen_func(_meth, ast, conf, struct.declarationQualName())
+            gen_fu = _gen_func(_meth,
+                               ast,
+                               conf,
+                               struct.declarationQualName(),
+                               VTable=vtable)
             result.wrappers.append(gen_fu)
 
 
@@ -651,6 +674,9 @@ def _gen_haxorg_vtable_template_instantiation(
             if not m.IsStatic:
                 vtable_method_type.Func.Args.insert(0, wrap_struct.declarationQualName())
 
+            if vtable_method_type.Func.ReturnType.Name == _PAYLOAD_TYPE.Name:
+                vtable_method_type.Func.ReturnType = _PAYLOAD_TYPE
+
             vtable_method_type.Func.Args.insert(0, _CONTEXT_ARG.Type)
             vtable_struct.Fields.append(
                 codegen_ir.GenTuField(
@@ -658,7 +684,13 @@ def _gen_haxorg_vtable_template_instantiation(
                     Name=_get_func_base_name(m),
                 ))
 
-    _add_gen_struct_methods(result, struct, ast, conf)
+    _add_gen_struct_methods(
+        result,
+        public_instrantiation_api,
+        ast,
+        conf,
+        vtable=vtable_type,
+    )
 
     for spec in specializations:
         result.vtables.append(
@@ -672,7 +704,7 @@ def _gen_haxorg_vtable_template_instantiation(
                     )),
                 ast=ast,
                 conf=conf,
-                c_type=_PAYLOAD_TYPE,
+                c_type=wrap_struct.declarationQualName(),
                 c_type_vtable=vtable_type,
             ))
 
@@ -808,7 +840,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                 if match1:
                     matches.append((match1[0], spec.used_in))
 
-            if 0 < len(matches):
+            if 1 < len(matches):
                 raise RuntimeError("""
 {template_name} was used with multiple different type parameters when substituting the public API for void-handle types: API for void-handle needs to the type with distinct instances.
 
@@ -833,6 +865,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
 
                 case codegen_ir.GenTuStruct():
                     if entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+                        log(CAT).info(f"Skipping {entry}")
                         continue
 
                     match entry.declarationQualName().flatQualNameWithParams():
