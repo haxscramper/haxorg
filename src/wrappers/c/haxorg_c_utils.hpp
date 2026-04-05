@@ -348,14 +348,13 @@ ResultCType get_cpp_field(
     CRecordType   __this,
     ResultCppType CppRecordType::* field_ptr) {
     auto lambda = [field_ptr](CppRecordType const* _class) {
-        return _class.*field_ptr;
+        return _class->*field_ptr;
     };
-    return execute_cpp_impl<
+    return detail::execute_cpp_impl<
         ResultCType,
         ResultCppType,
         decltype(lambda),
-        CppRecordType const*,
-        CRecordType>(lambda, ctx, __this);
+        CppRecordType const*>(lambda, ctx, __this);
 }
 
 

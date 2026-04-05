@@ -272,8 +272,7 @@ class [[refl(R"({
     "backend": {
         "target-backends": ["c"],
         "c": {
-            "instantiation-mode": "void-handle",
-            "value-template-parameters": ["T"]
+            "instantiation-mode": "each-specialization"
         }
     }
 })")]] Vec
