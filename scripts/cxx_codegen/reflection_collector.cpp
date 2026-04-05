@@ -677,6 +677,95 @@ bool isTypedefOrUsingType(
     return false;
 }
 
+void ReflASTVisitor::fillTemplateParameterList(
+    TemplateParams*                             out,
+    clang::TemplateParameterList*               params,
+    std::optional<clang::SourceLocation> const& Loc) {
+    auto* stack = out->add_stacks();
+
+    for (clang::NamedDecl* param : *params) {
+        auto* out_param = stack->add_params();
+
+        if (auto* typeParam = clang::dyn_cast<clang::TemplateTypeParmDecl>(
+                param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
+            out_param->set_variadic(typeParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(typeParam->getNameAsString());
+            type_expr->set_istemplatetypeparam(true);
+
+            if (typeParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    typeParam->getDefaultArgument().getArgument(),
+                    std::nullopt);
+            }
+
+            if (typeParam->hasTypeConstraint()) {
+                const clang::TypeConstraint*
+                                     TC = typeParam->getTypeConstraint();
+                clang::TemplateDecl* TD = TC->getNamedConcept();
+                if (auto* CD = clang::dyn_cast<clang::ConceptDecl>(TD)) {
+                    out_param->set_concept_(
+                        CD->getCanonicalDecl()->getNameAsString());
+                }
+            }
+
+        } else if (
+            auto* nonTypeParam = clang::dyn_cast<
+                clang::NonTypeTemplateParmDecl>(param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_NON_TYPE);
+            out_param->set_variadic(nonTypeParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(nonTypeParam->getNameAsString());
+
+            fillTypeRec(
+                out_param->add_nontypeconstraint(),
+                nonTypeParam->getType(),
+                std::nullopt);
+
+            if (nonTypeParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    nonTypeParam->getDefaultArgument().getArgument(),
+                    std::nullopt);
+            }
+
+        } else if (
+            auto* templateTemplateParam = clang::dyn_cast<
+                clang::TemplateTemplateParmDecl>(param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_TEMPLATE);
+            out_param->set_variadic(
+                templateTemplateParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(templateTemplateParam->getNameAsString());
+            type_expr->set_istemplatetypeparam(true);
+
+            if (templateTemplateParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    templateTemplateParam->getDefaultArgument()
+                        .getArgument(),
+                    std::nullopt);
+            }
+
+            fillTemplateParameterList(
+                out_param->add_templateparams(),
+                templateTemplateParam->getTemplateParameters(),
+                Loc);
+        }
+    }
+}
+
 void ReflASTVisitor::fillTypeTemplates(
     QualType*                               Out,
     c::QualType const&                      In,
@@ -1314,198 +1403,11 @@ void ReflASTVisitor::fillCxxRecordDecl(
 
     if (clang::
             ClassTemplateDecl* CTD = Decl->getDescribedClassTemplate()) {
-        clang::TemplateParameterList*
-            templateParams = CTD->getTemplateParameters();
-
         rec->set_istemplaterecord(true);
-
-        auto* template_params = rec->add_templates();
-        auto* stack           = template_params->add_stacks();
-
-        for (clang::NamedDecl* param : *templateParams) {
-            auto* out_param = stack->add_params();
-
-            if (auto* typeParam = clang::dyn_cast<
-                    clang::TemplateTypeParmDecl>(param)) {
-                out_param->set_kind(
-                    TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
-                out_param->set_variadic(typeParam->isParameterPack());
-
-                auto* type_expr = out_param->mutable_typeexpr();
-                type_expr->set_name(typeParam->getNameAsString());
-                type_expr->set_istemplatetypeparam(true);
-
-                if (typeParam->hasDefaultArgument()) {
-                    auto* default_arg = out_param->add_default_();
-                    fillTypeRec(
-                        default_arg,
-                        typeParam->getDefaultArgument().getArgument(),
-                        std::nullopt);
-                }
-
-                if (typeParam->hasTypeConstraint()) {
-                    const clang::TypeConstraint*
-                        TC = typeParam->getTypeConstraint();
-                    clang::TemplateDecl* TD = TC->getNamedConcept();
-                    if (auto* CD = clang::dyn_cast<clang::ConceptDecl>(
-                            TD)) {
-                        out_param->set_concept_(
-                            CD->getCanonicalDecl()->getNameAsString());
-                    }
-                }
-
-            } else if (
-                auto* nonTypeParam = clang::dyn_cast<
-                    clang::NonTypeTemplateParmDecl>(param)) {
-                out_param->set_kind(
-                    TemplateParamKind::TEMPLATE_PARAM_KIND_NON_TYPE);
-                out_param->set_variadic(nonTypeParam->isParameterPack());
-
-                auto* type_expr = out_param->mutable_typeexpr();
-                fillTypeRec(
-                    out_param->add_nontypeconstraint(),
-                    nonTypeParam->getType(),
-                    std::nullopt);
-
-                type_expr->set_name(nonTypeParam->getNameAsString());
-
-                if (nonTypeParam->hasDefaultArgument()) {
-                    auto* default_arg = out_param->add_default_();
-                    fillTypeRec(
-                        default_arg,
-                        nonTypeParam->getDefaultArgument().getArgument(),
-                        std::nullopt);
-                }
-
-            } else if (
-                auto* templateTemplateParam = clang::dyn_cast<
-                    clang::TemplateTemplateParmDecl>(param)) {
-                out_param->set_kind(
-                    TemplateParamKind::TEMPLATE_PARAM_KIND_TEMPLATE);
-                out_param->set_variadic(
-                    templateTemplateParam->isParameterPack());
-
-                auto* type_expr = out_param->mutable_typeexpr();
-                type_expr->set_name(
-                    templateTemplateParam->getNameAsString());
-                type_expr->set_istemplatetypeparam(true);
-
-                if (templateTemplateParam->hasDefaultArgument()) {
-                    auto* default_arg = out_param->add_default_();
-                    fillTypeRec(
-                        default_arg,
-                        templateTemplateParam->getDefaultArgument()
-                            .getArgument(),
-                        std::nullopt);
-                }
-
-                auto* nested_params = out_param->add_templateparams();
-                auto* nested_stack  = nested_params->add_stacks();
-
-                clang::TemplateParameterList*
-                    nestedList = templateTemplateParam
-                                     ->getTemplateParameters();
-
-                for (clang::NamedDecl* nestedParam : *nestedList) {
-                    auto* nested_out = nested_stack->add_params();
-
-                    if (auto* nestedType = clang::dyn_cast<
-                            clang::TemplateTypeParmDecl>(nestedParam)) {
-                        nested_out->set_kind(
-                            TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
-                        nested_out->set_variadic(
-                            nestedType->isParameterPack());
-
-                        auto* nested_type_expr = nested_out
-                                                     ->mutable_typeexpr();
-                        nested_type_expr->set_name(
-                            nestedType->getNameAsString());
-                        nested_type_expr->set_istemplatetypeparam(true);
-
-                        if (nestedType->hasDefaultArgument()) {
-                            auto* default_arg = nested_out->add_default_();
-                            fillTypeRec(
-                                default_arg,
-                                nestedType->getDefaultArgument()
-                                    .getArgument(),
-                                std::nullopt);
-                        }
-
-                        if (nestedType->hasTypeConstraint()) {
-                            const clang::TypeConstraint*
-                                TC = nestedType->getTypeConstraint();
-                            clang::TemplateDecl*
-                                TD = TC->getNamedConcept();
-                            if (auto* CD = clang::dyn_cast<
-                                    clang::ConceptDecl>(TD)) {
-                                nested_out->set_concept_(
-                                    CD->getCanonicalDecl()
-                                        ->getNameAsString());
-                            }
-                        }
-
-                    } else if (
-                        auto* nestedNonType = clang::dyn_cast<
-                            clang::NonTypeTemplateParmDecl>(nestedParam)) {
-                        nested_out->set_kind(
-                            TemplateParamKind::
-                                TEMPLATE_PARAM_KIND_NON_TYPE);
-                        nested_out->set_variadic(
-                            nestedNonType->isParameterPack());
-
-                        auto* nested_type_expr = nested_out
-                                                     ->mutable_typeexpr();
-
-                        fillTypeRec(
-                            nested_out->add_nontypeconstraint(),
-                            nestedNonType->getType(),
-                            std::nullopt);
-
-                        nested_type_expr->set_name(
-                            nestedNonType->getNameAsString());
-
-                        if (nestedNonType->hasDefaultArgument()) {
-                            auto* default_arg = nested_out->add_default_();
-                            fillTypeRec(
-                                default_arg,
-                                nestedNonType->getDefaultArgument()
-                                    .getArgument(),
-                                std::nullopt);
-                        }
-
-                    } else if (
-                        auto* nestedTemplate = clang::dyn_cast<
-                            clang::TemplateTemplateParmDecl>(
-                            nestedParam)) {
-                        nested_out->set_kind(
-                            TemplateParamKind::
-                                TEMPLATE_PARAM_KIND_TEMPLATE);
-                        nested_out->set_variadic(
-                            nestedTemplate->isParameterPack());
-
-                        auto* nested_type_expr = nested_out
-                                                     ->mutable_typeexpr();
-                        nested_type_expr->set_name(
-                            nestedTemplate->getNameAsString());
-                        nested_type_expr->set_istemplatetypeparam(true);
-
-                        if (nestedTemplate->hasDefaultArgument()) {
-                            auto* default_arg = nested_out->add_default_();
-                            fillTypeRec(
-                                default_arg,
-                                nestedTemplate->getDefaultArgument()
-                                    .getArgument(),
-                                std::nullopt);
-                        }
-
-                        auto*
-                            nested_nested_params = nested_out
-                                                       ->add_templateparams();
-                        nested_nested_params->add_stacks();
-                    }
-                }
-            }
-        }
+        fillTemplateParameterList(
+            rec->add_templates(),
+            CTD->getTemplateParameters(),
+            Decl->getLocation());
     }
 
     if (Decl->hasDefinition()) {
