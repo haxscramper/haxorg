@@ -10,7 +10,9 @@ from py_codegen.codegen_algo import (
     collect_type_specializations,
     instantiate_template,
     match_specializations,
+    match_specializations_for_struct,
     SpecializationMatchResult,
+    TemplateUnificationMatcher,
 )
 from py_codegen.codegen_ir import n_org, n_sem, QualType
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
@@ -728,9 +730,10 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
 
     void_handle_instantiations = list()
     for template_type in reflection_template_types:
-        template_usage_types = match_specializations(
+        assert template_type.TemplateParams
+        template_usage_types = match_specializations_for_struct(
             specializations=[spec.used_type for spec in specializations],
-            template=template_type.declarationQualName(),
+            template=template_type,
         )
 
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
@@ -750,12 +753,25 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
             assert template_type.ReflectionParams.backend.c.value_template_parameters, (
                 "void-handle must provide names for the template type parameters")
 
-            for s in specializations:
-                if template_type.Name.Name in str(s):
-                    log(CAT).info(f"specialization with {s}")
+            # for s in specializations:
+            #     if template_type.Name.Name in str(s):
+            #         log(CAT).info(f"specialization with {s}")
+
+            # if "UnorderedMap" in str(
+            #         template_type.Name) and "UnorderedMap" in str(s.used_type):
+            #     debug = list()
+            # match_result = match_specializations_for_struct(
+            #     [s.used_type],
+            #     template_type,
+            #     debug=True,
+            #     debug_sink=debug,
+            # )
+
+            # if not match_result:
+            #     log(CAT).warning("\n" + "\n".join(debug))
 
             for inst in template_usage_types:
-                log(CAT).info(f"{template_type} uses {inst}")
+                # log(CAT).info(f"{template_type} uses {inst}")
                 void_handle_instantiations.append(
                     cast(
                         codegen_ir.GenTuStruct,
@@ -776,22 +792,38 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
     void_handle_specializations = collect_type_specializations(void_handle_instantiations,
                                                                conf)
 
-    for spec in void_handle_specializations:
-        log(CAT).info(f"void-handle uses {spec.used_type}")
+    # for spec in void_handle_specializations:
+    #     log(CAT).info(f"void-handle uses {spec.used_type}")
 
     for template_type in reflection_template_types:
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
-            matches = match_specializations(
-                specializations=[spec.used_type for spec in void_handle_specializations],
-                template=template_type.declarationQualName(),
-            )
+            matches: list[tuple[SpecializationMatchResult,
+                                Optional[codegen_ir.GenTuEntry]]] = list()
+            for spec in void_handle_specializations:
+                match1 = match_specializations_for_struct(
+                    specializations=[spec.used_type],
+                    template=template_type,
+                )
+
+                if match1:
+                    matches.append((match1[0], spec.used_in))
 
             if 0 < len(matches):
-                raise RuntimeError(
-                    f"{template_type.Name} was used with multiple different "
-                    f"type parameters when substituting the public API for void-handle types: "
-                    f"API for void-handle needs to the type with distinct instances."
-                    "\n".join([m.instantiated_name.format(native=True) for m in matches]))
+                raise RuntimeError("""
+{template_name} was used with multiple different type parameters when substituting the public API for void-handle types: API for void-handle needs to the type with distinct instances.
+
+{template_usages}
+
+The type cannot be used in each-instantiation mode as there are void-handle API that need to return the instantiations as void handle.
+
+!! TO RESOLVE THIS ISSUE, MARK {template_name} AS `void-handle` !!
+                """.format(
+                    template_name=str(template_type.Name),
+                    template_usages="\n".join("- {} (used in {})".format(
+                        m[0].instantiated_name.format(native=True),
+                        m[1],
+                    ) for m in matches),
+                ))
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry):

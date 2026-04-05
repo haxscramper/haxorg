@@ -1106,8 +1106,15 @@ class GenTuFunction:
     def format(self) -> str:
         "Format function representation as a string"
         assert self.ReturnType, "Missing function return type"
-        return "function %s %s(%s)" % (self.ReturnType.format(), self.Name, ", ".join(
-            [Arg.Name + " " + Arg.Type.format() for Arg in self.Args]))
+        return "function {}{}({}) -> {}".format(
+            f"{self.ParentClass}::" if self.ParentClass else "",
+            self.Name,
+            ", ".join([Arg.Name + " " + Arg.Type.format() for Arg in self.Args]),
+            self.ReturnType.format(),
+        )
+
+    def __str__(self) -> str:
+        return self.format()
 
 
 @beartype
@@ -1650,6 +1657,8 @@ class TypeSpecialization():
     "Fully qualified underlying type in the specialization"
     bind_name: str
     "Flat name for the wrapper class"
+
+    used_in: Optional[GenTuEntry] = None
 
     def getFlatUsed(self) -> str:
         "Get flat joined name of the used type"

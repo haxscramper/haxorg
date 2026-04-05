@@ -30,19 +30,22 @@ def collect_type_specializations(
     res = []
     seen_types: Set[int] = set()
 
-    def visit_type(T: QualType):
+    def visit_type(T: QualType, used_in: Optional[codegen_ir.GenTuEntry] = None):
         if conf.isUnwrappedTemplateInstantiation(T):
             T = T.withoutCVRefRec()
             if hash(T) in seen_types:
                 return
 
             seen_types.add(hash(T))
-            res.append(TypeSpecialization(
-                used_type=T,
-                bind_name=conf.getTypeBindName(T),
-            ))
+            res.append(
+                TypeSpecialization(
+                    used_type=T,
+                    bind_name=conf.getTypeBindName(T),
+                    used_in=used_in,
+                ))
 
-    def visit_type_rec(value: Optional[QualType]) -> None:
+    def visit_type_rec(value: Optional[QualType],
+                       used_in: Optional[codegen_ir.GenTuEntry] = None) -> None:
         if value is None:
             return
 
@@ -52,39 +55,41 @@ def collect_type_specializations(
             return
 
         T = conf.getResolvedType(value)
-        visit_type(T)
+        visit_type(T, used_in=used_in)
 
         for spec in conf.getBaseClassSpecializations(T):
-            visit_type(spec)
+            visit_type(spec, used_in=used_in)
 
         for P in T.Params:
-            visit_type_rec(P)
+            visit_type_rec(P, used_in=used_in)
 
-    def visit_entry(entry: Any):
+    def visit_entry(entry: Any, used_in: Optional[codegen_ir.GenTuEntry] = None):
         match entry:
             case codegen_ir.GenTuField():
                 if entry.IsExposedForWrap:
-                    visit_type_rec(entry.Type)
+                    visit_type_rec(entry.Type, used_in=entry)
 
             case codegen_ir.GenTuFunction():
                 if entry.IsExposedForWrap:
-                    visit_type_rec(entry.ReturnType)
-                    list(map(lambda it: visit_type_rec(it.Type), entry.Args))
+                    visit_type_rec(entry.ReturnType, used_in=entry)
+                    list(
+                        map(lambda it: visit_type_rec(it.Type, used_in=entry),
+                            entry.Args))
 
             case codegen_ir.GenTuStruct():
-                list(map(visit_entry, entry.Methods))
-                list(map(visit_entry, entry.Fields))
-                list(map(visit_entry, entry.Nested))
-                list(map(visit_entry, entry.Bases))
+                list(map(lambda it: visit_entry(it, used_in=it), entry.Methods))
+                list(map(lambda it: visit_entry(it, used_in=it), entry.Fields))
+                list(map(lambda it: visit_entry(it, used_in=it), entry.Nested))
+                list(map(lambda it: visit_entry(it, used_in=entry), entry.Bases))
 
             case codegen_ir.GenTuTypedef():
-                visit_entry(entry.Base)
+                visit_entry(entry.Base, used_in=entry)
 
             case codegen_ir.GenTuEnum() | codegen_ir.GenTuPass():
                 pass
 
             case codegen_ir.QualType():
-                visit_type_rec(entry)
+                visit_type_rec(entry, used_in=used_in)
 
             case _:
                 raise TypeError(f"todo {type(entry)}")
@@ -1198,6 +1203,46 @@ def match_specializations(
     """
     matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
     return matcher.match_specializations(specializations, template)
+
+
+@beartype
+def match_specializations_for_template_params(
+    specializations: List[QualType],
+    template_name: QualType,
+    template_params: GenTuTemplateParams,
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
+) -> List[SpecializationMatchResult]:
+    """
+    Match template specializatino against template type name and its parameters.
+    """
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.match_specializations_for_template_params(
+        specializations,
+        template_name=template_name,
+        template_params=template_params,
+    )
+
+
+@beartype
+def match_specializations_for_struct(
+    specializations: List[QualType],
+    template: codegen_ir.GenTuStruct,
+    *,
+    debug: bool = False,
+    debug_sink: Optional[List[str]] = None,
+) -> List[SpecializationMatchResult]:
+    """
+    Match template specializatino against template type name and its parameters.
+    """
+    assert template.TemplateParams
+    matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
+    return matcher.match_specializations_for_template_params(
+        specializations,
+        template_name=template.Name,
+        template_params=template.TemplateParams,
+    )
 
 
 @beartype
