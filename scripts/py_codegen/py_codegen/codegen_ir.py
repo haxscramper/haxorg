@@ -648,6 +648,7 @@ class GenTuTemplateTypename:
     Concept: Optional[str] = None
     Default: Optional[QualType] = None
     TemplateParams: Optional["GenTuTemplateParams"] = None
+    NonTypeConstraint: Optional[QualType] = None
 
     def getName(self) -> str:
         """

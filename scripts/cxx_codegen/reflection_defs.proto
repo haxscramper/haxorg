@@ -139,6 +139,7 @@ message TemplateParam {
     string Concept = 4;
     repeated QualType Default = 5;
     repeated TemplateParams TemplateParams = 6;
+    repeated QualType NonTypeConstraint = 7;
 }
 
 message TemplateGroup {

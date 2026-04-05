@@ -175,45 +175,22 @@ def conv_proto_templates(
         for proto_group in proto_template_params.stacks:
             group = codegen_ir.GenTuTemplateGroup()
             for proto_param in proto_group.params:
-                kind = codegen_ir.TemplateParamKind(
-                    proto_param.kind.name.removeprefix("TEMPLATE_PARAM_KIND_").title())
+                match proto_param.kind.name:
+                    case "TYPE":
+                        kind = codegen_ir.TemplateParamKind.Type
+
+                    case "NON_TYPE":
+                        kind = codegen_ir.TemplateParamKind.NonType
+
+                    case "TEMPLATE":
+                        kind = codegen_ir.TemplateParamKind.Template
+
+                    case _:
+                        raise ValueError(
+                            f"Unexpected value for template param kind {proto_param.kind}"
+                        )
 
                 type_expr = conv_proto_type(proto_param.type_expr)
-
-                default_value = None
-                if proto_param.default:
-                    default_value = conv_proto_type(proto_param.default[0])
-
-                nested_template_params = None
-                if proto_param.template_params:
-                    nested_template_params = codegen_ir.GenTuTemplateParams(Stacks=[])
-                    for nested_proto_template_params in proto_param.template_params:
-                        for nested_proto_group in nested_proto_template_params.stacks:
-                            nested_group = codegen_ir.GenTuTemplateGroup()
-                            for nested_proto_param in nested_proto_group.params:
-                                nested_kind = codegen_ir.TemplateParamKind(
-                                    nested_proto_param.kind.name.removeprefix(
-                                        "TEMPLATE_PARAM_KIND_").title())
-
-                                nested_type_expr = conv_proto_type(
-                                    nested_proto_param.type_expr)
-
-                                nested_default_value = None
-                                if nested_proto_param.default:
-                                    nested_default_value = conv_proto_type(
-                                        nested_proto_param.default[0])
-
-                                nested_group.Params.append(
-                                    codegen_ir.GenTuTemplateTypename(
-                                        Kind=nested_kind,
-                                        TypeExpr=nested_type_expr,
-                                        Variadic=nested_proto_param.variadic,
-                                        Concept=nested_proto_param.concept or None,
-                                        Default=nested_default_value,
-                                        TemplateParams=None,
-                                    ))
-
-                            nested_template_params.Stacks.append(nested_group)
 
                 group.Params.append(
                     codegen_ir.GenTuTemplateTypename(
@@ -221,8 +198,13 @@ def conv_proto_templates(
                         TypeExpr=type_expr,
                         Variadic=proto_param.variadic,
                         Concept=proto_param.concept or None,
-                        Default=default_value,
-                        TemplateParams=nested_template_params,
+                        Default=conv_proto_type(proto_param.default[0])
+                        if proto_param.default else None,
+                        TemplateParams=conv_proto_templates(proto_param.template_params)
+                        if proto_param.template_params else None,
+                        NonTypeConstraint=conv_proto_type(
+                            proto_param.non_type_constraint[0])
+                        if proto_param.non_type_constraint else None,
                     ))
 
             TemplateParams.Stacks.append(group)

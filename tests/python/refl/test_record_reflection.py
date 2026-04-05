@@ -466,3 +466,359 @@ def test_templates_record(stable_test_dir: Path) -> None:
     assert m2.ReturnType.flatQualScope()[1].Name == "multi_nested"
     assert m2.ReturnType.flatQualScope()[1].IsTemplateTypeParam == False
     assert m2.ReturnType.flatQualScope()[1].IsTemplateInjectedType == True
+
+
+@pytest.mark.test_release
+def test_templates_record_type_param_plain(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <typename T>
+        struct [[refl]] Box {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Box"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+
+    group = s.TemplateParams.Stacks[0]
+    assert len(group.Params) == 1
+
+    param = group.Params[0]
+    assert param.Kind.name == "Type"
+    assert param.getName() == "T"
+    assert param.TypeExpr.Name == "T"
+    assert param.TypeExpr.IsTemplateTypeParam == True
+    assert param.Variadic == False
+    assert param.Concept is None
+    assert param.Default is None
+    assert param.TemplateParams is None
+
+
+@pytest.mark.test_release
+def test_templates_record_type_param_default(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        struct DefaultType {};
+
+        template <typename T = DefaultType>
+        struct [[refl]] Box {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Box"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert len(s.TemplateParams.Stacks[0].Params) == 1
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "Type"
+    assert param.getName() == "T"
+    assert param.Default is not None
+    assert param.Default.Name == "DefaultType"
+
+
+@pytest.mark.test_release
+def test_templates_record_variadic_type_param(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <typename... Ts>
+        struct [[refl]] Pack {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Pack"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert len(s.TemplateParams.Stacks[0].Params) == 1
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "Type"
+    assert param.getName() == "Ts"
+    assert param.Variadic == True
+    assert param.TypeExpr.IsTemplateTypeParam == True
+
+
+@pytest.mark.test_release
+def test_templates_record_non_type_param(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <int N>
+        struct [[refl]] Sized {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Sized"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert len(s.TemplateParams.Stacks[0].Params) == 1
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "NonType"
+    assert param.getName() == "N"
+    assert param.NonTypeConstraint
+    assert param.NonTypeConstraint.Name == "int"
+    assert param.Variadic == False
+    assert param.Concept is None
+    assert param.Default is None
+    assert param.TemplateParams is None
+
+
+@pytest.mark.test_release
+def test_templates_record_non_type_param_default(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <int N = 8>
+        struct [[refl]] Sized {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Sized"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "NonType"
+    assert param.getName() == "N"
+    assert param.Default is not None
+
+
+@pytest.mark.test_release
+def test_templates_record_auto_non_type_param(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <auto V>
+        struct [[refl]] ValueHolder {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "ValueHolder"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "NonType"
+    assert param.getName() == "V"
+    assert param.TypeExpr.Name == "V"
+
+
+@pytest.mark.test_release
+def test_templates_record_template_template_param(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <template <typename> typename TT>
+        struct [[refl]] Wrapper {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Wrapper"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert len(s.TemplateParams.Stacks[0].Params) == 1
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "Template"
+    assert param.getName() == "TT"
+    assert param.TypeExpr.Name == "TT"
+    assert param.TypeExpr.IsTemplateTypeParam == True
+    assert param.TemplateParams is not None
+    assert len(param.TemplateParams.Stacks) == 1
+    assert len(param.TemplateParams.Stacks[0].Params) == 1
+
+    nested = param.TemplateParams.Stacks[0].Params[0]
+    assert nested.Kind.name == "Type"
+    assert nested.TypeExpr.Name == ""
+    assert nested.TypeExpr.IsTemplateTypeParam == True
+    assert nested.Variadic == False
+
+
+@pytest.mark.test_release
+def test_templates_record_template_template_param_named_nested(
+    stable_test_dir: Path,) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <template <typename U> typename TT>
+        struct [[refl]] Wrapper {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Wrapper"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "Template"
+    assert param.getName() == "TT"
+    assert param.TemplateParams is not None
+    assert len(param.TemplateParams.Stacks) == 1
+    assert len(param.TemplateParams.Stacks[0].Params) == 1
+
+    nested = param.TemplateParams.Stacks[0].Params[0]
+    assert nested.Kind.name == "Type"
+    assert nested.getName() == "U"
+    assert nested.TypeExpr.Name == "U"
+
+
+@pytest.mark.test_release
+def test_templates_record_template_template_param_with_non_type_nested(
+    stable_test_dir: Path,) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <template <int N> typename TT>
+        struct [[refl]] Wrapper {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Wrapper"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+
+    param = s.TemplateParams.Stacks[0].Params[0]
+    assert param.Kind.name == "Template"
+    assert param.getName() == "TT"
+    assert param.TemplateParams is not None
+    assert len(param.TemplateParams.Stacks) == 1
+    assert len(param.TemplateParams.Stacks[0].Params) == 1
+
+    nested = param.TemplateParams.Stacks[0].Params[0]
+    assert nested.Kind.name == "NonType"
+    assert nested.getName() == "N"
+    assert nested.TypeExpr.Name == "N"
+    assert nested.NonTypeConstraint
+    assert nested.NonTypeConstraint.Name == "int"
+
+
+@pytest.mark.test_release
+def test_templates_record_mixed_params(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <typename T, int N, template <typename> typename TT>
+        struct [[refl]] Mixed {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Mixed"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+
+    group = s.TemplateParams.Stacks[0]
+    assert len(group.Params) == 3
+
+    p0 = group.Params[0]
+    p1 = group.Params[1]
+    p2 = group.Params[2]
+
+    assert p0.Kind.name == "Type"
+    assert p0.getName() == "T"
+
+    assert p1.Kind.name == "NonType"
+    assert p1.getName() == "N"
+    assert p1.NonTypeConstraint
+    assert p1.NonTypeConstraint.Name == "int"
+
+    assert p2.Kind.name == "Template"
+    assert p2.getName() == "TT"
+    assert p2.TemplateParams is not None
+    assert len(p2.TemplateParams.Stacks) == 1
+    assert len(p2.TemplateParams.Stacks[0].Params) == 1
+    assert p2.TemplateParams.Stacks[0].Params[0].Kind.name == "Type"
+
+
+@pytest.mark.test_release
+def test_templates_record_constrained_and_defaulted_params(
+    stable_test_dir: Path,) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    s = refl_test_driver.get_struct(
+        """
+        template <typename Arg>
+        concept HasNested = requires(Arg v)
+        {
+            typename Arg::nested;
+        };
+
+        struct DefaultType {};
+
+        template <HasNested T, typename U = DefaultType>
+        struct [[refl]] Constrained {};
+        """,
+        stable_test_dir=stable_test_dir,
+        only_annotated=True,
+        reflection_run_verbose=True,
+    )
+
+    assert s.Name.Name == "Constrained"
+    assert s.IsTemplateRecord == True
+    assert s.TemplateParams is not None
+    assert len(s.TemplateParams.Stacks) == 1
+    assert len(s.TemplateParams.Stacks[0].Params) == 2
+
+    p0 = s.TemplateParams.Stacks[0].Params[0]
+    p1 = s.TemplateParams.Stacks[0].Params[1]
+
+    assert p0.Kind.name == "Type"
+    assert p0.getName() == "T"
+    assert p0.Concept == "HasNested"
+    assert p0.Default is None
+
+    assert p1.Kind.name == "Type"
+    assert p1.getName() == "U"
+    assert p1.Concept is None
+    assert p1.Default is not None
+    assert p1.Default.Name == "DefaultType"

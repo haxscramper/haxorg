@@ -1363,7 +1363,10 @@ void ReflASTVisitor::fillCxxRecordDecl(
 
                 auto* type_expr = out_param->mutable_typeexpr();
                 fillTypeRec(
-                    type_expr, nonTypeParam->getType(), std::nullopt);
+                    out_param->add_nontypeconstraint(),
+                    nonTypeParam->getType(),
+                    std::nullopt);
+
                 type_expr->set_name(nonTypeParam->getNameAsString());
 
                 if (nonTypeParam->hasDefaultArgument()) {
@@ -1452,10 +1455,12 @@ void ReflASTVisitor::fillCxxRecordDecl(
 
                         auto* nested_type_expr = nested_out
                                                      ->mutable_typeexpr();
+
                         fillTypeRec(
-                            nested_type_expr,
+                            nested_out->add_nontypeconstraint(),
                             nestedNonType->getType(),
                             std::nullopt);
+
                         nested_type_expr->set_name(
                             nestedNonType->getNameAsString());
 
