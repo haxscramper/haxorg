@@ -1317,27 +1317,26 @@ void ReflASTVisitor::fillCxxRecordDecl(
         clang::TemplateParameterList*
             templateParams = CTD->getTemplateParameters();
 
-        // TODO: Check if it is possible to determine whether a structure
-        // is an instantiation of something else (and link it in some
-        // additional field), or it is a standalone template that is just
-        // defined. Also separate partial specialization and final
-        // specialization.
         rec->set_istemplaterecord(true);
 
-        auto template_spec = rec->add_templates();
+        auto* template_params = rec->add_templates();
+        auto* stack           = template_params->add_stacks();
 
-        // This code is obviously far too primitive to handle all C++
-        // template type declaration nuances, but it provides the basis
-        // for the data extraction that can be expanded down the line
-        // if necessary.
         for (clang::NamedDecl* param : *templateParams) {
-            if (auto* typeParam = dyn_cast<clang::TemplateTypeParmDecl>(
-                    param)) {
-                auto spec_param = template_spec->add_parameters();
-                spec_param->set_name(typeParam->getName());
-                spec_param->set_isvariadic(typeParam->isParameterPack());
+            auto* out_param = stack->add_params();
+
+            if (auto* typeParam = clang::dyn_cast<
+                    clang::TemplateTypeParmDecl>(param)) {
+                out_param->set_kind(
+                    TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
+                out_param->set_variadic(typeParam->isParameterPack());
+
+                auto* type_expr = out_param->mutable_typeexpr();
+                type_expr->set_name(typeParam->getNameAsString());
+                type_expr->set_istemplatetypeparam(true);
+
                 if (typeParam->hasDefaultArgument()) {
-                    auto default_arg = spec_param->add_default_();
+                    auto* default_arg = out_param->add_default_();
                     fillTypeRec(
                         default_arg,
                         typeParam->getDefaultArgument().getArgument(),
@@ -1348,15 +1347,157 @@ void ReflASTVisitor::fillCxxRecordDecl(
                     const clang::TypeConstraint*
                         TC = typeParam->getTypeConstraint();
                     clang::TemplateDecl* TD = TC->getNamedConcept();
-                    if (auto* Concept = dyn_cast<clang::ConceptDecl>(TD)) {
-                        clang::ConceptDecl* CD = Concept;
-                        spec_param->set_concept_(
+                    if (auto* CD = clang::dyn_cast<clang::ConceptDecl>(
+                            TD)) {
+                        out_param->set_concept_(
                             CD->getCanonicalDecl()->getNameAsString());
-                    } else {
-                        HSLOG_TRACE("Not a concept type constraint");
                     }
-                } else {
-                    HSLOG_TRACE("No template type constraint");
+                }
+
+            } else if (
+                auto* nonTypeParam = clang::dyn_cast<
+                    clang::NonTypeTemplateParmDecl>(param)) {
+                out_param->set_kind(
+                    TemplateParamKind::TEMPLATE_PARAM_KIND_NON_TYPE);
+                out_param->set_variadic(nonTypeParam->isParameterPack());
+
+                auto* type_expr = out_param->mutable_typeexpr();
+                fillTypeRec(
+                    type_expr, nonTypeParam->getType(), std::nullopt);
+                type_expr->set_name(nonTypeParam->getNameAsString());
+
+                if (nonTypeParam->hasDefaultArgument()) {
+                    auto* default_arg = out_param->add_default_();
+                    fillTypeRec(
+                        default_arg,
+                        nonTypeParam->getDefaultArgument().getArgument(),
+                        std::nullopt);
+                }
+
+            } else if (
+                auto* templateTemplateParam = clang::dyn_cast<
+                    clang::TemplateTemplateParmDecl>(param)) {
+                out_param->set_kind(
+                    TemplateParamKind::TEMPLATE_PARAM_KIND_TEMPLATE);
+                out_param->set_variadic(
+                    templateTemplateParam->isParameterPack());
+
+                auto* type_expr = out_param->mutable_typeexpr();
+                type_expr->set_name(
+                    templateTemplateParam->getNameAsString());
+                type_expr->set_istemplatetypeparam(true);
+
+                if (templateTemplateParam->hasDefaultArgument()) {
+                    auto* default_arg = out_param->add_default_();
+                    fillTypeRec(
+                        default_arg,
+                        templateTemplateParam->getDefaultArgument()
+                            .getArgument(),
+                        std::nullopt);
+                }
+
+                auto* nested_params = out_param->add_templateparams();
+                auto* nested_stack  = nested_params->add_stacks();
+
+                clang::TemplateParameterList*
+                    nestedList = templateTemplateParam
+                                     ->getTemplateParameters();
+
+                for (clang::NamedDecl* nestedParam : *nestedList) {
+                    auto* nested_out = nested_stack->add_params();
+
+                    if (auto* nestedType = clang::dyn_cast<
+                            clang::TemplateTypeParmDecl>(nestedParam)) {
+                        nested_out->set_kind(
+                            TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
+                        nested_out->set_variadic(
+                            nestedType->isParameterPack());
+
+                        auto* nested_type_expr = nested_out
+                                                     ->mutable_typeexpr();
+                        nested_type_expr->set_name(
+                            nestedType->getNameAsString());
+                        nested_type_expr->set_istemplatetypeparam(true);
+
+                        if (nestedType->hasDefaultArgument()) {
+                            auto* default_arg = nested_out->add_default_();
+                            fillTypeRec(
+                                default_arg,
+                                nestedType->getDefaultArgument()
+                                    .getArgument(),
+                                std::nullopt);
+                        }
+
+                        if (nestedType->hasTypeConstraint()) {
+                            const clang::TypeConstraint*
+                                TC = nestedType->getTypeConstraint();
+                            clang::TemplateDecl*
+                                TD = TC->getNamedConcept();
+                            if (auto* CD = clang::dyn_cast<
+                                    clang::ConceptDecl>(TD)) {
+                                nested_out->set_concept_(
+                                    CD->getCanonicalDecl()
+                                        ->getNameAsString());
+                            }
+                        }
+
+                    } else if (
+                        auto* nestedNonType = clang::dyn_cast<
+                            clang::NonTypeTemplateParmDecl>(nestedParam)) {
+                        nested_out->set_kind(
+                            TemplateParamKind::
+                                TEMPLATE_PARAM_KIND_NON_TYPE);
+                        nested_out->set_variadic(
+                            nestedNonType->isParameterPack());
+
+                        auto* nested_type_expr = nested_out
+                                                     ->mutable_typeexpr();
+                        fillTypeRec(
+                            nested_type_expr,
+                            nestedNonType->getType(),
+                            std::nullopt);
+                        nested_type_expr->set_name(
+                            nestedNonType->getNameAsString());
+
+                        if (nestedNonType->hasDefaultArgument()) {
+                            auto* default_arg = nested_out->add_default_();
+                            fillTypeRec(
+                                default_arg,
+                                nestedNonType->getDefaultArgument()
+                                    .getArgument(),
+                                std::nullopt);
+                        }
+
+                    } else if (
+                        auto* nestedTemplate = clang::dyn_cast<
+                            clang::TemplateTemplateParmDecl>(
+                            nestedParam)) {
+                        nested_out->set_kind(
+                            TemplateParamKind::
+                                TEMPLATE_PARAM_KIND_TEMPLATE);
+                        nested_out->set_variadic(
+                            nestedTemplate->isParameterPack());
+
+                        auto* nested_type_expr = nested_out
+                                                     ->mutable_typeexpr();
+                        nested_type_expr->set_name(
+                            nestedTemplate->getNameAsString());
+                        nested_type_expr->set_istemplatetypeparam(true);
+
+                        if (nestedTemplate->hasDefaultArgument()) {
+                            auto* default_arg = nested_out->add_default_();
+                            fillTypeRec(
+                                default_arg,
+                                nestedTemplate->getDefaultArgument()
+                                    .getArgument(),
+                                std::nullopt);
+                        }
+
+                        auto*
+                            nested_nested_params = nested_out
+                                                       ->add_templateparams();
+                        nested_nested_params->add_stacks();
+                    }
                 }
             }
         }

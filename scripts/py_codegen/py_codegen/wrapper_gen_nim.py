@@ -441,7 +441,7 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
     arguments: List[nim.IdentParams] = []
     if b.conf.opts.is_cpp_wrap:
-        arguments.append(nim.IdentParams("self", type_to_nim(b, func.ParentClass.Name)))
+        arguments.append(nim.IdentParams("self", type_to_nim(b, func.ParentClass)))
 
     for Arg in func.Args:
         arguments.append(nim.IdentParams(Arg.Name, type_to_nim(b, Arg.Type)))

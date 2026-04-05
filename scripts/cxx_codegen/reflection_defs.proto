@@ -126,26 +126,34 @@ message Arg {
 }
 
 
-message TemplateTypename {
-    bool IsVariadic = 1;
-    bool IsPlaceholder = 2;
-    string Name = 3;
-    repeated TemplateTypename Nested = 4;
-    string Concept = 5;
-    // using repeated instead of optional because python-betterproto
-    // does not support the latter one.
-    repeated QualType Default = 6;
+enum TemplateParamKind {
+    TEMPLATE_PARAM_KIND_TYPE = 0;
+    TEMPLATE_PARAM_KIND_NON_TYPE = 1;
+    TEMPLATE_PARAM_KIND_TEMPLATE = 2;
 }
 
-message TemplateSpec {
-    repeated TemplateTypename Parameters = 1;
+message TemplateParam {
+    TemplateParamKind Kind = 1;
+    QualType TypeExpr = 2;
+    bool Variadic = 3;
+    string Concept = 4;
+    repeated QualType Default = 5;
+    repeated TemplateParams TemplateParams = 6;
+}
+
+message TemplateGroup {
+    repeated TemplateParam Params = 1;
+}
+
+message TemplateParams {
+    repeated TemplateGroup Stacks = 1;
 }
 
 message Function {
     string Name = 1;
     QualType ResultTy = 2;
     repeated Arg Arguments = 3;
-    repeated TemplateSpec Templates = 4;
+    repeated TemplateParams Templates = 4;
     string DbgOrigin = 5;
     repeated QualType Spaces = 6;
     google.protobuf.Struct ReflectionParams = 7;
@@ -156,7 +164,7 @@ message Typedef {
     QualType Name = 1;
     /// Base type used in declaration
     QualType BaseType = 2;
-    repeated TemplateSpec Templates = 3;
+    repeated TemplateParams Templates = 3;
     google.protobuf.Struct ReflectionParams = 4;
 }
 
@@ -209,7 +217,7 @@ message Record {
     repeated Enum NestedEnum = 6;
     repeated Typedef NestedTypedef = 7;
     string Doc = 8;
-    repeated TemplateSpec Templates = 9;
+    repeated TemplateParams Templates = 9;
     /// See 'EnumDefName' description in the enumeration message.
     QualType RecordDefName = 10;
     bool IsForwardDecl = 11;

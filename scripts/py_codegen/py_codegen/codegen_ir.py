@@ -1203,7 +1203,8 @@ class GenTuStruct():
         if self.TemplateParams:
             for _stack in self.TemplateParams.Stacks:
                 for _param in _stack.Params:
-                    result.append(QualType(Name=_param.Name, IsTemplateTypeParam=True))
+                    result.append(
+                        QualType(Name=_param.getName(), IsTemplateTypeParam=True))
 
         return result
 

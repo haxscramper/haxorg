@@ -1,7 +1,11 @@
+from dataclasses import fields
 import itertools
+import json
 from pathlib import Path
 import sys
+import typing
 
+import betterproto
 import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
 from py_repository.repo_tasks.command_execution import (
@@ -24,13 +28,6 @@ from py_repository.repo_tasks.haxorg_build import (
     build_targets,
     configure_cmake_haxorg,
 )
-
-import json
-from pathlib import Path
-from dataclasses import fields
-import betterproto
-import typing
-
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
 from py_scriptutils.script_logging import log
 
@@ -63,22 +60,23 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
         ctx,
         protoc_bin,
         [
-            f"--plugin={protoc_plugin}",
+            f"--plugin=protoc-gen-python_betterproto={protoc_plugin}",
             "-I",
             proto_include_dir,
             "-I",
             thirdparty_include_dir,
-            "--proto_path=" + str(proto_path),
+            # "--proto_path=" + str(proto_path),
             "--python_betterproto_out=" + str(proto_lib),
             "--python_betterproto_opt=GOOGLE_PROTOBUF_SPECIAL_PACKAGE",
             proto_config,
         ],
         env=dict(LD_PRELOAD=""),
+        print_output=True,
     )
 
-    from py_codegen.proto_lib.reflection_defs import TU
+    from py_codegen.proto_lib import Tu
     from py_codegen.refl_schema_gen import write_schema
-    write_schema(TU, proto_lib / "TU.schema.json")
+    write_schema(Tu, proto_lib / "TU.schema.json")
 
 
 CODEGEN_TASKS = [

@@ -15,7 +15,7 @@ import betterproto
 from betterproto.lib.google import protobuf as pb_google
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
-import py_codegen.proto_lib.reflection_defs as pb
+import py_codegen.proto_lib as pb
 from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = __name__
@@ -168,6 +168,69 @@ def conv_proto_reflection_params(
 
 
 @beartype
+def conv_proto_templates(
+        templates: list[pb.TemplateParams]) -> codegen_ir.GenTuTemplateParams:
+    TemplateParams = codegen_ir.GenTuTemplateParams(Stacks=[])
+    for proto_template_params in templates:
+        for proto_group in proto_template_params.stacks:
+            group = codegen_ir.GenTuTemplateGroup()
+            for proto_param in proto_group.params:
+                kind = codegen_ir.TemplateParamKind(
+                    proto_param.kind.name.removeprefix("TEMPLATE_PARAM_KIND_").title())
+
+                type_expr = conv_proto_type(proto_param.type_expr)
+
+                default_value = None
+                if proto_param.default:
+                    default_value = conv_proto_type(proto_param.default[0])
+
+                nested_template_params = None
+                if proto_param.template_params:
+                    nested_template_params = codegen_ir.GenTuTemplateParams(Stacks=[])
+                    for nested_proto_template_params in proto_param.template_params:
+                        for nested_proto_group in nested_proto_template_params.stacks:
+                            nested_group = codegen_ir.GenTuTemplateGroup()
+                            for nested_proto_param in nested_proto_group.params:
+                                nested_kind = codegen_ir.TemplateParamKind(
+                                    nested_proto_param.kind.name.removeprefix(
+                                        "TEMPLATE_PARAM_KIND_").title())
+
+                                nested_type_expr = conv_proto_type(
+                                    nested_proto_param.type_expr)
+
+                                nested_default_value = None
+                                if nested_proto_param.default:
+                                    nested_default_value = conv_proto_type(
+                                        nested_proto_param.default[0])
+
+                                nested_group.Params.append(
+                                    codegen_ir.GenTuTemplateTypename(
+                                        Kind=nested_kind,
+                                        TypeExpr=nested_type_expr,
+                                        Variadic=nested_proto_param.variadic,
+                                        Concept=nested_proto_param.concept or None,
+                                        Default=nested_default_value,
+                                        TemplateParams=None,
+                                    ))
+
+                            nested_template_params.Stacks.append(nested_group)
+
+                group.Params.append(
+                    codegen_ir.GenTuTemplateTypename(
+                        Kind=kind,
+                        TypeExpr=type_expr,
+                        Variadic=proto_param.variadic,
+                        Concept=proto_param.concept or None,
+                        Default=default_value,
+                        TemplateParams=nested_template_params,
+                    ))
+
+            TemplateParams.Stacks.append(group)
+
+    return TemplateParams
+
+
+@beartype
 def conv_proto_record(record: pb.Record,
                       original: Optional[Path]) -> codegen_ir.GenTuStruct:
     "Convert reflection tool protobuf record to codgen IR struct"
@@ -191,19 +254,7 @@ def conv_proto_record(record: pb.Record,
         result.ExplicitTemplateParams.append(conv_proto_type(arg))
 
     if result.IsTemplateRecord:
-        result.TemplateParams = codegen_ir.GenTuTemplateParams(Stacks=[])
-        for _template in record.templates:
-            group = codegen_ir.GenTuTemplateGroup()
-            for _param in _template.parameters:
-                group.Params.append(
-                    codegen_ir.GenTuTemplateTypename(
-                        Variadic=_param.is_variadic,
-                        Placeholder=_param.is_placeholder,
-                        Name=_param.name,
-                        Concept=_param.concept,
-                    ))
-
-            result.TemplateParams.Stacks.append(group)
+        result.TemplateParams = conv_proto_templates(record.templates)
 
     for _field in record.fields:
         if _field.is_type_decl:
@@ -471,8 +522,8 @@ def dict_to_dataclass(
 
 
 @beartype
-def open_proto_file(path: Path) -> pb.TU:
-    unit = pb.TU()
+def open_proto_file(path: Path) -> pb.Tu:
+    unit = pb.Tu()
     assert path.exists(), f"Reflection file {path} does not exist"
 
     with ExceptionContextNote(f"Parsing file {path}"):
@@ -480,15 +531,15 @@ def open_proto_file(path: Path) -> pb.TU:
             import commentjson
             unit = dict_to_dataclass(
                 commentjson.loads(path.read_text()),
-                pb.TU,
+                pb.Tu,
                 allow_extra_fields={
-                    (pb.TU, "$schema"),
+                    (pb.Tu, "$schema"),
                 },
             )
 
         else:
             with open(path, "rb") as f:
-                unit = pb.TU.FromString(f.read())
+                unit = pb.Tu.FromString(f.read())
 
     return unit
 

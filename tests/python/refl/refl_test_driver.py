@@ -1,6 +1,6 @@
-import itertools
 from dataclasses import dataclass, field
 import enum
+import itertools
 import json
 from pathlib import Path
 
@@ -8,27 +8,28 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 from fontTools.cffLib.transforms import remove_unused_subroutines
 from plumbum import CommandNotFound, local
-import py_codegen.refl_extract as ex
-from py_codegen import astbuilder_cpp, astbuilder_embind
+from py_codegen import astbuilder_cpp, astbuilder_embind, astbuilder_nim
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.astbuilder_nanobind import NbModule, Py11Entry, Py11Field
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
-from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, NimAstbuilderStaticConfig
-from py_codegen.codegen_ir import GenTypeMap
-from py_codegen.refl_read import (
-    ConvTu,
+from py_codegen.astbuilder_nim_config import (
+    NimAstbuilderConfig,
+    NimAstbuilderStaticConfig,
+)
+from py_codegen.codegen_ir import (
     GenTuEnum,
     GenTuFunction,
     GenTuStruct,
     GenTuUnion,
-    QualType,
+    GenTypeMap,
 )
-from py_codegen.refl_wrapper_graph import TuWrap, GenGraph
+import py_codegen.refl_extract as ex
+from py_codegen.refl_read import ConvTu, QualType
+from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
 import py_codegen.wrapper_gen_nim as gen_nim
-from py_codegen import astbuilder_nim
+from py_haxorg.layout.wrap import TextLayout
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
-from py_haxorg.layout.wrap import TextLayout
 
 
 @beartype

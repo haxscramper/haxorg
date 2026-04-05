@@ -431,7 +431,7 @@ def test_templates_record(stable_test_dir: Path) -> None:
     assert s.IsTemplateRecord == True
     assert s.TemplateParams is not None
     assert len(s.TemplateParams.Stacks) == 1
-    assert s.TemplateParams.Stacks[0].Params[0].Name == "T"
+    assert s.TemplateParams.Stacks[0].Params[0].getName() == "T"
     assert s.TemplateParams.Stacks[0].Params[0].Concept == "ILabel"
 
     m0 = s.Methods[0]

@@ -233,6 +233,18 @@ def _instantiate_template(_ctx: _InstantiateCtx,
 
 
 @beartype
+def instantiate_template(
+    Base: codegen_ir.GenTuDeclaration,
+    substitution_map: dict[str, QualType],
+    type_map: codegen_ir.GenTypeMap,
+) -> codegen_ir.GenTuDeclaration:
+    return _instantiate_template(  # type: ignore
+        _InstantiateCtx(substitution_map=substitution_map, type_map=type_map),
+        Base,
+    )
+
+
+@beartype
 @dataclass
 class SpecializationMatchResult:
     instantiated_name: QualType

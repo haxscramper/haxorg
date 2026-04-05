@@ -1,14 +1,14 @@
-from copy import deepcopy
 import copy
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 
 from beartype import beartype
-from beartype.typing import List, Union, Optional, Any
+from beartype.typing import Any, List, Optional, Union
 # Now you should be able to import your C++ library
 from py_codegen import astbuilder_cpp as cpp
 from py_codegen.codegen_ir import *
-from py_codegen.proto_lib.reflection_defs import Arg
+from py_codegen.proto_lib import Arg
 
 
 @beartype

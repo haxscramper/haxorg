@@ -8,7 +8,7 @@ from beartype import beartype
 from beartype.typing import Any
 import betterproto
 from py_codegen import codegen_ir
-import py_codegen.proto_lib.reflection_defs as pb
+import py_codegen.proto_lib as pb
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel
 
