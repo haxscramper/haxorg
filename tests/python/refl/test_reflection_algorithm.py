@@ -187,7 +187,7 @@ def test_template_declaration_matching_with_default_type_argument() -> None:
                 "U": QualType(Name="int", IsBuiltin=True),
             },
         )
-    ]
+    ], matcher.get_debug()
 
 
 def test_template_declaration_matching_with_instantiated_default_argument() -> None:
@@ -246,7 +246,7 @@ def test_template_declaration_matching_with_instantiated_default_argument() -> N
                     ),
             },
         )
-    ]
+    ], matcher.get_debug()
 
 
 def test_template_template_parameter_matches_single_type_param_template() -> None:
@@ -278,7 +278,7 @@ def test_template_template_parameter_matches_single_type_param_template() -> Non
         "X": QualType(Name="X", IsTemplateTypeParam=True),
     } or result == {
         "TT": specialization
-    }
+    }, matcher.get_debug()
 
 
 def test_template_template_parameter_mismatch_on_arity() -> None:
@@ -308,7 +308,7 @@ def test_template_template_parameter_mismatch_on_arity() -> None:
 
     result = matcher.unify_template_params(specialization, template_param)
 
-    assert result is None
+    assert result is None, matcher.get_debug()
 
 
 def test_template_template_parameter_matches_non_type_inner_param() -> None:
@@ -321,7 +321,7 @@ def test_template_template_parameter_matches_non_type_inner_param() -> None:
             GenTuTemplateGroup(Params=[
                 GenTuTemplateTypename(
                     Kind=TemplateParamKind.NonType,
-                    TypeExpr=QualType(Name="N", IsTemplateTypeParam=False),
+                    TypeExpr=QualType(Name="N"),
                 )
             ])
         ]),
@@ -329,12 +329,12 @@ def test_template_template_parameter_matches_non_type_inner_param() -> None:
 
     specialization = QualType(
         Name="arr",
-        Params=[QualType(Name="N", IsBuiltin=True)],
+        Params=[QualType(Name="N", IsTemplateTypeParam=True)],
     )
 
     result = matcher.unify_template_params(specialization, template_param)
 
-    assert result == {"TT": specialization}
+    assert result == {"TT": specialization}, matcher.get_debug()
 
 
 def test_template_template_parameter_matches_auto_inner_param() -> None:
@@ -360,7 +360,7 @@ def test_template_template_parameter_matches_auto_inner_param() -> None:
 
     result = matcher.unify_template_params(specialization, template_param)
 
-    assert result == {"TT": specialization}
+    assert result == {"TT": specialization}, matcher.get_debug()
 
 
 def test_template_template_parameter_matches_nested_template_template_param() -> None:

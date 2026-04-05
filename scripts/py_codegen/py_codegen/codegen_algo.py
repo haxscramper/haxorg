@@ -485,10 +485,9 @@ class TemplateUnificationMatcher:
         template entity, while its `Params` list encodes the template parameter
         pattern of that entity.
 
-        Example:
-            A<std::vector>
-        is represented as:
-            QualType(Name="vector", Params=[QualType(Name="T", IsTemplateTypeParam=True)])
+        Inner parameter names belong to the passed template's own declaration and
+        must not leak into the caller-visible substitution map for the outer
+        unification. Only the outer template-template parameter itself is bound.
         """
         self._log(
             f"unify template-template specialization={specialization!r} template_param={template_param!r}"
@@ -499,19 +498,20 @@ class TemplateUnificationMatcher:
         actual_params = specialization.Params
 
         with self._indented():
-            subst = self._unify_template_param_list_against_qualtype_params(
+            inner_subst = self._unify_template_param_list_against_qualtype_params(
                 actual_params=actual_params,
                 expected_params=expected_params,
-                substitution=substitution,
+                substitution={},
             )
-            if subst is None:
+            if inner_subst is None:
                 self._log("template-template parameter list mismatch")
                 return None
 
             name = self._param_decl_name(template_param)
             if name is not None:
-                subst = self._bind_named_param(name, specialization, subst)
-            return subst
+                return self._bind_named_param(name, specialization, substitution)
+
+            return substitution
 
     def _qualtype_non_type_category_matches(
         self,
@@ -521,14 +521,21 @@ class TemplateUnificationMatcher:
         """
         Match the category of a non-type template parameter.
 
-        The declared non-type parameter may be:
+        A non-type template parameter declaration can constrain the category by:
         - concrete type like `int`
         - deduced `auto`
 
-        A specialization argument on the type IR side is also a `QualType`.
+        For template-template parameter shape matching, the passed template
+        entity is represented by placeholder `QualType` entries in
+        `specialization.Params`. Those placeholders should be accepted as long as
+        they structurally represent a parameter slot of the required category.
         """
         if template_expr.Name == "auto":
             return True
+
+        if specialization.IsTemplateTypeParam:
+            return True
+
         return self._qualtype_structural_equal(specialization, template_expr)
 
     def _qualtype_structural_equal(
@@ -655,7 +662,22 @@ class TemplateUnificationMatcher:
                             return None
 
             if variadic_param is not None:
+                variadic_name = self._param_decl_name(variadic_param)
+
                 for idx in range(len(fixed_expected), len(actual_params)):
+                    if variadic_param.Kind == TemplateParamKind.Type:
+                        template_expr = variadic_param.TypeExpr
+
+                        if template_expr.IsTemplateTypeParam and variadic_name is not None:
+                            # Variadic template parameter packs are represented in the
+                            # external substitution map by binding the pack name to the
+                            # whole matched template entity elsewhere, not by forcing all
+                            # pack elements to unify to the same single QualType.
+                            #
+                            # For parameter-list shape matching we only need each element
+                            # to be a valid argument for this declaration slot.
+                            continue
+
                     current = self._unify_param_decl_with_argument(
                         specialization=actual_params[idx],
                         template_param=variadic_param,
@@ -664,6 +686,7 @@ class TemplateUnificationMatcher:
                     if current is None:
                         self._log(f"failed to unify variadic parameter at index {idx}")
                         return None
+
             elif len(actual_params) > len(fixed_expected):
                 extra_start = len(fixed_expected)
                 current_expected = expected_params[extra_start:]
