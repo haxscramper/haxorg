@@ -3,6 +3,7 @@ from py_codegen.codegen_algo import (
     match_specializations,
     SpecializationMatchResult,
     TemplateUnificationMatcher,
+    TypedefExpansionMatcher,
     unify_qualtype,
     unify_template_params,
 )
@@ -10,7 +11,9 @@ from py_codegen.codegen_ir import (
     GenTuTemplateGroup,
     GenTuTemplateParams,
     GenTuTemplateTypename,
+    GenTuTypedef,
     QualType,
+    QualTypeKind,
     ReferenceKind,
     TemplateParamKind,
 )
@@ -482,3 +485,279 @@ def test_debug_logging_collects_messages() -> None:
 
     assert result == {"T": QualType(Name="int", IsBuiltin=True)}
     assert logs
+
+
+def test_get_non_template_name_ignores_template_parameters() -> None:
+    value = QualType(
+        Name="optional",
+        Spaces=[QualType(Name="std")],
+        Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+        IsConst=True,
+        RefKind=ReferenceKind.LValue,
+    )
+
+    assert value.flatQualNameNoTemplateParams() == ("std", "optional")
+
+
+def test_get_non_template_name_flattens_nested_spaces_by_traversal_order() -> None:
+    left = QualType(
+        Name="C",
+        Spaces=[
+            QualType(Name="A"),
+            QualType(Name="B"),
+        ],
+    )
+
+    right = QualType(
+        Name="C",
+        Spaces=[QualType(
+            Name="B",
+            Spaces=[QualType(Name="A")],
+        )],
+    )
+
+    assert left.flatQualNameNoTemplateParams() == ("A", "B", "C")
+    assert right.flatQualNameNoTemplateParams() == ("A", "B", "C")
+
+
+def test_typedef_expands_simple_template_alias() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        )
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="Opt",
+            Spaces=[QualType(Name="hstd")],
+            Params=[QualType(Name="int")],
+        ))
+
+    assert resolved.Name == "optional"
+    assert resolved.Spaces[0].Name == "std"
+    assert resolved.Params[0].Name == "int"
+
+
+def test_typedef_expands_nested_parameter_recursively() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        )
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="vector",
+            Spaces=[QualType(Name="std")],
+            Params=[
+                QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="int")],
+                )
+            ],
+        ))
+
+    assert resolved.Name == "vector"
+    assert resolved.Spaces[0].Name == "std"
+    assert resolved.par0().Name == "optional"
+    assert resolved.par0().Spaces[0].Name == "std"
+    assert resolved.par0().Params[0].Name == "int"
+
+
+def test_typedef_expands_chain_until_fixed_point() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="Maybe",
+                Spaces=[QualType(Name="app")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        ),
+        GenTuTypedef(
+            Name=QualType(
+                Name="Maybe",
+                Spaces=[QualType(Name="app")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        ),
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="Opt",
+            Spaces=[QualType(Name="hstd")],
+            Params=[QualType(Name="int")],
+        ))
+
+    assert resolved.Name == "optional"
+    assert resolved.Spaces[0].Name == "std"
+    assert resolved.Params[0].Name == "int"
+
+
+def test_typedef_expands_inside_function_signature() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        )
+    ])
+
+    source = QualType(
+        Name="",
+        Kind=QualTypeKind.FunctionPtr,
+        Func=QualType.Function(
+            ReturnType=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="int")],
+            ),
+            Args=[
+                QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="char")],
+                )
+            ],
+            Class=None,
+            IsConst=False,
+        ),
+    )
+
+    resolved = matcher.getResolvedType(source)
+
+    assert resolved.Name == ""
+    assert resolved.Kind == QualTypeKind.FunctionPtr
+    assert resolved.Func
+    f = resolved.Func
+    assert f.ReturnType.Name == "optional"
+    assert f.ReturnType.Spaces[0].Name == "std"
+    assert f.ReturnType.Params[0].Name == "int"
+
+    assert f.Args[0].Name == "optional"
+    assert f.Args[0].Spaces[0].Name == "std"
+    assert f.Args[0].Params[0].Name == "char"
+
+
+def test_typedef_does_not_match_only_by_partial_inner_prefix() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        )
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="vector",
+            Spaces=[QualType(Name="std")],
+            Params=[QualType(Name="char")],
+        ))
+
+    assert resolved == QualType(
+        Name="vector",
+        Spaces=[QualType(Name="std")],
+        Params=[QualType(Name="char")],
+    )
+
+
+def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers(
+) -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Ref",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="T",
+                IsTemplateTypeParam=True,
+                RefKind=ReferenceKind.LValue,
+            ),
+        )
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="Ref",
+            Spaces=[QualType(Name="hstd")],
+            Params=[QualType(Name="int")],
+        ))
+
+    assert resolved.Name == "int"
+    assert resolved.RefKind == ReferenceKind.LValue
+
+
+def test_typedef_substitution_sets_original_substituted_template() -> None:
+    matcher = TypedefExpansionMatcher([
+        GenTuTypedef(
+            Name=QualType(
+                Name="Opt",
+                Spaces=[QualType(Name="hstd")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+            Base=QualType(
+                Name="optional",
+                Spaces=[QualType(Name="std")],
+                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            ),
+        )
+    ])
+
+    resolved = matcher.getResolvedType(
+        QualType(
+            Name="Opt",
+            Spaces=[QualType(Name="hstd")],
+            Params=[QualType(Name="int")],
+        ))
+
+    assert len(resolved.Params) == 1
+    assert resolved.Params[0].Name == "int"
+    assert resolved.Params[0].OriginalSubstitutedTemplate
+    assert resolved.Params[0].OriginalSubstitutedTemplate.Name == "T"

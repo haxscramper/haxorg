@@ -1261,3 +1261,99 @@ def group_by_template(
     """
     matcher = TemplateUnificationMatcher(debug=debug, debug_sink=debug_sink)
     return matcher.group_by_template_qualtypes(templates, specializations)
+
+
+@beartype
+@dataclass
+class _TypedefTemplateEntry:
+    typedef: codegen_ir.GenTuTypedef
+    name_pattern: QualType
+    base_pattern: QualType
+    key: Tuple[str, ...]
+
+
+@beartype
+class TypedefExpansionMatcher:
+
+    def __init__(
+        self,
+        typedefs: List[codegen_ir.GenTuTypedef],
+        *,
+        debug: bool = False,
+        debug_sink: Optional[List[str]] = None,
+    ) -> None:
+        self.debug = debug
+        self.debug_sink = debug_sink if debug_sink is not None else []
+        self.unifier = TemplateUnificationMatcher(
+            debug=debug,
+            debug_sink=self.debug_sink,
+        )
+        self.entries: List[_TypedefTemplateEntry] = []
+
+        for typedef in typedefs:
+            self.entries.append(
+                _TypedefTemplateEntry(
+                    typedef=typedef,
+                    name_pattern=typedef.Name,
+                    base_pattern=typedef.Base,
+                    key=typedef.Name.flatQualNameNoTemplateParams(),
+                ))
+
+    def _log(self, message: str) -> None:
+        if self.debug:
+            self.debug_sink.append(message)
+
+    def _resolve_recursive(self, value: "QualType") -> "QualType":
+        resolved_spaces = [self._resolve_recursive(space) for space in value.Spaces]
+        resolved_params = [self._resolve_recursive(param) for param in value.Params]
+
+        resolved_func = value.Func
+        if value.Func is not None:
+            resolved_func = QualType.Function(
+                ReturnType=self._resolve_recursive(value.Func.ReturnType),
+                Args=[self._resolve_recursive(arg) for arg in value.Func.Args],
+                Class=None if value.Func.Class is None else self._resolve_recursive(
+                    value.Func.Class),
+                IsConst=value.Func.IsConst,
+            )
+
+        current = value.copy_update(
+            Spaces=resolved_spaces,
+            Params=resolved_params,
+            Func=resolved_func,
+        )
+
+        current_key = current.flatQualNameNoTemplateParams()
+
+        for entry in self.entries:
+            if len(entry.key) > len(current_key):
+                continue
+
+            if current_key[:len(entry.key)] != entry.key:
+                continue
+
+            subst = self.unifier.unify_qualtype(
+                specialization=current,
+                template=entry.name_pattern,
+            )
+            if subst is None:
+                continue
+
+            expanded = _map_template_type(
+                entry.base_pattern,
+                _InstantiateCtx(
+                    substitution_map=subst,
+                    type_map=codegen_ir.GenTypeMap(),
+                ))
+
+            assert expanded is not None
+
+            self._log(f"expand typedef {entry.typedef.Name!r} -> {entry.typedef.Base!r} "
+                      f"for {current!r} with subst={subst!r}")
+
+            return self._resolve_recursive(expanded)
+
+        return current
+
+    def getResolvedType(self, Input: "QualType") -> "QualType":
+        return self._resolve_recursive(Input)

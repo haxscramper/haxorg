@@ -250,6 +250,21 @@ class QualType(BaseModel, extra="forbid"):
         """
         return self.flatQualName() + [[P.flatQualNameWithParams()] for P in self.Params]
 
+    def flatQualNameNoTemplateParams(self) -> tuple[str, ...]:
+        """
+        Generate flat tuple of strings for type that will include the template type parameters if they
+        are already substituted, but exclude the placeholder parameters.
+        """
+        result = list()
+
+        def aux(it: QualType):
+            if not it.IsTemplateTypeParam:
+                result.append(it.Name)
+
+        self.visit_recursive(aux)
+
+        return tuple(result)
+
     @beartype
     def getTemplateParameters(self) -> List["QualType"]:
         found = list()
@@ -417,14 +432,15 @@ class QualType(BaseModel, extra="forbid"):
     def visit_recursive(self, callback: Callable[["QualType"], None]) -> None:
 
         def aux(Type: QualType):
-            callback(Type)
             match Type.Kind:
                 case QualTypeKind.RegularType | QualTypeKind.Array:
                     list(map(aux, Type.Spaces))
+                    callback(Type)
                     list(map(aux, Type.Params))
 
                 case QualTypeKind.FunctionPtr:
                     assert Type.Func
+                    callback(Type)
                     list(map(aux, Type.Func.Args))
                     if Type.Func.Class:
                         aux(Type.Func.Class)
@@ -903,6 +919,15 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         default=None,
         alias="type-api",
         description="Reflection entity has a type API",
+    )
+
+    expand_typedef: bool = Field(
+        default=False,
+        alias=AliasChoices(  # type: ignore
+            "expand-typedef",
+            "expand_typedef",
+        ),
+        description="Expand typedef to underlying type before exposing to the",
     )
 
     def isAcceptedBackend(self, backend: str) -> bool:

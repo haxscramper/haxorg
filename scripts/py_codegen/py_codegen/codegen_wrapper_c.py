@@ -786,6 +786,10 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         structs = _gen_struct_direct(entry, ast, conf)
         _add_struct_result(structs)
 
+    for entry in groups.get_entries_for_wrapping():
+        if conf.isAcceptedByBackend(entry) and isinstance(entry, codegen_ir.GenTuTypedef):
+            log(CAT).info(f"Typedef entry {entry}")
+
     reflection_template_types: List[codegen_ir.GenTuStruct] = list()
     for entry in groups.get_entries_for_wrapping():
         if isinstance(entry, codegen_ir.GenTuStruct
