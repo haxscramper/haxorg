@@ -772,6 +772,7 @@ def _gen_haxorg_vtable_template_instantiation(
 def _get_entries_for_wrapping(groups: PyhaxorgTypeGroups,
                               conf: CAstbuilderConfig) -> list[codegen_ir.GenTuUnion]:
     typedefs_to_expand = list()
+    entries_to_rewrite = list()
 
     for entry in groups.get_entries_for_wrapping():
         if conf.isAcceptedByBackend(entry) and isinstance(
@@ -779,14 +780,14 @@ def _get_entries_for_wrapping(groups: PyhaxorgTypeGroups,
             log(CAT).info(f"Typedef entry {entry}")
             typedefs_to_expand.append(entry)
 
+        else:
+            entries_to_rewrite.append(entry)
+
     expansion_matcher = TypedefExpansionMatcher(typedefs_to_expand)
 
     return cast(
         list[codegen_ir.GenTuUnion],
-        [
-            rewrite_any_typedefs(e, matcher=expansion_matcher)
-            for e in groups.get_entries_for_wrapping()
-        ],
+        [rewrite_any_typedefs(e, matcher=expansion_matcher) for e in entries_to_rewrite],
     )
 
 
