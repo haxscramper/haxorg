@@ -853,14 +853,26 @@ class TemplateUnificationMatcher:
             )
             return None
 
-        if template.IsConst != specialization.IsConst:
-            self._log("const qualifier mismatch")
-            return None
+        if specialization.IsConst and specialization.RefKind == ReferenceKind.LValue:
+            # FIXME: I'm too tired to properly implement implicit conversion logic.
+            # this workaround is necessary to unify `hstd::Opt<T>` and `hstd::Opt<hstd::Str> const&`
+            # argument for the various templates. Maybe eventually I will end up
+            # implementing fully compliant matching algorithm that will
+            # also handle implicit conversion rules to `T const&`, but it is not something
+            # I'm going to do today.
+            self._log("T const& matching workaround")
+
+        else:
+            if template.IsConst != specialization.IsConst:
+                self._log("const qualifier mismatch")
+                return None
+
+            if template.RefKind != specialization.RefKind:
+                self._log("reference kind mismatch")
+                return None
+
         if template.PtrCount != specialization.PtrCount:
             self._log("pointer count mismatch")
-            return None
-        if template.RefKind != specialization.RefKind:
-            self._log("reference kind mismatch")
             return None
 
         if len(template.Spaces) != len(specialization.Spaces):
@@ -1277,6 +1289,16 @@ class _TypedefTemplateEntry:
 
 @beartype
 class TypedefExpansionMatcher:
+    """
+    Reusable recursive typedef expander for `QualType`.
+
+    The matcher indexes typedef declarations once and can then resolve multiple
+    input types. Expansion proceeds recursively through namespaces, template
+    arguments, and function types. When a typedef name matches the current node,
+    template arguments are unified, the typedef base is instantiated through
+    template substitution, and resolution continues until the fully expanded
+    fixed point is reached.
+    """
 
     def __init__(
         self,
@@ -1306,7 +1328,16 @@ class TypedefExpansionMatcher:
         if self.debug:
             self.debug_sink.append(message)
 
-    def _resolve_recursive(self, value: "QualType") -> "QualType":
+    def _resolve_recursive(self, value: QualType) -> QualType:
+        """
+        Recursively resolve typedef expansions inside a qualified type subtree.
+
+        The method first resolves nested namespace entries, template arguments,
+        and function-type components. It then checks whether the current node
+        itself matches any typedef declaration by key-prefix filtering followed by
+        full unification. On a successful match, the typedef base is instantiated
+        and resolution restarts on the substituted result.
+        """
         resolved_spaces = [self._resolve_recursive(space) for space in value.Spaces]
         resolved_params = [self._resolve_recursive(param) for param in value.Params]
 
@@ -1340,6 +1371,9 @@ class TypedefExpansionMatcher:
                 template=entry.name_pattern,
             )
             if subst is None:
+                self._log(
+                    f"failed substitution between template={entry.name_pattern} and specialization={current}"
+                )
                 continue
 
             expanded = _map_template_type(
@@ -1352,6 +1386,12 @@ class TypedefExpansionMatcher:
 
             assert expanded is not None
 
+            expanded = expanded.copy_update(
+                PtrCount=current.PtrCount,
+                IsConst=current.IsConst,
+                RefKind=current.RefKind,
+            )
+
             self._log(f"expand typedef {entry.typedef.Name!r} -> {entry.typedef.Base!r} "
                       f"for {current!r} with subst={subst!r}")
 
@@ -1359,8 +1399,28 @@ class TypedefExpansionMatcher:
 
         return current
 
-    def getResolvedType(self, Input: "QualType") -> "QualType":
-        return self._resolve_recursive(Input)
+    def getResolvedType(self, Input: QualType) -> QualType:
+        """
+        Return the fully expanded form of `Input` after applying all matching
+        typedef substitutions recursively.
+
+        Expansion continues until no more typedefs can be applied anywhere in the
+        qualified type tree.
+        """
+        self.debug = True
+        self.debug_sink = list()
+        self.unifier.debug_sink = self.debug_sink
+        self.unifier.debug = True
+        result = self._resolve_recursive(Input)
+        if ("hstd::Opt" in str(Input) and "const&" in str(Input) and
+                "std::optional" in str(result) and "const&" not in str(result)):
+            log(CAT).debug(
+                f"{Input} ({Input.flatQualNameNoTemplateParams()}) -> {result} ({result.flatQualNameNoTemplateParams()})"
+            )
+            for it in self.debug_sink:
+                log(CAT).debug(f"  {it}")
+
+        return result
 
 
 @beartype
@@ -1370,20 +1430,9 @@ def _rewrite_type_typedefs(matcher: TypedefExpansionMatcher, obj: QualType) -> Q
     provided typedef expansion matcher.
     """
 
-    def aux(o: QualType) -> QualType:
-        return o.copy_update(
-            Params=[_rewrite_type_typedefs(matcher, P) for P in o.Params],
-            Spaces=[_rewrite_type_typedefs(matcher, S) for S in o.Spaces],
-        )
-
     match obj.Kind:
         case codegen_ir.QualTypeKind.RegularType:
-            resolved = matcher.getResolvedType(obj)
-
-            if resolved is not obj:
-                return aux(resolved)
-            else:
-                return aux(obj)
+            return matcher.getResolvedType(obj)
 
         case codegen_ir.QualTypeKind.FunctionPtr:
             assert obj.Func
@@ -1397,7 +1446,7 @@ def _rewrite_type_typedefs(matcher: TypedefExpansionMatcher, obj: QualType) -> Q
             return obj.copy_update(Func=new_func)
 
         case codegen_ir.QualTypeKind.Array:
-            return aux(obj)
+            return matcher.getResolvedType(obj)
 
         case codegen_ir.QualTypeKind.TypeExpr:
             return obj

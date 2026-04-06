@@ -63,7 +63,7 @@
       "reflection_params": {
         "backend"       : { "target_backends": ["c"] },
         "expand_typedef": true,
-        "debug": "Typedef in extra codegen types"
+        "debug"         : "Typedef in extra codegen types"
       }
     }
   ]

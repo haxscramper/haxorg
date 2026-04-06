@@ -20,7 +20,7 @@ from py_codegen.codegen_ir import n_org, n_sem, QualType
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
 from py_codegen.org_codegen_data import get_types
 from py_haxorg.layout.wrap import BlockId
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import log, pprint_to_file_json
 
 CAT = __name__
 
@@ -812,6 +812,8 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         _add_struct_result(structs)
 
     expanded_entries = _get_entries_for_wrapping(groups, conf)
+
+    pprint_to_file_json(expanded_entries, "/tmp/expanded_entries.json")
 
     reflection_template_types: List[codegen_ir.GenTuStruct] = list()
     for entry in expanded_entries:
