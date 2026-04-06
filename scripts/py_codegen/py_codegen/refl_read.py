@@ -366,6 +366,7 @@ def conv_proto_typedef(rec: pb.Typedef,
         Base=conv_proto_type(rec.base_type),
         Original=original,
         OriginName="refl",
+        ReflectionParams=conv_proto_reflection_params(rec.reflection_params),
     )
 
 

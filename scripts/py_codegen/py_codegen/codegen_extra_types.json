@@ -60,7 +60,11 @@
         "spaces"    : [ {"name": "std"} ],
         "parameters": [ {"name": "T", "is_template_type_param": true} ]
       },
-      "reflection_params": { "backend": { "target_backends": ["c"] } }
+      "reflection_params": {
+        "backend"       : { "target_backends": ["c"] },
+        "expand_typedef": true,
+        "debug": "Typedef in extra codegen types"
+      }
     }
   ]
 }

@@ -2,6 +2,7 @@ import copy
 from dataclasses import dataclass, field, replace
 from graphlib import CycleError, TopologicalSorter
 import itertools
+import json
 from pathlib import Path
 
 from beartype import beartype
@@ -15,7 +16,12 @@ import py_codegen.codegen_immutable as gen_imm
 from py_codegen.codegen_ir import QualType
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file_json
+from py_scriptutils.script_logging import (
+    ExceptionContextNote,
+    log,
+    pprint_to_file_json,
+    to_debug_json,
+)
 
 CAT = __name__
 
@@ -51,13 +57,13 @@ def topological_sort_entries(
                 # Other entries cannot have dependants -- functions, passes etc.
                 put_last.append(it)
 
-    assert (len(entry_by_hash) + len(put_last) +
-            len(put_first)) == len(entries), "Sorting order mismatch {}".format({
-                "len(hash)": len(entry_by_hash),
-                "len(no-dependants)": len(put_last),
-                "len(no-deps)": len(put_first),
-                "len(entries)": len(entries),
-            })
+    if (len(entry_by_hash) + len(put_last) + len(put_first)) != len(entries):
+        raise RuntimeError("Sorting order mismatch {}".format({
+            "len(hash)": len(entry_by_hash),
+            "len(no-dependants)": len(put_last),
+            "len(no-deps)": len(put_first),
+            "len(entries)": len(entries),
+        }))
 
     graph: dict[int, set[int]] = {}
     for entry in entries:
@@ -514,7 +520,8 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
 
             case codegen_ir.GenTuTypedef():
                 if conf.isAcceptedByBackend(entry):
-                    with ExceptionContextNote(f"Typedef {entry}"):
+                    with ExceptionContextNote(
+                            f"Typedef {json.dumps(to_debug_json(entry))}"):
                         aux(entry.Base)
 
             case codegen_ir.GenTuEnum():

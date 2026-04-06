@@ -5,7 +5,7 @@ import itertools
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Set, Tuple
+from beartype.typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import (
@@ -73,8 +73,10 @@ def collect_type_specializations(
                 if entry.IsExposedForWrap:
                     visit_type_rec(entry.ReturnType, used_in=entry)
                     list(
-                        map(lambda it: visit_type_rec(it.Type, used_in=entry),
-                            entry.Args))
+                        map(
+                            lambda it: visit_type_rec(it.Type, used_in=entry),
+                            entry.Args,
+                        ))
 
             case codegen_ir.GenTuStruct():
                 list(map(lambda it: visit_entry(it, used_in=it), entry.Methods))
@@ -102,7 +104,7 @@ def collect_type_specializations(
 
 @beartype
 @dataclass
-class _InstantiateCtx():
+class _InstantiateCtx:
     substitution_map: dict[str, QualType]
     type_map: codegen_ir.GenTypeMap
 
@@ -313,7 +315,7 @@ class TemplateUnificationMatcher:
                 raise RuntimeError("Could not determine caller frame")
 
             location = f"{frame.f_lineno:<3}"
-            self.debug_sink.append(f'[{location}] {"  " * self._indent}{message} ')
+            self.debug_sink.append(f"[{location}] {'  ' * self._indent}{message} ")
 
     def get_debug(self) -> str:
         return "unification matcher log:\n" + "\n".join(self.debug_sink)
@@ -686,7 +688,8 @@ class TemplateUnificationMatcher:
                     if variadic_param.Kind == TemplateParamKind.Type:
                         template_expr = variadic_param.TypeExpr
 
-                        if template_expr.IsTemplateTypeParam and variadic_name is not None:
+                        if (template_expr.IsTemplateTypeParam and
+                                variadic_name is not None):
                             # Variadic template parameter packs are represented in the
                             # external substitution map by binding the pack name to the
                             # whole matched template entity elsewhere, not by forcing all
@@ -1013,11 +1016,11 @@ class TemplateUnificationMatcher:
 
             ok = True
             for t_space, s_space in zip(template_name.Spaces, spec.Spaces):
-                current = self.unify_qualtype(
+                current = (self.unify_qualtype(
                     specialization=s_space,
                     template=t_space,
                     substitution=current,
-                ) or {}
+                ) or {})
                 if current is None:
                     ok = False
                     break
@@ -1344,7 +1347,8 @@ class TypedefExpansionMatcher:
                 _InstantiateCtx(
                     substitution_map=subst,
                     type_map=codegen_ir.GenTypeMap(),
-                ))
+                ),
+            )
 
             assert expanded is not None
 
@@ -1357,3 +1361,176 @@ class TypedefExpansionMatcher:
 
     def getResolvedType(self, Input: "QualType") -> "QualType":
         return self._resolve_recursive(Input)
+
+
+@beartype
+def _rewrite_type_typedefs(matcher: TypedefExpansionMatcher, obj: QualType) -> QualType:
+    """
+    Recursively resolve all typedef aliases in a qualified type using the
+    provided typedef expansion matcher.
+    """
+
+    def aux(o: QualType) -> QualType:
+        return o.copy_update(
+            Params=[_rewrite_type_typedefs(matcher, P) for P in o.Params],
+            Spaces=[_rewrite_type_typedefs(matcher, S) for S in o.Spaces],
+        )
+
+    match obj.Kind:
+        case codegen_ir.QualTypeKind.RegularType:
+            resolved = matcher.getResolvedType(obj)
+
+            if resolved is not obj:
+                return aux(resolved)
+            else:
+                return aux(obj)
+
+        case codegen_ir.QualTypeKind.FunctionPtr:
+            assert obj.Func
+            new_func = QualType.Function(
+                ReturnType=_rewrite_type_typedefs(matcher, obj.Func.ReturnType),
+                Args=[_rewrite_type_typedefs(matcher, A) for A in obj.Func.Args],
+                Class=_rewrite_type_typedefs(matcher, obj.Func.Class)
+                if obj.Func.Class else None,
+                IsConst=obj.Func.IsConst,
+            )
+            return obj.copy_update(Func=new_func)
+
+        case codegen_ir.QualTypeKind.Array:
+            return aux(obj)
+
+        case codegen_ir.QualTypeKind.TypeExpr:
+            return obj
+
+        case _:
+            return obj
+
+
+@beartype
+def _rewrite_ident_typedefs(matcher: TypedefExpansionMatcher,
+                            obj: codegen_ir.GenTuIdent) -> codegen_ir.GenTuIdent:
+    """Rewrite typed identifier with typedef-resolved types."""
+    return replace(obj, Type=_rewrite_type_typedefs(matcher, obj.Type))
+
+
+@beartype
+def _rewrite_field_typedefs(matcher: TypedefExpansionMatcher,
+                            obj: codegen_ir.GenTuField) -> codegen_ir.GenTuField:
+    """Convert field to use typedef-resolved types."""
+    if obj.Type is None:
+        return obj
+
+    return replace(obj, Type=_rewrite_type_typedefs(matcher, obj.Type))
+
+
+@beartype
+def _rewrite_function_typedefs(
+        func: codegen_ir.GenTuFunction,
+        matcher: TypedefExpansionMatcher) -> codegen_ir.GenTuFunction:
+    """Rewrite all arguments, return types and parameters for a function with typedef resolution."""
+
+    def _rewrite_params(
+        params: codegen_ir.GenTuTemplateParams | None,
+    ) -> codegen_ir.GenTuTemplateParams | None:
+        if params is None:
+            return None
+        return replace(
+            params,
+            Stacks=[
+                replace(
+                    stack,
+                    Params=[
+                        replace(
+                            param,
+                            TypeExpr=_rewrite_type_typedefs(matcher, param.TypeExpr),
+                            Default=_rewrite_type_typedefs(matcher, param.Default)
+                            if param.Default else None,
+                        ) for param in stack.Params
+                    ],
+                ) for stack in params.Stacks
+            ],
+        )
+
+    return replace(
+        func,
+        ReturnType=_rewrite_type_typedefs(matcher, func.ReturnType),
+        Args=[_rewrite_ident_typedefs(matcher, arg) for arg in func.Args],
+        Params=_rewrite_params(func.Params),
+        ParentClass=_rewrite_type_typedefs(matcher, func.ParentClass)
+        if func.ParentClass else None,
+        Spaces=[_rewrite_type_typedefs(matcher, s) for s in func.Spaces],
+    )
+
+
+@beartype
+def _rewrite_struct_typedefs(obj: codegen_ir.GenTuStruct,
+                             matcher: TypedefExpansionMatcher) -> codegen_ir.GenTuStruct:
+    """
+    Rewrite all nested structure content with typedef-resolved types.
+    """
+    return replace(
+        obj,
+        Fields=[_rewrite_field_typedefs(matcher, f) for f in obj.Fields],
+        Methods=[_rewrite_function_typedefs(M, matcher) for M in obj.Methods],
+        Nested=[rewrite_any_typedefs(it, matcher) for it in obj.Nested],
+        Bases=[_rewrite_type_typedefs(matcher, b) for b in obj.Bases],
+        ExplicitTemplateParams=[
+            _rewrite_type_typedefs(matcher, p) for p in obj.ExplicitTemplateParams
+        ],
+    )
+
+
+@beartype
+def rewrite_any_typedefs(
+    it: codegen_ir.GenTuEntry | QualType | list | None,
+    matcher: TypedefExpansionMatcher,
+) -> Any:
+    """
+    Recursively rewrite any input item with typedef-resolved types
+    and return a new instance.
+    """
+    match it:
+        case None:
+            return it
+
+        case codegen_ir.GenTuStruct():
+            return _rewrite_struct_typedefs(it, matcher)
+
+        case codegen_ir.GenTuField():
+            return _rewrite_field_typedefs(matcher, it)
+
+        case codegen_ir.GenTuPass():
+            return it
+
+        case codegen_ir.GenTuEnum():
+            return replace(
+                it,
+                Name=_rewrite_type_typedefs(matcher, it.Name),
+            )
+
+        case codegen_ir.GenTuFunction():
+            return _rewrite_function_typedefs(it, matcher)
+
+        case QualType():
+            return _rewrite_type_typedefs(matcher, it)
+
+        case list():
+            return [rewrite_any_typedefs(i, matcher) for i in it]
+
+        case codegen_ir.GenTuTypeGroup():
+            return replace(
+                it,
+                types=[_rewrite_struct_typedefs(t, matcher) for t in it.types],
+                enumName=_rewrite_type_typedefs(matcher, it.enumName),
+                variantName=_rewrite_type_typedefs(matcher, it.variantName),
+            )
+
+        case codegen_ir.GenTuTypedef():
+            return replace(
+                it,
+                Name=_rewrite_type_typedefs(matcher, it.Name),
+                Base=_rewrite_type_typedefs(matcher, it.Base),
+            )
+
+        case _:
+            raise TypeError(f"Unexpected input type for typedef rewrite: {type(it)}")

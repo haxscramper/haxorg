@@ -11,8 +11,10 @@ from py_codegen.codegen_algo import (
     instantiate_template,
     match_specializations,
     match_specializations_for_struct,
+    rewrite_any_typedefs,
     SpecializationMatchResult,
     TemplateUnificationMatcher,
+    TypedefExpansionMatcher,
 )
 from py_codegen.codegen_ir import n_org, n_sem, QualType
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
@@ -767,6 +769,28 @@ def _gen_haxorg_vtable_template_instantiation(
 
 
 @beartype
+def _get_entries_for_wrapping(groups: PyhaxorgTypeGroups,
+                              conf: CAstbuilderConfig) -> list[codegen_ir.GenTuUnion]:
+    typedefs_to_expand = list()
+
+    for entry in groups.get_entries_for_wrapping():
+        if conf.isAcceptedByBackend(entry) and isinstance(
+                entry, codegen_ir.GenTuTypedef) and entry.ReflectionParams.expand_typedef:
+            log(CAT).info(f"Typedef entry {entry}")
+            typedefs_to_expand.append(entry)
+
+    expansion_matcher = TypedefExpansionMatcher(typedefs_to_expand)
+
+    return cast(
+        list[codegen_ir.GenTuUnion],
+        [
+            rewrite_any_typedefs(e, matcher=expansion_matcher)
+            for e in groups.get_entries_for_wrapping()
+        ],
+    )
+
+
+@beartype
 def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                           ast: cpp.ASTBuilder) -> codegen_ir.GenFiles:
     "Generate C wrappers"
@@ -786,12 +810,10 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
         structs = _gen_struct_direct(entry, ast, conf)
         _add_struct_result(structs)
 
-    for entry in groups.get_entries_for_wrapping():
-        if conf.isAcceptedByBackend(entry) and isinstance(entry, codegen_ir.GenTuTypedef):
-            log(CAT).info(f"Typedef entry {entry}")
+    expanded_entries = _get_entries_for_wrapping(groups, conf)
 
     reflection_template_types: List[codegen_ir.GenTuStruct] = list()
-    for entry in groups.get_entries_for_wrapping():
+    for entry in expanded_entries:
         if isinstance(entry, codegen_ir.GenTuStruct
                      ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
             match entry.declarationQualName().flatQualNameWithParams():
@@ -813,7 +835,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                     reflection_template_types.append(entry)
 
     specializations = collect_type_specializations(
-        groups.get_entries_for_wrapping(),
+        expanded_entries,
         conf,
     )
 
@@ -912,7 +934,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
                         ) for m in matches),
                     ))
 
-    for entry in groups.get_entries_for_wrapping():
+    for entry in expanded_entries:
         if conf.isAcceptedByBackend(entry):
             match entry:
                 case codegen_ir.GenTuFunction():

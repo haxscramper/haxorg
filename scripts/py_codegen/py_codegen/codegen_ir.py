@@ -930,6 +930,11 @@ class GenTuReflParams(BaseModel, extra="forbid"):
         description="Expand typedef to underlying type before exposing to the",
     )
 
+    debug: Optional[str] = Field(
+        default=None,
+        description="Debug metadata",
+    )
+
     def isAcceptedBackend(self, backend: str) -> bool:
         return len(
             self.backend.target_backends) == 0 or backend in self.backend.target_backends
