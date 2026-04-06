@@ -1,10 +1,10 @@
 {
-  "$schema": "proto_lib/TU.schema.json",
-  "records": [
+  "$schema" : "proto_lib/TU.schema.json",
+  "records" : [
     {
       "name"              : {
-        "spaces": [ {"name": "hstd"} ],
-        "name"  : "Opt"
+        "spaces": [ {"name": "std"} ],
+        "name"  : "optional"
       },
       "reflection_params" : {
         "backend": {
@@ -19,7 +19,16 @@
       "templates"         : [
         {
           "stacks": [
-            { "params": [ { "type_expr": {"name": "T"} } ] }
+            {
+              "params": [
+                {
+                  "type_expr": {
+                    "name"                  : "T",
+                    "is_template_type_param": true
+                  }
+                }
+              ]
+            }
           ]
         }
       ],
@@ -37,6 +46,21 @@
           }
         }
       ]
+    }
+  ],
+  "typedefs": [
+    {
+      "name"             : {
+        "name"      : "Opt",
+        "spaces"    : [ {"name": "hstd"} ],
+        "parameters": [ {"name": "T", "is_template_type_param": true} ]
+      },
+      "base_type"        : {
+        "name"      : "optional",
+        "spaces"    : [ {"name": "std"} ],
+        "parameters": [ {"name": "T", "is_template_type_param": true} ]
+      },
+      "reflection_params": { "backend": { "target_backends": ["c"] } }
     }
   ]
 }

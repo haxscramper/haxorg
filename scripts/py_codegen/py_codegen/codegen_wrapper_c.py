@@ -821,6 +821,23 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
             template=template_type,
         )
 
+        for target_type in [
+                # "hstd::Opt",
+        ]:
+            for s in specializations:
+                if target_type in str(s.used_type) and target_type in str(template_type):
+                    log(CAT).debug(f"{s.used_type}")
+                    debug = list()
+                    match_result = match_specializations_for_struct(
+                        [s.used_type],
+                        template_type,
+                        debug=True,
+                        debug_sink=debug,
+                    )
+
+                    if not match_result:
+                        log(CAT).warning("\n" + "\n".join(debug))
+
         if template_type.ReflectionParams.backend.c.instantiation_mode == "each-specialization":
             log(CAT).info(f"Found template type with each-specialization {template_type}")
             for match in template_usage_types:
@@ -839,6 +856,7 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                 "void-handle must provide names for the template type parameters")
 
             for inst in template_usage_types:
+                log(CAT).debug(f"> {inst.instantiated_name}")
                 void_handle_instantiations.append(
                     cast(
                         codegen_ir.GenTuStruct,

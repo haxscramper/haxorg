@@ -29,6 +29,8 @@ TEST(OrgCApi, TestSimpleParsing) {
     haxorg_StdOptional first_item = haxorg_SemIdOfOrg_getIndex(
         &ctx, parsed_node, 0);
 
+    // haxorg_ptr_payload first_item_node = haxorg_Std
+
     haxorg_destroy_SemIdOfOrg(&ctx, &parsed_node);
 }
 

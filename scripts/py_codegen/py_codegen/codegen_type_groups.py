@@ -6,16 +6,16 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Callable, Dict, List, Sequence
+import more_itertools
 from py_codegen import codegen_ir, refl_read
-import py_codegen.astbuilder_cpp as cpp
-import py_codegen.codegen_immutable as gen_imm
-from py_codegen.codegen_algo import collect_type_specializations
-from py_codegen.codegen_ir import QualType
 from py_codegen.astbuilder_base_config import AstbulderConfig
+import py_codegen.astbuilder_cpp as cpp
+from py_codegen.codegen_algo import collect_type_specializations
+import py_codegen.codegen_immutable as gen_imm
+from py_codegen.codegen_ir import QualType
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import log, ExceptionContextNote, pprint_to_file_json
-import more_itertools
+from py_scriptutils.script_logging import ExceptionContextNote, log, pprint_to_file_json
 
 CAT = __name__
 
@@ -489,12 +489,13 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                         aux(entry.Type)
 
             case codegen_ir.GenTuStruct():
-                with ExceptionContextNote(f"Struct {entry.Name}"):
-                    with ExceptionContextNote("Nested elements"):
-                        list(map(aux, entry.Nested))
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Struct {entry.Name}"):
+                        with ExceptionContextNote("Nested elements"):
+                            list(map(aux, entry.Nested))
 
-                    with ExceptionContextNote("Methods"):
-                        list(map(aux, entry.Methods))
+                        with ExceptionContextNote("Methods"):
+                            list(map(aux, entry.Methods))
 
                     # Note: bases are not verified as they are not mandatory
                     # for wrapping on the backends -- the final type can be
@@ -502,21 +503,24 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                     # its base classes.
 
             case codegen_ir.GenTuFunction():
-                with ExceptionContextNote(f"Function '{entry.Name}'"):
-                    for arg in entry.Args:
-                        with ExceptionContextNote(f"Argument {arg.Name}"):
-                            aux(arg)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Function '{entry.Name}'"):
+                        for arg in entry.Args:
+                            with ExceptionContextNote(f"Argument {arg.Name}"):
+                                aux(arg)
 
-                    with ExceptionContextNote("Return type"):
-                        aux(entry.ReturnType)
+                        with ExceptionContextNote("Return type"):
+                            aux(entry.ReturnType)
 
             case codegen_ir.GenTuTypedef():
-                with ExceptionContextNote(f"Typedef {entry.Name}"):
-                    aux(entry.Base)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Typedef {entry}"):
+                        aux(entry.Base)
 
             case codegen_ir.GenTuEnum():
-                with ExceptionContextNote(f"Enum {entry.Name}"):
-                    aux(entry.Name)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Enum {entry.Name}"):
+                        aux(entry.Name)
 
             case codegen_ir.GenTuPass():
                 pass

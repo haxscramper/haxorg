@@ -4473,6 +4473,7 @@ export enum ImmCmdIncludeKind {
 }
 export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
 export interface ImmAdapterOrgAPI {  }
+export type haxorg_wasm.Optional<T> = haxorg_wasm.Optional<T>;
 export interface CmdConstructor { new(): Cmd; }
 export interface Cmd {
   getAttrs(key: haxorg_wasm.Optional<Str>): haxorg_wasm.HstdVec<AttrValue>;

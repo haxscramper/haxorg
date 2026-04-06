@@ -945,6 +945,13 @@ class GenTuTypedef:
     Is_PlainC: bool = False
     IsExposedForWrap: bool = True
 
+    def __str__(self) -> str:
+        return "GenTuTypedef({})".format(" ".join([
+            f"Name={self.Name}",
+            f"Base={self.Base}",
+            f"Backend={self.ReflectionParams}",
+        ]))
+
 
 @beartype
 @dataclass
@@ -1215,6 +1222,7 @@ class GenTuStruct():
             f"{self.declarationQualName().flatQualNameWithParams()}",
             f"IsTemplateRecord={self.IsTemplateRecord}",
             f"IsExplicitInstantiation={self.IsExplicitInstantiation}",
+            f"Backend={self.ReflectionParams}"
         ]))
 
     def declarationQualName(self) -> QualType:
@@ -1333,7 +1341,7 @@ class GenTypeMap:
         default_factory=lambda: defaultdict(list))
     "Map hash of the fully qualified name to the entry indices"
 
-    template_name_to_index: defaultdict[int, List[int]] = field(
+    template_name_to_index: defaultdict[tuple[str, ...], List[int]] = field(
         default_factory=lambda: defaultdict(list))
     """
     Map template type name -- without parameters but with all spaces -- to the entry indices.
@@ -1364,7 +1372,7 @@ class GenTypeMap:
     def get_structs_for_template_name(self, name: QualType) -> List[GenTuStruct]:
         return [
             cast(GenTuStruct, self.entries[i]) for i in self.template_name_to_index.get(
-                name.withTemplateParams([]).qual_hash(), [])
+                tuple(name.withTemplateParams([]).flatQualName()), [])
         ]
 
     def get_struct_for_qual_name(self, name: QualType) -> Optional[GenTuStruct]:
@@ -1434,8 +1442,10 @@ class GenTypeMap:
         self.name_to_index[qual_name.Name].append(new_index)
 
         if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
-            log(CAT).info(f"Registered type {typ} as a template in type map")
-            self.template_name_to_index[typ.Name.qual_hash()].append(new_index)
+            flat_key = tuple(typ.Name.withTemplateParams([]).flatQualName())
+            log(CAT).info(
+                f"Registered type {typ} as a template in type map with key {flat_key}")
+            self.template_name_to_index[flat_key].append(new_index)
 
         self.entries.append(typ)
 

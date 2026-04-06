@@ -53,7 +53,14 @@ template <typename T>
 // in range of `-200..-9000`, but I want to use integer to avoid constant
 // conversions all over the place. Or I'm using `char` sets, but I don't
 // want to pay for the full size of the unicode code point.
-struct IntSet : public SetBase<IntSet<T>, T> {
+struct [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "each-specialization"
+        }
+    }
+})")]] IntSet : public SetBase<IntSet<T>, T> {
     // constrain the size of the object to avoid blowing up the set size.
     // 2-byte value has 8192 possible states and they all must be encoded
     // into the bitset, creating an 8kb object. 3 bytes will have a size of

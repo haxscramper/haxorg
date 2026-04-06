@@ -20,10 +20,6 @@ struct haxorg_StdString {
     haxorg_ptr_payload data;
 };
 
-struct haxorg_StdOptional {
-    haxorg_ptr_payload data;
-};
-
 struct haxorg_HstdUnorderedSet {
     haxorg_ptr_payload data;
 };

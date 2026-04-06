@@ -327,15 +327,17 @@ haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegmentGroup_atIndex_const(O
 
 void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceSegmentGroup>>(org_context, obj); }
 
-haxorg_ptr_payload haxorg_HstdMapOfKVHash_keys_const(OrgContext* org_context, haxorg_HstdMap __this) { return (static_cast<haxorg_HstdMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
+void haxorg_destroy_IntSetOfSubtreePeriodKind(OrgContext* org_context, haxorg_IntSetOfSubtreePeriodKind* obj) { org::bind::c::execute_destroy<hstd::IntSet<org::sem::SubtreePeriod::Kind>>(org_context, obj); }
 
-haxorg_ptr_payload haxorg_ImmMapOfKV_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->get_const)(org_context, __this, key); }
+haxorg_ptr_payload haxorg_HstdMap_keys_const(OrgContext* org_context, haxorg_HstdMap __this) { return (static_cast<haxorg_HstdMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
 
-bool haxorg_ImmMapOfKV_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->contains_const)(org_context, __this, key); }
+haxorg_ptr_payload haxorg_ImmMap_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->get_const)(org_context, __this, key); }
 
-haxorg_ptr_payload haxorg_ImmMapOfKV_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
+bool haxorg_ImmMap_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->contains_const)(org_context, __this, key); }
 
-haxorg_ptr_payload haxorg_OptOfT_value(OrgContext* org_context, haxorg_Opt __this) { return (static_cast<haxorg_Opt_vtable const*>(__this.data.vtable)->value)(org_context, __this); }
+haxorg_ptr_payload haxorg_ImmMap_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
+
+haxorg_ptr_payload haxorg_StdOptional_value(OrgContext* org_context, haxorg_StdOptional __this) { return (static_cast<haxorg_StdOptional_vtable const*>(__this.data.vtable)->value)(org_context, __this); }
 
 int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this) { return org::bind::c::get_cpp_field<int, hstd::BackwardsIndex, int, haxorg_BackwardsIndex>(org_context, __this, &hstd::BackwardsIndex::value); }
 
@@ -1057,7 +1059,7 @@ haxorg_TblfmExprKind haxorg_TblfmExpr_getKind_const(OrgContext* org_context, hax
 
 haxorg_TblfmExprAxisRefPosition haxorg_TblfmExprAxisRef_get_col(OrgContext* org_context, haxorg_TblfmExprAxisRef __this) { return org::bind::c::get_cpp_field<haxorg_TblfmExprAxisRefPosition, org::sem::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisRef::Position, haxorg_TblfmExprAxisRef>(org_context, __this, &org::sem::Tblfm::Expr::AxisRef::col); }
 
-haxorg_Opt haxorg_TblfmExprAxisRef_get_row(OrgContext* org_context, haxorg_TblfmExprAxisRef __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Tblfm::Expr::AxisRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position>, haxorg_TblfmExprAxisRef>(org_context, __this, &org::sem::Tblfm::Expr::AxisRef::row); }
+haxorg_OptOfTblfmExprAxisRefPosition haxorg_TblfmExprAxisRef_get_row(OrgContext* org_context, haxorg_TblfmExprAxisRef __this) { return org::bind::c::get_cpp_field<haxorg_OptOfTblfmExprAxisRefPosition, org::sem::Tblfm::Expr::AxisRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position>, haxorg_TblfmExprAxisRef>(org_context, __this, &org::sem::Tblfm::Expr::AxisRef::row); }
 
 bool haxorg_TblfmExprAxisRef___eq___const(OrgContext* org_context, haxorg_TblfmExprAxisRef __this, haxorg_TblfmExprAxisRef other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Tblfm::Expr::AxisRef::*)(org::sem::Tblfm::Expr::AxisRef const&) const>(&org::sem::Tblfm::Expr::AxisRef::operator==), org_context, __this, other); }
 
@@ -1117,9 +1119,9 @@ bool haxorg_TblfmExprFloatLiteral___eq___const(OrgContext* org_context, haxorg_T
 
 void haxorg_destroy_TblfmExprFloatLiteral(OrgContext* org_context, haxorg_TblfmExprFloatLiteral* obj) { org::bind::c::execute_destroy<org::sem::Tblfm::Expr::FloatLiteral>(org_context, obj); }
 
-haxorg_Opt haxorg_TblfmExprRangeRef_get_first(OrgContext* org_context, haxorg_TblfmExprRangeRef __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Tblfm::Expr::RangeRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef>, haxorg_TblfmExprRangeRef>(org_context, __this, &org::sem::Tblfm::Expr::RangeRef::first); }
+haxorg_OptOfTblfmExprAxisRef haxorg_TblfmExprRangeRef_get_first(OrgContext* org_context, haxorg_TblfmExprRangeRef __this) { return org::bind::c::get_cpp_field<haxorg_OptOfTblfmExprAxisRef, org::sem::Tblfm::Expr::RangeRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef>, haxorg_TblfmExprRangeRef>(org_context, __this, &org::sem::Tblfm::Expr::RangeRef::first); }
 
-haxorg_Opt haxorg_TblfmExprRangeRef_get_last(OrgContext* org_context, haxorg_TblfmExprRangeRef __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Tblfm::Expr::RangeRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef>, haxorg_TblfmExprRangeRef>(org_context, __this, &org::sem::Tblfm::Expr::RangeRef::last); }
+haxorg_OptOfTblfmExprAxisRef haxorg_TblfmExprRangeRef_get_last(OrgContext* org_context, haxorg_TblfmExprRangeRef __this) { return org::bind::c::get_cpp_field<haxorg_OptOfTblfmExprAxisRef, org::sem::Tblfm::Expr::RangeRef, hstd::Opt<org::sem::Tblfm::Expr::AxisRef>, haxorg_TblfmExprRangeRef>(org_context, __this, &org::sem::Tblfm::Expr::RangeRef::last); }
 
 bool haxorg_TblfmExprRangeRef___eq___const(OrgContext* org_context, haxorg_TblfmExprRangeRef __this, haxorg_TblfmExprRangeRef other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Tblfm::Expr::RangeRef::*)(org::sem::Tblfm::Expr::RangeRef const&) const>(&org::sem::Tblfm::Expr::RangeRef::operator==), org_context, __this, other); }
 
@@ -1153,21 +1155,21 @@ void haxorg_destroy_TblfmAssign(OrgContext* org_context, haxorg_TblfmAssign* obj
 
 void haxorg_destroy_Tblfm(OrgContext* org_context, haxorg_Tblfm* obj) { org::bind::c::execute_destroy<org::sem::Tblfm>(org_context, obj); }
 
-haxorg_Opt haxorg_AttrValue_get_name(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::AttrValue, hstd::Opt<hstd::Str>, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::name); }
+haxorg_OptOfStr haxorg_AttrValue_get_name(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::AttrValue, hstd::Opt<hstd::Str>, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::name); }
 
-haxorg_Opt haxorg_AttrValue_get_varname(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::AttrValue, hstd::Opt<hstd::Str>, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::varname); }
+haxorg_OptOfStr haxorg_AttrValue_get_varname(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::AttrValue, hstd::Opt<hstd::Str>, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::varname); }
 
 haxorg_HstdVecOfAttrValueDimensionSpan haxorg_AttrValue_get_span(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfAttrValueDimensionSpan, org::sem::AttrValue, hstd::Vec<org::sem::AttrValue::DimensionSpan>, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::span); }
 
 bool haxorg_AttrValue_get_isQuoted(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::get_cpp_field<bool, org::sem::AttrValue, bool, haxorg_AttrValue>(org_context, __this, &org::sem::AttrValue::isQuoted); }
 
-haxorg_Opt haxorg_AttrValue_getBool_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<bool>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getBool), org_context, __this); }
+haxorg_OptOfBool haxorg_AttrValue_getBool_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_OptOfBool>(static_cast<hstd::Opt<bool>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getBool), org_context, __this); }
 
-haxorg_Opt haxorg_AttrValue_getInt_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt), org_context, __this); }
+haxorg_OptOfInt haxorg_AttrValue_getInt_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt), org_context, __this); }
 
 haxorg_HstdStr haxorg_AttrValue_getString_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString), org_context, __this); }
 
-haxorg_Opt haxorg_AttrValue_getDouble_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble), org_context, __this); }
+haxorg_OptOfDouble haxorg_AttrValue_getDouble_const(OrgContext* org_context, haxorg_AttrValue __this) { return org::bind::c::execute_cpp<haxorg_OptOfDouble>(static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble), org_context, __this); }
 
 void haxorg_create_AttrValue_AttrValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::AttrValue { return org::sem::AttrValue(); }, org_context); }
 
@@ -1195,7 +1197,7 @@ haxorg_AttrValueKind haxorg_AttrValue_getKind_const(OrgContext* org_context, hax
 
 int haxorg_AttrValueDimensionSpan_get_first(OrgContext* org_context, haxorg_AttrValueDimensionSpan __this) { return org::bind::c::get_cpp_field<int, org::sem::AttrValue::DimensionSpan, int, haxorg_AttrValueDimensionSpan>(org_context, __this, &org::sem::AttrValue::DimensionSpan::first); }
 
-haxorg_Opt haxorg_AttrValueDimensionSpan_get_last(OrgContext* org_context, haxorg_AttrValueDimensionSpan __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::AttrValue::DimensionSpan, hstd::Opt<int>, haxorg_AttrValueDimensionSpan>(org_context, __this, &org::sem::AttrValue::DimensionSpan::last); }
+haxorg_OptOfInt haxorg_AttrValueDimensionSpan_get_last(OrgContext* org_context, haxorg_AttrValueDimensionSpan __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::AttrValue::DimensionSpan, hstd::Opt<int>, haxorg_AttrValueDimensionSpan>(org_context, __this, &org::sem::AttrValue::DimensionSpan::last); }
 
 void haxorg_create_AttrValueDimensionSpan_DimensionSpan(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::AttrValue::DimensionSpan { return org::sem::AttrValue::DimensionSpan(); }, org_context); }
 
@@ -1241,7 +1243,7 @@ void haxorg_destroy_HashTagFlat(OrgContext* org_context, haxorg_HashTagFlat* obj
 
 haxorg_HstdStr haxorg_TodoKeyword_get_name(OrgContext* org_context, haxorg_TodoKeyword __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::TodoKeyword, hstd::Str, haxorg_TodoKeyword>(org_context, __this, &org::sem::TodoKeyword::name); }
 
-haxorg_Opt haxorg_TodoKeyword_get_shortcut(OrgContext* org_context, haxorg_TodoKeyword __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::TodoKeyword, hstd::Opt<hstd::Str>, haxorg_TodoKeyword>(org_context, __this, &org::sem::TodoKeyword::shortcut); }
+haxorg_OptOfStr haxorg_TodoKeyword_get_shortcut(OrgContext* org_context, haxorg_TodoKeyword __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::TodoKeyword, hstd::Opt<hstd::Str>, haxorg_TodoKeyword>(org_context, __this, &org::sem::TodoKeyword::shortcut); }
 
 haxorg_TodoKeywordTransition haxorg_TodoKeyword_get_onEnter(OrgContext* org_context, haxorg_TodoKeyword __this) { return org::bind::c::get_cpp_field<haxorg_TodoKeywordTransition, org::sem::TodoKeyword, org::sem::TodoKeyword::Transition, haxorg_TodoKeyword>(org_context, __this, &org::sem::TodoKeyword::onEnter); }
 
@@ -1457,9 +1459,9 @@ haxorg_SubtreeLogHeadUnknown haxorg_SubtreeLogHead_getUnknownMut(OrgContext* org
 
 haxorg_SubtreeLogHeadKind haxorg_SubtreeLogHead_getLogKind_const(OrgContext* org_context, haxorg_SubtreeLogHead __this) { return org::bind::c::execute_cpp<haxorg_SubtreeLogHeadKind>(static_cast<org::sem::SubtreeLogHead::Kind(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getLogKind), org_context, __this); }
 
-haxorg_Opt haxorg_SubtreeLogHeadPriority_get_oldPriority(OrgContext* org_context, haxorg_SubtreeLogHeadPriority __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLogHead::Priority, hstd::Opt<std::string>, haxorg_SubtreeLogHeadPriority>(org_context, __this, &org::sem::SubtreeLogHead::Priority::oldPriority); }
+haxorg_OptOfStdString haxorg_SubtreeLogHeadPriority_get_oldPriority(OrgContext* org_context, haxorg_SubtreeLogHeadPriority __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStdString, org::sem::SubtreeLogHead::Priority, hstd::Opt<std::string>, haxorg_SubtreeLogHeadPriority>(org_context, __this, &org::sem::SubtreeLogHead::Priority::oldPriority); }
 
-haxorg_Opt haxorg_SubtreeLogHeadPriority_get_newPriority(OrgContext* org_context, haxorg_SubtreeLogHeadPriority __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLogHead::Priority, hstd::Opt<std::string>, haxorg_SubtreeLogHeadPriority>(org_context, __this, &org::sem::SubtreeLogHead::Priority::newPriority); }
+haxorg_OptOfStdString haxorg_SubtreeLogHeadPriority_get_newPriority(OrgContext* org_context, haxorg_SubtreeLogHeadPriority __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStdString, org::sem::SubtreeLogHead::Priority, hstd::Opt<std::string>, haxorg_SubtreeLogHeadPriority>(org_context, __this, &org::sem::SubtreeLogHead::Priority::newPriority); }
 
 haxorg_UserTime haxorg_SubtreeLogHeadPriority_get_on(OrgContext* org_context, haxorg_SubtreeLogHeadPriority __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::SubtreeLogHead::Priority, hstd::UserTime, haxorg_SubtreeLogHeadPriority>(org_context, __this, &org::sem::SubtreeLogHead::Priority::on); }
 
@@ -1485,7 +1487,7 @@ void haxorg_destroy_SubtreeLogHeadRefile(OrgContext* org_context, haxorg_Subtree
 
 haxorg_UserTime haxorg_SubtreeLogHeadClock_get_from(OrgContext* org_context, haxorg_SubtreeLogHeadClock __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::SubtreeLogHead::Clock, hstd::UserTime, haxorg_SubtreeLogHeadClock>(org_context, __this, &org::sem::SubtreeLogHead::Clock::from); }
 
-haxorg_Opt haxorg_SubtreeLogHeadClock_get_to(OrgContext* org_context, haxorg_SubtreeLogHeadClock __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLogHead::Clock, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadClock>(org_context, __this, &org::sem::SubtreeLogHead::Clock::to); }
+haxorg_OptOfUserTime haxorg_SubtreeLogHeadClock_get_to(OrgContext* org_context, haxorg_SubtreeLogHeadClock __this) { return org::bind::c::get_cpp_field<haxorg_OptOfUserTime, org::sem::SubtreeLogHead::Clock, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadClock>(org_context, __this, &org::sem::SubtreeLogHead::Clock::to); }
 
 bool haxorg_SubtreeLogHeadClock___eq___const(OrgContext* org_context, haxorg_SubtreeLogHeadClock __this, haxorg_SubtreeLogHeadClock other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SubtreeLogHead::Clock::*)(org::sem::SubtreeLogHead::Clock const&) const>(&org::sem::SubtreeLogHead::Clock::operator==), org_context, __this, other); }
 
@@ -1501,7 +1503,7 @@ bool haxorg_SubtreeLogHeadState___eq___const(OrgContext* org_context, haxorg_Sub
 
 void haxorg_destroy_SubtreeLogHeadState(OrgContext* org_context, haxorg_SubtreeLogHeadState* obj) { org::bind::c::execute_destroy<org::sem::SubtreeLogHead::State>(org_context, obj); }
 
-haxorg_Opt haxorg_SubtreeLogHeadDeadline_get_from(OrgContext* org_context, haxorg_SubtreeLogHeadDeadline __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLogHead::Deadline, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadDeadline>(org_context, __this, &org::sem::SubtreeLogHead::Deadline::from); }
+haxorg_OptOfUserTime haxorg_SubtreeLogHeadDeadline_get_from(OrgContext* org_context, haxorg_SubtreeLogHeadDeadline __this) { return org::bind::c::get_cpp_field<haxorg_OptOfUserTime, org::sem::SubtreeLogHead::Deadline, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadDeadline>(org_context, __this, &org::sem::SubtreeLogHead::Deadline::from); }
 
 haxorg_UserTime haxorg_SubtreeLogHeadDeadline_get_to(OrgContext* org_context, haxorg_SubtreeLogHeadDeadline __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::SubtreeLogHead::Deadline, hstd::UserTime, haxorg_SubtreeLogHeadDeadline>(org_context, __this, &org::sem::SubtreeLogHead::Deadline::to); }
 
@@ -1511,7 +1513,7 @@ bool haxorg_SubtreeLogHeadDeadline___eq___const(OrgContext* org_context, haxorg_
 
 void haxorg_destroy_SubtreeLogHeadDeadline(OrgContext* org_context, haxorg_SubtreeLogHeadDeadline* obj) { org::bind::c::execute_destroy<org::sem::SubtreeLogHead::Deadline>(org_context, obj); }
 
-haxorg_Opt haxorg_SubtreeLogHeadSchedule_get_from(OrgContext* org_context, haxorg_SubtreeLogHeadSchedule __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLogHead::Schedule, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadSchedule>(org_context, __this, &org::sem::SubtreeLogHead::Schedule::from); }
+haxorg_OptOfUserTime haxorg_SubtreeLogHeadSchedule_get_from(OrgContext* org_context, haxorg_SubtreeLogHeadSchedule __this) { return org::bind::c::get_cpp_field<haxorg_OptOfUserTime, org::sem::SubtreeLogHead::Schedule, hstd::Opt<hstd::UserTime>, haxorg_SubtreeLogHeadSchedule>(org_context, __this, &org::sem::SubtreeLogHead::Schedule::from); }
 
 haxorg_UserTime haxorg_SubtreeLogHeadSchedule_get_to(OrgContext* org_context, haxorg_SubtreeLogHeadSchedule __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::SubtreeLogHead::Schedule, hstd::UserTime, haxorg_SubtreeLogHeadSchedule>(org_context, __this, &org::sem::SubtreeLogHead::Schedule::to); }
 
@@ -1559,7 +1561,7 @@ haxorg_HstdMap haxorg_AttrGroup_get_named(OrgContext* org_context, haxorg_AttrGr
 
 haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getFlatArgs_const(OrgContext* org_context, haxorg_AttrGroup __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::AttrGroup::*)() const>(&org::sem::AttrGroup::getFlatArgs), org_context, __this); }
 
-haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getAttrs_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_Opt key) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::AttrGroup::getAttrs), org_context, __this, key); }
+haxorg_HstdVecOfAttrValue haxorg_AttrGroup_getAttrs_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_OptOfStr key) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::AttrGroup::getAttrs), org_context, __this, key); }
 
 void haxorg_AttrGroup_setNamedAttr(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr key, haxorg_HstdVecOfAttrValue attrs) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::AttrGroup::*)(hstd::Str const&, hstd::Vec<org::sem::AttrValue> const&)>(&org::sem::AttrGroup::setNamedAttr), org_context, __this, key, attrs); }
 
@@ -1575,23 +1577,23 @@ haxorg_AttrList haxorg_AttrGroup_getAll_const(OrgContext* org_context, haxorg_At
 
 haxorg_AttrValue haxorg_AttrGroup_atPositional_const(OrgContext* org_context, haxorg_AttrGroup __this, int index) { return org::bind::c::execute_cpp<haxorg_AttrValue>(static_cast<org::sem::AttrValue const&(org::sem::AttrGroup::*)(int) const>(&org::sem::AttrGroup::atPositional), org_context, __this, index); }
 
-haxorg_Opt haxorg_AttrGroup_getPositional_const(OrgContext* org_context, haxorg_AttrGroup __this, int index) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(int) const>(&org::sem::AttrGroup::getPositional), org_context, __this, index); }
+haxorg_OptOfAttrValue haxorg_AttrGroup_getPositional_const(OrgContext* org_context, haxorg_AttrGroup __this, int index) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(int) const>(&org::sem::AttrGroup::getPositional), org_context, __this, index); }
 
 haxorg_AttrList haxorg_AttrGroup_atNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_AttrList>(static_cast<org::sem::AttrList const&(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atNamed), org_context, __this, index); }
 
-haxorg_Opt haxorg_AttrGroup_getNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrList>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getNamed), org_context, __this, index); }
+haxorg_OptOfAttrList haxorg_AttrGroup_getNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_OptOfAttrList>(static_cast<hstd::Opt<org::sem::AttrList>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getNamed), org_context, __this, index); }
 
 haxorg_AttrValue haxorg_AttrGroup_atFirstNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_AttrValue>(static_cast<org::sem::AttrValue const&(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atFirstNamed), org_context, __this, index); }
 
-haxorg_Opt haxorg_AttrGroup_getFirstNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstNamed), org_context, __this, index); }
+haxorg_OptOfAttrValue haxorg_AttrGroup_getFirstNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstNamed), org_context, __this, index); }
 
 haxorg_AttrList haxorg_AttrGroup_atVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_AttrList>(static_cast<org::sem::AttrList(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atVarNamed), org_context, __this, index); }
 
-haxorg_Opt haxorg_AttrGroup_getVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrList>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getVarNamed), org_context, __this, index); }
+haxorg_OptOfAttrList haxorg_AttrGroup_getVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_OptOfAttrList>(static_cast<hstd::Opt<org::sem::AttrList>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getVarNamed), org_context, __this, index); }
 
 haxorg_AttrValue haxorg_AttrGroup_atFirstVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_AttrValue>(static_cast<org::sem::AttrValue(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atFirstVarNamed), org_context, __this, index); }
 
-haxorg_Opt haxorg_AttrGroup_getFirstVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed), org_context, __this, index); }
+haxorg_OptOfAttrValue haxorg_AttrGroup_getFirstVarNamed_const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_HstdStr index) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed), org_context, __this, index); }
 
 bool haxorg_AttrGroup___eq___const(OrgContext* org_context, haxorg_AttrGroup __this, haxorg_AttrGroup other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==), org_context, __this, other); }
 
@@ -1601,7 +1603,7 @@ haxorg_AttrGroup haxorg_OrgCodeEvalInput_get_blockAttrs(OrgContext* org_context,
 
 haxorg_HstdStr haxorg_OrgCodeEvalInput_get_tangledCode(OrgContext* org_context, haxorg_OrgCodeEvalInput __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgCodeEvalInput, hstd::Str, haxorg_OrgCodeEvalInput>(org_context, __this, &org::sem::OrgCodeEvalInput::tangledCode); }
 
-haxorg_Opt haxorg_OrgCodeEvalInput_get_exportType(OrgContext* org_context, haxorg_OrgCodeEvalInput __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::OrgCodeEvalInput, hstd::Opt<hstd::Str>, haxorg_OrgCodeEvalInput>(org_context, __this, &org::sem::OrgCodeEvalInput::exportType); }
+haxorg_OptOfStr haxorg_OrgCodeEvalInput_get_exportType(OrgContext* org_context, haxorg_OrgCodeEvalInput __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::OrgCodeEvalInput, hstd::Opt<hstd::Str>, haxorg_OrgCodeEvalInput>(org_context, __this, &org::sem::OrgCodeEvalInput::exportType); }
 
 haxorg_OrgCodeEvalInputResultType haxorg_OrgCodeEvalInput_get_resultType(OrgContext* org_context, haxorg_OrgCodeEvalInput __this) { return org::bind::c::get_cpp_field<haxorg_OrgCodeEvalInputResultType, org::sem::OrgCodeEvalInput, org::sem::OrgCodeEvalInput::ResultType, haxorg_OrgCodeEvalInput>(org_context, __this, &org::sem::OrgCodeEvalInput::resultType); }
 
@@ -1615,7 +1617,7 @@ haxorg_HstdVecOfOrgCodeEvalInputVar haxorg_OrgCodeEvalInput_get_argList(OrgConte
 
 bool haxorg_OrgCodeEvalInput___eq___const(OrgContext* org_context, haxorg_OrgCodeEvalInput __this, haxorg_OrgCodeEvalInput other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==), org_context, __this, other); }
 
-haxorg_Opt haxorg_OrgCodeEvalInput_getVariable_const(OrgContext* org_context, haxorg_OrgCodeEvalInput __this, haxorg_HstdStr name) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable), org_context, __this, name); }
+haxorg_OptOfOrgCodeEvalInputVar haxorg_OrgCodeEvalInput_getVariable_const(OrgContext* org_context, haxorg_OrgCodeEvalInput __this, haxorg_HstdStr name) { return org::bind::c::execute_cpp<haxorg_OptOfOrgCodeEvalInputVar>(static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable), org_context, __this, name); }
 
 haxorg_HstdStr haxorg_OrgCodeEvalInputVar_get_name(OrgContext* org_context, haxorg_OrgCodeEvalInputVar __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgCodeEvalInput::Var, hstd::Str, haxorg_OrgCodeEvalInputVar>(org_context, __this, &org::sem::OrgCodeEvalInput::Var::name); }
 
@@ -1635,7 +1637,7 @@ haxorg_HstdStr haxorg_OrgCodeEvalOutput_get_stderrText(OrgContext* org_context, 
 
 int haxorg_OrgCodeEvalOutput_get_code(OrgContext* org_context, haxorg_OrgCodeEvalOutput __this) { return org::bind::c::get_cpp_field<int, org::sem::OrgCodeEvalOutput, int, haxorg_OrgCodeEvalOutput>(org_context, __this, &org::sem::OrgCodeEvalOutput::code); }
 
-haxorg_Opt haxorg_OrgCodeEvalOutput_get_cmd(OrgContext* org_context, haxorg_OrgCodeEvalOutput __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::OrgCodeEvalOutput, hstd::Opt<hstd::Str>, haxorg_OrgCodeEvalOutput>(org_context, __this, &org::sem::OrgCodeEvalOutput::cmd); }
+haxorg_OptOfStr haxorg_OrgCodeEvalOutput_get_cmd(OrgContext* org_context, haxorg_OrgCodeEvalOutput __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::OrgCodeEvalOutput, hstd::Opt<hstd::Str>, haxorg_OrgCodeEvalOutput>(org_context, __this, &org::sem::OrgCodeEvalOutput::cmd); }
 
 haxorg_HstdVecOfStr haxorg_OrgCodeEvalOutput_get_args(OrgContext* org_context, haxorg_OrgCodeEvalOutput __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfStr, org::sem::OrgCodeEvalOutput, hstd::Vec<hstd::Str>, haxorg_OrgCodeEvalOutput>(org_context, __this, &org::sem::OrgCodeEvalOutput::args); }
 
@@ -1675,9 +1677,9 @@ void haxorg_destroy_ColumnViewSummaryCheckboxAggregate(OrgContext* org_context, 
 
 haxorg_ColumnViewSummaryMathAggregateKind haxorg_ColumnViewSummaryMathAggregate_get_kind(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this) { return org::bind::c::get_cpp_field<haxorg_ColumnViewSummaryMathAggregateKind, org::sem::ColumnView::Summary::MathAggregate, org::sem::ColumnView::Summary::MathAggregate::Kind, haxorg_ColumnViewSummaryMathAggregate>(org_context, __this, &org::sem::ColumnView::Summary::MathAggregate::kind); }
 
-haxorg_Opt haxorg_ColumnViewSummaryMathAggregate_get_formatDigits(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Summary::MathAggregate, hstd::Opt<int>, haxorg_ColumnViewSummaryMathAggregate>(org_context, __this, &org::sem::ColumnView::Summary::MathAggregate::formatDigits); }
+haxorg_OptOfInt haxorg_ColumnViewSummaryMathAggregate_get_formatDigits(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::ColumnView::Summary::MathAggregate, hstd::Opt<int>, haxorg_ColumnViewSummaryMathAggregate>(org_context, __this, &org::sem::ColumnView::Summary::MathAggregate::formatDigits); }
 
-haxorg_Opt haxorg_ColumnViewSummaryMathAggregate_get_formatPrecision(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Summary::MathAggregate, hstd::Opt<int>, haxorg_ColumnViewSummaryMathAggregate>(org_context, __this, &org::sem::ColumnView::Summary::MathAggregate::formatPrecision); }
+haxorg_OptOfInt haxorg_ColumnViewSummaryMathAggregate_get_formatPrecision(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::ColumnView::Summary::MathAggregate, hstd::Opt<int>, haxorg_ColumnViewSummaryMathAggregate>(org_context, __this, &org::sem::ColumnView::Summary::MathAggregate::formatPrecision); }
 
 bool haxorg_ColumnViewSummaryMathAggregate___eq___const(OrgContext* org_context, haxorg_ColumnViewSummaryMathAggregate __this, haxorg_ColumnViewSummaryMathAggregate other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==), org_context, __this, other); }
 
@@ -1685,13 +1687,13 @@ void haxorg_destroy_ColumnViewSummaryMathAggregate(OrgContext* org_context, haxo
 
 void haxorg_destroy_ColumnViewSummary(OrgContext* org_context, haxorg_ColumnViewSummary* obj) { org::bind::c::execute_destroy<org::sem::ColumnView::Summary>(org_context, obj); }
 
-haxorg_Opt haxorg_ColumnViewColumn_get_summary(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Column, hstd::Opt<org::sem::ColumnView::Summary>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::summary); }
+haxorg_OptOfColumnViewSummary haxorg_ColumnViewColumn_get_summary(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_OptOfColumnViewSummary, org::sem::ColumnView::Column, hstd::Opt<org::sem::ColumnView::Summary>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::summary); }
 
-haxorg_Opt haxorg_ColumnViewColumn_get_width(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Column, hstd::Opt<int>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::width); }
+haxorg_OptOfInt haxorg_ColumnViewColumn_get_width(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::ColumnView::Column, hstd::Opt<int>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::width); }
 
-haxorg_Opt haxorg_ColumnViewColumn_get_property(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Column, hstd::Opt<hstd::Str>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::property); }
+haxorg_OptOfStr haxorg_ColumnViewColumn_get_property(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::ColumnView::Column, hstd::Opt<hstd::Str>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::property); }
 
-haxorg_Opt haxorg_ColumnViewColumn_get_propertyTitle(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ColumnView::Column, hstd::Opt<hstd::Str>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::propertyTitle); }
+haxorg_OptOfStr haxorg_ColumnViewColumn_get_propertyTitle(OrgContext* org_context, haxorg_ColumnViewColumn __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::ColumnView::Column, hstd::Opt<hstd::Str>, haxorg_ColumnViewColumn>(org_context, __this, &org::sem::ColumnView::Column::propertyTitle); }
 
 bool haxorg_ColumnViewColumn___eq___const(OrgContext* org_context, haxorg_ColumnViewColumn __this, haxorg_ColumnViewColumn other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::ColumnView::Column::*)(org::sem::ColumnView::Column const&) const>(&org::sem::ColumnView::Column::operator==), org_context, __this, other); }
 
@@ -1747,61 +1749,61 @@ void haxorg_destroy_BlockCodeLinePart(OrgContext* org_context, haxorg_BlockCodeL
 
 void haxorg_destroy_BlockCodeLine(OrgContext* org_context, haxorg_BlockCodeLine* obj) { org::bind::c::execute_destroy<org::sem::BlockCodeLine>(org_context, obj); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_inlinetasks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::inlinetasks); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_inlinetasks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::inlinetasks); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_footnotes(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::footnotes); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_footnotes(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::footnotes); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_clock(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::clock); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_clock(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::clock); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_author(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::author); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_author(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::author); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_emphasis(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::emphasis); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_emphasis(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::emphasis); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_specialStrings(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::specialStrings); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_specialStrings(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::specialStrings); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_propertyDrawers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::propertyDrawers); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_propertyDrawers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::propertyDrawers); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_statisticsCookies(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::statisticsCookies); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_statisticsCookies(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::statisticsCookies); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_todoText(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::todoText); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_todoText(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::todoText); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_smartQuotes(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::smartQuotes); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_smartQuotes(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::smartQuotes); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_fixedWidth(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::fixedWidth); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_fixedWidth(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::fixedWidth); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_timestamps(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::timestamps); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_timestamps(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::timestamps); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_preserveBreaks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::preserveBreaks); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_preserveBreaks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::preserveBreaks); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_subSuperscripts(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::subSuperscripts); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_subSuperscripts(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::subSuperscripts); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_expandLinks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::expandLinks); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_expandLinks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::expandLinks); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_creator(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::creator); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_creator(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::creator); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_drawers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::drawers); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_drawers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::drawers); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_date(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::date); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_date(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::date); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_entities(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::entities); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_entities(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::entities); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_email(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::email); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_email(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::email); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_sectionNumbers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::sectionNumbers); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_sectionNumbers(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::sectionNumbers); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_planning(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::planning); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_planning(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::planning); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_priority(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::priority); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_priority(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::priority); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_latex(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::latex); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_latex(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::latex); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_timestamp(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::timestamp); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_timestamp(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::timestamp); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_title(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::title); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_title(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::title); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_tables(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::tables); }
+haxorg_OptOfBool haxorg_DocumentExportConfig_get_tables(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentExportConfig, hstd::Opt<bool>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::tables); }
 
-haxorg_Opt haxorg_DocumentExportConfig_get_headlineLevels(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentExportConfig, hstd::Opt<int>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::headlineLevels); }
+haxorg_OptOfInt haxorg_DocumentExportConfig_get_headlineLevels(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::DocumentExportConfig, hstd::Opt<int>, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::headlineLevels); }
 
 haxorg_DocumentExportConfigBrokenLinks haxorg_DocumentExportConfig_get_brokenLinks(OrgContext* org_context, haxorg_DocumentExportConfig __this) { return org::bind::c::get_cpp_field<haxorg_DocumentExportConfigBrokenLinks, org::sem::DocumentExportConfig, org::sem::DocumentExportConfig::BrokenLinks, haxorg_DocumentExportConfig>(org_context, __this, &org::sem::DocumentExportConfig::brokenLinks); }
 
@@ -1851,17 +1853,17 @@ haxorg_SubtreePeriodKind haxorg_SubtreePeriod_get_kind(OrgContext* org_context, 
 
 haxorg_UserTime haxorg_SubtreePeriod_get_from(OrgContext* org_context, haxorg_SubtreePeriod __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::SubtreePeriod, hstd::UserTime, haxorg_SubtreePeriod>(org_context, __this, &org::sem::SubtreePeriod::from); }
 
-haxorg_Opt haxorg_SubtreePeriod_get_to(OrgContext* org_context, haxorg_SubtreePeriod __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreePeriod, hstd::Opt<hstd::UserTime>, haxorg_SubtreePeriod>(org_context, __this, &org::sem::SubtreePeriod::to); }
+haxorg_OptOfUserTime haxorg_SubtreePeriod_get_to(OrgContext* org_context, haxorg_SubtreePeriod __this) { return org::bind::c::get_cpp_field<haxorg_OptOfUserTime, org::sem::SubtreePeriod, hstd::Opt<hstd::UserTime>, haxorg_SubtreePeriod>(org_context, __this, &org::sem::SubtreePeriod::to); }
 
 bool haxorg_SubtreePeriod___eq___const(OrgContext* org_context, haxorg_SubtreePeriod __this, haxorg_SubtreePeriod other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SubtreePeriod::*)(org::sem::SubtreePeriod const&) const>(&org::sem::SubtreePeriod::operator==), org_context, __this, other); }
 
 void haxorg_destroy_SubtreePeriod(OrgContext* org_context, haxorg_SubtreePeriod* obj) { org::bind::c::execute_destroy<org::sem::SubtreePeriod>(org_context, obj); }
 
-bool haxorg_NamedProperty_isMatching_const(OrgContext* org_context, haxorg_NamedProperty __this, haxorg_HstdStr kind, haxorg_Opt subKind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::NamedProperty::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::NamedProperty::isMatching), org_context, __this, kind, subKind); }
+bool haxorg_NamedProperty_isMatching_const(OrgContext* org_context, haxorg_NamedProperty __this, haxorg_HstdStr kind, haxorg_OptOfStr subKind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::NamedProperty::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::NamedProperty::isMatching), org_context, __this, kind, subKind); }
 
 haxorg_HstdStr haxorg_NamedProperty_getName_const(OrgContext* org_context, haxorg_NamedProperty __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getName), org_context, __this); }
 
-haxorg_Opt haxorg_NamedProperty_getSubKind_const(OrgContext* org_context, haxorg_NamedProperty __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind), org_context, __this); }
+haxorg_OptOfStr haxorg_NamedProperty_getSubKind_const(OrgContext* org_context, haxorg_NamedProperty __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind), org_context, __this); }
 
 bool haxorg_NamedProperty___eq___const(OrgContext* org_context, haxorg_NamedProperty __this, haxorg_NamedProperty other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::NamedProperty::*)(org::sem::NamedProperty const&) const>(&org::sem::NamedProperty::operator==), org_context, __this, other); }
 
@@ -2167,7 +2169,7 @@ void haxorg_destroy_NamedPropertyHashtagDef(OrgContext* org_context, haxorg_Name
 
 haxorg_HstdStr haxorg_NamedPropertyCustomArgs_get_name(OrgContext* org_context, haxorg_NamedPropertyCustomArgs __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::NamedProperty::CustomArgs, hstd::Str, haxorg_NamedPropertyCustomArgs>(org_context, __this, &org::sem::NamedProperty::CustomArgs::name); }
 
-haxorg_Opt haxorg_NamedPropertyCustomArgs_get_sub(OrgContext* org_context, haxorg_NamedPropertyCustomArgs __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::NamedProperty::CustomArgs, hstd::Opt<hstd::Str>, haxorg_NamedPropertyCustomArgs>(org_context, __this, &org::sem::NamedProperty::CustomArgs::sub); }
+haxorg_OptOfStr haxorg_NamedPropertyCustomArgs_get_sub(OrgContext* org_context, haxorg_NamedPropertyCustomArgs __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::NamedProperty::CustomArgs, hstd::Opt<hstd::Str>, haxorg_NamedPropertyCustomArgs>(org_context, __this, &org::sem::NamedProperty::CustomArgs::sub); }
 
 haxorg_AttrGroup haxorg_NamedPropertyCustomArgs_get_attrs(OrgContext* org_context, haxorg_NamedPropertyCustomArgs __this) { return org::bind::c::get_cpp_field<haxorg_AttrGroup, org::sem::NamedProperty::CustomArgs, org::sem::AttrGroup, haxorg_NamedPropertyCustomArgs>(org_context, __this, &org::sem::NamedProperty::CustomArgs::attrs); }
 
@@ -2275,7 +2277,7 @@ haxorg_HstdStr haxorg_OrgDiagnosticsParseError_get_errName(OrgContext* org_conte
 
 haxorg_HstdStr haxorg_OrgDiagnosticsParseError_get_errCode(OrgContext* org_context, haxorg_OrgDiagnosticsParseError __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgDiagnostics::ParseError, hstd::Str, haxorg_OrgDiagnosticsParseError>(org_context, __this, &org::sem::OrgDiagnostics::ParseError::errCode); }
 
-haxorg_Opt haxorg_OrgDiagnosticsParseError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseError __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::OrgDiagnostics::ParseError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsParseError>(org_context, __this, &org::sem::OrgDiagnostics::ParseError::loc); }
+haxorg_OptOfParseSourceLoc haxorg_OrgDiagnosticsParseError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseError __this) { return org::bind::c::get_cpp_field<haxorg_OptOfParseSourceLoc, org::sem::OrgDiagnostics::ParseError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsParseError>(org_context, __this, &org::sem::OrgDiagnostics::ParseError::loc); }
 
 bool haxorg_OrgDiagnosticsParseError___eq___const(OrgContext* org_context, haxorg_OrgDiagnosticsParseError __this, haxorg_OrgDiagnosticsParseError other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==), org_context, __this, other); }
 
@@ -2305,7 +2307,7 @@ haxorg_HstdStr haxorg_OrgDiagnosticsConvertError_get_errName(OrgContext* org_con
 
 haxorg_HstdStr haxorg_OrgDiagnosticsConvertError_get_errCode(OrgContext* org_context, haxorg_OrgDiagnosticsConvertError __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgDiagnostics::ConvertError, hstd::Str, haxorg_OrgDiagnosticsConvertError>(org_context, __this, &org::sem::OrgDiagnostics::ConvertError::errCode); }
 
-haxorg_Opt haxorg_OrgDiagnosticsConvertError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsConvertError __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::OrgDiagnostics::ConvertError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsConvertError>(org_context, __this, &org::sem::OrgDiagnostics::ConvertError::loc); }
+haxorg_OptOfParseSourceLoc haxorg_OrgDiagnosticsConvertError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsConvertError __this) { return org::bind::c::get_cpp_field<haxorg_OptOfParseSourceLoc, org::sem::OrgDiagnostics::ConvertError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsConvertError>(org_context, __this, &org::sem::OrgDiagnostics::ConvertError::loc); }
 
 bool haxorg_OrgDiagnosticsConvertError___eq___const(OrgContext* org_context, haxorg_OrgDiagnosticsConvertError __this, haxorg_OrgDiagnosticsConvertError other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::OrgDiagnostics::ConvertError::*)(org::sem::OrgDiagnostics::ConvertError const&) const>(&org::sem::OrgDiagnostics::ConvertError::operator==), org_context, __this, other); }
 
@@ -2319,7 +2321,7 @@ int haxorg_OrgDiagnosticsInternalError_get_line(OrgContext* org_context, haxorg_
 
 haxorg_HstdStr haxorg_OrgDiagnosticsInternalError_get_file(OrgContext* org_context, haxorg_OrgDiagnosticsInternalError __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgDiagnostics::InternalError, hstd::Str, haxorg_OrgDiagnosticsInternalError>(org_context, __this, &org::sem::OrgDiagnostics::InternalError::file); }
 
-haxorg_Opt haxorg_OrgDiagnosticsInternalError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsInternalError __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::OrgDiagnostics::InternalError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsInternalError>(org_context, __this, &org::sem::OrgDiagnostics::InternalError::loc); }
+haxorg_OptOfParseSourceLoc haxorg_OrgDiagnosticsInternalError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsInternalError __this) { return org::bind::c::get_cpp_field<haxorg_OptOfParseSourceLoc, org::sem::OrgDiagnostics::InternalError, hstd::Opt<org::parse::SourceLoc>, haxorg_OrgDiagnosticsInternalError>(org_context, __this, &org::sem::OrgDiagnostics::InternalError::loc); }
 
 bool haxorg_OrgDiagnosticsInternalError___eq___const(OrgContext* org_context, haxorg_OrgDiagnosticsInternalError __this, haxorg_OrgDiagnosticsInternalError other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::OrgDiagnostics::InternalError::*)(org::sem::OrgDiagnostics::InternalError const&) const>(&org::sem::OrgDiagnostics::InternalError::operator==), org_context, __this, other); }
 
@@ -2339,27 +2341,27 @@ void haxorg_destroy_ErrorGroup(OrgContext* org_context, haxorg_ErrorGroup* obj) 
 
 haxorg_HstdVecOfSemIdOfOrg haxorg_Stmt_get_attached(OrgContext* org_context, haxorg_Stmt __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfOrg, org::sem::Stmt, hstd::Vec<org::sem::SemId<org::sem::Org>>, haxorg_Stmt>(org_context, __this, &org::sem::Stmt::attached); }
 
-haxorg_HstdVecOfSemIdOfOrg haxorg_Stmt_getAttached_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_Opt kind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSemIdOfOrg>(static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached), org_context, __this, kind); }
+haxorg_HstdVecOfSemIdOfOrg haxorg_Stmt_getAttached_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_OptOfStr kind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSemIdOfOrg>(static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached), org_context, __this, kind); }
 
 haxorg_HstdVecOfSemIdOfOrg haxorg_Stmt_getCaption_const(OrgContext* org_context, haxorg_Stmt __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSemIdOfOrg>(static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getCaption), org_context, __this); }
 
 haxorg_HstdVecOfStr haxorg_Stmt_getName_const(OrgContext* org_context, haxorg_Stmt __this) { return org::bind::c::execute_cpp<haxorg_HstdVecOfStr>(static_cast<hstd::Vec<hstd::Str>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getName), org_context, __this); }
 
-haxorg_HstdVecOfAttrValue haxorg_Stmt_getAttrs_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_Opt kind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttrs), org_context, __this, kind); }
+haxorg_HstdVecOfAttrValue haxorg_Stmt_getAttrs_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_OptOfStr kind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttrs), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttr_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr), org_context, __this, kind); }
+haxorg_OptOfAttrValue haxorg_Stmt_getFirstAttr_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrString_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrString), org_context, __this, kind); }
+haxorg_OptOfStr haxorg_Stmt_getFirstAttrString_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrString), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrInt_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrInt), org_context, __this, kind); }
+haxorg_OptOfInt haxorg_Stmt_getFirstAttrInt_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrInt), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrBool_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<bool>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrBool), org_context, __this, kind); }
+haxorg_OptOfBool haxorg_Stmt_getFirstAttrBool_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfBool>(static_cast<hstd::Opt<bool>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrBool), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrDouble_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<double>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrDouble), org_context, __this, kind); }
+haxorg_OptOfDouble haxorg_Stmt_getFirstAttrDouble_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfDouble>(static_cast<hstd::Opt<double>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrDouble), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrLisp_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue::LispValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrLisp), org_context, __this, kind); }
+haxorg_OptOfAttrValueLispValue haxorg_Stmt_getFirstAttrLisp_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValueLispValue>(static_cast<hstd::Opt<org::sem::AttrValue::LispValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrLisp), org_context, __this, kind); }
 
-haxorg_Opt haxorg_Stmt_getFirstAttrKind_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue::Kind>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrKind), org_context, __this, kind); }
+haxorg_OptOfAttrValueKind haxorg_Stmt_getFirstAttrKind_const(OrgContext* org_context, haxorg_Stmt __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValueKind>(static_cast<hstd::Opt<org::sem::AttrValue::Kind>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttrKind), org_context, __this, kind); }
 
 void haxorg_destroy_Stmt(OrgContext* org_context, haxorg_Stmt* obj) { org::bind::c::execute_destroy<org::sem::Stmt>(org_context, obj); }
 
@@ -2377,17 +2379,17 @@ void haxorg_destroy_Leaf(OrgContext* org_context, haxorg_Leaf* obj) { org::bind:
 
 bool haxorg_Time_get_isActive(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::get_cpp_field<bool, org::sem::Time, bool, haxorg_Time>(org_context, __this, &org::sem::Time::isActive); }
 
-haxorg_Opt haxorg_Time_getYear_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getYear), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getYear_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getYear), org_context, __this); }
 
-haxorg_Opt haxorg_Time_getMonth_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMonth), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getMonth_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMonth), org_context, __this); }
 
-haxorg_Opt haxorg_Time_getDay_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getDay), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getDay_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getDay), org_context, __this); }
 
-haxorg_Opt haxorg_Time_getHour_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getHour), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getHour_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getHour), org_context, __this); }
 
-haxorg_Opt haxorg_Time_getMinute_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMinute), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getMinute_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMinute), org_context, __this); }
 
-haxorg_Opt haxorg_Time_getSecond_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getSecond), org_context, __this); }
+haxorg_OptOfInt haxorg_Time_getSecond_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getSecond), org_context, __this); }
 
 haxorg_UserTime haxorg_Time_getStaticTime_const(OrgContext* org_context, haxorg_Time __this) { return org::bind::c::execute_cpp<haxorg_UserTime>(static_cast<hstd::UserTime(org::sem::Time::*)() const>(&org::sem::Time::getStaticTime), org_context, __this); }
 
@@ -2415,7 +2417,7 @@ void haxorg_destroy_TimeRepeat(OrgContext* org_context, haxorg_TimeRepeat* obj) 
 
 haxorg_HstdVecOfTimeRepeat haxorg_TimeStatic_get_repeat(OrgContext* org_context, haxorg_TimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfTimeRepeat, org::sem::Time::Static, hstd::Vec<org::sem::Time::Repeat>, haxorg_TimeStatic>(org_context, __this, &org::sem::Time::Static::repeat); }
 
-haxorg_Opt haxorg_TimeStatic_get_warn(OrgContext* org_context, haxorg_TimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Time::Static, hstd::Opt<org::sem::Time::Repeat>, haxorg_TimeStatic>(org_context, __this, &org::sem::Time::Static::warn); }
+haxorg_OptOfTimeRepeat haxorg_TimeStatic_get_warn(OrgContext* org_context, haxorg_TimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_OptOfTimeRepeat, org::sem::Time::Static, hstd::Opt<org::sem::Time::Repeat>, haxorg_TimeStatic>(org_context, __this, &org::sem::Time::Static::warn); }
 
 haxorg_UserTime haxorg_TimeStatic_get_time(OrgContext* org_context, haxorg_TimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::Time::Static, hstd::UserTime, haxorg_TimeStatic>(org_context, __this, &org::sem::Time::Static::time); }
 
@@ -2435,7 +2437,7 @@ haxorg_SemIdOfOrg haxorg_TimeRange_get_from(OrgContext* org_context, haxorg_Time
 
 haxorg_SemIdOfOrg haxorg_TimeRange_get_to(OrgContext* org_context, haxorg_TimeRange __this) { return org::bind::c::get_cpp_field<haxorg_SemIdOfOrg, org::sem::TimeRange, org::sem::SemId<org::sem::Time>, haxorg_TimeRange>(org_context, __this, &org::sem::TimeRange::to); }
 
-haxorg_Opt haxorg_TimeRange_getClockedTimeSeconds_const(OrgContext* org_context, haxorg_TimeRange __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int64_t>(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getClockedTimeSeconds), org_context, __this); }
+haxorg_OptOfInt64_t haxorg_TimeRange_getClockedTimeSeconds_const(OrgContext* org_context, haxorg_TimeRange __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt64_t>(static_cast<hstd::Opt<int64_t>(org::sem::TimeRange::*)() const>(&org::sem::TimeRange::getClockedTimeSeconds), org_context, __this); }
 
 void haxorg_destroy_TimeRange(OrgContext* org_context, haxorg_TimeRange* obj) { org::bind::c::execute_destroy<org::sem::TimeRange>(org_context, obj); }
 
@@ -2451,7 +2453,7 @@ haxorg_HstdVecOfSymbolParam haxorg_Symbol_get_parameters(OrgContext* org_context
 
 haxorg_HstdVecOfSemIdOfOrg haxorg_Symbol_get_positional(OrgContext* org_context, haxorg_Symbol __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfOrg, org::sem::Symbol, hstd::Vec<org::sem::SemId<org::sem::Org>>, haxorg_Symbol>(org_context, __this, &org::sem::Symbol::positional); }
 
-haxorg_Opt haxorg_SymbolParam_get_key(OrgContext* org_context, haxorg_SymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Symbol::Param, hstd::Opt<hstd::Str>, haxorg_SymbolParam>(org_context, __this, &org::sem::Symbol::Param::key); }
+haxorg_OptOfStr haxorg_SymbolParam_get_key(OrgContext* org_context, haxorg_SymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::Symbol::Param, hstd::Opt<hstd::Str>, haxorg_SymbolParam>(org_context, __this, &org::sem::Symbol::Param::key); }
 
 haxorg_HstdStr haxorg_SymbolParam_get_value(OrgContext* org_context, haxorg_SymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::Symbol::Param, hstd::Str, haxorg_SymbolParam>(org_context, __this, &org::sem::Symbol::Param::value); }
 
@@ -2473,7 +2475,7 @@ void haxorg_destroy_Latex(OrgContext* org_context, haxorg_Latex* obj) { org::bin
 
 haxorg_SubtreeLogHead haxorg_SubtreeLog_get_head(OrgContext* org_context, haxorg_SubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_SubtreeLogHead, org::sem::SubtreeLog, org::sem::SubtreeLogHead, haxorg_SubtreeLog>(org_context, __this, &org::sem::SubtreeLog::head); }
 
-haxorg_Opt haxorg_SubtreeLog_get_desc(OrgContext* org_context, haxorg_SubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::SubtreeLog, hstd::Opt<org::sem::SemId<org::sem::StmtList>>, haxorg_SubtreeLog>(org_context, __this, &org::sem::SubtreeLog::desc); }
+haxorg_OptOfSemIdOfStmtList haxorg_SubtreeLog_get_desc(OrgContext* org_context, haxorg_SubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfStmtList, org::sem::SubtreeLog, hstd::Opt<org::sem::SemId<org::sem::StmtList>>, haxorg_SubtreeLog>(org_context, __this, &org::sem::SubtreeLog::desc); }
 
 void haxorg_SubtreeLog_setDescription(OrgContext* org_context, haxorg_SubtreeLog __this, haxorg_SemIdOfOrg desc) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::SubtreeLog::*)(org::sem::SemId<org::sem::StmtList>)>(&org::sem::SubtreeLog::setDescription), org_context, __this, desc); }
 
@@ -2481,13 +2483,13 @@ void haxorg_destroy_SubtreeLog(OrgContext* org_context, haxorg_SubtreeLog* obj) 
 
 int haxorg_Subtree_get_level(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<int, org::sem::Subtree, int, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::level); }
 
-haxorg_Opt haxorg_Subtree_get_treeId(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::treeId); }
+haxorg_OptOfStr haxorg_Subtree_get_treeId(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::treeId); }
 
-haxorg_Opt haxorg_Subtree_get_todo(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::todo); }
+haxorg_OptOfStr haxorg_Subtree_get_todo(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::todo); }
 
-haxorg_Opt haxorg_Subtree_get_completion(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<org::sem::SubtreeCompletion>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::completion); }
+haxorg_OptOfSubtreeCompletion haxorg_Subtree_get_completion(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSubtreeCompletion, org::sem::Subtree, hstd::Opt<org::sem::SubtreeCompletion>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::completion); }
 
-haxorg_Opt haxorg_Subtree_get_description(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::description); }
+haxorg_OptOfSemIdOfParagraph haxorg_Subtree_get_description(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::description); }
 
 haxorg_HstdVecOfSemIdOfHashTag haxorg_Subtree_get_tags(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfHashTag, org::sem::Subtree, hstd::Vec<org::sem::SemId<org::sem::HashTag>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::tags); }
 
@@ -2497,33 +2499,33 @@ haxorg_HstdVecOfSemIdOfSubtreeLog haxorg_Subtree_get_logbook(OrgContext* org_con
 
 haxorg_HstdVecOfNamedProperty haxorg_Subtree_get_properties(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfNamedProperty, org::sem::Subtree, hstd::Vec<org::sem::NamedProperty>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::properties); }
 
-haxorg_Opt haxorg_Subtree_get_closed(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::closed); }
+haxorg_OptOfSemIdOfTime haxorg_Subtree_get_closed(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfTime, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::closed); }
 
-haxorg_Opt haxorg_Subtree_get_deadline(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::deadline); }
+haxorg_OptOfSemIdOfTime haxorg_Subtree_get_deadline(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfTime, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::deadline); }
 
-haxorg_Opt haxorg_Subtree_get_scheduled(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::scheduled); }
+haxorg_OptOfSemIdOfTime haxorg_Subtree_get_scheduled(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfTime, org::sem::Subtree, hstd::Opt<org::sem::SemId<org::sem::Time>>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::scheduled); }
 
 bool haxorg_Subtree_get_isComment(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<bool, org::sem::Subtree, bool, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::isComment); }
 
 bool haxorg_Subtree_get_isArchived(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<bool, org::sem::Subtree, bool, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::isArchived); }
 
-haxorg_Opt haxorg_Subtree_get_priority(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::priority); }
+haxorg_OptOfStr haxorg_Subtree_get_priority(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::Subtree, hstd::Opt<hstd::Str>, haxorg_Subtree>(org_context, __this, &org::sem::Subtree::priority); }
 
-haxorg_HstdVecOfSubtreePeriod haxorg_Subtree_getTimePeriods_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdIntSet kinds) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSubtreePeriod>(static_cast<hstd::Vec<org::sem::SubtreePeriod>(org::sem::Subtree::*)(hstd::IntSet<org::sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods), org_context, __this, kinds); }
+haxorg_HstdVecOfSubtreePeriod haxorg_Subtree_getTimePeriods_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_IntSetOfSubtreePeriodKind kinds) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSubtreePeriod>(static_cast<hstd::Vec<org::sem::SubtreePeriod>(org::sem::Subtree::*)(hstd::IntSet<org::sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods), org_context, __this, kinds); }
 
-haxorg_HstdVecOfNamedProperty haxorg_Subtree_getProperties_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_Opt subkind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperties), org_context, __this, kind, subkind); }
+haxorg_HstdVecOfNamedProperty haxorg_Subtree_getProperties_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_OptOfStr subkind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperties), org_context, __this, kind, subkind); }
 
-haxorg_Opt haxorg_Subtree_getProperty_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_Opt subkind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperty), org_context, __this, kind, subkind); }
+haxorg_OptOfNamedProperty haxorg_Subtree_getProperty_const(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_OptOfStr subkind) { return org::bind::c::execute_cpp<haxorg_OptOfNamedProperty>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperty), org_context, __this, kind, subkind); }
 
-void haxorg_Subtree_removeProperty(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_Opt subkind) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::removeProperty), org_context, __this, kind, subkind); }
+void haxorg_Subtree_removeProperty(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr kind, haxorg_OptOfStr subkind) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::removeProperty), org_context, __this, kind, subkind); }
 
 void haxorg_Subtree_setProperty(OrgContext* org_context, haxorg_Subtree __this, haxorg_NamedProperty value) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Subtree::*)(org::sem::NamedProperty const&)>(&org::sem::Subtree::setProperty), org_context, __this, value); }
 
-void haxorg_Subtree_setPropertyStrValue(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr value, haxorg_HstdStr kind, haxorg_Opt subkind) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::setPropertyStrValue), org_context, __this, value, kind, subkind); }
+void haxorg_Subtree_setPropertyStrValue(OrgContext* org_context, haxorg_Subtree __this, haxorg_HstdStr value, haxorg_HstdStr kind, haxorg_OptOfStr subkind) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::setPropertyStrValue), org_context, __this, value, kind, subkind); }
 
 haxorg_HstdStr haxorg_Subtree_getCleanTitle_const(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), org_context, __this); }
 
-haxorg_Opt haxorg_Subtree_getTodoKeyword_const(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword), org_context, __this); }
+haxorg_OptOfStr haxorg_Subtree_getTodoKeyword_const(OrgContext* org_context, haxorg_Subtree __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::Subtree::*)() const>(&org::sem::Subtree::getTodoKeyword), org_context, __this); }
 
 void haxorg_destroy_Subtree(OrgContext* org_context, haxorg_Subtree* obj) { org::bind::c::execute_destroy<org::sem::Subtree>(org_context, obj); }
 
@@ -2539,13 +2541,13 @@ void haxorg_destroy_Call(OrgContext* org_context, haxorg_Call* obj) { org::bind:
 
 haxorg_CheckboxState haxorg_ListItem_get_checkbox(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::get_cpp_field<haxorg_CheckboxState, org::sem::ListItem, CheckboxState, haxorg_ListItem>(org_context, __this, &org::sem::ListItem::checkbox); }
 
-haxorg_Opt haxorg_ListItem_get_header(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ListItem, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_ListItem>(org_context, __this, &org::sem::ListItem::header); }
+haxorg_OptOfSemIdOfParagraph haxorg_ListItem_get_header(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::ListItem, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_ListItem>(org_context, __this, &org::sem::ListItem::header); }
 
-haxorg_Opt haxorg_ListItem_get_bullet(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::ListItem, hstd::Opt<hstd::Str>, haxorg_ListItem>(org_context, __this, &org::sem::ListItem::bullet); }
+haxorg_OptOfStr haxorg_ListItem_get_bullet(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::ListItem, hstd::Opt<hstd::Str>, haxorg_ListItem>(org_context, __this, &org::sem::ListItem::bullet); }
 
 bool haxorg_ListItem_isDescriptionItem_const(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::ListItem::*)() const>(&org::sem::ListItem::isDescriptionItem), org_context, __this); }
 
-haxorg_Opt haxorg_ListItem_getCleanHeader_const(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader), org_context, __this); }
+haxorg_OptOfStr haxorg_ListItem_getCleanHeader_const(OrgContext* org_context, haxorg_ListItem __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader), org_context, __this); }
 
 void haxorg_destroy_ListItem(OrgContext* org_context, haxorg_ListItem* obj) { org::bind::c::execute_destroy<org::sem::ListItem>(org_context, obj); }
 
@@ -2555,25 +2557,25 @@ haxorg_HstdVecOfNamedProperty haxorg_DocumentOptions_get_properties(OrgContext* 
 
 haxorg_DocumentExportConfig haxorg_DocumentOptions_get_exportConfig(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_DocumentExportConfig, org::sem::DocumentOptions, org::sem::DocumentExportConfig, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::exportConfig); }
 
-haxorg_Opt haxorg_DocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::fixedWidthSections); }
+haxorg_OptOfBool haxorg_DocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentOptions, hstd::Opt<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::fixedWidthSections); }
 
-haxorg_Opt haxorg_DocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::startupIndented); }
+haxorg_OptOfBool haxorg_DocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::DocumentOptions, hstd::Opt<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::startupIndented); }
 
-haxorg_Opt haxorg_DocumentOptions_get_category(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<hstd::Str>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::category); }
+haxorg_OptOfStr haxorg_DocumentOptions_get_category(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::DocumentOptions, hstd::Opt<hstd::Str>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::category); }
 
-haxorg_Opt haxorg_DocumentOptions_get_setupfile(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<hstd::Str>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::setupfile); }
+haxorg_OptOfStr haxorg_DocumentOptions_get_setupfile(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::DocumentOptions, hstd::Opt<hstd::Str>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::setupfile); }
 
-haxorg_Opt haxorg_DocumentOptions_get_maxSubtreeLevelExport(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<int>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::maxSubtreeLevelExport); }
+haxorg_OptOfInt haxorg_DocumentOptions_get_maxSubtreeLevelExport(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::DocumentOptions, hstd::Opt<int>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::maxSubtreeLevelExport); }
 
-haxorg_Opt haxorg_DocumentOptions_get_columns(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::DocumentOptions, hstd::Opt<org::sem::ColumnView>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::columns); }
+haxorg_OptOfColumnView haxorg_DocumentOptions_get_columns(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfColumnView, org::sem::DocumentOptions, hstd::Opt<org::sem::ColumnView>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::columns); }
 
 haxorg_HstdVecOfTodoKeyword haxorg_DocumentOptions_get_todoKeywords(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfTodoKeyword, org::sem::DocumentOptions, hstd::Vec<org::sem::TodoKeyword>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::todoKeywords); }
 
 haxorg_HstdVecOfTodoKeyword haxorg_DocumentOptions_get_doneKeywords(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfTodoKeyword, org::sem::DocumentOptions, hstd::Vec<org::sem::TodoKeyword>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::doneKeywords); }
 
-haxorg_HstdVecOfNamedProperty haxorg_DocumentOptions_getProperties_const(OrgContext* org_context, haxorg_DocumentOptions __this, haxorg_HstdStr kind, haxorg_Opt subKind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties), org_context, __this, kind, subKind); }
+haxorg_HstdVecOfNamedProperty haxorg_DocumentOptions_getProperties_const(OrgContext* org_context, haxorg_DocumentOptions __this, haxorg_HstdStr kind, haxorg_OptOfStr subKind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties), org_context, __this, kind, subKind); }
 
-haxorg_Opt haxorg_DocumentOptions_getProperty_const(OrgContext* org_context, haxorg_DocumentOptions __this, haxorg_HstdStr kind, haxorg_Opt subKind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty), org_context, __this, kind, subKind); }
+haxorg_OptOfNamedProperty haxorg_DocumentOptions_getProperty_const(OrgContext* org_context, haxorg_DocumentOptions __this, haxorg_HstdStr kind, haxorg_OptOfStr subKind) { return org::bind::c::execute_cpp<haxorg_OptOfNamedProperty>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty), org_context, __this, kind, subKind); }
 
 void haxorg_destroy_DocumentOptions(OrgContext* org_context, haxorg_DocumentOptions* obj) { org::bind::c::execute_destroy<org::sem::DocumentOptions>(org_context, obj); }
 
@@ -2587,39 +2589,39 @@ haxorg_CriticMarkupKind haxorg_CriticMarkup_get_kind(OrgContext* org_context, ha
 
 void haxorg_destroy_CriticMarkup(OrgContext* org_context, haxorg_CriticMarkup* obj) { org::bind::c::execute_destroy<org::sem::CriticMarkup>(org_context, obj); }
 
-haxorg_Opt haxorg_Document_get_title(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::title); }
+haxorg_OptOfSemIdOfParagraph haxorg_Document_get_title(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::title); }
 
-haxorg_Opt haxorg_Document_get_author(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::author); }
+haxorg_OptOfSemIdOfParagraph haxorg_Document_get_author(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::author); }
 
-haxorg_Opt haxorg_Document_get_creator(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::creator); }
+haxorg_OptOfSemIdOfParagraph haxorg_Document_get_creator(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Document>(org_context, __this, &org::sem::Document::creator); }
 
 haxorg_HstdVecOfSemIdOfHashTag haxorg_Document_get_filetags(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfHashTag, org::sem::Document, hstd::Vec<org::sem::SemId<org::sem::HashTag>>, haxorg_Document>(org_context, __this, &org::sem::Document::filetags); }
 
-haxorg_Opt haxorg_Document_get_email(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::RawText>>, haxorg_Document>(org_context, __this, &org::sem::Document::email); }
+haxorg_OptOfSemIdOfRawText haxorg_Document_get_email(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfRawText, org::sem::Document, hstd::Opt<org::sem::SemId<org::sem::RawText>>, haxorg_Document>(org_context, __this, &org::sem::Document::email); }
 
 haxorg_HstdVecOfStr haxorg_Document_get_language(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfStr, org::sem::Document, hstd::Vec<hstd::Str>, haxorg_Document>(org_context, __this, &org::sem::Document::language); }
 
 haxorg_SemIdOfOrg haxorg_Document_get_options(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_SemIdOfOrg, org::sem::Document, org::sem::SemId<org::sem::DocumentOptions>, haxorg_Document>(org_context, __this, &org::sem::Document::options); }
 
-haxorg_Opt haxorg_Document_get_exportFileName(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Document, hstd::Opt<hstd::Str>, haxorg_Document>(org_context, __this, &org::sem::Document::exportFileName); }
+haxorg_OptOfStr haxorg_Document_get_exportFileName(OrgContext* org_context, haxorg_Document __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::Document, hstd::Opt<hstd::Str>, haxorg_Document>(org_context, __this, &org::sem::Document::exportFileName); }
 
-haxorg_HstdVecOfNamedProperty haxorg_Document_getProperties_const(OrgContext* org_context, haxorg_Document __this, haxorg_HstdStr kind, haxorg_Opt subKind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperties), org_context, __this, kind, subKind); }
+haxorg_HstdVecOfNamedProperty haxorg_Document_getProperties_const(OrgContext* org_context, haxorg_Document __this, haxorg_HstdStr kind, haxorg_OptOfStr subKind) { return org::bind::c::execute_cpp<haxorg_HstdVecOfNamedProperty>(static_cast<hstd::Vec<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperties), org_context, __this, kind, subKind); }
 
-haxorg_Opt haxorg_Document_getProperty_const(OrgContext* org_context, haxorg_Document __this, haxorg_HstdStr kind, haxorg_Opt subKind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperty), org_context, __this, kind, subKind); }
+haxorg_OptOfNamedProperty haxorg_Document_getProperty_const(OrgContext* org_context, haxorg_Document __this, haxorg_HstdStr kind, haxorg_OptOfStr subKind) { return org::bind::c::execute_cpp<haxorg_OptOfNamedProperty>(static_cast<hstd::Opt<org::sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperty), org_context, __this, kind, subKind); }
 
 void haxorg_destroy_Document(OrgContext* org_context, haxorg_Document* obj) { org::bind::c::execute_destroy<org::sem::Document>(org_context, obj); }
 
 haxorg_HstdStr haxorg_FileTarget_get_path(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::FileTarget, hstd::Str, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::path); }
 
-haxorg_Opt haxorg_FileTarget_get_line(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::FileTarget, hstd::Opt<int>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::line); }
+haxorg_OptOfInt haxorg_FileTarget_get_line(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::FileTarget, hstd::Opt<int>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::line); }
 
-haxorg_Opt haxorg_FileTarget_get_searchTarget(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::searchTarget); }
+haxorg_OptOfStr haxorg_FileTarget_get_searchTarget(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::searchTarget); }
 
 bool haxorg_FileTarget_get_restrictToHeadlines(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<bool, org::sem::FileTarget, bool, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::restrictToHeadlines); }
 
-haxorg_Opt haxorg_FileTarget_get_targetId(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::targetId); }
+haxorg_OptOfStr haxorg_FileTarget_get_targetId(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::targetId); }
 
-haxorg_Opt haxorg_FileTarget_get_regexp(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::regexp); }
+haxorg_OptOfStr haxorg_FileTarget_get_regexp(OrgContext* org_context, haxorg_FileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::FileTarget, hstd::Opt<hstd::Str>, haxorg_FileTarget>(org_context, __this, &org::sem::FileTarget::regexp); }
 
 void haxorg_destroy_FileTarget(OrgContext* org_context, haxorg_FileTarget* obj) { org::bind::c::execute_destroy<org::sem::FileTarget>(org_context, obj); }
 
@@ -2673,9 +2675,9 @@ void haxorg_destroy_Symlink(OrgContext* org_context, haxorg_Symlink* obj) { org:
 
 haxorg_HstdStr haxorg_CmdInclude_get_path(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::CmdInclude, hstd::Str, haxorg_CmdInclude>(org_context, __this, &org::sem::CmdInclude::path); }
 
-haxorg_Opt haxorg_CmdInclude_get_firstLine(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude, hstd::Opt<int>, haxorg_CmdInclude>(org_context, __this, &org::sem::CmdInclude::firstLine); }
+haxorg_OptOfInt haxorg_CmdInclude_get_firstLine(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::CmdInclude, hstd::Opt<int>, haxorg_CmdInclude>(org_context, __this, &org::sem::CmdInclude::firstLine); }
 
-haxorg_Opt haxorg_CmdInclude_get_lastLine(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude, hstd::Opt<int>, haxorg_CmdInclude>(org_context, __this, &org::sem::CmdInclude::lastLine); }
+haxorg_OptOfInt haxorg_CmdInclude_get_lastLine(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::CmdInclude, hstd::Opt<int>, haxorg_CmdInclude>(org_context, __this, &org::sem::CmdInclude::lastLine); }
 
 bool haxorg_CmdInclude_isExample_const(OrgContext* org_context, haxorg_CmdInclude __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExample), org_context, __this); }
 
@@ -2725,13 +2727,13 @@ haxorg_HstdStr haxorg_CmdIncludeSrc_get_language(OrgContext* org_context, haxorg
 
 void haxorg_destroy_CmdIncludeSrc(OrgContext* org_context, haxorg_CmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::Src>(org_context, obj); }
 
-haxorg_Opt haxorg_CmdIncludeOrgDocument_get_onlyContent(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude::OrgDocument, hstd::Opt<bool>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::onlyContent); }
+haxorg_OptOfBool haxorg_CmdIncludeOrgDocument_get_onlyContent(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::sem::CmdInclude::OrgDocument, hstd::Opt<bool>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::onlyContent); }
 
-haxorg_Opt haxorg_CmdIncludeOrgDocument_get_subtreePath(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude::OrgDocument, hstd::Opt<org::sem::SubtreePath>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::subtreePath); }
+haxorg_OptOfSubtreePath haxorg_CmdIncludeOrgDocument_get_subtreePath(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSubtreePath, org::sem::CmdInclude::OrgDocument, hstd::Opt<org::sem::SubtreePath>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::subtreePath); }
 
-haxorg_Opt haxorg_CmdIncludeOrgDocument_get_minLevel(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude::OrgDocument, hstd::Opt<int>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::minLevel); }
+haxorg_OptOfInt haxorg_CmdIncludeOrgDocument_get_minLevel(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::sem::CmdInclude::OrgDocument, hstd::Opt<int>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::minLevel); }
 
-haxorg_Opt haxorg_CmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdInclude::OrgDocument, hstd::Opt<hstd::Str>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::customIdTarget); }
+haxorg_OptOfStr haxorg_CmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::CmdInclude::OrgDocument, hstd::Opt<hstd::Str>, haxorg_CmdIncludeOrgDocument>(org_context, __this, &org::sem::CmdInclude::OrgDocument::customIdTarget); }
 
 void haxorg_destroy_CmdIncludeOrgDocument(OrgContext* org_context, haxorg_CmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude::OrgDocument>(org_context, obj); }
 
@@ -2807,7 +2809,7 @@ void haxorg_destroy_ImmTimeRepeat(OrgContext* org_context, haxorg_ImmTimeRepeat*
 
 haxorg_ImmVec haxorg_ImmTimeStatic_get_repeat(OrgContext* org_context, haxorg_ImmTimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmTime::Static, hstd::ext::ImmVec<org::imm::ImmTime::Repeat>, haxorg_ImmTimeStatic>(org_context, __this, &org::imm::ImmTime::Static::repeat); }
 
-haxorg_Opt haxorg_ImmTimeStatic_get_warn(OrgContext* org_context, haxorg_ImmTimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmTime::Static, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>, haxorg_ImmTimeStatic>(org_context, __this, &org::imm::ImmTime::Static::warn); }
+haxorg_OptOfImmTimeRepeat haxorg_ImmTimeStatic_get_warn(OrgContext* org_context, haxorg_ImmTimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmTimeRepeat, org::imm::ImmTime::Static, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>, haxorg_ImmTimeStatic>(org_context, __this, &org::imm::ImmTime::Static::warn); }
 
 haxorg_UserTime haxorg_ImmTimeStatic_get_time(OrgContext* org_context, haxorg_ImmTimeStatic __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::imm::ImmTime::Static, hstd::UserTime, haxorg_ImmTimeStatic>(org_context, __this, &org::imm::ImmTime::Static::time); }
 
@@ -2851,7 +2853,7 @@ haxorg_ImmVec haxorg_ImmSymbol_get_positional(OrgContext* org_context, haxorg_Im
 
 bool haxorg_ImmSymbol___eq___const(OrgContext* org_context, haxorg_ImmSymbol __this, haxorg_ImmSymbol other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmSymbol::*)(org::imm::ImmSymbol const&) const>(&org::imm::ImmSymbol::operator==), org_context, __this, other); }
 
-haxorg_Opt haxorg_ImmSymbolParam_get_key(OrgContext* org_context, haxorg_ImmSymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSymbol::Param, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSymbolParam>(org_context, __this, &org::imm::ImmSymbol::Param::key); }
+haxorg_OptOfStr haxorg_ImmSymbolParam_get_key(OrgContext* org_context, haxorg_ImmSymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmSymbol::Param, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSymbolParam>(org_context, __this, &org::imm::ImmSymbol::Param::key); }
 
 haxorg_HstdStr haxorg_ImmSymbolParam_get_value(OrgContext* org_context, haxorg_ImmSymbolParam __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::imm::ImmSymbol::Param, hstd::ext::ImmBox<hstd::Str>, haxorg_ImmSymbolParam>(org_context, __this, &org::imm::ImmSymbol::Param::value); }
 
@@ -2883,7 +2885,7 @@ void haxorg_destroy_ImmLatex(OrgContext* org_context, haxorg_ImmLatex* obj) { or
 
 haxorg_SubtreeLogHead haxorg_ImmSubtreeLog_get_head(OrgContext* org_context, haxorg_ImmSubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_SubtreeLogHead, org::imm::ImmSubtreeLog, org::sem::SubtreeLogHead, haxorg_ImmSubtreeLog>(org_context, __this, &org::imm::ImmSubtreeLog::head); }
 
-haxorg_Opt haxorg_ImmSubtreeLog_get_desc(OrgContext* org_context, haxorg_ImmSubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtreeLog, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>, haxorg_ImmSubtreeLog>(org_context, __this, &org::imm::ImmSubtreeLog::desc); }
+haxorg_OptOfImmIdTOfImmStmtList haxorg_ImmSubtreeLog_get_desc(OrgContext* org_context, haxorg_ImmSubtreeLog __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmStmtList, org::imm::ImmSubtreeLog, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>, haxorg_ImmSubtreeLog>(org_context, __this, &org::imm::ImmSubtreeLog::desc); }
 
 bool haxorg_ImmSubtreeLog___eq___const(OrgContext* org_context, haxorg_ImmSubtreeLog __this, haxorg_ImmSubtreeLog other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmSubtreeLog::*)(org::imm::ImmSubtreeLog const&) const>(&org::imm::ImmSubtreeLog::operator==), org_context, __this, other); }
 
@@ -2891,13 +2893,13 @@ void haxorg_destroy_ImmSubtreeLog(OrgContext* org_context, haxorg_ImmSubtreeLog*
 
 int haxorg_ImmSubtree_get_level(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<int, org::imm::ImmSubtree, int, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::level); }
 
-haxorg_Opt haxorg_ImmSubtree_get_treeId(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::treeId); }
+haxorg_OptOfStr haxorg_ImmSubtree_get_treeId(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::treeId); }
 
-haxorg_Opt haxorg_ImmSubtree_get_todo(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::todo); }
+haxorg_OptOfStr haxorg_ImmSubtree_get_todo(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::todo); }
 
-haxorg_Opt haxorg_ImmSubtree_get_completion(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::completion); }
+haxorg_OptOfSubtreeCompletion haxorg_ImmSubtree_get_completion(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSubtreeCompletion, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::completion); }
 
-haxorg_Opt haxorg_ImmSubtree_get_description(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::description); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmSubtree_get_description(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::description); }
 
 haxorg_ImmVec haxorg_ImmSubtree_get_tags(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmSubtree, hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::tags); }
 
@@ -2907,17 +2909,17 @@ haxorg_ImmVec haxorg_ImmSubtree_get_logbook(OrgContext* org_context, haxorg_ImmS
 
 haxorg_ImmVec haxorg_ImmSubtree_get_properties(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmSubtree, hstd::ext::ImmVec<org::sem::NamedProperty>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::properties); }
 
-haxorg_Opt haxorg_ImmSubtree_get_closed(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::closed); }
+haxorg_OptOfImmIdTOfImmTime haxorg_ImmSubtree_get_closed(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmTime, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::closed); }
 
-haxorg_Opt haxorg_ImmSubtree_get_deadline(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::deadline); }
+haxorg_OptOfImmIdTOfImmTime haxorg_ImmSubtree_get_deadline(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmTime, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::deadline); }
 
-haxorg_Opt haxorg_ImmSubtree_get_scheduled(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::scheduled); }
+haxorg_OptOfImmIdTOfImmTime haxorg_ImmSubtree_get_scheduled(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmTime, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::scheduled); }
 
 bool haxorg_ImmSubtree_get_isComment(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<bool, org::imm::ImmSubtree, bool, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::isComment); }
 
 bool haxorg_ImmSubtree_get_isArchived(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<bool, org::imm::ImmSubtree, bool, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::isArchived); }
 
-haxorg_Opt haxorg_ImmSubtree_get_priority(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::priority); }
+haxorg_OptOfStr haxorg_ImmSubtree_get_priority(OrgContext* org_context, haxorg_ImmSubtree __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmSubtree, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmSubtree>(org_context, __this, &org::imm::ImmSubtree::priority); }
 
 bool haxorg_ImmSubtree___eq___const(OrgContext* org_context, haxorg_ImmSubtree __this, haxorg_ImmSubtree other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmSubtree::*)(org::imm::ImmSubtree const&) const>(&org::imm::ImmSubtree::operator==), org_context, __this, other); }
 
@@ -2939,9 +2941,9 @@ void haxorg_destroy_ImmCall(OrgContext* org_context, haxorg_ImmCall* obj) { org:
 
 haxorg_CheckboxState haxorg_ImmListItem_get_checkbox(OrgContext* org_context, haxorg_ImmListItem __this) { return org::bind::c::get_cpp_field<haxorg_CheckboxState, org::imm::ImmListItem, CheckboxState, haxorg_ImmListItem>(org_context, __this, &org::imm::ImmListItem::checkbox); }
 
-haxorg_Opt haxorg_ImmListItem_get_header(OrgContext* org_context, haxorg_ImmListItem __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmListItem, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmListItem>(org_context, __this, &org::imm::ImmListItem::header); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmListItem_get_header(OrgContext* org_context, haxorg_ImmListItem __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmListItem, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmListItem>(org_context, __this, &org::imm::ImmListItem::header); }
 
-haxorg_Opt haxorg_ImmListItem_get_bullet(OrgContext* org_context, haxorg_ImmListItem __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmListItem, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmListItem>(org_context, __this, &org::imm::ImmListItem::bullet); }
+haxorg_OptOfStr haxorg_ImmListItem_get_bullet(OrgContext* org_context, haxorg_ImmListItem __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmListItem, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmListItem>(org_context, __this, &org::imm::ImmListItem::bullet); }
 
 bool haxorg_ImmListItem___eq___const(OrgContext* org_context, haxorg_ImmListItem __this, haxorg_ImmListItem other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmListItem::*)(org::imm::ImmListItem const&) const>(&org::imm::ImmListItem::operator==), org_context, __this, other); }
 
@@ -2953,17 +2955,17 @@ haxorg_ImmVec haxorg_ImmDocumentOptions_get_properties(OrgContext* org_context, 
 
 haxorg_DocumentExportConfig haxorg_ImmDocumentOptions_get_exportConfig(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_DocumentExportConfig, org::imm::ImmDocumentOptions, org::sem::DocumentExportConfig, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::exportConfig); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::fixedWidthSections); }
+haxorg_OptOfBool haxorg_ImmDocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::fixedWidthSections); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::startupIndented); }
+haxorg_OptOfBool haxorg_ImmDocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::startupIndented); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_category(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::category); }
+haxorg_OptOfStr haxorg_ImmDocumentOptions_get_category(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::category); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_setupfile(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::setupfile); }
+haxorg_OptOfStr haxorg_ImmDocumentOptions_get_setupfile(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::setupfile); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_maxSubtreeLevelExport(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::maxSubtreeLevelExport); }
+haxorg_OptOfInt haxorg_ImmDocumentOptions_get_maxSubtreeLevelExport(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::maxSubtreeLevelExport); }
 
-haxorg_Opt haxorg_ImmDocumentOptions_get_columns(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::columns); }
+haxorg_OptOfColumnView haxorg_ImmDocumentOptions_get_columns(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_OptOfColumnView, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::columns); }
 
 haxorg_ImmVec haxorg_ImmDocumentOptions_get_todoKeywords(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmDocumentOptions, hstd::ext::ImmVec<org::sem::TodoKeyword>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::todoKeywords); }
 
@@ -2987,21 +2989,21 @@ bool haxorg_ImmCriticMarkup___eq___const(OrgContext* org_context, haxorg_ImmCrit
 
 void haxorg_destroy_ImmCriticMarkup(OrgContext* org_context, haxorg_ImmCriticMarkup* obj) { org::bind::c::execute_destroy<org::imm::ImmCriticMarkup>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmDocument_get_title(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::title); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmDocument_get_title(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::title); }
 
-haxorg_Opt haxorg_ImmDocument_get_author(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::author); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmDocument_get_author(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::author); }
 
-haxorg_Opt haxorg_ImmDocument_get_creator(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::creator); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmDocument_get_creator(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::creator); }
 
 haxorg_ImmVec haxorg_ImmDocument_get_filetags(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmDocument, hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::filetags); }
 
-haxorg_Opt haxorg_ImmDocument_get_email(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::email); }
+haxorg_OptOfImmIdTOfImmRawText haxorg_ImmDocument_get_email(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmRawText, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::email); }
 
 haxorg_ImmVec haxorg_ImmDocument_get_language(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmDocument, hstd::ext::ImmVec<hstd::Str>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::language); }
 
 haxorg_ImmId haxorg_ImmDocument_get_options(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_ImmId, org::imm::ImmDocument, org::imm::ImmIdT<org::imm::ImmDocumentOptions>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::options); }
 
-haxorg_Opt haxorg_ImmDocument_get_exportFileName(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::exportFileName); }
+haxorg_OptOfStr haxorg_ImmDocument_get_exportFileName(OrgContext* org_context, haxorg_ImmDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmDocument, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmDocument>(org_context, __this, &org::imm::ImmDocument::exportFileName); }
 
 bool haxorg_ImmDocument___eq___const(OrgContext* org_context, haxorg_ImmDocument __this, haxorg_ImmDocument other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmDocument::*)(org::imm::ImmDocument const&) const>(&org::imm::ImmDocument::operator==), org_context, __this, other); }
 
@@ -3009,15 +3011,15 @@ void haxorg_destroy_ImmDocument(OrgContext* org_context, haxorg_ImmDocument* obj
 
 haxorg_HstdStr haxorg_ImmFileTarget_get_path(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Str>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::path); }
 
-haxorg_Opt haxorg_ImmFileTarget_get_line(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::line); }
+haxorg_OptOfInt haxorg_ImmFileTarget_get_line(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::line); }
 
-haxorg_Opt haxorg_ImmFileTarget_get_searchTarget(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::searchTarget); }
+haxorg_OptOfStr haxorg_ImmFileTarget_get_searchTarget(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::searchTarget); }
 
 bool haxorg_ImmFileTarget_get_restrictToHeadlines(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<bool, org::imm::ImmFileTarget, bool, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::restrictToHeadlines); }
 
-haxorg_Opt haxorg_ImmFileTarget_get_targetId(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::targetId); }
+haxorg_OptOfStr haxorg_ImmFileTarget_get_targetId(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::targetId); }
 
-haxorg_Opt haxorg_ImmFileTarget_get_regexp(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::regexp); }
+haxorg_OptOfStr haxorg_ImmFileTarget_get_regexp(OrgContext* org_context, haxorg_ImmFileTarget __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmFileTarget, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmFileTarget>(org_context, __this, &org::imm::ImmFileTarget::regexp); }
 
 bool haxorg_ImmFileTarget___eq___const(OrgContext* org_context, haxorg_ImmFileTarget __this, haxorg_ImmFileTarget other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmFileTarget::*)(org::imm::ImmFileTarget const&) const>(&org::imm::ImmFileTarget::operator==), org_context, __this, other); }
 
@@ -3089,9 +3091,9 @@ void haxorg_destroy_ImmSymlink(OrgContext* org_context, haxorg_ImmSymlink* obj) 
 
 haxorg_HstdStr haxorg_ImmCmdInclude_get_path(OrgContext* org_context, haxorg_ImmCmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::imm::ImmCmdInclude, hstd::ext::ImmBox<hstd::Str>, haxorg_ImmCmdInclude>(org_context, __this, &org::imm::ImmCmdInclude::path); }
 
-haxorg_Opt haxorg_ImmCmdInclude_get_firstLine(OrgContext* org_context, haxorg_ImmCmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdInclude>(org_context, __this, &org::imm::ImmCmdInclude::firstLine); }
+haxorg_OptOfInt haxorg_ImmCmdInclude_get_firstLine(OrgContext* org_context, haxorg_ImmCmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::imm::ImmCmdInclude, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdInclude>(org_context, __this, &org::imm::ImmCmdInclude::firstLine); }
 
-haxorg_Opt haxorg_ImmCmdInclude_get_lastLine(OrgContext* org_context, haxorg_ImmCmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdInclude>(org_context, __this, &org::imm::ImmCmdInclude::lastLine); }
+haxorg_OptOfInt haxorg_ImmCmdInclude_get_lastLine(OrgContext* org_context, haxorg_ImmCmdInclude __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::imm::ImmCmdInclude, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdInclude>(org_context, __this, &org::imm::ImmCmdInclude::lastLine); }
 
 bool haxorg_ImmCmdInclude___eq___const(OrgContext* org_context, haxorg_ImmCmdInclude __this, haxorg_ImmCmdInclude other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmCmdInclude::*)(org::imm::ImmCmdInclude const&) const>(&org::imm::ImmCmdInclude::operator==), org_context, __this, other); }
 
@@ -3153,13 +3155,13 @@ bool haxorg_ImmCmdIncludeSrc___eq___const(OrgContext* org_context, haxorg_ImmCmd
 
 void haxorg_destroy_ImmCmdIncludeSrc(OrgContext* org_context, haxorg_ImmCmdIncludeSrc* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::Src>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmCmdIncludeOrgDocument_get_onlyContent(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::onlyContent); }
+haxorg_OptOfBool haxorg_ImmCmdIncludeOrgDocument_get_onlyContent(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfBool, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<bool>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::onlyContent); }
 
-haxorg_Opt haxorg_ImmCmdIncludeOrgDocument_get_subtreePath(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreePath>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::subtreePath); }
+haxorg_OptOfSubtreePath haxorg_ImmCmdIncludeOrgDocument_get_subtreePath(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSubtreePath, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreePath>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::subtreePath); }
 
-haxorg_Opt haxorg_ImmCmdIncludeOrgDocument_get_minLevel(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::minLevel); }
+haxorg_OptOfInt haxorg_ImmCmdIncludeOrgDocument_get_minLevel(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfInt, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<int>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::minLevel); }
 
-haxorg_Opt haxorg_ImmCmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::customIdTarget); }
+haxorg_OptOfStr haxorg_ImmCmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmCmdInclude::OrgDocument, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmCmdIncludeOrgDocument>(org_context, __this, &org::imm::ImmCmdInclude::OrgDocument::customIdTarget); }
 
 bool haxorg_ImmCmdIncludeOrgDocument___eq___const(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this, haxorg_ImmCmdIncludeOrgDocument other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmCmdInclude::OrgDocument::*)(org::imm::ImmCmdInclude::OrgDocument const&) const>(&org::imm::ImmCmdInclude::OrgDocument::operator==), org_context, __this, other); }
 
@@ -3171,9 +3173,9 @@ void haxorg_destroy_ImmAdapterOrgAPI(OrgContext* org_context, haxorg_ImmAdapterO
 
 haxorg_AttrGroup haxorg_Cmd_get_attrs(OrgContext* org_context, haxorg_Cmd __this) { return org::bind::c::get_cpp_field<haxorg_AttrGroup, org::sem::Cmd, org::sem::AttrGroup, haxorg_Cmd>(org_context, __this, &org::sem::Cmd::attrs); }
 
-haxorg_HstdVecOfAttrValue haxorg_Cmd_getAttrs_const(OrgContext* org_context, haxorg_Cmd __this, haxorg_Opt key) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs), org_context, __this, key); }
+haxorg_HstdVecOfAttrValue haxorg_Cmd_getAttrs_const(OrgContext* org_context, haxorg_Cmd __this, haxorg_OptOfStr key) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAttrValue>(static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs), org_context, __this, key); }
 
-haxorg_Opt haxorg_Cmd_getFirstAttr_const(OrgContext* org_context, haxorg_Cmd __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr), org_context, __this, kind); }
+haxorg_OptOfAttrValue haxorg_Cmd_getFirstAttr_const(OrgContext* org_context, haxorg_Cmd __this, haxorg_HstdStr kind) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr), org_context, __this, kind); }
 
 void haxorg_destroy_Cmd(OrgContext* org_context, haxorg_Cmd* obj) { org::bind::c::execute_destroy<org::sem::Cmd>(org_context, obj); }
 
@@ -3193,7 +3195,7 @@ haxorg_SemIdOfOrg haxorg_CmdCustomText_get_text(OrgContext* org_context, haxorg_
 
 void haxorg_destroy_CmdCustomText(OrgContext* org_context, haxorg_CmdCustomText* obj) { org::bind::c::execute_destroy<org::sem::CmdCustomText>(org_context, obj); }
 
-haxorg_Opt haxorg_Link_get_description(OrgContext* org_context, haxorg_Link __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::Link, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Link>(org_context, __this, &org::sem::Link::description); }
+haxorg_OptOfSemIdOfParagraph haxorg_Link_get_description(OrgContext* org_context, haxorg_Link __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfParagraph, org::sem::Link, hstd::Opt<org::sem::SemId<org::sem::Paragraph>>, haxorg_Link>(org_context, __this, &org::sem::Link::description); }
 
 haxorg_LinkTarget haxorg_Link_get_target(OrgContext* org_context, haxorg_Link __this) { return org::bind::c::get_cpp_field<haxorg_LinkTarget, org::sem::Link, org::sem::LinkTarget, haxorg_Link>(org_context, __this, &org::sem::Link::target); }
 
@@ -3203,7 +3205,7 @@ void haxorg_destroy_BlockComment(OrgContext* org_context, haxorg_BlockComment* o
 
 bool haxorg_Paragraph_isFootnoteDefinition_const(OrgContext* org_context, haxorg_Paragraph __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::isFootnoteDefinition), org_context, __this); }
 
-haxorg_Opt haxorg_Paragraph_getFootnoteName_const(OrgContext* org_context, haxorg_Paragraph __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getFootnoteName), org_context, __this); }
+haxorg_OptOfStr haxorg_Paragraph_getFootnoteName_const(OrgContext* org_context, haxorg_Paragraph __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getFootnoteName), org_context, __this); }
 
 bool haxorg_Paragraph_hasAdmonition_const(OrgContext* org_context, haxorg_Paragraph __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasAdmonition), org_context, __this); }
 
@@ -3241,7 +3243,7 @@ void haxorg_destroy_HashTag(OrgContext* org_context, haxorg_HashTag* obj) { org:
 
 haxorg_HstdStr haxorg_InlineFootnote_get_tag(OrgContext* org_context, haxorg_InlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::InlineFootnote, hstd::Str, haxorg_InlineFootnote>(org_context, __this, &org::sem::InlineFootnote::tag); }
 
-haxorg_Opt haxorg_InlineFootnote_get_definition(OrgContext* org_context, haxorg_InlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::InlineFootnote, hstd::Opt<org::sem::SemId<org::sem::Org>>, haxorg_InlineFootnote>(org_context, __this, &org::sem::InlineFootnote::definition); }
+haxorg_OptOfSemIdOfOrg haxorg_InlineFootnote_get_definition(OrgContext* org_context, haxorg_InlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_OptOfSemIdOfOrg, org::sem::InlineFootnote, hstd::Opt<org::sem::SemId<org::sem::Org>>, haxorg_InlineFootnote>(org_context, __this, &org::sem::InlineFootnote::definition); }
 
 void haxorg_destroy_InlineFootnote(OrgContext* org_context, haxorg_InlineFootnote* obj) { org::bind::c::execute_destroy<org::sem::InlineFootnote>(org_context, obj); }
 
@@ -3315,7 +3317,7 @@ bool haxorg_ImmCmdCustomText___eq___const(OrgContext* org_context, haxorg_ImmCmd
 
 void haxorg_destroy_ImmCmdCustomText(OrgContext* org_context, haxorg_ImmCmdCustomText* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdCustomText>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmLink_get_description(OrgContext* org_context, haxorg_ImmLink __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmLink, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmLink>(org_context, __this, &org::imm::ImmLink::description); }
+haxorg_OptOfImmIdTOfImmParagraph haxorg_ImmLink_get_description(OrgContext* org_context, haxorg_ImmLink __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmParagraph, org::imm::ImmLink, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>, haxorg_ImmLink>(org_context, __this, &org::imm::ImmLink::description); }
 
 haxorg_LinkTarget haxorg_ImmLink_get_target(OrgContext* org_context, haxorg_ImmLink __this) { return org::bind::c::get_cpp_field<haxorg_LinkTarget, org::imm::ImmLink, org::sem::LinkTarget, haxorg_ImmLink>(org_context, __this, &org::imm::ImmLink::target); }
 
@@ -3343,7 +3345,7 @@ void haxorg_destroy_ImmHashTag(OrgContext* org_context, haxorg_ImmHashTag* obj) 
 
 haxorg_HstdStr haxorg_ImmInlineFootnote_get_tag(OrgContext* org_context, haxorg_ImmInlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::imm::ImmInlineFootnote, hstd::ext::ImmBox<hstd::Str>, haxorg_ImmInlineFootnote>(org_context, __this, &org::imm::ImmInlineFootnote::tag); }
 
-haxorg_Opt haxorg_ImmInlineFootnote_get_definition(OrgContext* org_context, haxorg_ImmInlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmInlineFootnote, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>, haxorg_ImmInlineFootnote>(org_context, __this, &org::imm::ImmInlineFootnote::definition); }
+haxorg_OptOfImmIdTOfImmOrg haxorg_ImmInlineFootnote_get_definition(OrgContext* org_context, haxorg_ImmInlineFootnote __this) { return org::bind::c::get_cpp_field<haxorg_OptOfImmIdTOfImmOrg, org::imm::ImmInlineFootnote, hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>, haxorg_ImmInlineFootnote>(org_context, __this, &org::imm::ImmInlineFootnote::definition); }
 
 bool haxorg_ImmInlineFootnote___eq___const(OrgContext* org_context, haxorg_ImmInlineFootnote __this, haxorg_ImmInlineFootnote other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmInlineFootnote::*)(org::imm::ImmInlineFootnote const&) const>(&org::imm::ImmInlineFootnote::operator==), org_context, __this, other); }
 
@@ -3627,13 +3629,13 @@ void haxorg_destroy_ImmStmtAdapter(OrgContext* org_context, haxorg_ImmStmtAdapte
 
 int haxorg_ImmAdapterTOfImmSubtree_getLevel_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<int>(static_cast<int(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getTreeId_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmSubtree_getTreeId_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getTodo_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmSubtree_getTodo_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getCompletion_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion), org_context, __this); }
+haxorg_OptOfSubtreeCompletion haxorg_ImmAdapterTOfImmSubtree_getCompletion_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfSubtreeCompletion>(static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getDescription_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmSubtree_getDescription_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription), org_context, __this); }
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmSubtree_getTags_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags), org_context, __this); }
 
@@ -3643,17 +3645,17 @@ haxorg_ImmVec haxorg_ImmAdapterTOfImmSubtree_getLogbook_const(OrgContext* org_co
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmSubtree_getProperties_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getClosed_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmTime haxorg_ImmAdapterTOfImmSubtree_getClosed_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmTime>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getDeadline_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmTime haxorg_ImmAdapterTOfImmSubtree_getDeadline_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmTime>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getScheduled_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmTime haxorg_ImmAdapterTOfImmSubtree_getScheduled_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmTime>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled), org_context, __this); }
 
 bool haxorg_ImmAdapterTOfImmSubtree_getIsComment_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment), org_context, __this); }
 
 bool haxorg_ImmAdapterTOfImmSubtree_getIsArchived_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtree_getPriority_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmSubtree_getPriority_const(OrgContext* org_context, haxorg_ImmSubtreeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmSubtree_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSubtree> { return org::imm::ImmAdapterT<org::imm::ImmSubtree>(other); }, org_context, other); }
 
@@ -3789,7 +3791,7 @@ void haxorg_destroy_ImmLatexAdapter(OrgContext* org_context, haxorg_ImmLatexAdap
 
 haxorg_SubtreeLogHead haxorg_ImmAdapterTOfImmSubtreeLog_getHead_const(OrgContext* org_context, haxorg_ImmSubtreeLogAdapter __this) { return org::bind::c::execute_cpp<haxorg_SubtreeLogHead>(static_cast<org::sem::SubtreeLogHead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmSubtreeLog_getDesc_const(OrgContext* org_context, haxorg_ImmSubtreeLogAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmStmtList haxorg_ImmAdapterTOfImmSubtreeLog_getDesc_const(OrgContext* org_context, haxorg_ImmSubtreeLogAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmStmtList>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmSubtreeLog_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmSubtreeLog> { return org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>(other); }, org_context, other); }
 
@@ -3849,9 +3851,9 @@ void haxorg_destroy_ImmCriticMarkupAdapter(OrgContext* org_context, haxorg_ImmCr
 
 haxorg_CheckboxState haxorg_ImmAdapterTOfImmListItem_getCheckbox_const(OrgContext* org_context, haxorg_ImmListItemAdapter __this) { return org::bind::c::execute_cpp<haxorg_CheckboxState>(static_cast<CheckboxState(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmListItem_getHeader_const(OrgContext* org_context, haxorg_ImmListItemAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmListItem_getHeader_const(OrgContext* org_context, haxorg_ImmListItemAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmListItem_getBullet_const(OrgContext* org_context, haxorg_ImmListItemAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmListItem_getBullet_const(OrgContext* org_context, haxorg_ImmListItemAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmListItem_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmListItem> { return org::imm::ImmAdapterT<org::imm::ImmListItem>(other); }, org_context, other); }
 
@@ -3863,17 +3865,17 @@ haxorg_ImmVec haxorg_ImmAdapterTOfImmDocumentOptions_getProperties_const(OrgCont
 
 haxorg_DocumentExportConfig haxorg_ImmAdapterTOfImmDocumentOptions_getExportConfig_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_DocumentExportConfig>(static_cast<org::sem::DocumentExportConfig(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getFixedWidthSections_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections), org_context, __this); }
+haxorg_OptOfBool haxorg_ImmAdapterTOfImmDocumentOptions_getFixedWidthSections_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfBool>(static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getStartupIndented_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented), org_context, __this); }
+haxorg_OptOfBool haxorg_ImmAdapterTOfImmDocumentOptions_getStartupIndented_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfBool>(static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getCategory_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmDocumentOptions_getCategory_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getSetupfile_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmDocumentOptions_getSetupfile_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getMaxSubtreeLevelExport_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport), org_context, __this); }
+haxorg_OptOfInt haxorg_ImmAdapterTOfImmDocumentOptions_getMaxSubtreeLevelExport_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocumentOptions_getColumns_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::ColumnView> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getColumns), org_context, __this); }
+haxorg_OptOfColumnView haxorg_ImmAdapterTOfImmDocumentOptions_getColumns_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfColumnView>(static_cast<hstd::Opt<org::sem::ColumnView> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getColumns), org_context, __this); }
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmDocumentOptions_getTodoKeywords_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords), org_context, __this); }
 
@@ -3883,21 +3885,21 @@ void haxorg_create_ImmAdapterTOfImmDocumentOptions_ImmAdapterT(OrgContext* org_c
 
 void haxorg_destroy_ImmDocumentOptionsAdapter(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocument_getTitle_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmDocument_getTitle_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocument_getAuthor_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmDocument_getAuthor_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocument_getCreator_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmDocument_getCreator_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator), org_context, __this); }
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmDocument_getFiletags_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocument_getEmail_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmRawText haxorg_ImmAdapterTOfImmDocument_getEmail_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmRawText>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail), org_context, __this); }
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmDocument_getLanguage_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage), org_context, __this); }
 
 haxorg_ImmAdapter haxorg_ImmAdapterTOfImmDocument_getOptions_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmDocument_getExportFileName_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmDocument_getExportFileName_const(OrgContext* org_context, haxorg_ImmDocumentAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmDocument_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmDocument> { return org::imm::ImmAdapterT<org::imm::ImmDocument>(other); }, org_context, other); }
 
@@ -3905,15 +3907,15 @@ void haxorg_destroy_ImmDocumentAdapter(OrgContext* org_context, haxorg_ImmDocume
 
 haxorg_HstdStr haxorg_ImmAdapterTOfImmFileTarget_getPath_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getPath), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmFileTarget_getLine_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine), org_context, __this); }
+haxorg_OptOfInt haxorg_ImmAdapterTOfImmFileTarget_getLine_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmFileTarget_getSearchTarget_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmFileTarget_getSearchTarget_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget), org_context, __this); }
 
 bool haxorg_ImmAdapterTOfImmFileTarget_getRestrictToHeadlines_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmFileTarget_getTargetId_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmFileTarget_getTargetId_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmFileTarget_getRegexp_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmFileTarget_getRegexp_const(OrgContext* org_context, haxorg_ImmFileTargetAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmFileTarget_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmFileTarget> { return org::imm::ImmAdapterT<org::imm::ImmFileTarget>(other); }, org_context, other); }
 
@@ -3925,9 +3927,9 @@ void haxorg_destroy_ImmTextSeparatorAdapter(OrgContext* org_context, haxorg_ImmT
 
 haxorg_HstdStr haxorg_ImmAdapterTOfImmCmdInclude_getPath_const(OrgContext* org_context, haxorg_ImmCmdIncludeAdapter __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getPath), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmCmdInclude_getFirstLine_const(OrgContext* org_context, haxorg_ImmCmdIncludeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine), org_context, __this); }
+haxorg_OptOfInt haxorg_ImmAdapterTOfImmCmdInclude_getFirstLine_const(OrgContext* org_context, haxorg_ImmCmdIncludeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmCmdInclude_getLastLine_const(OrgContext* org_context, haxorg_ImmCmdIncludeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine), org_context, __this); }
+haxorg_OptOfInt haxorg_ImmAdapterTOfImmCmdInclude_getLastLine_const(OrgContext* org_context, haxorg_ImmCmdIncludeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfInt>(static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmCmdInclude_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmCmdInclude> { return org::imm::ImmAdapterT<org::imm::ImmCmdInclude>(other); }, org_context, other); }
 
@@ -3953,7 +3955,7 @@ haxorg_HstdStr haxorg_BlockExport_get_exporter(OrgContext* org_context, haxorg_B
 
 haxorg_HstdStr haxorg_BlockExport_get_content(OrgContext* org_context, haxorg_BlockExport __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::BlockExport, hstd::Str, haxorg_BlockExport>(org_context, __this, &org::sem::BlockExport::content); }
 
-haxorg_Opt haxorg_BlockExport_getPlacement_const(OrgContext* org_context, haxorg_BlockExport __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getPlacement), org_context, __this); }
+haxorg_OptOfStr haxorg_BlockExport_getPlacement_const(OrgContext* org_context, haxorg_BlockExport __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getPlacement), org_context, __this); }
 
 void haxorg_destroy_BlockExport(OrgContext* org_context, haxorg_BlockExport* obj) { org::bind::c::execute_destroy<org::sem::BlockExport>(org_context, obj); }
 
@@ -3965,7 +3967,7 @@ haxorg_SemIdOfOrg haxorg_BlockCodeEvalResult_get_node(OrgContext* org_context, h
 
 void haxorg_destroy_BlockCodeEvalResult(OrgContext* org_context, haxorg_BlockCodeEvalResult* obj) { org::bind::c::execute_destroy<org::sem::BlockCodeEvalResult>(org_context, obj); }
 
-haxorg_Opt haxorg_BlockCode_get_lang(OrgContext* org_context, haxorg_BlockCode __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::BlockCode, hstd::Opt<hstd::Str>, haxorg_BlockCode>(org_context, __this, &org::sem::BlockCode::lang); }
+haxorg_OptOfStr haxorg_BlockCode_get_lang(OrgContext* org_context, haxorg_BlockCode __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::BlockCode, hstd::Opt<hstd::Str>, haxorg_BlockCode>(org_context, __this, &org::sem::BlockCode::lang); }
 
 haxorg_HstdVecOfSemIdOfBlockCodeEvalResult haxorg_BlockCode_get_result(OrgContext* org_context, haxorg_BlockCode __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfBlockCodeEvalResult, org::sem::BlockCode, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>, haxorg_BlockCode>(org_context, __this, &org::sem::BlockCode::result); }
 
@@ -3973,7 +3975,7 @@ haxorg_HstdVecOfBlockCodeLine haxorg_BlockCode_get_lines(OrgContext* org_context
 
 haxorg_AttrGroup haxorg_BlockCode_get_switches(OrgContext* org_context, haxorg_BlockCode __this) { return org::bind::c::get_cpp_field<haxorg_AttrGroup, org::sem::BlockCode, org::sem::AttrGroup, haxorg_BlockCode>(org_context, __this, &org::sem::BlockCode::switches); }
 
-haxorg_Opt haxorg_BlockCode_getVariable_const(OrgContext* org_context, haxorg_BlockCode __this, haxorg_HstdStr varname) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable), org_context, __this, varname); }
+haxorg_OptOfAttrValue haxorg_BlockCode_getVariable_const(OrgContext* org_context, haxorg_BlockCode __this, haxorg_HstdStr varname) { return org::bind::c::execute_cpp<haxorg_OptOfAttrValue>(static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable), org_context, __this, varname); }
 
 void haxorg_destroy_BlockCode(OrgContext* org_context, haxorg_BlockCode* obj) { org::bind::c::execute_destroy<org::sem::BlockCode>(org_context, obj); }
 
@@ -4027,7 +4029,7 @@ bool haxorg_ImmBlockCodeEvalResult___eq___const(OrgContext* org_context, haxorg_
 
 void haxorg_destroy_ImmBlockCodeEvalResult(OrgContext* org_context, haxorg_ImmBlockCodeEvalResult* obj) { org::bind::c::execute_destroy<org::imm::ImmBlockCodeEvalResult>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmBlockCode_get_lang(OrgContext* org_context, haxorg_ImmBlockCode __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmBlockCode, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmBlockCode>(org_context, __this, &org::imm::ImmBlockCode::lang); }
+haxorg_OptOfStr haxorg_ImmBlockCode_get_lang(OrgContext* org_context, haxorg_ImmBlockCode __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmBlockCode, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmBlockCode>(org_context, __this, &org::imm::ImmBlockCode::lang); }
 
 haxorg_ImmVec haxorg_ImmBlockCode_get_result(OrgContext* org_context, haxorg_ImmBlockCode __this) { return org::bind::c::get_cpp_field<haxorg_ImmVec, org::imm::ImmBlockCode, hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>, haxorg_ImmBlockCode>(org_context, __this, &org::imm::ImmBlockCode::result); }
 
@@ -4097,7 +4099,7 @@ void haxorg_create_ImmAdapterTOfImmCmdCustomText_ImmAdapterT(OrgContext* org_con
 
 void haxorg_destroy_ImmCmdCustomTextAdapter(OrgContext* org_context, haxorg_ImmCmdCustomTextAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmLink_getDescription_const(OrgContext* org_context, haxorg_ImmLinkAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription), org_context, __this); }
+haxorg_OptOfImmAdapterTOfImmParagraph haxorg_ImmAdapterTOfImmLink_getDescription_const(OrgContext* org_context, haxorg_ImmLinkAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapterTOfImmParagraph>(static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription), org_context, __this); }
 
 haxorg_LinkTarget haxorg_ImmAdapterTOfImmLink_getTarget_const(OrgContext* org_context, haxorg_ImmLinkAdapter __this) { return org::bind::c::execute_cpp<haxorg_LinkTarget>(static_cast<org::sem::LinkTarget(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget), org_context, __this); }
 
@@ -4125,7 +4127,7 @@ void haxorg_destroy_ImmHashTagAdapter(OrgContext* org_context, haxorg_ImmHashTag
 
 haxorg_HstdStr haxorg_ImmAdapterTOfImmInlineFootnote_getTag_const(OrgContext* org_context, haxorg_ImmInlineFootnoteAdapter __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmInlineFootnote_getDefinition_const(OrgContext* org_context, haxorg_ImmInlineFootnoteAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<org::imm::ImmAdapter>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition), org_context, __this); }
+haxorg_OptOfImmAdapter haxorg_ImmAdapterTOfImmInlineFootnote_getDefinition_const(OrgContext* org_context, haxorg_ImmInlineFootnoteAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfImmAdapter>(static_cast<hstd::Opt<org::imm::ImmAdapter>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition), org_context, __this); }
 
 void haxorg_create_ImmAdapterTOfImmInlineFootnote_ImmAdapterT(OrgContext* org_context, haxorg_ImmAdapter other) { return org::bind::c::execute_cpp<void>(+[](org::imm::ImmAdapter const& other) -> org::imm::ImmAdapterT<org::imm::ImmInlineFootnote> { return org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>(other); }, org_context, other); }
 
@@ -4223,7 +4225,7 @@ void haxorg_destroy_CmdName(OrgContext* org_context, haxorg_CmdName* obj) { org:
 
 haxorg_HstdStr haxorg_CmdCall_get_name(OrgContext* org_context, haxorg_CmdCall __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::CmdCall, hstd::Str, haxorg_CmdCall>(org_context, __this, &org::sem::CmdCall::name); }
 
-haxorg_Opt haxorg_CmdCall_get_fileName(OrgContext* org_context, haxorg_CmdCall __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::sem::CmdCall, hstd::Opt<hstd::Str>, haxorg_CmdCall>(org_context, __this, &org::sem::CmdCall::fileName); }
+haxorg_OptOfStr haxorg_CmdCall_get_fileName(OrgContext* org_context, haxorg_CmdCall __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::sem::CmdCall, hstd::Opt<hstd::Str>, haxorg_CmdCall>(org_context, __this, &org::sem::CmdCall::fileName); }
 
 haxorg_AttrGroup haxorg_CmdCall_get_insideHeaderAttrs(OrgContext* org_context, haxorg_CmdCall __this) { return org::bind::c::get_cpp_field<haxorg_AttrGroup, org::sem::CmdCall, org::sem::AttrGroup, haxorg_CmdCall>(org_context, __this, &org::sem::CmdCall::insideHeaderAttrs); }
 
@@ -4265,7 +4267,7 @@ void haxorg_destroy_ImmCmdName(OrgContext* org_context, haxorg_ImmCmdName* obj) 
 
 haxorg_HstdStr haxorg_ImmCmdCall_get_name(OrgContext* org_context, haxorg_ImmCmdCall __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::imm::ImmCmdCall, hstd::ext::ImmBox<hstd::Str>, haxorg_ImmCmdCall>(org_context, __this, &org::imm::ImmCmdCall::name); }
 
-haxorg_Opt haxorg_ImmCmdCall_get_fileName(OrgContext* org_context, haxorg_ImmCmdCall __this) { return org::bind::c::get_cpp_field<haxorg_Opt, org::imm::ImmCmdCall, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmCmdCall>(org_context, __this, &org::imm::ImmCmdCall::fileName); }
+haxorg_OptOfStr haxorg_ImmCmdCall_get_fileName(OrgContext* org_context, haxorg_ImmCmdCall __this) { return org::bind::c::get_cpp_field<haxorg_OptOfStr, org::imm::ImmCmdCall, hstd::ext::ImmBox<hstd::Opt<hstd::Str>>, haxorg_ImmCmdCall>(org_context, __this, &org::imm::ImmCmdCall::fileName); }
 
 haxorg_AttrGroup haxorg_ImmCmdCall_get_insideHeaderAttrs(OrgContext* org_context, haxorg_ImmCmdCall __this) { return org::bind::c::get_cpp_field<haxorg_AttrGroup, org::imm::ImmCmdCall, org::sem::AttrGroup, haxorg_ImmCmdCall>(org_context, __this, &org::imm::ImmCmdCall::insideHeaderAttrs); }
 
@@ -4453,7 +4455,7 @@ void haxorg_create_ImmAdapterTOfImmBlockCodeEvalResult_ImmAdapterT(OrgContext* o
 
 void haxorg_destroy_ImmBlockCodeEvalResultAdapter(OrgContext* org_context, haxorg_ImmBlockCodeEvalResultAdapter* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>>(org_context, obj); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmBlockCode_getLang_const(OrgContext* org_context, haxorg_ImmBlockCodeAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmBlockCode_getLang_const(OrgContext* org_context, haxorg_ImmBlockCodeAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang), org_context, __this); }
 
 haxorg_ImmVec haxorg_ImmAdapterTOfImmBlockCode_getResult_const(OrgContext* org_context, haxorg_ImmBlockCodeAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmVec>(static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult), org_context, __this); }
 
@@ -4493,7 +4495,7 @@ void haxorg_destroy_ImmCmdNameAdapter(OrgContext* org_context, haxorg_ImmCmdName
 
 haxorg_HstdStr haxorg_ImmAdapterTOfImmCmdCall_getName_const(OrgContext* org_context, haxorg_ImmCmdCallAdapter __this) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getName), org_context, __this); }
 
-haxorg_Opt haxorg_ImmAdapterTOfImmCmdCall_getFileName_const(OrgContext* org_context, haxorg_ImmCmdCallAdapter __this) { return org::bind::c::execute_cpp<haxorg_Opt>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName), org_context, __this); }
+haxorg_OptOfStr haxorg_ImmAdapterTOfImmCmdCall_getFileName_const(OrgContext* org_context, haxorg_ImmCmdCallAdapter __this) { return org::bind::c::execute_cpp<haxorg_OptOfStr>(static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName), org_context, __this); }
 
 haxorg_AttrGroup haxorg_ImmAdapterTOfImmCmdCall_getInsideHeaderAttrs_const(OrgContext* org_context, haxorg_ImmCmdCallAdapter __this) { return org::bind::c::execute_cpp<haxorg_AttrGroup>(static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getInsideHeaderAttrs), org_context, __this); }
 

@@ -15,7 +15,17 @@ class CAstbuilderConfig(AstbulderConfig):
         return self._isExposedByBackendImpl(entry, "c")
 
     def getTypeBindName(self, Type: QualType, withParams: bool = True) -> str:
-        return super().getTypeBindName(Type, withParams)
+        template_type = self.type_map.get_structs_for_template_name(Type)
+        # FIXME: This assumes the type does not have a template specializations
+        # that are wrapped as independent structures.
+        if template_type and template_type[
+                0].ReflectionParams.backend.c.instantiation_mode == "void-handle":
+            useParams = False
+
+        else:
+            useParams = withParams
+
+        return super().getTypeBindName(Type, withParams=useParams)
 
     def getBackendType(self, Type: QualType) -> QualType:
         if Type.Kind != codegen_ir.QualTypeKind.RegularType:
@@ -27,14 +37,8 @@ class CAstbuilderConfig(AstbulderConfig):
             case ["hstd", "UnorderedSet", _]:
                 return QualType(Name=prefix + "HstdUnorderedSet")
 
-            case ["hstd", "IntSet", _]:
-                return QualType(Name=prefix + "HstdIntSet")
-
             case ["hstd", "Str"]:
                 return QualType(Name=prefix + "HstdStr")
-
-            case ["std", "optional", _]:
-                return QualType(Name=prefix + "StdOptional")
 
             case ["hstd", "SortedMap", _, _]:
                 return QualType(Name=prefix + "HstdMap")
@@ -99,17 +103,7 @@ class CAstbuilderConfig(AstbulderConfig):
                 return Type
 
             case _:
-                template_type = self.type_map.get_structs_for_template_name(Type)
-                # FIXME: This assumes the type does not have a template specializations
-                # that are wrapped as independent structures.
-                if template_type and template_type[
-                        0].ReflectionParams.backend.c.instantiation_mode == "void-handle":
-                    useParams = False
-
-                else:
-                    useParams = True
-
                 return QualType(
-                    Name=prefix + self.getTypeBindName(Type, withParams=useParams),
+                    Name=prefix + self.getTypeBindName(Type),
                     DbgOrigin=str(Type.flatQualNameWithParams()),
                 )

@@ -217,10 +217,12 @@ ResultCType execute_cpp_impl(
         Policy = InferMemoryPolicy<ResultCppType>::value;
     clear_context(ctx);
     constexpr bool
-        IsPassthrough = std::is_same_v<
-                            std::remove_cvref_t<ResultCType>,
-                            std::remove_cvref_t<ResultCppType>>
-                     || std::is_enum_v<std::remove_cvref_t<ResultCppType>>;
+        IsPassthrough = (std::is_same_v<
+                             std::remove_cvref_t<ResultCType>,
+                             std::remove_cvref_t<ResultCppType>>
+                         || std::is_enum_v<
+                             std::remove_cvref_t<ResultCppType>>)
+                     && !std::is_same_v<ResultCType, haxorg_ptr_payload>;
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
             callable(ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);

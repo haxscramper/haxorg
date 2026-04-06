@@ -103,11 +103,16 @@ class AstbulderConfig(abc.ABC):
             case ["hstd", "SharedPtrApi", _]:
                 return False
 
-            case ["std", "shared_ptr", _]:
+            case ["std", "shared_ptr", _] | ["std", "optional", _]:
                 return self.isRegisteredForBacked(Type.par0())
 
             case _:
-                return self.isKnownClass(Type)
+                if self.isTypedef(Type):
+                    return self.isRegisteredForBacked(
+                        self.getResolvedType(Type)) or self.isKnownClass(Type)
+
+                else:
+                    return self.isKnownClass(Type)
 
     def isKnownClass(self, Type: QualType) -> bool:
         "Check if type name refers to registered entry"
