@@ -89,7 +89,7 @@ void haxorg_destroy_HstdVecOfSemIdOfErrorGroup(OrgContext* org_context, haxorg_H
 
 int haxorg_HstdVecOfInt_size_const(OrgContext* org_context, haxorg_HstdVecOfInt __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<int>::*)() const>(&hstd::Vec<int>::size), org_context, __this); }
 
-int const& haxorg_HstdVecOfInt_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfInt __this, int idx) { return org::bind::c::execute_cpp<int const&>(static_cast<int const&(hstd::Vec<int>::*)(int) const>(&hstd::Vec<int>::at), org_context, __this, idx); }
+int const* haxorg_HstdVecOfInt_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfInt __this, int idx) { return org::bind::c::execute_cpp<int const*>(static_cast<int const&(hstd::Vec<int>::*)(int) const>(&hstd::Vec<int>::at), org_context, __this, idx); }
 
 void haxorg_destroy_HstdVecOfInt(OrgContext* org_context, haxorg_HstdVecOfInt* obj) { org::bind::c::execute_destroy<hstd::Vec<int>>(org_context, obj); }
 
@@ -331,13 +331,19 @@ void haxorg_destroy_IntSetOfSubtreePeriodKind(OrgContext* org_context, haxorg_In
 
 haxorg_ptr_payload haxorg_HstdMap_keys_const(OrgContext* org_context, haxorg_HstdMap __this) { return (static_cast<haxorg_HstdMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
 
+void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj) { org::bind::c::execute_destroy_vtable<haxorg_HstdMap_vtable>(org_context, obj); }
+
 haxorg_ptr_payload haxorg_ImmMap_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->get_const)(org_context, __this, key); }
 
 bool haxorg_ImmMap_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->contains_const)(org_context, __this, key); }
 
 haxorg_ptr_payload haxorg_ImmMap_keys_const(OrgContext* org_context, haxorg_ImmMap __this) { return (static_cast<haxorg_ImmMap_vtable const*>(__this.data.vtable)->keys_const)(org_context, __this); }
 
+void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj) { org::bind::c::execute_destroy_vtable<haxorg_ImmMap_vtable>(org_context, obj); }
+
 haxorg_ptr_payload haxorg_StdOptional_value(OrgContext* org_context, haxorg_StdOptional __this) { return (static_cast<haxorg_StdOptional_vtable const*>(__this.data.vtable)->value)(org_context, __this); }
+
+void haxorg_destroy_StdOptional(OrgContext* org_context, haxorg_StdOptional* obj) { org::bind::c::execute_destroy_vtable<haxorg_StdOptional_vtable>(org_context, obj); }
 
 int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this) { return org::bind::c::get_cpp_field<int, hstd::BackwardsIndex, int, haxorg_BackwardsIndex>(org_context, __this, &hstd::BackwardsIndex::value); }
 

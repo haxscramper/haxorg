@@ -93,157 +93,157 @@ struct haxorg_HstdVecOfSequenceSegmentGroup;
 
 struct haxorg_IntSetOfSubtreePeriodKind;
 
-enum class haxorg_CheckboxState : short int { None, Done, Empty, Partial, };
+enum haxorg_CheckboxState { haxorg_CheckboxState_None, haxorg_CheckboxState_Done, haxorg_CheckboxState_Empty, haxorg_CheckboxState_Partial, };
 /// \brief Where to take todo completion statistics from
-enum class haxorg_SubtreeTodoSource : short int {
+enum haxorg_SubtreeTodoSource {
   /// \brief Only count checkbox subnodes as a progress completion
-  Checkbox,
+  haxorg_SubtreeTodoSource_Checkbox,
   /// \brief Use subtrees with todo keywords
-  Todo,
+  haxorg_SubtreeTodoSource_Todo,
   /// \brief Use both subtrees and todo keywords
-  Both,
+  haxorg_SubtreeTodoSource_Both,
 };
-enum class haxorg_ListFormattingMode : short int {
+enum haxorg_ListFormattingMode {
   /// \brief Default, no custom formatting
-  None,
+  haxorg_ListFormattingMode_None,
   /// \brief one column, each table item is an individual row
-  Table1D1Col,
+  haxorg_ListFormattingMode_Table1D1Col,
   /// \brief for description lists, treat header row as an individual column
-  Table1D2Col,
+  haxorg_ListFormattingMode_Table1D2Col,
   /// \brief for tables tables with arbitrary column count, treat the first level of items as column names, treat all nested elements in these columns as row values
-  Table2DColFirst,
+  haxorg_ListFormattingMode_Table2DColFirst,
   /// \brief for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.
-  Table2DRowFirst,
+  haxorg_ListFormattingMode_Table2DRowFirst,
 };
-enum class haxorg_InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
-enum class haxorg_OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
-enum class haxorg_OrgNodeKind : short int {
+enum haxorg_InitialSubtreeVisibility { haxorg_InitialSubtreeVisibility_Overview, haxorg_InitialSubtreeVisibility_Content, haxorg_InitialSubtreeVisibility_ShowAll, haxorg_InitialSubtreeVisibility_Show2Levels, haxorg_InitialSubtreeVisibility_Show3Levels, haxorg_InitialSubtreeVisibility_Show4Levels, haxorg_InitialSubtreeVisibility_Show5Levels, haxorg_InitialSubtreeVisibility_ShowEverything, };
+enum haxorg_OrgSpecName { haxorg_OrgSpecName_Unnamed, haxorg_OrgSpecName_Result, haxorg_OrgSpecName_Year, haxorg_OrgSpecName_Day, haxorg_OrgSpecName_Clock, haxorg_OrgSpecName_Repeater, haxorg_OrgSpecName_Warn, haxorg_OrgSpecName_Zone, haxorg_OrgSpecName_Link, haxorg_OrgSpecName_Tags, haxorg_OrgSpecName_Tag, haxorg_OrgSpecName_State, haxorg_OrgSpecName_Protocol, haxorg_OrgSpecName_Desc, haxorg_OrgSpecName_Times, haxorg_OrgSpecName_Drawer, haxorg_OrgSpecName_Args, haxorg_OrgSpecName_Name, haxorg_OrgSpecName_Definition, haxorg_OrgSpecName_Body, haxorg_OrgSpecName_HeaderArgs, haxorg_OrgSpecName_File, haxorg_OrgSpecName_Kind, haxorg_OrgSpecName_Lang, haxorg_OrgSpecName_Prefix, haxorg_OrgSpecName_Text, haxorg_OrgSpecName_Todo, haxorg_OrgSpecName_Importance, haxorg_OrgSpecName_Title, haxorg_OrgSpecName_Completion, haxorg_OrgSpecName_Head, haxorg_OrgSpecName_Subnodes, haxorg_OrgSpecName_Properties, haxorg_OrgSpecName_Logbook, haxorg_OrgSpecName_Description, haxorg_OrgSpecName_Logs, haxorg_OrgSpecName_Newstate, haxorg_OrgSpecName_Oldstate, haxorg_OrgSpecName_Time, haxorg_OrgSpecName_From, haxorg_OrgSpecName_EndArgs, haxorg_OrgSpecName_Flags, haxorg_OrgSpecName_Value, haxorg_OrgSpecName_Assoc, haxorg_OrgSpecName_Main, haxorg_OrgSpecName_Hash, haxorg_OrgSpecName_Bullet, haxorg_OrgSpecName_Counter, haxorg_OrgSpecName_Checkbox, haxorg_OrgSpecName_Header, haxorg_OrgSpecName_To, haxorg_OrgSpecName_Diff, haxorg_OrgSpecName_Property, haxorg_OrgSpecName_Subname, haxorg_OrgSpecName_Values, haxorg_OrgSpecName_Cells, haxorg_OrgSpecName_Rows, haxorg_OrgSpecName_Lines, haxorg_OrgSpecName_Chunks, };
+enum haxorg_OrgNodeKind {
   /// \brief Default valye for node - invalid state
-  None,
+  haxorg_OrgNodeKind_None,
   /// \brief Toplevel part of the ast, not created by parser, and only used in `semorg` stage
-  Document,
+  haxorg_OrgNodeKind_Document,
   /// \brief Empty node - valid state that does not contain any value
-  Empty,
-  InlineStmtList,
+  haxorg_OrgNodeKind_Empty,
+  haxorg_OrgNodeKind_InlineStmtList,
   /// \brief List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.
-  StmtList,
+  haxorg_OrgNodeKind_StmtList,
   /// \brief Single checkbox item like `[X]` or `[-]`
-  Checkbox,
-  List,
+  haxorg_OrgNodeKind_Checkbox,
+  haxorg_OrgNodeKind_List,
   /// \brief List item prefix
-  Bullet,
-  ListItem,
+  haxorg_OrgNodeKind_Bullet,
+  haxorg_OrgNodeKind_ListItem,
   /// \brief Auxilliary wrapper for the paragraph placed at the start of the description list.
-  ListTag,
-  Counter,
-  File,
+  haxorg_OrgNodeKind_ListTag,
+  haxorg_OrgNodeKind_Counter,
+  haxorg_OrgNodeKind_File,
   /// \brief Colon example block
-  ColonExample,
+  haxorg_OrgNodeKind_ColonExample,
   /// \brief Long horizontal line `----`
-  TextSeparator,
+  haxorg_OrgNodeKind_TextSeparator,
   /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
-  Paragraph,
+  haxorg_OrgNodeKind_Paragraph,
   /// \brief Horizontal table row
-  TableRow,
+  haxorg_OrgNodeKind_TableRow,
   /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.
-  TableCell,
+  haxorg_OrgNodeKind_TableCell,
   /// \brief Org-mode table
-  Table,
+  haxorg_OrgNodeKind_Table,
   /// \brief Inline footnote with text placed directly in the node body.
-  InlineFootnote,
+  haxorg_OrgNodeKind_InlineFootnote,
   /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
-  Footnote,
+  haxorg_OrgNodeKind_Footnote,
   /// \brief Undefined single-line command -- most likely custom user-provided oe
-  Cmd,
+  haxorg_OrgNodeKind_Cmd,
   /// \brief Arguments for the command block
-  Attrs,
+  haxorg_OrgNodeKind_Attrs,
   /// \brief :key name=value syntax
-  AttrValue,
+  haxorg_OrgNodeKind_AttrValue,
   /// \brief S-expression as an attribute value value
-  AttrLisp,
+  haxorg_OrgNodeKind_AttrLisp,
   /// \brief `#+title:` - full document title
-  CmdTitle,
+  haxorg_OrgNodeKind_CmdTitle,
   /// \brief `#+author:` Document author
-  CmdAuthor,
+  haxorg_OrgNodeKind_CmdAuthor,
   /// \brief `#+creator:` Document creator
-  CmdCreator,
+  haxorg_OrgNodeKind_CmdCreator,
   /// \brief `#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.
-  CmdInclude,
+  haxorg_OrgNodeKind_CmdInclude,
   /// \brief `#+language:`
-  CmdLanguage,
+  haxorg_OrgNodeKind_CmdLanguage,
   /// \brief `#+email:`
-  CmdEmail,
+  haxorg_OrgNodeKind_CmdEmail,
   /// \brief `#+attr_html:`, `#+attr_image` etc.
-  CmdAttr,
+  haxorg_OrgNodeKind_CmdAttr,
   /// \brief `#+startup:`
-  CmdStartup,
+  haxorg_OrgNodeKind_CmdStartup,
   /// \brief `#+name:` - name of the associated entry
-  CmdName,
+  haxorg_OrgNodeKind_CmdName,
   /// \brief Line command with parsed text value
-  CmdCustomTextCommand,
+  haxorg_OrgNodeKind_CmdCustomTextCommand,
   /// \brief Line command with parsed argument list
-  CmdCustomArgsCommand,
+  haxorg_OrgNodeKind_CmdCustomArgsCommand,
   /// \brief Line command with raw text argument
-  CmdCustomRawCommand,
+  haxorg_OrgNodeKind_CmdCustomRawCommand,
   /// \brief `#+results:` - source code block evaluation results
-  CmdResults,
+  haxorg_OrgNodeKind_CmdResults,
   /// \brief `#+header:` - extended list of parameters passed to associated block
-  CmdHeader,
+  haxorg_OrgNodeKind_CmdHeader,
   /// \brief `#+options:` - document-wide formatting options
-  CmdOptions,
-  CmdTblfm,
+  haxorg_OrgNodeKind_CmdOptions,
+  haxorg_OrgNodeKind_CmdTblfm,
   /// \brief `#+caption:` command
-  CmdCaption,
+  haxorg_OrgNodeKind_CmdCaption,
   /// \brief Command evaluation result
-  CmdResult,
+  haxorg_OrgNodeKind_CmdResult,
   /// \brief Call to named source code block.
-  CmdCallCode,
+  haxorg_OrgNodeKind_CmdCallCode,
   /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
-  CmdFlag,
-  CmdLatexClass,
-  CmdLatexHeader,
-  CmdLatexCompiler,
-  CmdLatexClassOptions,
-  CmdHtmlHead,
+  haxorg_OrgNodeKind_CmdFlag,
+  haxorg_OrgNodeKind_CmdLatexClass,
+  haxorg_OrgNodeKind_CmdLatexHeader,
+  haxorg_OrgNodeKind_CmdLatexCompiler,
+  haxorg_OrgNodeKind_CmdLatexClassOptions,
+  haxorg_OrgNodeKind_CmdHtmlHead,
   /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
-  CmdColumns,
+  haxorg_OrgNodeKind_CmdColumns,
   /// \brief `#+property:` command
-  CmdPropertyArgs,
+  haxorg_OrgNodeKind_CmdPropertyArgs,
   /// \brief `#+property:` command
-  CmdPropertyText,
+  haxorg_OrgNodeKind_CmdPropertyText,
   /// \brief `#+property:` command
-  CmdPropertyRaw,
+  haxorg_OrgNodeKind_CmdPropertyRaw,
   /// \brief `#+filetags:` line command
-  CmdFiletags,
-  CmdKeywords,
+  haxorg_OrgNodeKind_CmdFiletags,
+  haxorg_OrgNodeKind_CmdKeywords,
   /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
-  BlockVerbatimMultiline,
+  haxorg_OrgNodeKind_BlockVerbatimMultiline,
   /// \brief Single line of source code
-  CodeLine,
+  haxorg_OrgNodeKind_CodeLine,
   /// \brief Block of source code text
-  CodeText,
+  haxorg_OrgNodeKind_CodeText,
   /// \brief Single tangle target in the code block
-  CodeTangle,
+  haxorg_OrgNodeKind_CodeTangle,
   /// \brief `(refs:` callout in the source code
-  CodeCallout,
-  BlockCode,
+  haxorg_OrgNodeKind_CodeCallout,
+  haxorg_OrgNodeKind_BlockCode,
   /// \brief `#+begin_quote:` block in code
-  BlockQuote,
+  haxorg_OrgNodeKind_BlockQuote,
   /// \brief `#+begin_comment:` block in code
-  BlockComment,
-  BlockCenter,
-  BlockVerse,
+  haxorg_OrgNodeKind_BlockComment,
+  haxorg_OrgNodeKind_BlockCenter,
+  haxorg_OrgNodeKind_BlockVerse,
   /// \brief Verbatim example text block
-  BlockExample,
-  BlockExport,
+  haxorg_OrgNodeKind_BlockExample,
+  haxorg_OrgNodeKind_BlockExport,
   /// \brief `#+begin_details`  section
-  BlockDetails,
+  haxorg_OrgNodeKind_BlockDetails,
   /// \brief `#+begin_summary` section
-  BlockSummary,
+  haxorg_OrgNodeKind_BlockSummary,
   /// \brief #+begin_<any> section
-  BlockDynamicFallback,
+  haxorg_OrgNodeKind_BlockDynamicFallback,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
-  BigIdent,
+  haxorg_OrgNodeKind_BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
   ///      can itself contain subnodes, which allows to represent nested
   ///      formatting regions, such as `*bold /italic/*` text. Particular type
@@ -253,106 +253,106 @@ enum class haxorg_OrgNodeKind : short int {
   ///      NOTE: when structured sentences are enabled, regular punctuation
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
-  Bold,
+  haxorg_OrgNodeKind_Bold,
   /// \brief Error leaf node inserted into the parse tree on failure
-  ErrorInfoToken,
+  haxorg_OrgNodeKind_ErrorInfoToken,
   /// \brief Parent node for one or more tokens skipped during error recovery
-  ErrorSkipGroup,
+  haxorg_OrgNodeKind_ErrorSkipGroup,
   /// \brief Single token node skipped while the parser searched for recovery point
-  ErrorSkipToken,
-  Italic,
-  Verbatim,
-  Backtick,
-  Underline,
-  Strike,
-  Quote,
-  Angle,
-  Monospace,
-  Par,
-  CriticMarkStructure,
+  haxorg_OrgNodeKind_ErrorSkipToken,
+  haxorg_OrgNodeKind_Italic,
+  haxorg_OrgNodeKind_Verbatim,
+  haxorg_OrgNodeKind_Backtick,
+  haxorg_OrgNodeKind_Underline,
+  haxorg_OrgNodeKind_Strike,
+  haxorg_OrgNodeKind_Quote,
+  haxorg_OrgNodeKind_Angle,
+  haxorg_OrgNodeKind_Monospace,
+  haxorg_OrgNodeKind_Par,
+  haxorg_OrgNodeKind_CriticMarkStructure,
   /// \brief Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
-  InlineMath,
+  haxorg_OrgNodeKind_InlineMath,
   /// \brief Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.
-  DisplayMath,
+  haxorg_OrgNodeKind_DisplayMath,
   /// \brief Space or tab character in regular text
-  Space,
-  Punctuation,
-  Colon,
+  haxorg_OrgNodeKind_Space,
+  haxorg_OrgNodeKind_Punctuation,
+  haxorg_OrgNodeKind_Colon,
   /// \brief Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.
-  Word,
+  haxorg_OrgNodeKind_Word,
   /// \brief Escaped formatting character in the text
-  Escaped,
-  Newline,
+  haxorg_OrgNodeKind_Escaped,
+  haxorg_OrgNodeKind_Newline,
   /// \brief Raw unwrapped link that was pasted in text
-  RawLink,
+  haxorg_OrgNodeKind_RawLink,
   /// \brief External or internal link. Consists of one or two elements - target
   ///      (url, file location etc.) and description (`orgParagraph` of text).
   ///      Description might be empty, and represented as empty node in this
   ///      case. For external links particular formatting of the address is
   ///      not handled by parser and instead contains raw string from input
   ///      text.
-  Link,
+  haxorg_OrgNodeKind_Link,
   /// \brief Org-mode macro replacement - during export each macro is expanded
   ///      and evaluated according to it's environment. Body of the macro is
   ///      not parsed fully during org-mode evaluation, but is checked for
   ///      correct parenthesis balance (as macro might contain elisp code)
-  Macro,
+  haxorg_OrgNodeKind_Macro,
   /// \brief Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.
-  Symbol,
-  StaticActiveTime,
-  StaticInactiveTime,
-  DynamicActiveTime,
+  haxorg_OrgNodeKind_Symbol,
+  haxorg_OrgNodeKind_StaticActiveTime,
+  haxorg_OrgNodeKind_StaticInactiveTime,
+  haxorg_OrgNodeKind_DynamicActiveTime,
   /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
-  DynamicInactiveTime,
+  haxorg_OrgNodeKind_DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries
-  TimeRange,
+  haxorg_OrgNodeKind_TimeRange,
   /// \brief Result of the time range evaluation or trailing annotation a subtree
-  SimpleTime,
-  HashTag,
+  haxorg_OrgNodeKind_SimpleTime,
+  haxorg_OrgNodeKind_HashTag,
   /// \brief `\sym{}` with explicit arguments
-  MetaSymbol,
+  haxorg_OrgNodeKind_MetaSymbol,
   /// \brief `@user`
-  AtMention,
+  haxorg_OrgNodeKind_AtMention,
   /// \brief Placeholder entry in text, usually writte like `<text to replace>`
-  Placeholder,
+  haxorg_OrgNodeKind_Placeholder,
   /// \brief `<<<RADIO>>>`
-  RadioTarget,
+  haxorg_OrgNodeKind_RadioTarget,
   /// \brief `<<TARGET>>`
-  Target,
+  haxorg_OrgNodeKind_Target,
   /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
-  SrcInlineCode,
+  haxorg_OrgNodeKind_SrcInlineCode,
   /// \brief Call to named source code block.
-  InlineCallCode,
+  haxorg_OrgNodeKind_InlineCallCode,
   /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
-  InlineExport,
-  InlineComment,
+  haxorg_OrgNodeKind_InlineExport,
+  haxorg_OrgNodeKind_InlineComment,
   /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
-  RawText,
+  haxorg_OrgNodeKind_RawText,
   /// \brief `:description:` entry
-  SubtreeDescription,
-  SubtreeUrgency,
+  haxorg_OrgNodeKind_SubtreeDescription,
+  haxorg_OrgNodeKind_SubtreeUrgency,
   /// \brief `:logbook:` entry storing note information
-  DrawerLogbook,
+  haxorg_OrgNodeKind_DrawerLogbook,
   /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
-  Drawer,
-  DrawerPropertyList,
+  haxorg_OrgNodeKind_Drawer,
+  haxorg_OrgNodeKind_DrawerPropertyList,
   /// \brief `:property:` drawer
-  DrawerProperty,
+  haxorg_OrgNodeKind_DrawerProperty,
   /// \brief Section subtree
-  Subtree,
+  haxorg_OrgNodeKind_Subtree,
   /// \brief Time? associated with subtree entry
-  SubtreeTimes,
-  SubtreeStars,
+  haxorg_OrgNodeKind_SubtreeTimes,
+  haxorg_OrgNodeKind_SubtreeStars,
   /// \brief Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.
-  SubtreeCompletion,
+  haxorg_OrgNodeKind_SubtreeCompletion,
   /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
-  SubtreeImportance,
+  haxorg_OrgNodeKind_SubtreeImportance,
 };
-enum class haxorg_OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, ActiveDynamicTimeContent, InactiveDynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
-enum class haxorg_OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
-enum class haxorg_OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
-enum class haxorg_AstTrackingGroupKind : short int { RadioTarget, Single, TrackedHashtag, };
-enum class haxorg_GraphMapLinkKind : short int { Radio, Link, };
+enum haxorg_OrgTokenKind { haxorg_OrgTokenKind_Ampersand, haxorg_OrgTokenKind_AngleBegin, haxorg_OrgTokenKind_AngleEnd, haxorg_OrgTokenKind_AnyPunct, haxorg_OrgTokenKind_Asterisk, haxorg_OrgTokenKind_At, haxorg_OrgTokenKind_Backtick, haxorg_OrgTokenKind_BigIdent, haxorg_OrgTokenKind_BoldBegin, haxorg_OrgTokenKind_BoldEnd, haxorg_OrgTokenKind_BoldUnknown, haxorg_OrgTokenKind_BraceBegin, haxorg_OrgTokenKind_BraceEnd, haxorg_OrgTokenKind_Checkbox, haxorg_OrgTokenKind_Circumflex, haxorg_OrgTokenKind_CmdAdmonitionEnd, haxorg_OrgTokenKind_CmdAttr, haxorg_OrgTokenKind_CmdAuthor, haxorg_OrgTokenKind_CmdBindRaw, haxorg_OrgTokenKind_CmdCall, haxorg_OrgTokenKind_CmdCaption, haxorg_OrgTokenKind_CmdCategoryRaw, haxorg_OrgTokenKind_CmdCell, haxorg_OrgTokenKind_CmdCellBegin, haxorg_OrgTokenKind_CmdCellEnd, haxorg_OrgTokenKind_CmdCenterBegin, haxorg_OrgTokenKind_CmdCenterEnd, haxorg_OrgTokenKind_CmdColonIdent, haxorg_OrgTokenKind_CmdColumns, haxorg_OrgTokenKind_CmdCommentBegin, haxorg_OrgTokenKind_CmdCommentEnd, haxorg_OrgTokenKind_CmdConstants, haxorg_OrgTokenKind_CmdContentBegin, haxorg_OrgTokenKind_CmdContentEnd, haxorg_OrgTokenKind_CmdCreator, haxorg_OrgTokenKind_CmdCustomRaw, haxorg_OrgTokenKind_CmdDateRaw, haxorg_OrgTokenKind_CmdDescription, haxorg_OrgTokenKind_CmdDrawersRaw, haxorg_OrgTokenKind_CmdDynamicBegin, haxorg_OrgTokenKind_CmdDynamicBlockBegin, haxorg_OrgTokenKind_CmdDynamicBlockEnd, haxorg_OrgTokenKind_CmdDynamicEnd, haxorg_OrgTokenKind_CmdEmailRaw, haxorg_OrgTokenKind_CmdExampleBegin, haxorg_OrgTokenKind_CmdExampleEnd, haxorg_OrgTokenKind_CmdExampleLine, haxorg_OrgTokenKind_CmdExcludeTagsRaw, haxorg_OrgTokenKind_CmdExportBegin, haxorg_OrgTokenKind_CmdExportEnd, haxorg_OrgTokenKind_CmdExportLine, haxorg_OrgTokenKind_CmdFiletags, haxorg_OrgTokenKind_CmdFlag, haxorg_OrgTokenKind_CmdHeader, haxorg_OrgTokenKind_CmdHtmlHeadRaw, haxorg_OrgTokenKind_CmdInclude, haxorg_OrgTokenKind_CmdLanguage, haxorg_OrgTokenKind_CmdLatexClass, haxorg_OrgTokenKind_CmdLatexClassOptions, haxorg_OrgTokenKind_CmdLatexCompiler, haxorg_OrgTokenKind_CmdLatexHeader, haxorg_OrgTokenKind_CmdLatexHeaderExtraRaw, haxorg_OrgTokenKind_CmdLinkRaw, haxorg_OrgTokenKind_CmdMacroRaw, haxorg_OrgTokenKind_CmdName, haxorg_OrgTokenKind_CmdOptions, haxorg_OrgTokenKind_CmdPrefix, haxorg_OrgTokenKind_CmdPrioritiesRaw, haxorg_OrgTokenKind_CmdPropertyArgs, haxorg_OrgTokenKind_CmdPropertyRaw, haxorg_OrgTokenKind_CmdPropertyText, haxorg_OrgTokenKind_CmdQuoteBegin, haxorg_OrgTokenKind_CmdQuoteEnd, haxorg_OrgTokenKind_CmdRawArg, haxorg_OrgTokenKind_CmdResults, haxorg_OrgTokenKind_CmdRow, haxorg_OrgTokenKind_CmdRowBegin, haxorg_OrgTokenKind_CmdRowEnd, haxorg_OrgTokenKind_CmdSelectTagsRaw, haxorg_OrgTokenKind_CmdSeqTodoRaw, haxorg_OrgTokenKind_CmdKeywordsRaw, haxorg_OrgTokenKind_CmdSetupfileRaw, haxorg_OrgTokenKind_CmdSrcBegin, haxorg_OrgTokenKind_CmdSrcEnd, haxorg_OrgTokenKind_CmdStartup, haxorg_OrgTokenKind_CmdTableBegin, haxorg_OrgTokenKind_CmdTableEnd, haxorg_OrgTokenKind_CmdTagsRaw, haxorg_OrgTokenKind_CmdTblfm, haxorg_OrgTokenKind_CmdTitle, haxorg_OrgTokenKind_CmdVerseBegin, haxorg_OrgTokenKind_CmdVerseEnd, haxorg_OrgTokenKind_Colon, haxorg_OrgTokenKind_ColonArgumentsProperty, haxorg_OrgTokenKind_ColonEnd, haxorg_OrgTokenKind_ColonExampleLine, haxorg_OrgTokenKind_ColonLiteralProperty, haxorg_OrgTokenKind_ColonLogbook, haxorg_OrgTokenKind_ColonProperties, haxorg_OrgTokenKind_ColonPropertyText, haxorg_OrgTokenKind_Comma, haxorg_OrgTokenKind_Comment, haxorg_OrgTokenKind_CriticAddBegin, haxorg_OrgTokenKind_CriticAddEnd, haxorg_OrgTokenKind_CriticCommentBegin, haxorg_OrgTokenKind_CriticCommentEnd, haxorg_OrgTokenKind_CriticDeleteBegin, haxorg_OrgTokenKind_CriticDeleteEnd, haxorg_OrgTokenKind_CriticHighlightBegin, haxorg_OrgTokenKind_CriticHighlightEnd, haxorg_OrgTokenKind_CriticReplaceBegin, haxorg_OrgTokenKind_CriticReplaceEnd, haxorg_OrgTokenKind_CriticReplaceMiddle, haxorg_OrgTokenKind_CurlyBegin, haxorg_OrgTokenKind_CurlyEnd, haxorg_OrgTokenKind_Date, haxorg_OrgTokenKind_Dedent, haxorg_OrgTokenKind_Dollar, haxorg_OrgTokenKind_DoubleAngleBegin, haxorg_OrgTokenKind_DoubleAngleEnd, haxorg_OrgTokenKind_DoubleColon, haxorg_OrgTokenKind_DoubleDash, haxorg_OrgTokenKind_DoubleHash, haxorg_OrgTokenKind_DoubleQuote, haxorg_OrgTokenKind_DoubleSlash, haxorg_OrgTokenKind_ActiveDynamicTimeContent, haxorg_OrgTokenKind_InactiveDynamicTimeContent, haxorg_OrgTokenKind_EndOfFile, haxorg_OrgTokenKind_Equals, haxorg_OrgTokenKind_Escaped, haxorg_OrgTokenKind_Exclamation, haxorg_OrgTokenKind_FootnoteInlineBegin, haxorg_OrgTokenKind_FootnoteLinked, haxorg_OrgTokenKind_ForwardSlash, haxorg_OrgTokenKind_HashIdent, haxorg_OrgTokenKind_HashTagBegin, haxorg_OrgTokenKind_Indent, haxorg_OrgTokenKind_InlineExportBackend, haxorg_OrgTokenKind_InlineExportContent, haxorg_OrgTokenKind_ItalicBegin, haxorg_OrgTokenKind_ItalicEnd, haxorg_OrgTokenKind_ItalicUnknown, haxorg_OrgTokenKind_LatexInlineRaw, haxorg_OrgTokenKind_LatexParBegin, haxorg_OrgTokenKind_LatexParEnd, haxorg_OrgTokenKind_LeadingMinus, haxorg_OrgTokenKind_LeadingNumber, haxorg_OrgTokenKind_LeadingPipe, haxorg_OrgTokenKind_LeadingPlus, haxorg_OrgTokenKind_LeadingSpace, haxorg_OrgTokenKind_LineCommand, haxorg_OrgTokenKind_LinkBegin, haxorg_OrgTokenKind_LinkDescriptionBegin, haxorg_OrgTokenKind_LinkDescriptionEnd, haxorg_OrgTokenKind_LinkEnd, haxorg_OrgTokenKind_LinkFull, haxorg_OrgTokenKind_LinkProtocol, haxorg_OrgTokenKind_LinkProtocolAttachment, haxorg_OrgTokenKind_LinkProtocolCustomId, haxorg_OrgTokenKind_LinkProtocolFile, haxorg_OrgTokenKind_LinkProtocolHttp, haxorg_OrgTokenKind_LinkProtocolId, haxorg_OrgTokenKind_LinkProtocolInternal, haxorg_OrgTokenKind_LinkProtocolTitle, haxorg_OrgTokenKind_LinkSplit, haxorg_OrgTokenKind_LinkTarget, haxorg_OrgTokenKind_LinkTargetBegin, haxorg_OrgTokenKind_LinkTargetEnd, haxorg_OrgTokenKind_LinkTargetFile, haxorg_OrgTokenKind_ListBegin, haxorg_OrgTokenKind_ListEnd, haxorg_OrgTokenKind_ListItemBegin, haxorg_OrgTokenKind_ListItemEnd, haxorg_OrgTokenKind_LongNewline, haxorg_OrgTokenKind_MediumNewline, haxorg_OrgTokenKind_Minus, haxorg_OrgTokenKind_MiscUnicode, haxorg_OrgTokenKind_MonospaceBegin, haxorg_OrgTokenKind_MonospaceEnd, haxorg_OrgTokenKind_MonospaceUnknown, haxorg_OrgTokenKind_Newline, haxorg_OrgTokenKind_Number, haxorg_OrgTokenKind_ParBegin, haxorg_OrgTokenKind_ParEnd, haxorg_OrgTokenKind_Percent, haxorg_OrgTokenKind_Pipe, haxorg_OrgTokenKind_Placeholder, haxorg_OrgTokenKind_Plus, haxorg_OrgTokenKind_Punctuation, haxorg_OrgTokenKind_RawText, haxorg_OrgTokenKind_SameIndent, haxorg_OrgTokenKind_Semicolon, haxorg_OrgTokenKind_SingleQuote, haxorg_OrgTokenKind_SrcContent, haxorg_OrgTokenKind_StmtListBegin, haxorg_OrgTokenKind_StmtListEnd, haxorg_OrgTokenKind_StrikeBegin, haxorg_OrgTokenKind_StrikeEnd, haxorg_OrgTokenKind_StrikeUnknown, haxorg_OrgTokenKind_SubtreeCompletion, haxorg_OrgTokenKind_SubtreePriority, haxorg_OrgTokenKind_SubtreeStars, haxorg_OrgTokenKind_Symbol, haxorg_OrgTokenKind_TableSeparator, haxorg_OrgTokenKind_TextSeparator, haxorg_OrgTokenKind_TextSrcBegin, haxorg_OrgTokenKind_Tilda, haxorg_OrgTokenKind_Time, haxorg_OrgTokenKind_TimeArrow, haxorg_OrgTokenKind_TimeRepeaterDuration, haxorg_OrgTokenKind_TimeRepeaterSpec, haxorg_OrgTokenKind_TimeWarnPeriod, haxorg_OrgTokenKind_TrailingPipe, haxorg_OrgTokenKind_TreeClock, haxorg_OrgTokenKind_TreeTime, haxorg_OrgTokenKind_TripleAngleBegin, haxorg_OrgTokenKind_TripleAngleEnd, haxorg_OrgTokenKind_Underline, haxorg_OrgTokenKind_UnderlineBegin, haxorg_OrgTokenKind_UnderlineEnd, haxorg_OrgTokenKind_UnderlineUnknown, haxorg_OrgTokenKind_Unknown, haxorg_OrgTokenKind_VerbatimBegin, haxorg_OrgTokenKind_VerbatimEnd, haxorg_OrgTokenKind_VerbatimUnknown, haxorg_OrgTokenKind_Whitespace, haxorg_OrgTokenKind_Word, };
+enum haxorg_OrgJsonKind { haxorg_OrgJsonKind_Null, haxorg_OrgJsonKind_Object, haxorg_OrgJsonKind_Array, haxorg_OrgJsonKind_String, haxorg_OrgJsonKind_Boolean, haxorg_OrgJsonKind_Int, haxorg_OrgJsonKind_Float, };
+enum haxorg_OrgSemKind { haxorg_OrgSemKind_NoNode, haxorg_OrgSemKind_ErrorItem, haxorg_OrgSemKind_ErrorGroup, haxorg_OrgSemKind_StmtList, haxorg_OrgSemKind_Empty, haxorg_OrgSemKind_CmdCaption, haxorg_OrgSemKind_CmdCreator, haxorg_OrgSemKind_CmdAuthor, haxorg_OrgSemKind_CmdEmail, haxorg_OrgSemKind_CmdLanguage, haxorg_OrgSemKind_CmdColumns, haxorg_OrgSemKind_CmdName, haxorg_OrgSemKind_CmdCustomArgs, haxorg_OrgSemKind_CmdCustomRaw, haxorg_OrgSemKind_CmdCustomText, haxorg_OrgSemKind_CmdCall, haxorg_OrgSemKind_CmdTblfm, haxorg_OrgSemKind_HashTag, haxorg_OrgSemKind_InlineFootnote, haxorg_OrgSemKind_InlineExport, haxorg_OrgSemKind_Time, haxorg_OrgSemKind_TimeRange, haxorg_OrgSemKind_Macro, haxorg_OrgSemKind_Symbol, haxorg_OrgSemKind_Escaped, haxorg_OrgSemKind_Newline, haxorg_OrgSemKind_Space, haxorg_OrgSemKind_Word, haxorg_OrgSemKind_AtMention, haxorg_OrgSemKind_RawText, haxorg_OrgSemKind_Punctuation, haxorg_OrgSemKind_Placeholder, haxorg_OrgSemKind_BigIdent, haxorg_OrgSemKind_TextTarget, haxorg_OrgSemKind_ErrorSkipToken, haxorg_OrgSemKind_ErrorSkipGroup, haxorg_OrgSemKind_Bold, haxorg_OrgSemKind_Underline, haxorg_OrgSemKind_Monospace, haxorg_OrgSemKind_MarkQuote, haxorg_OrgSemKind_Verbatim, haxorg_OrgSemKind_Italic, haxorg_OrgSemKind_Strike, haxorg_OrgSemKind_Par, haxorg_OrgSemKind_RadioTarget, haxorg_OrgSemKind_Latex, haxorg_OrgSemKind_Link, haxorg_OrgSemKind_BlockCenter, haxorg_OrgSemKind_BlockQuote, haxorg_OrgSemKind_BlockComment, haxorg_OrgSemKind_BlockVerse, haxorg_OrgSemKind_BlockDynamicFallback, haxorg_OrgSemKind_BlockExample, haxorg_OrgSemKind_BlockExport, haxorg_OrgSemKind_BlockAdmonition, haxorg_OrgSemKind_BlockCodeEvalResult, haxorg_OrgSemKind_BlockCode, haxorg_OrgSemKind_SubtreeLog, haxorg_OrgSemKind_Subtree, haxorg_OrgSemKind_Cell, haxorg_OrgSemKind_Row, haxorg_OrgSemKind_Table, haxorg_OrgSemKind_Paragraph, haxorg_OrgSemKind_ColonExample, haxorg_OrgSemKind_CmdAttr, haxorg_OrgSemKind_CmdExport, haxorg_OrgSemKind_Call, haxorg_OrgSemKind_List, haxorg_OrgSemKind_ListItem, haxorg_OrgSemKind_DocumentOptions, haxorg_OrgSemKind_DocumentFragment, haxorg_OrgSemKind_CriticMarkup, haxorg_OrgSemKind_Document, haxorg_OrgSemKind_FileTarget, haxorg_OrgSemKind_TextSeparator, haxorg_OrgSemKind_DocumentGroup, haxorg_OrgSemKind_File, haxorg_OrgSemKind_Directory, haxorg_OrgSemKind_Symlink, haxorg_OrgSemKind_CmdInclude, };
+enum haxorg_AstTrackingGroupKind { haxorg_AstTrackingGroupKind_RadioTarget, haxorg_AstTrackingGroupKind_Single, haxorg_AstTrackingGroupKind_TrackedHashtag, };
+enum haxorg_GraphMapLinkKind { haxorg_GraphMapLinkKind_Radio, haxorg_GraphMapLinkKind_Link, };
 struct haxorg_BackwardsIndex;
 
 struct haxorg_HstdStr;
@@ -1437,153 +1437,153 @@ struct haxorg_ImmCmdCallAdapter;
 
 struct haxorg_ImmCmdAttrAdapter;
 
-enum class haxorg_LispCodeKind : short int { Call, List, KeyValue, Number, Text, Ident, Boolean, Real, };
-enum class haxorg_TblfmExprAxisRefPositionKind : short int { Index, Name, };
-enum class haxorg_TblfmExprKind : short int { AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp, };
+enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_List, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
+enum haxorg_TblfmExprAxisRefPositionKind { haxorg_TblfmExprAxisRefPositionKind_Index, haxorg_TblfmExprAxisRefPositionKind_Name, };
+enum haxorg_TblfmExprKind { haxorg_TblfmExprKind_AxisRef, haxorg_TblfmExprKind_AxisName, haxorg_TblfmExprKind_IntLiteral, haxorg_TblfmExprKind_FloatLiteral, haxorg_TblfmExprKind_RangeRef, haxorg_TblfmExprKind_Call, haxorg_TblfmExprKind_Elisp, };
 /// \brief Flags for table format expression cell formulas
-enum class haxorg_TblfmAssignFlag : short int {
+enum haxorg_TblfmAssignFlag {
   /// \brief Left-align the result
-  CellLeftAlign,
+  haxorg_TblfmAssignFlag_CellLeftAlign,
   /// \brief Right-align the result
-  CellRightAlign,
+  haxorg_TblfmAssignFlag_CellRightAlign,
   /// \brief Center-align the result
-  CellCenterAlign,
+  haxorg_TblfmAssignFlag_CellCenterAlign,
   /// \brief Convert result to number/currency format
-  CellNumber,
+  haxorg_TblfmAssignFlag_CellNumber,
   /// \brief Use exponential notation for numbers
-  CellExponential,
+  haxorg_TblfmAssignFlag_CellExponential,
   /// \brief Use floating point format
-  CellFloating,
+  haxorg_TblfmAssignFlag_CellFloating,
   /// \brief Unformat values before calculating
-  CellUnformat,
+  haxorg_TblfmAssignFlag_CellUnformat,
   /// \brief Convert result to text
-  CellText,
+  haxorg_TblfmAssignFlag_CellText,
   /// \brief Display boolean values as t/nil
-  CellBool,
+  haxorg_TblfmAssignFlag_CellBool,
   /// \brief Fixed format with specified decimal places (e.g., ;D2)
-  CellDecimal,
+  haxorg_TblfmAssignFlag_CellDecimal,
   /// \brief Percentage format
-  CellPercentage,
+  haxorg_TblfmAssignFlag_CellPercentage,
   /// \brief Convert to hours/minutes (HH:MM)
-  CellHours,
+  haxorg_TblfmAssignFlag_CellHours,
   /// \brief Display zero as empty cell
-  CellZero,
+  haxorg_TblfmAssignFlag_CellZero,
   /// \brief Mark field as invalid if conversion fails
-  CellMarkInvalid,
+  haxorg_TblfmAssignFlag_CellMarkInvalid,
   /// \brief Quote field contents
-  CellQuote,
+  haxorg_TblfmAssignFlag_CellQuote,
 };
-enum class haxorg_AttrValueKind : short int { TextValue, FileReference, LispValue, };
-enum class haxorg_TodoKeywordTransition : short int { None, NoteWithTimestamp, Timestamp, };
-enum class haxorg_LinkTargetKind : short int { Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment, };
+enum haxorg_AttrValueKind { haxorg_AttrValueKind_TextValue, haxorg_AttrValueKind_FileReference, haxorg_AttrValueKind_LispValue, };
+enum haxorg_TodoKeywordTransition { haxorg_TodoKeywordTransition_None, haxorg_TodoKeywordTransition_NoteWithTimestamp, haxorg_TodoKeywordTransition_Timestamp, };
+enum haxorg_LinkTargetKind { haxorg_LinkTargetKind_Raw, haxorg_LinkTargetKind_Id, haxorg_LinkTargetKind_CustomId, haxorg_LinkTargetKind_SubtreeTitle, haxorg_LinkTargetKind_Person, haxorg_LinkTargetKind_UserProtocol, haxorg_LinkTargetKind_Internal, haxorg_LinkTargetKind_Footnote, haxorg_LinkTargetKind_File, haxorg_LinkTargetKind_Attachment, };
 /// \brief Priority change action
-enum class haxorg_SubtreeLogHeadPriorityAction : short int {
+enum haxorg_SubtreeLogHeadPriorityAction {
   /// \brief `Priority B added on [timestamp]`
-  Added,
+  haxorg_SubtreeLogHeadPriorityAction_Added,
   /// \brief `Priority C removed on [timestamp]`
-  Removed,
+  haxorg_SubtreeLogHeadPriorityAction_Removed,
   /// \brief `Priority B changed from C on [timestamp]`
-  Changed,
+  haxorg_SubtreeLogHeadPriorityAction_Changed,
 };
-enum class haxorg_SubtreeLogHeadKind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+enum haxorg_SubtreeLogHeadKind { haxorg_SubtreeLogHeadKind_Priority, haxorg_SubtreeLogHeadKind_Note, haxorg_SubtreeLogHeadKind_Refile, haxorg_SubtreeLogHeadKind_Clock, haxorg_SubtreeLogHeadKind_State, haxorg_SubtreeLogHeadKind_Deadline, haxorg_SubtreeLogHeadKind_Schedule, haxorg_SubtreeLogHeadKind_Tag, haxorg_SubtreeLogHeadKind_Unknown, };
 /// \brief What context to use for results
-enum class haxorg_OrgCodeEvalInputResultType : short int {
-  None,
+enum haxorg_OrgCodeEvalInputResultType {
+  haxorg_OrgCodeEvalInputResultType_None,
   /// \brief Interpret the results as an Org table. If the result is a single value, create a table with one row and one column.
-  Table,
+  haxorg_OrgCodeEvalInputResultType_Table,
   /// \brief Interpret the results as an Org list. If the result is a single value, create a list of one element.
-  List,
+  haxorg_OrgCodeEvalInputResultType_List,
   /// \brief Interpret literally and insert as quoted text. Do not create a table.
-  Scalar,
+  haxorg_OrgCodeEvalInputResultType_Scalar,
   /// \brief Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it.
-  SaveFile,
+  haxorg_OrgCodeEvalInputResultType_SaveFile,
 };
 /// \brief How to interpret output from the script
-enum class haxorg_OrgCodeEvalInputResultFormat : short int {
-  None,
+enum haxorg_OrgCodeEvalInputResultFormat {
+  haxorg_OrgCodeEvalInputResultFormat_None,
   /// \brief Interpreted as raw Org mode. Inserted directly into the buffer.
-  Raw,
+  haxorg_OrgCodeEvalInputResultFormat_Raw,
   /// \brief Result enclosed in a code block.
-  Code,
+  haxorg_OrgCodeEvalInputResultFormat_Code,
   /// \brief Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing.
-  Drawer,
+  haxorg_OrgCodeEvalInputResultFormat_Drawer,
   /// \brief Results enclosed in a ‘BEGIN_EXPORT’ block.
-  ExportType,
-  Link,
+  haxorg_OrgCodeEvalInputResultFormat_ExportType,
+  haxorg_OrgCodeEvalInputResultFormat_Link,
 };
 /// \brief What to do with the final evaluation results
-enum class haxorg_OrgCodeEvalInputResultHandling : short int { None, Replace, Silent, Discard, Append, Prepend, };
-enum class haxorg_ColumnViewSummaryCheckboxAggregateKind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
-enum class haxorg_ColumnViewSummaryMathAggregateKind : short int { Min, Max, Mean, Sum, LowHighEst, };
-enum class haxorg_ColumnViewSummaryKind : short int { CheckboxAggregate, MathAggregate, };
-enum class haxorg_BlockCodeLinePartKind : short int { Raw, Callout, Tangle, };
-enum class haxorg_DocumentExportConfigTagExport : short int {
-  None,
-  All,
+enum haxorg_OrgCodeEvalInputResultHandling { haxorg_OrgCodeEvalInputResultHandling_None, haxorg_OrgCodeEvalInputResultHandling_Replace, haxorg_OrgCodeEvalInputResultHandling_Silent, haxorg_OrgCodeEvalInputResultHandling_Discard, haxorg_OrgCodeEvalInputResultHandling_Append, haxorg_OrgCodeEvalInputResultHandling_Prepend, };
+enum haxorg_ColumnViewSummaryCheckboxAggregateKind { haxorg_ColumnViewSummaryCheckboxAggregateKind_IfAllNested, haxorg_ColumnViewSummaryCheckboxAggregateKind_AggregateFractionRec, haxorg_ColumnViewSummaryCheckboxAggregateKind_AggregatePercentRec, };
+enum haxorg_ColumnViewSummaryMathAggregateKind { haxorg_ColumnViewSummaryMathAggregateKind_Min, haxorg_ColumnViewSummaryMathAggregateKind_Max, haxorg_ColumnViewSummaryMathAggregateKind_Mean, haxorg_ColumnViewSummaryMathAggregateKind_Sum, haxorg_ColumnViewSummaryMathAggregateKind_LowHighEst, };
+enum haxorg_ColumnViewSummaryKind { haxorg_ColumnViewSummaryKind_CheckboxAggregate, haxorg_ColumnViewSummaryKind_MathAggregate, };
+enum haxorg_BlockCodeLinePartKind { haxorg_BlockCodeLinePartKind_Raw, haxorg_BlockCodeLinePartKind_Callout, haxorg_BlockCodeLinePartKind_Tangle, };
+enum haxorg_DocumentExportConfigTagExport {
+  haxorg_DocumentExportConfigTagExport_None,
+  haxorg_DocumentExportConfigTagExport_All,
   /// \brief Export tags in subtree titles but not in the table of content
-  NotInToc,
+  haxorg_DocumentExportConfigTagExport_NotInToc,
 };
-enum class haxorg_DocumentExportConfigTaskFiltering : short int {
+enum haxorg_DocumentExportConfigTaskFiltering {
   /// \brief Include tasks from the whitelist
-  Whitelist,
+  haxorg_DocumentExportConfigTaskFiltering_Whitelist,
   /// \brief Include tasks marked as done
-  Done,
+  haxorg_DocumentExportConfigTaskFiltering_Done,
   /// \brief Exclude all task subtrees from export
-  None,
+  haxorg_DocumentExportConfigTaskFiltering_None,
   /// \brief Add all task subtrees to export
-  All,
+  haxorg_DocumentExportConfigTaskFiltering_All,
 };
-enum class haxorg_DocumentExportConfigBrokenLinks : short int { None, Mark, Raise, Ignore, };
+enum haxorg_DocumentExportConfigBrokenLinks { haxorg_DocumentExportConfigBrokenLinks_None, haxorg_DocumentExportConfigBrokenLinks_Mark, haxorg_DocumentExportConfigBrokenLinks_Raise, haxorg_DocumentExportConfigBrokenLinks_Ignore, };
 /// \brief Configure how archived trees are exported
-enum class haxorg_DocumentExportConfigArchivedTrees : short int {
+enum haxorg_DocumentExportConfigArchivedTrees {
   /// \brief Skip archived trees entirely
-  Skip,
+  haxorg_DocumentExportConfigArchivedTrees_Skip,
   /// \brief Export only headlines of archived trees
-  Headline,
+  haxorg_DocumentExportConfigArchivedTrees_Headline,
   /// \brief Export archived trees with full content
-  All,
+  haxorg_DocumentExportConfigArchivedTrees_All,
 };
-enum class haxorg_DocumentExportConfigTocExportKind : short int { DoExport, ExportFixed, };
+enum haxorg_DocumentExportConfigTocExportKind { haxorg_DocumentExportConfigTocExportKind_DoExport, haxorg_DocumentExportConfigTocExportKind_ExportFixed, };
 /// \brief Period kind
-enum class haxorg_SubtreePeriodKind : short int {
+enum haxorg_SubtreePeriodKind {
   /// \brief Time period of the task execution.
-  Clocked,
+  haxorg_SubtreePeriodKind_Clocked,
   /// \brief Task marked as closed
-  Closed,
+  haxorg_SubtreePeriodKind_Closed,
   /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
-  Scheduled,
+  haxorg_SubtreePeriodKind_Scheduled,
   /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
-  Titled,
+  haxorg_SubtreePeriodKind_Titled,
   /// \brief Date of task completion. Must be a single time point
-  Deadline,
+  haxorg_SubtreePeriodKind_Deadline,
   /// \brief When the subtree was created
-  Created,
+  haxorg_SubtreePeriodKind_Created,
   /// \brief Last repeat time of the recurring tasks
-  Repeated,
+  haxorg_SubtreePeriodKind_Repeated,
 };
-enum class haxorg_NamedPropertyVisibilityLevel : short int { Folded, Children, Content, All, };
-enum class haxorg_NamedPropertyKind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomId, CustomSubtreeJson, CustomSubtreeFlags, };
-enum class haxorg_OrgDiagnosticsKind : short int { ParseTokenError, ParseError, IncludeError, ConvertError, InternalError, };
+enum haxorg_NamedPropertyVisibilityLevel { haxorg_NamedPropertyVisibilityLevel_Folded, haxorg_NamedPropertyVisibilityLevel_Children, haxorg_NamedPropertyVisibilityLevel_Content, haxorg_NamedPropertyVisibilityLevel_All, };
+enum haxorg_NamedPropertyKind { haxorg_NamedPropertyKind_Nonblocking, haxorg_NamedPropertyKind_ArchiveTime, haxorg_NamedPropertyKind_ArchiveFile, haxorg_NamedPropertyKind_ArchiveOlpath, haxorg_NamedPropertyKind_ArchiveTarget, haxorg_NamedPropertyKind_ArchiveCategory, haxorg_NamedPropertyKind_ArchiveTodo, haxorg_NamedPropertyKind_Trigger, haxorg_NamedPropertyKind_ExportLatexClass, haxorg_NamedPropertyKind_CookieData, haxorg_NamedPropertyKind_ExportLatexClassOptions, haxorg_NamedPropertyKind_ExportLatexHeader, haxorg_NamedPropertyKind_ExportLatexCompiler, haxorg_NamedPropertyKind_Ordered, haxorg_NamedPropertyKind_Effort, haxorg_NamedPropertyKind_Visibility, haxorg_NamedPropertyKind_ExportOptions, haxorg_NamedPropertyKind_Blocker, haxorg_NamedPropertyKind_Unnumbered, haxorg_NamedPropertyKind_Created, haxorg_NamedPropertyKind_RadioId, haxorg_NamedPropertyKind_HashtagDef, haxorg_NamedPropertyKind_CustomArgs, haxorg_NamedPropertyKind_CustomRaw, haxorg_NamedPropertyKind_CustomId, haxorg_NamedPropertyKind_CustomSubtreeJson, haxorg_NamedPropertyKind_CustomSubtreeFlags, };
+enum haxorg_OrgDiagnosticsKind { haxorg_OrgDiagnosticsKind_ParseTokenError, haxorg_OrgDiagnosticsKind_ParseError, haxorg_OrgDiagnosticsKind_IncludeError, haxorg_OrgDiagnosticsKind_ConvertError, haxorg_OrgDiagnosticsKind_InternalError, };
 /// \brief Timestamp repetition mode
-enum class haxorg_TimeRepeatMode : short int {
+enum haxorg_TimeRepeatMode {
   /// \brief Do not repeat task on completion
-  None,
+  haxorg_TimeRepeatMode_None,
   /// \brief ?
-  Exact,
+  haxorg_TimeRepeatMode_Exact,
   /// \brief Repeat on the first matching day in the future
-  FirstMatch,
+  haxorg_TimeRepeatMode_FirstMatch,
   /// \brief Repeat task on the same day next week/month/year
-  SameDay,
+  haxorg_TimeRepeatMode_SameDay,
 };
 /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
-enum class haxorg_TimeRepeatPeriod : short int { Year, Month, Week, Day, Hour, Minute, };
-enum class haxorg_TimeTimeKind : short int { Static, Dynamic, };
-enum class haxorg_CriticMarkupKind : short int { Deletion, Addition, Substitution, Highlighting, Comment, };
-enum class haxorg_FileKind : short int { Document, Attachment, Source, };
-enum class haxorg_CmdIncludeKind : short int { Example, Export, Custom, Src, OrgDocument, };
-enum class haxorg_ImmTimeTimeKind : short int { Static, Dynamic, };
-enum class haxorg_ImmFileKind : short int { Document, Attachment, Source, };
-enum class haxorg_ImmCmdIncludeKind : short int { Example, Export, Custom, Src, OrgDocument, };
+enum haxorg_TimeRepeatPeriod { haxorg_TimeRepeatPeriod_Year, haxorg_TimeRepeatPeriod_Month, haxorg_TimeRepeatPeriod_Week, haxorg_TimeRepeatPeriod_Day, haxorg_TimeRepeatPeriod_Hour, haxorg_TimeRepeatPeriod_Minute, };
+enum haxorg_TimeTimeKind { haxorg_TimeTimeKind_Static, haxorg_TimeTimeKind_Dynamic, };
+enum haxorg_CriticMarkupKind { haxorg_CriticMarkupKind_Deletion, haxorg_CriticMarkupKind_Addition, haxorg_CriticMarkupKind_Substitution, haxorg_CriticMarkupKind_Highlighting, haxorg_CriticMarkupKind_Comment, };
+enum haxorg_FileKind { haxorg_FileKind_Document, haxorg_FileKind_Attachment, haxorg_FileKind_Source, };
+enum haxorg_CmdIncludeKind { haxorg_CmdIncludeKind_Example, haxorg_CmdIncludeKind_Export, haxorg_CmdIncludeKind_Custom, haxorg_CmdIncludeKind_Src, haxorg_CmdIncludeKind_OrgDocument, };
+enum haxorg_ImmTimeTimeKind { haxorg_ImmTimeTimeKind_Static, haxorg_ImmTimeTimeKind_Dynamic, };
+enum haxorg_ImmFileKind { haxorg_ImmFileKind_Document, haxorg_ImmFileKind_Attachment, haxorg_ImmFileKind_Source, };
+enum haxorg_ImmCmdIncludeKind { haxorg_ImmCmdIncludeKind_Example, haxorg_ImmCmdIncludeKind_Export, haxorg_ImmCmdIncludeKind_Custom, haxorg_ImmCmdIncludeKind_Src, haxorg_ImmCmdIncludeKind_OrgDocument, };
 /// \brief ['org', 'sem', 'SemId', [['org', 'sem', 'Org']]]
 struct haxorg_SemIdOfOrg {
   haxorg_ptr_payload data;
@@ -4589,7 +4589,7 @@ HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSemIdOfErrorGroup_size_const(OrgContext
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_HstdVecOfSemIdOfErrorGroup_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSemIdOfErrorGroup __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSemIdOfErrorGroup(OrgContext* org_context, haxorg_HstdVecOfSemIdOfErrorGroup* obj);
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfInt_size_const(OrgContext* org_context, haxorg_HstdVecOfInt __this);
-HAXORG_C_API_LINKAGE int const& haxorg_HstdVecOfInt_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfInt __this, int idx);
+HAXORG_C_API_LINKAGE int const* haxorg_HstdVecOfInt_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfInt __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfInt(OrgContext* org_context, haxorg_HstdVecOfInt* obj);
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfImmAdapter_size_const(OrgContext* org_context, haxorg_HstdVecOfImmAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_HstdVecOfImmAdapter_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfImmAdapter __this, int idx);
@@ -4710,10 +4710,13 @@ HAXORG_C_API_LINKAGE haxorg_SequenceSegmentGroup haxorg_HstdVecOfSequenceSegment
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegmentGroup(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_IntSetOfSubtreePeriodKind(OrgContext* org_context, haxorg_IntSetOfSubtreePeriodKind* obj);
 HAXORG_C_API_LINKAGE haxorg_ptr_payload haxorg_HstdMap_keys_const(OrgContext* org_context, haxorg_HstdMap __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_HstdMap(OrgContext* org_context, haxorg_HstdMap* obj);
 HAXORG_C_API_LINKAGE haxorg_ptr_payload haxorg_ImmMap_get_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
 HAXORG_C_API_LINKAGE bool haxorg_ImmMap_contains_const(OrgContext* org_context, haxorg_ImmMap __this, haxorg_ptr_payload const& key);
 HAXORG_C_API_LINKAGE haxorg_ptr_payload haxorg_ImmMap_keys_const(OrgContext* org_context, haxorg_ImmMap __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmMap(OrgContext* org_context, haxorg_ImmMap* obj);
 HAXORG_C_API_LINKAGE haxorg_ptr_payload haxorg_StdOptional_value(OrgContext* org_context, haxorg_StdOptional __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_StdOptional(OrgContext* org_context, haxorg_StdOptional* obj);
 HAXORG_C_API_LINKAGE int haxorg_BackwardsIndex_get_value(OrgContext* org_context, haxorg_BackwardsIndex __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context, haxorg_BackwardsIndex* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);

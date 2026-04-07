@@ -43,7 +43,7 @@ TEST(OrgCApi, TestSimpleParsing) {
     haxorg_OrgSemKind node_kind = haxorg_SemIdOfOrg_getNodeKind_const(
         &ctx, stmt_node);
 
-    EXPECT_EQ(node_kind, haxorg_OrgSemKind::Paragraph);
+    EXPECT_EQ(node_kind, haxorg_OrgSemKind_Paragraph);
 
     haxorg_destroy_SemIdOfOrg(&ctx, &parsed_node);
 }

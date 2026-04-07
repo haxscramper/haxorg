@@ -33,6 +33,23 @@ class CAstbuilderConfig(AstbulderConfig):
 
         prefix = "haxorg_"
 
+        def aux_api(NewType: QualType) -> QualType:
+            if NewType.Name == "haxorg_ptr_payload":
+                return NewType
+
+            else:
+                match Type.RefKind:
+                    case codegen_ir.ReferenceKind.LValue:
+                        return NewType.copy_update(
+                            RefKind=codegen_ir.ReferenceKind.NotRef, PtrCount=1)
+
+                    case codegen_ir.ReferenceKind.RValue:
+                        return NewType.copy_update(
+                            RefKind=codegen_ir.ReferenceKind.NotRef)
+
+                    case _:
+                        return NewType
+
         match Type.flatQualNameWithParams():
             case ["hstd", "UnorderedSet", _]:
                 return QualType(Name=prefix + "HstdUnorderedSet")
@@ -100,7 +117,7 @@ class CAstbuilderConfig(AstbulderConfig):
                                     self.getTypeBindName(Type, withParams=True))
 
             case builtin if builtin in BUILTIN_TYPES:
-                return Type
+                return aux_api(Type)
 
             case _:
                 return QualType(

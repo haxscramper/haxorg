@@ -259,10 +259,13 @@ class GenConverter:
         if not self.isHeader:
             return self.ast.string("")
 
-        params = cpp.EnumParams(name=entry.Name.Name,
-                                doc=self.convertDoc(entry.Doc),
-                                base=entry.Base,
-                                IsLine=not any([F.Doc.brief for F in entry.Fields]))
+        params = cpp.EnumParams(
+            name=entry.Name.Name,
+            doc=self.convertDoc(entry.Doc),
+            base=entry.Base,
+            isEnumClass=entry.IsEnumClass,
+            IsLine=not any([F.Doc.brief for F in entry.Fields]),
+        )
 
         for _field in entry.Fields:
             params.fields.append(

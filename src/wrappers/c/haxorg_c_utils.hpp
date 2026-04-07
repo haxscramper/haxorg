@@ -82,12 +82,22 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
 
 template <typename T>
 struct VTable {
-    static void const* get_vtable() { return nullptr; }
+    static constexpr bool no_vtable = true;
+    static void const*    get_vtable() { return nullptr; }
 };
 
 template <typename T>
-concept IsCWrapped = requires(T t) {
-    requires std::same_as<decltype(t.data), haxorg_ptr_payload>;
+concept IsCWrapped = //
+    std::same_as<std::remove_cvref_t<T>, haxorg_ptr_payload>
+    || requires(T t, const T ct) {
+           { t.data } -> std::same_as<haxorg_ptr_payload&>;
+           { ct.data } -> std::same_as<const haxorg_ptr_payload&>;
+       };
+
+template <typename T>
+concept NoVtable = !requires { VTable<T>::no_vtable; } || requires {
+    { VTable<T>::no_vtable } -> std::convertible_to<bool>;
+    requires VTable<T>::no_vtable == true;
 };
 
 template <typename T>
@@ -115,6 +125,21 @@ struct ArgUnwrapper<CppType const&, CType> {
         return *unwrap_instance<CppType>(ctx, val.data);
     }
 };
+
+template <typename CppType, typename CType>
+struct ArgUnwrapper<CppType const&, CType const*> {
+    static CppType const& unwrap(OrgContext* ctx, CType const* val) {
+        return *unwrap_instance<CppType>(ctx, val->data);
+    }
+};
+
+template <typename CppType, typename CType>
+struct ArgUnwrapper<CppType const&, CType*> {
+    static CppType const& unwrap(OrgContext* ctx, CType* val) {
+        return *unwrap_instance<CppType>(ctx, val->data);
+    }
+};
+
 
 template <IsExactlyValue CppType, IsCWrapped CType>
 struct ArgUnwrapper<CppType, CType> {
@@ -168,17 +193,33 @@ struct ExtractCoreType<std::shared_ptr<T>> {
 
 
 template <typename CType, typename CppRetT>
-struct ResultTypeBuilder {
+struct ResultTypeBuilder;
+
+template <IsCWrapped CType, typename CppRetT>
+struct ResultTypeBuilder<CType, CppRetT> {
     using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
+
     static CType build(void* t) {
         return {haxorg_ptr_payload{
             .data   = t,
             .vtable = VTable<CppRetT>::get_vtable(),
         }};
     }
+
     static CType build_null() { return {haxorg_ptr_payload{}}; }
 };
 
+template <typename CType, typename CppRetT>
+    requires NoVtable<CType>
+struct ResultTypeBuilder<CType const*, CppRetT> {
+    using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
+
+    static CType const* build(void* t) {
+        return static_cast<CType const*>(t);
+    }
+
+    static CType const* build_null() { return nullptr; }
+};
 
 namespace detail {
 

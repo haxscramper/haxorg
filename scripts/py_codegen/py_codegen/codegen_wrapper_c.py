@@ -266,10 +266,18 @@ def _gen_typedef(tdef: codegen_ir.GenTuTypedef, ast: cpp.ASTBuilder,
 @beartype
 def _gen_enum(en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder,
               conf: CAstbuilderConfig) -> codegen_ir.GenTuEnum:
+    name = conf.getBackendType(en.Name)
+
+    def aux(f: codegen_ir.GenTuEnumField) -> codegen_ir.GenTuEnumField:
+        return replace(f, Name=f"{name.Name}_{f.Name}")
+
     return replace(
         en,
-        Name=conf.getBackendType(en.Name),
+        Name=name,
         GenEnumDescription=False,
+        IsEnumClass=False,
+        Base=None,
+        Fields=[aux(f) for f in en.Fields],
     )
 
 
@@ -764,6 +772,15 @@ def _gen_haxorg_vtable_template_instantiation(
             ))
 
     result.wrappers.append(vtable_struct)
+
+    result.wrappers.append(
+        _gen_struct_destructor_vtable(
+            struct=struct,
+            basename=_gen_struct_basename(struct, conf),
+            ast=ast,
+            wrap_struct=wrap_struct,
+            conf=conf,
+        ))
 
     return result
 

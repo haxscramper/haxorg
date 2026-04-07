@@ -1010,6 +1010,8 @@ class GenTuEnum:
 
     ExposeHeaderDeclaration: bool = True
     "When generating header source files, the enum would be exposed for public API"
+    IsEnumClass: bool = True
+    "C++ Enum class"
 
     def __str__(self) -> str:
         return f"GenTuEnum({self.Name.format()})"
