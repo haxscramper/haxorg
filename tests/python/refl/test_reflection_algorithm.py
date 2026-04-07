@@ -708,20 +708,23 @@ def test_typedef_does_not_match_only_by_partial_inner_prefix() -> None:
 
 def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers(
 ) -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Ref",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="T",
-                IsTemplateTypeParam=True,
-                RefKind=ReferenceKind.LValue,
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Ref",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="T",
+                    IsTemplateTypeParam=True,
+                    RefKind=ReferenceKind.LValue,
+                ),
+            )
+        ],
+        debug=True,
+    )
 
     resolved = matcher.getResolvedType(
         QualType(
@@ -735,20 +738,23 @@ def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrapper
 
 
 def test_typedef_substitution_sets_original_substituted_template() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+            )
+        ],
+        debug=True,
+    )
 
     resolved = matcher.getResolvedType(
         QualType(

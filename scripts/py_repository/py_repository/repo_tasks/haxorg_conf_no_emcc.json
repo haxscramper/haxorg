@@ -18,6 +18,11 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
+      // "tests/python/repo/test_code_coverage.py::test_file_segmentation_2",
+      // "tests/python/refl/test_reflection_algorithm.py::test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers",
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::TestOrgParseCorpus::Missing_subtree_close__other_subtree_at_errors",
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::TestOrgParseCorpus::Missing_subtree_close__end_document_at_errors",
+
       // "tests/python/refl/test_reflection_algorithm.py"
       // "tests/python/refl/test_record_reflection.py::test_templates_record"
       // "tests/python/test_adaptagrams.py::test_align_axis_multi_separate_equal_sizes"

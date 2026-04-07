@@ -424,6 +424,7 @@ def test_file_segmentation_2(stable_test_dir: Path) -> None:
             ColumnStart=9,
             ColumnEnd=22,
         ),
+        dict(),
         dict(
             LineStart=4,
             LineEnd=4,

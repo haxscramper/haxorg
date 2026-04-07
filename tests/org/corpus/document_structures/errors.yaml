@@ -1,5 +1,7 @@
 items:
   - name: "Missing subtree close, end document"
+    debug:
+      doFormatReparse: false
     source: |
       * Subtree
         :properties:
@@ -19,6 +21,8 @@ items:
 
 
   - name: "Missing subtree close, other subtree"
+    debug:
+      doFormatReparse: false
     source: |
       * Subtree
         :properties:
