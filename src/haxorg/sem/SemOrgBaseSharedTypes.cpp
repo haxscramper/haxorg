@@ -44,7 +44,7 @@ OrgJsonKind org::sem::OrgJson::getKind() const {
     }
 }
 
-org::sem::OrgJson::OrgJson(const json* ptr)
+org::sem::OrgJson::OrgJson(json const* ptr)
     : value{std::shared_ptr<json>(const_cast<json*>(ptr), [](json* p) {})}
     , holds_value{false} {}
 

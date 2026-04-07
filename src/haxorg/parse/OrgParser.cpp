@@ -2825,7 +2825,7 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
 OrgParser::ParseOk OrgParser::NodeGuard::end(
     std::string const& desc,
     int                line,
-    const char*        function) {
+    char const*        function) {
     LOGIC_ASSERTION_CHECK_FMT(
         !startId.isNil(), "Trying to close nil tree");
     auto result = parser->end_impl(

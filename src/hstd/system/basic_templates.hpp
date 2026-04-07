@@ -28,7 +28,7 @@ constexpr std::string_view get_type_name_fallback() {
 }
 
 
-inline std::string demangle(const char* name) {
+inline std::string demangle(char const* name) {
 
     int status = -4; // some arbitrary value to eliminate the compiler
                      // warning
@@ -45,7 +45,7 @@ inline std::string demangle(const char* name) {
 
 namespace hstd {
 // does nothing if not g++
-inline std::string demangle(const char* name) { return name; }
+inline std::string demangle(char const* name) { return name; }
 } // namespace hstd
 
 #endif

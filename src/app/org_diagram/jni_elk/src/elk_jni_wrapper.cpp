@@ -137,7 +137,7 @@ class ElkLayoutEngine::Impl {
         }
 
         // Convert result to C++ string
-        const char* resultChars = env->GetStringUTFChars(jResult, nullptr);
+        char const* resultChars = env->GetStringUTFChars(jResult, nullptr);
         std::string result(resultChars);
         env->ReleaseStringUTFChars(jResult, resultChars);
         env->DeleteLocalRef(jResult);

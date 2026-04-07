@@ -106,8 +106,8 @@ hstd::finally_std trackTestExecution(
     QObject*         testClas,
     hstd::Str const& suffix,
     int              line,
-    const char*      function,
-    const char*      file) {
+    char const*      function,
+    char const*      file) {
 
     auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([testClas]() {
         return ::hstd::log::init_file_sink(
@@ -197,7 +197,7 @@ void recurse_tree(
     QHash<int, QByteArray> const& role_names,
     hstd::Vec<ModelLevelRecord>&  records,
     bool                          ignoreExceptions,
-    const QAbstractItemModel*     model,
+    QAbstractItemModel const*     model,
     hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>> toString,
     hstd::Opt<int>                                           maxDepth) {
     if (maxDepth && *maxDepth < level) { return; }
@@ -373,7 +373,7 @@ hstd::ColText format_records(hstd::CVec<ModelLevelRecord> records) {
 } // namespace
 
 hstd::ColText printModelTree(
-    const QAbstractItemModel*                                model,
+    QAbstractItemModel const*                                model,
     QModelIndex const&                                       parent,
     hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>> toString,
     bool           ignoreExceptions,

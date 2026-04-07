@@ -12,7 +12,7 @@
 template <typename V, typename R>
 void org::algo::Exporter<V, R>::visitField(
     R&                   arg,
-    const char*          name,
+    char const*          name,
     sem::SemId<sem::Org> org) {
     auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
                                    .with_field(name)

@@ -65,7 +65,7 @@ json sliceJson(
                          size_t                  dim,
                          std::vector<int> const& path) -> json {
         if (dim == indices.size()) {
-            const json* value = &arr;
+            json const* value = &arr;
             for (int idx : path) { value = &(*value)[idx]; }
             return *value;
         }

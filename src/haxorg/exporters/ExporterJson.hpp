@@ -59,7 +59,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     template <typename T>
-    void visitField(json& j, const char* name, hstd::Opt<T> const& value);
+    void visitField(json& j, char const* name, hstd::Opt<T> const& value);
 
     template <typename T>
     json eval(hstd::Vec<T> const& values);
@@ -68,12 +68,12 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json eval(hstd::UnorderedMap<hstd::Str, T> const& map);
 
     template <typename T>
-    void visitField(json& j, const char* name, T const& field) {
+    void visitField(json& j, char const* name, T const& field) {
         j[name] = eval(field);
     }
 
     template <typename T>
-    void visitField(json& j, const char* name, hstd::CVec<T> field) {
+    void visitField(json& j, char const* name, hstd::CVec<T> field) {
         if (!skipEmptyLists || !field.empty()) { j[name] = eval(field); }
     }
 

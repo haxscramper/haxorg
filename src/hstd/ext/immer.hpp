@@ -103,7 +103,7 @@ struct SequentialImmerContainerAdapterBase
 
     void reserve_impl(int size) {}
 
-    SequentialImmerContainerAdapterBase(const container_type* container)
+    SequentialImmerContainerAdapterBase(container_type const* container)
         : container{container} {
         hstd::logic_assertion_check_not_nil(container);
     }
@@ -158,7 +158,7 @@ struct SequentialContainerAdapter<immer::set<T>>
         container_type,
         item_value_type>;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : base_type{container} {}
 
     void add_impl(item_value_type const& value) {
@@ -185,7 +185,7 @@ struct SequentialContainerAdapter<immer::flex_vector<T>>
         container_type,
         item_value_type>;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : base_type{container} {}
 
     void add_impl(item_value_type const& value) {
@@ -211,7 +211,7 @@ struct SequentialContainerAdapter<immer::vector<T>>
         container_type,
         item_value_type>;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : base_type{container} {}
 
     void add_impl(item_value_type const& value) {
@@ -237,7 +237,7 @@ struct SequentialContainerAdapter<immer::map<K, V>>
         container_type,
         item_value_type>;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : base_type{container} {}
 
     void add_impl(item_value_type const& value) {
@@ -265,7 +265,7 @@ struct SequentialContainerAdapter<ext::ImmMap<K, V>>
         container_type,
         item_value_type>;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : base_type{container} {}
 
     void add_impl(item_value_type const& value) {
@@ -292,7 +292,7 @@ struct AssociativeContainerAdapter<ext::ImmMap<K, V>>
     using pair_value_type = V;
     using container_type  = ext::ImmMap<K, V>;
 
-    AssociativeContainerAdapter(const container_type* container)
+    AssociativeContainerAdapter(container_type const* container)
         : SequentialContainerAdapter<ext::ImmMap<K, V>>{container} {}
 
     bool contains_impl(pair_key_type const& key) const {
@@ -328,7 +328,7 @@ struct AssociativeContainerAdapter<immer::map<K, V>>
     using pair_value_type = V;
     using container_type  = immer::map<K, V>;
 
-    AssociativeContainerAdapter(const container_type* container)
+    AssociativeContainerAdapter(container_type const* container)
         : SequentialContainerAdapter<immer::map<K, V>>{container} {}
 
     V const& at_impl(K const& key) const {

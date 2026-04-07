@@ -341,7 +341,7 @@ std::size_t DiaGraphVertex::getHash() const {
     return std::hash<DiaUniqId>{}(uniq);
 }
 
-bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
+bool DiaGraphVertex::isEqual(IGraphObjectBase const* other) const {
     LOGIC_ASSERTION_CHECK(other->isInstance<DiaGraphVertex>(), "");
     return dynamic_cast<DiaGraphVertex const*>(other)->uniq == this->uniq;
 }
@@ -349,7 +349,7 @@ bool DiaGraphVertex::isEqual(const IGraphObjectBase* other) const {
 std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }
 
 json DiaDescriptionListEdge::getSerialNonRecursive(
-    const org::graph::IGraph* graph,
+    org::graph::IGraph const* graph,
     org::graph::EdgeID const& id) const {
     json result = org::graph::IEdge::getSerialNonRecursive(graph, id);
     result["extra_type"] = hstd::value_metadata<SerialSchema>::typeName();

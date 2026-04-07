@@ -42,11 +42,11 @@ vpsc::Dim toVpsc(GraphDimension dim) {
     }
 }
 
-const char* original_subgraph_nodes_prop = "original_nodes";
-const char* original_subgraph_path_prop  = "original_path";
-const char* original_subgraph_index      = "original_index";
-const char* source_index_prop            = "source_index";
-const char* target_index_prop            = "target_index";
+char const* original_subgraph_nodes_prop = "original_nodes";
+char const* original_subgraph_path_prop  = "original_path";
+char const* original_subgraph_index      = "original_index";
+char const* source_index_prop            = "source_index";
+char const* target_index_prop            = "target_index";
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
 /// (y down). `height` is the vertical size of the main graph bounding box.

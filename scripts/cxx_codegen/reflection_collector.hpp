@@ -163,16 +163,16 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::Expr const*                          In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillFieldDecl(Record::Field* sub, const clang::FieldDecl* field);
+    void fillFieldDecl(Record::Field* sub, clang::FieldDecl const* field);
 
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
     void fillMethodDecl(
         Record::Method*             sub,
-        const clang::CXXMethodDecl* method);
+        clang::CXXMethodDecl const* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
-    void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
-    void fillSharedRecordData(Record* rec, const clang::RecordDecl* Decl);
+    void fillCxxRecordDecl(Record* rec, clang::CXXRecordDecl const* Decl);
+    void fillSharedRecordData(Record* rec, clang::RecordDecl const* Decl);
 
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
@@ -183,13 +183,13 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool IndirectFieldDecl(clang::IndirectFieldDecl* Decl);
 
 
-    bool isDescribedEnum(const clang::EnumDecl* enumDecl);
-    bool isDescribedRecord(const clang::RecordDecl* recordDecl);
+    bool isDescribedEnum(clang::EnumDecl const* enumDecl);
+    bool isDescribedRecord(clang::RecordDecl const* recordDecl);
 
-    bool                       isRefl(const clang::Decl* Decl);
-    std::optional<std::string> getDoc(const clang::Decl* Decl);
+    bool                       isRefl(clang::Decl const* Decl);
+    std::optional<std::string> getDoc(clang::Decl const* Decl);
 
-    bool shouldVisit(const clang::Decl* Decl);
+    bool shouldVisit(clang::Decl const* Decl);
 
     /// What group of declarations must be handled by the visitor
     enum class VisitMode

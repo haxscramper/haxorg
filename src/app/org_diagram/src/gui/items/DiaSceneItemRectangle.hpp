@@ -34,7 +34,7 @@ struct DiaSceneItemRectangle : public DiaSceneItemVisual {
 
     void paint(
         QPainter*                       painter,
-        const QStyleOptionGraphicsItem* option,
+        QStyleOptionGraphicsItem const* option,
         QWidget*                        widget) override {
         paintNode(painter);
 

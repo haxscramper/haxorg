@@ -22,8 +22,8 @@ using namespace hstd::log;
 void log_graph_tracker::add_processor(
     std::shared_ptr<log_graph_processor> processor,
     int                                  line,
-    const char*                          function,
-    const char*                          file) {
+    char const*                          function,
+    char const*                          file) {
     processors.push_back(processor);
 }
 
@@ -434,7 +434,7 @@ void hstd::log::logger_processor::track_connect(connect_info const& info) {
 void SignalDebugger::connectToAllSignals() {
     if (!targetObject) { return; }
 
-    const QMetaObject* metaObject = targetObject->metaObject();
+    QMetaObject const* metaObject = targetObject->metaObject();
 
     for (int i = 0; i < metaObject->methodCount(); ++i) {
         QMetaMethod method = metaObject->method(i);
@@ -468,7 +468,7 @@ void SignalDebugger::onSignalTriggered() {
     QObject* senderObj = sender();
     if (!senderObj) { return; }
 
-    const QMetaObject* senderMeta  = senderObj->metaObject();
+    QMetaObject const* senderMeta  = senderObj->metaObject();
     int                signalIndex = senderSignalIndex();
 
     if (0 <= signalIndex) {

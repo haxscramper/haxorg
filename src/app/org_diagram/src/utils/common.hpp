@@ -135,7 +135,7 @@ void customMessageHandler(
     QString const&            msg_in);
 
 hstd::ColText printModelTree(
-    const QAbstractItemModel* model,
+    QAbstractItemModel const* model,
     const QModelIndex&        parent = QModelIndex{},
     hstd::Opt<hstd::Func<hstd::ColText(QModelIndex const&)>>
                    toString         = std::nullopt,
@@ -170,9 +170,9 @@ template <QTest::ComparisonOperation op, typename T1, typename T2>
 bool haxorg_qCompareOp(
     T1&&        qt_lhs_arg,
     T2&&        qt_rhs_arg,
-    const char* lhsExpr,
-    const char* rhsExpr,
-    const char* file,
+    char const* lhsExpr,
+    char const* rhsExpr,
+    char const* file,
     int         line) {
     using Comparator = QTest::Internal::Compare<op>;
     bool success     = Comparator::compare(qt_lhs_arg, qt_lhs_arg);

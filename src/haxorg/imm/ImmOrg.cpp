@@ -753,9 +753,9 @@ hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() {
 
 void ImmAstEditContext::message(
     std::string const& value,
-    const char*        function,
+    char const*        function,
     int                line,
-    const char*        file) {
+    char const*        file) {
     ctx.lock()->debug->message(value, function, line, file);
 }
 
@@ -1216,7 +1216,7 @@ ParentPathMap ImmAstTrackingMap::getParentsFor(
 
 Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
     ImmId const&         it,
-    const ImmAstContext* ctx) const {
+    ImmAstContext const* ctx) const {
     Func<Vec<ImmPath>(ImmId const& id)> aux;
     aux = [&](ImmId const& id) -> Vec<ImmPath> {
         Vec<ImmPath> result;

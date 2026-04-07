@@ -169,7 +169,7 @@ struct Exporter : ExporterEventBase {
     using __ExporterBase::crtp_type;                                      \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
-    void visitField(R& arg, const char* name, sem::SemId<sem::Org> org);
+    void visitField(R& arg, char const* name, sem::SemId<sem::Org> org);
 
     void visitSubnode(R& tmp, int, sem::SemId<sem::Org> val);
 

@@ -416,7 +416,7 @@ std::size_t IEdge::getHash() const {
     return result;
 }
 
-bool IEdge::isEqual(const IGraphObjectBase* other) const {
+bool IEdge::isEqual(IGraphObjectBase const* other) const {
     auto other_edge = dynamic_cast<IEdge const*>(other);
     return other->isInstance<IEdge>()         //
         && this->source == other_edge->source //
@@ -426,7 +426,7 @@ bool IEdge::isEqual(const IGraphObjectBase* other) const {
         && this->targetPort == other_edge->targetPort;
 }
 
-json IEdge::getSerialNonRecursive(const IGraph* graph, EdgeID const& id)
+json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
     const {
 
     SerialSchema res{

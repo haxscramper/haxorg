@@ -385,7 +385,7 @@ class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
 
     template <typename... CallArgs>
     ReturnType operator()(
-        const ClassType* instance,
+        ClassType const* instance,
         CallArgs&&... callArgs) const {
         return invoke(
             instance,
@@ -406,7 +406,7 @@ class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
 
     template <size_t... Indices, typename... CallArgs>
     ReturnType invoke(
-        const ClassType* instance,
+        ClassType const* instance,
         std::index_sequence<Indices...>,
         CallArgs&&... callArgs) const {
         return (instance->*method_)(std::forward<CallArgs>(callArgs)...);

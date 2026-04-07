@@ -130,17 +130,17 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     void visitField(
         int&                             i,
-        const char*                      name,
+        char const*                      name,
         hstd::CVec<sem::SemId<sem::Org>> org);
 
 
     template <typename T>
-    void visitField(int& arg, const char* name, T const& value);
+    void visitField(int& arg, char const* name, T const& value);
 
-    void visitField(int& arg, const char* name, sem::SemId<sem::Org> org);
+    void visitField(int& arg, char const* name, sem::SemId<sem::Org> org);
 
     template <typename T>
-    void visitField(int& arg, const char* name, sem::SemId<T> org);
+    void visitField(int& arg, char const* name, sem::SemId<T> org);
 
     template <typename T>
     void visit(int& arg, sem::SemId<T> org);

@@ -167,7 +167,7 @@ void ExporterPython::popVisitImpl(Res& res, sem::OrgArg id) {
 
 void ExporterPython::visitField(
     Res&                 res,
-    const char*          name,
+    char const*          name,
     sem::SemId<sem::Org> value) {
     switch (value->getKind()) {
 #define __case(__Kind)                                                    \

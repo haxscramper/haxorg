@@ -126,7 +126,7 @@ class SequentialKvPairContainerAdapter
 
     container_type const* container;
 
-    SequentialKvPairContainerAdapter(const container_type* container)
+    SequentialKvPairContainerAdapter(container_type const* container)
         : container{container} {}
 
     auto begin_impl() const { return container->begin(); }
@@ -192,7 +192,7 @@ struct AssociativeKvPairContainerAdapter
         K,
         V>;
 
-    AssociativeKvPairContainerAdapter(const container_type* container)
+    AssociativeKvPairContainerAdapter(container_type const* container)
         : SequentialContainerAdapter<Container>{container} {}
 
     void insert_or_assign_impl(

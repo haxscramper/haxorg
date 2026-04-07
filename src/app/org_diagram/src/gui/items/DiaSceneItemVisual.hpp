@@ -33,7 +33,7 @@ struct DiaSceneItemVisual : public DiaSceneItem {
 
     void paint(
         QPainter*                       _painter,
-        const QStyleOptionGraphicsItem* option,
+        QStyleOptionGraphicsItem const* option,
         QWidget*                        widget) override {
         auto painter = std::make_shared<DebugPainter>(
             _painter, TraceState, "EdgeNode::paint", CALL_LOC());

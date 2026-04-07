@@ -70,7 +70,7 @@ struct DiaGraphVertex : public org::graph::IVertex {
     std::string getStableId() const override;
 
     virtual std::size_t getHash() const override;
-    virtual bool isEqual(const IGraphObjectBase* other) const override;
+    virtual bool isEqual(IGraphObjectBase const* other) const override;
     virtual std::string getRepr() const override;
     virtual json        getSerialNonRecursive(
         org::graph::IGraph const*   graph,
@@ -163,7 +163,7 @@ class DiaSubtreeIdProperty : public org::graph::IProperty {
         return std::hash<std::string>{}(id);
     }
 
-    virtual bool isEqual(const IProperty* other) const override {
+    virtual bool isEqual(IProperty const* other) const override {
         return other->isInstance<DiaSubtreeIdProperty>()
             && dynamic_cast<DiaSubtreeIdProperty const*>(other)->id == id;
     }
@@ -225,7 +225,7 @@ class DiaDescriptionListEdge : public org::graph::IEdge {
     };
 
     virtual json getSerialNonRecursive(
-        const org::graph::IGraph* graph,
+        org::graph::IGraph const* graph,
         org::graph::EdgeID const& id) const override;
 };
 

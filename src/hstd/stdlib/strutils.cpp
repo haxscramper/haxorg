@@ -1386,7 +1386,7 @@ std::string hstd::escape_literal(std::string const& in) {
 }
 
 void hstd::validate_utf8(std::string const& str) {
-    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(
+    unsigned char const* bytes = reinterpret_cast<const unsigned char*>(
         str.data());
     size_t len = str.size();
 

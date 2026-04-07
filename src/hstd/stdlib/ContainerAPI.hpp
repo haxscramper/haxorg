@@ -94,7 +94,7 @@ class SequentialContainerAdapter<hstd::Vec<T>>
 
     container_type const* container = nullptr;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : container{container} {}
 
     auto begin_impl() const { return container->begin(); }
@@ -123,7 +123,7 @@ class SequentialContainerAdapter<hstd::SmallVec<T, Size>>
 
     container_type const* container = nullptr;
 
-    SequentialContainerAdapter(const container_type* container)
+    SequentialContainerAdapter(container_type const* container)
         : container{container} {}
 
     auto begin_impl() const { return container->begin(); }

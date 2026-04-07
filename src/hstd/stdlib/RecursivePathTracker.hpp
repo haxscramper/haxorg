@@ -49,7 +49,7 @@ class RecursivePathTracker {
         using pointer           = const PathStep*;
         using reference         = const PathStep&;
 
-        iterator(const RecursivePathTracker* t, int idx)
+        iterator(RecursivePathTracker const* t, int idx)
             : tracker{t}, index{idx} {}
 
         reference operator*() const {

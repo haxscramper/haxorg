@@ -47,14 +47,14 @@ int EditableOrgTextEntry::getHeight() const {
 
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     Vec<Str>    result;
-    const char* text = unwrapped.c_str();
+    char const* text = unwrapped.c_str();
     while (*text) {
-        const char* line_start = text;
+        char const* line_start = text;
         float       line_width = 0.0f;
         while (*text && line_width < width) {
             uint        __out_char = 0;
             auto        size = ImTextCharFromUtf8(&__out_char, text, NULL);
-            const char* next = text + size;
+            char const* next = text + size;
             if (next == text) { break; }
             auto width = ImGui::CalcTextSize(text, next).x;
             line_width += width;

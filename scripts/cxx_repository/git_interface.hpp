@@ -78,7 +78,7 @@ struct GitResult {
 namespace git {
 
 inline GitFail get_fail() {
-    const git_error* e = git_error_last();
+    git_error const* e = git_error_last();
     return GitFail{e->message, e->klass};
 }
 
@@ -121,7 +121,7 @@ inline GitResult<hstd::SPtr<git_revwalk>> revwalk_new(
 
 inline GitResult<hstd::SPtr<git_annotated_commit>> annotated_commit_lookup(
     git_repository* repo,
-    const git_oid*  id) {
+    git_oid const*  id) {
     return wrap_ptr_result<
         git_annotated_commit,
         git_repository*,
@@ -131,7 +131,7 @@ inline GitResult<hstd::SPtr<git_annotated_commit>> annotated_commit_lookup(
 
 inline GitResult<hstd::SPtr<git_object>> tree_entry_to_object(
     git_repository*       repo,
-    const git_tree_entry* entry) {
+    git_tree_entry const* entry) {
     return wrap_ptr_result<
         git_object,
         git_repository*,
@@ -139,12 +139,12 @@ inline GitResult<hstd::SPtr<git_object>> tree_entry_to_object(
         git_tree_entry_to_object, git_object_free, repo, entry);
 }
 
-inline int commit_time_offset(const git_commit* commit) {
+inline int commit_time_offset(git_commit const* commit) {
     auto __result = git_commit_time_offset(commit);
     return __result;
 }
 
-inline const char* commit_message(const git_commit* commit) {
+inline const char* commit_message(git_commit const* commit) {
     auto __result = git_commit_message(commit);
     return __result;
 }
@@ -158,7 +158,7 @@ inline GitResult<hstd::SPtr<git_patch>> patch_from_diff(
 
 inline GitResult<hstd::SPtr<git_blob>> blob_lookup(
     git_repository* repo,
-    const git_oid*  oid) {
+    git_oid const*  oid) {
     return wrap_ptr_result<git_blob, git_repository*, const git_oid*>(
         git_blob_lookup, git_blob_free, repo, oid);
 }
@@ -187,7 +187,7 @@ inline GitResult<hstd::SPtr<git_commit>> reference_peel(
 }
 
 
-inline const git_signature* commit_author(const git_commit* commit) {
+inline const git_signature* commit_author(git_commit const* commit) {
     auto __result = git_commit_author(commit);
     return __result;
 }
@@ -197,7 +197,7 @@ inline GitResult<hstd::SPtr<git_diff>> diff_tree_to_tree(
     git_repository*         repo,
     git_tree*               old_tree,
     git_tree*               new_tree,
-    const git_diff_options* opts) {
+    git_diff_options const* opts) {
     return wrap_ptr_result(
         git_diff_tree_to_tree,
         git_diff_free,
@@ -209,18 +209,18 @@ inline GitResult<hstd::SPtr<git_diff>> diff_tree_to_tree(
 
 
 inline GitResult<hstd::SPtr<git_tree>> commit_tree(
-    const git_commit* commit) {
+    git_commit const* commit) {
     return wrap_ptr_result(git_commit_tree, git_tree_free, commit);
 }
 
 
-inline git_time_t commit_time(const git_commit* commit) {
+inline git_time_t commit_time(git_commit const* commit) {
     auto __result = git_commit_time(commit);
     return __result;
 }
 
 
-inline const char* tree_entry_name(const git_tree_entry* entry) {
+inline const char* tree_entry_name(git_tree_entry const* entry) {
     auto __result = git_tree_entry_name(entry);
     return __result;
 }
@@ -230,46 +230,46 @@ inline int revwalk_next(git_oid* out, git_revwalk* walk) {
     return __result;
 }
 
-inline git_object_t tree_entry_type(const git_tree_entry* entry) {
+inline git_object_t tree_entry_type(git_tree_entry const* entry) {
     auto __result = git_tree_entry_type(entry);
     return __result;
 }
 
 inline GitResult<hstd::SPtr<git_tree_entry>> tree_entry_dup(
-    const git_tree_entry* source) {
+    git_tree_entry const* source) {
     return wrap_ptr_result(
         git_tree_entry_dup, git_tree_entry_free, source);
 }
 
 
-inline GitResult<git_oid> oid_fromstr(const char* str) {
+inline GitResult<git_oid> oid_fromstr(char const* str) {
     git_oid out;
     auto    __result = git_oid_fromstr(&out, str);
     return from_result(__result, out);
 }
 
-inline size_t diff_num_deltas(const git_diff* diff) {
+inline size_t diff_num_deltas(git_diff const* diff) {
     auto __result = git_diff_num_deltas(diff);
     return __result;
 }
 
-inline const git_diff_delta* patch_get_delta(const git_patch* patch) {
+inline const git_diff_delta* patch_get_delta(git_patch const* patch) {
     auto __result = git_patch_get_delta(patch);
     return __result;
 }
 
 
 inline GitResult<hstd::SPtr<git_repository>> repository_open(
-    const char* path) {
+    char const* path) {
     return wrap_ptr_result<git_repository, const char*>(
         git_repository_open, git_repository_free, path);
 }
 
 
 inline GitResult<hstd::SPtr<git_repository>> repository_open_ext(
-    const char*  path,
+    char const*  path,
     unsigned int flags,
-    const char*  ceiling_dirs) {
+    char const*  ceiling_dirs) {
     return wrap_ptr_result<
         git_repository,
         const char*,
@@ -285,7 +285,7 @@ inline GitResult<hstd::SPtr<git_repository>> repository_open_ext(
 
 inline GitResult<hstd::SPtr<git_commit>> commit_lookup(
     git_repository* repo,
-    const git_oid*  id) {
+    git_oid const*  id) {
     return wrap_ptr_result<git_commit, git_repository*, git_oid const*>(
         git_commit_lookup, git_commit_free, repo, id);
 }
@@ -294,13 +294,13 @@ inline GitResult<std::monostate> revwalk_push_head(git_revwalk* walk) {
     return from_result(git_revwalk_push_head(walk));
 }
 
-inline unsigned int commit_parentcount(const git_commit* commit) {
+inline unsigned int commit_parentcount(git_commit const* commit) {
     auto __result = git_commit_parentcount(commit);
     return __result;
 }
 
 inline const git_oid* commit_parent_id(
-    const git_commit* commit,
+    git_commit const* commit,
     unsigned int      n) {
     auto __result = git_commit_parent_id(commit, n);
     return __result;
@@ -308,7 +308,7 @@ inline const git_oid* commit_parent_id(
 
 
 inline GitResult<std::monostate> tree_walk(
-    const git_tree*   tree,
+    git_tree const*   tree,
     git_treewalk_mode mode,
     git_treewalk_cb   callback,
     void*             payload) {
@@ -335,7 +335,7 @@ inline GitResult<std::monostate> revwalk_sorting(
     return from_result(__result);
 }
 
-inline int oid_cmp(const git_oid* a, const git_oid* b) {
+inline int oid_cmp(git_oid const* a, git_oid const* b) {
     auto __result = git_oid_cmp(a, b);
     return __result;
 }
@@ -347,9 +347,9 @@ inline int oid_cmp(const git_oid* a, const git_oid* b) {
 /// \brief Iterate over the git tree in specified order using provided
 /// callback
 inline void tree_walk(
-    const git_tree*   tree, ///< Pointer to the git tree to walk over
+    git_tree const*   tree, ///< Pointer to the git tree to walk over
     git_treewalk_mode mode, ///< Order of the tree walk
-    hstd::Func<int(const char*, const git_tree_entry*)>
+    hstd::Func<int(char const*, git_tree_entry const*)>
         callback /// Callback
                  /// to
     /// execute on each entry in the tree. Should return GIT_OK value in
@@ -365,8 +365,8 @@ inline void tree_walk(
     git::tree_walk(
         tree,
         mode,
-        [](const char*           root,
-           const git_tree_entry* entry,
+        [](char const*           root,
+           git_tree_entry const* entry,
            void*                 payload) -> int {
             CB* impl = static_cast<CB*>(payload);
             try {
@@ -380,13 +380,13 @@ inline void tree_walk(
 
 struct DiffForeachParams {
     /// Callback function to make per file in the diff.
-    using file_cb_t = hstd::Func<int(const git_diff_delta*, float)>;
+    using file_cb_t = hstd::Func<int(git_diff_delta const*, float)>;
 
     file_cb_t file_cb;
 
     /// Optional callback to make for binary files.
     using binary_cb_t = hstd::Func<
-        int(const git_diff_delta*, const git_diff_binary*)>;
+        int(git_diff_delta const*, git_diff_binary const*)>;
 
     binary_cb_t binary_cb;
 
@@ -394,7 +394,7 @@ struct DiffForeachParams {
     /// called to describe a range of lines in the diff. It will not be
     /// issued for binary files.
     using hunk_cb_t = hstd::Func<
-        int(const git_diff_delta*, const git_diff_hunk*)>;
+        int(git_diff_delta const*, git_diff_hunk const*)>;
 
     hunk_cb_t hunk_cb;
 
@@ -402,9 +402,9 @@ struct DiffForeachParams {
     /// will be made for context lines, added, and removed lines, and even
     /// for a deleted trailing newline.
     using line_cb_t = hstd::Func<int(
-        const git_diff_delta*,
-        const git_diff_hunk*,
-        const git_diff_line*)>;
+        git_diff_delta const*,
+        git_diff_hunk const*,
+        git_diff_line const*)>;
 
     line_cb_t line_cb;
 };
@@ -415,7 +415,7 @@ inline void diff_foreach(
     DiffForeachParams const& foreach) {
     git::diff_foreach(
         diff,
-        [](const git_diff_delta* delta, float progress, void* payload) {
+        [](git_diff_delta const* delta, float progress, void* payload) {
             auto l = static_cast<DiffForeachParams*>(payload);
             if (l->file_cb) {
                 return l->file_cb(delta, progress);
@@ -423,8 +423,8 @@ inline void diff_foreach(
                 return 0;
             }
         },
-        [](const git_diff_delta*  delta,
-           const git_diff_binary* binary,
+        [](git_diff_delta const*  delta,
+           git_diff_binary const* binary,
            void*                  payload) {
             auto l = static_cast<DiffForeachParams*>(payload);
             if (l->binary_cb) {
@@ -433,8 +433,8 @@ inline void diff_foreach(
                 return 0;
             }
         },
-        [](const git_diff_delta* delta,
-           const git_diff_hunk*  hunk,
+        [](git_diff_delta const* delta,
+           git_diff_hunk const*  hunk,
            void*                 payload) {
             auto l = static_cast<DiffForeachParams*>(payload);
             if (l->hunk_cb) {
@@ -443,9 +443,9 @@ inline void diff_foreach(
                 return 0;
             }
         },
-        [](const git_diff_delta* delta,
-           const git_diff_hunk*  hunk,
-           const git_diff_line*  line,
+        [](git_diff_delta const* delta,
+           git_diff_hunk const*  hunk,
+           git_diff_line const*  line,
            void*                 payload) {
             auto l = static_cast<DiffForeachParams*>(payload);
             if (l->line_cb) {

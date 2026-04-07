@@ -24,7 +24,7 @@ struct DiaSceneItem : public QGraphicsObject {
     QRectF boundingRect() const override { return QRectF{}; }
     void   paint(
         QPainter*                       _painter,
-        const QStyleOptionGraphicsItem* option,
+        QStyleOptionGraphicsItem const* option,
         QWidget*                        widget) override {}
 
     /// \brief Import AST information to the scene item

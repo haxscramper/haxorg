@@ -1430,7 +1430,7 @@ void OrgTokenizer::print(
     OrgLexer&          lex,
     std::string const& msg,
     int                line,
-    const char*        function,
+    char const*        function,
     int                extraIndent) {
     if (TraceState) {
         auto rep = Builder(

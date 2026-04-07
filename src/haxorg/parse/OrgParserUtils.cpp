@@ -82,7 +82,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
 std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     OrgNodeKind kind,
     int         line,
-    const char* function) {
+    char const* function) {
     int const startingDepth = treeDepth();
     auto      res           = group->startTree(kind);
     if (TraceState) {
@@ -100,7 +100,7 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
 void OrgParser::start_no_guard(
     OrgNodeKind kind,
     int         line,
-    const char* function) {
+    char const* function) {
     auto res = group->startTree(kind);
     if (TraceState) {
         report(
@@ -115,7 +115,7 @@ void OrgParser::start_no_guard(
 OrgId OrgParser::end_impl(
     std::string const& desc,
     int                line,
-    const char*        function) {
+    char const*        function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
     if (TraceState) {
@@ -141,7 +141,7 @@ void OrgParser::fail(
     OrgLexer const& lex,
     OrgNode const&  replace,
     int             line,
-    const char*     function) {
+    char const*     function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->failTree(replace);
     if (TraceState) {
@@ -154,7 +154,7 @@ void OrgParser::fail(
 }
 
 
-OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
+OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
     auto res = group->token(
         kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
     if (TraceState) {
@@ -171,7 +171,7 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
 OrgId OrgParser::token(
     OrgNode const& node,
     int            line,
-    const char*    function) {
+    char const*    function) {
     auto res = group->token(node);
     if (TraceState) {
         std::string msg;
@@ -194,7 +194,7 @@ OrgId OrgParser::token(
     OrgNodeKind kind,
     OrgTokenId  tok,
     int         line,
-    const char* function) {
+    char const* function) {
     auto res = group->token(kind, tok);
 
     if (TraceState) {
@@ -240,7 +240,7 @@ OrgNodeMono::Error OrgParser::error_value(
 OrgId OrgParser::error_token(
     OrgNodeMono::Error const& err,
     int                       line,
-    const char*               function) {
+    char const*               function) {
     OrgNodeMono mono;
     mono.data     = err;
     OrgNode error = OrgNode{OrgNodeKind::ErrorInfoToken, mono};
@@ -252,7 +252,7 @@ OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
     org::sem::OrgDiagnostics::ParseError const& on_fail_message,
     OrgLexer&                                   lex,
     int                                         line,
-    const char*                                 function) {
+    char const*                                 function) {
     if (res.has_value()) {
         return res;
     } else {
@@ -263,7 +263,7 @@ OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
 OrgParser::ParseResult OrgParser::maybe_error_end(
     MaybeTokenFail const& err,
     int                   line,
-    const char*           function) {
+    char const*           function) {
     if (err.has_error()) {
         return error_end(err.assume_error(), line, function);
     } else {
@@ -347,7 +347,7 @@ finally_std OrgParser::trace(
     OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
-    const char*      function) {
+    char const*      function) {
     if (TraceState) {
         report(
             Builder(
@@ -374,7 +374,7 @@ void OrgParser::print(
     std::string const& msg,
     OrgLexer*          lexer,
     int                line,
-    const char*        function) {
+    char const*        function) {
     if (TraceState) {
         auto build = Builder(
                          OrgParser::ReportKind::Print,
@@ -392,7 +392,7 @@ parse_error OrgParser::fatalError(
     OrgLexer const& lex,
     Str const&      msg,
     int             line,
-    const char*     function) {
+    char const*     function) {
     if (TraceState) {
         auto build = Builder(
                          OrgParser::ReportKind::Error,
