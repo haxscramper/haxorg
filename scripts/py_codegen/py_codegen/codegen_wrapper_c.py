@@ -314,6 +314,7 @@ def _gen_vtable_method_specialization(
     conf: CAstbuilderConfig,
     c_type: QualType,
     cpp_vtable_type: QualType,
+    ImplOverride: Optional[BlockId] = None,
 ) -> codegen_ir.GenTuFunction:
     assert _meth.ParentClass, f"No parent class for method {_meth.Name} of class {struct.declarationQualName()}"
 
@@ -362,15 +363,17 @@ def _gen_vtable_method_specialization(
 
     Impl = ast.Return(Impl)
 
+    DeclIdents = [_CONTEXT_ARG]
+    if not _meth.IsStatic:
+        DeclIdents.append(codegen_ir.GenTuIdent(Type=c_type, Name=_SELF_IDENT_STR))
+
+    for A in _meth.Args:
+        DeclIdents.append(
+            codegen_ir.GenTuIdent(Type=_aux_public_api_type(A.Type, conf), Name=A.Name))
+
     return codegen_ir.GenTuFunction(
         ReturnType=_aux_public_api_type(_meth.ReturnType, conf),
-        Args=[
-            _CONTEXT_ARG,
-            codegen_ir.GenTuIdent(Type=c_type, Name=_SELF_IDENT_STR),
-        ] + [
-            codegen_ir.GenTuIdent(Type=_aux_public_api_type(A.Type, conf), Name=A.Name)
-            for A in _meth.Args
-        ],
+        Args=DeclIdents,
         IsStatic=True,
         Name=_get_func_base_name(_meth),
         Body=Impl,
@@ -409,6 +412,27 @@ def _gen_vtable_specialization(
                     c_type=c_type,
                     cpp_vtable_type=cpp_vtable_type,
                 ))
+
+    Methods.append(
+        codegen_ir.GenTuFunction(
+            ParentClass=cpp_vtable_type,
+            Name="destroy",
+            IsStatic=True,
+            ReturnType=QualType(Name="void"),
+            Args=[
+                _CONTEXT_ARG,
+                codegen_ir.GenTuIdent(Name=_SELF_IDENT_STR, Type=c_type.asPtr()),
+            ],
+            Body=ast.XCall(
+                "org::bind::c::execute_destroy",
+                args=[
+                    ast.string(_CONTEXT_ARG.Name),
+                    ast.string(_SELF_IDENT_STR),
+                ],
+                Params=[struct.declarationQualName(), c_type],
+                Stmt=True,
+            ),
+        ))
 
     vtable_struct = codegen_ir.GenTuStruct(
         Name=cpp_vtable_type,
@@ -743,6 +767,16 @@ def _gen_haxorg_vtable_template_instantiation(
                     Name=_get_func_base_name(m),
                 ))
 
+    vtable_struct.Fields.append(
+        codegen_ir.GenTuField(
+            Type=QualType.ForFunction(
+                ReturnType=QualType(Name="void"),
+                Args=[_CONTEXT_ARG.Type,
+                      wrap_struct.Name.copy_update(PtrCount=1)],
+            ),
+            Name="destroy",
+        ))
+
     for _meth in public_instrantiation_api.Methods:
         if conf.isAcceptedByBackend(_meth):
             gen_fu = _gen_func_vtable(
@@ -902,7 +936,6 @@ def gen_haxorg_c_wrappers(groups: PyhaxorgTypeGroups,
                 "void-handle must provide names for the template type parameters")
 
             for inst in template_usage_types:
-                log(CAT).debug(f"> {inst.instantiated_name}")
                 void_handle_instantiations.append(
                     cast(
                         codegen_ir.GenTuStruct,
@@ -962,7 +995,6 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
 
                 case codegen_ir.GenTuStruct():
                     if entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
-                        log(CAT).info(f"Skipping {entry}")
                         continue
 
                     match entry.declarationQualName().flatQualNameWithParams():

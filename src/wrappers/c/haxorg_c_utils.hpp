@@ -409,7 +409,7 @@ void execute_destroy(OrgContext* ctx, WrappedType* type) {
 
 template <typename VTableType, typename WrappedType>
 void execute_destroy_vtable(OrgContext* ctx, WrappedType* type) {
-    static_cast<VTableType>(type->data.vtable)->destroy(ctx, type);
+    static_cast<VTableType const*>(type->data.vtable)->destroy(ctx, type);
     // delete unwrap_instance<BaseType>(ctx, type->data);
     type->data.data = nullptr;
 }

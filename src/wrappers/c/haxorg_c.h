@@ -4548,6 +4548,7 @@ struct haxorg_ImmCmdAttrAdapter {
 typedef haxorg_HstdVecOfGraphMapNode haxorg_GraphAdjNodesList;
 struct haxorg_HstdMap_vtable {
   haxorg_ptr_payload (*keys_const)(OrgContext*, haxorg_HstdMap);
+  void (*destroy)(OrgContext*, haxorg_HstdMap*);
 };
 
 typedef haxorg_HstdMap haxorg_GraphNodeProps;
@@ -4557,10 +4558,12 @@ struct haxorg_ImmMap_vtable {
   haxorg_ptr_payload (*get_const)(OrgContext*, haxorg_ImmMap, haxorg_ptr_payload const&);
   bool (*contains_const)(OrgContext*, haxorg_ImmMap, haxorg_ptr_payload const&);
   haxorg_ptr_payload (*keys_const)(OrgContext*, haxorg_ImmMap);
+  void (*destroy)(OrgContext*, haxorg_ImmMap*);
 };
 
 struct haxorg_StdOptional_vtable {
   haxorg_ptr_payload (*value)(OrgContext*, haxorg_StdOptional);
+  void (*destroy)(OrgContext*, haxorg_StdOptional*);
 };
 
 HAXORG_C_API_LINKAGE bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this);
