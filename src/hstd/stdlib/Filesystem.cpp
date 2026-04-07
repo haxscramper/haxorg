@@ -48,8 +48,8 @@ void hstd::writeDebugFile(
     bool               writeLog,
     std::string const& stem_suffix,
     int                line,
-    const char*        function,
-    const char*        file) {
+    char const*        function,
+    char const*        file) {
     auto        filename  = fs::path{file}.stem();
     std::string full_path = fmt(
         "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);

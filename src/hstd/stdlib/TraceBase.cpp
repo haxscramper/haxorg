@@ -67,9 +67,9 @@ void OperationsTracer::endStream(ColStream& stream) const {
 
 void OperationsTracer::message(
     std::string const& value,
-    const char*        function,
+    char const*        function,
     int                line,
-    const char*        file) const {
+    char const*        file) const {
     if (TraceState) {
         message(
             OperationsMsg{
@@ -163,9 +163,9 @@ finally_std OperationsTracer::scopeTrace(bool state) {
 
 finally_std OperationsTracer::scopeLevelMsg(
     std::string const& value,
-    const char*        function,
+    char const*        function,
     int                line,
-    const char*        file) const {
+    char const*        file) const {
     message(value, function, line, file);
     return scopeLevel();
 }

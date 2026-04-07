@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
         hstd::log::init_file_sink("/tmp/imgui_tests_sink.log"));
 
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
+    GLFWvidmode const* mode    = glfwGetVideoMode(monitor);
 
     bool fullscreen = true;
 

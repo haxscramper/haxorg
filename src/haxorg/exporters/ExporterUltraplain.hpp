@@ -40,7 +40,7 @@ struct ExporterUltraplain
     }
 
     template <typename T>
-    void visitField(std::string& res, const char* name, T const& field) {
+    void visitField(std::string& res, char const* name, T const& field) {
         visit(res, field);
     }
 

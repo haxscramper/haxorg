@@ -137,7 +137,7 @@ struct DiaSceneItemImage : public DiaSceneItemVisual {
             qreal   newWidth  = bounds.width() + delta.x();
             qreal   newHeight = bounds.height() + delta.y();
 
-            if (newWidth >= 20 && newHeight >= 20) {
+            if (20 <= newWidth && 20 <= newHeight) {
                 bounds.setSize(QSizeF{newWidth, newHeight});
                 lastMousePos = event->pos();
                 update();

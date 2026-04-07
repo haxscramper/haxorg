@@ -326,8 +326,8 @@ void DocBlockModel::syncLayout(DocBlockConfig const& conf) {
 void DocBlockContext::message(
     std::string const& value,
     int                line,
-    const char*        function,
-    const char*        file) const {
+    char const*        function,
+    char const*        file) const {
     HSLOG_BUILDER()
         .set_callsite(line, function, file)
         .message(value)

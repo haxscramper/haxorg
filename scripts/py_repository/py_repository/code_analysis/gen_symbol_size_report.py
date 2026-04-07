@@ -231,7 +231,7 @@ def _build_tree_structure(
             if final_part not in current:
                 current[final_part] = TreeNode(size=0, symbols=[])
 
-            line_key = f"line_{line}" if line > 0 else "line_unknown"
+            line_key = f"line_{line}" if 0 < line else "line_unknown"
             current[final_part].nested[line_key] = TreeNode(
                 size=total_size,
                 is_leaf=True,
@@ -407,7 +407,7 @@ def _format_bytes(size: int) -> str:
     unit_index = 0
     size_float = float(size)
 
-    while size_float >= 1024 and unit_index < len(units) - 1:
+    while 1024 <= size_float and unit_index < len(units) - 1:
         size_float /= 1024
         unit_index += 1
 
@@ -499,7 +499,7 @@ def _assign_colors(treemap_data: list[TreemapItem],
 
     # For depths beyond max_color_depth, inherit parent's color
     for depth in sorted(items_by_depth.keys()):
-        if depth > max_color_depth:
+        if max_color_depth < depth:
             for item in items_by_depth[depth]:
                 parent_color = colors.get(item.parent)
                 if parent_color:

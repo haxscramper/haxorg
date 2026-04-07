@@ -22,7 +22,7 @@ static clang::ParsedAttrInfoRegistry::Add<ReflAttrInfo> ReflectionCollectorDef(
     "refl",
     "reflection attribute");
 
-int main(int argc, const char** argv) {
+int main(int argc, char const** argv) {
     if (argc != 2) {
         std::vector<std::string> argv_v;
         for (int i = 0; i < argc; ++i) {

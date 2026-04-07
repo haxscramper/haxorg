@@ -271,7 +271,7 @@ class CommandPalette : public QDialog {
         int current_row = results_list->currentRow();
         int new_row     = current_row + direction;
 
-        if (new_row >= 0 && new_row < results_list->count()) {
+        if (0 <= new_row && new_row < results_list->count()) {
             results_list->setCurrentRow(new_row);
         }
     }

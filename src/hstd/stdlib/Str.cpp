@@ -3,9 +3,9 @@
 
 using namespace hstd;
 
-Str::Str(const char* conv) : std::string(conv) {}
+Str::Str(char const* conv) : std::string(conv) {}
 
-Str::Str(const char* conv, int size) : std::string(conv, size) {}
+Str::Str(char const* conv, int size) : std::string(conv, size) {}
 
 Str::Str(std::string const& it) : std::string(it.data(), it.size()) {}
 

@@ -77,7 +77,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
 
     void visitField(
         int&                                 i,
-        const char*                          name,
+        char const*                          name,
         CVec<org::sem::SemId<org::sem::Org>> org) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         for (const auto& [idx, sub] : enumerate(org)) {
@@ -119,7 +119,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
 
 
     template <typename T>
-    void visitField(int& j, const char* name, Opt<T> const& value) {
+    void visitField(int& j, char const* name, Opt<T> const& value) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         if (value) {
             visitField(j, name, *value);
@@ -130,7 +130,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
         }
     }
 
-    void visitField(int&, const char* name, bool const& value) {
+    void visitField(int&, char const* name, bool const& value) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         FieldName(name);
         FieldEqLine();
@@ -140,14 +140,14 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
             value ? "true" : "false");
     }
 
-    void visitField(int&, const char* name, int const& value) {
+    void visitField(int&, char const* name, int const& value) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         FieldName(name);
         FieldEqLine();
         ImGui::TextColored(color(ColorName::Cyan), "%d", value);
     }
 
-    void visitField(int&, const char* name, Str const& value) {
+    void visitField(int&, char const* name, Str const& value) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         FieldName(name);
         FieldEqLine();
@@ -158,7 +158,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     template <typename T>
     void visitField(
         int&                      j,
-        const char*               name,
+        char const*               name,
         org::sem::SemId<T> const& field) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         if (ImOrgTree(name)) {
@@ -168,7 +168,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     }
 
     template <typename T>
-    void visitField(int&, const char* name, T const& field) {
+    void visitField(int&, char const* name, T const& field) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         ImGui::TextColored(
             color(ColorName::Red),

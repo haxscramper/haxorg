@@ -377,7 +377,7 @@ struct ImmAstTrackingMap {
     ImmParentIdVec const& getParentIds(ImmId const& it) const;
 
     /// \brief Get map of parents for the ID
-    ParentPathMap getParentsFor(ImmId const& it, const ImmAstContext* ctx)
+    ParentPathMap getParentsFor(ImmId const& it, ImmAstContext const* ctx)
         const;
     /// \brief Get full list of all paths that can be used to reach the
     /// target node. Resulting paths are not guaranteed to converge to a

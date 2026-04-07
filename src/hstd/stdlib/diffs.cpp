@@ -364,7 +364,7 @@ bool hstd::hasInvisibleChanges(
     // Iterate over all edits from right to left, updating active set of
     // invisible characters as we got.
     int idx = diff.size() - 1;
-    while (idx >= 0) {
+    while (0 <= idx) {
         SeqEdit& edit = diff[idx];
         switch (edit.kind) {
             case SeqEditKind::Delete:

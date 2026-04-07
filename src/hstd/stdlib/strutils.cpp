@@ -1386,7 +1386,7 @@ std::string hstd::escape_literal(std::string const& in) {
 }
 
 void hstd::validate_utf8(std::string const& str) {
-    const unsigned char* bytes = reinterpret_cast<const unsigned char*>(
+    unsigned char const* bytes = reinterpret_cast<const unsigned char*>(
         str.data());
     size_t len = str.size();
 
@@ -1394,9 +1394,9 @@ void hstd::validate_utf8(std::string const& str) {
         if (bytes[i] <= 0x7F) {
             // Single-byte character (ASCII)
             continue;
-        } else if (bytes[i] >= 0xC2 && bytes[i] <= 0xDF) {
+        } else if (0xC2 <= bytes[i] && bytes[i] <= 0xDF) {
             // 2-byte sequence
-            if (i + 1 >= len) {
+            if (len <= i + 1) {
                 throw logic_assertion_error::init(
                     std::format(
                         "Incomplete 2-byte UTF-8 sequence at position {}",
@@ -1409,9 +1409,9 @@ void hstd::validate_utf8(std::string const& str) {
                         i));
             }
             i += 1;
-        } else if (bytes[i] >= 0xE0 && bytes[i] <= 0xEF) {
+        } else if (0xE0 <= bytes[i] && bytes[i] <= 0xEF) {
             // 3-byte sequence
-            if (i + 2 >= len) {
+            if (len <= i + 2) {
                 throw logic_assertion_error::init(
                     std::format(
                         "Incomplete 3-byte UTF-8 sequence at position {}",
@@ -1444,9 +1444,9 @@ void hstd::validate_utf8(std::string const& str) {
             }
 
             i += 2;
-        } else if (bytes[i] >= 0xF0 && bytes[i] <= 0xF4) {
+        } else if (0xF0 <= bytes[i] && bytes[i] <= 0xF4) {
             // 4-byte sequence
-            if (i + 3 >= len) {
+            if (len <= i + 3) {
                 throw logic_assertion_error::init(
                     std::format(
                         "Incomplete 4-byte UTF-8 sequence at position {}",

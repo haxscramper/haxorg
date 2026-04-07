@@ -157,7 +157,7 @@ struct IEdge : public IGraphObjectBase {
     VertexID getTarget() const { return target; }
 
     virtual std::size_t getHash() const override;
-    virtual bool isEqual(const IGraphObjectBase* other) const override;
+    virtual bool isEqual(IGraphObjectBase const* other) const override;
     virtual json getSerialNonRecursive(
         IGraph const*             graph,
         org::graph::EdgeID const& id) const;

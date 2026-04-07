@@ -30,7 +30,7 @@ inline u8 operator""_u8(unsigned long long int value) {
     return static_cast<u8>(value);
 }
 
-inline std::string operator""_qs(const char* value, unsigned long size) {
+inline std::string operator""_qs(char const* value, unsigned long size) {
     return std::string(value);
 }
 

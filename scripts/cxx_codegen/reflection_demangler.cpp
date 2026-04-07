@@ -155,7 +155,7 @@ class BumpPointerAllocator {
 
     NO_COVERAGE void* allocate(size_t N) {
         N = (N + 15u) & ~15u;
-        if (N + BlockList->Current >= UsableAllocSize) {
+        if (UsableAllocSize <= N + BlockList->Current) {
             if (N > UsableAllocSize) { return allocateMassive(N); }
             grow();
         }

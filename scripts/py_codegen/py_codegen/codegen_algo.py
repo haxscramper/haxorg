@@ -385,7 +385,7 @@ class TemplateUnificationMatcher:
             self._log("template does not require reference, keep specialization as-is")
             return specialization
 
-        if template.PtrCount > specialization.PtrCount:
+        if specialization.PtrCount < template.PtrCount:
             self._log("pointer count mismatch while stripping")
             return None
 
@@ -640,7 +640,7 @@ class TemplateUnificationMatcher:
             self._log("too few actual template arguments")
             return None
 
-        if variadic_param is None and len(actual_params) > len(expected_params):
+        if variadic_param is None and len(expected_params) < len(actual_params):
             self._log("too many actual template arguments")
             return None
 
@@ -708,7 +708,7 @@ class TemplateUnificationMatcher:
                         self._log(f"failed to unify variadic parameter at index {idx}")
                         return None
 
-            elif len(actual_params) > len(fixed_expected):
+            elif len(fixed_expected) < len(actual_params):
                 extra_start = len(fixed_expected)
                 current_expected = expected_params[extra_start:]
                 for offset, param_decl in enumerate(current_expected):
@@ -758,7 +758,7 @@ class TemplateUnificationMatcher:
         template = template_param.TypeExpr
 
         if template.IsTemplateTypeParam:
-            has_qualifiers = (template.IsConst or template.PtrCount > 0 or
+            has_qualifiers = (template.IsConst or 0 < template.PtrCount or
                               template.RefKind != ReferenceKind.NotRef)
 
             if has_qualifiers:
@@ -1078,7 +1078,7 @@ class TemplateUnificationMatcher:
                             substitution_map=subst,
                         ))
 
-            if len(matches) > 1:
+            if 1 < len(matches):
                 raise ValueError(
                     f"Ambiguous specialization match for {spec!r}: "
                     f"matched templates {[m.template_index for m in matches]}")
@@ -1125,7 +1125,7 @@ class TemplateUnificationMatcher:
                             substitution_map=result[0].substitution_map,
                         ))
 
-            if len(matches) > 1:
+            if 1 < len(matches):
                 details = ", ".join(
                     f"template#{m.template_index} subst={m.substitution_map!r}"
                     for m in matches)
@@ -1360,7 +1360,7 @@ class TypedefExpansionMatcher:
         current_key = current.flatQualNameNoTemplateParams()
 
         for entry in self.entries:
-            if len(entry.key) > len(current_key):
+            if len(current_key) < len(entry.key):
                 continue
 
             if current_key[:len(entry.key)] != entry.key:

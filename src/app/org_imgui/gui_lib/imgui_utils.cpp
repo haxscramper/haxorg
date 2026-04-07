@@ -67,7 +67,7 @@ void quit_on_q(GLFWwindow* window) {
 
 
 void fullscreen_window_begin() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiViewport const* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
 
@@ -222,9 +222,9 @@ void ImRenderTraceRecord::PopRecord() {
 }
 
 ImRenderTraceRecord ImRenderTraceRecord::init(
-    const char* function,
+    char const* function,
     int         line,
-    const char* file) {
+    char const* file) {
     ImRenderTraceRecord res;
     if (TraceState) {
         res.function         = function;
@@ -238,11 +238,11 @@ ImRenderTraceRecord ImRenderTraceRecord::init(
 
 bool ImRenderTraceRecord::ImRenderBegin(
     bool        expr,
-    const char* im_function,
-    const char* im_id,
-    const char* function,
+    char const* im_function,
+    char const* im_id,
+    char const* function,
     int         line,
-    const char* file) {
+    char const* file) {
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
@@ -253,11 +253,11 @@ bool ImRenderTraceRecord::ImRenderBegin(
 }
 
 void ImRenderTraceRecord::ImRenderUnit(
-    const char* im_function,
-    const char* im_id,
-    const char* function,
+    char const* im_function,
+    char const* im_id,
+    char const* function,
     int         line,
-    const char* file) {
+    char const* file) {
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
@@ -268,10 +268,10 @@ void ImRenderTraceRecord::ImRenderUnit(
 
 bool ImRenderTraceRecord::ImRenderExpr(
     bool        expr,
-    const char* im_function,
-    const char* function,
+    char const* im_function,
+    char const* function,
     int         line,
-    const char* file) {
+    char const* file) {
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
@@ -287,9 +287,9 @@ bool ImRenderTraceRecord::ImRenderExpr(
 void ImRenderTraceRecord::ImRenderUnit(
     std::string const& im_function,
     std::string const& im_id,
-    const char*        function,
+    char const*        function,
     int                line,
-    const char*        file) {
+    char const*        file) {
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;

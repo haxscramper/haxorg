@@ -63,7 +63,7 @@ class PyEnumIterator {
 template <typename E>
 void bind_enum_iterator(
     nb::module_&         m,
-    const char*          PyTypeName,
+    char const*          PyTypeName,
     PyTypeRegistryGuard& guard) {
     auto name = std::string(PyTypeName) + "EnumIterator";
     if (!guard.contains(name)) {
@@ -88,7 +88,7 @@ void bind_enum_iterator(
 template <typename T>
 void bind_hstdIntSet(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     if (!guard.contains(PyNameType)) {
         guard.incl(PyNameType);
@@ -106,7 +106,7 @@ void bind_hstdIntSet(
 template <typename T>
 void bind_hstdextImmBox(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
 
     auto name = std::string(PyNameType);
@@ -127,7 +127,7 @@ void bind_hstdextImmBox(
 template <typename T, typename VT>
 void bind_imm_vector_base(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
 
     auto name = std::string(PyNameType);
@@ -155,7 +155,7 @@ void bind_imm_vector_base(
 template <typename T>
 void bind_imm_vector(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     return bind_imm_vector_base<T, immer::vector<T>>(m, PyNameType, guard);
 }
@@ -163,7 +163,7 @@ void bind_imm_vector(
 template <typename T>
 void bind_immerflex_vector(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     return bind_imm_vector_base<T, immer::flex_vector<T>>(
         m, PyNameType, guard);
@@ -173,7 +173,7 @@ void bind_immerflex_vector(
 template <typename T>
 void bind_hstdextImmVec(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     return bind_imm_vector_base<T, hstd::ext::ImmVec<T>>(
         m, PyNameType, guard);
@@ -184,7 +184,7 @@ void bind_hstdextImmVec(
 template <typename T>
 void bind_stdvector(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Vec = std::vector<T>;
 
@@ -201,7 +201,7 @@ void bind_stdvector(
 template <typename T>
 void bind_hstdVec(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Vec = hstd::Vec<T>;
 
@@ -228,7 +228,7 @@ void bind_hstdVec(
 template <typename K, typename V, typename Hash = std::hash<K>>
 void bind_hstdUnorderedMap(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Map = hstd::UnorderedMap<K, V, Hash>;
 
@@ -245,7 +245,7 @@ void bind_hstdUnorderedMap(
 template <typename K, typename V, typename Hash = std::hash<K>>
 void bind_stdunordered_map(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Map        = std::unordered_map<K, V, Hash>;
     std::string name = std::string(PyNameType);
@@ -259,7 +259,7 @@ void bind_stdunordered_map(
 template <typename K, typename V>
 void bind_stdpair(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Pair       = std::pair<K, V>;
     std::string name = std::string(PyNameType);
@@ -276,7 +276,7 @@ void bind_stdpair(
 
 /// \brief Bind generic set-like container API for use in python
 template <typename Set>
-nb::class_<Set> bind_set(nb::module_& m, const char* PyNameType) {
+nb::class_<Set> bind_set(nb::module_& m, char const* PyNameType) {
     using Value = typename Set::value_type;
 
     nb::class_<Set> cls(m, PyNameType);
@@ -321,7 +321,7 @@ template <
     typename Alloc = std::allocator<T>>
 void bind_stdunorderedset(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Set        = std::unordered_set<T, Hash, Eq, Alloc>;
     std::string name = std::string(PyNameType);
@@ -335,7 +335,7 @@ void bind_stdunorderedset(
 template <typename T>
 void bind_hstdUnorderedSet(
     nb::module_&         m,
-    const char*          PyNameType,
+    char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
     using Set        = hstd::UnorderedSet<T>;
     std::string name = std::string(PyNameType);

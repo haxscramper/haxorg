@@ -1,0 +1,7 @@
+id: west-to-east-const-ptr-structured-decl
+language: cpp
+rule:
+  pattern:
+    context: 'const $T *[$$$B] = $E;'
+    selector: declaration
+fix: '$T const* [$$$B] = $E;'

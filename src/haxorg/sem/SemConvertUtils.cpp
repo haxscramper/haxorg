@@ -255,7 +255,7 @@ finally_std OrgConverter::trace(
     Opt<In>     adapter,
     Opt<Str>    subname,
     int         line,
-    const char* function) {
+    char const* function) {
     if (TraceState) {
         report(
             Builder(
@@ -286,7 +286,7 @@ finally_std OrgConverter::field(
     In          adapter,
     Opt<Str>    subname,
     int         line,
-    const char* function) {
+    char const* function) {
     if (TraceState) {
         report(Builder(
                    OrgConverter::ReportKind::EnterField,
@@ -319,7 +319,7 @@ finally_std OrgConverter::field(
 void OrgConverter::print_json(
     SemId<Org>  semResult,
     int         line,
-    const char* function) {
+    char const* function) {
     if (TraceState) {
         report(Builder(
                    OrgConverter::ReportKind::Json, nullptr, line, function)
@@ -328,7 +328,7 @@ void OrgConverter::print_json(
     }
 }
 
-void OrgConverter::print(std::string msg, int line, const char* function) {
+void OrgConverter::print(std::string msg, int line, char const* function) {
     if (TraceState) {
         report(
             Builder(

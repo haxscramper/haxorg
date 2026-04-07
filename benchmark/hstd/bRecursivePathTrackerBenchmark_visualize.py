@@ -233,8 +233,8 @@ class BenchmarkVisualizer:
         if name.endswith("_BigO") or name.endswith("_RMS"):
             parts = parts[:-1]
 
-        operation = parts[1] if len(parts) > 1 else "Unknown"
-        implementation = parts[2] if len(parts) > 2 else "Unknown"
+        operation = parts[1] if 1 < len(parts) else "Unknown"
+        implementation = parts[2] if 2 < len(parts) else "Unknown"
 
         param_parts = name.split("/")
         param1 = int(param_parts[1]) if 1 < len(param_parts) else None

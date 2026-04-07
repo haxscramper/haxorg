@@ -54,7 +54,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml newRes(sem::SemId<sem::Org> org);
 
     template <typename T>
-    void visitField(yaml& j, const char* name, hstd::Opt<T> const& value) {
+    void visitField(yaml& j, char const* name, hstd::Opt<T> const& value) {
         if (value) {
             j[name] = eval(value.value());
         } else {
@@ -81,18 +81,18 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         char const* name,
         hstd::UnorderedMap<int, sem::SemId<sem::Org>> const&) {}
 
-    void visitField(yaml& j, const char* name, int field) {
+    void visitField(yaml& j, char const* name, int field) {
         yaml result = eval(field);
         if (!skipZeroFields || field != 0) { j[name] = result; }
     }
 
-    void visitField(yaml& j, const char* name, bool field) {
+    void visitField(yaml& j, char const* name, bool field) {
         if (!skipFalseFields || field != false) { j[name] = eval(field); }
     }
 
 
     template <typename T>
-    void visitField(yaml& j, const char* name, T const& field) {
+    void visitField(yaml& j, char const* name, T const& field) {
         yaml result = eval(field);
         if (!skipNullFields || !result.IsNull()) { j[name] = result; }
     }

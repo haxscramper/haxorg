@@ -34,7 +34,7 @@ inline void clear_context(OrgContext* ctx) {
         ctx->error_msg[0] = '\0';
     }
 }
-inline void set_context_error(OrgContext* ctx, const char* msg) {
+inline void set_context_error(OrgContext* ctx, char const* msg) {
     if (ctx) {
         ctx->has_error = 1;
         std::snprintf(ctx->error_msg, sizeof(ctx->error_msg), "%s", msg);

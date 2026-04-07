@@ -10,7 +10,7 @@ template class org::algo::Exporter<ExporterTree, int>;
 
 void ExporterTree::visitField(
     int&                 arg,
-    const char*          name,
+    char const*          name,
     sem::SemId<sem::Org> org) {
 
     __scope();
@@ -21,7 +21,7 @@ void ExporterTree::visitField(
 
 void ExporterTree::visitField(
     int&                       i,
-    const char*                name,
+    char const*                name,
     CVec<sem::SemId<sem::Org>> org) {
     if (skipAsEmpty(org)) {
         writeSkip("empty");
@@ -107,14 +107,14 @@ void ExporterTree::writeSkip(
     Str const&  message,
     Str const&  trail,
     int         line,
-    const char* function) {
+    char const* function) {
     // indent();
     // os << fmt("{} in {}:{}{}", message, function, line, trail);
 }
 
 
 template <typename T>
-void ExporterTree::visitField(int& arg, const char* name, T const& value) {
+void ExporterTree::visitField(int& arg, char const* name, T const& value) {
     if (skipAsEmpty(value)) {
         writeSkip(fmt("  empty field {}", name), "\n");
         return;
@@ -150,7 +150,7 @@ void ExporterTree::visitField(int& arg, const char* name, T const& value) {
 template <typename T>
 void ExporterTree::visitField(
     int&          arg,
-    const char*   name,
+    char const*   name,
     sem::SemId<T> org) {
     visitField(arg, name, org.asOrg());
 }

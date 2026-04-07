@@ -52,7 +52,7 @@ def align_on_sides(debugger: lldb.SBDebugger, text1: str, text2: str) -> str:
     term_width = debugger.GetTerminalWidth()
     padding_length = (term_width - visible_length(text1) - visible_length(text2))
 
-    if padding_length > 0:
+    if 0 < padding_length:
         padding = " " * padding_length
     else:
         padding = ""

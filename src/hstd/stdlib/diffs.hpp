@@ -311,7 +311,7 @@ Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
 inline bool scanInvisible(Str const& text, CharSet& invisSet) {
     // Scan string for invisible characters from right to left,
     // updating active invisible set as needed.
-    for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
+    for (int chIdx = text.length() - 1; 0 <= chIdx; --chIdx) {
         // If character is in the 'invisible' set return true
         if (invisSet.contains(text[chIdx])) {
             return true;
@@ -343,7 +343,7 @@ inline bool hasInvisible(
 inline bool hasInvisible(Vec<Str> const& text) {
     // Do any of strings in text have signficant invisible characters.
     CharSet invisSet = Invis + CharSet{' '};
-    for (int idx = text.size() - 1; idx >= 0; idx--) {
+    for (int idx = text.size() - 1; 0 <= idx; idx--) {
         // Iterate over all items from right to left - until we find the
         // first visible character, space is also considered significant,
         // but removed afterwards, so `" a"/"a"` is not considered to have

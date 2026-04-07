@@ -18,7 +18,7 @@ const auto infty = 1024 * 1024 * 1024;
 bool isInf(int a) { return (infty - 4096 <= a) && (a <= infty + 4096); }
 
 int Solution::nextKnot() {
-    if (index + 1 >= knots.size()) {
+    if (knots.size() <= index + 1) {
         return infty;
     } else {
         return knots[index + 1];
@@ -296,8 +296,8 @@ Solution::Ptr hPlusSolution(
                                                       // rightMargin + span
                                                       // of s1
         float gCur
-            = (g1 + g2 - (overhang0 >= 0 ? opts.leftMarginCost : 0)
-               - (overhang1 >= 0 ? opts.rightMarginCost : 0));
+            = (g1 + g2 - (0 <= overhang0 ? opts.leftMarginCost : 0)
+               - (0 <= overhang1 ? opts.rightMarginCost : 0));
 
         float iCur
             = (s1->curValueAt(s1Margin) + s2->curValueAt(s2Margin)
@@ -411,7 +411,7 @@ Opt<Solution::Ptr> doOptTextLayout(
     // the two margins (leftMargin and rightMargin) in opts. Note that we
     // assume opts.rightMargin >= opts.leftMargin >= 0, as asserted in
     // base.Options.Check().
-    if (span >= opts.rightMargin) {
+    if (opts.rightMargin <= span) {
         Solution::Ptr temp = Solution::shared(
             Vec<int>{0},
             Vec<int>{span},
@@ -423,7 +423,7 @@ Opt<Solution::Ptr> doOptTextLayout(
             Vec<Layout::Ptr>{layout});
 
         result = Opt<Solution::Ptr>(temp);
-    } else if (span >= opts.leftMargin) {
+    } else if (opts.leftMargin <= span) {
         Solution::Ptr temp = Solution::shared(
             Vec<int>{0, opts.rightMargin - span},
             Vec<int>{span, span},
@@ -496,7 +496,7 @@ Opt<Solution::Ptr> doOptLineLayout(
                                         ? rest
                                         : Opt<Solution::Ptr>();
 
-        for (int idx = ln.size() - 1; idx >= 0; --idx) {
+        for (int idx = ln.size() - 1; 0 <= idx; --idx) {
             BlockId elt = ln[idx];
             lnLayout    = optLayout(store, elt, lnLayout, opts);
         }
@@ -605,7 +605,7 @@ Opt<Solution::Ptr> doOptWrapLayout(
     // - 1 (the actual number of elements considered increases by one on
     // each iteration). This means that the complete solution, with
     // elements 0 ... n - 1 is computed last.
-    for (int i = store.at(self).size() - 1; i >= 0; --i) {
+    for (int i = store.at(self).size() - 1; 0 <= i; --i) {
         // To calculate wrapSolutions[i], consider breaking the last n - i
         // elements after element j, for j = i ... n - 1. By induction,
         // wrapSolutions contains the optimum layout of the elements after

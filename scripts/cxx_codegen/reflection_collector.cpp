@@ -75,11 +75,11 @@ void setReflectionParamsFromJson(
 
 
 bool ReflASTVisitor::isDescribedRecord(
-    const clang::RecordDecl* recordDecl) {
+    clang::RecordDecl const* recordDecl) {
     if (!recordDecl) { return false; }
 
     // Try to downcast to CXXRecordDecl for C++ classes
-    const clang::CXXRecordDecl*
+    clang::CXXRecordDecl const*
         cxxRecordDecl = llvm::dyn_cast<clang::CXXRecordDecl>(recordDecl);
 
     // Get the qualified name of the record
@@ -132,8 +132,8 @@ bool ReflASTVisitor::isDescribedRecord(
 
                 // Check if the function takes a pointer-to-pointer of our
                 // type
-                if (fnDecl->getNumParams() >= 1) {
-                    const clang::ParmVarDecl* param = fnDecl->getParamDecl(
+                if (1 <= fnDecl->getNumParams()) {
+                    clang::ParmVarDecl const* param = fnDecl->getParamDecl(
                         0);
                     clang::QualType paramType = param->getType();
 
@@ -172,7 +172,7 @@ bool ReflASTVisitor::isDescribedRecord(
     return hasBaseFn && hasMemberFn;
 }
 
-bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
+bool ReflASTVisitor::isDescribedEnum(clang::EnumDecl const* enumDecl) {
     if (!enumDecl) { return false; }
 
     // For enums, look for boost_enum_descriptor_fn
@@ -186,8 +186,8 @@ bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
             if (fnName == "boost_enum_descriptor_fn") {
                 // Check if the function takes a pointer-to-pointer of our
                 // enum
-                if (fnDecl->getNumParams() >= 1) {
-                    const clang::ParmVarDecl* param = fnDecl->getParamDecl(
+                if (1 <= fnDecl->getNumParams()) {
+                    clang::ParmVarDecl const* param = fnDecl->getParamDecl(
                         0);
                     clang::QualType paramType = param->getType();
 
@@ -223,11 +223,11 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
 
     for (const clang::Attr* attr : decl->attrs()) {
         if (attr->getKind() == clang::attr::Kind::Annotate) {
-            const auto* annotateAttr = llvm::cast<clang::AnnotateAttr>(
+            auto const* annotateAttr = llvm::cast<clang::AnnotateAttr>(
                 attr);
 
             // Get the attribute arguments
-            if (const auto* strLiteral = annotateAttr->args_begin();
+            if (auto const* strLiteral = annotateAttr->args_begin();
                 strLiteral != nullptr && *strLiteral != nullptr) {
                 if (const auto* stringLiteral = llvm::dyn_cast<
                         clang::StringLiteral>(*strLiteral)) {
@@ -247,7 +247,7 @@ std::optional<std::string> ReflASTVisitor::get_refl_params(
     return std::nullopt;
 }
 
-std::string ReflASTVisitor::dump(const clang::Decl* Decl, int head) {
+std::string ReflASTVisitor::dump(clang::Decl const* Decl, int head) {
     std::string              tree;
     llvm::raw_string_ostream rso(tree);
     Decl->dump(rso);
@@ -276,7 +276,7 @@ c::TypedefDecl* findTypedefForDecl(c::Decl* Decl, c::ASTContext* Ctx) {
             if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
                 return TD;
             } else if (
-                const c::EnumType* ET = TD->getUnderlyingType()
+                c::EnumType const* ET = TD->getUnderlyingType()
                                             ->getAs<c::EnumType>();
                 ET && ET->getDecl() == Decl) {
                 return TD;
@@ -299,7 +299,7 @@ c::FieldDecl* findFieldForDecl(c::Decl const* Decl, c::ASTContext* Ctx) {
             if (FD->getType()->getAsRecordDecl() == Decl) {
                 return FD;
             } else if (
-                const c::EnumType* ET = FD->getType()
+                c::EnumType const* ET = FD->getType()
                                             ->getAs<c::EnumType>();
                 ET && ET->getDecl() == Decl) {
                 return FD;
@@ -480,7 +480,7 @@ void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
     std::vector<QualType> const& Namespaces,
     int                          line,
-    const char*                  function) {
+    char const*                  function) {
     std::vector<QualType const*> newNamespaces;
     std::vector<QualType*>       oldNamespaces;
     for (auto& Namespace : Namespaces) {
@@ -705,7 +705,7 @@ void ReflASTVisitor::fillTemplateParameterList(
             }
 
             if (typeParam->hasTypeConstraint()) {
-                const clang::TypeConstraint*
+                clang::TypeConstraint const*
                                      TC = typeParam->getTypeConstraint();
                 clang::TemplateDecl* TD = TC->getNamedConcept();
                 if (auto* CD = clang::dyn_cast<clang::ConceptDecl>(TD)) {
@@ -927,7 +927,7 @@ void ReflASTVisitor::fillTypeRec(
         } else if (In->isFunctionProtoType()) {
             add_debug(Out, " >func");
             Out->set_kind(TypeKind::FunctionPtr);
-            const c::FunctionProtoType*
+            c::FunctionProtoType const*
                 FPT = In->getAs<c::FunctionProtoType>();
             fillTypeRec(Out->add_parameters(), FPT->getReturnType(), Loc);
             for (c::QualType const& param : FPT->param_types()) {
@@ -965,7 +965,7 @@ void ReflASTVisitor::fillTypeRec(
             add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
             Out->set_istemplatetypeparam(true);
-            const c::TemplateTypeParmDecl* D = parm->getDecl();
+            c::TemplateTypeParmDecl const* D = parm->getDecl();
             if (D != nullptr) {
                 Out->set_name(D->getNameAsString());
             } else if (parm->getIdentifier()) {
@@ -1121,7 +1121,7 @@ std::optional<std::string> getExprAsString(
 
 void ReflASTVisitor::fillExpr(
     Expr*                                   Out,
-    const c::Expr*                          In,
+    c::Expr const*                          In,
     std::optional<c::SourceLocation> const& Loc) {
     if (const auto*
             boolLiteral = llvm::dyn_cast<clang::CXXBoolLiteralExpr>(In)) {
@@ -1192,7 +1192,7 @@ void ReflASTVisitor::fillFieldDecl(
 
 void ReflASTVisitor::fillParmVarDecl(
     Arg*                  arg,
-    const c::ParmVarDecl* parm) {
+    c::ParmVarDecl const* parm) {
     arg->set_name(parm->getNameAsString());
     auto doc = getDoc(parm);
     if (doc) { arg->set_doc(*doc); }
@@ -1358,7 +1358,7 @@ bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
 
 std::optional<std::string> ReflASTVisitor::getDoc(c::Decl const* Decl) {
     c::ASTContext const& astContext = Decl->getASTContext();
-    const c::RawComment*
+    c::RawComment const*
         rawComment = astContext.getRawCommentForDeclNoCache(Decl);
     if (rawComment) {
         llvm::StringRef commentText = rawComment->getRawText(

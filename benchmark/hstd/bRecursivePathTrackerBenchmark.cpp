@@ -70,7 +70,7 @@ void recursiveTraversal(
     int&        node_count) {
     node_count++;
 
-    if (depth >= max_depth) { return; }
+    if (max_depth <= depth) { return; }
 
     for (int i = 0; i < branching_factor; ++i) {
         auto new_path = path.push(i);

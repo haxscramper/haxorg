@@ -18,7 +18,7 @@ extern void enable_full_trace_on_cli();
 
 class LinePrinterLogSink : public absl::LogSink {
   public:
-    LinePrinterLogSink(const char* path) : file(path) {}
+    LinePrinterLogSink(char const* path) : file(path) {}
     void Send(absl::LogEntry const& entry) override {
         for (absl::string_view line : absl::StrSplit(
                  entry.text_message_with_prefix(), absl::ByChar('\n'))) {

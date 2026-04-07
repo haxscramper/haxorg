@@ -1700,8 +1700,8 @@ sem::Tblfm::Expr fold_expression_stack(
             auto const& call = expr.getCall();
             if (operator_precedence.contains(call.name)) {
                 while (!operators.empty()
-                       && precedence(operators.top())
-                              >= precedence(call.name)) {
+                       && precedence(call.name)
+                              <= precedence(operators.top())) {
                     apply_operator();
                 }
                 operators.push(call.name);
@@ -2639,7 +2639,7 @@ SemId<ErrorGroup> OrgConverter::SemError(
     In                    adapter,
     Vec<SemId<ErrorItem>> errors,
     int                   line,
-    const char*           function) {
+    char const*           function) {
     auto res         = Sem<ErrorGroup>(adapter);
     res->diagnostics = errors;
     return res;
@@ -2649,7 +2649,7 @@ SemId<ErrorGroup> OrgConverter::SemError(
     In                              adapter,
     org::sem::OrgDiagnostics const& err,
     int                             line,
-    const char*                     function) {
+    char const*                     function) {
     auto res         = Sem<ErrorGroup>(adapter);
     res->diagnostics = {SemErrorItem(adapter, {err}, line, function)};
     return res;

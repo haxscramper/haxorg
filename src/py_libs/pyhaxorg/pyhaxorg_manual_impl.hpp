@@ -577,7 +577,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     template <org::sem::IsOrg T>
     void visitOrgField(
         Res&                      res,
-        const char*               name,
+        char const*               name,
         org::sem::SemId<T> const& value) {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitField)
@@ -612,7 +612,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     template <typename T>
     void fallbackFieldVisitor(
         Res&          res,
-        const char*   name,
+        char const*   name,
         hstd::CVec<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         for (T const& it : value) { _this()->visit(res, it); }
@@ -621,7 +621,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     template <typename T>
     void fallbackFieldVisitor(
         Res&         res,
-        const char*  name,
+        char const*  name,
         hstd::Opt<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         if (value) { _this()->visit(res, value.value()); }
@@ -629,13 +629,13 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
 
 
     template <typename T>
-    void fallbackFieldVisitor(Res& res, const char* name, T const& value) {
+    void fallbackFieldVisitor(Res& res, char const* name, T const& value) {
         __fallback_visit("using empty leaf field visitor callback");
     }
 
 
     template <org::sem::NotOrg T>
-    void visitOrgField(Res& res, const char* name, T const& value) {
+    void visitOrgField(Res& res, char const* name, T const& value) {
         auto ev = trace(VK::VisitField).with_value(value).with_field(name);
 
         LeafFieldType kind = LeafKindForT<T>::value;

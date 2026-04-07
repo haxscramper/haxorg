@@ -179,7 +179,7 @@ def get_edge_groups_by_shared_ports(
                 group.append(edge)
                 processed_edges.add(id(edge))
 
-        if len(group) > 1:
+        if 1 < len(group):
             edge_groups.append(group)
 
     return edge_groups
@@ -276,7 +276,7 @@ def split_text_to_fit(text: str, expected_width: float, font_path: str,
         current_width = 0.0
         for j in range(i, n):
             current_width += char_widths[j]
-            if current_width > expected_width:
+            if expected_width < current_width:
                 break
 
             break_penalty = 0
@@ -298,7 +298,7 @@ def split_text_to_fit(text: str, expected_width: float, font_path: str,
     lines = []
     start = 0
     for break_point in breaks:
-        if break_point > start:
+        if start < break_point:
             lines.append(text[start:break_point])
             start = break_point
     if start < n:
@@ -420,7 +420,7 @@ def compute_hyperedge_drawing(sections: List[elk_schema.EdgeSection],
             points.extend([(bp.x, bp.y) for bp in section.bendPoints])
         points.append((section.endPoint.x, section.endPoint.y))
 
-        if len(points) >= 2:
+        if 2 <= len(points):
             line = LineString(points)
             buffered_line = line.buffer(width / 2, cap_style=2, join_style=2)
             buffered_lines.append(buffered_line)
@@ -534,8 +534,8 @@ def merge_edges_into_hyperedge(edges: List[elk_schema.Edge],
     else:
         merged_edge = elk_schema.Edge(
             id=f"merged_{hash(tuple(e.id for e in edges))}",
-            sources=list(all_sources) if len(all_sources) > 1 else None,
-            targets=list(all_targets) if len(all_targets) > 1 else None,
+            sources=list(all_sources) if 1 < len(all_sources) else None,
+            targets=list(all_targets) if 1 < len(all_targets) else None,
             source=list(all_sources)[0] if len(all_sources) == 1 else None,
             target=list(all_targets)[0] if len(all_targets) == 1 else None,
             sections=all_sections,

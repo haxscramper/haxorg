@@ -58,7 +58,7 @@ FormatContext::iterator fmt_ctx(T const& t, FormatContext& ctx) {
 
 
 template <typename FormatContext>
-FormatContext::iterator fmt_ctx(const char* t, FormatContext& ctx) {
+FormatContext::iterator fmt_ctx(char const* t, FormatContext& ctx) {
     with_std_formatter(t);
     return std::formatter<std::string>{}.format(t, ctx);
 }

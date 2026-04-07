@@ -336,7 +336,7 @@ CommitActions get_commit_actions(
     for (int i = 0; i < deltas; ++i) {
         SPtr<git_patch>       patch = git::patch_from_diff(diff.get(), i)
                                           .value();
-        const git_diff_delta* delta = git::patch_get_delta(patch.get());
+        git_diff_delta const* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
 
         bool should_debug_path = state->should_debug()
@@ -706,11 +706,11 @@ void check_tree_entry_consistency(
                                             .sections.back();
 
     // Get the blob from the tree entry
-    const git_oid* oid  = git_tree_entry_id(entry);
+    git_oid const* oid  = git_tree_entry_id(entry);
     SPtr<git_blob> blob = git::blob_lookup(state->repo.get(), oid).value();
 
     // Get the blob content
-    const char* content_ptr = (const char*)git_blob_rawcontent(blob.get());
+    char const* content_ptr = (const char*)git_blob_rawcontent(blob.get());
 
     ir::FileTrackSection const& section = state->at(section_id);
 

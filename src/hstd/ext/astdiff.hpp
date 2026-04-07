@@ -786,7 +786,7 @@ class Subtree {
         for (SubNodeIdx I(getSize()); I > 0; --I) {
             SubNodeIdx LeftDesc = getLeftMostDescendant(I);
             if (0 < Visited.count(LeftDesc)) { continue; }
-            assert(K >= 0 && "K should be non-negative");
+            assert(0 <= K && "K should be non-negative");
             KeyRoots[K] = I;
             Visited.insert(LeftDesc);
             --K;

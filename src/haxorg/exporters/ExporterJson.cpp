@@ -56,7 +56,7 @@ template json ExporterJson::eval<sem::SemId<sem::Org>>(
 template <typename T>
 void ExporterJson::visitField(
     json&         j,
-    const char*   name,
+    char const*   name,
     Opt<T> const& value) {
     if (value) {
         j[name] = eval(value.value());

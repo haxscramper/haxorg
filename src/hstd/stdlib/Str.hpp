@@ -18,8 +18,8 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
         : std::string(view.data(), view.size()) {}
     explicit Str(std::string_view view)
         : std::string(view.data(), view.size()) {}
-    [[refl(R"({"unique-name": "StrFromCString"})")]] Str(const char* conv);
-    Str(const char* conv, int size);
+    [[refl(R"({"unique-name": "StrFromCString"})")]] Str(char const* conv);
+    Str(char const* conv, int size);
     Str(std::string const& it);
     explicit Str(int count, char c);
     Str(char c);
@@ -101,7 +101,7 @@ inline hstd::Str operator+(std::string const& in, hstd::Str const& other) {
     return res;
 }
 
-inline hstd::Str operator+(const char* in, hstd::Str const& other) {
+inline hstd::Str operator+(char const* in, hstd::Str const& other) {
     hstd::Str res;
     res.append(in);
     res.append(other);

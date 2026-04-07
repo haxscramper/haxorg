@@ -1,0 +1,7 @@
+id: west-to-east-const-ptr-named-param
+language: cpp
+rule:
+  pattern:
+    context: 'void f(const $T *$V);'
+    selector: parameter_declaration
+fix: '$T const* $V'

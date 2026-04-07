@@ -1,0 +1,6 @@
+id: uniform-less-or-equal-direction-python
+language: python
+rule:
+  pattern:
+    context: '$$LHS >= $$RHS'
+fix: '$$RHS <= $$LHS'
