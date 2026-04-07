@@ -74,7 +74,7 @@ def staged_changed_line_ranges(path: str) -> list[Range]:
 def _py_prev_nonblank_line(lines: list[str], lineno_1based: int) -> Optional[str]:
     "Find previous non-blank line"
     i = lineno_1based - 2  # line above, 0-based
-    while i >= 0:
+    while 0 <= i:
         s = lines[i]
         if s.strip() != "":
             return s
@@ -93,7 +93,7 @@ def _py_has_inline_comment(lines: list[str], lineno_1based: int) -> bool:
     Heuristic: treat any '#' on the assignment line as an inline doc comment.
     (Does not try to parse strings; good enough for a pre-commit gate.)
     """
-    if lineno_1based <= 0 or lineno_1based > len(lines):
+    if lineno_1based <= 0 or len(lines) < lineno_1based:
         return False
     line = lines[lineno_1based - 1]
     return "#" in line
@@ -287,7 +287,7 @@ def _has_leading_comment(lines: list[str], start_line_1based: int) -> bool:
         return True
 
     if "*/" in s:
-        while i >= 0 and lines[i].strip() != "":
+        while 0 <= i and lines[i].strip() != "":
             if "/*" in lines[i]:
                 return True
             i -= 1

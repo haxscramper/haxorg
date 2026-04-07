@@ -126,7 +126,7 @@ def main() -> int:
     if subject.startswith("Merge "):
         return 0
 
-    if len(subject) > SUBJECT_MAX:
+    if SUBJECT_MAX < len(subject):
         log.error(f"error: subject line too long ({len(subject)} > {SUBJECT_MAX})")
         log.error(f"subject: {subject}")
         save_failed_message(msg_path)
@@ -190,7 +190,7 @@ def main() -> int:
         if not ln.strip():
             continue
 
-        if len(ln) > BODY_LINE_MAX:
+        if BODY_LINE_MAX < len(ln):
             log.error(f"error: body line {idx} too long ({len(ln)} > {BODY_LINE_MAX})")
             log.error(f"line: {ln}")
             save_failed_message(msg_path)

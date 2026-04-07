@@ -948,7 +948,7 @@ class ASTBuilder(base.AstbuilderBase):
             ])
 
     def Enum(self, params: EnumParams) -> BlockId:
-        assert len(params.name) > 0, "EnumDecl: non-empty enum name required"
+        assert 0 < len(params.name), "EnumDecl: non-empty enum name required"
 
         fields = self.b.line([]) if params.IsLine else self.b.stack([])
         for _field in params.fields:

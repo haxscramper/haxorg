@@ -229,17 +229,17 @@ def format_time_difference(delta: timedelta) -> List[str]:
     minutes, seconds = divmod(diff_seconds, seconds_per_minute)
 
     # Append non-zero time periods to the duration_parts list
-    if years > 0:
+    if 0 < years:
         duration_parts.append(f"{int(years)}y")
-    if months > 0:
+    if 0 < months:
         duration_parts.append(f"{int(months)}m")
-    if days > 0:
+    if 0 < days:
         duration_parts.append(f"{int(days)}d")
-    if hours > 0:
+    if 0 < hours:
         duration_parts.append(f"{int(hours)}h")
-    if minutes > 0:
+    if 0 < minutes:
         duration_parts.append(f"{int(minutes)}min")
-    if seconds > 0 or not duration_parts:
+    if 0 < seconds or not duration_parts:
         duration_parts.append(f"{int(seconds)}s")
 
     return duration_parts

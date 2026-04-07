@@ -367,7 +367,7 @@ def get_custom_traceback_handler(
 
                     if truncate_value:
                         arg_repr = repr(arg_value)
-                        if len(arg_repr) > available_width:
+                        if available_width < len(arg_repr):
                             arg_repr = arg_repr[:available_width - 3] + "..."
                         print(
                             f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"

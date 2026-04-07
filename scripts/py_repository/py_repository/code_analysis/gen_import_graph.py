@@ -359,9 +359,9 @@ def import_igraph_to_graphviz(g: igraph.Graph) -> Digraph:
         forward_count = len(indices)
         backward_count = len(reverse_indices)
 
-        if forward_count > backward_count:
+        if backward_count < forward_count:
             back_edges.update(reverse_indices)
-        elif backward_count > forward_count:
+        elif forward_count < backward_count:
             back_edges.update(indices)
 
     # Draw all edges, coloring back edges red

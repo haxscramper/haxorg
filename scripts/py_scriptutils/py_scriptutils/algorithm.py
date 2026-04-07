@@ -217,7 +217,7 @@ def validate_unique(items: Iterable[T], key: Callable[[T], Any] = lambda x: x) -
     for item in items:
         seen[key(item)].append(item)
 
-    duplicates = {k: v for k, v in seen.items() if len(v) > 1}
+    duplicates = {k: v for k, v in seen.items() if 1 < len(v)}
     if duplicates:
         raise ValueError(f"Found duplicate items: {duplicates}")
 

@@ -276,7 +276,7 @@ def remove_redundant_edges(igraph_tus: igraph.Graph) -> igraph.Graph:
         paths = igraph_tus.get_all_simple_paths(source, target, cutoff=len(igraph_tus.vs))
 
         for path in paths:
-            if len(path) > 2:
+            if 2 < len(path):
                 edges_to_remove.append(edge.index)
                 break
 

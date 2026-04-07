@@ -488,7 +488,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 data,
                 (
                     glom.Path("extra", "geometry", "size", name),
-                    glom.Check(lambda x: x not in [None, -1, 0] and x > 0),
+                    glom.Check(lambda x: x not in [None, -1, 0] and 0 < x),
                 ),
                 default=fallback,
             )

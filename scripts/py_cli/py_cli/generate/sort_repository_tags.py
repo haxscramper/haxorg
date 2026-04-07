@@ -95,7 +95,7 @@ def _find_duplicate_tags_data(target_count: Dict[OrgTagDesc, int]) -> List[TagDu
             tag1_str = "##".join(tag1.tag)
             tag2_str = "##".join(tag2.tag)
             similarity = SequenceMatcher(None, tag1_str, tag2_str).ratio()
-            if similarity >= 0.9 and len(tag1_parts) == len(tag2_parts):
+            if 0.9 <= similarity and len(tag1_parts) == len(tag2_parts):
                 duplicates.append(
                     TagDuplicate(type=DuplicateType.SIMILAR,
                                  tag1=tag1,
@@ -107,7 +107,7 @@ def _find_duplicate_tags_data(target_count: Dict[OrgTagDesc, int]) -> List[TagDu
                 for l, part2 in enumerate(tag2.tag):
                     if k == l:
                         part_similarity = SequenceMatcher(None, part1, part2).ratio()
-                        if part_similarity >= 0.8 and part1 != part2:
+                        if 0.8 <= part_similarity and part1 != part2:
                             if k == 0:
                                 break
                             duplicates.append(

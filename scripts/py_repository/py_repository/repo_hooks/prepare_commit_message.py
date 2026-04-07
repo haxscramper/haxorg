@@ -10,7 +10,7 @@ sys.path.insert(0, str(module_path))
 
 from validate_commit_message import SCOPES, TYPES
 
-if len(sys.argv) > 2 and sys.argv[2] == "commit":
+if 2 < len(sys.argv) and sys.argv[2] == "commit":
     sys.exit(0)
 
 msg_path = Path(sys.argv[1])
