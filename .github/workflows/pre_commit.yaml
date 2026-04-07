@@ -10,10 +10,13 @@ jobs:
     container: fedora:latest
     steps:
       - run: |
-          dnf install -y clang clang-tools-extra python3-pip git sudo nodejs cmake-format python3-pyyaml
+          dnf install -y clang clang-tools-extra python3-pip git sudo nodejs cmake-format python3-pyyaml cargo
       - uses: actions/checkout@v4
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - run: cargo install ast-grep
       - run: clang-format --version
       - run: uv sync --dev
-      - run: uv run --dev pre-commit run --all-files --verbose
+      - run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          uv run --dev pre-commit run --all-files --verbose
