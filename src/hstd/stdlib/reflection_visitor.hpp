@@ -726,7 +726,7 @@ void apply_to_tuple_impl(
 template <typename Tuple, typename Func>
 void apply_to_tuple(Tuple&& t, std::size_t index, Func&& func) {
     constexpr std::size_t size = std::tuple_size_v<std::decay_t<Tuple>>;
-    if (index >= size) { throw std::out_of_range("Index out of range"); }
+    if (size <= index) { throw std::out_of_range("Index out of range"); }
     apply_to_tuple_impl(
         std::forward<Tuple>(t),
         index,

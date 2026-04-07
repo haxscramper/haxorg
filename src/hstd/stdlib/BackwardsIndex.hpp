@@ -27,7 +27,7 @@ struct [[refl]] BackwardsIndex {
     }
 
     bool operator>=(BackwardsIndex const& i) const {
-        return i.value >= value;
+        return value <= i.value;
     }
 };
 

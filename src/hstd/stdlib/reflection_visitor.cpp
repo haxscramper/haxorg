@@ -10,7 +10,7 @@ std::string hstd::TypeFieldNameRegistry::get_field_name(
             "Type not registered: " + std::string{type_id.name()});
     }
 
-    if (field_index >= it->second.field_count) {
+    if (it->second.field_count <= field_index) {
         throw std::out_of_range(
             "Field index out of range, type "
             + std::string{it->second.type_name} + " has only "

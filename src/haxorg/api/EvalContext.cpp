@@ -44,13 +44,13 @@ json sliceJson(
 
         int first = span.first;
         if (first < 0) { first = dim_size + first; }
-        if (first < 0 || first >= dim_size) {
+        if (first < 0 || dim_size <= first) {
             throw std::out_of_range("Span first index out of bounds");
         }
 
         int last = span.last.has_value() ? span.last.value() : first;
         if (last < 0) { last = dim_size + last; }
-        if (last < 0 || last >= dim_size || last < first) {
+        if (last < 0 || dim_size <= last || last < first) {
             throw std::out_of_range("Span last index out of bounds");
         }
 

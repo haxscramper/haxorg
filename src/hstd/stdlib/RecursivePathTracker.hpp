@@ -23,7 +23,7 @@ class RecursivePathTracker {
 
     // Helper method to traverse to a specific index
     hstd::SPtr<Node> getNodeAt(int index) const {
-        if (index < 0 || index >= length) {
+        if (index < 0 || length <= index) {
             throw std::out_of_range("Index out of range");
         }
 
@@ -118,7 +118,7 @@ class RecursivePathTracker {
             return index > other.index;
         }
         bool operator>=(iterator const& other) const {
-            return index >= other.index;
+            return other.index <= index;
         }
     };
 

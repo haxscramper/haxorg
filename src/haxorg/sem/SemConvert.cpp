@@ -1700,8 +1700,8 @@ sem::Tblfm::Expr fold_expression_stack(
             auto const& call = expr.getCall();
             if (operator_precedence.contains(call.name)) {
                 while (!operators.empty()
-                       && precedence(operators.top())
-                              >= precedence(call.name)) {
+                       && precedence(call.name)
+                              <= precedence(operators.top())) {
                     apply_operator();
                 }
                 operators.push(call.name);

@@ -45,7 +45,7 @@ struct PreorderVisitor {
         hstd::ext::diff::Node& N = Tree.getMutableNode(MyId);
         N.RightMostDescendant    = id - 1;
         assert(
-            N.RightMostDescendant >= 0
+            0 <= N.RightMostDescendant
             && N.RightMostDescendant < Tree.getSize()
             && "Rightmost descendant must be a valid tree node.");
         if (N.isLeaf()) { Tree.Leaves.push_back(MyId); }
@@ -258,7 +258,7 @@ NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
         if (!isMatchingPossible(Id1, Id2)) { continue; }
         if (M.hasDst(Id2)) { continue; }
         double Similarity = getJaccardSimilarity(M, Id1, Id2);
-        if (Similarity >= Options.MinSimilarity
+        if (Options.MinSimilarity <= Similarity
             && Similarity > HighestSimilarity) {
             HighestSimilarity = Similarity;
             Candidate         = Id2;
@@ -285,7 +285,7 @@ double ASTDiff::getJaccardSimilarity(
                        + dst.getNumberOfDescendants(Id2) - 1
                        - CommonDescendants;
     // CommonDescendants is less than the size of one subtree.
-    assert(Denominator >= 0 && "Expected non-negative denominator.");
+    assert(0 <= Denominator && "Expected non-negative denominator.");
     if (Denominator == 0) { return 0; }
     return CommonDescendants / Denominator;
 }

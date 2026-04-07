@@ -104,7 +104,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
             case Bezier: {
                 QPainterPath edgePath;
                 edgePath.moveTo(source);
-                if (controlPoints.size() >= 2) {
+                if (2 <= controlPoints.size()) {
                     for (int i = 0;
                          i < static_cast<int>(controlPoints.size()) - 1;
                          i += 2) {
@@ -239,7 +239,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
             _painter, TraceState, "", CALL_LOC());
         QPainterPath path{source};
 
-        if (controlPoints.size() >= 2) {
+        if (2 <= controlPoints.size()) {
             for (int i = 0; i < static_cast<int>(controlPoints.size()) - 1;
                  i += 2) {
                 QPointF cp1 = controlPoints.at(i);
@@ -308,7 +308,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     }
 
     void removeControlPoint(int index) {
-        if (index >= 0 && index < static_cast<int>(controlPoints.size())) {
+        if (0 <= index && index < static_cast<int>(controlPoints.size())) {
             controlPoints.erase(controlPoints.begin() + index);
             updateBounds();
         }
@@ -339,7 +339,7 @@ struct DiaSceneItemEdge : public DiaSceneItemVisual {
     }
 
     bool handleMouseMove(QGraphicsSceneMouseEvent* event) override {
-        if (draggedControlPoint >= 0) {
+        if (0 <= draggedControlPoint) {
             controlPoints.at(draggedControlPoint) = event->scenePos();
             updateBounds();
             return true;

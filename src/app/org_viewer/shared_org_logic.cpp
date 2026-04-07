@@ -107,7 +107,7 @@ hstd::Str OrgAgendaNode::getAgeDisplay() const {
 
     hstd::Vec<std::string> parts;
     for (const auto& [unit_name, unit_seconds] : units) {
-        if (seconds >= unit_seconds) {
+        if (unit_seconds <= seconds) {
             int count = seconds / unit_seconds;
             parts.push_back(std::format("{}{}", count, unit_name));
             seconds %= unit_seconds;

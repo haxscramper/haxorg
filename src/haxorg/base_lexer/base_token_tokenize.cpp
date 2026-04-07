@@ -237,11 +237,11 @@ struct Cursor {
                 text[pos]);
             size_t charSize = 1;
 
-            if (firstByte >= 0xF0) {
+            if (0xF0 <= firstByte) {
                 charSize = 4;
-            } else if (firstByte >= 0xE0) {
+            } else if (0xE0 <= firstByte) {
                 charSize = 3;
-            } else if (firstByte >= 0xC0) {
+            } else if (0xC0 <= firstByte) {
                 charSize = 2;
             }
 

@@ -132,7 +132,7 @@ bool ReflASTVisitor::isDescribedRecord(
 
                 // Check if the function takes a pointer-to-pointer of our
                 // type
-                if (fnDecl->getNumParams() >= 1) {
+                if (1 <= fnDecl->getNumParams()) {
                     const clang::ParmVarDecl* param = fnDecl->getParamDecl(
                         0);
                     clang::QualType paramType = param->getType();
@@ -186,7 +186,7 @@ bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
             if (fnName == "boost_enum_descriptor_fn") {
                 // Check if the function takes a pointer-to-pointer of our
                 // enum
-                if (fnDecl->getNumParams() >= 1) {
+                if (1 <= fnDecl->getNumParams()) {
                     const clang::ParmVarDecl* param = fnDecl->getParamDecl(
                         0);
                     clang::QualType paramType = param->getType();

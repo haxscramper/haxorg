@@ -412,7 +412,7 @@ void* get_field_ptr_by_total_index(T& object, int index) {
         constexpr int
             total_count = boost::mp11::mp_size<all_members>::value;
 
-        if (index < 0 || index >= total_count) {
+        if (index < 0 || total_count <= index) {
             throw std::out_of_range{"Field index out of range"};
         }
 
@@ -440,7 +440,7 @@ void* get_field_ptr_by_own_index(T& object, int index) {
             describe_members<T, boost::describe::mod_public>;
         constexpr int own_count = boost::mp11::mp_size<own_members>::value;
 
-        if (index < 0 || index >= own_count) {
+        if (index < 0 || own_count <= index) {
             throw std::out_of_range{"Field index out of range"};
         }
 

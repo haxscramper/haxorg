@@ -307,7 +307,7 @@ QVariant OrgTreeModel::headerData(
     Qt::Orientation orientation,
     int             role) const {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-        if (section >= 0 && section < 8) {
+        if (0 <= section && section < 8) {
             return QString::fromStdString(
                 getColumnName(static_cast<TableColumns>(section)));
         }

@@ -110,7 +110,7 @@ hstd::finally_std log_graph_tracker::track_function(
 #    if ORG_BUILD_WITH_CGRAPH
 void graphviz_processor::track_function_start(function_info const& info) {
     call_stack.push(info.name);
-    if (call_stack.size() >= 2) {
+    if (2 <= call_stack.size()) {
         std::string parent = get_parent();
         if (parent != info.name) {
             add_edge(parent, info.name);
@@ -129,7 +129,7 @@ void graphviz_processor::track_function_end(
 
 void graphviz_processor::track_scope_enter(scope_info const& info) {
     call_stack.push(info.name);
-    if (call_stack.size() >= 2) {
+    if (2 <= call_stack.size()) {
         std::string parent = get_parent();
         add_edge(parent, info.name);
     }
@@ -471,7 +471,7 @@ void SignalDebugger::onSignalTriggered() {
     const QMetaObject* senderMeta  = senderObj->metaObject();
     int                signalIndex = senderSignalIndex();
 
-    if (signalIndex >= 0) {
+    if (0 <= signalIndex) {
         QMetaMethod signal = senderMeta->method(signalIndex);
 
         tracker->notify_signal_emit(
