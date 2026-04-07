@@ -2,9 +2,9 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import Union, List, Optional, Dict, Any
-import py_codegen.astbuilder_cpp as cpp
+from beartype.typing import Any, Dict, List, Optional, Union
 from py_codegen import codegen_ir
+import py_codegen.astbuilder_cpp as cpp
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId

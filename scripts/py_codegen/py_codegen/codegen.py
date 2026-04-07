@@ -1,39 +1,46 @@
 #!/usr/bin/env python
-from py_codegen.codegen_wrapper_c import gen_haxorg_c_wrappers
-from py_codegen.codegen_wrapper_embind import gen_pyhaxorg_napi_wrappers
-from py_codegen.codegen_wrapper_nanobind import gen_adaptagrams_wrappers, gen_pyhaxorg_python_wrappers
-
-from py_codegen import codegen_cpp, refl_read, codegen_ir
-import py_codegen.astbuilder_cpp as cpp
 import os
+
+from py_codegen import codegen_cpp, codegen_ir, refl_read
+from py_codegen.astbuilder_c_config import CAstbuilderConfig
+import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.astbuilder_nanobind import NbModule
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
-import py_codegen.codegen_immutable as gen_imm
-from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
-from py_codegen.astbuilder_c_config import CAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
+import py_codegen.codegen_immutable as gen_imm
 from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_field_iteration_macros,
     gen_pyhaxorg_iteration_macros,
     gen_pyhaxorg_shared_iteration_macros,
 )
-from py_codegen.codegen_type_groups import get_pyhaxorg_type_groups, PyhaxorgTypeGroups, verify_type_usage
+from py_codegen.codegen_type_groups import (
+    get_pyhaxorg_type_groups,
+    PyhaxorgTypeGroups,
+    verify_type_usage,
+)
+from py_codegen.codegen_wrapper_c import gen_haxorg_c_wrappers
+from py_codegen.codegen_wrapper_embind import gen_pyhaxorg_napi_wrappers
+from py_codegen.codegen_wrapper_nanobind import (
+    gen_adaptagrams_wrappers,
+    gen_pyhaxorg_python_wrappers,
+)
 from py_codegen.org_codegen_data import *
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_repository.repo_tasks.config import get_tmpdir
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log
-import yaml
 from py_scriptutils.toml_config_profiler import (
     apply_options,
     get_context,
     options_from_model,
 )
 import rich_click as click
+import yaml
 
 CAT = "codegen"
 

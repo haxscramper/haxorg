@@ -1,13 +1,12 @@
 from pathlib import Path
 
-from setuptools.build_meta import prepare_metadata_for_build_editable
-
+from beartype.typing import List, Optional
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen.codegen_ir import QualTypeKind
-from beartype.typing import List, Optional
-import pytest
-
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
+import pytest
+from setuptools.build_meta import prepare_metadata_for_build_editable
+
 from tests.python.conf_test_common import WithBinaryCoverageTest
 
 

@@ -3,10 +3,9 @@ from dataclasses import replace
 
 from beartype import beartype
 from beartype.typing import Any, List, Sequence, Tuple
-
 from py_codegen import codegen_ir
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import GenTuFunction, QualType, n_org
+from py_codegen.codegen_ir import GenTuFunction, n_org, QualType
 from py_haxorg.astbuilder import astbuilder_utils
 from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log

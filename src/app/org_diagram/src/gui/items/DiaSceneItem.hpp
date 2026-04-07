@@ -23,9 +23,9 @@ struct DiaSceneItem : public QGraphicsObject {
 
     QRectF boundingRect() const override { return QRectF{}; }
     void   paint(
-          QPainter*                       _painter,
-          const QStyleOptionGraphicsItem* option,
-          QWidget*                        widget) override {}
+        QPainter*                       _painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget*                        widget) override {}
 
     /// \brief Import AST information to the scene item
     virtual void setNodeTreeData(org::imm::ImmAdapter const& adapter) = 0;

@@ -416,8 +416,8 @@ TEST(DynVariantNestedInParent, VectorOfParents) {
                 if constexpr (std::is_same_v<T, Parent::Circle>) {
                     return std::format(
                         "{}: Circle(r={})", parent.name, s->radius);
-                } else if constexpr (std::
-                                         is_same_v<T, Parent::Rectangle>) {
+                } else if constexpr (
+                    std::is_same_v<T, Parent::Rectangle>) {
                     return std::format(
                         "{}: Rect({}x{})",
                         parent.name,

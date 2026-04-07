@@ -32,7 +32,7 @@ from py_repository.code_analysis.gen_coverage_cookies import *
 import py_repository.repo_docgen.gen_coverage_data as docdata
 from py_repository.repo_docgen.gen_coverage_utils import abbreviate_token_name
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import (ExceptionContextNote, log)
+from py_scriptutils.script_logging import ExceptionContextNote, log
 from py_scriptutils.sqlalchemy_utils import (
     BoolColumn,
     ForeignId,

@@ -1,7 +1,7 @@
+from beartype.typing import Optional
+from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
-from beartype.typing import Optional
 
 
 class NanobindAstbuilderConfig(AstbulderConfig):

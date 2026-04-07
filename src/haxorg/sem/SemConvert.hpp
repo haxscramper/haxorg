@@ -160,8 +160,8 @@ struct OrgConverter : public hstd::OperationsTracer {
 
     ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
     void                             convertDocumentOptions(
-                                    SemId<DocumentOptions> opts,
-                                    parse::OrgAdapter      a);
+        SemId<DocumentOptions> opts,
+        parse::OrgAdapter      a);
 
     ConvResult<Table>           convertTable(In);
     ConvResult<HashTag>         convertHashTag(In);

@@ -202,7 +202,7 @@ TEST(VectorTest, VectorSplicing) {
         auto tmp = V{1, 2, 3};
         auto v   = V::Splice(1, tmp | rv::transform([](int arg) -> int {
                                   return arg + 1;
-                              }));
+                                }));
 
         EXPECT_EQ(v.size(), 4);
         EXPECT_EQ(v.at(0), 1);

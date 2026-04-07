@@ -1,12 +1,19 @@
-from beartype import beartype
-import py_codegen.astbuilder_cpp as cpp
 from pathlib import Path
+
+from beartype import beartype
+from py_codegen import astbuilder_py as pya, codegen_cpp, refl_read
+import py_codegen.astbuilder_cpp as cpp
 from py_codegen.astbuilder_nanobind import NbModule
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
-from py_codegen.codegen_ir import GenTu, GenTuInclude, GenFiles, GenTuPass, GenUnit, get_type_map
-from py_codegen import codegen_cpp, refl_read
-from py_codegen import astbuilder_py as pya
+from py_codegen.codegen_ir import (
+    GenFiles,
+    GenTu,
+    GenTuInclude,
+    GenTuPass,
+    GenUnit,
+    get_type_map,
+)
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, verify_type_usage
 from py_scriptutils.script_logging import ExceptionContextNote, log
 

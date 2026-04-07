@@ -24,9 +24,9 @@ struct UnorderedStore {
             hstd::fmt1_maybe(value));
 
         int  current_size = size();
-        auto result       = mask.has_value()
-                              ? ID::FromMaskedIdx(current_size, mask.value())
-                              : ID::FromIndex(current_size);
+        auto result = mask.has_value()
+                        ? ID::FromMaskedIdx(current_size, mask.value())
+                        : ID::FromIndex(current_size);
         store.add_unique(result, value);
         return result;
     }
@@ -111,7 +111,9 @@ struct IVertex : public IGraphObjectBase {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
-    virtual json getSerialNonRecursive(IGraph const* graph, org::graph::VertexID const& id) const = 0;
+    virtual json getSerialNonRecursive(
+        IGraph const*               graph,
+        org::graph::VertexID const& id) const = 0;
 };
 
 

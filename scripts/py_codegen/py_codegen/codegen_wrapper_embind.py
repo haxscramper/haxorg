@@ -1,10 +1,9 @@
 from beartype import beartype
+from py_codegen import astbuilder_cpp as cpp, astbuilder_embind as napi
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_ir import GenFiles, GenTu, GenTuPass, GenTypeMap, GenUnit
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups
-from py_codegen import astbuilder_cpp as cpp
-from py_codegen import astbuilder_embind as napi
 
 
 @beartype

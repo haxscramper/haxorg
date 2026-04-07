@@ -6,13 +6,13 @@ from graphlib import TopologicalSorter
 import inspect
 from pathlib import Path
 
-import plumbum
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional, Set
 import docker
 import docker.models.containers
 import igraph as ig
-from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
+import plumbum
+from py_repository.repo_tasks.config import get_tmpdir, HaxorgConfig
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log

@@ -4,12 +4,12 @@ import logging
 import os
 from pathlib import Path
 import sys
-import plumbum
 import traceback
 from typing import Dict
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Literal, Optional, Set
+import plumbum
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text

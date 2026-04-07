@@ -41,7 +41,8 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
 }
 
 TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
+    std::string
+        file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
     auto node  = parseContext->parseDirectory(file);

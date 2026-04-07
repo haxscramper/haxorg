@@ -196,8 +196,8 @@ struct JsonSerdeMapApi {
     static MapType from_json(json const& j) {
         MapType result;
         for (auto const& i : j) {
-            result[JsonSerde<K>::from_json(i["key"])] = JsonSerde<
-                V>::from_json(i["value"]);
+            result[JsonSerde<K>::from_json(
+                i["key"])] = JsonSerde<V>::from_json(i["value"]);
         }
         return result;
     }
