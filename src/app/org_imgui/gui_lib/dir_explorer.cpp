@@ -112,7 +112,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 };
 
 
-SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
+SPtr<ContentNode> DirContext::getFileNode(fs::path const& file) {
     if (hadChanges(file)) {
         HSLOG_INFO(
             "load", "Loading file {}", fs::relative(file, root).native());
@@ -223,7 +223,7 @@ struct DirNode : public SharedPtrApi<DirNode> {
     }
 };
 
-std::string format_event(const inotify_event& event) {
+std::string format_event(inotify_event const& event) {
     std::string description = std::format(
         "Watch Descriptor: {}, Mask: {}, Cookie: {}, Length: {}, Name: {}",
         event.wd,
@@ -285,7 +285,7 @@ class InotifyWatcher {
         update(files);
     }
 
-    void update(const Vec<fs::path>& files) {
+    void update(Vec<fs::path> const& files) {
         for (const auto& [wd, path] : watchDescriptors) {
             inotify_rm_watch(inotifyFd, wd);
         }
@@ -320,8 +320,8 @@ class InotifyWatcher {
             int  i           = 0;
             bool had_changes = false;
             while (i < length) {
-                struct inotify_event* event = (struct
-                                               inotify_event*)&buffer[i];
+                struct inotify_event*
+                    event = (struct inotify_event*)&buffer[i];
                 if (event->len) {
                     fs::path const& path = watchDescriptors.at(event->wd);
                     std::string     description = format_event(*event);

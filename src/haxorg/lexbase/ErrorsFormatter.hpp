@@ -9,7 +9,7 @@ struct std::formatter<org::parse::SourceLoc>
     : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const org::parse::SourceLoc& p,
+        org::parse::SourceLoc const& p,
         FormatContext&               ctx) const {
         hstd::fmt_ctx(p.line, ctx);
         hstd::fmt_ctx(":", ctx);

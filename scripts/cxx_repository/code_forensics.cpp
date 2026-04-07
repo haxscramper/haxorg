@@ -40,7 +40,7 @@ i64 idcast(u64 value) { return static_cast<i64>(value); }
 
 void InsertFilePaths(
     SQLite::Database&                                     db,
-    const dod::InternStore<ir::FilePathId, ir::FilePath>& filePaths) {
+    dod::InternStore<ir::FilePathId, ir::FilePath> const& filePaths) {
     SQLite::Statement query(db, "INSERT INTO FilePath VALUES (?, ?)");
 
     for (const auto& [id, item] : filePaths.pairs()) {
@@ -56,7 +56,7 @@ void InsertFilePaths(
 // InsertCommits Function
 void InsertCommits(
     SQLite::Database&                           db,
-    const dod::Store<ir::CommitId, ir::Commit>& commits) {
+    dod::Store<ir::CommitId, ir::Commit> const& commits) {
     SQLite::Statement query(
         db, "INSERT INTO GitCommit VALUES (?, ?, ?, ?, ?, ?)");
 
@@ -103,8 +103,8 @@ void InsertCommits(
 }
 
 void InsertFileTracks(
-    SQLite::Database&                              db,
-    CR<dod::Store<ir::FileTrackId, ir::FileTrack>> tracks) {
+    SQLite::Database&                                 db,
+    dod::Store<ir::FileTrackId, ir::FileTrack> const& tracks) {
     SQLite::Statement query(db, "INSERT INTO FileTrack VALUES (?)");
 
     for (const auto& [id, item] : tracks.pairs()) {
@@ -117,7 +117,7 @@ void InsertFileTracks(
 // InsertFileTrackSections Function
 void InsertFileTrackSections(
     SQLite::Database& db,
-    const dod::Store<ir::FileTrackSectionId, ir::FileTrackSection>&
+    dod::Store<ir::FileTrackSectionId, ir::FileTrackSection> const&
         fileTrackSections) {
     SQLite::Statement query(
         db, "INSERT INTO FileTrackSection VALUES (?, ?, ?, ?)");
@@ -151,7 +151,7 @@ void InsertFileTrackSections(
 // InsertStrings Function
 void InsertStrings(
     SQLite::Database&                                 db,
-    const dod::InternStore<ir::StringId, ir::String>& strings) {
+    dod::InternStore<ir::StringId, ir::String> const& strings) {
     SQLite::Statement query(db, "INSERT INTO String VALUES (?, ?)");
 
     for (const auto& [id, item] : strings.pairs()) {
@@ -166,7 +166,7 @@ void InsertStrings(
 // InsertAuthors Function
 void InsertAuthors(
     SQLite::Database&                                 db,
-    const dod::InternStore<ir::AuthorId, ir::Author>& authors) {
+    dod::InternStore<ir::AuthorId, ir::Author> const& authors) {
     SQLite::Statement query(db, "INSERT INTO Author VALUES (?, ?, ?)");
 
     for (const auto& [id, item] : authors.pairs()) {
@@ -182,7 +182,7 @@ void InsertAuthors(
 // InsertLineData Function
 void InsertLineData(
     SQLite::Database&                                 db,
-    const dod::InternStore<ir::LineId, ir::LineData>& lineData) {
+    dod::InternStore<ir::LineId, ir::LineData> const& lineData) {
     SQLite::Statement query(db, "INSERT INTO LineData VALUES (?, ?, ?)");
 
     for (const auto& [id, item] : lineData.pairs()) {
@@ -202,7 +202,7 @@ void InsertLineData(
 class LinePrinterLogSink : public absl::LogSink {
   public:
     LinePrinterLogSink(std::string const& path) : file(path) {}
-    void Send(const absl::LogEntry& entry) override {
+    void Send(absl::LogEntry const& entry) override {
         for (absl::string_view line : absl::StrSplit(
                  entry.text_message_with_prefix(), absl::ByChar('\n'))) {
             // Overprint severe entries for emphasis:
@@ -269,10 +269,10 @@ int main(int argc, char** argv) {
     ir::content_manager content;
     // Create main walker state used in the whole commit analysis state
     auto state = UPtr<walker_state>(new walker_state{
-        .config = config.get(),
-        .repo   = git::repository_open_ext(
-                    config->cli.repo.path.c_str(), 0, nullptr)
-                    .value(),
+        .config  = config.get(),
+        .repo    = git::repository_open_ext(
+                       config->cli.repo.path.c_str(), 0, nullptr)
+                       .value(),
         .content = &content,
     });
 

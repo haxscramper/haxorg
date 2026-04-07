@@ -23,7 +23,7 @@ void sort(Vec<T>& vec, Cmp cmp) {
 
 /// \brief Return reversed copy of the vector
 template <typename T>
-Vec<T> reversed(CR<Vec<T>> vec) {
+Vec<T> reversed(Vec<T> const& vec) {
     Vec<T> result = vec;
     reverse(result);
     return result;
@@ -31,25 +31,25 @@ Vec<T> reversed(CR<Vec<T>> vec) {
 
 /// \brief Return sorted copy of the vector
 template <typename T, typename Cmp>
-Vec<T> sorted(CR<Vec<T>> vec, Cmp cmp) {
+Vec<T> sorted(Vec<T> const& vec, Cmp cmp) {
     Vec<T> result = vec;
     sort(result, cmp);
     return result;
 }
 
 template <typename T, typename F>
-Vec<T> sortedBy(CR<Vec<T>> vec, F eval) {
+Vec<T> sortedBy(Vec<T> const& vec, F eval) {
     Vec<T> result = vec;
-    sort<T>(result, [&](CR<T> lhs, CR<T> rhs) -> bool {
+    sort<T>(result, [&](T const& lhs, T const& rhs) -> bool {
         return eval(lhs) < eval(rhs);
     });
     return result;
 }
 
 template <typename T>
-Vec<T> sorted(CR<Vec<T>> vec) {
+Vec<T> sorted(Vec<T> const& vec) {
     Vec<T> result = vec;
-    sort(result, [](CR<T> lhs, CR<T> rhs) { return lhs < rhs; });
+    sort(result, [](T const& lhs, T const& rhs) { return lhs < rhs; });
     return result;
 }
 
@@ -72,8 +72,8 @@ auto map(T const& vec, F cb) {
 
 template <typename T, typename F>
 Vec<Span<T const>> partition(
-    const Vec<T>&  elements,
-    Func<F(CR<T>)> callback) {
+    Vec<T> const&     elements,
+    Func<F(T const&)> callback) {
     Vec<Span<T const>> result;
     if (!elements.empty()) {
         Span<T const> currentSpan;
@@ -99,8 +99,8 @@ Vec<Span<T const>> partition(
 
 template <typename A, typename B>
 generator<Pair<typename A::value_type const*, typename B::value_type const*>> carthesian(
-    CR<A> lhs,
-    CR<B> rhs) {
+    A const& lhs,
+    B const& rhs) {
     for (const auto& lhsIt : lhs) {
         for (const auto& rhsIt : rhs) { co_yield {&lhsIt, &rhsIt}; }
     }

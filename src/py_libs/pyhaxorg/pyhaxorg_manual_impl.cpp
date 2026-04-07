@@ -46,7 +46,7 @@ void init_py_manual_api(nanobind::module_& m) {
     assert(PyDateTimeAPI);
 }
 
-std::string format_function_definition(const nanobind::callable& func) {
+std::string format_function_definition(nanobind::callable const& func) {
     auto obj  = func.attr("__code__");
     auto name = std::string{nanobind::str(func.attr("__name__")).c_str()};
     auto file = std::string{
@@ -61,13 +61,13 @@ std::string format_function_definition(const nanobind::callable& func) {
 }
 
 
-std::string ExporterPython::describe(const PyFunc& func) const {
+std::string ExporterPython::describe(PyFunc const& func) const {
     return format_function_definition(func);
 }
 
 std::string ExporterPython::describe_use(
-    const std::string& msg,
-    const PyFunc&      usage) const {
+    std::string const& msg,
+    PyFunc const&      usage) const {
     return std::format("{} {}", msg, describe(usage));
 }
 
@@ -81,16 +81,16 @@ std::string ExporterPython::getTraceBuffer() const {
 }
 
 void ExporterPython::enableFileTrace(
-    const std::string& path,
+    std::string const& path,
     bool               colored) {
     this->setTraceFile(path);
     this->traceColored = colored;
 }
 
 void ExporterPython::print_trace(
-    const std::string& trace,
-    const std::string& file,
-    const std::string& function,
+    std::string const& trace,
+    std::string const& file,
+    std::string const& function,
     int                line) {
     auto rep     = this->trace(VisitReport::Kind::Print);
     rep.line     = line;
@@ -217,7 +217,7 @@ void org::bind::python::eachSubnodeRecSimplePath(
 
 org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
     org::sem::SemId<sem::Org>                 node,
-    const PyCodeEvalParameters&               conf,
+    PyCodeEvalParameters const&               conf,
     std::shared_ptr<org::parse::ParseContext> parse_context) {
     org::OrgCodeEvalParameters eval_conf{parse_context, conf.debug};
 
@@ -249,7 +249,7 @@ void org::bind::python::setGetParsedNode(
 }
 
 nanobind::bytes org::bind::python::serializeAstContextToText(
-    const std::shared_ptr<imm::ImmAstContext>& store) {
+    std::shared_ptr<imm::ImmAstContext> const& store) {
     auto str = org::imm::serializeToText(store);
     return nanobind::bytes(str.data(), str.size());
 }
@@ -259,32 +259,32 @@ std::string bytes_to_string(nanobind::bytes const& bytes) {
 }
 
 void org::bind::python::serializeAstContextFromText(
-    const nanobind::bytes&                     binary,
-    const std::shared_ptr<imm::ImmAstContext>& store) {
+    nanobind::bytes const&                     binary,
+    std::shared_ptr<imm::ImmAstContext> const& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }
 
 nanobind::bytes org::bind::python::serializeAstReplaceEpochToText(
-    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    std::shared_ptr<imm::ImmAstReplaceEpoch> const& store) {
     auto tmp = org::imm::serializeToText(store);
     return nanobind::bytes(tmp.c_str(), tmp.size());
 }
 
 void org::bind::python::serializeAstReplaceEpochFromText(
-    const nanobind::bytes&                          binary,
-    const std::shared_ptr<imm::ImmAstReplaceEpoch>& store) {
+    nanobind::bytes const&                          binary,
+    std::shared_ptr<imm::ImmAstReplaceEpoch> const& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }
 
 
 nanobind::bytes org::bind::python::serializeMapGraphToText(
-    const std::shared_ptr<graph::MapGraph>& store) {
+    std::shared_ptr<graph::MapGraph> const& store) {
     std::string tmp = org::imm::serializeToText(store);
     return nanobind::bytes(tmp.c_str(), tmp.size());
 }
 
 void org::bind::python::serializeMapGraphFromText(
-    const nanobind::bytes&                  binary,
-    const std::shared_ptr<graph::MapGraph>& store) {
+    nanobind::bytes const&                  binary,
+    std::shared_ptr<graph::MapGraph> const& store) {
     org::imm::serializeFromText(bytes_to_string(binary), store);
 }

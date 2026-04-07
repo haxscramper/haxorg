@@ -4,8 +4,8 @@ import re
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-import py_haxorg.astbuilder.astbuilder_base as base
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, PragmaParams
+import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
 
 
@@ -25,7 +25,7 @@ class TypeKind(Enum):
 class Type:
     Name: str
     Kind: TypeKind = TypeKind.RegularType
-    Parameters: List['Type'] = field(default_factory=list)
+    Parameters: List["Type"] = field(default_factory=list)
     Expr: Optional[BlockId] = None
 
 

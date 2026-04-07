@@ -1,13 +1,45 @@
 import abc
-from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
+
 from beartype import beartype
 from beartype.typing import List, Optional
-
+from py_codegen import codegen_ir
+from py_codegen.codegen_ir import QualType
 from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_scriptutils.script_logging import log
 
 CAT = __name__
+
+BUILTIN_TYPES = [
+    ["char"],
+    ["bool"],
+    ["void"],
+    ["int8_t"],
+    ["int16_t"],
+    ["int32_t"],
+    ["int64_t"],
+    ["uint8_t"],
+    ["uint16_t"],
+    ["uint32_t"],
+    ["uint64_t"],
+    ["unsigned short"],
+    ["unsigned int"],
+    ["unsigned long"],
+    ["unsigned long long"],
+    ["short"],
+    ["int"],
+    ["long"],
+    ["long long"],
+    ["float"],
+    ["double"],
+    ["hstd", "u8"],
+    ["hstd", "u16"],
+    ["hstd", "u32"],
+    ["hstd", "u64"],
+    ["hstd", "i8"],
+    ["hstd", "i16"],
+    ["hstd", "i32"],
+    ["hstd", "i64"],
+]
 
 
 @beartype
@@ -20,10 +52,34 @@ class AstbulderConfig(abc.ABC):
     def __init__(self, type_map: codegen_ir.GenTypeMap):
         self.type_map = type_map
 
+    def _isExposedByBackendImpl(self, entry: codegen_ir.GenTuDeclaration,
+                                backend: str) -> bool:
+        match entry:
+            case codegen_ir.GenTuStruct() | codegen_ir.GenTuField(
+            ) | codegen_ir.GenTuFunction() | codegen_ir.GenTuTypedef():
+                if not entry.IsExposedForWrap:
+                    return False
+
+        return not entry.ReflectionParams or entry.ReflectionParams.isAcceptedBackend(
+            backend)
+
     @abc.abstractmethod
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        "Check if the entry with these reflection params is accepted for the backend"
+        ...
+
     def getBackendType(self, Type: QualType) -> QualType:
         "Rewrite the IR type to the backend-specific counterpart"
-        ...
+        match Type.Kind:
+            case codegen_ir.QualTypeKind.FunctionPtr:
+                assert Type.Func
+                return Type.copy_update(Func=Type.Func.model_copy(update=dict(
+                    ReturnType=self.getBackendType(Type.Func.ReturnType),
+                    Args=[self.getBackendType(A) for A in Type.Func.Args],
+                )))
+
+            case _:
+                return Type
 
     def isRegisteredForBacked(self, Type: QualType) -> bool:
         """
@@ -31,28 +87,32 @@ class AstbulderConfig(abc.ABC):
         an explicit class to be wrapped, or as a backend-specific type that is already
         present by default
         """
+
+        if Type.IsTemplateInjectedType or Type.IsTemplateTypeParam:
+            return True
+
         match Type.flatQualNameWithParams():
             case l if l in [
                 # Universally registered types -- if some backend does not expose them,
                 # it can override the method to return false.
                 ["std", "string"],
                 ["hstd", "Str"],
-                ["int"],
-                ["int64_t"],
-                ["char"],
-                ["bool"],
-                ["void"],
-            ]:
+            ] + BUILTIN_TYPES:
                 return True
 
             case ["hstd", "SharedPtrApi", _]:
                 return False
 
-            case ["std", "shared_ptr", _]:
+            case ["std", "shared_ptr", _] | ["std", "optional", _]:
                 return self.isRegisteredForBacked(Type.par0())
 
             case _:
-                return self.isKnownClass(Type)
+                if self.isTypedef(Type):
+                    return self.isRegisteredForBacked(
+                        self.getResolvedType(Type)) or self.isKnownClass(Type)
+
+                else:
+                    return self.isKnownClass(Type)
 
     def isKnownClass(self, Type: QualType) -> bool:
         "Check if type name refers to registered entry"
@@ -72,11 +132,14 @@ class AstbulderConfig(abc.ABC):
             return Type
 
     def getTypeDefinition(
-            self, t: QualType) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct]:
+        self, t: QualType
+    ) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct |
+                  codegen_ir.GenTuTypedef]:
         mapped = self.type_map.get_types_for_qual_name(t)
         if 0 < len(mapped):
             assert len(mapped) == 1, f"{t} maps to more than one type"
-            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct))
+            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct,
+                                          codegen_ir.GenTuTypedef)), type(mapped[0])
             return mapped[0]
 
         else:
@@ -114,20 +177,20 @@ class AstbulderConfig(abc.ABC):
             case _:
                 return 0 < len(t.Params)
 
-    def getBindName(self, t: QualType, withParams: bool = True) -> str:
+    def getTypeBindName(self, Type: QualType, withParams: bool = True) -> str:
         """
         Get name of the wrapped type for backend. Default name generation logic
         for all backends. Some backends might overwrite this for a more fitting
         name construction.
         """
         res = ""
-        wrapper = self.type_map.get_wrapper_type(t)
+        wrapper = self.type_map.get_wrapper_type(Type)
 
         if wrapper:
             res += wrapper
 
         else:
-            match t.flatQualName():
+            match Type.flatQualName():
                 case ["immer", "box"] | ["hstd", "ImmBox"]:
                     res += "ImmBox"
 
@@ -165,14 +228,14 @@ class AstbulderConfig(abc.ABC):
                     res += "HstdSortedSet"
 
                 case _:
-                    for N in t.Spaces:
-                        res += pascal_case(self.getBindName(N, withParams=withParams))
+                    for N in Type.Spaces:
+                        res += pascal_case(self.getTypeBindName(N, withParams=withParams))
 
-                    if t.Name in ["bool", "int", "char", "float"]:
-                        res += t.Name
+                    if Type.Name in ["bool", "int", "char", "float"]:
+                        res += Type.Name
 
                     # Skip verbose namespaces for name generation
-                    elif t.Name not in [
+                    elif Type.Name not in [
                             "sem",
                             "org",
                             "hstd",
@@ -182,12 +245,13 @@ class AstbulderConfig(abc.ABC):
                             "python",
                             "imm",
                     ]:
-                        res += pascal_case(t.Name)
+                        res += pascal_case(Type.Name)
 
-        if withParams and 0 < len(t.Params):
+        if withParams and 0 < len(Type.Params):
             res += "Of"
             res += "".join([
-                pascal_case(self.getBindName(T, withParams=withParams)) for T in t.Params
+                pascal_case(self.getTypeBindName(T, withParams=withParams))
+                for T in Type.Params
             ])
 
         return res

@@ -8,7 +8,7 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
   "beartype>=0.22.0,<0.23.0",
   "rich>=13.5.3,<14.0.0",
-  "betterproto[compiler]>=1.2.5,<2.0.0",
+  "betterproto[compiler]>=2.0.0b7",
   "pytest>=8.2.2,<9.0.0",
   "click>=8.1.7,<9.0.0",
   "rich-click>=1.6.1,<2.0.0",
@@ -52,6 +52,11 @@ dependencies = [
   "pre-commit>=4.5.1",
   "yapf>=0.43.0",
   "isort>=7.0.0",
+]
+
+[tool.uv]
+override-dependencies = [
+    "isort>=7.0.0",
 ]
 
 [dependency-groups]

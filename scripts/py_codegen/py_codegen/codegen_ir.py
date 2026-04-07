@@ -8,6 +8,7 @@ from beartype import beartype
 from beartype.typing import (
     Any,
     Callable,
+    cast,
     Dict,
     List,
     Literal,
@@ -20,6 +21,7 @@ from beartype.typing import (
 )
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
+from py_scriptutils.script_logging import log
 from pydantic import AliasChoices, BaseModel, Field
 
 CAT = __name__
@@ -33,10 +35,8 @@ class QualTypeKind(str, Enum):
     "Built-in or user-defined type for struct, class, union, enum"
     FunctionPtr = "FunctionPtr"
     "Pointer to function"
-    MethodPtr = "MethodPtr"
-    "Pointer to method"
     Array = "Array"
-    "Constant or dynamic array type"
+    "Constant or dynamic array type. The array parameters are stored in `Params` field"
     TypeExpr = "TypeExpr"
     "Compile-time literal in template parameters"
 
@@ -95,14 +95,27 @@ class QualType(BaseModel, extra="forbid"):
     Kind: QualTypeKind = QualTypeKind.RegularType
     "Kind of the qualified type"
 
+    IsTemplateTypeParam: bool = False
+    "Type refers to the template type parameter for the struct/function"
+
+    IsTemplateInjectedType: bool = False
+    "Type refers to the type injected by the template parametr `T::nested` -- the nested is injected"
+
+    OriginalSubstitutedTemplate: Optional["QualType"] = None
+    """
+    Original template type parameter that was replaced by a newly substituted type.
+    This field is populated during the template type instantiation to avoid information
+    loss during substitution.
+    """
+
     @beartype
     class Function(BaseModel, extra="forbid"):
         "Pointer to function signature"
-        ReturnType: Optional['QualType']
+        ReturnType: "QualType"
         "Type of the function return type"
-        Args: List['QualType']
+        Args: List["QualType"]
         "Types of the function arguments"
-        Class: Optional['QualType'] = None
+        Class: Optional["QualType"] = None
         "Type of the method's class"
         IsConst: bool = False
         "For const methods"
@@ -150,12 +163,28 @@ class QualType(BaseModel, extra="forbid"):
         return self.Meta.get("isOrgType", False)
 
     @staticmethod
+    def ForSpace(name: str, **args: Any) -> "QualType":
+        return QualType(Name=name, IsNamespace=True, **args)
+
+    @staticmethod
     def ForName(name: str, **args: Any) -> "QualType":
         return QualType(Name=name, **args)
 
     @staticmethod
     def ForExpr(expr: str, **args: Any) -> "QualType":
         return QualType(Expr=expr, Kind=QualTypeKind.TypeExpr, **args)
+
+    @staticmethod
+    def ForFunction(ReturnType: "QualType", Args: list["QualType"],
+                    **args: Any) -> "QualType":
+        return QualType(
+            Func=QualType.Function(
+                ReturnType=ReturnType,
+                Args=Args,
+            ),
+            Kind=QualTypeKind.FunctionPtr,
+            **args,
+        )
 
     def flatten(self) -> "QualType":
         return self.copy_update(Spaces=self.flatQualScope())
@@ -167,7 +196,7 @@ class QualType(BaseModel, extra="forbid"):
         return self.copy_update(IsConst=True, RefKind=ReferenceKind.LValue)
 
     def asConstPtr(self) -> "QualType":
-        return self.copy_update(IsConst=True, ptrCount=1)
+        return self.copy_update(IsConst=True, PtrCount=1)
 
     def asRef(self) -> "QualType":
         return self.copy_update(IsConst=False, RefKind=ReferenceKind.LValue)
@@ -221,6 +250,34 @@ class QualType(BaseModel, extra="forbid"):
         """
         return self.flatQualName() + [[P.flatQualNameWithParams()] for P in self.Params]
 
+    def flatQualNameNoTemplateParams(self) -> tuple[str, ...]:
+        """
+        Generate flat tuple of strings for type that will include the template type parameters if they
+        are already substituted, but exclude the placeholder parameters.
+        """
+        result = list()
+
+        def aux(it: QualType):
+            if not it.IsTemplateTypeParam:
+                result.append(it.Name)
+
+        self.visit_recursive(aux)
+
+        return tuple(result)
+
+    @beartype
+    def getTemplateParameters(self) -> List["QualType"]:
+        found = list()
+
+        def aux(Type: QualType):
+            nonlocal found
+            if Type.IsTemplateTypeParam:
+                found.append(Type)
+
+        self.visit_recursive(aux)
+
+        return found
+
     def asSpaceFor(self, other: "QualType") -> "QualType":
         "Use the current type as a wrapper space for other type"
         return other.copy_update(
@@ -272,7 +329,8 @@ class QualType(BaseModel, extra="forbid"):
                     **base_override,
                 )
 
-            case QualTypeKind.FunctionPtr | QualTypeKind.MethodPtr:
+            case QualTypeKind.FunctionPtr:
+                assert self.Func
                 return self.copy_update(
                     func=QualType.Function(
                         ReturnType=self.Func.ReturnType.withoutCVRef(),
@@ -371,6 +429,26 @@ class QualType(BaseModel, extra="forbid"):
 
         return result
 
+    def visit_recursive(self, callback: Callable[["QualType"], None]) -> None:
+
+        def aux(Type: QualType):
+            match Type.Kind:
+                case QualTypeKind.RegularType | QualTypeKind.Array:
+                    list(map(aux, Type.Spaces))
+                    callback(Type)
+                    list(map(aux, Type.Params))
+
+                case QualTypeKind.FunctionPtr:
+                    assert Type.Func
+                    callback(Type)
+                    list(map(aux, Type.Func.Args))
+                    if Type.Func.Class:
+                        aux(Type.Func.Class)
+
+                    aux(Type.Func.ReturnType)
+
+        aux(self)
+
     def qual_hash(self) -> int:
         return hash(self.flat_repr_flatten(with_modifiers=False))
 
@@ -456,11 +534,9 @@ class QualType(BaseModel, extra="forbid"):
 
             return result
 
-        # return self.model_dump_json() + "  --- " + aux(self)
         return aux(self, depth=0)
-        # return str(self.flat_repr_flatten())
 
-    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN) -> str:
+    def format(self, dbgOrigin: bool = DEBUG_TYPE_ORIGIN, native: bool = True) -> str:
 
         def aux(Typ: QualType) -> str:
             cvref = "{const}{ptr}{ref}".format(
@@ -476,18 +552,22 @@ class QualType(BaseModel, extra="forbid"):
             origin = f" FROM:{Typ.DbgOrigin}" if (dbgOrigin and Typ.DbgOrigin) else ""
 
             spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
-            # if spaces:
-            #     spaces = f"{spaces}"
 
             match Typ.Kind:
                 case QualTypeKind.FunctionPtr:
                     assert Typ.Func
                     assert Typ.Func.ReturnType, "Missing return type for function pointer"
-                    result = "{spaces}FUNC:{origin}({args})".format(
-                        spaces=spaces,
-                        origin=aux(Typ.Func.ReturnType),
-                        args=", ".join([aux(T) for T in Typ.Func.Args]),
-                    )
+                    if native:
+                        result = "{origin}(*)({args})".format(
+                            origin=aux(Typ.Func.ReturnType),
+                            args=", ".join([aux(T) for T in Typ.Func.Args]),
+                        )
+                    else:
+                        result = "{spaces}FUNC:{origin}({args})".format(
+                            spaces=spaces,
+                            origin=aux(Typ.Func.ReturnType),
+                            args=", ".join([aux(T) for T in Typ.Func.Args]),
+                        )
 
                 case QualTypeKind.Array:
                     result = "{spaces}ARR:{first}[{expr}]{cvref}{origin}".format(
@@ -499,15 +579,22 @@ class QualType(BaseModel, extra="forbid"):
                     )
 
                 case QualTypeKind.RegularType:
-                    result = "{spaces}REC:({name}{args}{cvref}{origin})".format(
+                    body = "{name}{args}{cvref}{origin}".format(
                         name=Typ.Name or "?",
                         args="<{}>".format(", ".join([aux(T) for T in Typ.Params]))
                         if Typ.Params else "",
                         cvref=cvref,
                         origin=origin,
-                        spaces=spaces,
-                        # namespace=("NSP" if Typ.isNamespace else ""),
                     )
+
+                    if native:
+                        result = f"{spaces}{body}"
+
+                    else:
+                        result = "{spaces}REC:({body})".format(
+                            body=body,
+                            spaces=spaces,
+                        )
 
                 case QualTypeKind.TypeExpr:
                     result = f"[E:{Typ.Expr}]"
@@ -515,11 +602,13 @@ class QualType(BaseModel, extra="forbid"):
                 case _:
                     assert False, Typ.Kind
 
-            return "{" + result + "}"
+            if native:
+                return result
 
-        # return self.model_dump_json() + "  --- " + aux(self)
+            else:
+                return "{" + result + "}"
+
         return aux(self)
-        # return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace: bool = True) -> "QualType":
         self.IsNamespace = is_namespace
@@ -535,7 +624,7 @@ class QualType(BaseModel, extra="forbid"):
 
     @classmethod
     def from_name_and_parameters(cls, name: str,
-                                 parameters: List['QualType']) -> "QualType":
+                                 parameters: List["QualType"]) -> "QualType":
         return cls(Name=name, Params=parameters)
 
     @classmethod
@@ -543,44 +632,124 @@ class QualType(BaseModel, extra="forbid"):
         return cls(Name=name, Spaces=[cls.from_name(space) for space in spaces])
 
 
+class TemplateParamKind(str, Enum):
+    Type = "Type"
+    NonType = "NonType"
+    Template = "Template"
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+
 @beartype
 @dataclass
 class GenTuTemplateTypename:
-    Placeholder: bool = False
+    """
+    Template parameter description for:
+    - type parameters: `typename T`, `class T`
+    - non-type parameters: `int N`, `auto V`
+    - template-template parameters:
+      `template <typename> typename TT`
+
+    The declaration name is stored in `TypeExpr.Name`. For unnamed parameters
+    the name may be empty.
+    """
+
+    Kind: TemplateParamKind = TemplateParamKind.Type
+    TypeExpr: QualType = field(default_factory=QualType)
+    "Name/definition of the template type, `typename N` -- this field will hold `N`"
     Variadic: bool = False
-    Name: str = ""
-    Nested: List['GenTuTemplateTypename'] = field(default_factory=list)
+    "Whether template type parameter was declared as variadic"
     Concept: Optional[str] = None
+    "Constraining concept for the template type"
+    Default: Optional[QualType] = None
+    "Default type for the parameter"
+    TemplateParams: Optional["GenTuTemplateParams"] = None
+    "Template template parameters, `template <typename, typename> ..."
+    NonTypeConstraint: Optional[QualType] = None
+    "Type constraint for non-type template parameters `<int N>` -- this field will hold `int`"
+
+    def hasName(self) -> bool:
+        return bool(self.TypeExpr.Name)
+
+    def getName(self) -> str:
+        """
+        Return the declared parameter name.
+
+        Raises:
+            ValueError: if the parameter is unnamed.
+        """
+        if not self.TypeExpr.Name:
+            raise ValueError("Template parameter does not have a declared name")
+        return self.TypeExpr.Name
 
 
 @beartype
 @dataclass
 class GenTuTemplateGroup:
+    "Single `template <...>` group"
     Params: List[GenTuTemplateTypename] = field(default_factory=list)
 
 
 @beartype
 @dataclass
 class GenTuTemplateParams:
+    """
+    Stacked template parameter lists.
+
+    Most ordinary templates use a single stack. Nested stacks are preserved
+    because the existing IR already models template parameter lists this way.
+
+    Template params stores a full list of stacks, to correctly represent the
+
+    ```
+    template <typename A>
+    template <typename B>
+    ```
+
+    The reflection-based processing of entries will return one stack.
+    """
     Stacks: List[GenTuTemplateGroup] = field(default_factory=list)
+    "Vertical stack of template type parameters for type/function"
 
     @staticmethod
     def FinalSpecialization() -> "GenTuTemplateParams":
+        "Create a template type parameter with one empty stack"
         return GenTuTemplateParams(Stacks=[GenTuTemplateGroup()])
 
     @staticmethod
     def FromTypeList(Params: List[QualType]) -> "GenTuTemplateParams":
-        "Create template type parameter from list of qualified types"
+        """
+        Create a template parameter list from qualified type declarations.
+        Every entry becomes a type parameter.
+        """
         return GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(
-                Params=[GenTuTemplateTypename(Name=p.Name) for p in Params])
+            GenTuTemplateGroup(Params=[
+                GenTuTemplateTypename(
+                    Kind=TemplateParamKind.Type,
+                    TypeExpr=QualType(
+                        Name=p.Name,
+                        IsTemplateTypeParam=True,
+                    ),
+                ) for p in Params
+            ])
         ])
 
     @staticmethod
     def FromTypeNameList(Params: List[str]) -> "GenTuTemplateParams":
-        "Create template type parameter from list of template parameter names"
+        """
+        Create a template parameter list from template parameter names.
+        """
         return GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[GenTuTemplateTypename(Name=p) for p in Params])
+            GenTuTemplateGroup(Params=[
+                GenTuTemplateTypename(
+                    Kind=TemplateParamKind.Type,
+                    TypeExpr=QualType(Name=p, IsTemplateTypeParam=True),
+                ) for p in Params
+            ])
         ])
 
 
@@ -614,6 +783,44 @@ class GenTuBackendWasmParams(BaseModel, extra="forbid"):
 
 
 @beartype
+class GenTuBackendCParams(BaseModel, extra="forbid"):
+    "Extra parameters for C backend"
+    holder_type: Optional[Literal["shared"] | str | QualType] = Field(
+        alias="holder-type",
+        default=None,
+        description="Which type to use as a holder type for C")
+
+    instantiation_mode: Optional[
+        Literal["each-specialization"] | Literal["void-handle"]] = Field(
+            alias=AliasChoices(  # type: ignore
+                "instantiation_mode",
+                "instantiation-mode",
+            ),
+            default=None,
+            description="How template records are handled. "
+            "`each-specialization` would create a separate structure for each instantiation of the template. "
+            "`void-handle` will create a proxy type with all original templates replaced with the ptr holder. "
+        )
+
+    value_template_parameters: Optional[List[str]] = Field(
+        default=None,
+        description=
+        "Which template type parameters refer to the value stored in the structure",
+        alias=AliasChoices(  # type: ignore
+            "value_template_parameters",
+            "value-template-parameters",
+        ))
+
+    pointer_through_lambda: bool = Field(
+        default=False,
+        description="Use proxy lambda to call the method",
+        alias=AliasChoices(  # type: ignore
+            "pointer_through_lambda",
+            "pointer-through-lambda",
+        ))
+
+
+@beartype
 class GenTuBackendParams(BaseModel, extra="forbid"):
     """
     Optional parameters for the backend generation config.
@@ -626,17 +833,23 @@ class GenTuBackendParams(BaseModel, extra="forbid"):
     wasm: GenTuBackendWasmParams = Field(
         default_factory=GenTuBackendWasmParams,
         description="Additional wrapper options for WASM backend")
+    c: GenTuBackendCParams = Field(default_factory=GenTuBackendCParams,
+                                   description="Additional wrapper options for C backend")
     target_backends: List[str] = Field(  # type: ignore
         default_factory=list,
         description="Which backends should generate wrappers for the entry?",
-        alias=AliasChoices("target_backends", "target-backends"),
+        alias=AliasChoices(  # type: ignore
+            "target_backends", "target-backends"),
     )
 
 
 @beartype
 class GenTuTypeApiTraits(BaseModel, extra="forbid"):
-    has_begin_end_iteration: bool = Field(  # type: ignore
-        alias=AliasChoices("has-begin-end-iteration", "has_begin_end_iteration"),
+    has_begin_end_iteration: bool = Field(
+        alias=AliasChoices(  # type: ignore
+            "has-begin-end-iteration",
+            "has_begin_end_iteration",
+        ),
         default=False,
         description="Type provides `begin()` and `end()` method to construct iterator pair"
     )
@@ -646,35 +859,81 @@ class GenTuTypeApiTraits(BaseModel, extra="forbid"):
 
 @beartype
 class GenTuFunctionApiTraits(BaseModel, extra="forbid"):
-    is_get_item: bool = Field(  # type: ignore
-        alias=AliasChoices("is-getitem", "is_getitem"),
+    is_get_item: bool = Field(
+        alias=AliasChoices(  # type: ignore
+            "is-getitem",
+            "is_getitem",
+        ),
         default=False,
         description="This method can provide __getitem__ implementation")
 
 
 @beartype
 class GenTuReflParams(BaseModel, extra="forbid"):
-    default_constructor: bool = Field(  # type: ignore
+    default_constructor: bool = Field(
         default=True,
-        alias=AliasChoices("default-constructor", "default_constructor"))
-    wrapper_name: Optional[str] = Field(  # type: ignore
-        default=None, alias=AliasChoices("wrapper-name", "wrapper_name"))
-    wrapper_has_params: bool = Field(  # type: ignore
-        default=True,
-        alias=AliasChoices("wrapper-has-params", "wrapper_has_params"))
-    unique_name: Optional[str] = Field(  # type: ignore
+        alias=AliasChoices(  # type: ignore
+            "default-constructor",
+            "default_constructor",
+        ),
+    )
+
+    wrapper_name: Optional[str] = Field(
         default=None,
-        alias=AliasChoices("unique-name", "unique_name"),
+        alias=AliasChoices(  # type: ignore
+            "wrapper-name",
+            "wrapper_name",
+        ),
+    )
+
+    wrapper_has_params: bool = Field(
+        default=True,
+        alias=AliasChoices(  # type: ignore
+            "wrapper-has-params",
+            "wrapper_has_params",
+        ),
+    )
+
+    unique_name: Optional[str] = Field(
+        default=None,
+        alias=AliasChoices(  # type: ignore
+            "unique-name",
+            "unique_name",
+        ),
         description=
         "Reflection entry name unique in the scope of the class/namespace -- for wrapper backends that don't support overloading"
     )
+
     backend: GenTuBackendParams = Field(default_factory=GenTuBackendParams)
-    function_api: Optional[GenTuFunctionApiTraits] = Field(  # type: ignore
+
+    function_api: Optional[GenTuFunctionApiTraits] = Field(
         default=None,
-        alias=AliasChoices("function-api", "function_api"),
-        description="Reflection entity has a function/method API")
+        alias=AliasChoices(  # type: ignore
+            "function-api",
+            "function_api",
+        ),
+        description="Reflection entity has a function/method API",
+    )
+
     type_api: Optional[GenTuTypeApiTraits] = Field(
-        default=None, alias="type-api", description="Reflection entity has a type API")
+        default=None,
+        alias="type-api",
+        description="Reflection entity has a type API",
+    )
+
+    expand_typedef: bool = Field(
+        default=False,
+        alias=AliasChoices(  # type: ignore
+            "expand-typedef",
+            "expand_typedef",
+        ),
+        description="Expand typedef to underlying type before exposing to the",
+    )
+
+    debug: Optional[str] = Field(
+        default=None,
+        description="Debug metadata",
+    )
 
     def isAcceptedBackend(self, backend: str) -> bool:
         return len(
@@ -708,6 +967,20 @@ class GenTuTypedef:
     ReflectionParams: GenTuReflParams = field(default_factory=lambda: GenTuReflParams())
     ExposeHeaderDeclaration: bool = True
     "When generating header source files, the structure would be exposed for public API"
+    IsHeaderOnly: bool = True
+    """
+    If the typedef is encountered in the split source-header translation unit, don't
+    duplicate it into the source, only put in header.
+    """
+    Is_PlainC: bool = False
+    IsExposedForWrap: bool = True
+
+    def __str__(self) -> str:
+        return "GenTuTypedef({})".format(" ".join([
+            f"Name={self.Name}",
+            f"Base={self.Base}",
+            f"Backend={self.ReflectionParams}",
+        ]))
 
 
 @beartype
@@ -732,9 +1005,13 @@ class GenTuEnum:
     ReflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     OriginName: Optional[str] = None
     IsDescribedEnum: bool = False
+    GenEnumDescription: bool = True
+    "Generate boost descibe mapping for the enum"
 
     ExposeHeaderDeclaration: bool = True
     "When generating header source files, the enum would be exposed for public API"
+    IsEnumClass: bool = True
+    "C++ Enum class"
 
     def __str__(self) -> str:
         return f"GenTuEnum({self.Name.format()})"
@@ -745,16 +1022,51 @@ class GenTuEnum:
 
 @beartype
 @dataclass
+class GenTuAnnotation():
+    "Any extra annotation on the entry"
+
+    @beartype
+    @dataclass
+    class Freeform:
+        "Fully free-form prefix for the annotation"
+        Body: str | BlockId
+
+    @beartype
+    @dataclass
+    class StandardAttribute:
+        "Standard-compliant attribute syntax with `[[xyz]]`"
+        Name: QualType
+        "Qualified name of the attribute like `clang::abc`"
+        Args: List[str | BlockId] = field(default_factory=list)
+
+    @beartype
+    @dataclass
+    class CompilerSpecificAttribute:
+        "Compiler-specific attribute annotation"
+        DeclStart: str | BlockId
+        "Start of the custom attribute syntax, `__attribute__((` -- without closing part"
+        DeclEnd: str | BlockId
+        "Closing part of the attribute syntax, `))` -- complementing the start"
+        DeclName: str
+        "First entry in the attribute syntax"
+        Args: List[str | BlockId] = field(default_factory=list)
+        "Optional list of additional attribute argument"
+
+    Attribute: Freeform | StandardAttribute | CompilerSpecificAttribute
+
+
+@beartype
+@dataclass
 class GenTuFunction:
     """
     Intermediate representation for the callable entry: function, lambda or method in the C++ code.
     Whether specific function entry is considered either of those depends on the parent context --
     if it is placed in class it is a method, if it is a toplevel it is a function etc.
     """
-    ReturnType: Optional[QualType] = None
-    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Name: str = ""
     "Non-demangled function name as seen in the source file"
+    ReturnType: QualType = field(default_factory=lambda: QualType(Name="void"))
+    "Return type of the function. `None` means void, although `void` might be used explicitly"
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     "Documentation comment above the function"
     Params: Optional[GenTuTemplateParams] = field(default=None)
@@ -776,14 +1088,14 @@ class GenTuFunction:
     "Is class method pure virtual"
     IsOverride: bool = False
     "Does method override parent implementation"
-    ParentClass: Optional['GenTuStruct'] = None
+    ParentClass: Optional["QualType"] = None
     """
     Optional specification for the parent struct -- might be set up by the codegen, is
     not set up by the reflection tool.
     """
     OriginalPath: Optional[Path] = None
     "Path to the file where function was declared"
-    spaces: List[QualType] = field(default_factory=list)
+    Spaces: List[QualType] = field(default_factory=list)
     "Fully qualified namespace for the function declaration"
     IsExposedForWrap: bool = True
     "Whether function is exposed for the public wrap interface"
@@ -793,6 +1105,10 @@ class GenTuFunction:
     "Is function a constructor"
     InitList: List[BlockId] = field(default_factory=list)
     "Init list for the constructor definition"
+    Linkage: Optional[str] = None
+    "Linkage annotation for the parsed/generated function"
+    Annotations: List[GenTuAnnotation] = field(default_factory=list)
+    "Additional annotation, attributes or prefixes for the function declaration"
 
     ReflectionParams: GenTuReflParams = field(default_factory=GenTuReflParams)
     "Additional reflection parameters for the function wrapping"
@@ -805,15 +1121,22 @@ class GenTuFunction:
 
     def get_full_qualified_name(self) -> QualType:
         "Get a single type with the fully qualified spaces and function name"
-        return QualType(Name=self.Name, Spaces=self.spaces)
+        if self.IsConstructor:
+            assert self.ParentClass, f"Method {self.Name} is missing parent class"
 
-    def get_function_type(self, Class: Optional[QualType] = None) -> QualType:
+        if self.ParentClass:
+            return QualType(Name=self.Name, Spaces=self.Spaces + [self.ParentClass])
+
+        else:
+            return QualType(Name=self.Name, Spaces=self.Spaces)
+
+    def get_function_type(self) -> QualType:
         "Get a qualified type for the function signature"
         return QualType(
             Func=QualType.Function(
                 ReturnType=self.ReturnType,
                 Args=[A.Type for A in self.Args],
-                Class=Class,
+                Class=None if self.IsStatic else self.ParentClass,
                 IsConst=self.IsConst,
             ),
             Kind=QualTypeKind.FunctionPtr,
@@ -822,8 +1145,15 @@ class GenTuFunction:
     def format(self) -> str:
         "Format function representation as a string"
         assert self.ReturnType, "Missing function return type"
-        return "function %s %s(%s)" % (self.ReturnType.format(), self.Name, ", ".join(
-            [Arg.Name + " " + Arg.Type.format() for Arg in self.Args]))
+        return "function {}{}({}) -> {}".format(
+            f"{self.ParentClass}::" if self.ParentClass else "",
+            self.Name,
+            ", ".join([Arg.Name + " " + Arg.Type.format() for Arg in self.Args]),
+            self.ReturnType.format(),
+        )
+
+    def __str__(self) -> str:
+        return self.format()
 
 
 @beartype
@@ -849,7 +1179,7 @@ class GenTuField:
     Name: str
     "Field name as seen in the source code"
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
-    Decl: Optional[Union['GenTuStruct', 'GenTuEnum']] = None
+    Decl: Optional[Union["GenTuStruct", "GenTuEnum"]] = None
     Value: Optional[Union[str, BlockId]] = None
     IsConst: bool = False
     IsStatic: bool = False
@@ -868,10 +1198,17 @@ class GenTuStruct():
     Intermediate representation of the C++ record
     """
     Name: QualType
+    """
+    Name of the structure declaration, excluding the template type parameters
+    and explicit specialization parameters. To get a full name including
+    un-substituted and explicitly specialized template type parameters use
+    `declarationQualName` method.
+    """
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     Fields: List[GenTuField] = field(default_factory=list)
     "Field directly in the structure"
     Methods: List[GenTuFunction] = field(default_factory=list)
+    "List of methods directly in the structure"
     Bases: List[QualType] = field(default_factory=list)
     Nested: List[Union[
         GenTuEnum,
@@ -885,6 +1222,8 @@ class GenTuStruct():
     IsAbstract: bool = False
     HasName: bool = True
     OriginalPath: Optional[Path] = field(default=None)
+    IsExposedForWrap: bool = True
+    "Whether a structure should be mapped to the wrappers"
     GenDescribeMethods: bool = False
     "Include boost describe for the class methods"
     GenDescribeFields: bool = True
@@ -894,6 +1233,7 @@ class GenTuStruct():
     IsExplicitInstantiation: bool = False
     "Whether the class is an explicit instantiation of the template"
     IsTemplateRecord: bool = False
+    "The structure is a partially or fully specialized template type record"
     ExplicitTemplateParams: List[QualType] = field(default_factory=list)
     """
     Template parameters explicitly specified in the structure declaration.
@@ -909,10 +1249,33 @@ class GenTuStruct():
     "When generating header source files, the structure would be exposed for public API"
 
     def __str__(self) -> str:
-        return f"GenTuStruct({self.Name.format()})"
+        return "GenTuStruct({})".format(" ".join([
+            f"{self.declarationQualName().format()}",
+            f"{self.declarationQualName().flatQualNameWithParams()}",
+            f"IsTemplateRecord={self.IsTemplateRecord}",
+            f"IsExplicitInstantiation={self.IsExplicitInstantiation}",
+            f"Backend={self.ReflectionParams}"
+        ]))
 
     def declarationQualName(self) -> QualType:
-        return self.Name.copy_update(Params=self.ExplicitTemplateParams)
+        if self.IsExplicitInstantiation:
+            return self.Name.copy_update(Params=self.ExplicitTemplateParams)
+
+        elif self.IsTemplateRecord:
+            return self.Name.copy_update(Params=self.getTemplateParams())
+
+        else:
+            return self.Name
+
+    def getTemplateParams(self) -> list[QualType]:
+        result = list()
+        if self.TemplateParams:
+            for _stack in self.TemplateParams.Stacks:
+                for _param in _stack.Params:
+                    result.append(
+                        QualType(Name=_param.getName(), IsTemplateTypeParam=True))
+
+        return result
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.Name.format(dbgOrigin=dbgOrigin)
@@ -939,6 +1302,22 @@ class GenTuStruct():
 
         else:
             return None
+
+    def __post_init__(self) -> None:
+        for _meth in self.Methods:
+            assert _meth.ParentClass, f"Parent class is not set for method {_meth.Name} of class {self.declarationQualName()}"
+            assert _meth.ParentClass.flatQualName() == self.Name.flatQualName(), (
+                "Mismatch between fully method parent class and the struct parent class: "
+                f"Method parent class flat name is {_meth.ParentClass.flatQualName()}, struct flat name is {self.Name.flatQualName()}, "
+                f"(full repr for method parent is {_meth.ParentClass}, for struct {self.declarationQualName()})"
+            )
+
+        if self.ExplicitTemplateParams:
+            assert self.IsTemplateRecord, "Explicit template parameters specified for non-template record, expected IsTemplateRecord=True"
+            assert self.IsExplicitInstantiation, "Is explicit instantiation must be set if parameters are provided, expected IsExplicitInstantiation=True"
+
+        if self.TemplateParams:
+            assert self.IsTemplateRecord, "Template parameters are set for non-template record type, expected IsTemplateRecord=True"
 
 
 @beartype
@@ -978,8 +1357,9 @@ class GenTuNamespace:
     """
 
 
-type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude |  GenTuTypedef |    GenTuPass
+type GenTuEntry = GenTuEnum | GenTuStruct | GenTuTypeGroup | GenTuFunction | GenTuNamespace | GenTuInclude | GenTuTypedef | GenTuPass | GenTuField
 type GenTuUnion = GenTuStruct | GenTuEnum | GenTuTypedef | GenTuFunction
+type GenTuDeclaration = GenTuUnion | GenTuField
 
 
 @beartype
@@ -988,8 +1368,18 @@ class GenTypeMap:
     entries: List[GenTuUnion] = field(default_factory=list)
     name_to_index: defaultdict[str, List[int]] = field(
         default_factory=lambda: defaultdict(list))
+    "Map record name to the list of matching entries"
     qual_hash_to_index: defaultdict[int, List[int]] = field(
         default_factory=lambda: defaultdict(list))
+    "Map hash of the fully qualified name to the entry indices"
+
+    template_name_to_index: defaultdict[tuple[str, ...], List[int]] = field(
+        default_factory=lambda: defaultdict(list))
+    """
+    Map template type name -- without parameters but with all spaces -- to the entry indices.
+    A single ID will map to one or more entries, especially if the partial template
+    specializations were added to the list.
+    """
 
     def is_typedef(self, t: QualType) -> bool:
         decl = self.get_one_type_for_qual_name(t)
@@ -1009,6 +1399,12 @@ class GenTypeMap:
     def get_types_for_qual_name(self, name: QualType) -> List[GenTuUnion]:
         return [
             self.entries[i] for i in self.qual_hash_to_index.get(name.qual_hash(), [])
+        ]
+
+    def get_structs_for_template_name(self, name: QualType) -> List[GenTuStruct]:
+        return [
+            cast(GenTuStruct, self.entries[i]) for i in self.template_name_to_index.get(
+                tuple(name.withTemplateParams([]).flatQualName()), [])
         ]
 
     def get_struct_for_qual_name(self, name: QualType) -> Optional[GenTuStruct]:
@@ -1077,6 +1473,12 @@ class GenTypeMap:
         self.qual_hash_to_index[qual_hash].append(new_index)
         self.name_to_index[qual_name.Name].append(new_index)
 
+        if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
+            flat_key = tuple(typ.Name.withTemplateParams([]).flatQualName())
+            log(CAT).info(
+                f"Registered type {typ} as a template in type map with key {flat_key}")
+            self.template_name_to_index[flat_key].append(new_index)
+
         self.entries.append(typ)
 
     @staticmethod
@@ -1109,7 +1511,7 @@ class GenTu:
 @beartype
 @dataclass(kw_only=True)
 class GenUnit:
-    header: GenTu
+    header: Optional[GenTu] = None
     source: Optional[GenTu] = None
 
 
@@ -1236,7 +1638,7 @@ def filter_walk_scope(iterate_context: List[Any]) -> List[QualType]:
                 scope.append(s.Name)
 
             case GenTuNamespace():
-                scope.append(QualType.ForName(s.Name.Name))
+                scope.append(QualType.ForName(s.name.Name))
 
     return scope
 
@@ -1297,6 +1699,8 @@ class TypeSpecialization():
     "Fully qualified underlying type in the specialization"
     bind_name: str
     "Flat name for the wrapper class"
+
+    used_in: Optional[GenTuEntry] = None
 
     def getFlatUsed(self) -> str:
         "Get flat joined name of the used type"
@@ -1402,17 +1806,17 @@ def sanitize_ident(
     # Replace invalid characters with underscores
     result = ""
     for char in name:
-        if char.isalnum() or char == '_':
+        if char.isalnum() or char == "_":
             result += char
         else:
-            result += '_'
+            result += "_"
 
     # Ensure the identifier doesn't start with a digit
     if result and result[0].isdigit():
-        result = '_' + result
+        result = "_" + result
 
     # Ensure the identifier isn't empty
     if not result:
-        result = '_empty_'
+        result = "_empty_"
 
     return result

@@ -43,7 +43,7 @@ class buffer_sink
 log::sink_ptr init_buffer_sink(Vec<log::log_record>* buffer) {
     auto backend = boost::make_shared<buffer_sink>(buffer);
     auto sink    = boost::make_shared<
-           boost::log::sinks::synchronous_sink<buffer_sink>>(backend);
+        boost::log::sinks::synchronous_sink<buffer_sink>>(backend);
     return sink;
 }
 
@@ -107,7 +107,7 @@ struct StdFormattableType {
 
 template <>
 struct std::formatter<StdFormattableType> : std::formatter<std::string> {
-    auto format(const StdFormattableType& obj, format_context& ctx) const {
+    auto format(StdFormattableType const& obj, format_context& ctx) const {
         return std::formatter<std::string>::format(
             "std_fmt:" + std::to_string(obj.value), ctx);
     }
@@ -120,7 +120,7 @@ struct LogFormattableType {
 namespace hstd::log {
 template <>
 struct log_value_formatter<LogFormattableType> {
-    std::string format(const LogFormattableType& value) {
+    std::string format(LogFormattableType const& value) {
         return "log_fmt:" + std::to_string(value.value);
     }
 };
@@ -132,7 +132,7 @@ struct BothFormattableType {
 
 template <>
 struct std::formatter<BothFormattableType> : std::formatter<std::string> {
-    auto format(const BothFormattableType& obj, format_context& ctx)
+    auto format(BothFormattableType const& obj, format_context& ctx)
         const {
         return std::formatter<std::string>::format(
             "std_both:" + std::to_string(obj.value), ctx);
@@ -142,7 +142,7 @@ struct std::formatter<BothFormattableType> : std::formatter<std::string> {
 namespace hstd::log {
 template <>
 struct log_value_formatter<BothFormattableType> {
-    std::string format(const BothFormattableType& value) {
+    std::string format(BothFormattableType const& value) {
         return "log_both:" + std::to_string(value.value);
     }
 };

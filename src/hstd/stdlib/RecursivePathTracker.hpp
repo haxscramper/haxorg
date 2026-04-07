@@ -14,7 +14,7 @@ class RecursivePathTracker {
         PathStep         value;
         hstd::SPtr<Node> parent;
 
-        Node(const PathStep& val, hstd::SPtr<Node> p = nullptr)
+        Node(PathStep const& val, hstd::SPtr<Node> p = nullptr)
             : value{val}, parent{std::move(p)} {}
     };
 
@@ -98,26 +98,26 @@ class RecursivePathTracker {
             return iterator{tracker, index - n};
         }
 
-        difference_type operator-(const iterator& other) const {
+        difference_type operator-(iterator const& other) const {
             return index - other.index;
         }
 
-        bool operator==(const iterator& other) const {
+        bool operator==(iterator const& other) const {
             return index == other.index;
         }
-        bool operator!=(const iterator& other) const {
+        bool operator!=(iterator const& other) const {
             return index != other.index;
         }
-        bool operator<(const iterator& other) const {
+        bool operator<(iterator const& other) const {
             return index < other.index;
         }
-        bool operator<=(const iterator& other) const {
+        bool operator<=(iterator const& other) const {
             return index <= other.index;
         }
-        bool operator>(const iterator& other) const {
+        bool operator>(iterator const& other) const {
             return index > other.index;
         }
-        bool operator>=(const iterator& other) const {
+        bool operator>=(iterator const& other) const {
             return index >= other.index;
         }
     };
@@ -126,16 +126,16 @@ class RecursivePathTracker {
 
     RecursivePathTracker() : current{nullptr}, length{0} {}
 
-    RecursivePathTracker(const RecursivePathTracker& other)
+    RecursivePathTracker(RecursivePathTracker const& other)
         : current{other.current}, length{other.length} {}
 
-    RecursivePathTracker& operator=(const RecursivePathTracker& other) {
+    RecursivePathTracker& operator=(RecursivePathTracker const& other) {
         current = other.current;
         length  = other.length;
         return *this;
     }
 
-    RecursivePathTracker push(const PathStep& step) const {
+    RecursivePathTracker push(PathStep const& step) const {
         RecursivePathTracker result;
         result.current = std::make_shared<Node>(step, current);
         result.length  = length + 1;

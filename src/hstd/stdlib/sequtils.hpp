@@ -32,7 +32,7 @@ struct EnumerateState {
             return *this;
         }
 
-        bool operator!=(const iterator& other) {
+        bool operator!=(iterator const& other) {
             return (*iter) != (*other.iter);
         }
     };
@@ -59,7 +59,7 @@ EnumerateState<typename T::iterator, typename T::iterator::value_type> enumerate
 
 template <typename T>
 EnumerateState<typename T::const_iterator, typename T::const_iterator::value_type> enumerate(
-    CR<T> value) {
+    T const& value) {
     return EnumerateState<
         typename T::const_iterator,
         typename T::const_iterator::value_type>(
@@ -68,7 +68,7 @@ EnumerateState<typename T::const_iterator, typename T::const_iterator::value_typ
 
 
 template <typename T, typename Container>
-int index_of(CR<Container> container, CR<T> item) {
+int index_of(Container const& container, T const& item) {
     auto pos = std::find(container.begin(), container.end(), item);
     if (pos != container.end()) {
         return std::distance(container.begin(), pos);
@@ -79,7 +79,7 @@ int index_of(CR<Container> container, CR<T> item) {
 
 
 template <typename T, typename Pred>
-bool all_of(CR<T> seq, CR<Pred> pr) {
+bool all_of(T const& seq, Pred const& pr) {
     return std::all_of(seq.begin(), seq.end(), pr);
 }
 

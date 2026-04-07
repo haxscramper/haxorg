@@ -93,14 +93,17 @@ struct hshow {};
 
 template <StdFormattable T>
 struct hshow_std_format {
-    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        T const&          value,
+        hshow_opts const& opts) {
         s << std::format("{}", value);
     }
 };
 
 
 template <typename T>
-ColText hshow1(CR<T> value, CR<hshow_opts> opts = hshow_opts{}) {
+ColText hshow1(T const& value, hshow_opts const& opts = hshow_opts{}) {
     ColStream s;
     hshow<T>::format(s, value, opts);
     return s.getBuffer();
@@ -108,13 +111,16 @@ ColText hshow1(CR<T> value, CR<hshow_opts> opts = hshow_opts{}) {
 
 
 template <typename T>
-void hshow_ctx(ColStream& os, CR<T> value, CR<hshow_opts> opts) {
+void hshow_ctx(ColStream& os, T const& value, hshow_opts const& opts) {
     hshow<T>::format(os, value, opts);
 }
 
 template <typename T>
 struct hshow_integral_type {
-    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        T const&          value,
+        hshow_opts const& opts) {
         s << s.blue();
         if (opts.get_use_hex()) {
             s << std::format("{:X}", value);
@@ -129,7 +135,10 @@ struct hshow_integral_type {
 
 template <DescribedRecord R>
 struct hshow_described_record {
-    static void format(ColStream& s, CR<R> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        R const&          value,
+        hshow_opts const& opts) {
         bool first = true;
         s << "{";
         for_each_field_value_with_bases(
@@ -149,7 +158,7 @@ struct hshow_described_record {
 
 template <DescribedEnum E>
 struct hshow_described_enum {
-    static void format(ColStream& s, E value, CR<hshow_opts> opts) {
+    static void format(ColStream& s, E value, hshow_opts const& opts) {
         char const* string = ::boost::describe::enum_to_string(
             value, nullptr);
         if (string == nullptr) {
@@ -166,7 +175,10 @@ struct hshow_described_enum {
 
 template <typename T>
 struct hshow_indexed_list {
-    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        T const&          value,
+        hshow_opts const& opts) {
         int idx = 0;
         s << "[";
         for (auto const& it : value) {
@@ -189,7 +201,10 @@ struct hshow_indexed_list {
 
 template <typename T>
 struct hshow_unordered_set {
-    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        T const&          value,
+        hshow_opts const& opts) {
         int idx = 0;
         s << "{";
         for (auto const& it : value) {
@@ -210,7 +225,10 @@ struct hshow_unordered_set {
 
 template <typename T>
 struct hshow_key_value_pairs {
-    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        s,
+        T const&          value,
+        hshow_opts const& opts) {
         int idx = 0;
         s << "{";
         for (auto const& [key, value] : value) {
@@ -253,17 +271,17 @@ template <typename T> struct hshow<IntSet<T>> : public hshow_unordered_set<IntSe
 template <>
 struct hshow<std::string_view> {
     static void format(
-        ColStream&           os,
-        CR<std::string_view> value,
-        CR<hshow_opts>       opts);
+        ColStream&              os,
+        std::string_view const& value,
+        hshow_opts const&       opts);
 };
 
 template <>
 struct hshow<char const*> {
     static void format(
-        ColStream&     os,
-        char const*    value,
-        CR<hshow_opts> opts) {
+        ColStream&        os,
+        char const*       value,
+        hshow_opts const& opts) {
         hshow<std::string_view>::format(os, value, opts);
     }
 };
@@ -271,16 +289,19 @@ struct hshow<char const*> {
 template <>
 struct hshow<std::string> {
     static void format(
-        ColStream&      os,
-        CR<std::string> value,
-        CR<hshow_opts>  opts) {
+        ColStream&         os,
+        std::string const& value,
+        hshow_opts const&  opts) {
         hshow<std::string_view>::format(os, value, opts);
     }
 };
 
 template <>
 struct hshow<Str> {
-    static void format(ColStream& os, CR<Str> value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        os,
+        Str const&        value,
+        hshow_opts const& opts) {
         hshow<std::string_view>::format(os, value.toBase(), opts);
     }
 };
@@ -288,7 +309,10 @@ struct hshow<Str> {
 
 template <>
 struct hshow<char*> {
-    static void format(ColStream& os, char* value, CR<hshow_opts> opts) {
+    static void format(
+        ColStream&        os,
+        char*             value,
+        hshow_opts const& opts) {
         hshow<std::string_view>::format(os, value, opts);
     }
 };
@@ -296,9 +320,9 @@ struct hshow<char*> {
 template <int N>
 struct hshow<char[N]> {
     static void format(
-        ColStream&     os,
-        char const*    value,
-        CR<hshow_opts> opts) {
+        ColStream&        os,
+        char const*       value,
+        hshow_opts const& opts) {
         hshow<std::string_view>::format(os, value, opts);
     }
 };
@@ -306,9 +330,9 @@ struct hshow<char[N]> {
 template <int N>
 struct hshow<char const[N]> {
     static void format(
-        ColStream&     os,
-        char const     value[N],
-        CR<hshow_opts> opts) {
+        ColStream&        os,
+        char const        value[N],
+        hshow_opts const& opts) {
         hshow<std::string_view>::format(os, value, opts);
     }
 };

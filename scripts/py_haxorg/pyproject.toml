@@ -17,6 +17,7 @@ dependencies = [
   "toml>=0.10.2,<0.11.0",
   "rich-click>=1.6.1,<2.0.0",
   "pyyaml>=6.0.1,<7.0.0",
+  "plumbum>=1.8.2,<2.0.0",
 ]
 
 [build-system]

@@ -1035,7 +1035,7 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
     if use_target_cov:
         import sys
         cov_plugin = None
-        if hasattr(sys, '_pytest_cov'):
+        if hasattr(sys, "_pytest_cov"):
             # Get the active coverage object from pytest-cov
             cov_plugin = sys._pytest_cov.get_cov_source()
             # Temporarily suspend global coverage
@@ -1073,7 +1073,7 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
         class_line = source_lines[offset]
         if line_no in analysis.missing and not definition_lines.in_range(line_no):
             if not class_line.strip().startswith("@"):
-                strip_text = class_line.strip('\n')
+                strip_text = class_line.strip("\n")
                 missing_lines.append(f"[{line_no}] {strip_text}")
 
         offset += 1
@@ -1085,7 +1085,7 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
             output_dir=report_path,
         )
 
-        missing_lines_text = '\n'.join(missing_lines)
+        missing_lines_text = "\n".join(missing_lines)
         pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
                     f"Missing lines:\n{missing_lines_text}\n"
                     f"Coverage Report: {report_path}\n")

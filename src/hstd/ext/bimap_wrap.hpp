@@ -94,7 +94,7 @@ struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>& p,
+        hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& p,
         FormatContext& ctx) const {
         bool first = true;
         fmt_ctx("{", ctx);

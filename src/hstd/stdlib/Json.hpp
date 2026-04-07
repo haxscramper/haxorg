@@ -23,7 +23,7 @@ std::string to_compact_json(
     JsonFormatOptions const& options = JsonFormatOptions{});
 
 
-void filterFields(json& j, const std::vector<std::string>& fieldsToRemove);
+void filterFields(json& j, std::vector<std::string> const& fieldsToRemove);
 
 
 } // namespace hstd

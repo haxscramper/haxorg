@@ -50,8 +50,8 @@ hstd::Opt<org::parse::SourceLoc> OrgConverter::MakeSourceLocation(
 }
 
 OrgConverter::ConvertError OrgConverter::wrapError(
-    CR<Error>             err,
-    CR<parse::OrgAdapter> adapter) {
+    Error const&             err,
+    parse::OrgAdapter const& adapter) {
     ConvertError result{err};
     auto         loc = getLoc(adapter);
 
@@ -63,14 +63,14 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 }
 
 Opt<org::parse::SourceLoc> OrgConverter::getLoc(
-    CR<parse::OrgAdapter> adapter) {
+    parse::OrgAdapter const& adapter) {
     if (adapter.isTerminal()) {
         return adapter.val().loc.value();
     } else if (adapter.isMono()) {
         return std::nullopt;
 
-    } else if (auto nested = adapter.get().nestedNodes(adapter.id);
-               nested) {
+    } else if (
+        auto nested = adapter.get().nestedNodes(adapter.id); nested) {
         for (org::parse::OrgId const& id : nested.value()) {
             parse::OrgAdapter sub{adapter.group, id};
             if (sub.isTerminal() && !sub.val().isFake()) {
@@ -82,7 +82,7 @@ Opt<org::parse::SourceLoc> OrgConverter::getLoc(
     return std::nullopt;
 }
 
-std::string OrgConverter::getLocMsg(CR<parse::OrgAdapter> adapter) {
+std::string OrgConverter::getLocMsg(parse::OrgAdapter const& adapter) {
     Opt<parse::SourceLoc>  loc = getLoc(adapter);
     Opt<parse::OrgTokenId> tok;
     if (adapter.get().isTerminal()) { tok = adapter.get().getToken(); }
@@ -96,7 +96,7 @@ std::string OrgConverter::getLocMsg(CR<parse::OrgAdapter> adapter) {
         loc ? loc->pos : -1);
 }
 
-void OrgConverter::report(CR<OrgConverter::Report> in) {
+void OrgConverter::report(OrgConverter::Report const& in) {
     using fg = TermColorFg8Bit;
 
     if (!TraceState) { return; }
@@ -225,7 +225,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
         return *this;
     }
 
-    Builder& with_node(CR<Opt<org::parse::OrgAdapter>> node) {
+    Builder& with_node(Opt<org::parse::OrgAdapter> const& node) {
         report.node = node;
         return *this;
     }

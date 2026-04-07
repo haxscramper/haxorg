@@ -9,14 +9,14 @@ namespace hstd {
 template <typename... Args>
 struct arg_pack {};
 
-using i8  = int8_t;
-using u8  = unsigned char;
-using i16 = int16_t;
-using u16 = unsigned short;
-using i32 = int32_t;
-using u32 = unsigned int;
-using i64 = int64_t;
-using u64 = unsigned long long;
+typedef int8_t             i8;
+typedef unsigned char      u8;
+typedef int16_t            i16;
+typedef unsigned short     u16;
+typedef int32_t            i32;
+typedef unsigned int       u32;
+typedef int64_t            i64;
+typedef unsigned long long u64;
 // clang-format off
 
 static_assert(sizeof(u32) == 4, "Expected 4 bytes for u32");
@@ -43,7 +43,7 @@ template <typename T> using Rw = std::reference_wrapper<T>;
 template <typename T> using CRw = std::reference_wrapper<const T>;
 
 template <typename T>
-CR<T> cr(CR<T> in) {
+T const& cr(T const& in) {
    return in;
 }
 

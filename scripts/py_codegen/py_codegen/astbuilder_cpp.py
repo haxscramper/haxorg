@@ -23,11 +23,12 @@ class DocParams:
 @beartype
 @dataclass
 class ParmVarParams:
-    type: 'QualType'
+    type: "QualType"
     name: str
     IsConst: bool = False
     storage: StorageClass = StorageClass.None_
     defArg: Optional[BlockId] = None
+    defWithAssign: bool = True
 
 
 @beartype
@@ -40,7 +41,7 @@ class FunctionParams:
     doc: DocParams = field(default_factory=lambda: DocParams(""))
     Template: Optional[GenTuTemplateParams] = field(default_factory=GenTuTemplateParams)
     "Template parameters for function"
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
+    ResultTy: QualType = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
@@ -48,6 +49,8 @@ class FunctionParams:
     InitList: List[BlockId] = field(default_factory=list)
     AllowOneLine: bool = True
     IsConstructor: bool = False
+    Linkage: Optional[str] = None
+    Annotations: List[codegen_ir.GenTuAnnotation] = field(default_factory=list)
 
 
 @beartype
@@ -66,6 +69,7 @@ class LambdaParams:
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
     IsLine: bool = True
+    IsPtrCast: bool = False
 
 
 class AccessSpecifier(Enum):
@@ -189,7 +193,7 @@ class RecordField:
 
 
 RecordMember = Union[MethodDeclParams, MethodDefParams, RecordField]
-RecordNested = Union[EnumParams, 'RecordParams', BlockId]
+RecordNested = Union[EnumParams, "RecordParams", BlockId]
 
 
 @beartype
@@ -270,7 +274,7 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.string("default:") if params.IsDefault else self.b.line(
             [self.string("case "), params.Expr or self.string(""),
              self.string(":")])
-        Body: List[BlockId] = params.Body + ([self.XStmt('break')]
+        Body: List[BlockId] = params.Body + ([self.XStmt("break")]
                                              if params.Autobreak else [])
 
         if params.Compound:
@@ -674,13 +678,42 @@ class ASTBuilder(base.AstbuilderBase):
         return self.brace(p.Stmts)
 
     def VarDecl(self, p: ParmVarParams) -> BlockId:
-        return self.b.line([
-            self.Type(p.type),
-            self.string(" "),
-            self.string("const " if p.IsConst else ""),
-            self.string(p.name), *([self.string(" = "), p.defArg] if p.defArg else []),
-            self.string(";")
-        ])
+        decl = []
+
+        match p.storage:
+            case StorageClass.Static:
+                decl.append(self.string("static "))
+
+        if p.type.Kind == codegen_ir.QualTypeKind.FunctionPtr:
+            assert p.type.Func
+            decl.extend([
+                self.Type(p.type.Func.ReturnType),
+                self.string(" (*"),
+                self.string(p.name),
+                self.string(")"),
+                self.string("("),
+                self.csv([self.Type(a) for a in p.type.Func.Args]),
+                self.string(")"),
+                self.string("const " if p.IsConst else ""),
+            ])
+
+        else:
+            decl.extend([
+                self.Type(p.type),
+                self.string(" "),
+                self.string("const " if p.IsConst else ""),
+                self.string(p.name),
+            ])
+
+        if p.defArg:
+            if p.defWithAssign:
+                decl.append(self.string(" = "))
+
+            decl.append(p.defArg)
+
+        decl.append(self.string(";"))
+
+        return self.line(decl)
 
     def block(
         self,
@@ -753,18 +786,27 @@ class ASTBuilder(base.AstbuilderBase):
                 self.string(";"),
             ]))
 
+    def Typedef(self, params: UsingParams) -> BlockId:
+        return self.line([
+            self.string("typedef "),
+            self.Type(params.baseType),
+            self.string(" "),
+            self.string(params.newName),
+            self.string(";"),
+        ])
+
     def Field(self, field: RecordField) -> BlockId:
-        return self.WithAccess(
-            self.WithDoc(
-                self.b.line([
-                    self.string("static " if field.isStatic else ""),
-                    self.VarDecl(field.params)
-                ]), field.doc), field.access)
+        field_body = self.b.line([
+            self.string("static " if field.isStatic else ""),
+            self.VarDecl(field.params)
+        ])
+
+        return self.WithAccess(self.WithDoc(field_body, field.doc), field.access)
 
     def MethodDef(self, m: MethodDefParams) -> BlockId:
         "Convert method definition parameters to layout block"
         head = self.b.line([
-            *([] if m.Params.ResultTy is None else
+            *([] if m.Params.IsConstructor else
               [self.Type(m.Params.ResultTy),
                self.string(" ")]),
             self.Type(m.Class),
@@ -791,7 +833,7 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.b.line([
             self.string("static " if method.IsStatic else ""),
             self.string("virtual " if method.IsVirtual else ""),
-            *([] if method.Params.ResultTy is None else [
+            *([] if method.Params.IsConstructor else [
                 self.Type(method.Params.ResultTy),
                 self.string(" "),
             ]),
@@ -826,26 +868,27 @@ class ASTBuilder(base.AstbuilderBase):
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
 
-        for nested in params.nested:
-            if isinstance(nested, EnumParams):
-                content.append(self.Enum(nested))
-            elif isinstance(nested, RecordParams):
-                content.append(self.Record(nested))
-            else:
-                content.append(nested)
+        if params.IsDefinition:
+            for nested in params.nested:
+                if isinstance(nested, EnumParams):
+                    content.append(self.Enum(nested))
+                elif isinstance(nested, RecordParams):
+                    content.append(self.Record(nested))
+                else:
+                    content.append(nested)
 
-        for member in params.members:
-            if isinstance(member, RecordField):
-                content.append(self.Field(member))
+            for member in params.members:
+                if isinstance(member, RecordField):
+                    content.append(self.Field(member))
 
-            elif isinstance(member, MethodDeclParams):
-                content.append(self.MethodDecl(member))
+                elif isinstance(member, MethodDeclParams):
+                    content.append(self.MethodDecl(member))
 
-            elif isinstance(member, MethodDefParams):
-                content.append(self.MethodDef(member))
+                elif isinstance(member, MethodDefParams):
+                    content.append(self.MethodDef(member))
 
         bases: Optional[BlockId] = None
-        if params.bases:
+        if params.bases and params.IsDefinition:
             classes = [
                 self.b.line([self.string("public "),
                              self.Type(base)]) for base in params.bases
@@ -871,21 +914,28 @@ class ASTBuilder(base.AstbuilderBase):
             else:
                 return self.b.stack(args)
 
-        return self.WithTemplate(
-            params.Template,
-            cond([
-                self.Doc(params.doc),
-                head,
-                self.b.indent(0 if params.OneLine else 2, cond(content)),
-                self.string("};" if params.IsDefinition else ";"),
-                *([self.string("")] if params.TrailingLine else []),
-            ]) if content else cond([
-                self.Doc(params.doc),
-                self.b.line([
+        if content:
+            return self.WithTemplate(
+                params.Template,
+                cond([
+                    self.Doc(params.doc),
                     head,
+                    self.b.indent(0 if params.OneLine else 2, cond(content)),
                     self.string("};" if params.IsDefinition else ";"),
-                ]), *([self.string("")] if params.TrailingLine else [])
-            ]))
+                    *([self.string("")] if params.TrailingLine else []),
+                ]))
+
+        else:
+            return self.WithTemplate(
+                params.Template,
+                cond([
+                    self.Doc(params.doc),
+                    self.b.line([
+                        head,
+                        self.string("};" if params.IsDefinition else ";"),
+                    ]),
+                    *([self.string("")] if params.TrailingLine else []),
+                ]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
         if spec == AccessSpecifier.Unspecified:
@@ -940,7 +990,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Lambda(self, p: LambdaParams) -> BlockId:
         head = self.b.line([
-            self.string("["),
+            self.string("+[" if p.IsPtrCast else "["),
             self.csv([self.Capture(cap) for cap in p.CaptureList]),
             self.string("]"),
             self.Arguments(p)
@@ -972,20 +1022,52 @@ class ASTBuilder(base.AstbuilderBase):
         else:
             return self.b.text("")
 
+    def Attribute(self, Attr: codegen_ir.GenTuAnnotation) -> BlockId:
+        It = Attr.Attribute
+        match It:
+            case codegen_ir.GenTuAnnotation.Freeform():
+                return self.ToBlockId(It.Body)
+
+            case codegen_ir.GenTuAnnotation.StandardAttribute():
+                return self.line([
+                    self.string("[["),
+                    self.csv([self.Type(It.Name)] + [self.ToBlockId(a) for a in It.Args]),
+                ])
+
+            case codegen_ir.GenTuAnnotation.CompilerSpecificAttribute():
+                return self.line([
+                    self.ToBlockId(It.DeclStart),
+                    self.csv([
+                        self.string(It.DeclName),
+                    ] + [self.ToBlockId(a) for a in It.Args]),
+                    self.ToBlockId(It.DeclEnd),
+                ])
+
     def Function(self, p: FunctionParams) -> BlockId:
-        head = self.b.line([
-            *([] if p.ResultTy is None else [self.Type(p.ResultTy),
-                                             self.string(" ")]),
-            self.string(p.Name),
-            self.Arguments(p)
-        ])
+        head = []
 
-        self.b.add_at(head, self.InitList(p))
+        for attr in p.Annotations:
+            head.append(self.Attribute(attr))
+            head.append(self.string(" "))
 
-        return self.WithTemplate(
-            p.Template,
-            self.block(head, p.Body, True, allowOneLine=p.AllowOneLine)
-            if p.Body else self.b.line([head, self.string(";")]))
+        if p.Linkage:
+            head.append(self.string(f"extern \"{p.Linkage}\" "))
+
+        if p.ResultTy is not None:
+            head.append(self.Type(p.ResultTy))
+            head.append(self.string(" "))
+
+        head.append(self.string(p.Name))
+        head.append(self.Arguments(p))
+        head.append(self.InitList(p))
+
+        if p.Body:
+            return self.WithTemplate(
+                p.Template,
+                self.block(self.line(head), p.Body, True, allowOneLine=p.AllowOneLine))
+
+        else:
+            return self.WithTemplate(p.Template, self.b.line(head + [self.string(";")]))
 
     def Arguments(self, p: Union[FunctionParams, LambdaParams]) -> BlockId:
         return self.b.line([
@@ -1013,7 +1095,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         def get_dbg_str() -> str:
             if codegen_ir.DEBUG_TYPE_ORIGIN and type_.DbgOrigin:
-                return f" /* {type_.DbgOrigin} */"
+                return f" /* {type_.DbgOrigin} {type_.flatQualNameWithParams()} */"
 
             else:
                 return ""
@@ -1088,6 +1170,9 @@ class ASTBuilder(base.AstbuilderBase):
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.b.line([lhs, self.string("."), rhs])
 
+    def Arrow(self, lhs: BlockId, rhs: BlockId) -> BlockId:
+        return self.b.line([lhs, self.string("->"), rhs])
+
     def Doc(self, doc: DocParams) -> BlockId:
         content: List[str] = []
         isFirst = True
@@ -1127,36 +1212,113 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Template(
-        self, Param: Union[codegen_ir.GenTuTemplateTypename,
-                           codegen_ir.GenTuTemplateGroup, GenTuTemplateParams]
+        self,
+        Param: Union[
+            codegen_ir.GenTuTemplateTypename,
+            codegen_ir.GenTuTemplateGroup,
+            GenTuTemplateParams,
+        ],
     ) -> BlockId:
         if isinstance(Param, codegen_ir.GenTuTemplateTypename):
-            concept_str = Param.Concept if Param.Concept else (
-                "typename" if not Param.Nested else "template")
-            placeholder_str = "" if Param.Placeholder else " "
-            name_str = "" if Param.Placeholder else Param.Name
+            if Param.Kind == codegen_ir.TemplateParamKind.Type:
+                parts: List[BlockId] = []
 
-            nested_content = self.b.join([self.Template(Sub) for Sub in Param.Nested],
-                                         self.string(", "))
-            return self.b.line([
-                self.string(concept_str),
-                self.string(placeholder_str),
-                self.string(name_str),
-                self.b.surround_non_empty(nested_content, self.string("<"),
-                                          self.string(">"))
-            ])
+                if Param.Concept:
+                    parts.append(self.string(Param.Concept))
+                else:
+                    parts.append(self.string("typename"))
+
+                if Param.Variadic:
+                    parts.append(self.string("..."))
+
+                if Param.hasName():
+                    parts.append(self.string(" "))
+                    parts.append(self.Type(Param.TypeExpr))
+
+                result = self.b.line(parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
+
+            elif Param.Kind == codegen_ir.TemplateParamKind.NonType:
+                assert Param.NonTypeConstraint is not None
+
+                decl_parts: List[BlockId] = [self.Type(Param.NonTypeConstraint)]
+
+                if Param.Variadic:
+                    decl_parts.append(self.string("..."))
+
+                if Param.hasName():
+                    decl_parts.append(self.string(Param.getName()))
+
+                result = self.b.line(decl_parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
+
+            else:
+                assert Param.Kind == codegen_ir.TemplateParamKind.Template
+                assert Param.TemplateParams is not None
+
+                header = self.b.line([
+                    self.string("template <"),
+                    self.b.join(
+                        [
+                            self.Template(sub_param)
+                            for sub_param in Param.TemplateParams.Stacks[0].Params
+                        ],
+                        self.string(", "),
+                    ),
+                    self.string(">"),
+                ])
+
+                body_parts: List[BlockId] = [header]
+
+                if Param.Concept:
+                    body_parts.append(self.string(Param.Concept))
+                else:
+                    body_parts.append(self.string("typename"))
+
+                if Param.Variadic:
+                    body_parts.append(self.string("..."))
+
+                if Param.hasName():
+                    body_parts.append(self.string(Param.getName()))
+
+                result = self.b.line(body_parts)
+
+                if Param.Default:
+                    result = self.b.line([
+                        result,
+                        self.string(" = "),
+                        self.Type(Param.Default),
+                    ])
+
+                return result
 
         elif isinstance(Param, codegen_ir.GenTuTemplateGroup):
             return self.b.line([
                 self.string("template <"),
-                self.b.join([self.Template(Param) for Param in Param.Params],
+                self.b.join([self.Template(param) for param in Param.Params],
                             self.string(", ")),
-                self.string(">")
+                self.string(">"),
             ])
 
         else:
-            assert (isinstance(Param, GenTuTemplateParams))
-            return self.b.stack([self.Template(Spec) for Spec in Param.Stacks])
+            assert isinstance(Param, GenTuTemplateParams)
+            return self.b.stack([self.Template(spec) for spec in Param.Stacks])
 
     def WithTemplate(self, Templ: Optional[GenTuTemplateParams],
                      Body: BlockId) -> BlockId:

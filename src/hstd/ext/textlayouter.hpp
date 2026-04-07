@@ -38,7 +38,7 @@ struct LytStr {
     LytStr(int idx, int len) : id(LytStrId(idx)), len(len) {}
     int  toIndex() const { return id.getIndex(); }
     bool isSpaces() const { return id == LytSpacesId; }
-    bool operator==(CR<LytStr> s) const {
+    bool operator==(LytStr const& s) const {
         return id == s.id && len == s.len;
     }
 };
@@ -52,8 +52,8 @@ struct LytStrSpan {
     Vec<LytStr> strs;
     int         len = 0;
     LytStrSpan()    = default;
-    LytStrSpan(CR<LytStr> str) : strs({str}), len(str.len) {}
-    LytStrSpan(CR<Vec<LytStr>> strs) : strs(strs) {
+    LytStrSpan(LytStr const& str) : strs({str}), len(str.len) {}
+    LytStrSpan(Vec<LytStr> const& strs) : strs(strs) {
         for (const auto& str : strs) { len += str.len; }
     }
 };
@@ -67,8 +67,9 @@ struct Layout;
 struct Layout : public SharedPtrApi<Layout> {
     Vec<SPtr<LayoutElement>> elements;
     Layout() = default;
-    Layout(CR<Vec<SPtr<LayoutElement>>> elements) : elements(elements) {}
-    Layout(CR<Span<SPtr<LayoutElement>>> elements)
+    Layout(Vec<SPtr<LayoutElement>> const& elements)
+        : elements(elements) {}
+    Layout(Span<SPtr<LayoutElement>> const& elements)
         : elements(Vec<SPtr<LayoutElement>>(elements)) {}
 };
 
@@ -121,36 +122,40 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
     int  id     = 0;
     bool indent = false;
 
-    LayoutElement(CR<Data> data) : data(data) {}
+    LayoutElement(Data const& data) : data(data) {}
 
     static Ptr newline() { return shared(Newline()); }
-    static Ptr string(CR<String> str) { return shared(str); }
+    static Ptr string(String const& str) { return shared(str); }
 };
 
 
 struct Event {
     struct Text {
         LytStr str;
-        bool   operator==(CR<Text> s) const { return str == s.str; }
+        bool   operator==(Text const& s) const { return str == s.str; }
     };
 
 
     struct Spaces {
         int  spaces;
-        bool operator==(CR<Spaces> s) const { return spaces == s.spaces; }
+        bool operator==(Spaces const& s) const {
+            return spaces == s.spaces;
+        }
     };
 
 
     struct Newline {
-        bool operator==(CR<Newline>) const { return true; }
+        bool operator==(Newline const&) const { return true; }
     };
 
 
-    bool operator==(CR<Event> other) const { return data == other.data; }
+    bool operator==(Event const& other) const {
+        return data == other.data;
+    }
 
     SUB_VARIANTS(Kind, Data, data, getKind, Text, Spaces, Newline);
     Data data;
-    Event(CR<Data> data) : data(data) {}
+    Event(Data const& data) : data(data) {}
     Event() = default;
 };
 
@@ -200,11 +205,11 @@ struct Solution : public SharedPtrApi<Solution> {
 
     Solution() = default;
     Solution(
-        CR<Vec<int>>          knots,
-        CR<Vec<int>>          spans,
-        CR<Vec<float>>        intercepts,
-        CR<Vec<float>>        gradients,
-        CR<Vec<SPtr<Layout>>> layouts)
+        Vec<int> const&          knots,
+        Vec<int> const&          spans,
+        Vec<float> const&        intercepts,
+        Vec<float> const&        gradients,
+        Vec<SPtr<Layout>> const& layouts)
         : knots(knots)
         , spans(spans)
         , intercepts(intercepts)
@@ -293,13 +298,13 @@ struct Block {
         Empty);
 
     int  size() const;
-    int  leafCount(CR<BlockStore> store) const;
-    void add(CR<BlockId> other);
+    int  leafCount(BlockStore const& store) const;
+    void add(BlockId const& other);
     void add(CVec<BlockId> others);
 
     struct SolutionHash {
         template <typename T>
-        std::size_t operator()(CR<Opt<T>> opt) const {
+        std::size_t operator()(Opt<T> const& opt) const {
             if (opt) {
                 return operator()(*opt);
             } else {
@@ -308,14 +313,16 @@ struct Block {
         }
 
         template <typename T>
-        std::size_t operator()(CR<Vec<T>> items) const {
+        std::size_t operator()(Vec<T> const& items) const {
             logic_todo_impl();
         }
 
-        std::size_t operator()(CR<Solution>) const { logic_todo_impl(); }
+        std::size_t operator()(Solution const&) const {
+            logic_todo_impl();
+        }
 
         template <typename T>
-        std::size_t operator()(CR<SPtr<T>> opt) const {
+        std::size_t operator()(SPtr<T> const& opt) const {
             LOGIC_ASSERTION_CHECK(opt != nullptr, "");
             return std::hash<T*>{}(opt.get());
         }
@@ -329,7 +336,7 @@ struct Block {
     Data data;
 
     Block() = default;
-    Block(CR<Data> data) : data(data) {}
+    Block(Data const& data) : data(data) {}
 };
 
 
@@ -339,17 +346,17 @@ struct BlockStore {
     Block&  at(BlockId const& id) { return store.at(id); }
     void    add_at(BlockId const& id, BlockId const& next);
     void    add_at(BlockId const& id, Vec<BlockId> const& next);
-    BlockId text(CR<LytStrSpan> t);
-    BlockId line(CR<Vec<BlockId>> l = {});
-    BlockId stack(CR<Vec<BlockId>> l = {});
-    BlockId choice(CR<Vec<BlockId>> l = {});
+    BlockId text(LytStrSpan const& t);
+    BlockId line(Vec<BlockId> const& l = {});
+    BlockId stack(Vec<BlockId> const& l = {});
+    BlockId choice(Vec<BlockId> const& l = {});
     BlockId space(int count);
     BlockId empty() { return store.add(Block(Block::Empty{})); }
-    BlockId spatial(bool isVertical, CR<Vec<BlockId>> l = {});
-    BlockId wrap(CR<Vec<BlockId>> elems, LytStr sep, int breakMult = 1);
-    BlockId indent(int indent, CR<BlockId> block, int breakMult = 1);
-    BlockId vertical(const Vec<BlockId>& blocks, const BlockId& sep);
-    BlockId horizontal(const Vec<BlockId>& blocks, const BlockId& sep);
+    BlockId spatial(bool isVertical, Vec<BlockId> const& l = {});
+    BlockId wrap(Vec<BlockId> const& elems, LytStr sep, int breakMult = 1);
+    BlockId indent(int indent, BlockId const& block, int breakMult = 1);
+    BlockId vertical(Vec<BlockId> const& blocks, BlockId const& sep);
+    BlockId horizontal(Vec<BlockId> const& blocks, BlockId const& sep);
 
     BlockId surround_non_empty(
         BlockId content,
@@ -364,32 +371,32 @@ struct BlockStore {
 
     template <typename T, typename F>
     BlockId map_join(
-        CVec<T>     items,
-        F           convert,
-        CR<BlockId> join,
-        bool        isLine     = true,
-        bool        isTrailing = false) {
+        CVec<T>        items,
+        F              convert,
+        BlockId const& join,
+        bool           isLine     = true,
+        bool           isTrailing = false) {
         Vec<BlockId> tmp;
         for (auto const& it : items) { tmp.push_back(convert(it)); }
         return this->join(tmp, join, isLine, isTrailing);
     }
 
     BlockId join(
-        CVec<BlockId> items,
-        CR<BlockId>   join,
-        bool          isLine     = true,
-        bool          isTrailing = false);
+        CVec<BlockId>  items,
+        BlockId const& join,
+        bool           isLine     = true,
+        bool           isTrailing = false);
 
 
     /// Return all possible formatting layouts for a given block with
     /// provided options. The best layout will be the first in the returned
     /// sequence.
-    Vec<Layout::Ptr> toLayouts(BlockId id, const Options& opts);
+    Vec<Layout::Ptr> toLayouts(BlockId id, Options const& opts);
 
     /// Return first best formatting layout for a given block. This is the
     /// procedure you should be using unless you need to have access to all
     /// the possible layouts.
-    Layout::Ptr toLayout(BlockId id, const Options& opts) {
+    Layout::Ptr toLayout(BlockId id, Options const& opts) {
         Vec<Layout::Ptr> layouts = toLayouts(id, opts);
         LOGIC_ASSERTION_CHECK(!layouts.empty(), "");
         return layouts[0];
@@ -400,7 +407,7 @@ struct BlockStore {
         Func<std::string(BlockId id)> idText;
     };
 
-    std::string toTreeRepr(BlockId root, CR<TreeReprConf> conf);
+    std::string toTreeRepr(BlockId root, TreeReprConf const& conf);
 };
 
 struct Options {
@@ -424,7 +431,7 @@ struct Options {
 
     static Vec<Vec<BlockId>> defaultFormatPolicy(
         BlockStore&              store,
-        const Vec<Vec<BlockId>>& blc);
+        Vec<Vec<BlockId>> const& blc);
 
     FormatPolicy formatPolicy = defaultFormatPolicy;
 };
@@ -448,10 +455,10 @@ struct SimpleStringStore {
 
     SimpleStringStore(BlockStore* store) : store(store) {}
     LytStr  str(std::string const& str);
-    Str     str(const LytStr& str) const;
+    Str     str(LytStr const& str) const;
     Str     toString(BlockId const& blc, Options const& opts = Options{});
-    BlockId text(const std::string& arg) { return store->text(str(arg)); }
-    BlockId text(const LytStr& s) { return store->text(s); }
+    BlockId text(std::string const& arg) { return store->text(str(arg)); }
+    BlockId text(LytStr const& s) { return store->text(s); }
 
     std::string toTreeRepr(BlockId id, bool doRecurse = true);
 };

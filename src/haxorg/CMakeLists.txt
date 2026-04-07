@@ -89,6 +89,10 @@ if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
   target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
   target_link_libraries(tests_org PUBLIC haxorg GTest::gtest)
 
+  if(${ORG_BUILD_WRAPPERS_C})
+    target_link_libraries(tests_org PUBLIC haxorg_c)
+  endif()
+
   target_include_directories(tests_org PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager")
 
   add_executable(specrunner_org)

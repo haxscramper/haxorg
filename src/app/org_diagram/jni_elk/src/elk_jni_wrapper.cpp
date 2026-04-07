@@ -108,7 +108,7 @@ class ElkLayoutEngine::Impl {
         initialized = false;
     }
 
-    std::string callPerformLayout(const std::string& inputJson) {
+    std::string callPerformLayout(std::string const& inputJson) {
         if (!initialized || !env) {
             throw std::runtime_error("JVM not initialized");
         }
@@ -153,13 +153,13 @@ ElkLayoutEngine::~ElkLayoutEngine() {
     delete pImpl;
 }
 
-bool ElkLayoutEngine::initialize(const std::string& classPathJar) {
+bool ElkLayoutEngine::initialize(std::string const& classPathJar) {
     return pImpl->initializeJVM(classPathJar);
 }
 
 void ElkLayoutEngine::shutdown() { pImpl->shutdownJVM(); }
 
-std::string ElkLayoutEngine::performLayout(const std::string& inputJson) {
+std::string ElkLayoutEngine::performLayout(std::string const& inputJson) {
     return pImpl->callPerformLayout(inputJson);
 }
 

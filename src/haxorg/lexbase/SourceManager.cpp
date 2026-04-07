@@ -2,23 +2,23 @@
 #include <hstd/stdlib/Formatter.hpp>
 
 std::string org::parse::SourceManager::getPath(
-    const SourceFileId& id) const {
+    SourceFileId const& id) const {
     return path_ids.at_left(id);
 }
 
 const std::string& org::parse::SourceManager::getSourceContent(
-    const SourceFileId& id) const {
+    SourceFileId const& id) const {
     return store.at(id).content;
 }
 
 const std::string& org::parse::SourceManager::getContentTextForPath(
-    const std::string& path) const {
+    std::string const& path) const {
     return store.at(getId(path)).content;
 }
 
 org::parse::SourceFileId org::parse::SourceManager::addSource(
-    const std::string& path,
-    const std::string& content) {
+    std::string const& path,
+    std::string const& content) {
 
     LOGIC_ASSERTION_CHECK_FMT(
         !path_ids.get_right(path).has_value()
@@ -47,6 +47,6 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
 }
 
 org::parse::SourceFileId org::parse::SourceManager::getId(
-    const std::string& path) const {
+    std::string const& path) const {
     return path_ids.at_right(path);
 }

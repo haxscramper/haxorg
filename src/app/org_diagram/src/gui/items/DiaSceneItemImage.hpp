@@ -61,7 +61,7 @@ struct DiaSceneItemImage : public DiaSceneItemVisual {
             nameEdit,
             &QLineEdit::textChanged,
             widget,
-            [this](const QString& text) {
+            [this](QString const& text) {
                 name = text;
                 update();
             });
@@ -153,7 +153,7 @@ struct DiaSceneItemImage : public DiaSceneItemVisual {
         setCursor(Qt::ArrowCursor);
     }
 
-    void setImage(const QPixmap& pixmap) {
+    void setImage(QPixmap const& pixmap) {
         image = pixmap;
         update();
     }

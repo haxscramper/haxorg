@@ -7,7 +7,7 @@ Str::Str(const char* conv) : std::string(conv) {}
 
 Str::Str(const char* conv, int size) : std::string(conv, size) {}
 
-Str::Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
+Str::Str(std::string const& it) : std::string(it.data(), it.size()) {}
 
 Str::Str(int count, char c) : std::string(count, c) {}
 
@@ -21,7 +21,7 @@ Str Str::substr(int start, int count) const {
     return Str(std::string::substr(start, count));
 }
 
-Str hstd::Str::dropPrefix(CR<Str> prefix) const {
+Str hstd::Str::dropPrefix(Str const& prefix) const {
     if (this->starts_with(prefix)) {
         return substr(prefix.size());
     } else {
@@ -29,7 +29,7 @@ Str hstd::Str::dropPrefix(CR<Str> prefix) const {
     }
 }
 
-Str hstd::Str::dropSuffix(CR<Str> suffix) const {
+Str hstd::Str::dropSuffix(Str const& suffix) const {
     if (this->ends_with(suffix)) {
         return substr(0, size() - suffix.size());
     } else {
@@ -57,7 +57,7 @@ char& hstd::Str::at(int pos) {
     }
 }
 
-Str hstd::Str::replaceAll(const Str& from, const Str& to) const {
+Str hstd::Str::replaceAll(Str const& from, Str const& to) const {
     size_t startPos = 0;
     Str    result   = *this;
     while ((startPos = result.find(from, startPos)) != std::string::npos) {
@@ -81,7 +81,7 @@ Vec<Str> hstd::Str::split(char delimiter) const {
     return tokens;
 }
 
-Vec<Str> hstd::Str::split(const Str& delimiter) const {
+Vec<Str> hstd::Str::split(Str const& delimiter) const {
     Vec<Str> tokens;
     size_t   start = 0;
     size_t   end   = this->find(delimiter);
@@ -103,17 +103,17 @@ float Str::toDouble() const { return std::stod(*this); }
 
 int Str::toInt() const { return std::stoi(*this); }
 
-void Str::append(const Str& str) { std::string::append(str.toBase()); }
+void Str::append(Str const& str) { std::string::append(str.toBase()); }
 
 int Str::size() const { return static_cast<int>(std::string::size()); }
 
 bool Str::contains(char ch) const { return find(ch) != std::string::npos; }
 
-bool Str::contains(const Str& ch) const {
+bool Str::contains(Str const& ch) const {
     return find(ch) != std::string::npos;
 }
 
-Str Str::join(const Vec<Str>& items) const {
+Str Str::join(Vec<Str> const& items) const {
     Str res;
     for (int i = 0; i < items.size(); ++i) {
         if (0 < i) { res += ", "; }

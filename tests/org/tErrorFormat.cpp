@@ -107,7 +107,7 @@ Pair<Vec<Label>, Str> labelList(
 }
 
 
-std::string pivotStringTable(const std::string& input) {
+std::string pivotStringTable(std::string const& input) {
     std::stringstream ss(input);
     std::string       line;
     Vec<Vec<char>>    matrix;

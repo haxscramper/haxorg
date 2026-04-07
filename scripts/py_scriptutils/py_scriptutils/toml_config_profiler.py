@@ -224,7 +224,7 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
 class SafeDict(dict):
 
     def __missing__(self, key: str) -> str:
-        return '{' + key + '}'
+        return "{" + key + "}"
 
 
 @beartype

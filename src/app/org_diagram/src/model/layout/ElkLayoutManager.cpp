@@ -3,7 +3,7 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 
-std::string ElkLayoutManager::layoutDiagram(const std::string& graphJson) {
+std::string ElkLayoutManager::layoutDiagram(std::string const& graphJson) {
     LOGIC_ASSERTION_CHECK(
         elkEngine->isInitialized(),
         "Initialization failed earlier, cannot execute layout");
@@ -12,7 +12,7 @@ std::string ElkLayoutManager::layoutDiagram(const std::string& graphJson) {
 }
 
 dia::layout::elk::Graph ElkLayoutManager::layoutDiagram(
-    const dia::layout::elk::Graph& graph) {
+    dia::layout::elk::Graph const& graph) {
     json serial = hstd::to_json_eval(graph);
     HSLOG_TRACE("{}", serial.dump(2));
     dia::layout::elk::validate(graph);

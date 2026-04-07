@@ -285,7 +285,7 @@ class BenchmarkVisualizer:
                 y_data = impl_data["real_time_ms"]
                 sorted_data = sorted(zip(x_data, y_data))
                 x_sorted, y_sorted = zip(*sorted_data)
-                ax.plot(x_sorted, y_sorted, label=impl, alpha=0.7, marker='o')
+                ax.plot(x_sorted, y_sorted, label=impl, alpha=0.7, marker="o")
 
         ax.set_xlabel("Problem Size (param1 * param2)")
         ax.set_ylabel("Time (ms)")

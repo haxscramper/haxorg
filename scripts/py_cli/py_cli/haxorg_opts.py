@@ -31,7 +31,7 @@ def _not_empty_file_path(value: str | Path) -> Path:
     return p
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 ReadableFilePath = Annotated[Path, AfterValidator(_validate_readable_path)]
 NonEmptyFilePath = Annotated[Path, AfterValidator(_not_empty_file_path)]

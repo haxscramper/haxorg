@@ -129,6 +129,9 @@ struct [[refl(
     },
     "wasm": {
       "holder-type": "shared"
+    },
+    "c": {
+      "holder-type": "shared"
     }
   }
 })")]] MapGraph : hstd::SharedPtrApi<MapGraph> {
@@ -280,12 +283,12 @@ struct [[refl(
     };
 
     hstd::ext::Graphviz::Graph toGraphviz(
-        const org::imm::ImmAstContext::Ptr& ctx) const {
+        org::imm::ImmAstContext::Ptr const& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
     hstd::ext::Graphviz::Graph toGraphviz(
-        const org::imm::ImmAstContext::Ptr& ctx,
+        org::imm::ImmAstContext::Ptr const& ctx,
         GvConfig const&                     conf) const;
 #endif
 };
@@ -387,6 +390,9 @@ struct [[refl(
       "holder-type": "shared"
     },
     "wasm": {
+      "holder-type": "shared"
+    },
+    "c": {
       "holder-type": "shared"
     }
   }

@@ -3,9 +3,9 @@
 #include <org_diagram/src/model/layout/ElkLayoutManager.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 
-Size DiaLayout::getSize(const DiaUniqId& id) const { return sizes.at(id); }
+Size DiaLayout::getSize(DiaUniqId const& id) const { return sizes.at(id); }
 
-Point DiaLayout::getRelPos(const DiaUniqId& id) const {
+Point DiaLayout::getRelPos(DiaUniqId const& id) const {
     return relPositions.at(id);
 }
 
@@ -16,7 +16,7 @@ std::string hash_fmt(T const& value) {
 }
 } // namespace
 
-DiaLayout DiaLayout::FromDiagram(const DiaAdapter& a) {
+DiaLayout DiaLayout::FromDiagram(DiaAdapter const& a) {
     DiaLayout res;
 
     using namespace dia::layout::elk;

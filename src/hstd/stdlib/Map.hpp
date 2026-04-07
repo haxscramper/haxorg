@@ -14,7 +14,7 @@ namespace hstd {
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
     using CRTP_this_method<Map>::_this;
-    inline bool contains(CR<K> key) const {
+    inline bool contains(K const& key) const {
         return _this()->count(key) != 0;
     }
 
@@ -50,7 +50,15 @@ struct MapBase : public CRTP_this_method<Map> {
 };
 
 template <typename K, typename V, typename Hash = std::hash<K>>
-struct UnorderedMap
+struct [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "void-handle",
+            "value-template-parameters": ["K", "V"]
+        }
+    }
+})")]] UnorderedMap
     : public std::unordered_map<K, V, Hash>
     , public MapBase<UnorderedMap<K, V>, K, V> {
     using Base = std::unordered_map<K, V, Hash>;
@@ -62,6 +70,8 @@ struct UnorderedMap
     using Base::begin;
     using Base::end;
     using Base::operator[];
+
+    [[refl]] Vec<K> keys() const { return API::keys(); }
 };
 
 
@@ -71,7 +81,7 @@ struct SortedMap
     , public MapBase<SortedMap<K, V, _Compare>, K, V> {
     using Base = std::map<K, V, _Compare>;
     using API  = MapBase<SortedMap<K, V, _Compare>, K, V>;
-    inline bool contains(CR<K> key) const {
+    inline bool contains(K const& key) const {
         return Base::find(key) != Base::end();
     }
 
@@ -110,9 +120,9 @@ class SequentialKvPairContainerAdapter
     using container_type  = Container;
     using item_value_type = std::pair<K, V>;
     using base_type       = SequentialContainerAdapterBase<
-              SequentialContainerAdapter<Container>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<Container>,
+        container_type,
+        item_value_type>;
 
     container_type const* container;
 
@@ -122,7 +132,7 @@ class SequentialKvPairContainerAdapter
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         const_cast<container_type*>(container)->insert(value);
     }
 

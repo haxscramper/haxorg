@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import ast
+import base64
+from dataclasses import dataclass
 import io
+from pathlib import Path
 import re
 import subprocess
 import sys
 import tokenize
-from dataclasses import dataclass
-from pathlib import Path
-import base64
-import ast
 
 _PLACEHOLDER_PREFIX = "__safe_yapf_type_alias__"
 

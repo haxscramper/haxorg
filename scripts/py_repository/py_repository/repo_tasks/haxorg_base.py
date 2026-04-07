@@ -18,6 +18,7 @@ from py_repository.repo_tasks.common import (
     get_build_root,
     get_component_build_dir,
     get_script_root,
+    symlink_build_dir,
 )
 from py_repository.repo_tasks.config import HaxorgConfig
 from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
@@ -177,18 +178,12 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     else:
         result.append(cmake_opt("CMAKE_FIND_DEBUG_MODE", False))
 
+    for flag in conf.build_conf.cmake_extra_build_flags:
+        result.append(flag)
+
     return result
 
 
 @haxorg_task()
 def symlink_build(ctx: TaskContext) -> None:
-    """
-    Create proxy symbolic links around the build directory
-    """
-
-    create_symlink(
-        ctx,
-        real_path=get_component_build_dir(ctx, "haxorg"),
-        link_path=get_build_root(ctx, "haxorg"),
-        is_dir=True,
-    )
+    symlink_build_dir(ctx)

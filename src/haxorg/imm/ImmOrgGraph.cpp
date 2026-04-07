@@ -86,21 +86,20 @@ static const IntSet<slk> SkipLinks{
     slk::Attachment,
 };
 
-bool org::graph::hasGraphAnnotations(const ImmAdapterT<ImmSubtree>& par) {
+bool org::graph::hasGraphAnnotations(ImmAdapterT<ImmSubtree> const& par) {
     return par->treeId->has_value()
         || !getSubtreeProperties<sem::NamedProperty::RadioId>(par.value())
                 .empty();
 }
 
 bool org::graph::hasGraphAnnotations(
-    const ImmAdapterT<ImmParagraph>& par) {
+    ImmAdapterT<ImmParagraph> const& par) {
     for (auto const& node : par.sub(false)) {
         if (node.is(OrgSemKind::RadioTarget)) {
             return true;
-        } else if (auto link = node.asOpt<ImmLink>();
-                   link
-                   && !SkipLinks.contains(
-                       link.value()->target.getKind())) {
+        } else if (
+            auto link = node.asOpt<ImmLink>();
+            link && !SkipLinks.contains(link.value()->target.getKind())) {
             return true;
         }
     }
@@ -119,7 +118,7 @@ void removeUnresolvedNodeProps(
         auto remove_resolved = [&](MapNode node) {
             MapNodeProp prop = props[node];
             rs::actions::remove_if(
-                prop.unresolved, [&](CR<MapLink> old) -> bool {
+                prop.unresolved, [&](MapLink const& old) -> bool {
                     if (old.isLink() && op.link.isLink()) {
                         return old.getLink().link
                             == op.link.getLink().link;
@@ -382,8 +381,9 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
     if (auto tree = node.asOpt<ImmSubtree>()) {
         result.unresolved.append(
             s->getUnresolvedSubtreeLinks(tree.value(), conf));
-    } else if (auto par = node.asOpt<ImmParagraph>();
-               par && par->isFootnoteDefinition()) {
+    } else if (
+        auto par = node.asOpt<ImmParagraph>();
+        par && par->isFootnoteDefinition()) {
         auto sub = par->sub();
         for (auto const& it : enumerator(sub)) {
             if (!it.is_first()) {
@@ -446,8 +446,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             }
         };
 
-        CR<MapLink::Link> spec = link.getLink();
-        auto link_adapter      = s->ast->adapt(spec.link).as<ImmLink>();
+        MapLink::Link const& spec = link.getLink();
+        auto link_adapter         = s->ast->adapt(spec.link).as<ImmLink>();
         switch (link_adapter->target.getKind()) {
             case slk::Id: {
                 auto text = link_adapter->target.getId().text;
@@ -482,7 +482,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             }
 
             case slk::Footnote: {
-                CR<Str> text = link_adapter->target.getFootnote().target;
+                Str const& text = link_adapter->target.getFootnote()
+                                      .target;
                 if (auto target = s->ast->currentTrack->footnotes.get(
                         text)) {
                     GRAPH_MSG(
@@ -498,7 +499,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             }
 
             case slk::Internal: {
-                CR<Str> text = link_adapter->target.getInternal().target;
+                Str const& text = link_adapter->target.getInternal()
+                                      .target;
                 if (auto target = s->ast->currentTrack->names.get(text)) {
                     GRAPH_MSG(
                         fmt("Internal link name '{}' on '{}' resolved to "
@@ -536,8 +538,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
 
 MapNodeResolveResult org::graph::getResolvedNodeInsert(
-    const MapGraphState::Ptr&  s,
-    const MapNodeProp&         node,
+    MapGraphState::Ptr const&  s,
+    MapNodeProp const&         node,
     std::shared_ptr<MapConfig> conf) {
     MapNodeResolveResult result;
     auto                 __scope = conf->dbg.scopeLevel();
@@ -554,7 +556,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         auto __scope = conf->dbg.scopeLevel();
         GRAPH_MSG(fmt("Collecting radio targets in graph"));
 
-        auto found_radio_target_node = [&](CR<ImmAdapter> radio) {
+        auto found_radio_target_node = [&](ImmAdapter const& radio) {
             if (s->graph->isRegisteredNode(radio.uniq())) {
                 GRAPH_MSG(
                     fmt("Detected radio target from node {} "
@@ -722,7 +724,7 @@ void org::graph::MapGraphState::addNode(
     }
 }
 
-void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
+void MapGraph::addEdge(MapEdge const& edge, MapEdgeProp const& prop) {
     LOGIC_ASSERTION_CHECK_FMT(
         adjList.contains(edge.target),
         "Edge target {} is missing from the graph definition (source {})",
@@ -740,7 +742,7 @@ void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
     edgeProps.insert_or_assign(edge, prop);
 }
 
-void MapGraph::addNode(const MapNode& node) {
+void MapGraph::addNode(MapNode const& node) {
     if (!adjList.contains(MapNode{node})) {
         adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
         nodeProps.insert_or_assign(MapNode{node}, MapNodeProp{});
@@ -804,8 +806,8 @@ MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
-    const ImmAdapter&  node,
-    const MapNodeProp& prop) {
+    ImmAdapter const&  node,
+    MapNodeProp const& prop) {
     using Record = Graphviz::Node::Record;
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
@@ -881,7 +883,7 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 
 void org::graph::MapGraphState::addNodeRec(
     std::shared_ptr<org::imm::ImmAstContext> const& ast,
-    const ImmAdapter&                               node,
+    ImmAdapter const&                               node,
     std::shared_ptr<MapConfig> const&               conf) {
     Func<void(ImmAdapter const&)> aux;
     aux = [&](ImmAdapter const& node) {
@@ -949,7 +951,7 @@ std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
 }
 
 hstd::Opt<Str> MapNodeProp::getFootnoteName(
-    const std::shared_ptr<imm::ImmAstContext>& context) const {
+    std::shared_ptr<imm::ImmAstContext> const& context) const {
     if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
         par && par->isFootnoteDefinition()) {
         return par->getFootnoteName();
@@ -959,7 +961,7 @@ hstd::Opt<Str> MapNodeProp::getFootnoteName(
 }
 
 hstd::Opt<Str> MapNodeProp::getSubtreeId(
-    const std::shared_ptr<imm::ImmAstContext>& context) const {
+    std::shared_ptr<imm::ImmAstContext> const& context) const {
     if (auto tree = getAdapter(context).asOpt<org::imm::ImmSubtree>();
         tree && tree.value()->treeId.get()) {
         return tree.value()->treeId->value();

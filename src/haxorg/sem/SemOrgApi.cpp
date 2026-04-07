@@ -59,7 +59,7 @@ Vec<org::sem::AttrValue> AttrGroup::getFlatArgs() const {
     return res;
 }
 
-Vec<AttrValue> AttrGroup::getAttrs(CR<Opt<Str>> param) const {
+Vec<AttrValue> AttrGroup::getAttrs(Opt<Str> const& param) const {
     if (param) {
         Vec<AttrValue> res;
         auto           norm = normalize(*param);
@@ -177,7 +177,7 @@ void AttrGroup::setPositionalAttr(Vec<AttrValue> const& attr) {
     positional.items = attr;
 }
 
-bool HashTagText::prefixMatch(CR<Vec<Str>> prefix) const {
+bool HashTagText::prefixMatch(Vec<Str> const& prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
         return true;
     } else if (prefix[0] != head) {
@@ -219,9 +219,9 @@ Vec<HashTagFlat> HashTagText::getFlatHashes(bool withIntermediate) const {
 }
 
 void Subtree::setPropertyStrValue(
-    Str const&   value,
-    Str const&   kind,
-    CR<Opt<Str>> subkind) {
+    Str const&      value,
+    Str const&      kind,
+    Opt<Str> const& subkind) {
     if (normalize(kind) == "id") {
         this->treeId = value;
     } else {
@@ -239,7 +239,7 @@ void Subtree::setProperty(Property const& value) {
 }
 
 
-void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
+void Subtree::removeProperty(Str const& kind, Opt<Str> const& subkind) {
     for (int i = properties.high(); 0 <= i; --i) {
         if (properties.at(i).getName() == kind
             && properties.at(i).getSubKind() == subkind) {
@@ -264,7 +264,7 @@ Opt<Str> NamedProperty::getSubKind() const {
     }
 }
 
-bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
+bool NamedProperty::isMatching(Str const& kind, Opt<Str> const& subkind)
     const {
     auto pk = getKind();
     if (pk == Property::Kind::CustomRaw) {

@@ -1,6 +1,9 @@
 #pragma once
 #include <optional>
 
+#undef emit
+#undef slots
+
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
@@ -39,7 +42,7 @@ struct ReflAttrInfo : public clang::ParsedAttrInfo {
     AttrHandling handleDeclAttribute(
         clang::Sema&             S,
         clang::Decl*             D,
-        const clang::ParsedAttr& Attr) const override;
+        clang::ParsedAttr const& Attr) const override;
 };
 
 
@@ -106,10 +109,6 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     /// Fill in information about namespaces used in elaborated type
     std::vector<QualType> getNamespaces(
-        clang::ElaboratedType const*                elab,
-        std::optional<clang::SourceLocation> const& Loc);
-
-    std::vector<QualType> getNamespaces(
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
@@ -135,6 +134,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     void fillTypeRec(
         QualType*                                   Out,
         clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillTemplateParameterList(
+        TemplateParams*                             out,
+        clang::TemplateParameterList*               params,
         std::optional<clang::SourceLocation> const& Loc);
 
     /// This function 'fills' the type in both directions (adding parent

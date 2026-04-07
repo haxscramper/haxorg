@@ -19,8 +19,59 @@
 #include <fstream>
 #include <hstd/ext/logger.hpp>
 
+#include <clang/AST/NestedNameSpecifierBase.h>
+
 namespace c = clang;
 using llvm::dyn_cast;
+
+namespace {
+void jsonToProtobufValue(
+    llvm::json::Value const& json_val,
+    google::protobuf::Value* pb_val);
+
+void jsonToProtobufStruct(
+    llvm::json::Object const& json_obj,
+    google::protobuf::Struct* pb_struct) {
+    for (const auto& [key, val] : json_obj) {
+        auto* pb_val = &(*pb_struct->mutable_fields())[key.str()];
+        jsonToProtobufValue(val, pb_val);
+    }
+}
+
+void jsonToProtobufValue(
+    llvm::json::Value const& json_val,
+    google::protobuf::Value* pb_val) {
+    if (auto* obj = json_val.getAsObject()) {
+        jsonToProtobufStruct(*obj, pb_val->mutable_struct_value());
+    } else if (auto* arr = json_val.getAsArray()) {
+        auto* list = pb_val->mutable_list_value();
+        for (const auto& elem : *arr) {
+            jsonToProtobufValue(elem, list->add_values());
+        }
+    } else if (auto str = json_val.getAsString()) {
+        pb_val->set_string_value(str->str());
+    } else if (auto num = json_val.getAsNumber()) {
+        pb_val->set_number_value(*num);
+    } else if (auto b = json_val.getAsBoolean()) {
+        pb_val->set_bool_value(*b);
+    } else if (json_val.getAsNull()) {
+        pb_val->set_null_value(google::protobuf::NULL_VALUE);
+    }
+}
+
+void setReflectionParamsFromJson(
+    google::protobuf::Struct* pb_struct,
+    std::string const&        json_str) {
+    auto parsed = llvm::json::parse(json_str);
+    if (!parsed) {
+        llvm::consumeError(parsed.takeError());
+        llvm_unreachable("Failed to parse reflection params JSON");
+    }
+    auto* obj = parsed->getAsObject();
+    assert(obj && "reflection_params must be a JSON object");
+    jsonToProtobufStruct(*obj, pb_struct);
+}
+} // namespace
 
 
 bool ReflASTVisitor::isDescribedRecord(
@@ -28,8 +79,8 @@ bool ReflASTVisitor::isDescribedRecord(
     if (!recordDecl) { return false; }
 
     // Try to downcast to CXXRecordDecl for C++ classes
-    const clang::CXXRecordDecl* cxxRecordDecl = llvm::dyn_cast<
-        clang::CXXRecordDecl>(recordDecl);
+    const clang::CXXRecordDecl*
+        cxxRecordDecl = llvm::dyn_cast<clang::CXXRecordDecl>(recordDecl);
 
     // Get the qualified name of the record
     std::string recordName = recordDecl->getQualifiedNameAsString();
@@ -45,8 +96,9 @@ bool ReflASTVisitor::isDescribedRecord(
 
         for (const clang::FriendDecl* friendDecl :
              cxxRecordDecl->friends()) {
-            if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
-                    clang::FunctionDecl>(friendDecl->getFriendDecl())) {
+            if (const clang::FunctionDecl*
+                    fnDecl = llvm::dyn_cast<clang::FunctionDecl>(
+                        friendDecl->getFriendDecl())) {
                 std::string fnName = fnDecl->getNameAsString();
 
                 if (fnName == "boost_base_descriptor_fn") {
@@ -68,8 +120,8 @@ bool ReflASTVisitor::isDescribedRecord(
     clang::TranslationUnitDecl* TU = Ctx->getTranslationUnitDecl();
 
     for (clang::Decl* decl : TU->decls()) {
-        if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
-                clang::FunctionDecl>(decl)) {
+        if (const clang::FunctionDecl*
+                fnDecl = llvm::dyn_cast<clang::FunctionDecl>(decl)) {
             std::string fnName = fnDecl->getNameAsString();
 
             // Check if it's one of the Boost.Describe functions
@@ -87,17 +139,16 @@ bool ReflASTVisitor::isDescribedRecord(
 
                     // The parameter should be T**
                     if (paramType->isPointerType()) {
-                        clang::QualType pointeeType = paramType
-                                                          ->getPointeeType();
+                        clang::QualType
+                            pointeeType = paramType->getPointeeType();
                         if (pointeeType->isPointerType()) {
-                            clang::QualType targetType = pointeeType
-                                                             ->getPointeeType();
+                            clang::QualType
+                                targetType = pointeeType->getPointeeType();
 
                             // Get the record declaration from the type
-                            if (const clang::RecordType* recordType = targetType
-                                                                          ->getAs<
-                                                                              clang::
-                                                                                  RecordType>()) {
+                            if (const clang::RecordType*
+                                    recordType = targetType->getAs<
+                                                 clang::RecordType>()) {
                                 if (recordType->getDecl() == recordDecl) {
                                     if (fnName
                                         == "boost_base_descriptor_fn") {
@@ -128,8 +179,8 @@ bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
     clang::TranslationUnitDecl* TU = Ctx->getTranslationUnitDecl();
 
     for (clang::Decl* decl : TU->decls()) {
-        if (const clang::FunctionDecl* fnDecl = llvm::dyn_cast<
-                clang::FunctionDecl>(decl)) {
+        if (const clang::FunctionDecl*
+                fnDecl = llvm::dyn_cast<clang::FunctionDecl>(decl)) {
             std::string fnName = fnDecl->getNameAsString();
 
             if (fnName == "boost_enum_descriptor_fn") {
@@ -142,16 +193,15 @@ bool ReflASTVisitor::isDescribedEnum(const clang::EnumDecl* enumDecl) {
 
                     // The parameter should be T**
                     if (paramType->isPointerType()) {
-                        clang::QualType pointeeType = paramType
-                                                          ->getPointeeType();
+                        clang::QualType
+                            pointeeType = paramType->getPointeeType();
                         if (pointeeType->isPointerType()) {
-                            clang::QualType targetType = pointeeType
-                                                             ->getPointeeType();
+                            clang::QualType
+                                targetType = pointeeType->getPointeeType();
 
-                            if (const clang::EnumType* enumType = targetType
-                                                                      ->getAs<
-                                                                          clang::
-                                                                              EnumType>()) {
+                            if (const clang::EnumType*
+                                    enumType = targetType->getAs<
+                                               clang::EnumType>()) {
                                 if (enumType->getDecl() == enumDecl) {
                                     return true;
                                 }
@@ -225,9 +275,10 @@ c::TypedefDecl* findTypedefForDecl(c::Decl* Decl, c::ASTContext* Ctx) {
         if (auto* TD = dyn_cast<c::TypedefDecl>(D)) {
             if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
                 return TD;
-            } else if (const c::EnumType* ET = TD->getUnderlyingType()
-                                                   ->getAs<c::EnumType>();
-                       ET && ET->getDecl() == Decl) {
+            } else if (
+                const c::EnumType* ET = TD->getUnderlyingType()
+                                            ->getAs<c::EnumType>();
+                ET && ET->getDecl() == Decl) {
                 return TD;
 
             } else if (TD->getUnderlyingDecl() == Decl) {
@@ -247,9 +298,10 @@ c::FieldDecl* findFieldForDecl(c::Decl const* Decl, c::ASTContext* Ctx) {
             c::Type const* FieldType = FD->getType().getTypePtr();
             if (FD->getType()->getAsRecordDecl() == Decl) {
                 return FD;
-            } else if (const c::EnumType* ET = FD->getType()
-                                                   ->getAs<c::EnumType>();
-                       ET && ET->getDecl() == Decl) {
+            } else if (
+                const c::EnumType* ET = FD->getType()
+                                            ->getAs<c::EnumType>();
+                ET && ET->getDecl() == Decl) {
                 return FD;
 
             } else if (
@@ -266,7 +318,7 @@ c::FieldDecl* findFieldForDecl(c::Decl const* Decl, c::ASTContext* Ctx) {
 
 std::string getAbsoluteDeclLocation(c::Decl const* Decl) {
     c::SourceLocation       loc           = Decl->getLocation();
-    const c::ASTContext&    astContext    = Decl->getASTContext();
+    c::ASTContext const&    astContext    = Decl->getASTContext();
     c::SourceManager const& sourceManager = astContext.getSourceManager();
 
     std::string filePath;
@@ -335,7 +387,7 @@ std::ostream& errs(
 
 
 std::string formatSourceLocation(
-    const c::SourceLocation& loc,
+    c::SourceLocation const& loc,
     c::SourceManager&        srcMgr) {
     if (loc.isValid()) {
         c::PresumedLoc presumedLoc = srcMgr.getPresumedLoc(loc);
@@ -426,7 +478,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
 void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
-    const std::vector<QualType>& Namespaces,
+    std::vector<QualType> const& Namespaces,
     int                          line,
     const char*                  function) {
     std::vector<QualType const*> newNamespaces;
@@ -522,7 +574,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     c::Decl*                                Decl,
-    const std::optional<c::SourceLocation>& Loc) {
+    std::optional<c::SourceLocation> const& Loc) {
     c::DeclContext*       dc = Decl->getDeclContext();
     std::vector<QualType> result;
 
@@ -598,96 +650,6 @@ void ReflASTVisitor::log_visit(
 }
 
 
-std::vector<QualType> ReflASTVisitor::getNamespaces(
-    const c::ElaboratedType*                elab,
-    const std::optional<c::SourceLocation>& Loc) {
-    HSLOG_TRACE("Get namespace for elaborated type specifier");
-    if (const c::NestedNameSpecifier* nns = elab->getQualifier()) {
-        // Iterate through the Nested Name Specifier, collect them and
-        // reverse order
-        llvm::SmallVector<c::NestedNameSpecifier const*> spaces;
-        while (nns) {
-            spaces.push_back(nns);
-            nns = nns->getPrefix();
-        }
-
-        std::reverse(spaces.begin(), spaces.end());
-        std::vector<QualType> result;
-        bool                  is_global_namespace = false;
-        for (auto const* nns : spaces) {
-            c::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
-            switch (kind) {
-                case c::NestedNameSpecifier::Identifier: {
-                    auto space = &result.emplace_back();
-                    auto name  = nns->getAsIdentifier()->getName().str();
-                    add_debug(
-                        space,
-                        std::format(
-                            "Elaborated name identifier '{}'", name));
-                    space->set_name(name);
-                    assert(!space->name().empty());
-                    break;
-                }
-
-                case c::NestedNameSpecifier::Namespace: {
-                    HSLOG_TRACE("Visit namespace specifier");
-                    auto space = &result.emplace_back();
-                    auto name  = nns->getAsNamespace()->getNameAsString();
-                    add_debug(
-                        space,
-                        std::format("Elaborated type namespace {}", name));
-                    space->set_isnamespace(true);
-                    space->set_name(name);
-                    space->set_isglobalnamespace(is_global_namespace);
-                    is_global_namespace = false;
-                    assert(!space->name().empty());
-                    break;
-                }
-
-                case c::NestedNameSpecifier::Global: {
-                    HSLOG_TRACE("Visit global namespace specifier");
-                    is_global_namespace = true;
-                    break;
-                }
-
-                case c::NestedNameSpecifier::NamespaceAlias: {
-                    auto spaces = getNamespaces(
-                        nns->getAsNamespaceAlias()->getNamespace(), Loc);
-                    result.insert(
-                        result.end(), spaces.begin(), spaces.end());
-                    break;
-                }
-
-                case c::NestedNameSpecifier::TypeSpec: {
-                    auto space  = &result.emplace_back();
-                    auto record = nns->getAsType()->getAsRecordDecl();
-                    auto name   = record->getNameAsString();
-                    add_debug(space, std::format("type spec '{}'", name));
-                    space->set_isnamespace(true);
-                    space->set_isglobalnamespace(is_global_namespace);
-                    is_global_namespace = false;
-                    space->set_name(name);
-                    auto spaces = getNamespaces(record, Loc);
-                    result.insert(
-                        result.begin(), spaces.begin(), spaces.end());
-                    break;
-                }
-
-                default: {
-                    Diag(
-                        DiagKind::Warning,
-                        "Unhadled namespace filler %0 kind '%1'",
-                        Loc)
-                        << kind;
-                }
-            }
-        }
-        return result;
-    } else {
-        return {};
-    }
-}
-
 bool isTypedefOrUsingType(
     clang::ASTContext*     Ctx,
     clang::QualType const& qualType) {
@@ -715,6 +677,95 @@ bool isTypedefOrUsingType(
     return false;
 }
 
+void ReflASTVisitor::fillTemplateParameterList(
+    TemplateParams*                             out,
+    clang::TemplateParameterList*               params,
+    std::optional<clang::SourceLocation> const& Loc) {
+    auto* stack = out->add_stacks();
+
+    for (clang::NamedDecl* param : *params) {
+        auto* out_param = stack->add_params();
+
+        if (auto* typeParam = clang::dyn_cast<clang::TemplateTypeParmDecl>(
+                param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_TYPE);
+            out_param->set_variadic(typeParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(typeParam->getNameAsString());
+            type_expr->set_istemplatetypeparam(true);
+
+            if (typeParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    typeParam->getDefaultArgument().getArgument(),
+                    std::nullopt);
+            }
+
+            if (typeParam->hasTypeConstraint()) {
+                const clang::TypeConstraint*
+                                     TC = typeParam->getTypeConstraint();
+                clang::TemplateDecl* TD = TC->getNamedConcept();
+                if (auto* CD = clang::dyn_cast<clang::ConceptDecl>(TD)) {
+                    out_param->set_concept_(
+                        CD->getCanonicalDecl()->getNameAsString());
+                }
+            }
+
+        } else if (
+            auto* nonTypeParam = clang::dyn_cast<
+                clang::NonTypeTemplateParmDecl>(param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_NON_TYPE);
+            out_param->set_variadic(nonTypeParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(nonTypeParam->getNameAsString());
+
+            fillTypeRec(
+                out_param->add_nontypeconstraint(),
+                nonTypeParam->getType(),
+                std::nullopt);
+
+            if (nonTypeParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    nonTypeParam->getDefaultArgument().getArgument(),
+                    std::nullopt);
+            }
+
+        } else if (
+            auto* templateTemplateParam = clang::dyn_cast<
+                clang::TemplateTemplateParmDecl>(param)) {
+            out_param->set_kind(
+                TemplateParamKind::TEMPLATE_PARAM_KIND_TEMPLATE);
+            out_param->set_variadic(
+                templateTemplateParam->isParameterPack());
+
+            auto* type_expr = out_param->mutable_typeexpr();
+            type_expr->set_name(templateTemplateParam->getNameAsString());
+            type_expr->set_istemplatetypeparam(true);
+
+            if (templateTemplateParam->hasDefaultArgument()) {
+                auto* default_arg = out_param->add_default_();
+                fillTypeRec(
+                    default_arg,
+                    templateTemplateParam->getDefaultArgument()
+                        .getArgument(),
+                    std::nullopt);
+            }
+
+            fillTemplateParameterList(
+                out_param->add_templateparams(),
+                templateTemplateParam->getTemplateParameters(),
+                Loc);
+        }
+    }
+}
+
 void ReflASTVisitor::fillTypeTemplates(
     QualType*                               Out,
     c::QualType const&                      In,
@@ -731,14 +782,14 @@ void ReflASTVisitor::fillTypeTemplates(
 
     c::Type const* type = In.getTypePtr();
 
-    if (auto const* inj = dyn_cast<c::InjectedClassNameType>(type)) {
-        auto const* TST = inj->getInjectedTST();
-        if (TST != nullptr) {
-            add_debug(Out, " templates: injected-class-name");
-            fillArgs(TST->template_arguments());
-        }
-        return;
-    }
+    // if (auto const* inj = dyn_cast<c::InjectedClassNameType>(type)) {
+    //     auto const* TST = inj->getInjectedTST();
+    //     if (TST != nullptr) {
+    //         add_debug(Out, " templates: injected-class-name");
+    //         fillArgs(TST->template_arguments());
+    //     }
+    //     return;
+    // }
 
     if (auto const* TST = dyn_cast<c::TemplateSpecializationType>(type)) {
         add_debug(Out, " templates: template-specialization-type");
@@ -746,17 +797,19 @@ void ReflASTVisitor::fillTypeTemplates(
         return;
     }
 
-    if (auto const* DTST = dyn_cast<
-            c::DependentTemplateSpecializationType>(type)) {
-        add_debug(
-            Out, " templates: dependent-template-specialization-type");
-        fillArgs(DTST->template_arguments());
-        return;
-    }
+    // if (auto const*
+    //         DTST = dyn_cast<c::DependentTemplateSpecializationType>(
+    //             type)) {
+    //     add_debug(
+    //         Out, " templates: dependent-template-specialization-type");
+    //     fillArgs(DTST->template_arguments());
+    //     return;
+    // }
 
     if (auto const* RT = dyn_cast<c::RecordType>(type)) {
-        if (auto const* spec = dyn_cast<
-                c::ClassTemplateSpecializationDecl>(RT->getDecl())) {
+        if (auto const*
+                spec = dyn_cast<c::ClassTemplateSpecializationDecl>(
+                    RT->getDecl())) {
             add_debug(
                 Out, " templates: class-template-specialization-decl");
             fillArgs(spec->getTemplateArgs().asArray());
@@ -765,9 +818,9 @@ void ReflASTVisitor::fillTypeTemplates(
     }
 
     if (auto const* ET = dyn_cast<c::EnumType>(type)) {
-        if (auto const* spec = dyn_cast<
-                c::ClassTemplateSpecializationDecl>(
-                ET->getDecl()->getDeclContext())) {
+        if (auto const*
+                spec = dyn_cast<c::ClassTemplateSpecializationDecl>(
+                    ET->getDecl()->getDeclContext())) {
             add_debug(
                 Out,
                 " templates: enum-in-template-specialization-context");
@@ -804,7 +857,7 @@ void ReflASTVisitor::fillTypeRec(
     }
 
     if (const c::UsingType* usType = In->getAs<c::UsingType>()) {
-        c::UsingShadowDecl* usDecl = usType->getFoundDecl();
+        c::UsingShadowDecl* usDecl = usType->getDecl();
         Out->set_name(usDecl->getNameAsString());
         add_debug(
             Out,
@@ -857,11 +910,6 @@ void ReflASTVisitor::fillTypeRec(
 
             Out->set_name(unqual);
 
-        } else if (
-            c::ElaboratedType const* elab = In->getAs<
-                                            c::ElaboratedType>()) {
-            add_debug(Out, " >elaborated");
-            fillTypeRec(Out, elab->getNamedType(), Loc);
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
             auto const name //
@@ -879,8 +927,8 @@ void ReflASTVisitor::fillTypeRec(
         } else if (In->isFunctionProtoType()) {
             add_debug(Out, " >func");
             Out->set_kind(TypeKind::FunctionPtr);
-            const c::FunctionProtoType* FPT = In->getAs<
-                c::FunctionProtoType>();
+            const c::FunctionProtoType*
+                FPT = In->getAs<c::FunctionProtoType>();
             fillTypeRec(Out->add_parameters(), FPT->getReturnType(), Loc);
             for (c::QualType const& param : FPT->param_types()) {
                 fillTypeRec(Out->add_parameters(), param, Loc);
@@ -889,8 +937,8 @@ void ReflASTVisitor::fillTypeRec(
             add_debug(Out, " >constarray");
             c::ArrayType const* ARRT = dyn_cast<c::ArrayType>(
                 In.getTypePtr());
-            c::ConstantArrayType const* C_ARRT = dyn_cast<
-                c::ConstantArrayType>(ARRT);
+            c::ConstantArrayType const*
+                C_ARRT = dyn_cast<c::ConstantArrayType>(ARRT);
 
             Out->set_kind(TypeKind::Array);
             fillTypeRec(
@@ -916,6 +964,7 @@ void ReflASTVisitor::fillTypeRec(
                 In.getTypePtr())) {
             add_debug(Out, " >templatetypeparmtype");
             Out->set_kind(TypeKind::RegularType);
+            Out->set_istemplatetypeparam(true);
             const c::TemplateTypeParmDecl* D = parm->getDecl();
             if (D != nullptr) {
                 Out->set_name(D->getNameAsString());
@@ -934,6 +983,7 @@ void ReflASTVisitor::fillTypeRec(
             c::CXXRecordDecl* injDecl = inj->getDecl();
             applyNamespaces(Out, getNamespaces(injDecl, Loc));
             Out->set_kind(TypeKind::RegularType);
+            Out->set_istemplateinjectedtype(true);
             if (inj->getDecl()) {
                 Out->set_name(inj->getDecl()->getNameAsString());
             } else {
@@ -972,6 +1022,21 @@ void ReflASTVisitor::fillTypeRec(
             auto param = Out->add_parameters();
             add_debug(param, "SubstTemplateTypeParmType");
             fillTypeRec(param, STTP->getReplacementType(), Loc);
+
+        } else if (
+            const auto* DEP = dyn_cast<c::DependentNameType>(
+                In.getTypePtr())) {
+            add_debug(Out, ">DependentNameType");
+            Out->set_kind(TypeKind::RegularType);
+            Out->set_name(DEP->getIdentifier()->getName());
+            Out->set_istemplateinjectedtype(true);
+            auto parent = Out->add_spaces();
+            fillTypeRec(
+                parent,
+                Ctx->getQualifiedType(
+                    DEP->getQualifier().getAsType(), c::Qualifiers()),
+                Loc);
+
         } else {
             add_debug(
                 Out, std::format("typeclass={}", In->getTypeClassName()));
@@ -988,8 +1053,8 @@ void ReflASTVisitor::fillTypeRec(
 
 void ReflASTVisitor::fillType(
     QualType*                               Out,
-    const c::QualType&                      In,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::QualType const&                      In,
+    std::optional<c::SourceLocation> const& Loc) {
     HSLOG_TRACE("Fill type");
     if (Loc) {
         add_debug(
@@ -1002,8 +1067,8 @@ void ReflASTVisitor::fillType(
 
 void ReflASTVisitor::fillTypeRec(
     QualType*                               Out,
-    const c::TemplateArgument&              Arg,
-    const std::optional<c::SourceLocation>& Loc) {
+    c::TemplateArgument const&              Arg,
+    std::optional<c::SourceLocation> const& Loc) {
 
     switch (Arg.getKind()) {
         case c::TemplateArgument::Type: {
@@ -1057,9 +1122,9 @@ std::optional<std::string> getExprAsString(
 void ReflASTVisitor::fillExpr(
     Expr*                                   Out,
     const c::Expr*                          In,
-    const std::optional<c::SourceLocation>& Loc) {
-    if (const auto* boolLiteral = llvm::dyn_cast<
-            clang::CXXBoolLiteralExpr>(In)) {
+    std::optional<c::SourceLocation> const& Loc) {
+    if (const auto*
+            boolLiteral = llvm::dyn_cast<clang::CXXBoolLiteralExpr>(In)) {
         bool outValue = boolLiteral->getValue();
         Out->set_kind(ExprKind::Lit);
         Out->set_value(outValue ? "true" : "false");
@@ -1148,7 +1213,8 @@ void ReflASTVisitor::fillMethodDecl(
     c::CXXMethodDecl const* method) {
 
     if (auto args = get_refl_params(method)) {
-        sub->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            sub->mutable_reflectionparams(), args.value());
     }
 
     sub->set_name(method->getNameAsString());
@@ -1206,7 +1272,8 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
 
 
     if (auto args = get_refl_params(Decl)) {
-        rec->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            rec->mutable_reflectionparams(), args.value());
     }
 
     fillSharedRecordData(rec, Decl);
@@ -1227,7 +1294,10 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
             // was left by the developers of this frankenstein feature.
             fillType(
                 rec->mutable_name(),
-                Typedef->getASTContext().getTypedefType(Typedef),
+                Typedef->getASTContext().getTypedefType(
+                    clang::ElaboratedTypeKeyword::None,
+                    std::nullopt,
+                    Typedef),
                 Decl->getLocation());
 
             name->set_name(Typedef->getNameAsString());
@@ -1236,7 +1306,10 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
                 auto ed = rec->mutable_recorddefname();
                 fillType(
                     rec->mutable_name(),
-                    Typedef->getASTContext().getTypedefType(Typedef),
+                    Typedef->getASTContext().getTypedefType(
+                        clang::ElaboratedTypeKeyword::None,
+                        std::nullopt,
+                        Typedef),
                     Decl->getLocation());
                 ed->set_name(Decl->getNameAsString());
                 ed->set_tag(TypeTag::TypeTagStruct);
@@ -1246,7 +1319,7 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, c::RecordDecl* Decl) {
         } else {
             fillType(
                 name,
-                Decl->getASTContext().getRecordType(Decl),
+                Decl->getASTContext().getCanonicalTagType(Decl),
                 Decl->getLocation());
             add_debug(name, " > typedef==nullptr");
         }
@@ -1284,10 +1357,9 @@ bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
 }
 
 std::optional<std::string> ReflASTVisitor::getDoc(c::Decl const* Decl) {
-    const c::ASTContext& astContext = Decl->getASTContext();
-    const c::RawComment* rawComment = astContext
-                                          .getRawCommentForDeclNoCache(
-                                              Decl);
+    c::ASTContext const& astContext = Decl->getASTContext();
+    const c::RawComment*
+        rawComment = astContext.getRawCommentForDeclNoCache(Decl);
     if (rawComment) {
         llvm::StringRef commentText = rawComment->getRawText(
             astContext.getSourceManager());
@@ -1308,7 +1380,7 @@ bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {
                 && target_files.find(DeclLoc) != target_files.end();
         }
         case VisitMode::AllMainTranslationUnit: {
-            const c::ASTContext& astContext = Decl->getASTContext();
+            c::ASTContext const& astContext = Decl->getASTContext();
             return astContext.getSourceManager().isInMainFile(
                 Decl->getLocation());
         }
@@ -1321,11 +1393,21 @@ void ReflASTVisitor::fillCxxRecordDecl(
     rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
     fillType(
         rec->mutable_name(),
-        Decl->getASTContext().getRecordType(Decl),
+        Decl->getASTContext().getCanonicalTagType(Decl),
         Decl->getLocation());
 
     if (auto args = get_refl_params(Decl)) {
-        rec->set_reflectionparams(args.value());
+        setReflectionParamsFromJson(
+            rec->mutable_reflectionparams(), args.value());
+    }
+
+    if (clang::
+            ClassTemplateDecl* CTD = Decl->getDescribedClassTemplate()) {
+        rec->set_istemplaterecord(true);
+        fillTemplateParameterList(
+            rec->add_templates(),
+            CTD->getTemplateParameters(),
+            Decl->getLocation());
     }
 
     if (Decl->hasDefinition()) {
@@ -1395,40 +1477,45 @@ void ReflASTVisitor::fillCxxRecordDecl(
                 }
             }
 
-        } else if (c::CXXMethodDecl const* sub = dyn_cast<
-                       c::CXXMethodDecl>(SubDecl);
-                   sub != nullptr) {
+        } else if (
+            c::CXXMethodDecl const* sub = dyn_cast<c::CXXMethodDecl>(
+                SubDecl);
+            sub != nullptr) {
 
             fillMethodDecl(rec->add_methods(), sub);
 
-        } else if (c::CXXConstructorDecl const* sub = dyn_cast<
-                       c::CXXConstructorDecl>(SubDecl);
-                   sub != nullptr) {
+        } else if (
+            c::CXXConstructorDecl const*
+                sub = dyn_cast<c::CXXConstructorDecl>(SubDecl);
+            sub != nullptr) {
 
             fillMethodDecl(rec->add_methods(), sub);
 
-        } else if (c::CXXDestructorDecl const* sub = dyn_cast<
-                       c::CXXDestructorDecl>(SubDecl);
-                   sub != nullptr) {
+        } else if (
+            c::CXXDestructorDecl const*
+                sub = dyn_cast<c::CXXDestructorDecl>(SubDecl);
+            sub != nullptr) {
 
             fillMethodDecl(rec->add_methods(), sub);
 
-        } else if (c::FieldDecl const* sub = dyn_cast<c::FieldDecl>(
-                       SubDecl);
-                   sub != nullptr) {
+        } else if (
+            c::FieldDecl const* sub = dyn_cast<c::FieldDecl>(SubDecl);
+            sub != nullptr) {
 
             if (!sub->isImplicit()) {
                 fillFieldDecl(rec->add_fields(), sub);
             }
 
-        } else if (c::FunctionTemplateDecl const* templ = dyn_cast<
-                       c::FunctionTemplateDecl>(SubDecl);
-                   templ != nullptr) {
+        } else if (
+            c::FunctionTemplateDecl const*
+                templ = dyn_cast<c::FunctionTemplateDecl>(SubDecl);
+            templ != nullptr) {
 
             auto* sub = rec->add_methods();
 
             if (auto args = get_refl_params(templ)) {
-                sub->set_reflectionparams(args.value());
+                setReflectionParamsFromJson(
+                    sub->mutable_reflectionparams(), args.value());
             }
 
             clang::Decl const* templatedDecl = templ->getTemplatedDecl();
@@ -1438,9 +1525,10 @@ void ReflASTVisitor::fillCxxRecordDecl(
 
             if (auto doc = getDoc(templ)) { sub->set_doc(*doc); }
 
-        } else if (c::CXXMethodDecl const* sub = dyn_cast<
-                       c::CXXMethodDecl>(SubDecl);
-                   sub != nullptr) {
+        } else if (
+            c::CXXMethodDecl const* sub = dyn_cast<c::CXXMethodDecl>(
+                SubDecl);
+            sub != nullptr) {
 
             fillMethodDecl(rec->add_methods(), sub);
 
@@ -1524,7 +1612,8 @@ bool ReflASTVisitor::VisitFunctionDecl(c::FunctionDecl* Decl) {
         Function* func = out->add_functions();
 
         if (auto args = get_refl_params(Decl)) {
-            func->set_reflectionparams(args.value());
+            setReflectionParamsFromJson(
+                func->mutable_reflectionparams(), args.value());
         }
 
         func->set_name(Decl->getNameAsString());
@@ -1563,7 +1652,8 @@ bool ReflASTVisitor::VisitEnumDecl(c::EnumDecl* Decl) {
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
 
         if (auto args = get_refl_params(Decl)) {
-            rec->set_reflectionparams(args.value());
+            setReflectionParamsFromJson(
+                rec->mutable_reflectionparams(), args.value());
         }
 
         std::string origin = (Typedef
@@ -1683,8 +1773,8 @@ bool ReflASTVisitor::IndirectFieldDecl(c::IndirectFieldDecl* Decl) {
 }
 
 bool SaveProtobufToJsonFile(
-    const google::protobuf::Message& message,
-    const std::string&               filename,
+    google::protobuf::Message const& message,
+    std::string const&               filename,
     bool                             pretty_print = true) {
     // Configure JSON options
     google::protobuf::util::JsonPrintOptions options;
@@ -1721,10 +1811,10 @@ bool SaveProtobufToJsonFile(
 }
 
 std::string getMainFileAbsolutePath(
-    const clang::CompilerInstance& compilerInstance) {
-    const clang::SourceManager& sourceManager = compilerInstance
+    clang::CompilerInstance const& compilerInstance) {
+    clang::SourceManager const& sourceManager = compilerInstance
                                                     .getSourceManager();
-    clang::FileID mainFileID = sourceManager.getMainFileID();
+    clang::FileID               mainFileID = sourceManager.getMainFileID();
 
     auto fileEntryRef = sourceManager.getFileEntryRefForID(mainFileID);
     if (fileEntryRef) {
@@ -1736,7 +1826,7 @@ std::string getMainFileAbsolutePath(
 
 ReflASTConsumer::ReflASTConsumer(
     clang::CompilerInstance& CI,
-    const ReflectionCLI&     cli)
+    ReflectionCLI const&     cli)
     : out(std::make_unique<TU>())
     , Visitor(&CI.getASTContext(), out.get(), cli)
     , CI(CI)
@@ -1803,7 +1893,7 @@ c::DiagnosticBuilder Diag(
 c::ParsedAttrInfo::AttrHandling ReflAttrInfo::handleDeclAttribute(
     c::Sema&             S,
     c::Decl*             D,
-    const c::ParsedAttr& Attr) const {
+    c::ParsedAttr const& Attr) const {
     c::AnnotateAttr* created = c::AnnotateAttr::Create(
         S.Context,
         Attr.getAttrName()->deuglifiedName(),

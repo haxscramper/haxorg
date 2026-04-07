@@ -230,10 +230,10 @@ class LatexLogParser:
             context_lines=self.get_context_lines(),
         )
 
-        if message.type_ == 'Package':
+        if message.type_ == "Package":
             # package name should be group 2
             message.package = match.group(2)
-        elif message.type_ == 'Class':
+        elif message.type_ == "Class":
             # class should be group 2
             message.class_ = match.group(2)
         elif match.group(2) is not None:
@@ -268,10 +268,10 @@ class LatexLogParser:
         if match.group(1) is not None:
             message.type_ = match.group(1)
 
-            if message.type_ == 'Package':
+            if message.type_ == "Package":
                 # Package name should be group 2
                 message.package = match.group(2)
-            elif message.type_ == 'Class':
+            elif message.type_ == "Class":
                 # Class name should be group 2
                 message.class_ = match.group(2)
             elif match.group(2) is not None:

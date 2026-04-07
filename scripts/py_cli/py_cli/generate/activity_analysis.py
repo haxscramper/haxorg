@@ -147,7 +147,7 @@ def plot_timestamped_events_with_pandas(
     for ax in axes:
         ax.xaxis.grid(True)
         ax.yaxis.grid(False)
-        ax.grid(color='gray', linestyle='--', linewidth=0.5)
+        ax.grid(color="gray", linestyle="--", linewidth=0.5)
 
     fig.autofmt_xdate(rotation=45)
     fig.tight_layout()

@@ -18,13 +18,13 @@ struct hstd::JsonSerde<TestResult::Data> {
         j["kind"] = fmt1(TestResult::getKind(data));
         std::visit(
             overloaded{
-                [&](CR<TestResult::Fail> file) {
+                [&](TestResult::Fail const& file) {
                     j["fail"] = to_json_eval(file);
                 },
-                [&](CR<TestResult::Success> file) {
+                [&](TestResult::Success const& file) {
                     j["success"] = to_json_eval(file);
                 },
-                [&](CR<TestResult::Skip> file) {
+                [&](TestResult::Skip const& file) {
                     j["skip"] = to_json_eval(file);
                 },
             },

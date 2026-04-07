@@ -67,7 +67,7 @@ struct PreorderVisitor {
 
 
 Vec<NodeIdx> hstd::ext::diff::getSubtreeBfs(
-    const SyntaxTree& Tree,
+    SyntaxTree const& Tree,
     NodeIdx           Root) {
     Vec<NodeIdx> Ids;
     size_t       Expanded = 0;
@@ -81,11 +81,11 @@ Vec<NodeIdx> hstd::ext::diff::getSubtreeBfs(
 }
 
 Vec<NodeIdx> hstd::ext::diff::getSubtreePostorder(
-    const SyntaxTree& Tree,
+    SyntaxTree const& Tree,
     NodeIdx           Root) {
     Vec<NodeIdx>        Postorder;
     Func<void(NodeIdx)> Traverse = [&](NodeIdx id) {
-        const diff::Node& N = Tree.getNode(id);
+        diff::Node const& N = Tree.getNode(id);
         for (NodeIdx Subnode : N.Subnodes) { Traverse(Subnode); }
         Postorder.push_back(id);
     };
@@ -229,7 +229,7 @@ void hstd::ext::diff::ASTDiff::matchBottomUp(Mapping& M) const {
         }
 
         bool        Matched = M.hasSrc(Id1);
-        const Node& N1      = src.getNode(Id1);
+        Node const& N1      = src.getNode(Id1);
 
         bool MatchedSubnodes = std::any_of(
             N1.Subnodes.begin(), N1.Subnodes.end(), [&](NodeIdx Subnode) {
@@ -250,7 +250,7 @@ void hstd::ext::diff::ASTDiff::matchBottomUp(Mapping& M) const {
 }
 
 NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
-    const Mapping& M,
+    Mapping const& M,
     NodeIdx        Id1) const {
     NodeIdx Candidate;
     double  HighestSimilarity = 0.0;
@@ -268,11 +268,11 @@ NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
 }
 
 double ASTDiff::getJaccardSimilarity(
-    const Mapping& M,
+    Mapping const& M,
     NodeIdx        Id1,
     NodeIdx        Id2) const {
     int         CommonDescendants = 0;
-    const Node& N1                = src.getNode(Id1);
+    Node const& N1                = src.getNode(Id1);
     // Count the common descendants, excluding the subtree root.
     for (NodeIdx Src = Id1 + 1; Src <= N1.RightMostDescendant; ++Src) {
         NodeIdx Dst = M.getDst(Src);
@@ -309,8 +309,8 @@ void ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
 }
 
 bool ASTDiff::identical(NodeIdx Id1, NodeIdx Id2) const {
-    const Node& N1 = src.getNode(Id1);
-    const Node& N2 = dst.getNode(Id2);
+    Node const& N1 = src.getNode(Id1);
+    Node const& N2 = dst.getNode(Id2);
     if (N1.Subnodes.size() != N2.Subnodes.size()
         || !isMatchingPossible(Id1, Id2)
         || !Options.areValuesEqual(N1, N2)) {
@@ -411,8 +411,8 @@ void ZhangShashaMatcher::computeForestDist(
         for (SubNodeIdx D2 = LMD2 + 1; D2 <= Id2; ++D2) {
             ForestDist[LMD1][D2] = ForestDist[LMD1][D2 - 1]
                                  + opts.InsertionCost;
-            SubNodeIdx DLMD1 = S1.getLeftMostDescendant(D1);
-            SubNodeIdx DLMD2 = S2.getLeftMostDescendant(D2);
+            SubNodeIdx DLMD1     = S1.getLeftMostDescendant(D1);
+            SubNodeIdx DLMD2     = S2.getLeftMostDescendant(D2);
             if (DLMD1 == LMD1 && DLMD2 == LMD2) {
                 double UpdateCost  = getUpdateCost(D1, D2);
                 ForestDist[D1][D2] = std::min(
@@ -441,14 +441,14 @@ void SyntaxTree::FromNode(NodeStore* store) {
 }
 
 void hstd::ext::diff::printDstChange(
-    ColStream&                       os,
-    const ASTDiff&                   Diff,
-    const SyntaxTree&                SrcTree,
-    const SyntaxTree&                DstTree,
-    NodeIdx                          Dst,
-    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
-    const diff::Node& DstNode = DstTree.getNode(Dst);
+    ColStream&                          os,
+    ASTDiff const&                      Diff,
+    SyntaxTree const&                   SrcTree,
+    SyntaxTree const&                   DstTree,
+    NodeIdx                             Dst,
+    Func<ColText(NodeStore::Id const&)> FormatSrcTreeValue,
+    Func<ColText(NodeStore::Id const&)> FormatDstTreeValue) {
+    diff::Node const& DstNode = DstTree.getNode(Dst);
     NodeIdx           Src     = Diff.getMapped(DstTree, Dst);
     switch (DstNode.Change) {
         case ChangeKind::None: {
@@ -488,10 +488,10 @@ void hstd::ext::diff::printDstChange(
 }
 
 void hstd::ext::diff::printNode(
-    ColStream&                       os,
-    const SyntaxTree&                Tree,
-    NodeIdx                          id,
-    Func<ColText(CR<NodeStore::Id>)> ValoStr) {
+    ColStream&                          os,
+    SyntaxTree const&                   Tree,
+    NodeIdx                             id,
+    Func<ColText(NodeStore::Id const&)> ValoStr) {
     if (id.isInvalid()) {
         os << "None";
     } else {
@@ -503,12 +503,12 @@ void hstd::ext::diff::printNode(
 
 
 void hstd::ext::diff::printMapping(
-    ColStream&                       os,
-    ASTDiff const&                   Diff,
-    SyntaxTree const&                SrcTree,
-    SyntaxTree const&                DstTree,
-    Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
-    Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
+    ColStream&                          os,
+    ASTDiff const&                      Diff,
+    SyntaxTree const&                   SrcTree,
+    SyntaxTree const&                   DstTree,
+    Func<ColText(NodeStore::Id const&)> FormatSrcTreeValue,
+    Func<ColText(NodeStore::Id const&)> FormatDstTreeValue) {
 
     for (NodeIdx Dst : DstTree) {
         NodeIdx Src = Diff.getMapped(DstTree, Dst);

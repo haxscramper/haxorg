@@ -135,7 +135,7 @@ class log_sink_manager {
         return sinks_;
     }
 
-    void set_sinks(const std::stack<sink_ptr>& new_sinks) {
+    void set_sinks(std::stack<sink_ptr> const& new_sinks) {
         std::lock_guard<std::mutex> lock(m_);
         sinks_ = new_sinks;
         sync_sinks();
@@ -187,12 +187,12 @@ void hstd::log::clear_sink_backends() {
 namespace {
 
 void format_log_record_data(
-    const boost::log::record_view&  rec,
+    boost::log::record_view const&  rec,
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data,
     bool                            ignoreDepth = false) {
-    auto ts = rec[HSLOG_TIMESTAMP_FIELD]
-                  .extract<boost::posix_time::ptime>();
+    auto        ts           = rec[HSLOG_TIMESTAMP_FIELD]
+                                   .extract<boost::posix_time::ptime>();
     auto        global_depth = rec[HSLOG_SCOPE_DEPTH_FIELD].extract<int>();
     std::string prefix;
 
@@ -265,11 +265,12 @@ sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
     boost::shared_ptr<sink_t> sink{new sink_t(
         boost::log::keywords::file_name     = log_file_name,
         boost::log::keywords::rotation_size = 10 * 1024 * 1024,
-        boost::log::keywords::open_mode = (std::ios_base::out | std::ios_base::trunc),
+        boost::log::keywords::
+            open_mode = (std::ios_base::out | std::ios_base::trunc),
         boost::log::keywords::auto_flush = true //
         )};
 
-    sink->set_formatter([](const boost::log::record_view&  rec,
+    sink->set_formatter([](boost::log::record_view const&  rec,
                            boost::log::formatting_ostream& strm) {
         auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
         LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
@@ -288,7 +289,7 @@ struct log_differential_sink
     Vec<std::string>               curr_run_format;
     log_differential_sink_factory* factory;
 
-    void consume(const boost::log::record_view& rec, std::string const&) {
+    void consume(boost::log::record_view const& rec, std::string const&) {
         auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
         if (!ref) { return; }
 
@@ -365,12 +366,12 @@ hstd::log::log_record& ::hstd::log::log_record::depth(int depth) {
     return *this;
 }
 
-log_record& log_record::source_scope(const Vec<Str>& scope) {
+log_record& log_record::source_scope(Vec<Str> const& scope) {
     data.source_scope = scope;
     return *this;
 }
 
-log_record log_record::from_operations(const OperationsMsg& msg) {
+log_record log_record::from_operations(OperationsMsg const& msg) {
     log_record res;
     if (msg.msg) { res.message(msg.msg.value()); }
     if (msg.file) { res.file(msg.file); }
@@ -381,27 +382,27 @@ log_record log_record::from_operations(const OperationsMsg& msg) {
     return res;
 }
 
-log_record& log_record::prepend_message(const std::string& message) {
+log_record& log_record::prepend_message(std::string const& message) {
     data.message.insert(0, message);
     return *this;
 }
 
-log_record& log_record::source_scope_add(const Str& scope) {
+log_record& log_record::source_scope_add(Str const& scope) {
     data.source_scope.push_back(scope);
     return *this;
 }
 
-log_record& log_record::source_id(const Str& id) {
+log_record& log_record::source_id(Str const& id) {
     data.source_id = id;
     return *this;
 }
 
-log_record& log_record::metadata(const std::shared_ptr<json>& id) {
+log_record& log_record::metadata(std::shared_ptr<json> const& id) {
     data.metadata = id;
     return *this;
 }
 
-log_record& log_record::metadata(const Str& field, const json& value) {
+log_record& log_record::metadata(Str const& field, json const& value) {
     if (!data.metadata) {
         data.metadata = std::make_shared<json>(json::object());
     } else if (!data.metadata->is_object()) {
@@ -518,7 +519,7 @@ bool impl_refl_operator_eq(T const& t1, T const& t2) {
     return r;
 }
 
-bool log_record::log_data::operator==(const log_data& other) const {
+bool log_record::log_data::operator==(log_data const& other) const {
     return impl_refl_operator_eq(*this, other);
 }
 
@@ -565,7 +566,7 @@ template <>
 struct std::formatter<boost::log::attribute_name>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const boost::log::attribute_name& p, FormatContext& ctx)
+    auto format(boost::log::attribute_name const& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.string(), ctx);
     }
@@ -575,7 +576,7 @@ template <>
 struct std::formatter<boost::log::attribute_value>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const boost::log::attribute_value& p, FormatContext& ctx)
+    auto format(boost::log::attribute_value const& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.get_type().pretty_name(), ctx);
     }
@@ -584,8 +585,8 @@ struct std::formatter<boost::log::attribute_value>
 
 sink_ptr hstd::log::set_sink_filter(
     sink_ptr                      sink,
-    Func<bool(const log_record&)> filter) {
-    sink->set_filter([filter](const logging::attribute_value_set& attrs) {
+    Func<bool(log_record const&)> filter) {
+    sink->set_filter([filter](logging::attribute_value_set const& attrs) {
         auto rec = attrs[HSLOG_RECORD_FIELD].extract<log_record>();
 
         LOGIC_ASSERTION_CHECK(

@@ -92,7 +92,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
         Vec<Solution::Ptr>::iterator min = std::min_element(
             solutions.begin(),
             solutions.end(),
-            [](CR<Solution::Ptr> lhs, CR<Solution::Ptr> rhs) {
+            [](Solution::Ptr const& lhs, Solution::Ptr const& rhs) {
                 return lhs->nextKnot() < rhs->nextKnot();
             });
 
@@ -111,7 +111,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
             auto minIt = std::min_element(
                 std::begin(values),
                 std::end(values),
-                [](const float& a, const float& b) { return a < b; });
+                [](float const& a, float const& b) { return a < b; });
             int   iMinSoln    = std::distance(std::begin(values), minIt);
             float minValue    = *minIt;
             float minGradient = gradients[iMinSoln];
@@ -167,7 +167,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
 ///   layouts: a sequence of Layout objects.
 /// Returns:
 ///   A new Layout, stacking the arguments.
-Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
+Layout::Ptr getStacked(Vec<Layout::Ptr> const& layouts) {
     Vec<LayoutElement::Ptr> lElts;
 
     for (const auto& l : layouts) {
@@ -205,7 +205,7 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
             solutions.begin(),
             solutions.end(),
             0.0f,
-            [margin](float sum, const Solution::Ptr& s) {
+            [margin](float sum, Solution::Ptr const& s) {
                 return sum + s->curValueAt(margin);
             });
 
@@ -213,7 +213,7 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
             solutions.begin(),
             solutions.end(),
             0.0f,
-            [](float sum, const Solution::Ptr& s) {
+            [](float sum, Solution::Ptr const& s) {
                 return sum + s->curGradient();
             });
 
@@ -272,7 +272,7 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
 Solution::Ptr hPlusSolution(
     Solution::Ptr& s1,
     Solution::Ptr& s2,
-    const Options& opts) {
+    Options const& opts) {
     LOGIC_ASSERTION_CHECK(s1 != nullptr, "");
     LOGIC_ASSERTION_CHECK(s2 != nullptr, "");
     s1->reset();
@@ -346,7 +346,7 @@ Solution::Ptr hPlusSolution(
 Opt<Solution::Ptr> withRestOfLine(
     Opt<Solution::Ptr> self,
     Opt<Solution::Ptr> rest,
-    CR<Options>        opts) {
+    Options const&     opts) {
     /// Return a Solution::Ptr that joins the rest of the line right of
     /// this one.
     ///
@@ -371,13 +371,13 @@ Opt<Solution::Ptr> doOptLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts);
+    Options const&      opts);
 
 Opt<Solution::Ptr> optLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
     /// Retrieve or compute the least-cost (optimum) layout for this block.
     /// - @arg{rest} :: text to the right of this block.
     /// - @ret{} :: Optimal layout for this block and the rest of the line.
@@ -396,7 +396,7 @@ Opt<Solution::Ptr> doOptTextLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
 
     Opt<Solution::Ptr> result;
     int                span = store.at(self).getText().text.len;
@@ -465,7 +465,7 @@ Opt<Solution::Ptr> doOptLineLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
 
 
     /// Procedure to perform optimal line layout.
@@ -516,7 +516,7 @@ Opt<Solution::Ptr> doOptChoiceLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
 
     /// Optimum layout of this block is the piecewise minimum of its
     /// elements' layouts.
@@ -532,7 +532,7 @@ Opt<Solution::Ptr> doOptStackLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
 
     /// Optimum layout for this block arranges the elements vertically.
     if (store.at(self).getStack().elements.size() == 0) { return rest; }
@@ -571,7 +571,7 @@ Opt<Solution::Ptr> doOptWrapLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
     /// Computing the optimum layout for this class of block involves
     /// finding the optimal packing of elements into lines, a problem
     /// which we address using dynamic programming.
@@ -682,14 +682,14 @@ Opt<Solution::Ptr> doOptVerbLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
     // The solution for this block is essentially that of a TextBlock(''),
     // with an abberant layout calculated as follows.
     Vec<LayoutElement::Ptr> lElts;
 
     for (size_t i = 0; i < store.at(self).getVerb().textLines.size();
          ++i) {
-        const auto& ln = store.at(self).getVerb().textLines[i];
+        auto const& ln = store.at(self).getVerb().textLines[i];
         if (i < 0 || store.at(self).getVerb().firstNl) {
             lElts.push_back(LayoutElement::newline());
         }
@@ -720,7 +720,7 @@ Opt<Solution::Ptr> doOptLayout(
     BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
-    CR<Options>         opts) {
+    Options const&      opts) {
     switch (store.at(self).getKind()) {
         case Block::Kind::Empty: return std::nullopt;
         case Block::Kind::Verb:
@@ -754,7 +754,7 @@ generator<Event> layout::formatEvents(
     buf.addMargin(buf.hPos);
     while (!stack.empty()) {
         while (top().second < top().first->elements.size()) {
-            const auto& elem = top().first->elements[top().second];
+            auto const& elem = top().first->elements[top().second];
             top().second++;
             buf.hPos = std::max(buf.hPos, buf.margin());
             switch (elem->getKind()) {
@@ -809,19 +809,19 @@ generator<Event> layout::formatEvents(
 int Block::size() const {
     return std::visit(
         overloaded{
-            [](CR<Wrap> w) { return w.wrapElements.size(); },
-            [](CR<Stack> s) { return s.elements.size(); },
-            [](CR<Choice> s) { return s.elements.size(); },
-            [](CR<Line> s) { return s.elements.size(); },
-            [](const auto&) { return 0; },
+            [](Wrap const& w) { return w.wrapElements.size(); },
+            [](Stack const& s) { return s.elements.size(); },
+            [](Choice const& s) { return s.elements.size(); },
+            [](Line const& s) { return s.elements.size(); },
+            [](auto const&) { return 0; },
         },
         data);
 }
 
-int Block::leafCount(CR<BlockStore> store) const {
+int Block::leafCount(BlockStore const& store) const {
     auto recurseLeaves = [&](CVec<BlockId> sub) {
         return rs::accumulate(
-            sub | rv::transform([&](CR<BlockId> id) -> int {
+            sub | rv::transform([&](BlockId const& id) -> int {
                 return store.store.at(id).leafCount(store);
             }),
             0);
@@ -829,23 +829,23 @@ int Block::leafCount(CR<BlockStore> store) const {
 
     return std::visit(
         overloaded{
-            [&](CR<Wrap> w) { return recurseLeaves(w.wrapElements); },
-            [&](CR<Stack> s) { return recurseLeaves(s.elements); },
-            [&](CR<Choice> s) { return recurseLeaves(s.elements); },
-            [&](CR<Line> s) { return recurseLeaves(s.elements); },
-            [](const auto&) { return 1; },
+            [&](Wrap const& w) { return recurseLeaves(w.wrapElements); },
+            [&](Stack const& s) { return recurseLeaves(s.elements); },
+            [&](Choice const& s) { return recurseLeaves(s.elements); },
+            [&](Line const& s) { return recurseLeaves(s.elements); },
+            [](auto const&) { return 1; },
         },
         data);
 }
 
-void Block::add(CR<BlockId> other) {
+void Block::add(BlockId const& other) {
     return std::visit(
         overloaded{
             [&](Line& w) { w.elements.push_back(other); },
             [&](Stack& w) { w.elements.push_back(other); },
             [&](Choice& w) { w.elements.push_back(other); },
             [&](Wrap& w) { w.wrapElements.push_back(other); },
-            [&](const auto&) {
+            [&](auto const&) {
                 LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
             },
         },
@@ -859,14 +859,14 @@ void Block::add(CVec<BlockId> others) {
             [&](Stack& w) { w.elements.append(others); },
             [&](Choice& w) { w.elements.append(others); },
             [&](Wrap& w) { w.wrapElements.append(others); },
-            [&](const auto&) {
+            [&](auto const&) {
                 LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
             },
         },
         data);
 }
 
-void BlockStore::add_at(const BlockId& id, const BlockId& next) {
+void BlockStore::add_at(BlockId const& id, BlockId const& next) {
     if (at(next).isLine() || at(next).isStack()) {
         if (at(next).size() == 0) {
             throw std::range_error(
@@ -879,23 +879,23 @@ void BlockStore::add_at(const BlockId& id, const BlockId& next) {
     at(id).add(next);
 }
 
-void BlockStore::add_at(const BlockId& id, const Vec<BlockId>& next) {
+void BlockStore::add_at(BlockId const& id, Vec<BlockId> const& next) {
     for (auto const& it : next) { at(id).add(it); }
 }
 
-BlockId BlockStore::text(CR<LytStrSpan> t) {
+BlockId BlockStore::text(LytStrSpan const& t) {
     return store.add(Block(Block::Text{.text = t}));
 }
 
-BlockId BlockStore::line(CR<Vec<BlockId>> l) {
+BlockId BlockStore::line(Vec<BlockId> const& l) {
     return store.add(Block(Block::Line{.elements = l}));
 }
 
-BlockId BlockStore::stack(CR<Vec<BlockId>> l) {
+BlockId BlockStore::stack(Vec<BlockId> const& l) {
     return store.add(Block(Block::Stack{.elements = l}));
 }
 
-BlockId BlockStore::spatial(bool isVertical, CR<Vec<BlockId>> l) {
+BlockId BlockStore::spatial(bool isVertical, Vec<BlockId> const& l) {
     if (isVertical) {
         return stack(l);
     } else {
@@ -904,10 +904,10 @@ BlockId BlockStore::spatial(bool isVertical, CR<Vec<BlockId>> l) {
 }
 
 BlockId BlockStore::join(
-    CVec<BlockId> items,
-    CR<BlockId>   join,
-    bool          isLine,
-    bool          isTrailing) {
+    CVec<BlockId>  items,
+    BlockId const& join,
+    bool           isLine,
+    bool           isTrailing) {
     BlockId res = spatial(!isLine);
     for (int i = 0; i < items.size(); ++i) {
         if (i < items.high() || isTrailing) {
@@ -919,7 +919,7 @@ BlockId BlockStore::join(
     return res;
 }
 
-BlockId BlockStore::choice(CR<Vec<BlockId>> l) {
+BlockId BlockStore::choice(Vec<BlockId> const& l) {
     return store.add(Block(Block::Choice{.elements = l}));
 }
 
@@ -929,9 +929,9 @@ BlockId BlockStore::space(int count) {
 }
 
 BlockId BlockStore::wrap(
-    CR<Vec<BlockId>> elems,
-    LytStr           sep,
-    int              breakMult) {
+    Vec<BlockId> const& elems,
+    LytStr              sep,
+    int                 breakMult) {
     auto res = store.add(Block(
         Block::Wrap{
             .wrapElements = elems,
@@ -943,7 +943,10 @@ BlockId BlockStore::wrap(
     return res;
 }
 
-BlockId BlockStore::indent(int indent, CR<BlockId> block, int breakMult) {
+BlockId BlockStore::indent(
+    int            indent,
+    BlockId const& block,
+    int            breakMult) {
     if (indent == 0) {
         return block;
     } else {
@@ -952,12 +955,12 @@ BlockId BlockStore::indent(int indent, CR<BlockId> block, int breakMult) {
 }
 
 BlockId BlockStore::vertical(
-    const Vec<BlockId>& blocks,
-    const BlockId&      sep) {
+    Vec<BlockId> const& blocks,
+    BlockId const&      sep) {
     BlockId result = stack({});
 
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
-        const auto& item = blocks[idx];
+        auto const& item = blocks[idx];
         if (idx < blocks.size() - 1) {
             add_at(result, line({item, sep}));
         } else {
@@ -969,12 +972,12 @@ BlockId BlockStore::vertical(
 }
 
 BlockId BlockStore::horizontal(
-    const Vec<BlockId>& blocks,
-    const BlockId&      sep) {
+    Vec<BlockId> const& blocks,
+    BlockId const&      sep) {
     BlockId result = line({});
 
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
-        const auto& item = blocks[idx];
+        auto const& item = blocks[idx];
         if (idx > 0) { add_at(result, sep); }
         add_at(result, item);
     }
@@ -982,18 +985,20 @@ BlockId BlockStore::horizontal(
     return result;
 }
 
-Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
+Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, Options const& opts) {
     Opt<Solution::Ptr> rest;
     auto               sln = doOptLayout(*this, id, rest, opts);
     return sln.value()->layouts;
 }
 
-std::string BlockStore::toTreeRepr(BlockId root, CR<TreeReprConf> conf) {
+std::string BlockStore::toTreeRepr(
+    BlockId             root,
+    TreeReprConf const& conf) {
     std::stringstream               os;
     UnorderedSet<BlockId>           visited;
-    Func<void(const BlockId&, int)> aux;
+    Func<void(BlockId const&, int)> aux;
 
-    aux = [&](const BlockId& blId, int level) -> void {
+    aux = [&](BlockId const& blId, int level) -> void {
         bool         doRecurse = level < conf.maxDepth;
         std::string  pref2     = repeat(" ", level * 2 + 2);
         std::string  name;
@@ -1148,10 +1153,10 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
 
 Vec<Vec<BlockId>> Options::defaultFormatPolicy(
     BlockStore&              store,
-    const Vec<Vec<BlockId>>& blc) {
+    Vec<Vec<BlockId>> const& blc) {
     Vec<Vec<BlockId>> result;
 
-    auto strippedLine = [&](const Vec<BlockId>& line) -> BlockId {
+    auto strippedLine = [&](Vec<BlockId> const& line) -> BlockId {
         return store.line(line);
     };
 
@@ -1170,13 +1175,13 @@ Vec<Vec<BlockId>> Options::defaultFormatPolicy(
     return result;
 }
 
-LytStr SimpleStringStore::str(const std::string& str) {
+LytStr SimpleStringStore::str(std::string const& str) {
     LytStr result(strings.size(), str.length());
     strings.push_back(str);
     return result;
 }
 
-Str SimpleStringStore::str(const LytStr& str) const {
+Str SimpleStringStore::str(LytStr const& str) const {
     if (str.isSpaces()) {
         return Str(" ").repeated(str.len);
     } else {
@@ -1184,7 +1189,7 @@ Str SimpleStringStore::str(const LytStr& str) const {
     };
 }
 
-Str SimpleStringStore::toString(const BlockId& blc, const Options& opts) {
+Str SimpleStringStore::toString(BlockId const& blc, Options const& opts) {
     if (store->at(blc).leafCount(*store) == 0) { return ""; }
     Layout::Ptr lyt = store->toLayout(blc, opts);
     Str         result;

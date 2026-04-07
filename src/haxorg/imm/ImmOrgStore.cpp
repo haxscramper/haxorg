@@ -57,8 +57,8 @@ ImmAstReplace org::imm::setSubnodes(
 
 template <org::imm::IsImmOrgValueType T>
 hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
-    const ImmAdapter&  target,
-    const T&           value,
+    ImmAdapter const&  target,
+    T const&           value,
     ImmAstEditContext& ctx) {
     HSLOG_TRACE(_cat, "Set node value");
 
@@ -143,7 +143,7 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     Vec<SubnodeAssignTarget> const& updatedSubnodes) {
     Vec<SubnodeAssignTarget> sortedUpdatedSubnodes = sorted(
         updatedSubnodes,
-        [](const SubnodeAssignTarget& a, const SubnodeAssignTarget& b) {
+        [](SubnodeAssignTarget const& a, SubnodeAssignTarget const& b) {
             return a.first.first().getFieldName().name
                  < b.first.first().getFieldName().name;
         });
@@ -151,8 +151,8 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     SubnodeAssignGroup grouped //
         = sortedUpdatedSubnodes
         | rv::group_by(
-              [](const SubnodeAssignTarget& a,
-                 const SubnodeAssignTarget& b) -> bool {
+              [](SubnodeAssignTarget const& a,
+                 SubnodeAssignTarget const& b) -> bool {
                   return a.first.first().getFieldName().name
                       == b.first.first().getFieldName().name;
               })
@@ -365,7 +365,7 @@ UnorderedSet<ImmUniqId> getEditParents(
 
 ImmId recurseUpdateSubnodes(
     ImmAdapter                    node,
-    const ImmAstReplaceGroup&     replace,
+    ImmAstReplaceGroup const&     replace,
     ImmAstEditContext&            ctx,
     UnorderedSet<ImmUniqId> const editParents,
     ImmAstReplaceEpoch::Ptr       result);
@@ -514,7 +514,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
 #endif
 }
 
-sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
+sem::SemId<sem::Org> ImmAstStore::get(ImmId id, ImmAstContext const& ctx) {
     sem::SemId<sem::Org> result;
     switch_node_kind(id, [&]<typename K>(org::imm::ImmIdT<K> id) {
         result = getStore<K>()->get(id, ctx);
@@ -530,7 +530,7 @@ const ImmOrg* ImmAstContext::at(ImmId id) const {
     return res;
 }
 
-ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
+ImmId ImmAstContext::at(ImmId node, ImmPathStep const& item) const {
     node.assertValid();
     if (item.path.isSingle() && item.path.first().isIndex()) {
         return value<org::imm::ImmOrg>(node).subnodes.at(
@@ -562,7 +562,7 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
     }
 }
 
-ImmId ImmAstContext::at(const ImmPath& item) const {
+ImmId ImmAstContext::at(ImmPath const& item) const {
     auto result = item.root;
     for (auto const& step : item.path) { result = at(result, step); }
     return result;
@@ -571,7 +571,7 @@ ImmId ImmAstContext::at(const ImmPath& item) const {
 template <org::imm::IsImmOrgValueType T>
 void ImmAstKindStore<T>::format(
     ColStream&         os,
-    const std::string& linePrefix) const {
+    std::string const& linePrefix) const {
     bool       isFirst = true;
     Vec<ImmId> ids;
     for (auto const& it : values.id_map) { ids.push_back(it.second); }
@@ -587,7 +587,7 @@ void ImmAstKindStore<T>::format(
 }
 
 
-void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
+void ImmAstStore::format(ColStream& os, std::string const& prefix) const {
 #define _kind(__Kind)                                                     \
     if (!store##__Kind.empty()) {                                         \
         os << fmt(                                                        \
@@ -602,24 +602,24 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #undef _kind
 }
 
-void ImmAstContext::format(ColStream& os, const std::string& prefix)
+void ImmAstContext::format(ColStream& os, std::string const& prefix)
     const {
     os << fmt("{}ImmAstStore\n", prefix);
     store->format(os, prefix + "  ");
 }
 
-ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
+ImmAdapter ImmAstContext::adapt(ImmUniqId const& id) const {
     return org::imm::ImmAdapter{id, mweak_from_this()};
 }
 
-ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
+ImmAdapter ImmAstContext::adaptUnrooted(ImmId const& id) const {
     return org::imm::ImmAdapter{
         org::imm::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
-    const org::imm::ImmAdapter&                                      root,
+    org::imm::ImmAdapter const&                                      root,
     Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
     auto replace = cb(shared_from_this(), ctx);
@@ -943,15 +943,15 @@ void assign_sem_field(
 #include "ImmOrgSerde.tcc"
 
 ImmId imm::immer_from_sem(
-    const sem::SemId<sem::Org>& id,
+    sem::SemId<sem::Org> const& id,
     ImmAstEditContext&          ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
 }
 
 
 sem::SemId<sem::Org> imm::sem_from_immer(
-    const ImmId&         id,
-    const ImmAstContext& ctx) {
+    ImmId const&         id,
+    ImmAstContext const& ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
 }
 
@@ -983,7 +983,7 @@ ImmId_t imm::ImmAstKindStore<ImmType>::add(
 }
 
 template <IsImmOrgValueType T>
-ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
+ImmId ImmAstKindStore<T>::add(T const& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
     // HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
@@ -1009,7 +1009,7 @@ mask:              {:064b}
 template <IsImmOrgValueType T>
 sem::SemId<sem::Org> ImmAstKindStore<T>::get(
     ImmId                id,
-    const ImmAstContext& ctx) {
+    ImmAstContext const& ctx) {
     if (id.isNil()) {
         return sem::SemId<sem::Org>::Nil();
     } else {

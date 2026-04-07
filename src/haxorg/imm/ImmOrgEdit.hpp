@@ -38,20 +38,20 @@ enum class SubtreeMove
 
 
 
-[[refl]] ImmAstReplace replaceNode(const ImmAdapter &target, const ImmId &value, ImmAstEditContext &ctx);
-[[refl]] ImmAstReplaceGroup demoteSubtree(hstd::CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
-[[refl]] hstd::Vec<ImmAstReplace> promoteSubtree(hstd::CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace setSubnode(hstd::CR<ImmAdapter> node, org::imm::ImmId newSubnode, int position, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace insertSubnode(hstd::CR<ImmAdapter> node, ImmId add, int position, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace insertSubnodes(hstd::CR<ImmAdapter> node, hstd::Vec<ImmId> add, int position, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace appendSubnode(hstd::CR<ImmAdapter> node, ImmId add, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace dropSubnode(hstd::CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace dropSubnode(hstd::CR<ImmAdapter> node, org::imm::ImmId subnode, ImmAstEditContext& ctx);
-[[refl]] hstd::Opt<ImmAstReplace> moveSubnode(hstd::CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
-[[refl]] hstd::Pair<ImmAstReplace, org::imm::ImmId> popSubnode(hstd::CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
-[[refl]] ImmAstReplace swapSubnode(hstd::CR<ImmAdapter> node, int from, int to, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace replaceNode(ImmAdapter const& target, ImmId const& value, ImmAstEditContext &ctx);
+[[refl]] ImmAstReplaceGroup demoteSubtree(imm::ImmAdapter const& node, SubtreeMove move, ImmAstEditContext& ctx);
+[[refl]] hstd::Vec<ImmAstReplace> promoteSubtree(imm::ImmAdapter const& node, SubtreeMove move, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace setSubnode(imm::ImmAdapter const& node, org::imm::ImmId newSubnode, int position, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace insertSubnode(imm::ImmAdapter const& node, ImmId add, int position, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace insertSubnodes(imm::ImmAdapter const& node, hstd::Vec<ImmId> add, int position, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace appendSubnode(imm::ImmAdapter const& node, ImmId add, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace dropSubnode(imm::ImmAdapter const& node, int position, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace dropSubnode(imm::ImmAdapter const& node, org::imm::ImmId subnode, ImmAstEditContext& ctx);
+[[refl]] hstd::Opt<ImmAstReplace> moveSubnode(imm::ImmAdapter const& node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
+[[refl]] hstd::Pair<ImmAstReplace, org::imm::ImmId> popSubnode(imm::ImmAdapter const& node, int position, ImmAstEditContext& ctx);
+[[refl]] ImmAstReplace swapSubnode(imm::ImmAdapter const& node, int from, int to, ImmAstEditContext& ctx);
 /// \brief Move subnode up/down with the structural movements -- jumping over spaces, newlines etc.
-[[refl]] hstd::Opt<ImmAstReplace> moveSubnodeStructural(hstd::CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx);
+[[refl]] hstd::Opt<ImmAstReplace> moveSubnodeStructural(imm::ImmAdapter const& node, int position, int offset, ImmAstEditContext& ctx);
 
 // clang-format on
 
@@ -146,7 +146,7 @@ struct OrgDocumentSelector : hstd::OperationsTracer {
         hstd::Opt<OrgSelectorLink> link     = std::nullopt);
 
     void searchAnyKind(
-        const hstd::IntSet<OrgSemKind>& kinds,
+        hstd::IntSet<OrgSemKind> const& kinds,
         bool                            isTarget,
         hstd::Opt<OrgSelectorLink>      link = std::nullopt);
 

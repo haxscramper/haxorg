@@ -1160,11 +1160,10 @@ message DocumentExportConfig {
   optional bool                                    tables                           = 27;
   optional int32                                   headlineLevels                   = 28;
   DocumentExportConfig.BrokenLinks                 brokenLinks                      = 29;
-  DocumentExportConfig.TocExport                   tocExport                        = 30;
-  DocumentExportConfig.TagExport                   tagExport                        = 31;
-  DocumentExportConfig.TaskFiltering               taskFiltering                    = 32;
-  DocumentExportConfig.ArchivedTrees               archivedTrees                    = 33;
-  DocumentExportConfig.TocExport                   data                             = 34;
+  DocumentExportConfig.TagExport                   tagExport                        = 30;
+  DocumentExportConfig.TaskFiltering               taskFiltering                    = 31;
+  DocumentExportConfig.ArchivedTrees               archivedTrees                    = 32;
+  DocumentExportConfig.TocExport                   tocExport                        = 33;
   string                                           debug                            = 1000;
 }
 

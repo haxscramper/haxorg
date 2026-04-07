@@ -24,7 +24,7 @@ HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeGroup);
 HSTD_REGISTER_TYPE_FIELD_NAMES(DiaNodeItem);
 
 hstd::described_predicate_result isSubtreeItem(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree) {
     if (hasArgsProperty(subtree, DiaPropertyNames::isDiagramNode)) {
         return true;
     } else {
@@ -39,7 +39,7 @@ hstd::described_predicate_result isSubtreeItem(
 }
 
 hstd::described_predicate_result isSubtreeLayer(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree) {
     return hstd::described_predicate_error::init(
         "placeholder predicate temporary");
 }
@@ -47,7 +47,7 @@ hstd::described_predicate_result isSubtreeLayer(
 
 DiaNodeItem FromSubtreeItem(
     hstd::SPtr<DiaContext> const&                      context,
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree) {
     LOGIC_ASSERTION_CHECK_DESCRIBED(isSubtreeItem(subtree));
 
     DiaNodeItem item;
@@ -58,9 +58,9 @@ DiaNodeItem FromSubtreeItem(
 
 hstd::Vec<DiaId> FromSubtreeItemRec(
     hstd::SPtr<DiaContext> const&                      context,
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree) {
     auto aux = [&context](
-                   const org::imm::ImmAdapterT<org::imm::ImmSubtree>& node,
+                   org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
                    auto&& self) -> hstd::Vec<DiaId> {
         // HSLOG_TRACE(
         //     "Subtree item '{}' {}", node.getCleanTitle(), node.uniq());
@@ -88,7 +88,7 @@ hstd::Vec<DiaId> FromSubtreeItemRec(
 
 DiaAdapter FromDocument(
     hstd::SPtr<DiaContext> const&                       context,
-    const org::imm::ImmAdapterT<org::imm::ImmDocument>& root) {
+    org::imm::ImmAdapterT<org::imm::ImmDocument> const& root) {
     HSLOG_INFO("Creating canvas from {}", root.uniq());
     HSLOG_DEPTH_SCOPE_ANON();
     auto canvas = DiaNodeCanvas{};
@@ -145,7 +145,7 @@ namespace {
 using ProcessedNodes = hstd::UnorderedSet<DiaUniqId>;
 using NodesByDiaId   = hstd::UnorderedMap<DiaId, std::vector<int>>;
 
-NodesByDiaId buildNodeIndex(const std::vector<DiaAdapter>& subnodes) {
+NodesByDiaId buildNodeIndex(std::vector<DiaAdapter> const& subnodes) {
     NodesByDiaId nodesByDiaId;
     for (int i = 0; i < subnodes.size(); ++i) {
         nodesByDiaId[subnodes.at(i).getDiaId()].push_back(i);
@@ -154,9 +154,9 @@ NodesByDiaId buildNodeIndex(const std::vector<DiaAdapter>& subnodes) {
 }
 
 int countUnprocessedNodes(
-    const std::vector<int>&        indices,
-    const std::vector<DiaAdapter>& subnodes,
-    const ProcessedNodes&          processed) {
+    std::vector<int> const&        indices,
+    std::vector<DiaAdapter> const& subnodes,
+    ProcessedNodes const&          processed) {
     int count = 0;
     for (int idx : indices) {
         if (!processed.contains(subnodes.at(idx).id)) { count++; }
@@ -165,17 +165,17 @@ int countUnprocessedNodes(
 }
 
 std::optional<int> findMatchingByDiaId(
-    const DiaAdapter&              dstSubnode,
-    const NodesByDiaId&            srcSubnodesByDiaId,
-    const std::vector<DiaAdapter>& srcSubnodes,
-    const ProcessedNodes&          processedSrc) {
+    DiaAdapter const&              dstSubnode,
+    NodesByDiaId const&            srcSubnodesByDiaId,
+    std::vector<DiaAdapter> const& srcSubnodes,
+    ProcessedNodes const&          processedSrc) {
 
     auto srcIndicesIt = srcSubnodesByDiaId.find(dstSubnode.getDiaId());
     if (srcIndicesIt == srcSubnodesByDiaId.end()) { return std::nullopt; }
 
     std::optional<int> matchingSrcIndex;
     for (int srcIndex : srcIndicesIt->second) {
-        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        auto const& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)
             && srcSubnode.getKind() == dstSubnode.getKind()) {
             if (srcSubnode.id == dstSubnode.id) {
@@ -192,12 +192,12 @@ std::optional<int> findMatchingByDiaId(
 }
 
 std::optional<int> findMatchingByKind(
-    const DiaAdapter&              dstSubnode,
-    const std::vector<DiaAdapter>& srcSubnodes,
-    const ProcessedNodes&          processedSrc) {
+    DiaAdapter const&              dstSubnode,
+    std::vector<DiaAdapter> const& srcSubnodes,
+    ProcessedNodes const&          processedSrc) {
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
-        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        auto const& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)
             && srcSubnode.getKind() == dstSubnode.getKind()) {
             return srcIndex;
@@ -207,10 +207,10 @@ std::optional<int> findMatchingByKind(
 }
 
 bool shouldPreferInsert(
-    const DiaAdapter&              dstSubnode,
-    const NodesByDiaId&            dstSubnodesByDiaId,
-    const std::vector<DiaAdapter>& dstSubnodes,
-    const ProcessedNodes&          processedDst,
+    DiaAdapter const&              dstSubnode,
+    NodesByDiaId const&            dstSubnodesByDiaId,
+    std::vector<DiaAdapter> const& dstSubnodes,
+    ProcessedNodes const&          processedDst,
     int                            unprocessedSrcCount) {
 
     auto dstIndicesIt = dstSubnodesByDiaId.find(dstSubnode.getDiaId());
@@ -223,8 +223,8 @@ bool shouldPreferInsert(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&   srcSubnode,
-    const DiaAdapter&   dstSubnode,
+    DiaAdapter const&   srcSubnode,
+    DiaAdapter const&   dstSubnode,
     int                 srcIndex,
     int                 dstIndex,
     hstd::Vec<DiaEdit>& results,
@@ -239,11 +239,11 @@ struct MatchCandidate {
 };
 
 std::optional<MatchCandidate> findBestMatch(
-    const DiaAdapter&              dstSubnode,
+    DiaAdapter const&              dstSubnode,
     int                            dstIndex,
-    const NodesByDiaId&            srcSubnodesByDiaId,
-    const std::vector<DiaAdapter>& srcSubnodes,
-    const ProcessedNodes&          processedSrc) {
+    NodesByDiaId const&            srcSubnodesByDiaId,
+    std::vector<DiaAdapter> const& srcSubnodes,
+    ProcessedNodes const&          processedSrc) {
 
     HSLOG_TRACE(
         "Finding best match for dstSubnode:{} at dstIndex:{}",
@@ -264,7 +264,7 @@ std::optional<MatchCandidate> findBestMatch(
     std::optional<MatchCandidate> moveCandidate;
 
     for (int srcIndex : srcIndicesIt->second) {
-        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        auto const& srcSubnode = srcSubnodes.at(srcIndex);
         if (processedSrc.contains(srcSubnode.id)
             || srcSubnode.getKind() != dstSubnode.getKind()) {
             continue;
@@ -341,7 +341,7 @@ bool recurseMatchCandidate(
     MatchCandidate const&        matchCandidate,
     int                          dstIndex,
     hstd::Vec<DiaEdit>&          results) {
-    const auto& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
+    auto const& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
     TRACKED_SCOPE("recurse candidate");
 
     HSLOG_TRACE(
@@ -389,8 +389,8 @@ bool recurseMatchCandidate(
 }
 
 void diffSubnodes(
-    const DiaAdapter&   srcNode,
-    const DiaAdapter&   dstNode,
+    DiaAdapter const&   srcNode,
+    DiaAdapter const&   dstNode,
     hstd::Vec<DiaEdit>& results) {
 
     if (srcNode->subnodes.empty() && dstNode->subnodes.empty()) { return; }
@@ -466,7 +466,7 @@ void diffSubnodes(
 
 
     for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
-        const auto& srcSubnode = srcSubnodes.at(srcIndex);
+        auto const& srcSubnode = srcSubnodes.at(srcIndex);
         if (!processedSrc.contains(srcSubnode.id)) {
             HSLOG_TRACE(
                 "Creating Delete edit for srcIndex:{} srcSubnode:{}",
@@ -480,8 +480,8 @@ void diffSubnodes(
 }
 
 void processMatchedSubnodes(
-    const DiaAdapter&   srcSubnode,
-    const DiaAdapter&   dstSubnode,
+    DiaAdapter const&   srcSubnode,
+    DiaAdapter const&   dstSubnode,
     int                 srcIndex,
     int                 dstIndex,
     hstd::Vec<DiaEdit>& results,
@@ -533,9 +533,9 @@ void processMatchedSubnodes(
 } // namespace
 
 hstd::Vec<DiaEdit> getEdits(
-    const DiaAdapter&  srcRoot,
-    const DiaAdapter&  dstRoot,
-    const DiaEditConf& confi) {
+    DiaAdapter const&  srcRoot,
+    DiaAdapter const&  dstRoot,
+    DiaEditConf const& confi) {
     hstd::Vec<DiaEdit> results;
     HSLOG_INFO(_cat, "getEdits");
     HSLOG_DEPTH_SCOPE_ANON();
@@ -627,8 +627,8 @@ hstd::Vec<hstd::Pair<DiaAdapter, DiaAdapter>> DiaAdapter::getAncestorPairs(
 }
 
 DiaAdapter DiaAdapter::at(
-    const DiaId&                 at_id,
-    const org::imm::ImmPathStep& step) const {
+    DiaId const&                 at_id,
+    org::imm::ImmPathStep const& step) const {
     hstd::logic_assertion_check_not_nil(at_id);
     return DiaAdapter{DiaUniqId{at_id, id.root, id.path.add(step)}, ctx};
 }
@@ -646,7 +646,7 @@ hstd::Vec<DiaAdapter> DiaAdapter::sub(bool withPath) const {
     return result;
 }
 
-hstd::ColText DiaAdapter::format(const TreeReprConf& conf) const {
+hstd::ColText DiaAdapter::format(TreeReprConf const& conf) const {
     hstd::ColStream                          os;
     hstd::Func<void(DiaAdapter const&, int)> aux;
 
@@ -703,9 +703,9 @@ DiaAdapter DiaAdapter::at(int idx, bool withPath) const {
 }
 
 hstd::ext::Graphviz::Graph getEditMappingGraphviz(
-    const DiaAdapter&         src,
-    const DiaAdapter&         dst,
-    const hstd::Vec<DiaEdit>& edits) {
+    DiaAdapter const&         src,
+    DiaAdapter const&         dst,
+    hstd::Vec<DiaEdit> const& edits) {
     using namespace hstd::ext;
     using G = Graphviz;
 
@@ -776,7 +776,7 @@ hstd::ext::Graphviz::Graph getEditMappingGraphviz(
     return g;
 }
 
-hstd::Vec<int> asIndexPath(const org::imm::ImmPath& path) {
+hstd::Vec<int> asIndexPath(org::imm::ImmPath const& path) {
     hstd::Vec<int> result;
     for (auto const& it : path.path) {
         LOGIC_ASSERTION_CHECK_FMT(it.path.at(0).isFieldName(), "");
@@ -792,7 +792,7 @@ hstd::Vec<int> asIndexPath(const org::imm::ImmPath& path) {
     return result;
 }
 
-DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
+DiaId DiaContext::at(DiaId node, org::imm::ImmPathStep const& item) const {
     hstd::logic_assertion_check_not_nil(node);
     if (item.path.isSingle() && item.path.first().isIndex()) {
         return value<DiaNode>(node).subnodes.at(
@@ -823,7 +823,7 @@ DiaId DiaContext::at(DiaId node, const org::imm::ImmPathStep& item) const {
     }
 }
 
-DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
+DiaId DiaContext::at(DiaId root, org::imm::ImmPath const& path) const {
     DiaId result = root;
     HSLOG_DEBUG_FMT1(result);
     for (auto const& step : path.path) {
@@ -837,7 +837,7 @@ DiaId DiaContext::at(DiaId root, const org::imm::ImmPath& path) const {
 
 int DiaEditTransientState::updateIdx(
     int                   index,
-    const hstd::Vec<int>& parentPath) {
+    hstd::Vec<int> const& parentPath) {
     auto it = applied.find(parentPath);
     if (it == applied.end()) { return index; }
 
@@ -857,8 +857,8 @@ int DiaEditTransientState::updateIdx(
 }
 
 org::imm::ImmPath toImmPath(
-    const org::imm::ImmId& root,
-    const hstd::Vec<int>&  path) {
+    org::imm::ImmId const& root,
+    hstd::Vec<int> const&  path) {
     hstd::Vec<org::imm::ImmPathStep> result;
     for (int const& idx : path) {
         result.push_back(
@@ -895,7 +895,7 @@ DiaAdapter DiaEdit::getSrc() const {
     }
 }
 
-const DiaNode* DiaNodeStore::at(const DiaId& id) const {
+const DiaNode* DiaNodeStore::at(DiaId const& id) const {
     DiaNode const* res = nullptr;
     switch_dia_id(id, [&]<typename K>(DiaIdT<K> id) {
         res = getStore<K>()->at(id);
@@ -941,31 +941,31 @@ std::size_t dia_hash_build(T const& value) {
 
 
 std::size_t std::hash<DiaNodeLayer>::operator()(
-    const DiaNodeLayer& it) const noexcept {
+    DiaNodeLayer const& it) const noexcept {
     return dia_hash_build(it);
 }
 
 std::size_t std::hash<DiaNode>::operator()(
-    const DiaNode& it) const noexcept {
+    DiaNode const& it) const noexcept {
     return dia_hash_build(it);
 }
 
 std::size_t std::hash<DiaNodeCanvas>::operator()(
-    const DiaNodeCanvas& it) const noexcept {
+    DiaNodeCanvas const& it) const noexcept {
     return dia_hash_build(it);
 }
 
 std::size_t std::hash<DiaNodeGroup>::operator()(
-    const DiaNodeGroup& it) const noexcept {
+    DiaNodeGroup const& it) const noexcept {
     return dia_hash_build(it);
 }
 
 std::size_t std::hash<DiaNodeItem>::operator()(
-    const DiaNodeItem& it) const noexcept {
+    DiaNodeItem const& it) const noexcept {
     return dia_hash_build(it);
 }
 
 std::size_t std::hash<DiaNodeEdge>::operator()(
-    const DiaNodeEdge& it) const noexcept {
+    DiaNodeEdge const& it) const noexcept {
     return dia_hash_build(it);
 }

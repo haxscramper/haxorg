@@ -8,7 +8,7 @@
 using namespace org::parse;
 using namespace hstd;
 
-void OrgTokenizer::report(CR<Report> in) {
+void OrgTokenizer::report(Report const& in) {
     if (!TraceState) { return; }
     if (reportHook) { reportHook(in); }
 

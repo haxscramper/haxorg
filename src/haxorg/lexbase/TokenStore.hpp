@@ -140,7 +140,7 @@ struct std::formatter<org::parse::TokenGroup<K, V>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const org::parse::TokenGroup<K, V>& p,
+        org::parse::TokenGroup<K, V> const& p,
         FormatContext&                      ctx) {
         std::formatter<std::string> fmt;
         for (const auto& [idx, tok] : p.tokens.pairs()) {

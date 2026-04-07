@@ -151,7 +151,7 @@ def parse_haxorg_env_value(value: str, type_hint: Optional[str] = None) -> Any:
         pass
 
     # Try to parse as JSON (for lists/dicts)
-    if value.startswith(('[', '{')):
+    if value.startswith(("[", "{")):
         try:
             return json.loads(value)
         except json.JSONDecodeError:

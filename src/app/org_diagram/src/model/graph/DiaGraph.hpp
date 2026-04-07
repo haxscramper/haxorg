@@ -73,8 +73,8 @@ struct DiaGraphVertex : public org::graph::IVertex {
     virtual bool isEqual(const IGraphObjectBase* other) const override;
     virtual std::string getRepr() const override;
     virtual json        getSerialNonRecursive(
-               org::graph::IGraph const*   graph,
-               org::graph::VertexID const& id) const override;
+        org::graph::IGraph const*   graph,
+        org::graph::VertexID const& id) const override;
 };
 
 template <>
@@ -142,11 +142,11 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
     }
 
     virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
-        const org::graph::VertexID& vert) override;
+        org::graph::VertexID const& vert) override;
 
 
     virtual const org::graph::IEdge& getEdge(
-        const org::graph::EdgeID& id) const override {
+        org::graph::EdgeID const& id) const override {
         return store.at(id);
     }
 };
@@ -187,11 +187,11 @@ class DiaSubtreeIdTracker : public org::graph::IPropertyTracker {
     }
 
 
-    virtual void trackVertex(const org::graph::VertexID& vertex) override;
+    virtual void trackVertex(org::graph::VertexID const& vertex) override;
     virtual void untrackVertex(
-        const org::graph::VertexID& vertex) override;
+        org::graph::VertexID const& vertex) override;
     virtual hstd::Vec<org::graph::VertexID> getVertices(
-        const org::graph::IProperty& prop) override;
+        org::graph::IProperty const& prop) override;
 };
 
 class DiaDescriptionListEdge : public org::graph::IEdge {
@@ -226,7 +226,7 @@ class DiaDescriptionListEdge : public org::graph::IEdge {
 
     virtual json getSerialNonRecursive(
         const org::graph::IGraph* graph,
-        const org::graph::EdgeID& id) const override;
+        org::graph::EdgeID const& id) const override;
 };
 
 class DiaDescriptionListEdgeCollection
@@ -243,7 +243,7 @@ class DiaDescriptionListEdgeCollection
         : graph{graph}, tracker{tracker} {}
 
     virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
-        const org::graph::VertexID& vert) override;
+        org::graph::VertexID const& vert) override;
 
     virtual org::graph::EdgeCategoryID getCategory() const override {
         return org::graph::EdgeCategoryID(
@@ -256,7 +256,7 @@ class DiaDescriptionListEdgeCollection
     }
 
     virtual const org::graph::IEdge& getEdge(
-        const org::graph::EdgeID& id) const override {
+        org::graph::EdgeID const& id) const override {
         return store.at(id);
     }
 };

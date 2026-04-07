@@ -11,7 +11,7 @@ class ElkLayoutEngine {
 
     bool        initialize(std::string const& classPathJar);
     void        shutdown();
-    std::string performLayout(const std::string& inputJson);
+    std::string performLayout(std::string const& inputJson);
     bool        isInitialized() const;
 
   private:

@@ -1,0 +1,70 @@
+{
+  "$schema" : "proto_lib/TU.schema.json",
+  "records" : [
+    {
+      "name"              : {
+        "spaces": [ {"name": "std"} ],
+        "name"  : "optional"
+      },
+      "reflection_params" : {
+        "backend": {
+          "target_backends": ["c"],
+          "c"              : {
+            "instantiation_mode"       : "void-handle",
+            "value_template_parameters": ["T"]
+          }
+        }
+      },
+      "is_template_record": true,
+      "templates"         : [
+        {
+          "stacks": [
+            {
+              "params": [
+                {
+                  "type_expr": {
+                    "name"                  : "T",
+                    "is_template_type_param": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "methods"           : [
+        {
+          "name"             : "value",
+          "return_ty"        : {
+            "ref_kind": "LValue",
+            "name": "T",
+            "is_template_type_param": true,
+            "qualifiers": [ {"is_const": true} ]
+          },
+          "reflection_params": {
+            "backend": { "c": {"pointer_through_lambda": true} }
+          }
+        }
+      ]
+    }
+  ],
+  "typedefs": [
+    {
+      "name"             : {
+        "name"      : "Opt",
+        "spaces"    : [ {"name": "hstd"} ],
+        "parameters": [ {"name": "T", "is_template_type_param": true} ]
+      },
+      "base_type"        : {
+        "name"      : "optional",
+        "spaces"    : [ {"name": "std"} ],
+        "parameters": [ {"name": "T", "is_template_type_param": true} ]
+      },
+      "reflection_params": {
+        "backend"       : { "target_backends": ["c"] },
+        "expand_typedef": true,
+        "debug"         : "Typedef in extra codegen types"
+      }
+    }
+  ]
+}

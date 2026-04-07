@@ -1,5 +1,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 
+#undef emit
+#undef slots
 
 #include <llvm/Support/CommandLine.h>
 #include <clang/Tooling/CommonOptionsParser.h>

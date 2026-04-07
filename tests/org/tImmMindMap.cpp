@@ -22,17 +22,19 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
     void addNodeRec(
         std::shared_ptr<org::imm::ImmAstContext> const& ast,
-        CR<imm::ImmAdapter>                             node) {
+        imm::ImmAdapter const&                          node) {
         graph->addNodeRec(ast, node, conf);
     }
 
-    void writeGraphviz(CR<fs::path> name) {
+    void writeGraphviz(fs::path const& name) {
         hstd::ext::Graphviz gvc;
         auto                gv = graph->graph->toGraphviz(start);
         gvc.renderToFile(name, gv);
     }
 
-    void setGraphTrace(CR<fs::path> name) { conf->dbg.setTraceFile(name); }
+    void setGraphTrace(fs::path const& name) {
+        conf->dbg.setTraceFile(name);
+    }
 };
 
 
@@ -902,7 +904,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         *s1->graph,
         MapNode{file.at({1, 1, 0}).uniq()},
         hstd::ext::boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
-            [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+            [&, index = 0](MapNode const& n, MapGraph const&) mutable {
                 forwardBfsExamineOrder.insert_or_assign(n, index);
                 ++index;
             }));
@@ -913,7 +915,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         hstd::ext::boost_lambda_bfs_visitor<MapGraphUndirected>{}
             .set_examine_vertex(
                 [&, index = 0](
-                    CR<MapNode> n, CR<MapGraphUndirected>) mutable {
+                    MapNode const& n, MapGraphUndirected const&) mutable {
                     undirectedBfsExamineOrder.insert_or_assign(n, index);
                     ++index;
                 }));
@@ -923,7 +925,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         MapNode{file.at({1, 1, 0}).uniq()},
         hstd::ext::boost_lambda_dfs_visitor<MapGraph>{}
             .set_discover_vertex(
-                [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+                [&, index = 0](MapNode const& n, MapGraph const&) mutable {
                     forwardDfsDiscoverOrder.insert_or_assign(n, index);
                     ++index;
                 }));

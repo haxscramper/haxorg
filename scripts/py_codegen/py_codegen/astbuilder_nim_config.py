@@ -1,16 +1,15 @@
-from os import rename
-
-from py_codegen.astbuilder_base_config import AstbulderConfig
-from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
-from beartype import beartype
-from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Callable
 from dataclasses import dataclass, field
+from os import rename
 from pathlib import Path
 import re
 
+from beartype import beartype
+from beartype.typing import Callable, List, Optional
+from py_codegen import codegen_ir
+from py_codegen.astbuilder_base_config import AstbulderConfig
+from py_codegen.codegen_ir import QualType
 from py_haxorg.layout.wrap import BlockId
+from pydantic import BaseModel, Field
 
 
 class WrapRenameRule(BaseModel):
@@ -66,6 +65,9 @@ class NimAstbuilderConfig(AstbulderConfig):
 
     def getHeaderStrForPath(self, path: Path) -> str:
         return str(path)
+
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        return self._isExposedByBackendImpl(entry, "nim")
 
     def getBackendType(self, t: QualType) -> QualType:
         pass

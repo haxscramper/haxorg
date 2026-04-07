@@ -1,14 +1,30 @@
 {
-  "develop_ci_conf"    : {"emscripten_deps": false, "emscripten_build": false, "emscripten_test": false},
+  "develop_ci_conf"    : {
+    "emscripten_deps" : false,
+    "emscripten_build": false,
+    "emscripten_test" : false
+  },
   "debug"              : true,
   "use_unchanged_tasks": true,
   "use_dependencies"   : true,
-  "build_conf"         : {"cmake_generator": "Ninja", "real_time_output_print": false},
+  "build_conf"         : {
+    "cmake_generator"       : "Ninja",
+    "real_time_output_print": false,
+    "use_warnings"          : false,
+    // "target"                : ["reflection_tool"],
+    // "cmake_extra_build_flags": ["-DORG_BUILD_WRAPPERS_C=OFF"],
+  },
   "py_test_conf"       : {
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
-      // "tests/python/refl/test_wrapper_generation.py"
+      // "tests/python/repo/test_code_coverage.py::test_file_segmentation_2",
+      // "tests/python/refl/test_reflection_algorithm.py::test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers",
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::TestOrgParseCorpus::Missing_subtree_close__other_subtree_at_errors",
+      // "tests/python/cxx_integration/test_integrate_cxx_org.py::TestOrgParseCorpus::Missing_subtree_close__end_document_at_errors",
+
+      // "tests/python/refl/test_reflection_algorithm.py"
+      // "tests/python/refl/test_record_reflection.py::test_templates_record"
       // "tests/python/test_adaptagrams.py::test_align_axis_multi_separate_equal_sizes"
       // "tests/python/refl/test_record_reflection.py"
       // "tests/python/test_coverall.py::test_run_typst_construction"
@@ -22,12 +38,14 @@
       // "tests/python/test_simple_org_use.py::test_sem_parser_expected",
       // "tests/python/test_cli.py::test_tag_sorting"
     ],
-    "real_time_output_print": true,
-    // "use_lldb": true
+    "real_time_output_print": true
   },
   "instrument"         : {"coverage": true},
   "coverage_conf"      : {
-    "coverage_run_whitelist" : [ {"class_pattern": "OrgParseSem"}, {"binary_pattern": "reflection_tool"} ],
-    "coverage_html_whitelist": [ "OrgParser",                      "reflection_collector"                ]
+    "coverage_run_whitelist" : [
+      {"class_pattern": "OrgParseSem"},
+      {"binary_pattern": "reflection_tool"}
+    ],
+    "coverage_html_whitelist": ["OrgParser", "reflection_collector"]
   }
 }

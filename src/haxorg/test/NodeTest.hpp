@@ -13,8 +13,8 @@
 
 namespace org::test {
 
-json toJson(hstd::CR<yaml> node);
-yaml toYaml(hstd::CR<json> node);
+json toJson(yaml const& node);
+yaml toYaml(json const& node);
 
 struct ParseSpec {
     std::string getLocMsg() const {
@@ -113,12 +113,12 @@ struct ParseSpec {
     };
 
     hstd::fs::path debugFile(
-        std::string           relativePath,
-        hstd::CR<std::string> relDebug,
-        bool                  create = true) const;
+        std::string        relativePath,
+        std::string const& relDebug,
+        bool               create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
-        explicit SpecValidationError(const std::string& message)
+        explicit SpecValidationError(std::string const& message)
             : std::runtime_error(message) {}
     };
 
@@ -141,9 +141,9 @@ struct ParseSpec {
     }
 
     ParseSpec(
-        hstd::CR<yaml>        node,
-        hstd::CR<std::string> specFile,
-        hstd::CR<std::string> testRoot);
+        yaml const&        node,
+        std::string const& specFile,
+        std::string const& testRoot);
 
     template <typename N, typename K, typename V, typename M>
     org::parse::NodeGroup<N, K, V, M> getNodeGroup() {
@@ -201,9 +201,9 @@ struct ParseSpec {
 
 struct ParseSpecGroup {
     ParseSpecGroup(
-        hstd::CR<yaml>        node,
-        hstd::CR<std::string> from,
-        hstd::CR<std::string> testRoot);
+        yaml const&        node,
+        std::string const& from,
+        std::string const& testRoot);
 
     hstd::Vec<ParseSpec> specs;
 };

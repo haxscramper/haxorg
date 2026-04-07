@@ -8,7 +8,7 @@ using namespace org::imm;
 using namespace hstd;
 
 ImmAstReplace org::imm::setSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
@@ -19,7 +19,7 @@ ImmAstReplace org::imm::setSubnode(
 }
 
 ImmAstReplace org::imm::insertSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
@@ -28,7 +28,7 @@ ImmAstReplace org::imm::insertSubnode(
 }
 
 ImmAstReplace org::imm::insertSubnodes(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
@@ -46,14 +46,14 @@ ImmAstReplace org::imm::insertSubnodes(
 }
 
 ImmAstReplace org::imm::appendSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     ImmId              add,
     ImmAstEditContext& ctx) {
     return insertSubnode(node, add, node->size(), ctx);
 }
 
 ImmAstReplace org::imm::dropSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     int                position,
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Drop subnode {}[{}]", node, position));
@@ -61,7 +61,7 @@ ImmAstReplace org::imm::dropSubnode(
 }
 
 ImmAstReplace org::imm::dropSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     ImmId              subnode,
     ImmAstEditContext& ctx) {
     int idx = node->indexOf(subnode);
@@ -71,7 +71,7 @@ ImmAstReplace org::imm::dropSubnode(
 }
 
 Pair<ImmAstReplace, ImmId> org::imm::popSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     int                position,
     ImmAstEditContext& ctx) {
     auto pop    = node->subnodes.at(position);
@@ -81,7 +81,7 @@ Pair<ImmAstReplace, ImmId> org::imm::popSubnode(
 }
 
 ImmAstReplaceGroup org::imm::demoteSubtree(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK_FMT(node.is(OrgSemKind::Subtree), "");
@@ -91,8 +91,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         || move == SubtreeMove::ForceLevels) {
 
         AST_EDIT_MSG(fmt("Demote subtree {}", node));
-        Func<Opt<ImmAstReplace>(CR<ImmAdapter>)> aux;
-        aux = [&](CR<ImmAdapter> target) -> Opt<ImmAstReplace> {
+        Func<Opt<ImmAstReplace>(ImmAdapter const&)> aux;
+        aux = [&](ImmAdapter const& target) -> Opt<ImmAstReplace> {
             for (auto const& sub : target.sub()) {
                 auto __scope = ctx.debug()->scopeLevel();
                 aux(sub);
@@ -215,7 +215,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 }
 
 Opt<ImmAstReplace> org::imm::moveSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     int                position,
     int                offset,
     ImmAstEditContext& ctx,
@@ -262,7 +262,7 @@ Opt<ImmAstReplace> org::imm::moveSubnode(
 }
 
 ImmAstReplace org::imm::swapSubnode(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     int                from,
     int                to,
     ImmAstEditContext& ctx) {
@@ -275,7 +275,7 @@ ImmAstReplace org::imm::swapSubnode(
 }
 
 Opt<ImmAstReplace> org::imm::moveSubnodeStructural(
-    CR<ImmAdapter>     node,
+    ImmAdapter const&  node,
     int                position,
     int                offset,
     ImmAstEditContext& ctx) {
@@ -304,8 +304,8 @@ Opt<ImmAstReplace> org::imm::moveSubnodeStructural(
 }
 
 ImmAstReplace org::imm::replaceNode(
-    const ImmAdapter&  target,
-    const ImmId&       value,
+    ImmAdapter const&  target,
+    ImmId const&       value,
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Replace adapter {} -> {}", target, value));
     return ImmAstReplace{
@@ -424,8 +424,9 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                 }
 
                 case OrgSelectorLink::Kind::FieldName: {
-                    auto const& name = std::get<
-                        OrgSelectorLink::FieldName>(condition->link->data);
+                    auto const&
+                        name = std::get<OrgSelectorLink::FieldName>(
+                            condition->link->data);
                     ctx.sel->message(
                         fmt("link field name '{}'", name.name));
 
@@ -483,7 +484,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
 } // namespace
 
 Vec<ImmAdapter> OrgDocumentSelector::getMatches(
-    const ImmAdapter& node) const {
+    ImmAdapter const& node) const {
     Vec<ImmAdapter> result;
     recMatches(
         path.begin(),
@@ -515,7 +516,7 @@ Vec<Str> org::imm::flatWords(ImmAdapter const& node) {
 }
 
 void OrgDocumentSelector::searchSubtreePlaintextTitle(
-    const Vec<Str>&      title,
+    Vec<Str> const&      title,
     bool                 isTarget,
     Opt<OrgSelectorLink> link) {
     path.push_back(
@@ -549,7 +550,7 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
 }
 
 void OrgDocumentSelector::searchSubtreeId(
-    const Str&           id,
+    Str const&           id,
     bool                 isTarget,
     Opt<int>             maxLevel,
     Opt<OrgSelectorLink> link) {
@@ -565,9 +566,9 @@ void OrgDocumentSelector::searchSubtreeId(
                         };
                     } else {
                         return OrgSelectorResult{
-                            .isMatching = tree->treeId == id
-                                       && (tree->level
-                                           <= maxLevel.value()),
+                            .isMatching     = tree->treeId == id
+                                           && (tree->level
+                                               <= maxLevel.value()),
                             .tryNestedNodes = tree->level
                                             < maxLevel.value(),
                         };
@@ -602,7 +603,7 @@ void OrgDocumentSelector::searchAnyKind(
 }
 
 void OrgDocumentSelector::searchPredicate(
-    const OrgSelectorCondition::Predicate& predicate,
+    OrgSelectorCondition::Predicate const& predicate,
     bool                                   isTarget,
     Opt<OrgSelectorLink>                   link) {
     path.push_back(

@@ -128,23 +128,25 @@ struct ColStyle {
     inline ColStyle(TermColorBg8Bit bg) : bg(bg) {}
     inline ColStyle(Style _style) : style(IntSet<Style>{_style}) {}
 
-    void operator+=(CR<ColStyle> other) {
+    void operator+=(ColStyle const& other) {
         style = style + other.style;
         fg    = isDefault(fg) ? other.fg : fg;
         bg    = isDefault(bg) ? other.bg : bg;
     }
 
-    ColStyle operator+(CR<ColStyle> other) const {
+    ColStyle operator+(ColStyle const& other) const {
         ColStyle result = *this;
         result += other;
         return result;
     }
 
-    bool operator==(CR<ColStyle> other) const {
+    bool operator==(ColStyle const& other) const {
         return fg == other.fg && bg == other.bg && style == other.style;
     }
 
-    bool operator!=(CR<ColStyle> other) const { return !(*this == other); }
+    bool operator!=(ColStyle const& other) const {
+        return !(*this == other);
+    }
 
     // clang-format off
     ColStyle& red() { fg = TermColorFg8Bit::Red; return *this; }
@@ -171,33 +173,33 @@ inline std::string ansiEsc(int code) {
 
 
 /*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorFg8Bit& col);
+std::string ansiEsc(TermColorFg8Bit const& col);
 
 /*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorBg8Bit& col);
+std::string ansiEsc(TermColorBg8Bit const& col);
 
 /// Create ansi escape sequence with given style. `open` controls whether
 /// styling sequence is used for open or for close
-std::string ansiEsc(const Style& style, const bool& open);
+std::string ansiEsc(Style const& style, bool const& open);
 
 /// Generate ansi escape sequences to transition from style `s1` to style
 /// `s2`
-Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
+Str ansiDiff(ColStyle const& s1, ColStyle const& s2);
 
 
 /// Convert colored rune to regular std::string, with ansi escape
 /// sequences. `color` controls whether styling is going to be applied or
 /// not.
-std::string to_string(const ColRune& rune, const bool& color = true);
+std::string to_string(ColRune const& rune, const bool& color = true);
 
 /// Convert sequence of colored runes to the std::string, with ansi escape
 /// sequences in. `color` controls whether styling is going to be applied
 /// or not.
 std::string to_colored_string(
-    const Vec<ColRune>& runes,
+    Vec<ColRune> const& runes,
     const bool&         color = true);
 
-std::string to_colored_html(const Vec<ColRune>& runes);
+std::string to_colored_html(Vec<ColRune> const& runes);
 
 
 /// NOTE yes, I know it is very inefficient, but it is not a HPC solution
@@ -213,7 +215,7 @@ struct ColRune {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    inline ColRune(Str rune = " ", CR<ColStyle> style = ColStyle{})
+    inline ColRune(Str rune = " ", ColStyle const& style = ColStyle{})
         : rune(rune), style(style) {}
 
     ColRune operator+(ColStyle const& other) const {
@@ -242,15 +244,15 @@ struct ColText : hstd::Vec<ColRune> {
 
     std::string toHtml() const { return to_colored_html(*this); }
 
-    ColText& withStyle(CR<ColStyle> style);
+    ColText& withStyle(ColStyle const& style);
 
     ColText() = default;
-    ColText(CR<ColStyle> style, CR<std::string> text);
+    ColText(ColStyle const& style, std::string const& text);
 
-    ColText(CR<std::string> text) : ColText(ColStyle{}, text) {}
+    ColText(std::string const& text) : ColText(ColStyle{}, text) {}
     ColText(Span<ColRune> text) : Vec<ColRune>{text} {}
 
-    ColText(CR<ColStyle> style, char text)
+    ColText(ColStyle const& style, char text)
         : Vec<ColRune>({ColRune(text, style)}) {}
 
 
@@ -296,7 +298,7 @@ struct ColStream : public ColText {
     int           position = 0;
 
 
-    CR<ColText> getBuffer() const {
+    ColText const& getBuffer() const {
         return *static_cast<ColText const*>(this);
     }
 
@@ -367,12 +369,12 @@ inline ColStream& operator<<(ColStream& os, std::string_view value) { os.write(C
 inline ColStream& operator<<(ColStream& os, char const* value) { os.write(ColText(os.active, std::string{value})); return os; }
 inline ColStream& operator<<(ColStream& os, ColText const& value) { os.write(value); return os; }
 inline ColStream& operator<<(ColStream& os, ColRune const& value) { os.write(value); return os; }
-inline ColText operator+(CR<ColText> text, CR<ColText> other) { ColStream s; s << text << other; return s.getBuffer(); }
+inline ColText operator+(ColText const& text, ColText const& other) { ColStream s; s << text << other; return s.getBuffer(); }
 // clang-format on
 
 
 template <typename T>
-ColText join(CR<ColText> separator, CR<T> container) {
+ColText join(ColText const& separator, T const& container) {
     ColStream out;
     bool      first = true;
     for (const auto& item : container) {

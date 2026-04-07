@@ -3,10 +3,9 @@ from dataclasses import replace
 
 from beartype import beartype
 from beartype.typing import Any, List, Sequence, Tuple
-
 from py_codegen import codegen_ir
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import GenTuFunction, QualType, n_org
+from py_codegen.codegen_ir import GenTuFunction, n_org, QualType
 from py_haxorg.astbuilder import astbuilder_utils
 from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log
@@ -140,6 +139,8 @@ def rewrite_function_to_immutable(
         ReturnType=rewrite_any_to_immutable(func.ReturnType),
         Args=rewrite_any_to_immutable(func.Args),
         Params=rewrite_any_to_immutable(func.Params),
+        ParentClass=rewrite_type_to_immutable(func.ParentClass)
+        if func.ParentClass else None,
     )
 
 
@@ -149,6 +150,7 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
     Rewrite all nested structure content and the structure name
     for use in the immutable AST
     """
+    new_type = rewrite_type_to_immutable(obj.Name)
     new_fields = [rewrite_field_to_immutable(f) for f in obj.Fields]
 
     new_methods = [
@@ -187,9 +189,9 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
 
     return replace(
         obj,
-        Name=rewrite_type_to_immutable(obj.Name),
+        Name=new_type,
         Fields=new_fields,
-        Methods=new_methods,
+        Methods=[replace(M, ParentClass=new_type) for M in new_methods],
         Nested=prefix_nested + new_nested,
         GenDescribeMethods=False,
         Bases=[rewrite_type_to_immutable(b) for b in obj.Bases],
@@ -216,8 +218,14 @@ def rewrite_any_to_immutable(
         case codegen_ir.GenTuField():
             return rewrite_field_to_immutable(it)
 
-        case codegen_ir.GenTuPass() | codegen_ir.GenTuEnum():
+        case codegen_ir.GenTuPass():
             return it
+
+        case codegen_ir.GenTuEnum():
+            return codegen_ir.GenTuTypedef(
+                Base=it.Name,
+                Name=rewrite_type_to_immutable(it.Name),
+            )
 
         case codegen_ir.GenTuFunction():
             return rewrite_function_to_immutable(it)
@@ -248,8 +256,8 @@ def rewrite_to_immutable(
 
 
 @beartype
-def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
-                             T: QualType) -> codegen_ir.GenTuFunction:
+def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: QualType,
+                             ParentClass: QualType) -> codegen_ir.GenTuFunction:
     "Generate getter function for immutable data access for adapter specialization"
     field_access = ast.Dot(ast.XCallPtr(
         ast.string("this"),
@@ -258,9 +266,6 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
 
     field_type = rewrite_field_to_immutable(f).Type
     assert field_type
-
-    # log(CAT).info(
-    #     f"{T.Name}::{f.Name} {field_type.flatQualNameWithParams()} {field_type}")
 
     def use_get_adapter_field(field_par0: QualType) -> QualType:
         is_specialization = field_par0.Name != "ImmOrg"
@@ -272,7 +277,6 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         ])
 
         if is_specialization:
-            # log(CAT).info(f"field_par0 = {field_par0}")
             return QualType(Name="ImmAdapterT",
                             Spaces=[codegen_ir.n_imm()],
                             Params=[field_par0])
@@ -304,10 +308,14 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField,
         case _:
             result_type = field_type
 
-    return codegen_ir.GenTuFunction(Name=f"get{astbuilder_utils.pascal_case(f.Name)}",
-                                    IsConst=True,
-                                    ReturnType=result_type,
-                                    Body=ast.Return(field_access))
+    return codegen_ir.GenTuFunction(
+        Name=f"get{astbuilder_utils.pascal_case(f.Name)}",
+        IsConst=True,
+        ReturnType=result_type,
+        Body=ast.Return(field_access),
+        IsExposedForWrap=f.IsExposedForWrap,
+        ParentClass=ParentClass,
+    )
 
 
 @beartype
@@ -327,49 +335,58 @@ def generate_adapter_specializations(
         Api = QualType(Name=f"ImmAdapter{derived_base}API", Spaces=imm_space)
         Base = QualType(Name="ImmAdapterTBase", Spaces=imm_space, Params=[Derived])
 
-        adapters.append(
-            codegen_ir.GenTuStruct(
-                Name=QualType(Name="ImmAdapterT", Spaces=imm_space),
-                IsTemplateRecord=True,
-                IsExplicitInstantiation=True,
-                ExplicitTemplateParams=[Derived],
-                Bases=[Base, Api],
-                TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
-                ReflectionParams=codegen_ir.GenTuReflParams(
-                    wrapper_has_params=False,
-                    wrapper_name=f"{Derived.Name}Adapter",
-                    default_constructor=False,
-                ),
-                Nested=[
-                    codegen_ir.GenTuPass(
-                        ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
-                    codegen_ir.GenTuPass(
-                        ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+        Specialization = codegen_ir.GenTuStruct(
+            Name=QualType(Name="ImmAdapterT", Spaces=imm_space),
+            IsTemplateRecord=True,
+            IsExplicitInstantiation=True,
+            ExplicitTemplateParams=[Derived],
+            Bases=[Base, Api],
+            TemplateParams=codegen_ir.GenTuTemplateParams.FinalSpecialization(),
+            ReflectionParams=codegen_ir.GenTuReflParams(
+                wrapper_has_params=False,
+                wrapper_name=f"{Derived.Name}Adapter",
+                default_constructor=False,
+            ),
+            Nested=[
+                codegen_ir.GenTuPass(
+                    ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
+                codegen_ir.GenTuPass(
+                    ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+            ],
+        )
+
+        for f in sem_base.Fields:
+            if not f.IsStatic:
+                Specialization.Methods.append(
+                    get_adapter_field_getter(
+                        ast,
+                        f,
+                        Derived,
+                        Specialization.declarationQualName(),
+                    ))
+
+        Specialization.Methods.append(
+            codegen_ir.GenTuFunction(
+                Args=[
+                    codegen_ir.GenTuIdent(
+                        Type=QualType(Name="ImmAdapter", Spaces=imm_space).asConstRef(),
+                        Name="other",
+                    )
                 ],
-                Methods=[
-                    codegen_ir.GenTuFunction(
-                        Args=[
-                            codegen_ir.GenTuIdent(
-                                Type=QualType(Name="ImmAdapter",
-                                              Spaces=imm_space).asConstRef(),
-                                Name="other",
-                            )
-                        ],
-                        Name="ImmAdapterT",
-                        IsConstructor=True,
-                        InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
-                        Body=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
-                            ast.Literal(
-                                "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
-                            ),
-                            ast.Literal(derived_base),
-                            ast.XCallRef(ast.string("other"), "getKind"),
-                        ])), *[
-                            get_adapter_field_getter(ast, f, Derived)
-                            for f in sem_base.Fields
-                            if not f.IsStatic
-                        ]
-                ]))
+                Name="ImmAdapterT",
+                IsConstructor=True,
+                ParentClass=Specialization.declarationQualName(),
+                InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
+                Body=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
+                    ast.Literal(
+                        "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
+                    ),
+                    ast.Literal(derived_base),
+                    ast.XCallRef(ast.string("other"), "getKind"),
+                ]),
+            ))
+
+        adapters.append(Specialization)
 
     for t in types:
         for_final_type(t)

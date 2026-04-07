@@ -29,7 +29,7 @@ CommitGraph::CommitGraph(
     while (git_revwalk_next(&oid, walker.get()) == 0) {
         VDesc            current = get_desc(oid);
         SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
-                                      .value();
+                                       .value();
 
         if (git_oid_cmp(&oid, &first_oid) == 0) {
             g[current].is_main = true;
@@ -80,7 +80,7 @@ std::string CommitGraph::toGraphviz() const {
     return os.str();
 }
 
-CommitGraph::VDesc CommitGraph::get_desc(CR<git_oid> oid) {
+CommitGraph::VDesc CommitGraph::get_desc(git_oid const& oid) {
     auto iter = rev_map.find(oid);
     if (iter != rev_map.end()) {
         return iter->second;

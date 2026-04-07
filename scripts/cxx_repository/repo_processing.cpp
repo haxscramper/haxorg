@@ -22,7 +22,7 @@
 using namespace ir;
 using namespace hstd;
 
-int get_nesting(CR<Str> line) {
+int get_nesting(Str const& line) {
     int result = 0;
     for (char c : line) {
         if (c == ' ') {
@@ -277,8 +277,8 @@ void file_name_actions(walker_state* state, CommitActions& result) {
         result.this_tree,
         [&](char const* root, git_tree_entry const* entry) -> int {
             const git_object_t entry_type = git_tree_entry_type(entry);
-            auto               path       = fs::path{root}
-                      / fs::path{git_tree_entry_name(entry)};
+            auto               path = fs::path{root}
+                                    / fs::path{git_tree_entry_name(entry)};
             if (entry_type == GIT_OBJECT_BLOB) {
 
                 auto  track   = state->content->getFilePath(path);
@@ -301,8 +301,8 @@ void file_name_actions(walker_state* state, CommitActions& result) {
 }
 
 CommitActions get_commit_actions(
-    walker_state*  state,
-    CR<CommitTask> task) {
+    walker_state*     state,
+    CommitTask const& task) {
     CommitActions result{.id = task.id, .this_tree = task.this_tree};
     LOG_IF(INFO, state->should_debug_commit(task.id)) << std::format(
         "[actions] Generating list of actions for commit {}",
@@ -334,8 +334,8 @@ CommitActions get_commit_actions(
     auto id_commit = task.id;
 
     for (int i = 0; i < deltas; ++i) {
-        SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
-                                    .value();
+        SPtr<git_patch>       patch = git::patch_from_diff(diff.get(), i)
+                                          .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
 
@@ -361,7 +361,8 @@ CommitActions get_commit_actions(
         if (delta->status == GIT_DELTA_DELETED) {
             LOGIC_ASSERTION_CHECK_FMT(
                 !result.actions.contains(path_id), "");
-            result.actions[state->content->getFilePath(path)].leading_name = NameAction{
+            result.actions[state->content->getFilePath(path)]
+                .leading_name = NameAction{
                 state->content->getFilePath(path)};
         }
 
@@ -447,7 +448,7 @@ struct ChangeIterationState {
         }
     }
 
-    void apply(ir::CommitId commit_id, CR<FileRenameAction> rename) {
+    void apply(ir::CommitId commit_id, FileRenameAction const& rename) {
         ir::FileTrackId prev_track = tracks.at(rename.prev_path);
         tracks.erase(rename.prev_path);
         tracks.insert({rename.this_path, prev_track});
@@ -473,7 +474,7 @@ struct ChangeIterationState {
         }
     }
 
-    void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
+    void apply(ir::CommitId commit_id, FileDeleteAction const& del) {
         // FIXME main repository has commit that deletes already deleted
         // path
         if (tracks.contains(del.path)) {
@@ -488,7 +489,7 @@ struct ChangeIterationState {
         }
     }
 
-    void apply(ir::CommitId commit_id, CR<FileModifyAction> del) {
+    void apply(ir::CommitId commit_id, FileModifyAction const& del) {
         state->at(commit_id).actions.push_back(
             ir::Commit::Action{
                 .kind    = ir::Commit::ActionKind::Modify,
@@ -523,7 +524,7 @@ struct ChangeIterationState {
         ir::FileTrackId        track,
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
-        CR<AddAction>          add) {
+        AddAction const&       add) {
 
         ir::FileTrackSection& section = state->at(section_id);
 
@@ -554,7 +555,7 @@ struct ChangeIterationState {
         ir::FileTrackId        track,
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
-        CR<RemoveAction>       remove) {
+        RemoveAction const&    remove) {
 
         ir::FileTrackSection& section = state->at(section_id);
         if (state->should_debug()
@@ -602,7 +603,7 @@ struct ChangeIterationState {
         section.lines = section.lines.erase(to_remove);
     }
 
-    auto apply(ir::CommitId commit_id, CR<NameAction> name)
+    auto apply(ir::CommitId commit_id, NameAction const& name)
         -> Pair<ir::FileTrackId, ir::FileTrackSectionId> {
         LOGIC_ASSERTION_CHECK_FMT(!name.getPath().isNil(), "");
         ir::FileTrackId track = which_track(name.getPath());
@@ -652,7 +653,7 @@ struct ChangeIterationState {
 };
 
 template <typename R1, typename R2>
-auto zip_longest(const R1& r1, const R2& r2) {
+auto zip_longest(R1 const& r1, R2 const& r2) {
     using OptionalT1 = Opt<rs::range_value_t<R1>>;
     using OptionalT2 = Opt<rs::range_value_t<R2>>;
 
@@ -812,7 +813,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         if (trees.find(v) == trees.end()) {
             auto commit = git::commit_lookup(state->repo.get(), &g[v].oid)
                               .value();
-            trees[v] = git::commit_tree(commit.get()).value();
+            trees[v]    = git::commit_tree(commit.get()).value();
         }
         return trees[v];
     };
@@ -858,7 +859,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // Expand each commit task into list of actions applied to
              // a file in this particular commit -- list of events that
              // state machine will respond to.
-             | rv::transform([&state](CR<CommitTask> task) {
+             | rv::transform([&state](CommitTask const& task) {
                    LOGIC_ASSERTION_CHECK_FMT(
                        !task.id.isNil(), "commit task ID cannot be nil");
                    return get_commit_actions(state, task);
@@ -936,11 +937,11 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
 }
 
 CommitId process_commit(git_oid commit_oid, walker_state* state) {
-    SPtr<git_commit> commit = git::commit_lookup(
-                                  state->repo.get(), &commit_oid)
-                                  .value();
-    auto hash      = oid_tostr(*git_commit_id(commit.get()));
-    auto signature = const_cast<git_signature*>(
+    SPtr<git_commit> commit    = git::commit_lookup(
+                                     state->repo.get(), &commit_oid)
+                                     .value();
+    auto             hash      = oid_tostr(*git_commit_id(commit.get()));
+    auto             signature = const_cast<git_signature*>(
         git::commit_author(commit.get()));
 
     return state->content->add(

@@ -28,7 +28,7 @@ void DiagramView::wheelEvent(QWheelEvent* event) {
     HSLOG_TRACKED_EMIT(get_tracker(), zoomChanged, zoomPercent);
 }
 
-void DiagramView::selectNodes(const QList<DiaSceneItemVisual*>& nodes) {
+void DiagramView::selectNodes(QList<DiaSceneItemVisual*> const& nodes) {
 
     if (!scene()) { return; }
 

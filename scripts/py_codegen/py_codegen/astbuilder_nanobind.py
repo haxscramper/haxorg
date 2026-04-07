@@ -5,8 +5,8 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from py_codegen import codegen_ir
 import py_codegen.astbuilder_cpp as cpp
-import py_codegen.astbuilder_py as pya
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
+import py_codegen.astbuilder_py as pya
 from py_codegen.codegen_ir import GenTuDoc, GenTuFunction, GenTuIdent, QualType
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import maybe_splice
@@ -127,7 +127,7 @@ class NbFunction:
     ) -> BlockId:
         "Generate nanobind wrapper block passing the function to the `.def*`"
         if self.Body is None:
-            function_type = self.Func.get_function_type(Class=Class)
+            function_type = self.Func.get_function_type()
 
             return ast.XCall(
                 "static_cast",
@@ -154,9 +154,9 @@ class NbFunction:
 
     def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Return nanobind block wrapping the C++ function"
-        if self.Func.spaces:
+        if self.Func.Spaces:
             full_name = ast.Scoped(
-                QualType(Name=self.Func.spaces[-1].Name, Spaces=self.Func.spaces[:-1]),
+                QualType(Name=self.Func.Spaces[-1].Name, Spaces=self.Func.Spaces[:-1]),
                 ast.string(self.Func.Name))
 
         else:
@@ -306,7 +306,7 @@ class NbEnumField:
         self.CxxName = Field.Name
         self.Doc = Field.Doc
 
-    def build_bind(self, Enum: 'NbEnum', ast: cpp.ASTBuilder) -> BlockId:
+    def build_bind(self, Enum: "NbEnum", ast: cpp.ASTBuilder) -> BlockId:
         "Generate binding block for enum field"
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
@@ -964,7 +964,7 @@ class NbModule:
                                 "Imm"):
                             pass
 
-                        else:
+                        elif self.conf.isAcceptedByBackend(value):
                             append_decl(NbClass(ast=ast, value=value, conf=self.conf))
 
                     elif isinstance(value, codegen_ir.GenTuEnum):
@@ -995,7 +995,6 @@ class NbModule:
                 append_decl(NbEnum(decl, self.conf))
 
             case codegen_ir.GenTuTypedef():
-                log(CAT).debug(f"typedef {decl.Name} = {decl.Base}")
                 append_decl(NbTypedefPass(decl, self.conf))
 
             case _:

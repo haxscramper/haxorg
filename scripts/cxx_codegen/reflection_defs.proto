@@ -1,4 +1,5 @@
 syntax = "proto3";
+import "google/protobuf/struct.proto";
 
 enum ExprKind {
     Lit = 0;
@@ -24,9 +25,8 @@ enum TypeKind {
     FunctionPtr = 1;
     // Pointer to class method. Return type is stored as a first
     // parameter, class type is a second, argument are trailing.
-    MethodPtr = 2;
-    Array = 3;
-    TypeExpr = 4;
+    Array = 2;
+    TypeExpr = 3;
 }
 
 enum ReferenceKind {
@@ -76,6 +76,8 @@ message QualType {
     bool IsBuiltin = 11;
     bool IsTypedef = 12;
     bool IsGlobalNamespace = 13;
+    bool IsTemplateTypeParam = 14;
+    bool IsTemplateInjectedType = 15;
 }
 
 enum AccessSpecifier {
@@ -108,7 +110,7 @@ message Enum {
     /// in the construction then it is pushed here.
     QualType EnumDefName = 5;
     bool IsForwardDecl = 6;
-    string ReflectionParams = 7;
+    google.protobuf.Struct ReflectionParams = 7;
     /// Class has boost description annotations
     bool IsDescribedEnum = 8;
 }
@@ -124,26 +126,38 @@ message Arg {
 }
 
 
-message TemplateTypename {
-    bool IsVariadic = 1;
-    bool IsPlaceholder = 2;
-    string Name = 3;
-    repeated TemplateTypename Nested = 4;
-    string Concept = 5;
+enum TemplateParamKind {
+    TEMPLATE_PARAM_KIND_TYPE = 0;
+    TEMPLATE_PARAM_KIND_NON_TYPE = 1;
+    TEMPLATE_PARAM_KIND_TEMPLATE = 2;
 }
 
-message TemplateSpec {
-    repeated TemplateTypename Parameters = 1;
+message TemplateParam {
+    TemplateParamKind Kind = 1;
+    QualType TypeExpr = 2;
+    bool Variadic = 3;
+    string Concept = 4;
+    repeated QualType Default = 5;
+    repeated TemplateParams TemplateParams = 6;
+    repeated QualType NonTypeConstraint = 7;
+}
+
+message TemplateGroup {
+    repeated TemplateParam Params = 1;
+}
+
+message TemplateParams {
+    repeated TemplateGroup Stacks = 1;
 }
 
 message Function {
     string Name = 1;
     QualType ResultTy = 2;
     repeated Arg Arguments = 3;
-    repeated TemplateSpec Templates = 4;
+    repeated TemplateParams Templates = 4;
     string DbgOrigin = 5;
     repeated QualType Spaces = 6;
-    string ReflectionParams = 7;
+    google.protobuf.Struct ReflectionParams = 7;
 }
 
 message Typedef {
@@ -151,8 +165,8 @@ message Typedef {
     QualType Name = 1;
     /// Base type used in declaration
     QualType BaseType = 2;
-    repeated TemplateSpec Templates = 3;
-    string ReflectionParams = 4;
+    repeated TemplateParams Templates = 3;
+    google.protobuf.Struct ReflectionParams = 4;
 }
 
 message Record {
@@ -162,7 +176,7 @@ message Record {
         QualType Type = 3;
         Record TypeDecl = 4;
         bool IsTypeDecl = 5;
-        string ReflectionParams = 6;
+        google.protobuf.Struct ReflectionParams = 6;
     }
 
     enum MethodKind {
@@ -190,7 +204,7 @@ message Record {
         MethodKind Kind = 10;
         string Doc = 11;
         string OperatorName = 12;
-        string ReflectionParams = 13;
+        google.protobuf.Struct ReflectionParams = 13;
     }
 
     /// Name can be truly absent here, in case of `union {int a; char b};` that is
@@ -204,7 +218,7 @@ message Record {
     repeated Enum NestedEnum = 6;
     repeated Typedef NestedTypedef = 7;
     string Doc = 8;
-    repeated TemplateSpec Templates = 9;
+    repeated TemplateParams Templates = 9;
     /// See 'EnumDefName' description in the enumeration message.
     QualType RecordDefName = 10;
     bool IsForwardDecl = 11;
@@ -217,7 +231,7 @@ message Record {
     /// field here.
     bool HasName = 13;
     bool IsAbstract = 14;
-    string ReflectionParams = 15;
+    google.protobuf.Struct ReflectionParams = 15;
     bool IsExplicitInstantiation = 16;
     bool IsTemplateRecord = 17;
     repeated QualType ExplicitTemplateParams = 18;

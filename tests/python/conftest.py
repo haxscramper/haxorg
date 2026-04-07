@@ -76,7 +76,7 @@ def get_trace_collector() -> TraceCollector:
 
 def check_gui_application_on_display(app_command: str, display: str) -> None:
     env = os.environ.copy()
-    env['DISPLAY'] = display
+    env["DISPLAY"] = display
 
     try:
         process = subprocess.Popen(app_command,
@@ -208,7 +208,7 @@ class FunctionNameExtractor(ast.NodeVisitor):
 
 
 def get_function_names(expression: str) -> List[str]:
-    parsed_ast = ast.parse(expression, mode='eval')
+    parsed_ast = ast.parse(expression, mode="eval")
     extractor = FunctionNameExtractor()
     extractor.visit(parsed_ast)
     return extractor.function_names

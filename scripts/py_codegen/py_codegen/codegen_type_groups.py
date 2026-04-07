@@ -1,56 +1,125 @@
 import copy
 from dataclasses import dataclass, field, replace
 from graphlib import CycleError, TopologicalSorter
+import itertools
+import json
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict, List, Sequence
+from beartype.typing import Callable, Dict, List, Sequence
+import more_itertools
 from py_codegen import codegen_ir, refl_read
-import py_codegen.astbuilder_cpp as cpp
-import py_codegen.codegen_immutable as gen_imm
-from py_codegen.codegen_algo import collect_type_specializations
-from py_codegen.codegen_ir import QualType
 from py_codegen.astbuilder_base_config import AstbulderConfig
+import py_codegen.astbuilder_cpp as cpp
+from py_codegen.codegen_algo import collect_type_specializations
+import py_codegen.codegen_immutable as gen_imm
+from py_codegen.codegen_ir import QualType
 import py_codegen.org_codegen_data as org_data
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import log, ExceptionContextNote
+from py_scriptutils.script_logging import (
+    ExceptionContextNote,
+    log,
+    pprint_to_file_json,
+    to_debug_json,
+)
 
 CAT = __name__
 
 
 @beartype
 def topological_sort_entries(
-        entries: List[codegen_ir.GenTuUnion]) -> List[codegen_ir.GenTuUnion]:
+    entries: Sequence[codegen_ir.GenTuEntry],
+    use_bases: bool = True,
+    use_api: bool = False,
+    is_forward_declared: Callable[[QualType], bool] = lambda it: False,
+) -> List[codegen_ir.GenTuUnion]:
     entry_by_hash: Dict[int, codegen_ir.GenTuUnion] = {}
-    cant_have_dependants: List[codegen_ir.GenTuUnion] = []
+    put_last: List[codegen_ir.GenTuUnion] = []
+    put_first: List[codegen_ir.GenTuUnion] = []
 
     for it in entries:
         match it:
             case codegen_ir.GenTuStruct():
                 qual_hash = it.declarationQualName().qual_hash()
-                assert qual_hash not in entry_by_hash, f"Duplicate hash for {it.declarationQualName()}, already mapped to {it}"
+                assert qual_hash not in entry_by_hash, (
+                    f"Duplicate hash for {it.declarationQualName()}, already mapped to {it} "
+                    f"IsExplicitInstantiation={it.IsExplicitInstantiation} IsTemplateRecord={it.IsTemplateRecord}"
+                )
                 entry_by_hash[qual_hash] = it
 
             case codegen_ir.GenTuTypedef():
                 entry_by_hash[it.Name.qual_hash()] = it
 
+            case codegen_ir.GenTuEnum():
+                put_first.append(it)
+
             case _:
-                cant_have_dependants.append(it)
+                # Other entries cannot have dependants -- functions, passes etc.
+                put_last.append(it)
 
-    assert (len(entry_by_hash) + len(cant_have_dependants)) == len(
-        entries
-    ), f"Sorting order mismatch len(hash): {len(entry_by_hash)} + len(no-deps): {len(cant_have_dependants)} len(entries): {len(entries)}"
+    if (len(entry_by_hash) + len(put_last) + len(put_first)) != len(entries):
+        raise RuntimeError("Sorting order mismatch {}".format({
+            "len(hash)": len(entry_by_hash),
+            "len(no-dependants)": len(put_last),
+            "len(no-deps)": len(put_first),
+            "len(entries)": len(entries),
+        }))
 
-    graph = {}
+    graph: dict[int, set[int]] = {}
     for entry in entries:
         match entry:
             case codegen_ir.GenTuStruct():
                 entry_hash = entry.declarationQualName().qual_hash()
-                graph[entry_hash] = {
-                    base.qual_hash()
-                    for base in entry.Bases
-                    if base.qual_hash() in entry_by_hash
-                }
+                graph[entry_hash] = set()
+
+                def use_type(Type: QualType):
+                    match Type.Kind:
+                        case codegen_ir.QualTypeKind.RegularType:
+                            if Type.qual_hash(
+                            ) in entry_by_hash and not is_forward_declared(Type):
+                                graph[entry_hash].add(Type.qual_hash())
+
+                        case codegen_ir.QualTypeKind.FunctionPtr:
+                            assert Type.Func
+                            if Type.Func.Class:
+                                use_type(Type.Func.Class)
+
+                            if Type.Func.ReturnType:
+                                use_type(Type.Func.ReturnType)
+
+                            list(map(use_type, Type.Func.Args))
+
+                        case codegen_ir.QualTypeKind.Array:
+                            list(map(use_type, Type.Params))
+
+                if use_bases:
+                    for base in entry.Bases:
+                        use_type(base)
+
+                if use_api:
+
+                    def aux(nest: codegen_ir.GenTuEntry):
+                        match nest:
+                            case codegen_ir.GenTuStruct():
+                                list(map(aux, nest.Methods))
+                                list(map(aux, nest.Fields))
+                                list(map(aux, nest.Nested))
+
+                            case codegen_ir.GenTuField():
+                                if nest.Type:
+                                    use_type(nest.Type)
+
+                            case codegen_ir.GenTuFunction():
+                                use_type(nest.ReturnType)
+                                list(map(lambda arg: use_type(arg.Type), nest.Args))
+
+                            case codegen_ir.GenTuTypeGroup():
+                                list(map(aux, nest.types))
+
+                            case _:
+                                raise TypeError(type(nest))
+
+                    aux(entry)
 
             case codegen_ir.GenTuTypedef():
                 entry_hash = entry.Name.qual_hash()
@@ -60,20 +129,17 @@ def topological_sort_entries(
                 else:
                     # typedef might refer to the specialization of the
                     # standard type
-                    graph[entry_hash] = {}
+                    graph[entry_hash] = set()
 
     ts = TopologicalSorter(graph)
     try:
         sorted_hashes = list(ts.static_order())
-        result = [entry_by_hash[h] for h in sorted_hashes] + cant_have_dependants
-
-        # assert len(result) == len(
-        #     entries
-        # ), f"Sorting order mismatch len(in): {len(entries)} len(out): {len(result)} len(no-deps): {len(cant_have_dependants)} len(hash): {len(entry_by_hash)}"
+        result = put_first + [entry_by_hash[h] for h in sorted_hashes] + put_last
 
         return result
-    except CycleError:
-        raise ValueError("Cyclic inheritance detected")
+    except CycleError as e:
+        cycle_nodes = [entry_by_hash[n].Name for n in e.args[1]]
+        raise ValueError(f"Cyclic inheritance detected for nodes {cycle_nodes}")
 
 
 @beartype
@@ -109,7 +175,7 @@ def rec_expand_type(ast: cpp.ASTBuilder,
                 converted.append(rec_expand_type(ast, item))
 
             case codegen_ir.GenTuTypeGroup():
-                for res in rec_expand_group(ast, item):
+                for res in rec_expand_group(ast, item, typ.declarationQualName()):
                     if isinstance(res, codegen_ir.GenTuField):
                         fields.append(res)
 
@@ -122,7 +188,7 @@ def rec_expand_type(ast: cpp.ASTBuilder,
             case codegen_ir.GenTuEnum():
                 converted.append(replace(item, Name=item.Name))
 
-            case codegen_ir.GenTuPass():
+            case codegen_ir.GenTuPass() | codegen_ir.GenTuTypedef():
                 converted.append(item)
 
             case _:
@@ -144,7 +210,9 @@ def rec_expand_type(ast: cpp.ASTBuilder,
 
 @beartype
 def rec_expand_group(
-    ast: cpp.ASTBuilder, record: codegen_ir.GenTuTypeGroup
+    ast: cpp.ASTBuilder,
+    record: codegen_ir.GenTuTypeGroup,
+    parent_class: QualType,
 ) -> List[codegen_ir.GenTuEntry | codegen_ir.GenTuField]:
     """
     Recursively expand all the types in the type group, generating a new
@@ -183,6 +251,7 @@ def rec_expand_group(
                     Spaces=[QualType.ForName("std")],
                     Params=typeNames,
                 ),
+                IsExposedForWrap=False,
             ))
 
         result.append(
@@ -203,6 +272,7 @@ def rec_expand_group(
                     Name="is" + kindName,
                     ReturnType=QualType.ForName("bool"),
                     IsConst=True,
+                    ParentClass=parent_class,
                     Body=ast.Return(
                         ast.XCall("==", [
                             ast.XCall(record.kindGetter, []),
@@ -215,6 +285,7 @@ def rec_expand_group(
                     codegen_ir.GenTuFunction(
                         Doc=codegen_ir.GenTuDoc(""),
                         Name="get" + kindName,
+                        ParentClass=parent_class,
                         ReturnType=T.copy_update(
                             RefKind=codegen_ir.ReferenceKind.LValue,
                             IsConst=IsConst,
@@ -236,6 +307,8 @@ def rec_expand_group(
                 IsStatic=True,
                 Doc=codegen_ir.GenTuDoc(""),
                 Name=record.kindGetter,
+                IsExposedForWrap=False,
+                ParentClass=parent_class,
                 ReflectionParams=codegen_ir.GenTuReflParams(
                     unique_name=record.kindGetter + "Static"),
                 ReturnType=enum_type,
@@ -252,6 +325,7 @@ def rec_expand_group(
             codegen_ir.GenTuFunction(
                 Name=record.kindGetter,
                 ReturnType=enum_type,
+                ParentClass=parent_class,
                 Body=ast.Return(
                     ast.XCall(record.kindGetter, [ast.string(record.variantField)])),
                 Doc=codegen_ir.GenTuDoc(""),
@@ -261,28 +335,34 @@ def rec_expand_group(
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_name",
+                ParentClass=parent_class,
                 ReturnType=QualType(Name="char", PtrCount=1, IsConst=True),
                 Body=ast.Return(ast.StringLiteral(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_data",
+                ParentClass=parent_class,
                 ReturnType=record.variantName.asConstRef(),
                 Body=ast.Return(ast.string(record.variantField)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(
             codegen_ir.GenTuFunction(
                 Name="sub_variant_get_kind",
+                ParentClass=parent_class,
                 ReturnType=record.enumName,
                 Body=ast.Return(ast.XCall(record.kindGetter)),
                 Doc=codegen_ir.GenTuDoc(""),
                 IsConst=True,
+                IsExposedForWrap=False,
             ))
 
         result.append(
@@ -300,6 +380,7 @@ def rec_expand_group(
             Name=record.variantField,
             Doc=codegen_ir.GenTuDoc(""),
             Value=ast.string(record.variantValue) if record.variantValue else None,
+            IsExposedForWrap=False,
         )
 
         setattr(variant_field, "isVariantField", True)
@@ -326,6 +407,7 @@ class PyhaxorgTypeGroups():
     immutable: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     adapter_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     conv_tu: ConvTu = field(default_factory=lambda: ConvTu())
+    manual_tu: ConvTu = field(default_factory=lambda: ConvTu())
     type_map: codegen_ir.GenTypeMap = field(
         default_factory=lambda: codegen_ir.GenTypeMap())  # type: ignore[assignment]
     full_enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
@@ -347,19 +429,25 @@ class PyhaxorgTypeGroups():
                     for sub in e.Nested:
                         aux(sub, ind + 1)
 
-        result = self.full_enums + \
-            self.conv_tu.enums + \
-            self.conv_tu.structs + \
-            self.conv_tu.typedefs + \
-            self.shared_types + \
-            self.expanded + \
-            self.conv_tu.functions + \
-            self.immutable + \
-            self.imm_id_specializations + \
-            self.adapter_specializations + \
-            self.only_wrap_entries
-
-        return topological_sort_entries(result)
+        return topological_sort_entries(
+            list(
+                itertools.chain(
+                    self.full_enums,
+                    self.conv_tu.enums,
+                    self.conv_tu.structs,
+                    self.conv_tu.typedefs,
+                    self.manual_tu.enums,
+                    self.manual_tu.structs,
+                    self.manual_tu.typedefs,
+                    self.shared_types,
+                    self.expanded,
+                    self.conv_tu.functions,
+                    self.manual_tu.functions,
+                    self.immutable,
+                    self.imm_id_specializations,
+                    self.adapter_specializations,
+                    self.only_wrap_entries,
+                )))
 
 
 @beartype
@@ -372,6 +460,14 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
 
     def aux(entry: codegen_ir.GenTuEntry | codegen_ir.GenTuField | codegen_ir.QualType |
             codegen_ir.GenTuIdent | None):
+
+        if isinstance(entry, (
+                codegen_ir.GenTuStruct,
+                codegen_ir.GenTuField,
+                codegen_ir.GenTuFunction,
+        )) and not conf.isAcceptedByBackend(entry):
+            return
+
         match entry:
             case None:
                 pass
@@ -380,8 +476,15 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                 aux(entry.Type)
 
             case codegen_ir.QualType():
-                if not conf.isRegisteredForBacked(entry) and entry.qual_hash(
-                ) not in specialization_map:
+                # Type with unresolved template parameters should not be a part of the API
+                assert len(entry.getTemplateParameters(
+                )) == 0, f"Found type {entry} with unresolved template parameters"
+
+                if all([
+                        not conf.isRegisteredForBacked(entry),
+                        #
+                        entry.qual_hash() not in specialization_map,
+                ]):
                     raise ValueError(
                         f"Type {entry} is not registered in the the API map or the list of specializations. "
                         f"List match is {entry.flatQualNameWithParams()}.")
@@ -392,12 +495,13 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                         aux(entry.Type)
 
             case codegen_ir.GenTuStruct():
-                with ExceptionContextNote(f"Struct {entry.Name}"):
-                    with ExceptionContextNote("Nested elements"):
-                        list(map(aux, entry.Nested))
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Struct {entry.Name}"):
+                        with ExceptionContextNote("Nested elements"):
+                            list(map(aux, entry.Nested))
 
-                    with ExceptionContextNote("Methods"):
-                        list(map(aux, entry.Methods))
+                        with ExceptionContextNote("Methods"):
+                            list(map(aux, entry.Methods))
 
                     # Note: bases are not verified as they are not mandatory
                     # for wrapping on the backends -- the final type can be
@@ -405,21 +509,25 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
                     # its base classes.
 
             case codegen_ir.GenTuFunction():
-                with ExceptionContextNote(f"Function '{entry.Name}'"):
-                    for arg in entry.Args:
-                        with ExceptionContextNote(f"Argument {arg.Name}"):
-                            aux(arg)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Function '{entry.Name}'"):
+                        for arg in entry.Args:
+                            with ExceptionContextNote(f"Argument {arg.Name}"):
+                                aux(arg)
 
-                    with ExceptionContextNote("Return type"):
-                        aux(entry.ReturnType)
+                        with ExceptionContextNote("Return type"):
+                            aux(entry.ReturnType)
 
             case codegen_ir.GenTuTypedef():
-                with ExceptionContextNote(f"Typedef {entry.Name}"):
-                    aux(entry.Base)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(
+                            f"Typedef {json.dumps(to_debug_json(entry))}"):
+                        aux(entry.Base)
 
             case codegen_ir.GenTuEnum():
-                with ExceptionContextNote(f"Enum {entry.Name}"):
-                    aux(entry.Name)
+                if conf.isAcceptedByBackend(entry):
+                    with ExceptionContextNote(f"Enum {entry.Name}"):
+                        aux(entry.Name)
 
             case codegen_ir.GenTuPass():
                 pass
@@ -431,8 +539,11 @@ def verify_type_usage(entries: Sequence[codegen_ir.GenTuEntry], conf: AstbulderC
 
 
 @beartype
-def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
-                             reflection_path: Path) -> PyhaxorgTypeGroups:
+def get_pyhaxorg_type_groups(
+    ast: cpp.ASTBuilder,
+    reflection_path: Path,
+    manual_tu_path: Path,
+) -> PyhaxorgTypeGroups:
     """
     Get type groups and method implementations for the haxorg library
     source file generation and wrappers.
@@ -446,14 +557,29 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                                        gen_imm.rewrite_to_immutable(org_data.get_types()))
 
     res.conv_tu = refl_read.conv_proto_file(reflection_path)
+    res.manual_tu = refl_read.conv_proto_file(manual_tu_path)
+
+    pprint_to_file_json(res.manual_tu, Path("/tmp/manual_tu_haxorg.json"))
 
     res.full_enums = org_data.get_shared_sem_enums() + org_data.get_enums() + [
         get_osk_enum(res.expanded)
     ]
 
+    import itertools
     res.type_map = codegen_ir.get_type_map(
-        res.expanded + res.shared_types + res.immutable + res.conv_tu.enums +
-        res.conv_tu.structs + res.conv_tu.typedefs + res.full_enums,)
+        list(
+            itertools.chain(
+                res.expanded,
+                res.shared_types,
+                res.immutable,
+                res.conv_tu.enums,
+                res.conv_tu.structs,
+                res.conv_tu.typedefs,
+                res.manual_tu.enums,
+                res.manual_tu.structs,
+                res.manual_tu.typedefs,
+                res.full_enums,
+            )))
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
     for sem_base in res.expanded:
@@ -464,6 +590,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
             codegen_ir.GenTuStruct(
                 Name=Base,
                 IsTemplateRecord=True,
+                IsExplicitInstantiation=True,
                 ExplicitTemplateParams=[Derived],
                 ReflectionParams=codegen_ir.GenTuReflParams(
                     backend=codegen_ir.GenTuBackendParams(target_backends=["python"]),
@@ -478,6 +605,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder,
                 OriginName="imm ID explicit",
                 Name=QualType.ForName("ImmIdT", Spaces=imm_space),
                 IsExplicitInstantiation=True,
+                IsTemplateRecord=True,
                 ExplicitTemplateParams=[gen_imm.rewrite_type_to_immutable(org_type.Name)],
                 ReflectionParams=codegen_ir.GenTuReflParams(wrapper_name="ImmIdT" +
                                                             org_type.Name.Name),

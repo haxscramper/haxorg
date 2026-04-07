@@ -33,7 +33,7 @@ QWidget* DiaSceneItemRectangle::createPropertiesWidget(QWidget* parent) {
         nameEdit,
         &QLineEdit::textChanged,
         widget,
-        [this](const QString& text) {
+        [this](QString const& text) {
             name = text;
             update();
         });

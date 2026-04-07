@@ -128,9 +128,9 @@ struct convert<org::test::ParseSpec>
 namespace org::test {
 
 fs::path ParseSpec::debugFile(
-    std::string     relativePath,
-    CR<std::string> relDebug,
-    bool            create) const {
+    std::string        relativePath,
+    std::string const& relDebug,
+    bool               create) const {
     if (debug.debugOutDir.empty()) {
         throw FilesystemError::init(
             "Cannot get relative path for the spec configuration that "
@@ -151,9 +151,9 @@ fs::path ParseSpec::debugFile(
 }
 
 ParseSpec::ParseSpec(
-    CR<yaml>        node,
-    CR<std::string> specFile,
-    CR<std::string> testRoot)
+    yaml const&        node,
+    std::string const& specFile,
+    std::string const& testRoot)
     : specFile(specFile) {
     specLocation = node.Mark();
 
@@ -187,10 +187,10 @@ ParseSpec::ParseSpec(
 }
 
 ParseSpecGroup::ParseSpecGroup(
-    CR<yaml>        node,
-    CR<std::string> from,
-    CR<std::string> testRoot) {
-    auto validate = [&](CR<ParseSpec> spec) {};
+    yaml const&        node,
+    std::string const& from,
+    std::string const& testRoot) {
+    auto validate = [&](ParseSpec const& spec) {};
     if (node["items"]) {
         if (node["items"].IsSequence()) {
             for (const auto& it : node["items"]) {
@@ -226,7 +226,7 @@ ParseSpecGroup::ParseSpecGroup(
     }
 }
 
-json toJson(CR<yaml> node) {
+json toJson(yaml const& node) {
     switch (node.Type()) {
         case YAML::NodeType::Undefined: {
             return json();
@@ -266,7 +266,7 @@ json toJson(CR<yaml> node) {
     }
 }
 
-yaml toYaml(CR<json> node) {
+yaml toYaml(json const& node) {
     using vt = json::value_t;
     switch (node.type()) {
         case vt::number_float: return yaml{node.get<float>()};

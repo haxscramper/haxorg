@@ -88,7 +88,7 @@ struct BinaryFileDB {
 };
 
 
-BinaryFileDB         getSymbolsInBinary(const std::string& path);
+BinaryFileDB         getSymbolsInBinary(std::string const& path);
 BinarySymComponentId parseBinarySymbolName(
     std::string const&        name,
     BinaryFileDB&             db,

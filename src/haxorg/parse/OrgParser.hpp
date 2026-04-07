@@ -26,7 +26,7 @@ struct OrgParser : public hstd::OperationsTracer {
 
     std::string getLocMsg(OrgLexer const& lex);
     parse_error fatalError(
-        const OrgLexer&  lex,
+        OrgLexer const&  lex,
         hstd::Str const& msg,
         int              line     = __builtin_LINE(),
         char const*      function = __builtin_FUNCTION());
@@ -206,13 +206,13 @@ struct OrgParser : public hstd::OperationsTracer {
 
     OrgNodeMono::Error error_value(
         org::sem::OrgDiagnostics::ParseError const& message,
-        const OrgLexer&                             lex,
+        OrgLexer const&                             lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
     ParseResult error_end(
         org::sem::OrgDiagnostics::ParseError const& message,
-        const OrgLexer&                             lex,
+        OrgLexer const&                             lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         return error_end(
@@ -256,8 +256,8 @@ struct OrgParser : public hstd::OperationsTracer {
     [[nodiscard]] ParseResult expect(
         OrgLexer const&                 lex,
         OrgParser::OrgExpectable const& item,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
-            nullopt,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
+                    message  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
@@ -276,8 +276,8 @@ struct OrgParser : public hstd::OperationsTracer {
 
     void skip(
         OrgLexer& lex,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
-            nullopt,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
+                    message  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         std::ignore = skip(lex, std::nullopt, message, line, function);
@@ -286,8 +286,8 @@ struct OrgParser : public hstd::OperationsTracer {
     [[nodiscard]] ParseResult skip(
         OrgLexer&                           lex,
         hstd::Opt<OrgParser::OrgExpectable> item,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::
-            nullopt,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
+                    message  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 

@@ -36,7 +36,7 @@ void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full) {
 
 
 sem::SemId<sem::Org> testParseString(
-    const std::string&         text,
+    std::string const&         text,
     std::optional<std::string> debug) {
     org::test::MockFull p{"<test>", debug.has_value(), debug.has_value()};
     sem::OrgConverter   converter{};
@@ -120,7 +120,7 @@ sem::SemId<sem::Org> testParseString(
     return res;
 }
 
-void show_compare_reports(const Vec<compare_report>& out) {
+void show_compare_reports(Vec<compare_report> const& out) {
     std::string buffer;
     for (auto const& it : out) {
         std::string ctx = it.context

@@ -20,7 +20,7 @@ void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
 }
 
 void OperationsTracer::setTraceFile(
-    const fs::path& outfile,
+    fs::path const& outfile,
     bool            overwrite) {
     LOGIC_ASSERTION_CHECK(
         outfile.native().size() != 0,
@@ -58,15 +58,15 @@ ColStream OperationsTracer::getStream() const {
 void OperationsTracer::endStream(ColStream& stream) const {
     if (traceToBuffer) {
         stream << "\n";
-        const_cast<OperationsTracer*>(this)->traceBuffer += stream.toString(
-            traceColored);
+        const_cast<OperationsTracer*>(this)
+            ->traceBuffer += stream.toString(traceColored);
     } else {
         (*stream.ostream) << std::endl;
     }
 }
 
 void OperationsTracer::message(
-    const std::string& value,
+    std::string const& value,
     const char*        function,
     int                line,
     const char*        file) const {
@@ -82,7 +82,7 @@ void OperationsTracer::message(
     }
 }
 
-void OperationsTracer::message(const OperationsMsg& value) const {
+void OperationsTracer::message(OperationsMsg const& value) const {
     if (TraceState) {
         auto os = getStream();
         if (traceStructured) {
@@ -162,7 +162,7 @@ finally_std OperationsTracer::scopeTrace(bool state) {
 }
 
 finally_std OperationsTracer::scopeLevelMsg(
-    const std::string& value,
+    std::string const& value,
     const char*        function,
     int                line,
     const char*        file) const {

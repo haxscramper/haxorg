@@ -20,7 +20,7 @@ def get_source_locations(binary_path: str, addresses: List[str]) -> Optional[Lis
         result = subprocess.run(["addr2line", "-e", binary_path] + addresses,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
-        return result.stdout.decode().strip().split('\n')
+        return result.stdout.decode().strip().split("\n")
     except Exception as e:
         print(f"Error calling addr2line: {e}")
         return None

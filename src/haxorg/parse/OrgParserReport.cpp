@@ -12,7 +12,7 @@
 using namespace hstd;
 using namespace org::parse;
 
-void OrgParser::report(CR<Report> in) {
+void OrgParser::report(Report const& in) {
     using fg = TermColorFg8Bit;
 
     if (reportHook) { reportHook(in); }

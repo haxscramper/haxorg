@@ -67,6 +67,7 @@ option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
 option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
 option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
+option(ORG_BUILD_WRAPPERS_C "Enable compilation of the C wrappers" ON)
 
 # Optional targets for the build
 option(ORG_BUILD_EMCC "Building for emscripten target" OFF)
@@ -309,7 +310,20 @@ if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
   add_subdirectory(src/adaptagrams)
 endif()
+
+if(${ORG_BUILD_EMCC})
+  add_subdirectory(src/wrappers/js)
+endif()
+
+if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WRAPPERS_C})
+  add_definitions(-DORG_BUILD_WRAPPERS_C=1)
+  add_subdirectory(src/wrappers/c)
+else()
+  add_definitions(-DORG_BUILD_WRAPPERS_C=0)
+endif()
+
 add_subdirectory(src/haxorg)
+
 if(NOT ${ORG_BUILD_EMCC})
   add_subdirectory(src/py_libs)
 endif()
@@ -317,10 +331,6 @@ endif()
 if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
   add_subdirectory(scripts/cxx_repository)
   add_subdirectory(scripts/cxx_codegen)
-endif()
-
-if(${ORG_BUILD_EMCC})
-  add_subdirectory(src/wrappers/js)
 endif()
 
 if(${ORG_BUILD_QT_GUI})

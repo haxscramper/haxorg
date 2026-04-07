@@ -189,8 +189,8 @@ dyn_variant<Tag> from_index(Tag, int index) {
 
 #define DEFINE_DYN_VARIANT_DERIVED_TYPE_BODY(                             \
     DerivedTypeName, KindEnumName, __get_kind)                            \
-    static constexpr KindEnumName staticKind = KindEnumName::             \
-        DerivedTypeName;                                                  \
+    static constexpr KindEnumName                                         \
+         staticKind = KindEnumName::DerivedTypeName;                      \
     Kind __get_kind() const override { return staticKind; }
 
 #define DEFINE_DYN_VARIANT_TAG(                                           \
@@ -202,6 +202,6 @@ dyn_variant<Tag> from_index(Tag, int index) {
         using types                     = std::tuple<__VA_ARGS__>;        \
         static constexpr int type_count = std::tuple_size_v<types>;       \
         static kind_type     get_kind(base_class const* ptr) {            \
-            return GetKindExpr;                                       \
+            return GetKindExpr;                                           \
         }                                                                 \
     };

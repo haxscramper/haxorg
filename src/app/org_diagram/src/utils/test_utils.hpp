@@ -27,16 +27,16 @@ template <typename T, typename Model>
 std::vector<ModelMismatch> compareModels(
     Model const*                                       model1,
     Model const*                                       model2,
-    std::function<T(const QModelIndex&, Model const*)> valueConverter) {
+    std::function<T(QModelIndex const&, Model const*)> valueConverter) {
     std::vector<ModelMismatch> mismatches;
 
     std::function<void(
-        const QModelIndex&, const QModelIndex&, const std::string&)>
+        QModelIndex const&, QModelIndex const&, std::string const&)>
         compareRecursive;
 
-    compareRecursive = [&](const QModelIndex& parent1,
-                           const QModelIndex& parent2,
-                           const std::string& path) {
+    compareRecursive = [&](QModelIndex const& parent1,
+                           QModelIndex const& parent2,
+                           std::string const& path) {
         int rowCount1 = model1->rowCount(parent1);
         int rowCount2 = model2->rowCount(parent2);
 

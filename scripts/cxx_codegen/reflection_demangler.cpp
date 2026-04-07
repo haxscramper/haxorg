@@ -613,7 +613,7 @@ static std::vector<std::string> CompiledFileExtensions = {
     ".mm",
 };
 
-int findSymbolNamePosition(const std::string& input) {
+int findSymbolNamePosition(std::string const& input) {
     int pos = input.find(':');
     while (pos != std::string::npos) {
         for (const auto& ext : CompiledFileExtensions) {
@@ -630,7 +630,7 @@ int findSymbolNamePosition(const std::string& input) {
 }
 
 llvm::json::Value demangle_to_json(
-    const std::string&        name,
+    std::string const&        name,
     BinarySymbolVisitContext& ctx,
     int                       depth,
     int                       max_depth) {
@@ -671,7 +671,7 @@ BinarySymComponentId parseBinarySymbolName(
     return res;
 }
 
-std::size_t hash_json_value(const llvm::json::Value& value) {
+std::size_t hash_json_value(llvm::json::Value const& value) {
     std::size_t result = 0;
 
     switch (value.kind()) {
@@ -693,7 +693,7 @@ std::size_t hash_json_value(const llvm::json::Value& value) {
             break;
 
         case llvm::json::Value::Array: {
-            const auto& array = *value.getAsArray();
+            auto const& array = *value.getAsArray();
             hstd::hax_hash_combine(result, array.size());
             for (const auto& element : array) {
                 hstd::hax_hash_combine(result, hash_json_value(element));
@@ -702,7 +702,7 @@ std::size_t hash_json_value(const llvm::json::Value& value) {
         }
 
         case llvm::json::Value::Object: {
-            const auto& object = *value.getAsObject();
+            auto const& object = *value.getAsObject();
             std::vector<std::pair<std::string, const llvm::json::Value*>>
                 sorted_fields;
 
@@ -713,7 +713,7 @@ std::size_t hash_json_value(const llvm::json::Value& value) {
             std::sort(
                 sorted_fields.begin(),
                 sorted_fields.end(),
-                [](const auto& a, const auto& b) {
+                [](auto const& a, auto const& b) {
                     return a.first < b.first;
                 });
 
@@ -731,8 +731,8 @@ std::size_t hash_json_value(const llvm::json::Value& value) {
 }
 
 bool json_values_equal(
-    const llvm::json::Value& lhs,
-    const llvm::json::Value& rhs) {
+    llvm::json::Value const& lhs,
+    llvm::json::Value const& rhs) {
     if (lhs.kind() != rhs.kind()) { return false; }
 
     switch (lhs.kind()) {
@@ -749,8 +749,8 @@ bool json_values_equal(
             return lhs.getAsString().value() == rhs.getAsString().value();
 
         case llvm::json::Value::Array: {
-            const auto& lhs_array = *lhs.getAsArray();
-            const auto& rhs_array = *rhs.getAsArray();
+            auto const& lhs_array = *lhs.getAsArray();
+            auto const& rhs_array = *rhs.getAsArray();
 
             if (lhs_array.size() != rhs_array.size()) { return false; }
 
@@ -763,8 +763,8 @@ bool json_values_equal(
         }
 
         case llvm::json::Value::Object: {
-            const auto& lhs_object = *lhs.getAsObject();
-            const auto& rhs_object = *rhs.getAsObject();
+            auto const& lhs_object = *lhs.getAsObject();
+            auto const& rhs_object = *rhs.getAsObject();
 
             if (lhs_object.size() != rhs_object.size()) { return false; }
 
@@ -783,7 +783,7 @@ bool json_values_equal(
 }
 
 std::size_t std::hash<BinarySymComponent>::operator()(
-    const BinarySymComponent& it) const noexcept {
+    BinarySymComponent const& it) const noexcept {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.binary_sym_kind);
 
@@ -803,7 +803,7 @@ std::size_t std::hash<BinarySymComponent>::operator()(
 
 
 std::size_t std::hash<BinarySymField>::operator()(
-    const BinarySymField& it) const noexcept {
+    BinarySymField const& it) const noexcept {
     return std::visit(
         hstd::overloaded{
             [](llvm::json::Value const& value) {
@@ -817,7 +817,7 @@ std::size_t std::hash<BinarySymField>::operator()(
 }
 
 bool BinarySymComponent::operator==(
-    const BinarySymComponent& other) const noexcept {
+    BinarySymComponent const& other) const noexcept {
     if (binary_sym_kind != other.binary_sym_kind) { return false; }
 
     if (head_direct_fields.size() != other.head_direct_fields.size()) {
@@ -862,7 +862,7 @@ struct BinaryFileCtx {
 
 void processObjectFile(
     llvm::object::ObjectFile&         obj,
-    const std::optional<std::string>& objectLabel,
+    std::optional<std::string> const& objectLabel,
     BinaryFileCtx&                    ctx) {
     // Create DWARF context once per object file (cheap enough, and
     // avoids per-symbol reparse)
@@ -880,7 +880,7 @@ void processObjectFile(
         if (ctx.counter < ctx.min_counter) { continue; }
         if (ctx.max_counter < ctx.counter) { break; }
 
-        const llvm::object::SymbolRef& symbol = symAndSize.first;
+        llvm::object::SymbolRef const& symbol = symAndSize.first;
         uint64_t                       size   = symAndSize.second;
         if (size == 0) { continue; }
 
@@ -962,7 +962,7 @@ void processObjectFile(
 }
 } // namespace
 
-BinaryFileDB getSymbolsInBinary(const std::string& path) {
+BinaryFileDB getSymbolsInBinary(std::string const& path) {
     __perf_trace("sym", "Get symbols in binary");
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmParser();
@@ -1034,9 +1034,9 @@ BinaryFileDB getSymbolsInBinary(const std::string& path) {
 }
 
 NO_COVERAGE void CreateTables(SQLite::Database& db) {
-    auto path = hstd::fs::path{__FILE__}.parent_path()
-              / "reflection_demangler.sql";
-    std::string sql = hstd::readFile(path);
+    auto        path = hstd::fs::path{__FILE__}.parent_path()
+                     / "reflection_demangler.sql";
+    std::string sql  = hstd::readFile(path);
     db.exec(sql);
 }
 
@@ -1125,7 +1125,7 @@ struct queries {
     {};
 };
 
-NO_COVERAGE void BinaryFileDB::writeToFile(const std::string& path) {
+NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
     hstd::fs::path db_file{path};
 
     if (hstd::fs::exists(db_file)) { hstd::fs::remove(db_file); }

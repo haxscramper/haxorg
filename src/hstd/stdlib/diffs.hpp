@@ -124,8 +124,8 @@ struct DiffFormatConf {
     /// Format mismatched text. `mode` is the mismatch kind,
     /// `secondary` is used for `sekChanged` to annotated which part
     /// was deleted and which part was added.
-    Func<ColText(CR<Str>, SeqEditKind, SeqEditKind, bool)> formatChunk =
-        [](CR<Str>     word,
+    Func<ColText(Str const&, SeqEditKind, SeqEditKind, bool)> formatChunk =
+        [](Str const&  word,
            SeqEditKind mode,
            SeqEditKind secondary,
            bool        isInline) {
@@ -148,7 +148,7 @@ struct DiffFormatConf {
             }
         };
     /// Split line into chunks for formatting
-    Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
+    Func<Vec<Str>(Str const&)> lineSplit = [](Str const& a) -> Vec<Str> {
         return split_keep_separator(a, char('\n'));
     };
     /// Convert invisible character (whitespace or control) to
@@ -182,10 +182,10 @@ Vec<BacktrackRes> longestCommonSubsequence(
 
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
-    CVec<T>                   lhs,
-    CVec<T>                   rhs,
-    Func<bool(CR<T>, CR<T>)>  itemCmp,
-    Func<float(CR<T>, CR<T>)> itemEqualityMetric) {
+    CVec<T>                         lhs,
+    CVec<T>                         rhs,
+    Func<bool(T const&, T const&)>  itemCmp,
+    Func<float(T const&, T const&)> itemEqualityMetric) {
     return longestCommonSubsequence(
         lhs.size(),
         rhs.size(),
@@ -201,14 +201,14 @@ Vec<BacktrackRes> longestCommonSubsequence(
 
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
-    CVec<T>                  lhs,
-    CVec<T>                  rhs,
-    Func<bool(CR<T>, CR<T>)> itemCmp) {
+    CVec<T>                        lhs,
+    CVec<T>                        rhs,
+    Func<bool(T const&, T const&)> itemCmp) {
     return longestCommonSubsequence<T>(
         lhs,
         rhs,
         itemCmp,
-        [&lhs, &rhs, &itemCmp](CR<T> lhsIt, CR<T> rhsIt) -> float {
+        [&lhs, &rhs, &itemCmp](T const& lhsIt, T const& rhsIt) -> float {
             return itemCmp(lhsIt, rhsIt) ? 1.0 : 0.0;
         });
 }
@@ -220,9 +220,9 @@ Vec<SeqEdit> myersDiff(
 
 template <typename T>
 Vec<SeqEdit> myersDiffCbCmp(
-    const Vec<T>&                    lhsSeq,
-    const Vec<T>&                    rhsSeq,
-    Func<bool(const T& x, const T&)> itemCmp) {
+    Vec<T> const&                    lhsSeq,
+    Vec<T> const&                    rhsSeq,
+    Func<bool(T const& x, T const&)> itemCmp) {
     return myersDiff(
         lhsSeq.size(),
         rhsSeq.size(),
@@ -232,7 +232,7 @@ Vec<SeqEdit> myersDiffCbCmp(
 }
 
 template <typename T>
-Vec<SeqEdit> myersDiffEqCmp(const Vec<T>& lhsSeq, const Vec<T>& rhsSeq) {
+Vec<SeqEdit> myersDiffEqCmp(Vec<T> const& lhsSeq, Vec<T> const& rhsSeq) {
     return myersDiff(
         lhsSeq.size(),
         rhsSeq.size(),
@@ -308,7 +308,7 @@ LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
 Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
 
 
-inline bool scanInvisible(CR<Str> text, CharSet& invisSet) {
+inline bool scanInvisible(Str const& text, CharSet& invisSet) {
     // Scan string for invisible characters from right to left,
     // updating active invisible set as needed.
     for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
@@ -340,7 +340,7 @@ inline bool hasInvisible(
     return false;
 }
 
-inline bool hasInvisible(CR<Vec<Str>> text) {
+inline bool hasInvisible(Vec<Str> const& text) {
     // Do any of strings in text have signficant invisible characters.
     CharSet invisSet = Invis + CharSet{' '};
     for (int idx = text.size() - 1; idx >= 0; idx--) {
@@ -353,7 +353,7 @@ inline bool hasInvisible(CR<Vec<Str>> text) {
     return false;
 }
 
-inline Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
+inline Str toVisibleNames(DiffFormatConf const& conf, Str const& str) {
     Str result;
     // Convert all characters in the string into visible ones
     for (const auto& ch : str) { result += conf.explainChar(ch); }
@@ -361,8 +361,8 @@ inline Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
 }
 
 inline Vec<Str> toVisibleNames(
-    CR<DiffFormatConf> conf,
-    const Vec<Str>&    split) {
+    DiffFormatConf const& conf,
+    Vec<Str> const&       split) {
     Vec<Str> result;
     // Convert all characters in all strings into visible ones.
     if (split.size() > 0) {
@@ -393,9 +393,9 @@ struct ShiftedDiff {
         ());
 
     /// \brief Construct shifted diff pairing from LCS trace information
-    ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax);
+    ShiftedDiff(BacktrackRes const& track, int lhsMax, int rhsMax);
 
-    ShiftedDiff(CR<Vec<SeqEdit>>& diff);
+    ShiftedDiff(Vec<SeqEdit> const& diff);
 };
 
 struct BufItem {
@@ -409,7 +409,7 @@ struct BufItem {
 
 template <typename T>
 Pair<ColText, ColText> formatDiffed(
-    const Vec<SeqEdit>&   ops,
+    Vec<SeqEdit> const&   ops,
     Span<T>               oldSeq,
     Span<T>               newSeq,
     const DiffFormatConf& conf = DiffFormatConf{}) {
@@ -461,9 +461,9 @@ Pair<ColText, ColText> formatDiffed(
 
 
 inline Pair<ColText, ColText> formatLineDiff(
-    const Str&            oldLine,
-    const Str&            newLine,
-    const DiffFormatConf& conf) {
+    Str const&            oldLine,
+    Str const&            newLine,
+    DiffFormatConf const& conf) {
     // Format single line diff into oldLine/newLine line edits. Optionally
     // explain all differences using options from `conf`
 
@@ -481,14 +481,14 @@ inline Pair<ColText, ColText> formatLineDiff(
         auto oldVisible = toVisibleNames(conf, oldLineSplit);
         auto newVisible = toVisibleNames(conf, newLineSplit);
 
-        const auto& [oldLineLine, newLineLine] = formatDiffed(
+        auto const& [oldLineLine, newLineLine] = formatDiffed(
             diffed.operations,
             oldVisible.toSpan(),
             newVisible.toSpan(),
             conf);
 
     } else {
-        const auto& [oldLineLine, newLineLine] = formatDiffed(
+        auto const& [oldLineLine, newLineLine] = formatDiffed(
             diffed.operations,
             oldLineSplit.toSpan(),
             newLineSplit.toSpan(),
@@ -613,11 +613,11 @@ struct FormattedDiff {
     }
 
 
-    FormattedDiff(const ShiftedDiff& shifted, Conf const& conf);
+    FormattedDiff(ShiftedDiff const& shifted, Conf const& conf);
 
     FormattedDiff(
-        const Vec<BufItem>& oldText,
-        const Vec<BufItem>& newText,
+        Vec<BufItem> const& oldText,
+        Vec<BufItem> const& newText,
         Conf const&         conf);
 
 
@@ -626,9 +626,9 @@ struct FormattedDiff {
 
 
 ColText formatInlineDiff(
-    const Vec<Str>&     src,
-    const Vec<Str>&     target,
-    const Vec<SeqEdit>& diffed,
+    Vec<Str> const&     src,
+    Vec<Str> const&     target,
+    Vec<SeqEdit> const& diffed,
     DiffFormatConf      conf);
 
 
@@ -701,10 +701,10 @@ struct FuzzyMatcher : OperationsTracer {
 
 template <typename T>
 ColText formatDiffed(
-    const Vec<T>&                  oldSeq,
-    const Vec<T>&                  newSeq,
+    Vec<T> const&                  oldSeq,
+    Vec<T> const&                  newSeq,
     FormattedDiff::Conf const&     conf,
-    Func<bool(const T&, const T&)> eqCmp = [](const T& a, const T& b) {
+    Func<bool(T const&, T const&)> eqCmp = [](T const& a, T const& b) {
         return a == b;
     }) {
 
@@ -715,8 +715,8 @@ ColText formatDiffed(
 }
 
 inline ColText formatDiffed(
-    const Str&                 text1,
-    const Str&                 text2,
+    Str const&                 text1,
+    Str const&                 text2,
     FormattedDiff::Conf const& conf) {
     return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
 }

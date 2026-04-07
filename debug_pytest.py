@@ -5,7 +5,7 @@ from py_scriptutils import configure_asan
 
 
 def trace_lines(frame, event, arg) -> None:
-    if event == 'call' and frame.f_code.co_name == '__import__':
+    if event == "call" and frame.f_code.co_name == "__import__":
         lineno = frame.f_lineno
         filename = frame.f_globals.get("__file__", "<none>")
         if filename.endswith((".pyc", ".pyo")):
@@ -21,4 +21,4 @@ import pytest
 sys.settrace(trace_lines)
 
 if __name__ == "__main__":
-    pytest.main(['--collect-only', '-vv'])
+    pytest.main(["--collect-only", "-vv"])

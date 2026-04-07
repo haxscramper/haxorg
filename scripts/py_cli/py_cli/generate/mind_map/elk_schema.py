@@ -237,7 +237,7 @@ class PortProperties(BaseModel, extra="forbid"):
         result.update(port_data)
         return result
 
-    @model_serializer(mode='plain')
+    @model_serializer(mode="plain")
     def serialize_model(self) -> Dict[str, Any]:
         data: Dict[str, Any] = {}
 

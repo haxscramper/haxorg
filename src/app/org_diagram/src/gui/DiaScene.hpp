@@ -60,7 +60,7 @@ struct DiaScene : public QGraphicsScene {
         , version_store{version_store}
         , treeModel{treeModel} {}
 
-    void drawBackground(QPainter* painter, const QRectF& rect) override;
+    void drawBackground(QPainter* painter, QRectF const& rect) override;
 
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
@@ -154,7 +154,7 @@ struct DiaScene : public QGraphicsScene {
     DiaSceneItemGroup* findGroupContaining(DiaSceneItemVisual* node);
 
     std::vector<DiaSceneItemVisual*> findCommonParentNodes(
-        const std::vector<DiaSceneItemVisual*>& nodes);
+        std::vector<DiaSceneItemVisual*> const& nodes);
 
   public slots:
     void setShowGrid(bool show) {
@@ -162,7 +162,7 @@ struct DiaScene : public QGraphicsScene {
         invalidate(); // Force redraw
     }
 
-    void setGridColor(const QColor& color) {
+    void setGridColor(QColor const& color) {
         gridColor = color;
         invalidate(); // Force redraw
     }

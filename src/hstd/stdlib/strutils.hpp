@@ -8,7 +8,7 @@
 namespace hstd {
 
 template <typename T>
-Str join(CR<Str> sep, generator<T>& list) {
+Str join(Str const& sep, generator<T>& list) {
     Str os;
     int index = 0;
     for (const auto& it : list) {
@@ -21,44 +21,47 @@ Str join(CR<Str> sep, generator<T>& list) {
 
 
 template <typename T>
-Str join(CR<Str> sep, generator<T>&& list) {
+Str join(Str const& sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(sep, tmp);
 }
 
 /// Get visible name of the character.
 Pair<Str, Str> visibleName(char ch);
-Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
+Str indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
 
 Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode = true);
 Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode = true);
-Vec<Str> split_keep_separator(const Str& str, CharSet sep = {' '});
-Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
-Str      lstrip(CR<Str> string, CR<CharSet> chars);
-Str      rstrip(CR<Str> string, CR<CharSet> chars);
-Vec<Str> split(CR<Str> str, char ch);
-Str      right_aligned(CR<Str> str, int n, char c = ' ');
-Str      left_aligned(CR<Str> str, int n, char c = ' ');
-Str      normalize(CR<Str> in);
-Str      repeat(CR<Str> str, int count);
+Vec<Str> split_keep_separator(Str const& str, CharSet sep = {' '});
+Str      strip(
+    Str const&     string,
+    CharSet const& leading,
+    CharSet const& trailing);
+Str      lstrip(Str const& string, CharSet const& chars);
+Str      rstrip(Str const& string, CharSet const& chars);
+Vec<Str> split(Str const& str, char ch);
+Str      right_aligned(Str const& str, int n, char c = ' ');
+Str      left_aligned(Str const& str, int n, char c = ' ');
+Str      normalize(Str const& in);
+Str      repeat(Str const& str, int count);
 Str      escape_for_write(Str const& str, bool quote = true);
-int      rune_length(const std::string& str);
-std::vector<std::string> rune_chunks(const std::string& str);
-bool iequals(const std::string& a, const std::string& b);
+int      rune_length(std::string const& str);
+std::vector<std::string> rune_chunks(std::string const& str);
+bool iequals(std::string const& a, std::string const& b);
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);
 std::string escape_literal(std::string_view const& in);
-void        validate_utf8(const std::string& str);
+void        validate_utf8(std::string const& str);
 
 
 void replace_all(
     std::string&       str,
-    const std::string& from,
-    const std::string& to);
+    std::string const& from,
+    std::string const& to);
 
-Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified);
+Str wrap_text(Vec<Str> const& words, int maxWidth, bool justified);
 
 
 enum class AsciiStyle

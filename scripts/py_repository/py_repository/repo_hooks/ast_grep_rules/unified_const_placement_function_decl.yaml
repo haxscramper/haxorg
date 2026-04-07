@@ -1,0 +1,7 @@
+id: west-to-east-const-ref-func-decl
+language: cpp
+rule:
+  pattern:
+    context: 'const $T& $F($$$ARGS);'
+    selector: declaration
+fix: '$T const& $F($$$ARGS);'

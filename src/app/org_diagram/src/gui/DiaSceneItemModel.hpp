@@ -35,7 +35,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
         int                column,
         const QModelIndex& parent = QModelIndex{}) const override;
 
-    QModelIndex parent(const QModelIndex& index) const override;
+    QModelIndex parent(QModelIndex const& index) const override;
 
     DiaSceneItem* getNode(QModelIndex const& node) const {
         if (node.isValid()) {
@@ -59,7 +59,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
         return 1;
     }
 
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole)
+    QVariant data(QModelIndex const& index, int role = Qt::DisplayRole)
         const override;
 
     void refresh() {
@@ -72,7 +72,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     void endEditApply(DiaEdit const& edit, DiaEditTransientState& state);
 
   public slots:
-    void selectNodes(const QList<DiaSceneItemVisual*>& visualNodes) {
+    void selectNodes(QList<DiaSceneItemVisual*> const& visualNodes) {
         hstd::logic_assertion_check_not_nil(rootNode);
         HSLOG_TRACKED_SLOT(get_tracker(), "selectNodes", visualNodes);
         emit layoutAboutToBeChanged();
@@ -89,7 +89,7 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     }
 
   signals:
-    void nodesSelected(const QList<QModelIndex>& indexes);
+    void nodesSelected(QList<QModelIndex> const& indexes);
 
   private:
     QModelIndex getIndexForNode(DiaSceneItem* targetNode) const {
@@ -98,6 +98,6 @@ struct DiaSceneItemModel : public QAbstractItemModel {
     }
 
     QModelIndex findNodeIndex(
-        const QModelIndex& parent,
+        QModelIndex const& parent,
         DiaSceneItem*      targetNode) const;
 };

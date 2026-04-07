@@ -8,7 +8,7 @@ template <typename T>
 struct std::formatter<hstd::Span<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const hstd::Span<T>& p,
+        hstd::Span<T> const& p,
         FormatContext&       ctx) const {
         hstd::fmt_ctx("[", ctx);
         for (int i = 0; i < p.size(); ++i) {

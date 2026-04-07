@@ -10,7 +10,7 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import sessionmaker
 
 
-def format_epoch_to_date(epoch: float, date_format: str = '%Y-%m-%d') -> str:
+def format_epoch_to_date(epoch: float, date_format: str = "%Y-%m-%d") -> str:
     return datetime.utcfromtimestamp(epoch).strftime(date_format)
 
 
@@ -56,7 +56,7 @@ def run_for(engine: Engine) -> None:
                                     SECTION_TIME_RESOLUTION)
 
     # Assign to buckets
-    df['line_time_bucket'] = pd.cut(
+    df["line_time_bucket"] = pd.cut(
         df[line_time],
         bins=line_time_bins,
         ordered=False,
@@ -65,30 +65,30 @@ def run_for(engine: Engine) -> None:
             for idx, (left,
                       right) in enumerate(zip(line_time_bins[:-1], line_time_bins[1:]))
         ])
-    df['section_time_bucket'] = pd.cut(df[sect_time], bins=section_time_bins)
+    df["section_time_bucket"] = pd.cut(df[sect_time], bins=section_time_bins)
 
     # Group and count
     grouped = df.groupby(
-        'section_time_bucket')['line_time_bucket'].value_counts().unstack(fill_value=0)
+        "section_time_bucket")["line_time_bucket"].value_counts().unstack(fill_value=0)
 
     # Plot
     fig, ax = plt.subplots(figsize=(10, 6))
-    grouped.plot(kind='bar', stacked=True, ax=ax)
+    grouped.plot(kind="bar", stacked=True, ax=ax)
 
     # Title and labels
-    ax.set_title('Line Time Buckets within Each Section Time Bucket')
-    ax.set_xlabel('Section Time Buckets')
-    ax.set_ylabel('Count of Line Time Buckets')
+    ax.set_title("Line Time Buckets within Each Section Time Bucket")
+    ax.set_xlabel("Section Time Buckets")
+    ax.set_ylabel("Count of Line Time Buckets")
 
     # Format the x-axis as date
-    formatter: mdates.DateFormatter = mdates.DateFormatter('%Y-%m-%d')  # type: ignore
+    formatter: mdates.DateFormatter = mdates.DateFormatter("%Y-%m-%d")  # type: ignore
     ax.xaxis.set_major_formatter(formatter)  # Adjust the format as needed
 
     # Rotate x-ticks
-    plt.xticks(rotation=45, ha='right')  # Rotate and align right
+    plt.xticks(rotation=45, ha="right")  # Rotate and align right
 
     # Place the legend outside the plot
-    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
 
     # Adjust layout
     plt.tight_layout()

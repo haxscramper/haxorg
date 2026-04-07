@@ -11,8 +11,8 @@ import dominate.util
 import graphviz
 import igraph
 from py_ci.data_build import get_deps_install_config
-from py_codegen.codegen_ir import GenTuInclude, QualTypeKind, QualType
-import py_codegen.proto_lib.reflection_defs as pb
+from py_codegen.codegen_ir import GenTuInclude, QualType, QualTypeKind
+import py_codegen.proto_lib as pb
 from py_codegen.refl_read import conv_proto_file, ConvTu
 from py_codegen.refl_wrapper_graph import (
     get_declared_types_rec,
@@ -490,7 +490,7 @@ def gen_include_graph(
 
     for f in ok_files:
         tu = conv_proto_file(f)
-        tu_unit = pb.TU.FromString(f.read_bytes())
+        tu_unit = pb.Tu.FromString(f.read_bytes())
         tu_json = f.with_suffix(".json")
         tu_json.write_text(tu_unit.to_json(indent=2))
         if tu.absoluteOriginal.endswith("hpp"):

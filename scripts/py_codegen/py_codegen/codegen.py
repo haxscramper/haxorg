@@ -1,36 +1,46 @@
 #!/usr/bin/env python
-from sqlalchemy.testing import eq_clause_element
-
-from py_codegen import codegen_cpp, refl_read, codegen_ir
-import py_codegen.astbuilder_cpp as cpp
 import os
+
+from py_codegen import codegen_cpp, codegen_ir, refl_read
+from py_codegen.astbuilder_c_config import CAstbuilderConfig
+import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_embind as napi
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.astbuilder_nanobind import NbModule
+from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 import py_codegen.astbuilder_proto as pb
 import py_codegen.astbuilder_py as pya
-import py_codegen.codegen_immutable as gen_imm
-from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
+import py_codegen.codegen_immutable as gen_imm
 from py_codegen.codegen_iteration_macros import (
     gen_pyhaxorg_field_iteration_macros,
     gen_pyhaxorg_iteration_macros,
     gen_pyhaxorg_shared_iteration_macros,
 )
-from py_codegen.codegen_type_groups import get_pyhaxorg_type_groups, PyhaxorgTypeGroups, verify_type_usage
+from py_codegen.codegen_type_groups import (
+    get_pyhaxorg_type_groups,
+    PyhaxorgTypeGroups,
+    verify_type_usage,
+)
+from py_codegen.codegen_wrapper_c import gen_haxorg_c_wrappers
+from py_codegen.codegen_wrapper_embind import gen_pyhaxorg_napi_wrappers
+from py_codegen.codegen_wrapper_nanobind import (
+    gen_adaptagrams_wrappers,
+    gen_pyhaxorg_python_wrappers,
+)
 from py_codegen.org_codegen_data import *
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_repository.repo_tasks.config import get_tmpdir
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log
-import yaml
 from py_scriptutils.toml_config_profiler import (
     apply_options,
     get_context,
     options_from_model,
 )
 import rich_click as click
+import yaml
 
 CAT = "codegen"
 
@@ -83,9 +93,8 @@ def get_exporter_methods(
                     kindGetter = getattr(field, "variantGetter")
                     variant_methods.append(
                         GenTuFunction(
-                            QualType.ForName("void"),
-                            f"{decl_scope}visit",
-                            GenTuDoc(""),
+                            ReturnType=QualType.ForName("void"),
+                            Name=f"{decl_scope}visit",
                             Params=t_params,
                             Args=[
                                 GenTuIdent(
@@ -103,9 +112,8 @@ def get_exporter_methods(
 
             if value.Name.isOrgType() and len(scope_full) == 0:
                 method = GenTuFunction(
-                    QualType.ForName("void"),
-                    f"{decl_scope}visit{name}",
-                    GenTuDoc(""),
+                    ReturnType=QualType.ForName("void"),
+                    Name=f"{decl_scope}visit{name}",
                     Params=t_params,
                     Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
@@ -127,9 +135,8 @@ def get_exporter_methods(
                 )
             else:
                 method = GenTuFunction(
-                    QualType.ForName("void"),
-                    f"{decl_scope}visit",
-                    GenTuDoc(""),
+                    ReturnType=QualType.ForName("void"),
+                    Name=f"{decl_scope}visit",
                     Params=t_params,
                     Args=[
                         GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
@@ -157,7 +164,7 @@ def to_base_types(obj: Any) -> Any:
 
         obj_id = id(obj)
         if obj_id in seen:
-            return 'recursive - {}'.format(type(obj).__name__)
+            return "recursive - {}".format(type(obj).__name__)
 
         seen.add(obj_id)
 
@@ -167,199 +174,17 @@ def to_base_types(obj: Any) -> Any:
         elif isinstance(obj, list):
             return [aux(i, seen) for i in obj]
 
-        elif hasattr(obj, '__dict__'):
+        elif hasattr(obj, "__dict__"):
             return aux(obj.__dict__, seen)
 
-        elif hasattr(obj, '__iter__') and not isinstance(obj, str):
+        elif hasattr(obj, "__iter__") and not isinstance(obj, str):
             return [aux(i, seen) for i in obj]
 
         else:
-            return 'Type({}) - {}'.format(type(obj).__name__, str(obj))
+            return "Type({}) - {}".format(type(obj).__name__, str(obj))
 
     seen: set[Any] = set()
     return aux(obj, seen)
-
-
-NB_INCLUDE_LIST = [
-    GenTuInclude("nanobind/nanobind.h", True),
-    GenTuInclude("nanobind/stl/string.h", True),
-    GenTuInclude("nanobind/stl/vector.h", True),
-    GenTuInclude("nanobind/stl/map.h", True),
-    GenTuInclude("nanobind/stl/array.h", True),
-    GenTuInclude("nanobind/stl/filesystem.h", True),
-    GenTuInclude("nanobind/stl/function.h", True),
-    GenTuInclude("nanobind/stl/map.h", True),
-    GenTuInclude("nanobind/stl/optional.h", True),
-    GenTuInclude("nanobind/stl/set.h", True),
-    GenTuInclude("nanobind/stl/shared_ptr.h", True),
-    GenTuInclude("nanobind/stl/string_view.h", True),
-    GenTuInclude("nanobind/stl/tuple.h", True),
-    GenTuInclude("nanobind/stl/unique_ptr.h", True),
-    GenTuInclude("nanobind/stl/unordered_map.h", True),
-    GenTuInclude("nanobind/stl/variant.h", True),
-    GenTuInclude("nanobind/operators.h", True),
-    GenTuInclude("nanobind/make_iterator.h", True),
-    GenTuInclude("nanobind/ndarray.h", True),
-]
-
-
-@beartype
-def gen_adaptagrams_wrappers(
-    ast: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-    reflection_path: Path,
-) -> GenFiles:
-    "Generate wrappers for adaptagrams library"
-    tu: refl_read.ConvTu = refl_read.conv_proto_file(reflection_path)
-
-    reflection_debug = Path("/tmp/haxorg/adaptagrams_reflection.json")
-    reflection_debug.write_text(refl_read.open_proto_file(reflection_path).to_json(2))
-    log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
-
-    with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
-        type_map = get_type_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
-        conf = NanobindAstbuilderConfig(type_map)
-        res = NbModule("py_adaptagrams", conf)
-        res.add_all(tu.get_all(), ast=ast)
-        specializations = collect_type_specializations(tu.get_all(), conf)
-        res.add_type_specializations(
-            ast=ast,
-            specializations=specializations,
-        )
-
-        return GenFiles([
-            GenUnit(header=GenTu(
-                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                [GenTuPass(res.build_typedef(pyast))],
-                clangFormatGuard=False,
-            )),
-            GenUnit(header=GenTu(
-                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
-                [
-                    GenTuPass("#undef slots"),
-                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
-                    GenTuInclude("py_libs/nanobind_utils.hpp", True),
-                    *NB_INCLUDE_LIST,
-                    GenTuPass(res.build_bind(ast)),
-                ],
-            )),
-        ])
-
-
-class HaxorgNanobindWrapper(NanobindAstbuilderConfig):
-    "Override some nanobind generation options for haxorg-specific types"
-
-    def isRegisteredForBacked(self, Type: codegen_cpp.QualType) -> bool:
-        "nodoc"
-        match Type.flatQualNameWithParams():
-            case ["org", "sem", "SemId", _]:
-                return True
-
-            case ["org", "imm", "ImmAdapterTBase", _]:
-                return False
-
-            case ["org", "imm", *rest]:
-                return True
-
-            case n if n in [
-                ["org", "imm", "ImmId", "NodeIdxT"],
-                ["org", "bind", "python", "ExporterPython", "PyFunc"],
-                ["org", "bind", "python", "ExporterPython", "Res"],
-            ]:
-                return True
-
-            case _:
-                return super().isRegisteredForBacked(Type)
-
-
-@beartype
-def gen_pyhaxorg_python_wrappers(
-    groups: PyhaxorgTypeGroups,
-    ast: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-) -> GenFiles:
-    "Generate haxorg python wrappers"
-    conf = HaxorgNanobindWrapper(groups.type_map)
-    res = NbModule("pyhaxorg", conf)
-
-    for decl in groups.get_entries_for_wrapping():
-        if decl.ReflectionParams.isAcceptedBackend("python"):
-            res.add_decl(decl, ast=ast)
-
-    specializations = collect_type_specializations(
-        groups.get_entries_for_wrapping(),
-        conf,
-    )
-
-    verify_type_usage(groups.get_entries_for_wrapping(), conf, specializations)
-
-    res.add_type_specializations(ast, specializations=specializations)
-
-    res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
-
-    return GenFiles([
-        GenUnit(header=GenTu(
-            "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-            [GenTuPass(res.build_typedef(pyast))],
-            clangFormatGuard=False,
-        )),
-        GenUnit(header=GenTu(
-            "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
-            [
-                GenTuPass("#undef slots"),
-                *NB_INCLUDE_LIST,
-                GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
-                GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                GenTuPass(res.build_bind(ast)),
-            ],
-        )),
-    ])
-
-
-# @beartype
-# def gen_pyhaxorg_c_wrappers(groups: PyhaxorgTypeGroups, ast: ASTBuilder, cast: c.ASTBuilder) -> GenFiles:
-#     return
-
-
-@beartype
-def gen_pyhaxorg_napi_wrappers(
-    groups: PyhaxorgTypeGroups,
-    ast: cpp.ASTBuilder,
-    type_map: GenTypeMap,
-) -> GenFiles:
-    "Generate embind wrappers"
-
-    cpp_builder = cpp.ASTBuilder(ast.b)
-
-    conf = EmbindAstbuilderConfig(type_map)
-    res = napi.WasmModule("haxorg_wasm", conf)
-
-    res.add_specializations(
-        b=ast,
-        specializations=collect_type_specializations(groups.get_entries_for_wrapping(),
-                                                     conf),
-    )
-
-    for decl in groups.get_entries_for_wrapping():
-        if decl.ReflectionParams.isAcceptedBackend("wasm"):
-            res.add_decl(decl)
-
-    res.Header.append(napi.WasmBindPass(ast.Include("node_utils.hpp")))
-    res.Header.append(napi.WasmBindPass(ast.Include("node_org_include.hpp")))
-    res.Header.append(napi.WasmBindPass(ast.Include("haxorg_wasm_manual.hpp")))
-    res.Header.append(napi.WasmBindPass(ast.string("using namespace org::bind::js;")))
-
-    res.add_decl(napi.WasmBindPass(ast.string("haxorg_wasm_manual_register();")))
-
-    return GenFiles([
-        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
-            GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
-        ])),
-        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
-            GenTuPass(res.build_typedef(ast=ast)),
-        ])),
-    ])
 
 
 @beartype
@@ -643,6 +468,7 @@ def run_codegen_pyhaxorg(
     pyast: pya.ASTBuilder,
     reflection_path: Path,
     t: TextLayout,
+    manual_tu_path: Path,
 ) -> None:
     """
     Generate sources for the haxorg library
@@ -654,12 +480,28 @@ def run_codegen_pyhaxorg(
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_path=Path(reflection_path),
+        manual_tu_path=manual_tu_path,
     )
 
     groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_groups.yaml")
     with groups_dump_yaml.open("w") as file:
         yaml.safe_dump(to_base_types(groups.conv_tu), stream=file)
         log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
+
+    groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_manual_groups.yaml")
+    with groups_dump_yaml.open("w") as file:
+        yaml.safe_dump(to_base_types(groups.manual_tu), stream=file)
+        log(CAT).info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
+
+    _write_files_group(
+        gen_haxorg_c_wrappers(
+            groups=groups,
+            ast=builder,
+        ),
+        is_tmp_codegen=is_tmp_codegen,
+        builder=builder,
+        t=t,
+    )
 
     _write_files_group(
         gen_pyhaxorg_napi_wrappers(
@@ -695,8 +537,12 @@ def run_codegen_pyhaxorg(
 
 
 @beartype
-def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: Path,
-                     is_tmp_codegen: bool) -> None:
+def run_codegen_task(
+    task: Literal["adaptagrams", "pyhaxorg"],
+    reflection_path: Path,
+    is_tmp_codegen: bool,
+    manual_tu_path: Path,
+) -> None:
     t = TextLayout()
     pyast = pya.ASTBuilder(t)
     builder = cpp.ASTBuilder(t)
@@ -719,20 +565,5 @@ def run_codegen_task(task: Literal["adaptagrams", "pyhaxorg"], reflection_path: 
                     builder=builder,
                     pyast=pyast,
                     t=t,
+                    manual_tu_path=manual_tu_path,
                 )
-
-
-@click.command()
-@codegen_options
-@click.pass_context
-def impl(ctx: click.Context, config: Optional[str] = None, **kwargs: Any) -> None:
-    opts: CodegenOptions = get_context(ctx, CodegenOptions, config=config, kwargs=kwargs)
-    run_codegen_task(
-        is_tmp_codegen=opts.tmp,
-        reflection_path=Path(opts.reflection_path),
-        task=opts.codegen_task,
-    )
-
-
-if __name__ == "__main__":
-    impl()

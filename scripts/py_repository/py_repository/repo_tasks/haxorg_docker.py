@@ -1,6 +1,5 @@
 from beartype import beartype
-from py_repository.repo_tasks.common import (
-    get_build_root,)
+from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.deps_build import build_develop_deps
 from py_repository.repo_tasks.examples_build import (
     build_examples,

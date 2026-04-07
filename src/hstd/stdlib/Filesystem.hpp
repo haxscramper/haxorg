@@ -17,8 +17,8 @@ namespace fs = std::filesystem;
 struct FilesystemError : public CRTP_hexception<FilesystemError> {};
 
 void writeFileOrStdout(
-    const fs::path&    target,
-    const std::string& content,
+    fs::path const&    target,
+    std::string const& content,
     bool               useFile,
     bool               useStdoutStream = true);
 

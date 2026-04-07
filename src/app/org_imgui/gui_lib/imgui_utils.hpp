@@ -56,15 +56,15 @@ ImVec2 getCurrentWindowContentPos();
 
 void AddText(
     ImDrawList*        list,
-    const ImVec2&      pos,
+    ImVec2 const&      pos,
     ImU32 const&       color,
     std::string const& text);
 
 void AddTextWithBackground(
     ImDrawList*        draw_list,
-    const ImVec2&      position,
+    ImVec2 const&      position,
     ImU32              text_color,
-    const std::string& text,
+    std::string const& text,
     ImU32              background_color = IM_COL32(255, 255, 255, 255));
 
 void quit_on_q(GLFWwindow* window);
@@ -80,7 +80,7 @@ BOOST_DESCRIBE_STRUCT(ImRect, (), (Min, Max));
 template <>
 struct std::formatter<ImVec2> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ImVec2& p, FormatContext& ctx) const {
+    auto format(ImVec2 const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("(", ctx);
         hstd::fmt_ctx(p.x, ctx);
         hstd::fmt_ctx(", ", ctx);

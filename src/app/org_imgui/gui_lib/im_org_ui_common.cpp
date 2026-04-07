@@ -11,7 +11,7 @@ using namespace hstd;
 
 
 EditableOrgText EditableOrgText::from_adapter(
-    const org::imm::ImmAdapter& it) {
+    org::imm::ImmAdapter const& it) {
     EditableOrgText                res;
     org::sem::SemId<org::sem::Org> sem_ast = org::imm::sem_from_immer(
         it.id, *it.ctx.lock());
@@ -167,7 +167,7 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
 }
 
 DocRootId EditableOrgDocGroup::addRoot(
-    const org::sem::SemId<org::sem::Org>& id) {
+    org::sem::SemId<org::sem::Org> const& id) {
     gr_log(hstd::log::l_trace).fmt_message("Adding root to AST");
     HSLOG_DEPTH_SCOPE_ANON();
     auto const& current = getCurrentHistory();
@@ -232,90 +232,93 @@ Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
 }
 
 org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
-    const org::imm::ImmAdapter&         origin,
+    org::imm::ImmAdapter const&         origin,
     Vec<org::sem::SemId<org::sem::Org>> replace) {
     // gr_log(hstd::log::l_trace).message(origin.treeRepr().toString(false));
     LOGIC_ASSERTION_CHECK_FMT(!origin.isNil(), "Cannot replace nil node");
-    org::imm::ImmAstVersion vNext = getCurrentHistory().ast->getEditVersion(
-        [&](org::imm::ImmAstContext::Ptr ast,
-            org::imm::ImmAstEditContext& ast_ctx)
-            -> org::imm::ImmAstReplaceGroup {
-            org::imm::ImmAstReplaceGroup result;
+    org::imm::ImmAstVersion
+        vNext = getCurrentHistory().ast->getEditVersion(
+            [&](org::imm::ImmAstContext::Ptr ast,
+                org::imm::ImmAstEditContext& ast_ctx)
+                -> org::imm::ImmAstReplaceGroup {
+                org::imm::ImmAstReplaceGroup result;
 
-            if (replace.size() == 1) {
-                auto id = ast->add(replace.at(0), ast_ctx);
-                if (id != origin.id) {
-                    result.incl(
-                        org::imm::replaceNode(origin, id, ast_ctx));
+                if (replace.size() == 1) {
+                    auto id = ast->add(replace.at(0), ast_ctx);
+                    if (id != origin.id) {
+                        result.incl(
+                            org::imm::replaceNode(origin, id, ast_ctx));
+                    } else {
+                        gr_log(hstd::log::l_info)
+                            .fmt_message(
+                                "Original node {} has the same ID as "
+                                "replacement "
+                                "target {} == {}",
+                                origin,
+                                origin.id,
+                                id);
+
+                        gr_log(hstd::log::l_trace)
+                            .message(origin.treeRepr().toString(false));
+                    }
                 } else {
-                    gr_log(hstd::log::l_info)
-                        .fmt_message(
-                            "Original node {} has the same ID as "
-                            "replacement "
-                            "target {} == {}",
-                            origin,
-                            origin.id,
-                            id);
+                    auto opt_parent = origin.getParent();
+                    LOGIC_ASSERTION_CHECK_FMT(
+                        opt_parent.has_value(),
+                        "Attempting to replace origin node {} with {} "
+                        "items, "
+                        "but the origin node does not have a proper "
+                        "parent.",
+                        origin,
+                        replace.size());
 
-                    gr_log(hstd::log::l_trace)
-                        .message(origin.treeRepr().toString(false));
-                }
-            } else {
-                auto opt_parent = origin.getParent();
-                LOGIC_ASSERTION_CHECK_FMT(
-                    opt_parent.has_value(),
-                    "Attempting to replace origin node {} with {} items, "
-                    "but the origin node does not have a proper parent.",
-                    origin,
-                    replace.size());
+                    auto parent = opt_parent.value();
+                    LOGIC_ASSERTION_CHECK_FMT(
+                        parent.isDirectParentOf(origin),
+                        "Origin node is {}, computed parent is {}",
+                        origin,
+                        parent);
 
-                auto parent = opt_parent.value();
-                LOGIC_ASSERTION_CHECK_FMT(
-                    parent.isDirectParentOf(origin),
-                    "Origin node is {}, computed parent is {}",
-                    origin,
-                    parent);
-
-                int index = origin.getSelfIndex();
+                    int index = origin.getSelfIndex();
 
 
-                LOGIC_ASSERTION_CHECK_FMT(
-                    index != -1,
-                    "Failed to compute self-index for origin node {}",
-                    origin);
+                    LOGIC_ASSERTION_CHECK_FMT(
+                        index != -1,
+                        "Failed to compute self-index for origin node {}",
+                        origin);
 
 
-                Vec<org::imm::ImmId> new_nodes;
+                    Vec<org::imm::ImmId> new_nodes;
 
-                for (int i = 0; i < index; ++i) {
-                    new_nodes.push_back(parent.at(i).id);
-                }
+                    for (int i = 0; i < index; ++i) {
+                        new_nodes.push_back(parent.at(i).id);
+                    }
 
-                for (auto const& it : replace) {
-                    new_nodes.push_back(ast->add(it, ast_ctx));
-                }
+                    for (auto const& it : replace) {
+                        new_nodes.push_back(ast->add(it, ast_ctx));
+                    }
 
-                for (int i = index + 1; i < parent.size(); ++i) {
-                    new_nodes.push_back(parent.at(i).id);
+                    for (int i = index + 1; i < parent.size(); ++i) {
+                        new_nodes.push_back(parent.at(i).id);
+                    }
+
+                    result.incl(
+                        org::imm::setSubnodes(
+                            parent,
+                            {new_nodes.begin(), new_nodes.end()},
+                            ast_ctx));
                 }
 
-                result.incl(
-                    org::imm::setSubnodes(
-                        parent,
-                        {new_nodes.begin(), new_nodes.end()},
-                        ast_ctx));
-            }
 
-
-            return result;
-        });
+                return result;
+            });
 
     return vNext;
 }
 
 org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
-    const org::imm::ImmAdapter& origin,
-    const std::string&          text) {
+    org::imm::ImmAdapter const& origin,
+    std::string const&          text) {
     auto parse = parseContext->parseString(text, "<text>");
     if (parse->is(OrgSemKind::Document)
         || parse->is(OrgSemKind::StmtList)) {
@@ -331,7 +334,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
 
 
 EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
-    const org::imm::ImmAstVersion& updated) const {
+    org::imm::ImmAstVersion const& updated) const {
     HSLOG_DEPTH_SCOPE_ANON();
     History res{};
     res.ast = std::make_shared<org::imm::ImmAstVersion>(updated);
@@ -355,7 +358,7 @@ EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
 }
 
 Pair<EditableOrgDocGroup::History, int> EditableOrgDocGroup::History::
-    addRoot(const org::sem::SemId<org::sem::Org>& root) const {
+    addRoot(org::sem::SemId<org::sem::Org> const& root) const {
     org::imm::ImmAstVersion updated = ast->context->init(root);
     auto                    res     = withNewVersion(updated);
     res.roots = res.roots.push_back(updated.getRootAdapter().uniq());

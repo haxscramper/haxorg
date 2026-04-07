@@ -6,7 +6,7 @@
 using namespace hstd;
 using namespace org::parse;
 
-std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
+std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
@@ -25,7 +25,7 @@ std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
 }
 
 
-Opt<SourceLoc> OrgParser::getLoc(CR<OrgLexer> lex) {
+Opt<SourceLoc> OrgParser::getLoc(OrgLexer const& lex) {
     if (lex.finished()) {
         return std::nullopt;
     } else {
@@ -113,7 +113,7 @@ void OrgParser::start_no_guard(
 
 
 OrgId OrgParser::end_impl(
-    const std::string& desc,
+    std::string const& desc,
     int                line,
     const char*        function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
@@ -138,10 +138,10 @@ OrgParser::ParseResult OrgParser::error_end(
 
 
 void OrgParser::fail(
-    CR<OrgLexer> lex,
-    CR<OrgNode>  replace,
-    int          line,
-    const char*  function) {
+    OrgLexer const& lex,
+    OrgNode const&  replace,
+    int             line,
+    const char*     function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->failTree(replace);
     if (TraceState) {
@@ -168,7 +168,10 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
 }
 
 
-OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
+OrgId OrgParser::token(
+    OrgNode const& node,
+    int            line,
+    const char*    function) {
     auto res = group->token(node);
     if (TraceState) {
         std::string msg;
@@ -235,7 +238,7 @@ OrgNodeMono::Error OrgParser::error_value(
 }
 
 OrgId OrgParser::error_token(
-    const OrgNodeMono::Error& err,
+    OrgNodeMono::Error const& err,
     int                       line,
     const char*               function) {
     OrgNodeMono mono;
@@ -258,7 +261,7 @@ OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
 }
 
 OrgParser::ParseResult OrgParser::maybe_error_end(
-    const MaybeTokenFail& err,
+    MaybeTokenFail const& err,
     int                   line,
     const char*           function) {
     if (err.has_error()) {
@@ -269,8 +272,8 @@ OrgParser::ParseResult OrgParser::maybe_error_end(
 }
 
 OrgParser::ParseResult OrgParser::expect(
-    CR<OrgLexer>                                           lex,
-    CR<OrgExpectable>                                      item,
+    OrgLexer const&                                        lex,
+    OrgExpectable const&                                   item,
     hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
     int                                                    line,
     char const*                                            function) {
@@ -368,7 +371,7 @@ finally_std OrgParser::trace(
 }
 
 void OrgParser::print(
-    const std::string& msg,
+    std::string const& msg,
     OrgLexer*          lexer,
     int                line,
     const char*        function) {
@@ -387,7 +390,7 @@ void OrgParser::print(
 
 parse_error OrgParser::fatalError(
     OrgLexer const& lex,
-    CR<Str>         msg,
+    Str const&      msg,
     int             line,
     const char*     function) {
     if (TraceState) {

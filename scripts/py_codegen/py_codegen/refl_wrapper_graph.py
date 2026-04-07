@@ -596,7 +596,7 @@ class GenGraph:
                     with_subgraphs: bool = True,
                     drop_zero_degree: bool = False,
                     drop_builtin_types: bool = True) -> None:
-        dot = gv.Digraph(format='dot')
+        dot = gv.Digraph(format="dot")
         dot.attr(rankdir="LR")
         dot.attr(overlap="false")
         dot.attr(splies="true")

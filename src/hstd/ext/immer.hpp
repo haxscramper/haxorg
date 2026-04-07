@@ -43,7 +43,15 @@ struct std::formatter<hstd::ext::ImmVec<T>>
 
 namespace hstd::ext {
 template <typename K, typename V>
-struct ImmMap : immer::map<K, V> {
+struct [[refl(R"({
+    "backend": {
+        "target-backends": ["c"],
+        "c": {
+            "instantiation-mode": "void-handle",
+            "value-template-parameters": ["K", "V"]
+        }
+    }
+})")]] ImmMap : immer::map<K, V> {
     using base = immer::map<K, V>;
     using base::at;
     using base::base;
@@ -51,7 +59,7 @@ struct ImmMap : immer::map<K, V> {
 
     ImmMap(base const& val) : base{val} {}
 
-    Opt<V> get(K const& key) const {
+    [[refl]] Opt<V> get(K const& key) const {
         if (auto val = find(key)) {
             return *val;
         } else {
@@ -59,9 +67,11 @@ struct ImmMap : immer::map<K, V> {
         }
     }
 
-    bool contains(K const& key) const { return find(key) != nullptr; }
+    [[refl]] bool contains(K const& key) const {
+        return find(key) != nullptr;
+    }
 
-    Vec<K> keys() const {
+    [[refl]] Vec<K> keys() const {
         Vec<K> result;
         for (const auto& [key, value] : *this) { result.push_back(key); }
         return result;
@@ -84,9 +94,9 @@ struct SequentialImmerContainerAdapterBase
     using container_type  = Container;
     using item_value_type = ValueType;
     using base_type       = SequentialContainerAdapterBase<
-              Derived,
-              Container,
-              ValueType>;
+        Derived,
+        Container,
+        ValueType>;
 
     container_type const* container = nullptr;
     std::shared_ptr<typename container_type::transient_type> transient;
@@ -123,7 +133,7 @@ struct SequentialImmerContainerAdapterBase
 
     template <typename F1, typename F2>
     void add_with_transient(
-        const item_value_type& value,
+        item_value_type const& value,
         F1&&                   transient_op,
         F2&&                   persistent_op) {
         if (transient) {
@@ -144,18 +154,18 @@ struct SequentialContainerAdapter<immer::set<T>>
     using container_type  = immer::set<T>;
     using item_value_type = T;
     using base_type       = SequentialImmerContainerAdapterBase<
-              SequentialContainerAdapter<immer::set<T>>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<immer::set<T>>,
+        container_type,
+        item_value_type>;
 
     SequentialContainerAdapter(const container_type* container)
         : base_type{container} {}
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         this->add_with_transient(
             value,
-            [](auto* trans, const auto& val) { trans->insert(val); },
-            [](auto&& cont, const auto& val) {
+            [](auto* trans, auto const& val) { trans->insert(val); },
+            [](auto&& cont, auto const& val) {
                 return std::move(cont).insert(val);
             });
     }
@@ -171,18 +181,18 @@ struct SequentialContainerAdapter<immer::flex_vector<T>>
     using container_type  = immer::flex_vector<T>;
     using item_value_type = T;
     using base_type       = SequentialImmerContainerAdapterBase<
-              SequentialContainerAdapter<immer::flex_vector<T>>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<immer::flex_vector<T>>,
+        container_type,
+        item_value_type>;
 
     SequentialContainerAdapter(const container_type* container)
         : base_type{container} {}
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         this->add_with_transient(
             value,
-            [](auto* trans, const auto& val) { trans->push_back(val); },
-            [](auto&& cont, const auto& val) {
+            [](auto* trans, auto const& val) { trans->push_back(val); },
+            [](auto&& cont, auto const& val) {
                 return std::move(cont).push_back(val);
             });
     }
@@ -197,18 +207,18 @@ struct SequentialContainerAdapter<immer::vector<T>>
     using container_type  = immer::vector<T>;
     using item_value_type = T;
     using base_type       = SequentialImmerContainerAdapterBase<
-              SequentialContainerAdapter<immer::vector<T>>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<immer::vector<T>>,
+        container_type,
+        item_value_type>;
 
     SequentialContainerAdapter(const container_type* container)
         : base_type{container} {}
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         this->add_with_transient(
             value,
-            [](auto* trans, const auto& val) { trans->push_back(val); },
-            [](auto&& cont, const auto& val) {
+            [](auto* trans, auto const& val) { trans->push_back(val); },
+            [](auto&& cont, auto const& val) {
                 return std::move(cont).push_back(val);
             });
     }
@@ -223,20 +233,20 @@ struct SequentialContainerAdapter<immer::map<K, V>>
     using container_type  = immer::map<K, V>;
     using item_value_type = std::pair<K, V>;
     using base_type       = SequentialImmerContainerAdapterBase<
-              SequentialContainerAdapter<immer::map<K, V>>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<immer::map<K, V>>,
+        container_type,
+        item_value_type>;
 
     SequentialContainerAdapter(const container_type* container)
         : base_type{container} {}
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         this->add_with_transient(
             value,
-            [](auto* trans, const auto& val) {
+            [](auto* trans, auto const& val) {
                 trans->set(val.first, val.second);
             },
-            [](auto&& cont, const auto& val) {
+            [](auto&& cont, auto const& val) {
                 return std::move(cont).set(val.first, val.second);
             });
     }
@@ -251,20 +261,20 @@ struct SequentialContainerAdapter<ext::ImmMap<K, V>>
     using container_type  = ext::ImmMap<K, V>;
     using item_value_type = std::pair<K, V>;
     using base_type       = SequentialImmerContainerAdapterBase<
-              SequentialContainerAdapter<ext::ImmMap<K, V>>,
-              container_type,
-              item_value_type>;
+        SequentialContainerAdapter<ext::ImmMap<K, V>>,
+        container_type,
+        item_value_type>;
 
     SequentialContainerAdapter(const container_type* container)
         : base_type{container} {}
 
-    void add_impl(const item_value_type& value) {
+    void add_impl(item_value_type const& value) {
         this->add_with_transient(
             value,
-            [](auto* trans, const auto& val) {
+            [](auto* trans, auto const& val) {
                 trans->set(val.first, val.second);
             },
-            [](auto&& cont, const auto& val) {
+            [](auto&& cont, auto const& val) {
                 return std::move(cont).set(val.first, val.second);
             });
     }

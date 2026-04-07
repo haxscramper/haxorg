@@ -1018,9 +1018,9 @@ Str hstd::styledUnicodeMapping(Str const& str, AsciiStyle style) {
 }
 
 Str hstd::strip(
-    CR<Str>     string,
-    CR<CharSet> leading,
-    CR<CharSet> trailing) {
+    Str const&     string,
+    CharSet const& leading,
+    CharSet const& trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
         LOGIC_ASSERTION_CHECK(
@@ -1041,13 +1041,13 @@ Str hstd::strip(
     }
 }
 
-Vec<Str> hstd::split(CR<Str> str, char ch) {
+Vec<Str> hstd::split(Str const& str, char ch) {
     Vec<Str> res;
     for (const auto& it : str.split(ch)) { res.push_back(it); }
     return res;
 }
 
-Vec<Str> hstd::split_keep_separator(const Str& str, CharSet sep) {
+Vec<Str> hstd::split_keep_separator(Str const& str, CharSet sep) {
     Vec<Str> result;
     int      prev = 0, curr = 0;
     while (curr < str.length()) {
@@ -1133,7 +1133,7 @@ Pair<Str, Str> hstd::visibleName(char ch) {
     }
 }
 
-Str hstd::indent(CR<Str> str, int spaces, char space, Str prefix) {
+Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     auto lines = str.split('\n');
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
@@ -1141,7 +1141,7 @@ Str hstd::indent(CR<Str> str, int spaces, char space, Str prefix) {
     return Str{"\n"}.join(lines);
 }
 
-Str hstd::normalize(CR<Str> in) {
+Str hstd::normalize(Str const& in) {
     Str res;
     for (char c : in) {
         if (!(c == '_' || c == '-')) {
@@ -1155,21 +1155,21 @@ Str hstd::normalize(CR<Str> in) {
     return res;
 }
 
-Str hstd::repeat(CR<Str> str, int count) {
+Str hstd::repeat(Str const& str, int count) {
     Str res;
     res.reserve(str.size() * count);
     for (int i = 0; i < count; ++i) { res += str; }
     return res;
 }
 
-Str hstd::left_aligned(CR<Str> str, int n, char c) {
+Str hstd::left_aligned(Str const& str, int n, char c) {
     auto s         = str;
     int  rune_size = rune_length(str);
     if (rune_size < n) { s.append(Str(c).repeated(n - rune_size)); }
     return s;
 }
 
-Str hstd::right_aligned(CR<Str> str, int n, char c) {
+Str hstd::right_aligned(Str const& str, int n, char c) {
     Str res;
     int rune_size = rune_length(str);
 
@@ -1179,7 +1179,7 @@ Str hstd::right_aligned(CR<Str> str, int n, char c) {
     return res;
 }
 
-Str hstd::escape_for_write(const Str& str, bool quote) {
+Str hstd::escape_for_write(Str const& str, bool quote) {
     Str res;
     res.reserve(str.size());
     if (quote) { res += "\""; }
@@ -1198,7 +1198,7 @@ Str hstd::escape_for_write(const Str& str, bool quote) {
     return res;
 }
 
-int hstd::rune_length(const std::string& str) {
+int hstd::rune_length(std::string const& str) {
     int count = 0;
     for (int i = 0; i < str.size();) {
         unsigned char byte = static_cast<unsigned char>(str.at(i));
@@ -1224,7 +1224,7 @@ int hstd::rune_length(const std::string& str) {
 
 // This is mostly for fancy rendering, so should be ok as it is, but really
 // it ought to be a generator of string view slices.
-std::vector<std::string> hstd::rune_chunks(const std::string& str) {
+std::vector<std::string> hstd::rune_chunks(std::string const& str) {
     std::vector<std::string> runes;
     for (int i = 0; i < str.size();) {
         int           len  = 0;
@@ -1251,15 +1251,15 @@ std::vector<std::string> hstd::rune_chunks(const std::string& str) {
     return runes;
 }
 
-Str hstd::lstrip(CR<Str> string, CR<CharSet> chars) {
+Str hstd::lstrip(Str const& string, CharSet const& chars) {
     return strip(string, chars, {});
 }
 
-Str hstd::rstrip(CR<Str> string, CR<CharSet> chars) {
+Str hstd::rstrip(Str const& string, CharSet const& chars) {
     return strip(string, {}, chars);
 }
 
-Str hstd::wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
+Str hstd::wrap_text(Vec<Str> const& words, int maxWidth, bool justified) {
     Vec<Str> lines;
     Vec<Str> buffer;
     int      currentWidth = 0;
@@ -1309,7 +1309,7 @@ Str hstd::wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
                 buffer.begin() + 1,
                 buffer.end(),
                 buffer[0],
-                [](const Str& a, const Str& b) { return a + " "_ss + b; });
+                [](Str const& a, Str const& b) { return a + " "_ss + b; });
             lines.push_back(line);
         }
         buffer.clear();
@@ -1334,14 +1334,14 @@ Str hstd::wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
             lines.begin() + 1,
             lines.end(),
             lines[0],
-            [](const Str& a, const Str& b) { return a + "\n"_ss + b; });
+            [](Str const& a, Str const& b) { return a + "\n"_ss + b; });
     }
 }
 
 void hstd::replace_all(
     std::string&       str,
-    const std::string& from,
-    const std::string& to) {
+    std::string const& from,
+    std::string const& to) {
     if (from.empty()) { return; }
 
     size_t pos = 0;
@@ -1351,7 +1351,7 @@ void hstd::replace_all(
     }
 }
 
-bool hstd::iequals(const std::string& a, const std::string& b) {
+bool hstd::iequals(std::string const& a, std::string const& b) {
     if (a.length() != b.length()) {
         return false;
     } else {
@@ -1363,7 +1363,7 @@ bool hstd::iequals(const std::string& a, const std::string& b) {
     }
 }
 
-std::string hstd::escape_literal(const std::string_view& in) {
+std::string hstd::escape_literal(std::string_view const& in) {
     std::string res;
     res.reserve(in.size() + 2);
     res += "«";
@@ -1381,11 +1381,11 @@ std::string hstd::escape_literal(const std::string_view& in) {
     return res;
 }
 
-std::string hstd::escape_literal(const std::string& in) {
+std::string hstd::escape_literal(std::string const& in) {
     return escape_literal(std::string_view{in});
 }
 
-void hstd::validate_utf8(const std::string& str) {
+void hstd::validate_utf8(std::string const& str) {
     const unsigned char* bytes = reinterpret_cast<const unsigned char*>(
         str.data());
     size_t len = str.size();

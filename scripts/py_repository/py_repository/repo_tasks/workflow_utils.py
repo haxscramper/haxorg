@@ -6,16 +6,16 @@ from graphlib import TopologicalSorter
 import inspect
 from pathlib import Path
 
-import plumbum
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional, Set
 import docker
 import docker.models.containers
 import igraph as ig
-from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
+import plumbum
+from py_repository.repo_tasks.config import get_tmpdir, HaxorgConfig
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
+from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = __name__
 
@@ -204,7 +204,6 @@ class TaskContext():
     config: HaxorgConfig
     current_task: Optional[Callable] = None
     run_cache: Set[tuple[str, str]] = field(default_factory=set)
-    docker_container: Optional[docker.models.containers.Container] = None
     repo_root: Path = field(default_factory=lambda: get_haxorg_repo_root_path())
 
     def with_temp_config(self, config: HaxorgConfig) -> "TaskContext":
@@ -287,14 +286,14 @@ args: {args}
                 continue
 
             def run_op():
-                try:
-                    op.python_callable(ctx=self)
-                    log(CAT).info(f"Done {task_id}")
-                    ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
-                except Exception as e:
-                    log(CAT).info(f"Failed {task_id}")
-                    ui_notify(f"FAIL {task_id:<40}", is_ok=False)
-                    raise e from None
+                with ExceptionContextNote(f"Running task {task_id}"):
+                    try:
+                        op.python_callable(ctx=self)
+                        log(CAT).info(f"Done {task_id}")
+                        ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
+                    except Exception as e:
+                        ui_notify(f"FAIL {task_id:<40}", is_ok=False)
+                        raise e from None
 
             if operation and not self.config.use_unchanged_tasks:
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):

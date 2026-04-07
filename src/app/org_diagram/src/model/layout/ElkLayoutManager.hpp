@@ -23,7 +23,7 @@ class ElkLayoutManager {
         }
     }
 
-    std::string             layoutDiagram(const std::string& graphJson);
+    std::string             layoutDiagram(std::string const& graphJson);
     dia::layout::elk::Graph layoutDiagram(
         dia::layout::elk::Graph const& graph);
 };

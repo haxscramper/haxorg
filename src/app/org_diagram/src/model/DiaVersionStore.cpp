@@ -19,7 +19,7 @@ struct SeqEditPairs {
     Vec<SeqEdit>                remaining;
 };
 
-SeqEditPairs extractDeleteInsertPairs(const Vec<SeqEdit>& edits) {
+SeqEditPairs extractDeleteInsertPairs(Vec<SeqEdit> const& edits) {
     SeqEditPairs result{};
     Vec<int>     used(edits.size(), false);
 
@@ -80,7 +80,7 @@ DiaVersionStore::DiaVersionStore(
 
 void DiaVersionStore::stepEditForward(
     imm::ImmAstVersion& vEdit,
-    const EditCmd&      edit) {
+    EditCmd const&      edit) {
     TRACKED_SCOPE(hstd::fmt("Edit {}", edit));
 
     hstd::Opt<imm::ImmAdapter> lastInserted;
@@ -316,7 +316,7 @@ void DiaVersionStore::stepEditForward(
 }
 
 DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
-    const EditGroup& edits) {
+    EditGroup const& edits) {
     TRACKED_FUNCTION("applyDiaEdits");
 
     DiaVersionStore::EditApplyResult res;
@@ -340,7 +340,7 @@ DiaVersionStore::EditApplyResult DiaVersionStore::applyDiaEdits(
     return res;
 }
 
-int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
+int DiaVersionStore::addHistory(imm::ImmAstVersion const& version) {
     if (active != history.high()) {
         history.erase(history.begin() + active, history.end());
     }
@@ -361,7 +361,7 @@ int DiaVersionStore::addHistory(const imm::ImmAstVersion& version) {
     return active;
 }
 
-int DiaVersionStore::addDocument(const std::string& document) {
+int DiaVersionStore::addDocument(std::string const& document) {
     auto node    = parse_context->parseString(document, "<text>");
     auto cache   = parse_context->getDiagnosticStrings();
     auto reports = parse_context->collectDiagnostics(node, cache);
@@ -407,8 +407,8 @@ imm::ImmAstVersion DiaVersionStore::getEditVersion(
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
     MoveNodesUnderExisting(
-        const DiaUniqId&            parent,
-        const hstd::Vec<DiaUniqId>& nodes,
+        DiaUniqId const&            parent,
+        hstd::Vec<DiaUniqId> const& nodes,
         int                         index) {
     hstd::Vec<EditTarget>
         targets = nodes
@@ -424,7 +424,7 @@ DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
 }
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Append1NewNode(
-    const DiaUniqId& id) {
+    DiaUniqId const& id) {
     return EditGroup{
         .edits = {EditCmd::Insert(EditTarget::FromExisting(id))}};
 }
@@ -437,23 +437,23 @@ DiaVersionStore::EditGroup DiaVersionStore::EditGroup::UpdateExisting(
 }
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Create1NewNode(
-    const DiaUniqId& id,
+    DiaUniqId const& id,
     int              index) {
     return EditGroup{
         .edits = {EditCmd::Insert(EditTarget::FromExisting(id), index)}};
 }
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::Remove1ExistingNode(
-    const DiaUniqId& id) {
+    DiaUniqId const& id) {
     return EditGroup{
         .edits = {EditCmd::Remove(EditTarget::FromExisting(id))}};
 }
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
     Create1NewNodeWithValue(
-        const DiaUniqId&            id,
+        DiaUniqId const&            id,
         int                         index,
-        const sem::SemId<sem::Org>& value) {
+        sem::SemId<sem::Org> const& value) {
     return EditGroup{
         .edits = {
             EditCmd::Insert(EditTarget::FromExisting(id), index),
@@ -463,8 +463,8 @@ DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
 
 DiaVersionStore::EditGroup DiaVersionStore::EditGroup::
     Append1NewNodeWithValue(
-        const DiaUniqId&            id,
-        const sem::SemId<sem::Org>& value) {
+        DiaUniqId const&            id,
+        sem::SemId<sem::Org> const& value) {
     return EditGroup{
         .edits = {
             EditCmd::Insert(EditTarget::FromExisting(id)),

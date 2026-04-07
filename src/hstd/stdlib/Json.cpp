@@ -12,8 +12,8 @@ template class nlohmann::basic_json<>;
 using namespace hstd;
 
 std::string hstd::to_compact_json(
-    const json&              j,
-    const JsonFormatOptions& options) {
+    json const&              j,
+    JsonFormatOptions const& options) {
     std::unordered_map<std::size_t, int> sizes;
 
     Func<int(json const&)> getSize;
@@ -121,7 +121,7 @@ std::string hstd::to_compact_json(
 
 void hstd::filterFields(
     json&                           j,
-    const std::vector<std::string>& fieldsToRemove) {
+    std::vector<std::string> const& fieldsToRemove) {
     if (j.is_object()) {
         for (auto it = j.begin(); it != j.end();) {
             if (std::find(

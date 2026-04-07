@@ -19,8 +19,8 @@ struct [[refl]] OrgParseFragment {
 };
 
 hstd::Vec<OrgParseFragment> extractCommentBlocks(
-    const std::string&            text,
-    const hstd::Vec<std::string>& commentPrefixes);
+    std::string const&            text,
+    hstd::Vec<std::string> const& commentPrefixes);
 
 
 struct [[refl(
@@ -102,8 +102,9 @@ struct [[refl(
 })")]] ParseContext : public hstd::SharedPtrApi<ParseContext> {
     hstd::SPtr<SourceManager> source;
 
-    ParseContext();
-    ParseContext(hstd::SPtr<SourceManager> const& source);
+    [[refl(R"({"unique-name": "ParseContextDefault"})")]] ParseContext();
+    [[refl(R"({"unique-name": "ParseContextWithManager"})")]] ParseContext(
+        hstd::SPtr<SourceManager> const& source);
 
     BOOST_DESCRIBE_CLASS(ParseContext, (), (), (), ());
 
@@ -159,9 +160,9 @@ struct DiagnosticsParseContext : public hstd::ext::Cache {
         : context{context} {};
 
     virtual std::shared_ptr<hstd::ext::Source> fetch(
-        const hstd::ext::Id& id) override;
+        hstd::ext::Id const& id) override;
     virtual std::optional<std::string> display(
-        const hstd::ext::Id& id) const override;
+        hstd::ext::Id const& id) const override;
 };
 
 

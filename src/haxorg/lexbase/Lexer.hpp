@@ -151,7 +151,7 @@ struct LexerCommon {
             for (int i = params.startOffset;
                  i < params.maxTokens && hasNext(i);
                  ++i) {
-                const auto& t = tok(i);
+                auto const& t = tok(i);
                 if (os.colored) {
                     os << " "
                        << styledUnicodeMapping(
@@ -453,7 +453,7 @@ struct std::formatter<org::parse::LexerCommon<K, V>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const org::parse::LexerCommon<K, V>& p,
+        org::parse::LexerCommon<K, V> const& p,
         FormatContext&                       ctx) const {
         return ::hstd::fmt_ctx(
             p.printToString(

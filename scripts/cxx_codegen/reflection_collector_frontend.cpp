@@ -36,14 +36,14 @@ std::unique_ptr<clang::ASTConsumer> ReflFrontendAction::CreateASTConsumer(
     HSLOG_TRACE("Ast consumer verbose: {}", cli.verbose_log);
     auto consumer = std::make_unique<ReflASTConsumer>(CI, cli);
     if (cli.mode == ReflectionCLI::Mode::AllMainSymbolsInCompilationDb) {
-        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
-            AllMainTranslationUnit;
+        consumer->Visitor
+            .visitMode = ReflASTVisitor::VisitMode::AllMainTranslationUnit;
     } else if (cli.mode == ReflectionCLI::Mode::AllAnotatedSymbols) {
-        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
-            AllAnnotated;
+        consumer->Visitor
+            .visitMode = ReflASTVisitor::VisitMode::AllAnnotated;
     } else {
-        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
-            AllTargeted;
+        consumer->Visitor
+            .visitMode = ReflASTVisitor::VisitMode::AllTargeted;
     }
 
     HSLOG_INFO(
@@ -57,7 +57,7 @@ std::unique_ptr<clang::ASTConsumer> ReflFrontendAction::CreateASTConsumer(
 /// database -- remove reflection plugin usage, precompiled headers, and
 /// add provided toolchain include configuration.
 clang::tooling::CommandLineArguments dropReflectionPLugin(
-    const clang::tooling::CommandLineArguments& Args,
+    clang::tooling::CommandLineArguments const& Args,
     llvm::StringRef                             Filename,
     ReflectionCLI const&                        cli) {
     clang::tooling::CommandLineArguments filteredArgs;
@@ -185,7 +185,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     return filteredArgs;
 }
 
-void run_semantic_symbols_collection(const ReflectionCLI& cli) {
+void run_semantic_symbols_collection(ReflectionCLI const& cli) {
     std::string ErrorMessage;
     auto JSONDB = clang::tooling::JSONCompilationDatabase::loadFromFile(
         cli.reflection.compilation_database,
@@ -210,7 +210,7 @@ void run_semantic_symbols_collection(const ReflectionCLI& cli) {
 
     adjustedCompilations.appendArgumentsAdjuster(
         [cli](
-            const clang::tooling::CommandLineArguments& Args,
+            clang::tooling::CommandLineArguments const& Args,
             llvm::StringRef                             Filename)
             -> clang::tooling::CommandLineArguments {
             return dropReflectionPLugin(Args, Filename, cli);

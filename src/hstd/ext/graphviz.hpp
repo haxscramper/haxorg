@@ -100,7 +100,7 @@ class Graphviz {
     static Str alignText(Str const& text, TextAlign direction);
 
     static std::string escapeHtmlForGraphviz(
-        const std::string& input,
+        std::string const& input,
         TextAlign          direction = TextAlign::Left);
 
     template <typename T>
@@ -260,7 +260,7 @@ class Graphviz {
         struct Record {
             static Str escape(Str const& input);
 
-            static Str escapeHtml(CR<Str> input);
+            static Str escapeHtml(Str const& input);
 
             Str toHtml(bool horizontal = true) const;
 
@@ -271,19 +271,21 @@ class Graphviz {
 
             Record(Vec<Record> const& sub) : content(sub) {}
 
-            void push_back(CR<Vec<Str>> cells) {
+            void push_back(Vec<Str> const& cells) {
                 Vec<Record> row;
                 for (const auto& it : cells) { row.push_back(it); }
                 getNested().push_back(Record(row));
             }
 
-            void push_back(CR<Record> rec) { getNested().push_back(rec); }
+            void push_back(Record const& rec) {
+                getNested().push_back(rec);
+            }
 
             bool isFinal() const {
                 return std::holds_alternative<Str>(content);
             }
 
-            void set(Str const& columnKey, CR<Record> value);
+            void set(Str const& columnKey, Record const& value);
             void setEscaped(Str const& columnKey, Str const& value) {
                 set(columnKey, fromEscapedText(value));
             }
@@ -535,7 +537,7 @@ class Graphviz {
         Edge(Agraph_t* graph, Agedge_t* edge)
             : edge_(edge), graph(graph) {}
 
-        Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail);
+        Edge(Agraph_t* graph, Node const& head, Node const& tail);
 
         Agedge_t*       get() { return edge_; }
         Agedge_t const* get() const { return edge_; }
@@ -618,7 +620,7 @@ class Graphviz {
         int nodeCount() { return agnnodes(graph); }
 
         void render(
-            const fs::path& path,
+            fs::path const& path,
             LayoutType      layout = LayoutType::Dot,
             RenderFormat    format = RenderFormat::PNG);
 
@@ -641,13 +643,13 @@ class Graphviz {
             return tmp;
         }
 
-        Edge edge(CR<Node> head, CR<Node> tail) {
+        Edge edge(Node const& head, Node const& tail) {
             LOGIC_ASSERTION_CHECK(graph != nullptr, "");
             auto tmp = Edge(graph, head, tail);
             return tmp;
         }
 
-        Edge edge(CR<Str> head, CR<Str> tail) {
+        Edge edge(Str const& head, Str const& tail) {
             return edge(Node(graph, head), Node(graph, tail));
         }
 
@@ -743,19 +745,20 @@ class Graphviz {
 
     Str  layoutTypeToString(LayoutType layoutType) const;
     Str  renderFormatToString(RenderFormat renderFormat) const;
-    void createLayout(CR<Graph> graph, LayoutType layout = LayoutType::Dot)
-        const;
+    void createLayout(
+        Graph const& graph,
+        LayoutType   layout = LayoutType::Dot) const;
 
     void freeLayout(Graph graph) const;
 
     void writeFile(
-        const fs::path& fileName,
-        CR<Graph>       graph,
+        fs::path const& fileName,
+        Graph const&    graph,
         RenderFormat    format = RenderFormat::DOT) const;
 
     void renderToFile(
         fs::path const& fileName,
-        CR<Graph>       graph,
+        Graph const&    graph,
         RenderFormat    format = RenderFormat::PNG,
         LayoutType      layout = LayoutType::Dot) const;
 

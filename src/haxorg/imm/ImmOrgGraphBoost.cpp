@@ -6,7 +6,7 @@
 #    include <boost/graph/graphviz.hpp>
 
 boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
-    const MapGraph& g) {
+    MapGraph const& g) {
     boost::dynamic_properties dp;
 
     dp //

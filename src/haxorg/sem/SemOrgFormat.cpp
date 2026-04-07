@@ -14,7 +14,7 @@ using namespace org::algo;
 
 
 namespace {
-long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
+long GetTimeDelta(UserTime const& from, UserTime const& to) {
     auto from_utc = cctz::convert(
         from.time, from.zone ? *from.zone : cctz::utc_time_zone());
     auto to_utc = cctz::convert(
@@ -35,7 +35,7 @@ std::string FormatPath(org::sem::SubtreePath const& path) {
 
 } // namespace
 
-auto Formatter::toString(SemId<Org> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Org> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id.isNil()) {
         return str("");
@@ -59,8 +59,8 @@ void Formatter::add(Res id, Res other) {
 }
 
 Formatter::Res Formatter::toString(
-    const sem::AttrList& args,
-    const Context&       ctx) {
+    sem::AttrList const& args,
+    Context const&       ctx) {
     Res res = b.stack();
     for (auto const& it : enumerator(args.items)) {
         if (!it.is_first()) { b.add_at(res, str(" ")); }
@@ -70,8 +70,8 @@ Formatter::Res Formatter::toString(
 }
 
 Formatter::Res Formatter::toString(
-    const sem::TodoKeyword& id,
-    const Context&          ctx) {
+    sem::TodoKeyword const& id,
+    Context const&          ctx) {
     auto res = b.line();
     b.add_at(res, str(id.name));
     using T = sem::TodoKeyword::Transition;
@@ -100,34 +100,38 @@ Formatter::Res Formatter::toString(
 }
 
 
-void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
+void Formatter::add_subnodes(
+    Res            result,
+    SemId<Org>     id,
+    Context const& ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
 }
 
-auto Formatter::toString(SemId<RadioTarget> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<RadioTarget> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(
             str("<<<"),
             rv::transform(
                 id->words | rv::intersperse(" ") | rv::join,
-                [&](CR<Str> word) { return this->str(word.toBase()); })
+                [&](Str const& word) { return this->str(word.toBase()); })
                 | rs::to<Vec>(),
             str(">>>")));
 }
 
-auto Formatter::toString(SemId<TextTarget> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<TextTarget> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("<<"_ss + id->text + ">>"_ss);
 }
 
-auto Formatter::toString(SemId<Word> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Word> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 
-auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Macro> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
 
@@ -165,7 +169,7 @@ std::string nestedHashtag(org::sem::HashTagText const& hash) {
 }
 
 
-auto Formatter::toString(sem::HashTagText const& hash, CR<Context> ctx)
+auto Formatter::toString(sem::HashTagText const& hash, Context const& ctx)
     -> Res {
     return str(nestedHashtag(hash));
 }
@@ -174,13 +178,14 @@ Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
     return f->b.join(
         Vec<Formatter::Res>::Splice(
             tags
-            | rv::transform([&](CR<SemId<HashTag>> tag) -> Formatter::Res {
-                  return f->str(nestedHashtag(tag->text));
-              })),
+            | rv::transform(
+                [&](SemId<HashTag> const& tag) -> Formatter::Res {
+                    return f->str(nestedHashtag(tag->text));
+                })),
         f->str(":"));
 }
 
-auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Document> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
 
@@ -410,12 +415,12 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<RawText> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<RawText> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
-auto Formatter::toString(SemId<DocumentFragment> id, CR<Context> ctx)
+auto Formatter::toString(SemId<DocumentFragment> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
@@ -423,7 +428,8 @@ auto Formatter::toString(SemId<DocumentFragment> id, CR<Context> ctx)
     return result;
 }
 
-auto Formatter::toString(SemId<CriticMarkup> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CriticMarkup> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     using K = CriticMarkup::Kind;
     switch (id->kind) {
@@ -454,7 +460,7 @@ auto Formatter::toString(SemId<CriticMarkup> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
+auto Formatter::toString(SemId<InlineFootnote> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->definition) {
@@ -469,8 +475,8 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 }
 
 Formatter::Res Formatter::toString(
-    const sem::LispCode& id,
-    const Context&       ctx) {
+    sem::LispCode const& id,
+    Context const&       ctx) {
     using C = sem::LispCode;
     return std::visit(
         overloaded{
@@ -511,7 +517,7 @@ Formatter::Res Formatter::toString(
         id.data);
 }
 
-auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
+auto Formatter::toString(sem::AttrValue const& id, Context const& ctx)
     -> Res {
     auto result = b.line();
     if (id.name) {
@@ -538,13 +544,13 @@ auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     return result;
 }
 
-auto Formatter::toString(SemId<BlockCodeEvalResult> id, CR<Context> ctx)
+auto Formatter::toString(SemId<BlockCodeEvalResult> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("TODO");
 }
 
-auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCode> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
 
@@ -614,12 +620,12 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
     return out;
 }
 
-auto Formatter::toString(SemId<CmdTblfm> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdTblfm> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<List> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
@@ -627,22 +633,22 @@ auto Formatter::toString(SemId<List> id, CR<Context> ctx) -> Res {
     return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
-auto Formatter::toString(SemId<SubtreeLog> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<SubtreeLog> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Empty> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Empty> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("");
 }
 
-auto Formatter::toString(SemId<NoNode> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<NoNode> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("");
 }
 
-auto Formatter::toString(SemId<Newline> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Newline> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto result = b.stack();
 
@@ -651,13 +657,13 @@ auto Formatter::toString(SemId<Newline> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<Monospace> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Monospace> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("~"), toSubnodes(id, ctx), str("~")));
 }
 
-auto Formatter::toString(sem::LinkTarget const& t, CR<Context> ctx)
+auto Formatter::toString(sem::LinkTarget const& t, Context const& ctx)
     -> Res {
 
     Res head = str("");
@@ -717,7 +723,7 @@ auto Formatter::toString(sem::LinkTarget const& t, CR<Context> ctx)
     return head;
 }
 
-auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Link> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto const& t = id->target;
     if (t.getKind() == LinkTarget::Kind::Raw && !id->description) {
@@ -749,7 +755,7 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Symbol> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.line({str("\\" + id->name)});
     for (auto const& [key, value] : id->parameters) {
@@ -774,37 +780,38 @@ auto Formatter::toString(SemId<Symbol> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCaption> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
 
-auto Formatter::toString(SemId<CmdCreator> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCreator> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+creator: "), toString(id->text, ctx)});
 }
 
-auto Formatter::toString(SemId<CmdAuthor> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdAuthor> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+author: "), toString(id->text, ctx)});
 }
 
-auto Formatter::toString(SemId<CmdEmail> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdEmail> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+email: "), str(id->text)});
 }
 
-auto Formatter::toString(SemId<CmdLanguage> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdLanguage> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+language: "), str(id->text)});
 }
 
-auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdColumns> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+columns: ")});
 }
 
-auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCall> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto res = b.line({str("#+call: ")});
 
@@ -836,27 +843,30 @@ auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
     return res;
 }
 
-auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCustomRaw> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str(fmt("#+{}: {}", id->name, id->text))});
 }
 
-auto Formatter::toString(SemId<CmdCustomArgs> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCustomArgs> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str(fmt("#+{}:", id->name)), toString(id->attrs, ctx)});
 }
 
-auto Formatter::toString(SemId<CmdCustomText> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCustomText> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str(fmt("#+{}: ", id->name)), toString(id->text, ctx)});
 }
 
-auto Formatter::toString(SemId<CmdName> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdName> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+name: " + id->name)});
 }
 
-auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<ErrorGroup> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto result = b.line({});
     for (auto const& sub : id->diagnostics) {
@@ -865,12 +875,12 @@ auto Formatter::toString(SemId<ErrorGroup> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<ErrorItem> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<ErrorItem> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str(hstd::fmt1(id->diag))});
 }
 
-auto Formatter::toString(SemId<ErrorSkipToken> id, CR<Context> ctx)
+auto Formatter::toString(SemId<ErrorSkipToken> id, Context const& ctx)
     -> Res {
     if (id.isNil()) {
         return str("<nil>");
@@ -879,7 +889,7 @@ auto Formatter::toString(SemId<ErrorSkipToken> id, CR<Context> ctx)
     }
 }
 
-auto Formatter::toString(SemId<ErrorSkipGroup> id, CR<Context> ctx)
+auto Formatter::toString(SemId<ErrorSkipGroup> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res res = b.line();
@@ -889,7 +899,7 @@ auto Formatter::toString(SemId<ErrorSkipGroup> id, CR<Context> ctx)
     return res;
 }
 
-auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Call> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto result = b.line({
         str("#+call: "),
@@ -923,48 +933,51 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<DocumentGroup> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<DocumentGroup> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Escaped> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Escaped> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("\\" + id->text);
 }
 
-auto Formatter::toString(SemId<Par> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Par> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Placeholder> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Placeholder> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(Vec<Res>::Splice(str("<"), str(id->text), str(">")));
 }
 
-auto Formatter::toString(SemId<BigIdent> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BigIdent> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
 
-auto Formatter::toString(SemId<HashTag> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<HashTag> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("#" + nestedHashtag(id->text));
 }
 
-auto Formatter::toString(SemId<MarkQuote> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<MarkQuote> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<TextSeparator> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<TextSeparator> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("------------");
 }
 
-auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Time> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.line();
 
@@ -1013,30 +1026,31 @@ auto Formatter::toString(SemId<Time> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<StmtList> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<StmtList> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(toSubnodes(id, ctx));
 }
 
-auto Formatter::toString(SemId<TimeRange> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<TimeRange> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         {toString(id->from, ctx), str("--"), toString(id->to, ctx)});
 }
 
-auto Formatter::toString(SemId<Row> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Row> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Cell> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 
-auto Formatter::toString(sem::SubtreeCompletion const& id, CR<Context> ctx)
-    -> Res {
+auto Formatter::toString(
+    sem::SubtreeCompletion const& id,
+    Context const&                ctx) -> Res {
     if (id.isPercent) {
         return str(fmt("[{}%]", id.done));
     } else {
@@ -1044,7 +1058,8 @@ auto Formatter::toString(sem::SubtreeCompletion const& id, CR<Context> ctx)
     }
 }
 
-auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockCenter> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(
@@ -1053,18 +1068,18 @@ auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
             str("#+end_center")));
 }
 
-auto Formatter::toString(SemId<Bold> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Bold> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("*"), toSubnodes(id, ctx), str("*")));
 }
 
-auto Formatter::toString(SemId<Space> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Space> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
-auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<ListItem> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res body = b.stack();
     if (id->header) {
@@ -1101,18 +1116,18 @@ auto Formatter::toString(SemId<ListItem> id, CR<Context> ctx) -> Res {
     });
 }
 
-auto Formatter::toString(SemId<AtMention> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<AtMention> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str("@" + id->text);
 }
 
-auto Formatter::toString(SemId<Italic> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Italic> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("/"), toSubnodes(id, ctx), str("/")));
 }
 
-auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Table> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res result = b.stack();
     if (id->isBlock) {
@@ -1173,13 +1188,13 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
     return stackAttached(result, id.as<sem::Stmt>(), ctx);
 }
 
-auto Formatter::toString(SemId<BlockAdmonition> id, CR<Context> ctx)
+auto Formatter::toString(SemId<BlockAdmonition> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdAttr> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({
         str("#+attr_"_ss + id->target + ": "_ss),
@@ -1187,14 +1202,14 @@ auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     });
 }
 
-auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Strike> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
 
-auto Formatter::toString(const AttrGroup& id, CR<Context> ctx) -> Res {
+auto Formatter::toString(AttrGroup const& id, Context const& ctx) -> Res {
     Vec<Res> result;
     for (auto const& pos : id.positional.items) {
         result.push_back(toString(pos, ctx));
@@ -1203,7 +1218,7 @@ auto Formatter::toString(const AttrGroup& id, CR<Context> ctx) -> Res {
     Vec<Str> its;
     for (auto const& k : id.named.keys()) { its.push_back(k); }
 
-    rs::sort(its, [](CR<Str> lhs, CR<Str> rhs) -> bool {
+    rs::sort(its, [](Str const& lhs, Str const& rhs) -> bool {
         return lhs.toBase() < rhs.toBase();
     });
 
@@ -1218,7 +1233,7 @@ auto Formatter::toString(const AttrGroup& id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Latex> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Latex> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->subnodes.size() == 0) {
         return str("\\(\\)");
@@ -1227,7 +1242,7 @@ auto Formatter::toString(SemId<Latex> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res title = b.line({});
     {
@@ -1673,19 +1688,19 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
     return result;
 }
 
-auto Formatter::toString(SemId<DocumentOptions> id, CR<Context> ctx)
+auto Formatter::toString(SemId<DocumentOptions> id, Context const& ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Verbatim> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Verbatim> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("="), toSubnodes(id, ctx), str("=")));
 }
 
-auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockQuote> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
         b.stack(
@@ -1697,7 +1712,8 @@ auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
         ctx);
 }
 
-auto Formatter::toString(SemId<BlockComment> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockComment> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(
@@ -1706,7 +1722,7 @@ auto Formatter::toString(SemId<BlockComment> id, CR<Context> ctx) -> Res {
             str("#+end_comment")));
 }
 
-auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockVerse> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(
@@ -1716,38 +1732,39 @@ auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<CmdInclude> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdInclude> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<File> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<File> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Directory> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Directory> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Symlink> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Symlink> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
-auto Formatter::toString(SemId<Punctuation> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Punctuation> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
 }
 
-auto Formatter::toString(SemId<FileTarget> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<FileTarget> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }
 
 template <typename T>
-Vec<T> OptVec(CR<Opt<T>> value) {
+Vec<T> OptVec(Opt<T> const& value) {
     if (value) {
         return Vec<T>{*value};
     } else {
@@ -1755,7 +1772,8 @@ Vec<T> OptVec(CR<Opt<T>> value) {
     }
 }
 
-auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExport> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     add(head, str("#+begin_export " + id->exporter));
@@ -1768,15 +1786,17 @@ auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(head, str(id->content), str("#+end_export")));
 }
 
-auto Formatter::toString(SemId<InlineExport> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<InlineExport> id, Context const& ctx)
+    -> Res {
     return str(fmt("@@{}:{}@@", id->exporter, id->content));
 }
 
-auto Formatter::toString(SemId<CmdExport> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdExport> id, Context const& ctx) -> Res {
     return str(fmt("#+export_{}: {}", id->exporter, id->content));
 }
 
-auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<BlockExample> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(
@@ -1785,8 +1805,9 @@ auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
             str("#+end_example")));
 }
 
-auto Formatter::toString(SemId<BlockDynamicFallback> id, CR<Context> ctx)
-    -> Res {
+auto Formatter::toString(
+    SemId<BlockDynamicFallback> id,
+    Context const&              ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(
@@ -1795,7 +1816,8 @@ auto Formatter::toString(SemId<BlockDynamicFallback> id, CR<Context> ctx)
             str("#+end_" + id->name)));
 }
 
-auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<ColonExample> id, Context const& ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.stack(
         Vec<Res>::Splice(id->subnodes | rv::transform([&](OrgArg sub) {
@@ -1805,7 +1827,7 @@ auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Paragraph> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res     result = b.stack();
     Context ctx2   = ctx;
@@ -1828,7 +1850,7 @@ auto Formatter::toString(SemId<Paragraph> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Underline> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line(
         Vec<Res>::Splice(str("_"), toSubnodes(id, ctx), str("_")));
@@ -1836,9 +1858,9 @@ auto Formatter::toString(SemId<Underline> id, CR<Context> ctx) -> Res {
 
 
 Formatter::Res Formatter::stackAttached(
-    Res         prev,
-    SemId<Stmt> stmt,
-    CR<Context> ctx) {
+    Res            prev,
+    SemId<Stmt>    stmt,
+    Context const& ctx) {
     if (stmt->attached.empty()) {
         return prev;
     } else {

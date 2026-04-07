@@ -6,7 +6,7 @@ using namespace org::algo;
 using namespace hstd::ext;
 using namespace hstd;
 
-int SemNodeStore::getSubnodeCount(const Id& id) {
+int SemNodeStore::getSubnodeCount(Id const& id) {
     auto n = get(id);
     switch (n->getKind()) {
         case OrgSemKind::Table: {
@@ -22,7 +22,7 @@ int SemNodeStore::getSubnodeCount(const Id& id) {
 }
 
 hstd::ext::diff::NodeStore::Id SemNodeStore::getSubnodeAt(
-    const Id& node,
+    Id const& node,
     int       index) {
     auto n = get(node);
     switch (n->getKind()) {
@@ -41,8 +41,8 @@ hstd::ext::diff::NodeStore::Id SemNodeStore::getSubnodeAt(
     }
 }
 
-Func<hstd::ColText(CR<diff::NodeStore::Id>)> SemNodeStore::getToStr() {
-    return [](CR<diff::NodeStore::Id> arg) -> ColText {
+Func<hstd::ColText(diff::NodeStore::Id const&)> SemNodeStore::getToStr() {
+    return [](diff::NodeStore::Id const& arg) -> ColText {
         auto      org = arg.ToPtr<sem::Org>();
         ColStream res;
         res << res.cyan() << fmt1(org->getKind()) << res.end();
@@ -67,9 +67,9 @@ ColText SemNodeDiff::formatDiff() {
 }
 
 void SemNodeDiff::setDiffTrees(
-    const sem::SemId<sem::Org>&    src,
-    const sem::SemId<sem::Org>&    dst,
-    const diff::ComparisonOptions& Options) {
+    sem::SemId<sem::Org> const&    src,
+    sem::SemId<sem::Org> const&    dst,
+    diff::ComparisonOptions const& Options) {
     this->src = src;
     this->dst = dst;
     srcSyntax = std::make_shared<diff::SyntaxTree>(Options);
@@ -185,9 +185,9 @@ hstd::Vec<ImmNodeDiff::AstEdit> ImmNodeDiff::getEdits(bool WithKeeps) {
 }
 
 void ImmNodeDiff::setDiffTrees(
-    const imm::ImmAdapter&                    src,
-    const imm::ImmAdapter&                    dst,
-    const hstd::ext::diff::ComparisonOptions& Options) {
+    imm::ImmAdapter const&                    src,
+    imm::ImmAdapter const&                    dst,
+    hstd::ext::diff::ComparisonOptions const& Options) {
     this->src = src;
     this->dst = dst;
     srcSyntax = std::make_shared<diff::SyntaxTree>(Options);
@@ -202,8 +202,8 @@ void ImmNodeDiff::setDiffTrees(
         *srcSyntax, *dstSyntax, Options);
 }
 
-hstd::Func<ColText(const ImmNodeStore::NodeStore::Id&)> ImmNodeDiff::
-    getFormatTreeValue(const hstd::SPtr<ImmNodeStore>& store) {
+hstd::Func<ColText(ImmNodeStore::NodeStore::Id const&)> ImmNodeDiff::
+    getFormatTreeValue(hstd::SPtr<ImmNodeStore> const& store) {
     return
         [store](ImmNodeStore::NodeStore::Id const& id) -> hstd::ColText {
             ColStream os;
@@ -214,9 +214,9 @@ hstd::Func<ColText(const ImmNodeStore::NodeStore::Id&)> ImmNodeDiff::
 
 void ImmNodeDiff::printDstChange(
     hstd::ColStream&                   OS,
-    const hstd::ext::diff::ASTDiff&    Diff,
-    const hstd::ext::diff::SyntaxTree& SrcTree,
-    const hstd::ext::diff::SyntaxTree& DstTree,
+    hstd::ext::diff::ASTDiff const&    Diff,
+    hstd::ext::diff::SyntaxTree const& SrcTree,
+    hstd::ext::diff::SyntaxTree const& DstTree,
     hstd::ext::diff::NodeIdx           Dst) {
     hstd::ext::diff::printMapping(
         OS,
@@ -229,9 +229,9 @@ void ImmNodeDiff::printDstChange(
 
 void ImmNodeDiff::printMapping(
     hstd::ColStream&                   os,
-    const hstd::ext::diff::ASTDiff&    Diff,
-    const hstd::ext::diff::SyntaxTree& SrcTree,
-    const hstd::ext::diff::SyntaxTree& DstTree) {
+    hstd::ext::diff::ASTDiff const&    Diff,
+    hstd::ext::diff::SyntaxTree const& SrcTree,
+    hstd::ext::diff::SyntaxTree const& DstTree) {
     hstd::ext::diff::printMapping(
         os,
         Diff,
@@ -268,7 +268,7 @@ diff::ComparisonOptions ImmNodeDiff::getOptions() {
 }
 
 ImmNodeStore::ImmNodeStore(
-    const imm::ImmAdapter&       root,
+    imm::ImmAdapter const&       root,
     bool                         DirectSubnodes,
     org::imm::ImmAstContext::Ptr context)
     : root{root}, DirectSubnodes{DirectSubnodes}, context{context} {
@@ -287,7 +287,7 @@ ImmNodeStore::ImmNodeStore(
     aux(root);
 }
 
-int ImmNodeStore::getSubnodeCount(const Id& id) {
+int ImmNodeStore::getSubnodeCount(Id const& id) {
     if (DirectSubnodes) {
         return get(id).sub(false).size();
     } else {
@@ -295,7 +295,7 @@ int ImmNodeStore::getSubnodeCount(const Id& id) {
     }
 }
 
-diff::NodeStore::Id ImmNodeStore::getSubnodeAt(const Id& node, int index) {
+diff::NodeStore::Id ImmNodeStore::getSubnodeAt(Id const& node, int index) {
     if (DirectSubnodes) {
         return getStoreId(get(node).sub().at(index).uniq());
     } else {

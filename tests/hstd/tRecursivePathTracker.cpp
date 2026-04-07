@@ -11,7 +11,7 @@ struct TestStep {
 
     TestStep(int v, const std::string& n = "") : value{v}, name{n} {}
 
-    bool operator==(const TestStep& other) const {
+    bool operator==(TestStep const& other) const {
         return value == other.value && name == other.name;
     }
 };

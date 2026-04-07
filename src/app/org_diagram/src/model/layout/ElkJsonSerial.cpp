@@ -2,13 +2,13 @@
 
 #include <unordered_set>
 
-void dia::layout::elk::validate(const Graph& graph) {
+void dia::layout::elk::validate(Graph const& graph) {
     std::unordered_set<hstd::Str> node_ids;
     std::unordered_set<hstd::Str> port_ids;
     std::unordered_set<hstd::Str> edge_ids;
 
-    std::function<void(const Node&)> collect_node_ids =
-        [&](const Node& node) {
+    std::function<void(Node const&)> collect_node_ids =
+        [&](Node const& node) {
             if (node.id.empty()) {
                 throw std::runtime_error("Empty node ID");
             }
@@ -47,8 +47,8 @@ void dia::layout::elk::validate(const Graph& graph) {
         }
     }
 
-    std::function<void(const std::optional<std::vector<Edge>>&)>
-        validate_edges = [&](const std::optional<std::vector<Edge>>&
+    std::function<void(std::optional<std::vector<Edge>> const&)>
+        validate_edges = [&](std::optional<std::vector<Edge>> const&
                                  edges) {
             if (!edges) { return; }
 
@@ -132,8 +132,8 @@ void dia::layout::elk::validate(const Graph& graph) {
 
     validate_edges(graph.edges);
 
-    std::function<void(const Node&)> validate_node_edges =
-        [&](const Node& node) {
+    std::function<void(Node const&)> validate_node_edges =
+        [&](Node const& node) {
             if (node.edges) { validate_edges(node.edges); }
             for (const auto& child : node.children) {
                 validate_node_edges(child);

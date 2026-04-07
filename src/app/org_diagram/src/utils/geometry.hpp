@@ -18,7 +18,7 @@ struct Size : public Point {
 template <>
 struct std::formatter<Size> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Size& p, FormatContext& ctx) const {
+    auto format(Size const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt("Size(width={}, height={}", p.width(), p.height()),
             ctx);
@@ -28,7 +28,7 @@ struct std::formatter<Size> : std::formatter<std::string> {
 template <>
 struct std::formatter<Point> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Point& p, FormatContext& ctx) const {
+    auto format(Point const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt("Point(x={}, y={}", p.x(), p.y()), ctx);
     }

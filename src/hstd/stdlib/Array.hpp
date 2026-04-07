@@ -26,27 +26,27 @@ struct Array : std::array<T, Size> {
         return static_cast<std::array<T, Size>>(*this);
     }
 
-    operator CR<std::array<T, Size>>() const {
+    operator std::array<T, Size> const&() const {
         return static_cast<std::array<T, Size>>(*this);
     }
 
     bool has(int idx) const { return idx < size(); }
 
     template <typename A, typename B>
-    std::span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    std::span<T> at(HSlice<A, B> const& s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::span(this->data() + start, end - start + 1);
     }
 
     template <typename A, typename B>
-    std::span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true)
+    std::span<const T> at(HSlice<A, B> const& s, bool checkRange = true)
         const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::span(this->data() + start, end - start + 1);
     }
 
     template <typename A, typename B>
-    std::span<T> operator[](CR<HSlice<A, B>> s) {
+    std::span<T> operator[](HSlice<A, B> const& s) {
 #ifdef DEBUG
         return at(s, true);
 #else
@@ -55,7 +55,7 @@ struct Array : std::array<T, Size> {
     }
 
     template <typename A, typename B>
-    std::span<const T> operator[](CR<HSlice<A, B>> s) const {
+    std::span<const T> operator[](HSlice<A, B> const& s) const {
 #ifdef DEBUG
         return at(s, true);
 #else
@@ -72,7 +72,7 @@ struct Array : std::array<T, Size> {
     }
 
     int high() const { return size() - 1; }
-    int indexOf(CR<T> item) const { return index_of(*this, item); }
+    int indexOf(T const& item) const { return index_of(*this, item); }
 };
 
 
@@ -89,19 +89,19 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
         for (const auto& [key, val] : items) { at(key) = val; }
     }
 
-    Val& at(CR<Key> value) {
+    Val& at(Key const& value) {
         return Base::at(value_domain<Key>::ord(value));
     }
 
-    CR<Val> at(CR<Key> value) const {
+    Val const& at(Key const& value) const {
         return Base::at(value_domain<Key>::ord(value));
     }
 
-    Val& operator[](CR<Key> value) {
+    Val& operator[](Key const& value) {
         return Base::operator[](value_domain<Key>::ord(value));
     }
 
-    CR<Val> operator[](CR<Key> value) const {
+    Val const& operator[](Key const& value) const {
         return Base::operator[](value_domain<Key>::ord(value));
     }
 

@@ -7,7 +7,7 @@ from beartype import beartype
 from beartype.typing import Any, Callable, Iterable, List, Optional, TypeVar
 import more_itertools as mit
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def cond(expr: Any, ifTrue: Any = None, ifFalse: Any = None) -> Any:

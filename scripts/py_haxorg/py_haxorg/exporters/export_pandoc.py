@@ -42,21 +42,21 @@ class PandocRes():
     debug: str = ""  # debugging field to carry information from the exporter
 
     @staticmethod
-    def Single(value: Json) -> 'PandocRes':
+    def Single(value: Json) -> "PandocRes":
         """
         Create a result from a single pandoc JSON node
         """
         return PandocRes(unpacked=[value])
 
     @staticmethod
-    def Multiple(value: List[Json]) -> 'PandocRes':
+    def Multiple(value: List[Json]) -> "PandocRes":
         """
         Create pandoc result from multiple pandoc JSON nodes
         """
         return PandocRes(unpacked=value)
 
     @staticmethod
-    def Node(kind: str, content: Json, debug: Optional[str] = None) -> 'PandocRes':
+    def Node(kind: str, content: Json, debug: Optional[str] = None) -> "PandocRes":
         """
         Create pandoc result with a single pandoc JSON node
         """

@@ -1,7 +1,11 @@
+from dataclasses import fields
 import itertools
+import json
 from pathlib import Path
 import sys
+import typing
 
+import betterproto
 import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
 from py_repository.repo_tasks.command_execution import (
@@ -30,7 +34,7 @@ from py_scriptutils.script_logging import log
 CAT = __name__
 
 
-@haxorg_task(dependencies=[symlink_build])
+@haxorg_task(dependencies=[symlink_build, build_and_setup_text_layout_lib])
 def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
@@ -38,7 +42,6 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     log(CAT).info(f"Using protoc plugin path '{python_path}'")
     protoc_plugin = Path(python_path).joinpath("bin/protoc-gen-python_betterproto")
 
-    log(CAT).debug(f"Has docker container? {ctx.docker_container}")
     if not check_is_file(ctx, protoc_plugin):
         raise RuntimeError(
             f"Protoc plugin for better python is not installed correctly, {protoc_plugin} does not exist"
@@ -48,20 +51,32 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
 
     ensure_existing_dir(ctx, proto_lib)
 
+    protoc_bin = get_deps_install_dir(ctx).joinpath("protobuf/bin/protoc")
+    proto_include_dir = get_script_root(ctx, "scripts/cxx_codegen")
+    thirdparty_include_dir = get_script_root(ctx, "thirdparty/protobuf/src")
+    proto_path = get_script_root(ctx, "scripts/py_codegen/py_codegen/reflection_tool")
+
     run_command(
         ctx,
-        get_deps_install_dir(ctx).joinpath("protobuf/bin/protoc"),
+        protoc_bin,
         [
-            f"--plugin={protoc_plugin}",
+            f"--plugin=protoc-gen-python_betterproto={protoc_plugin}",
             "-I",
-            get_script_root(ctx, "scripts/cxx_codegen"),
-            "--proto_path=" +
-            str(get_script_root(ctx, "scripts/py_codegen/py_codegen/reflection_tool")),
+            proto_include_dir,
+            "-I",
+            thirdparty_include_dir,
+            # "--proto_path=" + str(proto_path),
             "--python_betterproto_out=" + str(proto_lib),
+            "--python_betterproto_opt=GOOGLE_PROTOBUF_SPECIAL_PACKAGE",
             proto_config,
         ],
         env=dict(LD_PRELOAD=""),
+        print_output=True,
     )
+
+    from py_codegen.proto_lib import Tu
+    from py_codegen.refl_schema_gen import write_schema
+    write_schema(Tu, proto_lib / "TU.schema.json")
 
 
 CODEGEN_TASKS = [
@@ -122,6 +137,8 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
             task=task,
             reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
             is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
+            manual_tu_path=get_script_root(
+                ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"),
         )
 
         log(CAT).info("Updated code definitions")

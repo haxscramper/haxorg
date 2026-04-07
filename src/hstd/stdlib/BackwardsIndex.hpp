@@ -1,9 +1,10 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 #include <format>
 
 namespace hstd {
-struct BackwardsIndex {
-    int value;
+struct [[refl]] BackwardsIndex {
+    [[refl]] int value;
 
     bool operator==(BackwardsIndex const& i) const {
         return value == i.value;

@@ -6,7 +6,7 @@
 template <typename A, typename B>
 struct std::formatter<hstd::Pair<A, B>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const hstd::Pair<A, B>& p, FormatContext& ctx) const {
+    auto format(hstd::Pair<A, B> const& p, FormatContext& ctx) const {
         ::hstd::fmt_ctx("(", ctx);
         ::hstd::fmt_ctx(p.first, ctx);
         ::hstd::fmt_ctx(", ", ctx);
@@ -18,7 +18,7 @@ struct std::formatter<hstd::Pair<A, B>> : std::formatter<std::string> {
 template <typename... Args>
 struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const std::tuple<Args...>& t, FormatContext& ctx) const {
+    auto format(std::tuple<Args...> const& t, FormatContext& ctx) const {
         return ::hstd::format_tuple_impl(
             t, ctx, std::index_sequence_for<Args...>{});
     }

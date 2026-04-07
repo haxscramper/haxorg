@@ -5,7 +5,7 @@
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
-#include <format>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 template <typename A, typename B>
@@ -13,7 +13,7 @@ struct HSlice {
     A first;
     B last;
 
-    bool operator==(CR<HSlice<A, B>> other) const {
+    bool operator==(HSlice<A, B> const& other) const {
         return first == other.first && last == other.last;
     }
 };
@@ -23,7 +23,7 @@ template <typename T>
 struct Slice;
 
 template <typename T>
-constexpr Slice<T> slice(CR<T> first, CR<T> last);
+constexpr Slice<T> slice(T const& first, T const& last);
 
 template <typename T>
 struct Slice : public HSlice<T, T> {
@@ -68,11 +68,11 @@ struct Slice : public HSlice<T, T> {
 
     /// \brief Both start and end of the other slice are contained in the
     /// *inclusive* range [first, last]
-    bool contains(CR<Slice> other) const {
+    bool contains(Slice const& other) const {
         return contains(other.first) && contains(other.last);
     }
 
-    std::optional<Slice<T>> overlap(const Slice<T>& other) const {
+    std::optional<Slice<T>> overlap(Slice<T> const& other) const {
         if (first < other.last && other.first < last) {
             int overlap_start = std::max(first, other.first);
             int overlap_end   = std::min(last, other.last);
@@ -117,7 +117,7 @@ struct Slice : public HSlice<T, T> {
             return *this;
         }
 
-        bool operator!=(const iterator& other) {
+        bool operator!=(iterator const& other) {
             if (pastLast || other.pastLast) {
                 return pastLast != other.pastLast;
             } else {
@@ -133,7 +133,7 @@ struct Slice : public HSlice<T, T> {
 
 /// Return homogeneous inclusive slice of values
 template <typename T>
-constexpr Slice<T> slice(CR<T> first, CR<T> last) {
+constexpr Slice<T> slice(T const& first, T const& last) {
     if (!(first <= last)) {
         if constexpr (std::is_integral_v<T> && sizeof(T) <= sizeof(u64)) {
             if constexpr (std::is_signed_v<T>) {
@@ -160,7 +160,7 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
 /// Another construction function for homogeneous slices, should be used if
 /// both arguments must be coerced to the same type.
 template <typename T>
-constexpr Slice<T> slice1(CR<T> first, CR<T> last) {
+constexpr Slice<T> slice1(T const& first, T const& last) {
     return slice(first, last);
 }
 
@@ -178,7 +178,7 @@ constexpr Slice<T> sliceT()
 
 /// Return heterogeneous inclusive slice of values
 template <typename A, typename B>
-HSlice<A, B> slice(CR<A> first, CR<B> last) {
+HSlice<A, B> slice(A const& first, B const& last) {
     return {.first = first, .last = last};
 }
 
@@ -191,12 +191,11 @@ struct std::formatter<hstd::HSlice<A, B>> : std::formatter<std::string> {
     FormatContext::iterator format(
         hstd::HSlice<A, B> const& p,
         FormatContext&            ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        std::format_to(ctx.out(), "{}", p.first);
-        fmt.format("..", ctx);
-        std::format_to(ctx.out(), "{}", p.last);
-        return fmt.format("]", ctx);
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.first, ctx);
+        ::hstd::fmt_ctx("..", ctx);
+        ::hstd::fmt_ctx(p.last, ctx);
+        return ::hstd::fmt_ctx("]", ctx);
     }
 };
 
@@ -206,13 +205,11 @@ struct std::formatter<hstd::Slice<T>> : std::formatter<std::string> {
     FormatContext::iterator format(
         hstd::Slice<T> const& p,
         FormatContext&        ctx) const {
-        std::formatter<std::string> fmt;
-        std::formatter<T>           fmt_t;
-        fmt.format("[", ctx);
-        fmt_t.format(p.first, ctx);
-        fmt.format("..", ctx);
-        fmt_t.format(p.last, ctx);
-        return fmt.format("]", ctx);
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.first, ctx);
+        ::hstd::fmt_ctx("..", ctx);
+        ::hstd::fmt_ctx(p.last, ctx);
+        return ::hstd::fmt_ctx("]", ctx);
     }
 };
 

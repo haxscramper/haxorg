@@ -163,22 +163,22 @@ struct TreeGridDocument {
     }
     int getRowYPos(int index) { return rowPositions.at(index); }
 
-    int getColumnXPos(hstd::CR<hstd::Str> name) {
+    int getColumnXPos(hstd::Str const& name) {
         return colPositions.at(getColumnIndex(name));
     }
 
-    TreeGridCell& getExistingCell(int row, hstd::CR<hstd::Str> column) {
+    TreeGridCell& getExistingCell(int row, hstd::Str const& column) {
         return flatRows(true).at(row)->columns.at(column);
     }
 
 
-    ImVec2 getCellPos(int row, hstd::CR<hstd::Str> column) {
+    ImVec2 getCellPos(int row, hstd::Str const& column) {
         return ImVec2(getColumnXPos(column), getRowYPos(row));
     }
 
     ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
 
-    int getColumnIndex(hstd::CR<hstd::Str> name) {
+    int getColumnIndex(hstd::Str const& name) {
         auto iter = hstd::rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
@@ -191,7 +191,7 @@ struct TreeGridDocument {
         }
     }
 
-    TreeGridColumn& getColumn(hstd::CR<hstd::Str> name) {
+    TreeGridColumn& getColumn(hstd::Str const& name) {
         return columns.at(getColumnIndex(name));
     }
 
@@ -238,8 +238,8 @@ struct TreeGridDocument {
     }
 
     static TreeGridDocument from_root(
-        const org::imm::ImmAdapter& node,
-        const StoryGridConfig&      conf,
+        org::imm::ImmAdapter const& node,
+        StoryGridConfig const&      conf,
         StoryGridContext&           ctx);
 
     void render(
@@ -462,8 +462,8 @@ struct StoryGridGraph {
             hstd::dod::Store<StoryNodeId, StoryNode> nodes;
 
             StoryNodeId add(
-                const org::imm::ImmAdapter& node,
-                const StoryGridConfig&      conf,
+                org::imm::ImmAdapter const& node,
+                StoryGridConfig const&      conf,
                 StoryGridContext&           ctx);
 
             StoryNodeId add(StoryNode const& node) {
@@ -643,7 +643,7 @@ struct StoryGridGraph {
             StoryGridContext&         ctx,
             StoryGridConfig const&    conf);
 
-        bool isVisible(const org::imm::ImmUniqId& id) const;
+        bool isVisible(org::imm::ImmUniqId const& id) const;
 
 
         Partition getPartition(
@@ -907,7 +907,7 @@ struct StoryGridGraph {
     void cascadeStoryNodeUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeBlockGraphUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeGeometryUpdate(StoryNodeId const &id, StoryGridContext &ctx, StoryGridConfig const &conf);
-    void cascadeScrollingUpdate(const ImVec2 &graphPos, float direction, StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeScrollingUpdate(ImVec2 const& graphPos, float direction, StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeNodePositionsUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeLinkListTargetsUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     // clang-format on
@@ -1136,7 +1136,7 @@ struct StoryGridModel {
     int getFlatNodePos(org::imm::ImmAdapter const& node);
 
     /// \brief Update full document using latest history data.
-    void rebuild(const StoryGridConfig& conf) {
+    void rebuild(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(
             ctx,
             hstd::fmt(
@@ -1152,13 +1152,13 @@ struct StoryGridModel {
 
 hstd::Opt<json> story_grid_loop(
     GLFWwindow*                 window,
-    const hstd::Vec<hstd::Str>& file,
+    hstd::Vec<hstd::Str> const& file,
     hstd::Opt<json> const&      in_state,
     StoryGridConfig&            conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
-    const StoryGridConfig& conf);
+    StoryGridConfig const& conf);
 void run_story_grid_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf);

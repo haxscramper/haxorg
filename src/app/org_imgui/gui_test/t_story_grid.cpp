@@ -198,9 +198,9 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
             auto&  doc  = vars.model.graph.getGridNodes()
-                            .at(0)
-                            ->getTreeGrid()
-                            .node;
+                              .at(0)
+                              ->getTreeGrid()
+                              .node;
             ctx->MouseMoveToPos(
                 wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
             IM_CHECK_EQ(

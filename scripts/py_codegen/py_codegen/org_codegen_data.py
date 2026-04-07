@@ -1,13 +1,14 @@
+import copy
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 
 from beartype import beartype
-from beartype.typing import List, Union, Optional, Any
+from beartype.typing import Any, List, Optional, Union
 # Now you should be able to import your C++ library
 from py_codegen import astbuilder_cpp as cpp
 from py_codegen.codegen_ir import *
-from py_codegen.proto_lib.reflection_defs import Arg
+from py_codegen.proto_lib import Arg
 
 
 @beartype
@@ -90,13 +91,24 @@ def org_struct(
     Nested: List[GenTuEntry] = [],
     Methods: List[GenTuFunction] = [],
     Bases: List[QualType] = [],
+    DefaultConstructor: bool = False,
+    DefaultEq: bool = False,
 ) -> GenTuStruct:
+
+    MethodsTmp = [replace(M, ParentClass=Type) for M in Methods]
+
+    if DefaultConstructor:
+        MethodsTmp.append(default_constructor_method(Type))
+
+    if DefaultEq:
+        MethodsTmp.append(eq_method(Type))
+
     return GenTuStruct(
         Name=Type,
         Doc=org_doc(Doc),
         Fields=Fields,
         Nested=Nested,
-        Methods=Methods,
+        Methods=MethodsTmp,
         Bases=Bases,
         IsDescribedRecord=True,
     )
@@ -131,9 +143,8 @@ def opt_field(Type: QualType, Name: str, Doc: AnyDoc = GenTuDoc("")) -> GenTuFie
 
 
 @beartype
-def org_function(ResultType: QualType, Name: str, *args: Any,
-                 **kwargs: Any) -> GenTuFunction:
-    return GenTuFunction(ResultType, Name, *args, **kwargs)
+def org_function(ResultType: QualType, Name: str, **kwargs: Any) -> GenTuFunction:
+    return GenTuFunction(ReturnType=ResultType, Name=Name, **kwargs)
 
 
 @beartype
@@ -188,39 +199,37 @@ def eq_method(name: QualType) -> GenTuFunction:
         Name="operator==",
         Args=[GenTuIdent(Type=name.asConstRef(), Name="other")],
         IsConst=True,
+        ParentClass=name,
     )
 
 
 @beartype
-def default_constructor(name: str) -> GenTuPass:
-    return GenTuPass(f"{name} () {{}}")
-
-
-@beartype
-def default_constructor_method(name: str) -> GenTuFunction:
+def default_constructor_method(Class: QualType) -> GenTuFunction:
     return GenTuFunction(
-        Name=name,
+        Name=Class.Name,
         Body="",
-        ReturnType=None,
         IsConstructor=True,
+        ParentClass=Class,
     )
 
 
 #endregion
 
 
-def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
+def d_org(name: str, *args: Any, Methods: List[GenTuFunction] = list(),
+          **kwargs: Any) -> GenTuStruct:
     "Create codegen struct for AST data"
-    res = GenTuStruct(
-        QualType(
-            Name=name,
-            Meta=dict(isOrgType=True),
-            Spaces=[n_sem()],
-            DbgOrigin="d_org",
-        ),
-        *args,
-        **kwargs,
+    Type = QualType(
+        Name=name,
+        Meta=dict(isOrgType=True),
+        Spaces=[n_sem()],
+        DbgOrigin="d_org",
     )
+
+    res = GenTuStruct(Type,
+                      *args,
+                      **kwargs,
+                      Methods=[replace(M, ParentClass=Type) for M in Methods])
 
     res.__setattr__("isOrgType", True)
     kind: str = res.Name.Name
@@ -258,13 +267,13 @@ def d_org(name: str, *args: Any, **kwargs: Any) -> GenTuStruct:
 
         res.Methods.insert(
             0,
-            GenTuFunction(
+            org_function(
                 t_osk(),
                 "getKind",
-                GenTuDoc(""),
                 IsConst=True,
                 IsVirtual=True,
                 IsPureVirtual=False,
+                ParentClass=res.declarationQualName(),
                 Body=f"return {t_osk().Name}::{kind};",
                 IsExposedForWrap=False,
             ),
@@ -639,29 +648,29 @@ def get_sem_bases() -> List[GenTuStruct]:
             IsAbstract=True,
             Fields=[GenTuField(t_vec(t_id()), "attached", GenTuDoc(""))],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_id()),
                     "getAttached",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Return attached nodes of a specific kinds or all attached (if kind is nullopt)"
                     ),
                     Args=[opt_ident(t_str(), "kind", GenTuDoc(""))],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_id()),
                     "getCaption",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_str()),
                     "getName",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("AttrValue")),
                     "getAttrs",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Get all named arguments for the command, across all attached properties. "
                         "If kind is nullopt returns all attached arguments for all properties."
                     ),
@@ -669,10 +678,10 @@ def get_sem_bases() -> List[GenTuStruct]:
                     IsConst=True,
                     IsVirtual=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getFirstAttr",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Get the first parameter for the statement. "
                         "In case there is a longer list of values matching given kind"
                         "different node kinds can implement different priorities "),
@@ -680,37 +689,37 @@ def get_sem_bases() -> List[GenTuStruct]:
                     IsConst=True,
                     IsVirtual=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_str()),
                     "getFirstAttrString",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_int()),
                     "getFirstAttrInt",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_bool()),
                     "getFirstAttrBool",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(QualType(Name="double")),
                     "getFirstAttrDouble",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("LispValue", [t("AttrValue")])),
                     "getFirstAttrLisp",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("Kind", [t("AttrValue")])),
                     "getFirstAttrKind",
                     Args=[arg_ident(t_cr(t_str()), "kind")],
@@ -753,10 +762,10 @@ def get_sem_bases() -> List[GenTuStruct]:
                 ),
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("AttrValue")),
                     "getAttrs",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Return all parameters with keys matching name. "
                         "This is an override implementation that accounts for the explicit command parameters if any."
                     ),
@@ -765,10 +774,10 @@ def get_sem_bases() -> List[GenTuStruct]:
                     IsVirtual=True,
                     IsOverride=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getFirstAttr",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Override of the base statement argument get, prioritizing the explicit command parameters"
                     ),
                     Args=[arg_ident(t_cr(t_str()), "kind")],
@@ -805,7 +814,7 @@ def get_sem_bases() -> List[GenTuStruct]:
                 GenTuField(t_str(), "text", GenTuDoc("Final leaf value"), Value='""')
             ],
             Methods=[
-                GenTuFunction(t_str(), "getText", IsConst=True, Body="return text;"),
+                org_function(t_str(), "getText", IsConst=True, Body="return text;"),
             ],
         ),
     ]
@@ -957,10 +966,10 @@ def get_sem_block() -> List[GenTuStruct]:
                 str_field("content"),
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_opt(t_str()),
                     "getPlacement",
-                    org_doc("Return value of the :placement attribute if present"),
+                    Doc=org_doc("Return value of the :placement attribute if present"),
                     IsConst=True,
                 )
             ],
@@ -982,7 +991,7 @@ def get_sem_block() -> List[GenTuStruct]:
             GenTuDoc("Base class for all code blocks"),
             Bases=[t_nest(t_org("Block"))],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getVariable",
                     Args=[arg_ident(t_cr(t_str()), "varname")],
@@ -1056,22 +1065,19 @@ def get_sem_text() -> List[GenTuStruct]:
                            Value="false")
             ],
             Methods=[
-                GenTuFunction(t_opt(t_int()), "getYear", IsConst=True),
-                GenTuFunction(t_opt(t_int()), "getMonth", IsConst=True),
-                GenTuFunction(t_opt(t_int()), "getDay", IsConst=True),
-                GenTuFunction(t_opt(t_int()), "getHour", IsConst=True),
-                GenTuFunction(t_opt(t_int()), "getMinute", IsConst=True),
-                GenTuFunction(t_opt(t_int()), "getSecond", IsConst=True),
-                GenTuFunction(t_user_time(), "getStaticTime", IsConst=True),
+                org_function(t_opt(t_int()), "getYear", IsConst=True),
+                org_function(t_opt(t_int()), "getMonth", IsConst=True),
+                org_function(t_opt(t_int()), "getDay", IsConst=True),
+                org_function(t_opt(t_int()), "getHour", IsConst=True),
+                org_function(t_opt(t_int()), "getMinute", IsConst=True),
+                org_function(t_opt(t_int()), "getSecond", IsConst=True),
+                org_function(t_user_time(), "getStaticTime", IsConst=True),
                 # default_constructor_method("Time"),
             ],
             Nested=[
                 org_struct(
                     t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
-                    Methods=[
-                        default_constructor_method("Repeat"),
-                    ],
                     Nested=[
                         GenTuEnum(
                             t_nest("Mode", [t_org("Time"), t("Repeat")]),
@@ -1132,9 +1138,7 @@ def get_sem_text() -> List[GenTuStruct]:
                                 opt_field(t_nest("Repeat", [t_org("Time")]), "warn"),
                                 GenTuField(t_user_time(), "time"),
                             ],
-                            Methods=[
-                                default_constructor_method("Static"),
-                            ],
+                            DefaultConstructor=True,
                         ),
                         org_struct(
                             t_nest("Dynamic", [t_org("Time")]),
@@ -1143,9 +1147,7 @@ def get_sem_text() -> List[GenTuStruct]:
                                 GenTuField(t_nest_shared("LispCode"), "expr",
                                            GenTuDoc(""))
                             ],
-                            Methods=[
-                                default_constructor_method("Dynamic"),
-                            ],
+                            DefaultConstructor=True,
                         ),
                     ],
                     kindGetter="getTimeKind",
@@ -1164,7 +1166,7 @@ def get_sem_text() -> List[GenTuStruct]:
                 id_field("Time", "to", GenTuDoc("Finishing time")),
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_opt(t("int64_t")),
                     "getClockedTimeSeconds",
                     IsConst=True,
@@ -1269,10 +1271,9 @@ def get_sem_subtree() -> List[GenTuStruct]:
               GenTuDoc("Single subtree log entry"),
               Bases=[t_nest(t_org("Org"))],
               Methods=[
-                  GenTuFunction(
+                  org_function(
                       t("void"),
                       "setDescription",
-                      GenTuDoc(""),
                       Args=[GenTuIdent(t_id("StmtList"), "desc")],
                   )
               ],
@@ -1313,10 +1314,9 @@ def get_sem_subtree() -> List[GenTuStruct]:
                 opt_field(t_str(), "priority", GenTuDoc("")),
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared(t("SubtreePeriod"), [])),
                     "getTimePeriods",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(
@@ -1329,30 +1329,28 @@ def get_sem_subtree() -> List[GenTuStruct]:
                         )
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared(t("NamedProperty"), [])),
                     "getProperties",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared(t("NamedProperty"), [])),
                     "getProperty",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t("void"),
                     "removeProperty",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Remove all instances of the property with matching kind/subkind from the property list"
                     ),
                     Args=[
@@ -1360,20 +1358,20 @@ def get_sem_subtree() -> List[GenTuStruct]:
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t("void"),
                     "setProperty",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Create or override existing property value in the subtree property list"
                     ),
                     Args=[
                         GenTuIdent(t_cr(t_nest_shared(t("NamedProperty"), [])), "value"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t("void"),
                     "setPropertyStrValue",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Assign a raw string literal to a property.",
                         "This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch."
                     ),
@@ -1383,18 +1381,17 @@ def get_sem_subtree() -> List[GenTuStruct]:
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_str(),
                     "getCleanTitle",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Get subtree title as a flat string, without markup nodes, but with all left strings"
                     ),
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_str()),
                     "getTodoKeyword",
-                    GenTuDoc(""),
                     IsConst=True,
                 ),
             ],
@@ -1474,10 +1471,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     axis_ref_types = org_struct(
         t_nest_shared("Position",
                       [t("Tblfm"), t("Expr"), t("AxisRef")]),
-        Methods=[
-            eq_method(t_nest_shared(
-                "Position", [t("Tblfm"), t("Expr"), t("AxisRef")]))
-        ],
+        DefaultConstructor=True,
+        DefaultEq=True,
         Nested=[
             GenTuTypeGroup(
                 [
@@ -1488,16 +1483,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                       t("AxisRef"),
                                       t("Position")]),
                         Fields=[org_field(t_int(), "index")],
-                        Methods=[
-                            eq_method(
-                                t_nest_shared(
-                                    "Index",
-                                    [t("Tblfm"),
-                                     t("Expr"),
-                                     t("AxisRef"),
-                                     t("Position")]))
-                        ],
-                        Nested=[default_constructor("Index")],
+                        DefaultConstructor=True,
+                        DefaultEq=True,
                     ),
                     org_struct(
                         t_nest_shared(
@@ -1506,16 +1493,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                      t("AxisRef"),
                                      t("Position")]),
                         Fields=[str_field("name")],
-                        Methods=[
-                            eq_method(
-                                t_nest_shared(
-                                    "Name",
-                                    [t("Tblfm"),
-                                     t("Expr"),
-                                     t("AxisRef"),
-                                     t("Position")]))
-                        ],
-                        Nested=[default_constructor("Name")],
+                        DefaultConstructor=True,
+                        DefaultEq=True,
                     ),
                 ],
                 enumName=t_nest_shared(
@@ -1527,17 +1506,14 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     [t("Tblfm"), t("Expr"),
                      t("AxisRef"), t("Position")]),
             ),
-            default_constructor("Position"),
         ],
     )
 
     return [
         org_struct(
             t_nest_shared("LispCode"),
-            Methods=[
-                eq_method(t_nest_shared("LispCode")),
-                default_constructor_method("LispCode"),
-            ],
+            DefaultConstructor=True,
+            DefaultEq=True,
             Nested=[
                 GenTuTypeGroup(
                     [
@@ -1547,20 +1523,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("name"),
                                 vec_field(t_nest_shared("LispCode"), "args"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Call", [t("LispCode")])),
-                                default_constructor_method("Call"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("List", [t("LispCode")]),
                             Fields=[
                                 vec_field(t_nest_shared("LispCode"), "items"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("List", [t("LispCode")])),
-                                default_constructor_method("List"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("KeyValue", [t("LispCode")]),
@@ -1568,60 +1540,48 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("name"),
                                 vec_field(t_nest_shared("LispCode"), "value")
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("KeyValue", [t("LispCode")])),
-                                default_constructor_method("KeyValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Number", [t("LispCode")]),
                             Fields=[
                                 int_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Number", [t("LispCode")])),
-                                default_constructor_method("Number"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Text", [t("LispCode")]),
                             Fields=[
                                 str_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Text", [t("LispCode")])),
-                                default_constructor_method("Text"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Ident", [t("LispCode")]),
                             Fields=[
                                 str_field("name"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Ident", [t("LispCode")])),
-                                default_constructor_method("Ident"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Boolean", [t("LispCode")]),
                             Fields=[
                                 bool_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Boolean", [t("LispCode")])),
-                                default_constructor_method("Boolean"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("Real", [t("LispCode")]),
                             Fields=[
                                 org_field(t("float"), "value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("Real", [t("LispCode")])),
-                                default_constructor_method("Real"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                     ],
                     enumName=t_nest_shared("Kind", [t("LispCode")]),
@@ -1776,16 +1736,15 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         org_struct(
             t_nest_shared("AttrValue"),
             Nested=[
-                org_struct(t_nest_shared("DimensionSpan", [t("AttrValue")]),
-                           Fields=[
-                               int_field("first"),
-                               opt_field(t_int(), "last"),
-                           ],
-                           Methods=[
-                               default_constructor_method("DimensionSpan"),
-                               eq_method(t_nest_shared("DimensionSpan",
-                                                       [t("AttrValue")])),
-                           ]),
+                org_struct(
+                    t_nest_shared("DimensionSpan", [t("AttrValue")]),
+                    Fields=[
+                        int_field("first"),
+                        opt_field(t_int(), "last"),
+                    ],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
+                ),
                 GenTuTypeGroup(
                     [
                         org_struct(
@@ -1793,10 +1752,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             Fields=[
                                 str_field("value"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("TextValue", [t("AttrValue")])),
-                                default_constructor_method("TextValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("FileReference", [t("AttrValue")]),
@@ -1804,21 +1761,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 str_field("file"),
                                 str_field("reference"),
                             ],
-                            Methods=[
-                                default_constructor_method("FileReference"),
-                                eq_method(t_nest_shared("FileReference",
-                                                        [t("AttrValue")])),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                         org_struct(
                             t_nest_shared("LispValue", [t("AttrValue")]),
                             Fields=[
                                 org_field(t_nest_shared("LispCode"), "code"),
                             ],
-                            Methods=[
-                                eq_method(t_nest_shared("LispValue", [t("AttrValue")])),
-                                default_constructor_method("LispValue"),
-                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
                         ),
                     ],
                     kindGetter="getKind",
@@ -1840,9 +1792,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_function(t_opt(t_int()), "getInt", IsConst=True),
                 org_function(t_str(), "getString", IsConst=True),
                 org_function(t_opt(QualType(Name="double")), "getDouble", IsConst=True),
-                eq_method(t_nest_shared("AttrValue")),
-                default_constructor_method("AttrValue")
             ],
+            DefaultConstructor=True,
+            DefaultEq=True,
         ),
         org_struct(
             t_nest_shared("HashTagFlat"),
@@ -1895,7 +1847,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_function(
                     t("bool"),
                     "prefixMatch",
-                    org_doc(
+                    Doc=org_doc(
                         "Check if list of tag names is a prefix for either of the nested hash tags in this one"
                     ),
                     IsConst=True,
@@ -2127,7 +2079,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         ),
                         org_struct(
                             t_nest_shared("Deadline", [t("SubtreeLogHead")]),
-                            GenTuDoc('Change of the subtree deadline'),
+                            GenTuDoc("Change of the subtree deadline"),
                             Fields=[
                                 opt_field(t_user_time(), "from", GenTuDoc("")),
                                 org_field(t_user_time(), "to", GenTuDoc("")),
@@ -2141,7 +2093,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         ),
                         org_struct(
                             t_nest_shared("Schedule", [t("SubtreeLogHead")]),
-                            GenTuDoc('Change of the subtree Schedule'),
+                            GenTuDoc("Change of the subtree Schedule"),
                             Fields=[
                                 opt_field(t_user_time(), "from", GenTuDoc("")),
                                 org_field(t_user_time(), "to", GenTuDoc("")),
@@ -2237,110 +2189,107 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("AttrValue")),
                     "getFlatArgs",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("AttrValue")),
                     "getAttrs",
-                    GenTuDoc(""),
                     Args=[opt_ident(t_str(), "key", GenTuDoc(""))],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t("void"),
                     "setNamedAttr",
-                    GenTuDoc(""),
                     Args=[
                         GenTuIdent(t_cr(t_str()), "key"),
                         GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "attrs"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t("void"),
                     "setPositionalAttr",
-                    GenTuDoc(""),
                     Args=[
                         GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "items"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_int(),
                     "getPositionalSize",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_int(),
                     "getNamedSize",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_bool(),
                     "isEmpty",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_nest_shared("AttrList"),
                     "getAll",
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_cr(t_nest_shared("AttrValue")),
                     "atPositional",
                     Args=[GenTuIdent(t_int(), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getPositional",
                     Args=[GenTuIdent(t_int(), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_cr(t_nest_shared("AttrList")),
                     "atNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrList")),
                     "getNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_cr(t_nest_shared("AttrValue")),
                     "atFirstNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getFirstNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_nest_shared("AttrList"),
                     "atVarNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrList")),
                     "getVarNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_nest_shared("AttrValue"),
                     "atFirstVarNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("AttrValue")),
                     "getFirstVarNamed",
                     Args=[GenTuIdent(t_cr(t_str()), "index")],
@@ -2383,15 +2332,15 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 vec_field(t_nest_shared("Var", [t("OrgCodeEvalInput")]), "argList"),
             ],
             Nested=[
-                org_struct(t_nest_shared("Var", [t("OrgCodeEvalInput")]),
-                           Fields=[
-                               str_field("name"),
-                               org_field(t_nest_shared("OrgJson"), "value"),
-                           ],
-                           Methods=[
-                               eq_method(t_nest_shared("Var", [t("OrgCodeEvalInput")])),
-                               default_constructor_method("Var"),
-                           ]),
+                org_struct(
+                    t_nest_shared("Var", [t("OrgCodeEvalInput")]),
+                    Fields=[
+                        str_field("name"),
+                        org_field(t_nest_shared("OrgJson"), "value"),
+                    ],
+                    DefaultConstructor=True,
+                    DefaultEq=True,
+                ),
                 d_simple_enum(
                     t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
                     "What context to use for results",
@@ -2709,7 +2658,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_field(t_nest("BrokenLinks", [t("DocumentExportConfig")]),
                           "brokenLinks",
                           Value="sem::DocumentExportConfig::BrokenLinks::None"),
-                org_field(t_nest("TocExport", [t("DocumentExportConfig")]), "tocExport"),
                 org_field(t_nest("TagExport", [t("DocumentExportConfig")]),
                           "tagExport",
                           Value="org::sem::DocumentExportConfig::TagExport::NotInToc"),
@@ -2788,6 +2736,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     variantName=t_nest("TocExport", [t("DocumentExportConfig")]),
                     enumName=t_nest("TocExportKind", [t("DocumentExportConfig")]),
                     kindGetter="getTocExportKind",
+                    variantField="tocExport",
                 ),
             ]),
         org_struct(
@@ -2846,10 +2795,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("NamedProperty", []),
             GenTuDoc("Single subtree property"),
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_bool(),
                     "isMatching",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Check if property matches specified kind and optional subkind. "
                         "Built-in property checking is also done with this function -- 'created' etc."
                     ),
@@ -2859,18 +2808,18 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         GenTuIdent(t_cr(t_opt(t_str())), "subKind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_str(),
                     "getName",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "Get non-normalized name of the property (for built-in and user)"
                     ),
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_str()),
                     "getSubKind",
-                    GenTuDoc("Get non-normalized sub-kind for the property."),
+                    Doc=GenTuDoc("Get non-normalized sub-kind for the property."),
                     IsConst=True,
                 ),
                 eq_method(t_nest_shared("NamedProperty", [])),
@@ -2953,18 +2902,17 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc("Top-level or inline paragraph"),
             Bases=[t_nest(t_org("Stmt"))],
             Methods=[
-                GenTuFunction(t_bool(), "isFootnoteDefinition", IsConst=True),
-                GenTuFunction(t_opt(t_str()), "getFootnoteName", IsConst=True),
-                GenTuFunction(t_bool(), "hasAdmonition", IsConst=True),
-                GenTuFunction(t_vec(t_str()), "getAdmonitions", IsConst=True),
-                GenTuFunction(t_vec(t_id("BigIdent")), "getAdmonitionNodes",
-                              IsConst=True),
-                GenTuFunction(t_bool(), "hasTimestamp", IsConst=True),
-                GenTuFunction(t_vec(t_user_time()), "getTimestamps", IsConst=True),
-                GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", IsConst=True),
-                GenTuFunction(t_bool(), "hasLeadHashtags", IsConst=True),
-                GenTuFunction(t_vec(t_id("HashTag")), "getLeadHashtags", IsConst=True),
-                GenTuFunction(
+                org_function(t_bool(), "isFootnoteDefinition", IsConst=True),
+                org_function(t_opt(t_str()), "getFootnoteName", IsConst=True),
+                org_function(t_bool(), "hasAdmonition", IsConst=True),
+                org_function(t_vec(t_str()), "getAdmonitions", IsConst=True),
+                org_function(t_vec(t_id("BigIdent")), "getAdmonitionNodes", IsConst=True),
+                org_function(t_bool(), "hasTimestamp", IsConst=True),
+                org_function(t_vec(t_user_time()), "getTimestamps", IsConst=True),
+                org_function(t_vec(t_id("Time")), "getTimestampNodes", IsConst=True),
+                org_function(t_bool(), "hasLeadHashtags", IsConst=True),
+                org_function(t_vec(t_id("HashTag")), "getLeadHashtags", IsConst=True),
+                org_function(
                     t_vec(t_id()),
                     "getBody",
                     IsConst=True,
@@ -3015,30 +2963,28 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             Bases=[t_nest(t_org("Stmt"))],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("AttrValue")),
                     "getListAttrs",
-                    GenTuDoc(""),
                     Args=[GenTuIdent(t_str().asConstRef(), "key")],
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t("ListFormattingMode"),
                     "getListFormattingMode",
-                    GenTuDoc(""),
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_bool(),
                     "isDescriptionList",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "List is marked as description if any list item has a header"),
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_bool(),
                     "isNumberedList",
-                    GenTuDoc(
+                    Doc=GenTuDoc(
                         "List is marked as numbered if any list item has bullet text set"
                     ),
                     IsConst=True,
@@ -3064,16 +3010,15 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Full text of the numbered list item, e.g. `a)`, `a.`",))
             ],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_bool(),
                     "isDescriptionItem",
-                    GenTuDoc(""),
                     IsConst=True,
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_str()),
                     "getCleanHeader",
-                    GenTuDoc("Return flat text for the description list header"),
+                    Doc=GenTuDoc("Return flat text for the description list header"),
                     IsConst=True,
                 )
             ],
@@ -3083,20 +3028,18 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             Bases=[t_nest(t_org("Org"))],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("NamedProperty", [])),
                     "getProperties",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subKind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("NamedProperty", [])),
                     "getProperty",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(t_cr(t_str()), "kind"),
@@ -3154,17 +3097,16 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             Bases=[t_nest(t_org("Org"))],
             Methods=[
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("NamedProperty", [])),
                     "getProperties",
-                    GenTuDoc(""),
                     IsConst=True,
                     Args=[
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subKind", Value="std::nullopt"),
                     ],
                 ),
-                GenTuFunction(
+                org_function(
                     t_opt(t_nest_shared("NamedProperty", [])),
                     "getProperty",
                     IsConst=True,
@@ -3249,19 +3191,16 @@ def get_types() -> Sequence[GenTuStruct]:
             Nested=[
                 org_struct(
                     t_nest("IncludeBase", [t_org("CmdInclude")]),
-                    Methods=[default_constructor_method("IncludeBase")],
                     Fields=[],
                 ),
                 GenTuTypeGroup(
                     [
                         org_struct(
                             t_nest("Example", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Example")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                         ),
                         org_struct(
                             t_nest("Export", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Export")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "language",
@@ -3274,15 +3213,14 @@ def get_types() -> Sequence[GenTuStruct]:
                             "Second positional argument in the include command can have any arbitrary value -- "
                             "default src/export/example have additional properties, but user "
                             "can provide anything else there.",
-                            Methods=[default_constructor_method("Custom")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "blockName",
                                           "Block name not covered by the default values")
-                            ]),
+                            ],
+                        ),
                         org_struct(
                             t_nest("Src", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("Src")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 org_field(t_str(), "language",
@@ -3291,7 +3229,6 @@ def get_types() -> Sequence[GenTuStruct]:
                         ),
                         org_struct(
                             t_nest("OrgDocument", [t_org("CmdInclude")]),
-                            Methods=[default_constructor_method("OrgDocument")],
                             Bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             Fields=[
                                 opt_field(
@@ -3314,7 +3251,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "customIdTarget",
                                     "Include target subtree content with `file.org::#custom`",
                                 ),
-                            ]),
+                            ],
+                        ),
                     ],
                     kindGetter="getIncludeKind",
                     enumName=t_nest("Kind", [t_org("CmdInclude")]),

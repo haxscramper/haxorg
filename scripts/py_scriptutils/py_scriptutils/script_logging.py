@@ -9,6 +9,7 @@ from typing import Dict
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Literal, Optional, Set
+import plumbum
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
@@ -138,6 +139,29 @@ def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
         print(render_rich_pprint(value, width=width, color=False), file=file)
 
 
+def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
+    """
+    Convert the document to the debug JSON and print it to the document
+    """
+    import json
+    formatted = json.dumps(to_debug_json(value), indent=2)
+    Path(path).write_text(formatted)
+    try:
+        # Attempt to pretty-print JSON if the FracturedJSON is installed in the system.
+        # Install fjson with `cargo install fracturedjson`
+        cmd = plumbum.local["fjson"]
+        cmd.run([
+            "--comments",
+            "preserve",
+            "--max-width",
+            str(width),
+            str(path),
+        ])
+
+    except plumbum.CommandNotFound:
+        pass
+
+
 def pprint_to_string(value: Any, width: int = 120) -> str:
     from py_scriptutils.rich_utils import render_rich_pprint
     return render_rich_pprint(value, width=width, color=False)
@@ -205,7 +229,7 @@ class ExceptionContextNote:
 
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> Literal[False]:
         if exc_value is not None:
-            if not hasattr(exc_value, '__notes__'):
+            if not hasattr(exc_value, "__notes__"):
                 exc_value.__notes__ = []
             exc_value.__notes__.append(self.note)
 
@@ -351,7 +375,7 @@ def get_custom_traceback_handler(
                     else:
                         import pprint
                         formatted_value = pprint.pformat(arg_value, width=available_width)
-                        lines = formatted_value.split('\n')
+                        lines = formatted_value.split("\n")
 
                         print(
                             f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"

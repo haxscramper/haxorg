@@ -146,10 +146,9 @@ void hstdVec_bind(type_registration_guard& g, std::string const& name) {
                 "back", static_cast<T const& (VT::*)() const>(&VT::back))
             .function(
                 "toArray",
-                +[](const hstd::Vec<T>& self) -> emscripten::val {
-                    emscripten::val result = emscripten::val::global(
-                                                 "Array")
-                                                 .new_();
+                +[](hstd::Vec<T> const& self) -> emscripten::val {
+                    emscripten::val
+                        result = emscripten::val::global("Array").new_();
                     for (size_t i = 0; i < self.size(); ++i) {
                         result.call<void>("push", self[i]);
                     }
@@ -202,12 +201,12 @@ struct CxxArgSpec {
 };
 
 template <typename Tuple>
-constexpr std::size_t count_required_args(const Tuple& args) {
+constexpr std::size_t count_required_args(Tuple const& args) {
     if constexpr (std::tuple_size_v<std::decay_t<Tuple>> == 0) {
         return 0;
     } else {
         std::size_t count = 0;
-        boost::mp11::tuple_for_each(args, [&count](const auto& arg) {
+        boost::mp11::tuple_for_each(args, [&count](auto const& arg) {
             if (!arg.defaultValue.has_value()) { count++; }
         });
         return count;

@@ -6,7 +6,7 @@
 
 using namespace hstd;
 
-std::string hstd::ansiEsc(const TermColorFg8Bit& col) {
+std::string hstd::ansiEsc(TermColorFg8Bit const& col) {
     if ((u8)col <= 7) { // Regular colors
         return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30);
     } else if ((u8)col <= 15) { // Bright colors
@@ -16,7 +16,7 @@ std::string hstd::ansiEsc(const TermColorFg8Bit& col) {
     }
 }
 
-std::string hstd::ansiEsc(const TermColorBg8Bit& col) {
+std::string hstd::ansiEsc(TermColorBg8Bit const& col) {
     if ((u8)col <= 7) {
         return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40);
     } else if ((u8)col <= 15) {
@@ -26,7 +26,7 @@ std::string hstd::ansiEsc(const TermColorBg8Bit& col) {
     };
 }
 
-std::string hstd::ansiEsc(const Style& style, const bool& open) {
+std::string hstd::ansiEsc(Style const& style, bool const& open) {
     const auto diff = open ? 0 : 20;
     switch (style) {
         case Style::Bright: return ansiEsc(1 + diff);
@@ -42,7 +42,7 @@ std::string hstd::ansiEsc(const Style& style, const bool& open) {
     }
 }
 
-Str hstd::ansiDiff(const ColStyle& s1, const ColStyle& s2) {
+Str hstd::ansiDiff(ColStyle const& s1, ColStyle const& s2) {
     Str result;
     if (s2.fg != s1.fg) {
         if (isDefault(s2.fg)) {
@@ -71,7 +71,7 @@ Str hstd::ansiDiff(const ColStyle& s1, const ColStyle& s2) {
     return result;
 }
 
-std::string hstd::to_string(const ColRune& rune, const bool& color) {
+std::string hstd::to_string(ColRune const& rune, bool const& color) {
     std::string result;
     if (color) {
         result += ansiDiff(ColStyle{}, rune.style);
@@ -84,8 +84,8 @@ std::string hstd::to_string(const ColRune& rune, const bool& color) {
 }
 
 std::string hstd::to_colored_string(
-    const Vec<ColRune>& runes,
-    const bool&         color) {
+    Vec<ColRune> const& runes,
+    bool const&         color) {
     std::string result;
     if (color) {
         auto prev = ColStyle();
@@ -105,7 +105,7 @@ std::string hstd::to_colored_string(
     return result;
 }
 
-json hstd::to_formatting_json(const Vec<ColRune>& runes) {
+json hstd::to_formatting_json(Vec<ColRune> const& runes) {
     json result;
     result["ansi_format"]  = to_colored_string(runes, true);
     result["plain_format"] = to_colored_string(runes, false);
@@ -120,7 +120,7 @@ json hstd::to_formatting_json(const Vec<ColRune>& runes) {
     Str  current_text;
 
     for (int i = 0; i < runes.size(); ++i) {
-        const auto& rune = runes.at(i);
+        auto const& rune = runes.at(i);
 
         if (rune.style.fg != prev.fg || rune.style.bg != prev.bg
             || rune.style.style != prev.style) {
@@ -176,7 +176,7 @@ void hstd::ColStream::flush() {
     if (!buffered) { ostream->flush(); }
 }
 
-void hstd::ColStream::write(const ColRune& text) {
+void hstd::ColStream::write(ColRune const& text) {
     position += 1;
     if (buffered) {
         append(text);
@@ -185,7 +185,7 @@ void hstd::ColStream::write(const ColRune& text) {
     }
 }
 
-void hstd::ColStream::write(const ColText& text) {
+void hstd::ColStream::write(ColText const& text) {
     position += text.size();
     if (buffered) {
         append(text);
@@ -195,7 +195,7 @@ void hstd::ColStream::write(const ColText& text) {
     }
 }
 
-void ColStream::write_indented_after_first(const Str& text, int indent) {
+void ColStream::write_indented_after_first(Str const& text, int indent) {
     auto lines = text.split('\n');
     if (lines.has(0)) { write(ColText{lines.at(0)}); }
     for (int i = 1; i < lines.size(); ++i) {
@@ -207,7 +207,7 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
 
 
 void ColStream::write_indented_after_first(
-    const Vec<ColText>& text,
+    Vec<ColText> const& text,
     int                 indent) {
     if (text.has(0)) { write(ColText{text.at(0)}); }
     for (int i = 1; i < text.size(); ++i) {
@@ -218,16 +218,16 @@ void ColStream::write_indented_after_first(
 }
 
 void ColStream::write_indented_after_first(
-    const ColText& text,
+    ColText const& text,
     int            indent) {
     write_indented_after_first(text.split("\n"), indent);
 }
 
 
 void hstd::hshow<std::string_view>::format(
-    ColStream&           os,
-    CR<std::string_view> value,
-    CR<hshow_opts>       opts) {
+    ColStream&              os,
+    std::string_view const& value,
+    hshow_opts const&       opts) {
     if (value.data() == nullptr) {
         os << "nil";
     } else {
@@ -278,12 +278,12 @@ void hstd::hshow<std::string_view>::format(
     }
 }
 
-ColText& ColText::withStyle(CR<ColStyle> style) {
+ColText& ColText::withStyle(ColStyle const& style) {
     for (auto& ch : *this) { ch.style = style; }
     return *this;
 }
 
-hstd::ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
+hstd::ColText::ColText(ColStyle const& style, std::string const& text) {
     for (const auto& ch : rune_chunks(text)) {
         push_back(ColRune(ch, style));
     }
@@ -308,7 +308,7 @@ ColText ColText::leftAligned(int n, ColRune c) const {
     return s;
 }
 
-hstd::Vec<ColText> ColText::split(const Str& delimiter) const {
+hstd::Vec<ColText> ColText::split(Str const& delimiter) const {
     hstd::Vec<ColText> result;
     ColText            current;
 
@@ -341,12 +341,12 @@ std::string toHtmlColor(TermColorFg8Bit color) {
 }
 } // namespace
 
-std::string hstd::to_colored_html(const Vec<ColRune>& runes) {
+std::string hstd::to_colored_html(Vec<ColRune> const& runes) {
     std::string result;
     auto        prev = ColStyle();
     for (const auto& rune : runes) {
-        const auto& s1 = prev;
-        const auto& s2 = rune.style;
+        auto const& s1 = prev;
+        auto const& s2 = rune.style;
         std::string open_tags, close_tags;
 
         if (s2.fg != s1.fg) {

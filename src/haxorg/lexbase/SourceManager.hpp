@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/dod_base.hpp>
@@ -19,20 +20,19 @@ struct SourceFile {
     std::string path;
 };
 
-struct SourceManager {
+struct [[refl]] SourceManager {
     hstd::dod::Store<SourceFileId, SourceFile>               store;
     hstd::ext::Unordered1to1Bimap<std::string, SourceFileId> path_ids;
 
-    std::string getPath(SourceFileId const& id) const;
+    [[refl]] std::string        getPath(SourceFileId const& id) const;
+    [[refl]] SourceFileId       getId(std::string const& path) const;
+    [[refl]] std::string const& getSourceContent(
+        SourceFileId const& id) const;
 
-    SourceFileId getId(std::string const& path) const;
-
-    std::string const& getSourceContent(SourceFileId const& id) const;
-
-    std::string const& getContentTextForPath(
+    [[refl]] std::string const& getContentTextForPath(
         std::string const& path) const;
 
-    SourceFileId addSource(
+    [[refl]] SourceFileId addSource(
         std::string const& path,
         std::string const& content);
 };

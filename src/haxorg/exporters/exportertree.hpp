@@ -42,8 +42,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     static hstd::ColText treeRepr(sem::SemId<sem::Org> org);
     static void          treeRepr(
-                 sem::SemId<sem::Org>         org,
-                 const std::filesystem::path& path);
+        sem::SemId<sem::Org>         org,
+        std::filesystem::path const& path);
     static hstd::ColText treeRepr(
         sem::SemId<sem::Org> org,
         TreeReprConf const&  conf);

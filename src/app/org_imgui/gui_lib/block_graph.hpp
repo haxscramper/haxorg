@@ -24,7 +24,7 @@ struct LaneNodePos {
 template <>
 struct std::formatter<LaneNodePos> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const LaneNodePos& p, FormatContext& ctx) const {
+    auto format(LaneNodePos const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("[", ctx);
         hstd::fmt_ctx(p.lane, ctx);
         hstd::fmt_ctx("@", ctx);
@@ -34,13 +34,13 @@ struct std::formatter<LaneNodePos> : std::formatter<std::string> {
 };
 
 struct LaneNodeEdge {
-    LaneNodePos                          target;
-    hstd::Opt<int>                       targetOffset;
-    hstd::Opt<int>                       sourceOffset;
-    hstd::ext::GraphEdgeConstraint::Port targetPort = hstd::ext::
-        GraphEdgeConstraint::Port::East;
-    hstd::ext::GraphEdgeConstraint::Port sourcePort = hstd::ext::
-        GraphEdgeConstraint::Port::West;
+    LaneNodePos    target;
+    hstd::Opt<int> targetOffset;
+    hstd::Opt<int> sourceOffset;
+    hstd::ext::GraphEdgeConstraint::Port
+        targetPort = hstd::ext::GraphEdgeConstraint::Port::East;
+    hstd::ext::GraphEdgeConstraint::Port
+        sourcePort = hstd::ext::GraphEdgeConstraint::Port::West;
     DESC_FIELDS(
         LaneNodeEdge,
         (target, targetOffset, sourceOffset, targetPort, sourcePort));
@@ -112,9 +112,9 @@ struct LaneBlockStack {
     bool inSpan(int blockIdx, hstd::Slice<int> heightRange) const;
     hstd::Vec<int> getVisibleBlocks(hstd::Slice<int> heightRange) const;
     int            addBlock(
-                   int                         laneIndex,
-                   ImVec2 const&               size,
-                   LaneBlockGraphConfig const& conf);
+        int                         laneIndex,
+        ImVec2 const&               size,
+        LaneBlockGraphConfig const& conf);
 
     int getWidth() const {
         return hstd::rs::max(
@@ -368,25 +368,25 @@ struct LaneBlockGraph {
 ColaConstraintDebug to_constraints(
     LaneBlockLayout const&                  lyt,
     LaneBlockGraph const&                   g,
-    const hstd::ext::GraphLayoutIR::Result& final);
+    hstd::ext::GraphLayoutIR::Result const& final);
 
-void render_point(const hstd::ext::GraphPoint& point, ImVec2 const& shift);
-void render_path(const hstd::ext::GraphPath& path, ImVec2 const& shift);
+void render_point(hstd::ext::GraphPoint const& point, ImVec2 const& shift);
+void render_path(hstd::ext::GraphPath const& path, ImVec2 const& shift);
 void render_bezier_path(
-    const hstd::ext::GraphPath& path,
+    hstd::ext::GraphPath const& path,
     ImVec2 const&               shift,
-    const LaneBlockGraphConfig& conf);
-void render_rect(const hstd::ext::GraphRect& rect, ImVec2 const& shift);
+    LaneBlockGraphConfig const& conf);
+void render_rect(hstd::ext::GraphRect const& rect, ImVec2 const& shift);
 void render_edge(
-    const hstd::ext::GraphLayoutIR::Edge& edge,
+    hstd::ext::GraphLayoutIR::Edge const& edge,
     ImVec2 const&                         shift,
     bool                                  bezier,
     LaneBlockGraphConfig const&           style);
 void render_result(
     hstd::ext::GraphLayoutIR::Result const& res,
     ImVec2 const&                           shift,
-    const LaneBlockGraphConfig&             style);
+    LaneBlockGraphConfig const&             style);
 void render_debug(
     ColaConstraintDebug const&              debug,
-    const ImVec2&                           shift,
-    const hstd::ext::GraphLayoutIR::Result& ir);
+    ImVec2 const&                           shift,
+    hstd::ext::GraphLayoutIR::Result const& ir);

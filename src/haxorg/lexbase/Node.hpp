@@ -160,7 +160,7 @@ struct std::formatter<org::parse::NodeId<N, K, V, M>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const org::parse::NodeId<N, K, V, M>& p,
+        org::parse::NodeId<N, K, V, M> const& p,
         FormatContext&                        ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(
@@ -176,7 +176,7 @@ template <>
 struct std::formatter<std::monostate> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const std::monostate& p,
+        std::monostate const& p,
         FormatContext&        ctx) const {
         std::formatter<std::string> fmt;
         return hstd::fmt_ctx("<std::monostate>", ctx);
@@ -187,7 +187,7 @@ template <typename N, typename K, typename V, typename M>
 struct std::formatter<org::parse::Node<N, K, V, M>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::parse::Node<N, K, V, M>& p, FormatContext& ctx)
+    auto format(org::parse::Node<N, K, V, M> const& p, FormatContext& ctx)
         const {
         hstd::fmt_ctx("{", ctx);
         hstd::fmt_ctx(p.kind, ctx);

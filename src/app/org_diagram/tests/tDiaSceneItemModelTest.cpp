@@ -84,20 +84,20 @@ class DiaSceneItemModelTest : public QObject {
         QCOMPARE(deleteLast, 1);
 
         // Test first update triggered on s.indexAt({0})
-        QList<QVariant> update1Args    = updateSpy.at(0);
-        QModelIndex     update1TopLeft = update1Args.at(0)
-                                         .value<QModelIndex>();
-        QModelIndex update1BottomRight = update1Args.at(1)
-                                             .value<QModelIndex>();
+        QList<QVariant> update1Args        = updateSpy.at(0);
+        QModelIndex     update1TopLeft     = update1Args.at(0)
+                                                 .value<QModelIndex>();
+        QModelIndex     update1BottomRight = update1Args.at(1)
+                                                 .value<QModelIndex>();
         QCOMPARE(update1TopLeft, s.indexAt({0}));
         QCOMPARE(update1BottomRight, s.indexAt({0}));
 
         // Test second update triggered on rootIndex
-        QList<QVariant> update2Args    = updateSpy.at(1);
-        QModelIndex     update2TopLeft = update2Args.at(0)
-                                         .value<QModelIndex>();
-        QModelIndex update2BottomRight = update2Args.at(1)
-                                             .value<QModelIndex>();
+        QList<QVariant> update2Args        = updateSpy.at(1);
+        QModelIndex     update2TopLeft     = update2Args.at(0)
+                                                 .value<QModelIndex>();
+        QModelIndex     update2BottomRight = update2Args.at(1)
+                                                 .value<QModelIndex>();
         QCOMPARE(update2TopLeft, rootIndex);
         QCOMPARE(update2BottomRight, rootIndex);
     }
@@ -152,20 +152,20 @@ class DiaSceneItemModelTest : public QObject {
         QCOMPARE(insertLast, 1);
 
         // Test first update triggered on layer
-        QList<QVariant> update1Args    = updateSpy.at(0);
-        QModelIndex     update1TopLeft = update1Args.at(0)
-                                         .value<QModelIndex>();
-        QModelIndex update1BottomRight = update1Args.at(1)
-                                             .value<QModelIndex>();
+        QList<QVariant> update1Args        = updateSpy.at(0);
+        QModelIndex     update1TopLeft     = update1Args.at(0)
+                                                 .value<QModelIndex>();
+        QModelIndex     update1BottomRight = update1Args.at(1)
+                                                 .value<QModelIndex>();
         QCOMPARE(update1TopLeft, scope.indexAt({0}));
         QCOMPARE(update1BottomRight, scope.indexAt({0}));
 
         // Test second update triggered on root
-        QList<QVariant> update2Args    = updateSpy.at(1);
-        QModelIndex     update2TopLeft = update2Args.at(0)
-                                         .value<QModelIndex>();
-        QModelIndex update2BottomRight = update2Args.at(1)
-                                             .value<QModelIndex>();
+        QList<QVariant> update2Args        = updateSpy.at(1);
+        QModelIndex     update2TopLeft     = update2Args.at(0)
+                                                 .value<QModelIndex>();
+        QModelIndex     update2BottomRight = update2Args.at(1)
+                                                 .value<QModelIndex>();
         QCOMPARE(update2TopLeft, QModelIndex{});
         QCOMPARE(update2BottomRight, QModelIndex{});
     }

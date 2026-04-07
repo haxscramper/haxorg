@@ -123,10 +123,10 @@ def graph_to_typst(
 
 def _collect_all_edges(node: elk_schema.Graph | elk_schema.Node,
                        all_edges: List[elk_schema.Edge]) -> None:
-    if hasattr(node, 'edges') and node.edges:
+    if hasattr(node, "edges") and node.edges:
         all_edges.extend(node.edges)
 
-    if hasattr(node, 'children') and node.children:
+    if hasattr(node, "children") and node.children:
         for child in node.children:
             _collect_all_edges(child, all_edges)
 
@@ -448,7 +448,7 @@ def compute_hyperedge_drawing(sections: List[elk_schema.EdgeSection],
 
 
 def extract_color_palette(texture_path: str, n_colors: int = 3) -> dict:
-    img = Image.open(texture_path).convert('RGB')
+    img = Image.open(texture_path).convert("RGB")
     pixels = np.array(img).reshape(-1, 3)
 
     kmeans = KMeans(n_clusters=n_colors, random_state=42)

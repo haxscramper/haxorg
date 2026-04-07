@@ -288,29 +288,17 @@ cmd:  {cmd}
 
     str_cwd = str(cwd) if cwd else None
 
-    if ctx.docker_container is not None:
-        result = run_command_in_docker(
-            container=ctx.docker_container,
-            cmd=str(cmd),
-            args=str_args,
-            env=env,
-            cwd=str_cwd,
-            print_output=print_output,
-            log_level=ctx.config.log_level,
-        )
-
-    else:
-        result = run_command_on_host(
-            cmd=str(cmd),
-            args=str_args,
-            env=env,
-            cwd=str_cwd,
-            run_mode=run_mode,
-            print_output=print_output,
-            log_level=ctx.config.log_level,
-            stdout_debug=stdout_debug,
-            stderr_debug=stderr_debug,
-        )
+    result = run_command_on_host(
+        cmd=str(cmd),
+        args=str_args,
+        env=env,
+        cwd=str_cwd,
+        run_mode=run_mode,
+        print_output=print_output,
+        log_level=ctx.config.log_level,
+        stdout_debug=stdout_debug,
+        stderr_debug=stderr_debug,
+    )
 
     _write_debug_outputs(
         result=result,
@@ -484,8 +472,8 @@ def run_cmake_build(
             *build_args,
         ],
         env={
-            'NINJA_FORCE_COLOR': '1',
-            **kwargs.get('env', {})
+            "NINJA_FORCE_COLOR": "1",
+            **kwargs.get("env", {})
         },
         **kwargs,
     )
@@ -510,7 +498,7 @@ def get_python_develop_env_File(ctx: TaskContext) -> Path:
     taken from the main build directory.
     """
     import sysconfig
-    sysconfig.get_config_var('EXT_SUFFIX').lstrip('.')
+    sysconfig.get_config_var("EXT_SUFFIX").lstrip(".")
 
     from py_repository.repo_tasks.common import (
         ctx_write_text,
@@ -580,7 +568,7 @@ def clone_repo_with_uncommitted_changes(
     ])
 
     if stdout.strip():
-        file_list = stdout.strip().split('\n')
+        file_list = stdout.strip().split("\n")
         for file in file_list:
             src_file = Path(f"{src_repo}/{file}")
             dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")

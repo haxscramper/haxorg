@@ -28,7 +28,7 @@ def get_profraw_path(coverage: Path, test_name: str) -> Path:
 
 def _get_cookie_list() -> List[ProfdataCookie]:
     """Get or create the cookie list from pytest's shared state"""
-    if not hasattr(pytest, '_haxorg_cookie_list'):
+    if not hasattr(pytest, "_haxorg_cookie_list"):
         pytest._haxorg_cookie_list = []  # type: ignore
     return pytest._haxorg_cookie_list  # type: ignore
 

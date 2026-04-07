@@ -11,7 +11,7 @@
 template <>
 struct std::formatter<json> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const json& p, FormatContext& ctx) const {
+    auto format(json const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(p.dump(), ctx);
     }
 };

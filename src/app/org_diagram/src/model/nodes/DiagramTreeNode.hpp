@@ -39,13 +39,13 @@ struct DiaIdT;
 static const hstd::u64 DiaIdMaskSize   = 4 * 6;
 static const hstd::u64 DiaIdMaskOffset = 8 * 8 - DiaIdMaskSize;
 using DiaIdBase                        = hstd::dod::Id<
-                           hstd::u64,
-                           hstd::u64,
-                           std::integral_constant<hstd::u64, DiaIdMaskSize>>;
+    hstd::u64,
+    hstd::u64,
+    std::integral_constant<hstd::u64, DiaIdMaskSize>>;
 
 struct DiaPropertyNames {
-    inline static const std::string diagramGeometry
-        = "HAXORG_DIAGRAM_GEOMETRY";
+    inline static const std::string
+        diagramGeometry = "HAXORG_DIAGRAM_GEOMETRY";
 
     inline static const std::string isDiagramNode = "HAXORG_DIAGRAM_NODE";
 };
@@ -55,7 +55,7 @@ struct std::formatter<org::imm::ImmReflPathItemBase::Index>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const org::imm::ImmReflPathItemBase::Index& p,
+        org::imm::ImmReflPathItemBase::Index const& p,
         FormatContext&                              ctx) const {
         return hstd::fmt_ctx(hstd::fmt("[{}]", p.index), ctx);
     }
@@ -66,7 +66,7 @@ struct std::formatter<org::imm::ImmReflPathItemBase::FieldName>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const org::imm::ImmReflPathItemBase::FieldName& p,
+        org::imm::ImmReflPathItemBase::FieldName const& p,
         FormatContext&                                  ctx) const {
         return hstd::fmt_ctx(hstd::fmt(".{}", p.name.getName()), ctx);
     }
@@ -77,7 +77,7 @@ struct std::formatter<org::imm::ImmReflPathItemBase::Deref>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(
-        const org::imm::ImmReflPathItemBase::Deref& p,
+        org::imm::ImmReflPathItemBase::Deref const& p,
         FormatContext&                              ctx) const {
         return hstd::fmt_ctx(hstd::fmt("*"), ctx);
     }
@@ -90,9 +90,11 @@ struct [[refl]] DiaId : DiaIdBase {
     using NodeIdxT     = hstd::u32;
     using id_mask_type = hstd::u64;
 
-    inline static const hstd::u64 NodeIdxMask = 0x000000FFFFFFFFFF; // >>0*0=0,
+    inline static const hstd::u64
+        NodeIdxMask = 0x000000FFFFFFFFFF; // >>0*0=0,
     inline static const hstd::u64 NodeIdxOffset = 0;
-    inline static const hstd::u64 NodeKindMask = 0x000FFF0000000000; // >>10*4=40
+    inline static const hstd::u64
+        NodeKindMask = 0x000FFF0000000000; // >>10*4=40
     inline static const hstd::u64 NodeKindOffset = 40;
 
     // clang-format off
@@ -215,7 +217,7 @@ struct DiaIdT : public DiaId {
 template <>
 struct std::formatter<DiaId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const DiaId& p, FormatContext& ctx) const {
+    auto format(DiaId const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt("DiaId-{}({})", p.getKind(), p.getNodeIndex()), ctx);
     }
@@ -548,7 +550,7 @@ struct DiaContext : hstd::SharedPtrApi<DiaContext> {
     }
 
 
-    DiaId at(DiaId node, const org::imm::ImmPathStep& item) const;
+    DiaId at(DiaId node, org::imm::ImmPathStep const& item) const;
     DiaId at(DiaId root, org::imm::ImmPath const& path) const;
 };
 
@@ -634,7 +636,7 @@ struct DiaAdapter {
 template <>
 struct std::formatter<DiaUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const DiaUniqId& p, FormatContext& ctx) const {
+    auto format(DiaUniqId const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt("{} {}/{}", p.target, p.root, p.path.path), ctx);
     }
@@ -643,7 +645,7 @@ struct std::formatter<DiaUniqId> : std::formatter<std::string> {
 template <>
 struct std::formatter<DiaAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const DiaAdapter& p, FormatContext& ctx) const {
+    auto format(DiaAdapter const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt(
                 "{}({} {}/{})",
@@ -661,10 +663,10 @@ DiaAdapter FromDocument(
     org::imm::ImmAdapterT<org::imm::ImmDocument> const& root);
 
 hstd::described_predicate_result isSubtreeItem(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree);
 
 hstd::described_predicate_result isSubtreeLayer(
-    const org::imm::ImmAdapterT<org::imm::ImmSubtree>& subtree);
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& subtree);
 
 
 /// \brief Single edit operation on the path to transform the source
@@ -741,7 +743,7 @@ struct DiaEdit {
 /// compute index offsets while performing tree edits.
 struct DiaEditTransientState {
     hstd::UnorderedMap<hstd::Vec<int>, std::vector<DiaEdit>> applied;
-    int updateIdx(int index, const hstd::Vec<int>& parentPath);
+    int updateIdx(int index, hstd::Vec<int> const& parentPath);
 };
 
 

@@ -112,7 +112,7 @@ struct NodeAdapter {
             return *this;
         }
 
-        bool operator!=(const iterator& other) {
+        bool operator!=(iterator const& other) {
             // implement iterator inequality comparison
             return this->iter != other.iter;
         }

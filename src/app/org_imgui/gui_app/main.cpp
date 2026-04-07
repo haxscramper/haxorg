@@ -52,9 +52,7 @@ struct OutlineConfig {
     DESC_FIELDS(OutlineConfig, (showDone));
 };
 
-long GetTimeDelta(
-    hstd::CR<hstd::UserTime> from,
-    hstd::CR<hstd::UserTime> to) {
+long GetTimeDelta(hstd::UserTime const& from, hstd::UserTime const& to) {
     auto from_utc = cctz::convert(
         from.time, from.zone ? *from.zone : cctz::utc_time_zone());
     auto to_utc = cctz::convert(
@@ -84,13 +82,13 @@ hstd::Opt<int> render_mini_map(
 
     ImGui::InvisibleButton("MiniMap", size);
     ImVec2 window_pos = ImGui::GetWindowPos();
-    std::function<void(const org::sem::SemId<org::sem::Subtree>&)>
+    std::function<void(org::sem::SemId<org::sem::Subtree> const&)>
         render_node;
 
     int            dfs_idx = 0;
     hstd::Opt<int> out_idx;
 
-    render_node = [&](const org::sem::SemId<org::sem::Subtree>& node) {
+    render_node = [&](org::sem::SemId<org::sem::Subtree> const& node) {
         const float node_y = minimap_top_offset + window_pos.y
                            + (dfs_idx * minimap_rect_height);
 

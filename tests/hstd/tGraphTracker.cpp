@@ -81,9 +81,9 @@ struct mock_log_graph_processor : public log_graph_processor {
 struct log_graph_tracker_test : public ::testing::Test {
     std::shared_ptr<log_graph_tracker> tracker;
     void                               SetUp() override {
-        tracker = std::make_shared<log_graph_tracker>();
+        tracker        = std::make_shared<log_graph_tracker>();
         mock_processor = std::make_shared<
-                                          ::testing::NiceMock<mock_log_graph_processor>>();
+            ::testing::NiceMock<mock_log_graph_processor>>();
         tracker->add_processor(mock_processor);
     }
 

@@ -1,10 +1,21 @@
+from beartype.typing import Optional
+from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
-from py_codegen import codegen_ir
 
 
 class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
+
+    def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
+        if isinstance(entry, codegen_ir.GenTuStruct
+                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+            # Auto-generation of the classes from the template classes is not
+            # yet supported on the python backend.
+            return False
+
+        else:
+            return self._isExposedByBackendImpl(entry, "python")
 
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"
@@ -157,7 +168,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     name = "str"
 
                 case _:
-                    name = self.getBindName(Type, withParams=False)
+                    name = self.getTypeBindName(Type, withParams=False)
 
         struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:

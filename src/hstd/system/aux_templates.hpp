@@ -39,8 +39,8 @@ struct is_base_of_template {
     using is_callable_t = decltype(is_callable(std::declval<T*>()));
 
     // Is it possible to call is_callable which the Derived type
-    static inline constexpr bool value = std::experimental::
-        is_detected_v<is_callable_t, Derived>;
+    static inline constexpr bool
+        value = std::experimental::is_detected_v<is_callable_t, Derived>;
 
     // If it is possible to call is_callable with the Derived type what
     // would it return, if not type is a void
@@ -54,9 +54,8 @@ using is_base_of_template_t = typename is_base_of_template<Base, Derived>::
 
 /// Convenience helper trait for getting `value` of the trait check
 template <template <typename...> class Base, typename Derived>
-inline constexpr bool is_base_of_template_v = is_base_of_template<
-    Base,
-    Derived>::value;
+inline constexpr bool
+    is_base_of_template_v = is_base_of_template<Base, Derived>::value;
 
 /// Type trait to check whether provided T type is in the
 /// Pack
