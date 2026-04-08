@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
-#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
+#if ORG_BUILD_WITH_ADAPTAGRAMS
 #    include <libcola/output_svg.h>
 
 

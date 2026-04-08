@@ -307,8 +307,10 @@ set(JSON_BuildTests
 
 add_subdirectory(src/hstd)
 if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=1)
   add_subdirectory(src/adaptagrams)
+else()
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=0)
 endif()
 
 if(${ORG_BUILD_EMCC})

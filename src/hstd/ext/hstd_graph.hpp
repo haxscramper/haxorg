@@ -5,10 +5,19 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include "hstd_geometry.hpp"
 
 namespace hstd::ext::graph {
+using namespace hstd::ext::geometry;
+/// \brief 16-bit ID to track edge collection. Used as a mask in the
+/// `EdgeID`.
+///
+/// Collection ID is created by the IEdgeCollection::getCollectionId
 BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCollectionID);
-BOOST_STRONG_TYPEDEF(hstd::u16, PropertyTrackerID);
+/// \brief 16-bit ID to identify the attribute tracker.
+BOOST_STRONG_TYPEDEF(hstd::u16, AttributeTrackerID);
+/// \brief 16-bit ID to track the graph hierarchies. Used as a mask in the
+/// `EdgeID`.
 BOOST_STRONG_TYPEDEF(hstd::u16, GraphHierarchyID);
 } // namespace hstd::ext::graph
 
@@ -23,9 +32,9 @@ struct std::hash<hstd::ext::graph::EdgeCollectionID> {
 };
 
 template <>
-struct std::hash<hstd::ext::graph::PropertyTrackerID> {
+struct std::hash<hstd::ext::graph::AttributeTrackerID> {
     std::size_t operator()(
-        hstd::ext::graph::PropertyTrackerID const& it) const noexcept {
+        hstd::ext::graph::AttributeTrackerID const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.t);
         return result;
@@ -76,6 +85,25 @@ DECL_ID_TYPE(IPort, PortID, hstd::u64);
 
 class IGraph;
 
+/// \brief Base class for all attributes associated with vertices. The
+/// attribute might be an individual value, or a complex composite object,
+/// depending on the use case.
+struct IAttribute : IGraphObjectBase {
+  public:
+    virtual ~IAttribute() = default;
+};
+
+/// \brief Base class for trackers implementing reverse lookup for
+/// attribute values.
+class IAttributeTracker {
+  public:
+    virtual void                trackVertex(VertexID const& vertex)   = 0;
+    virtual void                untrackVertex(VertexID const& vertex) = 0;
+    virtual hstd::Vec<VertexID> getVertices(IAttribute const& prop)   = 0;
+    virtual AttributeTrackerID  getTrackerID() const                  = 0;
+};
+
+
 struct IVertex : public IGraphObjectBase {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
@@ -83,13 +111,18 @@ struct IVertex : public IGraphObjectBase {
     virtual json getSerialNonRecursive(
         IGraph const*                     graph,
         hstd::ext::graph::VertexID const& id) const = 0;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes();
 };
 
 struct IEdge : public IGraphObjectBase {
     using id_type = EdgeID;
 
-    VertexID          source;
-    VertexID          target;
+    VertexID source;
+    VertexID target;
+    /// \brief In case of a multi-edge collection, bundle index allows to
+    /// identify the specific edge among the several entries in the
+    /// `(source, target)` pair.
     int               bundleIndex = -1;
     hstd::Opt<PortID> sourcePort  = std::nullopt;
     hstd::Opt<PortID> targetPort  = std::nullopt;
@@ -121,6 +154,8 @@ struct IEdge : public IGraphObjectBase {
         return this->isEqual(&other);
     }
 
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes();
+
     VertexID getSource() const { return source; }
     VertexID getTarget() const { return target; }
 
@@ -150,26 +185,6 @@ struct std::hash<T> {
 
 namespace hstd::ext::graph {
 
-struct IProperty {
-  public:
-    virtual std::size_t getHash() const                       = 0;
-    virtual bool        isEqual(IProperty const* other) const = 0;
-    virtual std::string getRepr() const                       = 0;
-    virtual ~IProperty()                                      = default;
-
-    template <typename T>
-    bool isInstance() const {
-        return dynamic_cast<T const*>(this) != nullptr;
-    }
-};
-
-class IPropertyTracker {
-  public:
-    virtual void                trackVertex(VertexID const& vertex)   = 0;
-    virtual void                untrackVertex(VertexID const& vertex) = 0;
-    virtual hstd::Vec<VertexID> getVertices(IProperty const& prop)    = 0;
-    virtual PropertyTrackerID   getTrackerID() const                  = 0;
-};
 
 /// \brief Base class for the collections that provide the edges in the
 /// graph.
@@ -186,9 +201,9 @@ class IEdgeProvider {
     /// \brief Add all edges outgoing from the `id`. The vertex itself
     /// should already be registered with `trackVertex`.
     ///
-    /// \note The override of this method should make use of `trackEdge` or
-    /// `trackSubVertexRelation` to populate the edge collection tracker
-    /// tables. The returned list of edges is used
+    /// \note The class derived from the edge collection or vertex
+    /// hierarchy should make use  `trackEdge` or `trackSubVertexRelation`
+    /// to populate the edge collection tracker tables.
     virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
 
     /// \brief Return stable identifier for this edge collection.
@@ -216,6 +231,22 @@ class IEdgeProvider {
 
     /// \brief Get list of all incoming edges for the target vertex
     virtual hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const = 0;
+
+    // static API for masking the edge IDs.
+
+    /// \brief Hierachy category should have the first bit set to 1.
+    static constexpr hstd::u16 HierarchyCategoryMask    = 0b1111'1111;
+    static constexpr hstd::u16 HierarchyCategoryMaskBit = 0b1000'0000;
+    /// \brief Regular edge collection should have the first bit set to 0.
+    static constexpr hstd::u16 CollectionCategoryMask = 0b0111'1111;
+
+    static bool isHierarchyEdge(EdgeID const& id);
+
+    static EdgeCollectionID edgeCategoryFromEdge(EdgeID const& id);
+
+    static GraphHierarchyID hierarchyIdFromEdge(EdgeID const& id);
+
+    static bool hierarchyUsesMask(GraphHierarchyID const& id);
 };
 
 class IEdgeCollection : public IEdgeProvider {
@@ -225,6 +256,18 @@ class IEdgeCollection : public IEdgeProvider {
         incidence;
 
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
+
+  protected:
+    /// \brief Default implementation of the hierarchy ID constructoir.
+    ///
+    /// It creates an ID based on the type, which is sufficient if there is
+    /// only one instance of the hierarchy type in a graph.
+    template <typename T>
+    EdgeCollectionID getCollectionIdImpl(T const* self) const {
+        return hstd::ext::graph::EdgeCollectionID(
+            hstd::hash_bits<15>(typeid(self).hash_code())
+            & HierarchyCategoryMask);
+    }
 
 
   public:
@@ -243,19 +286,7 @@ class IEdgeCollection : public IEdgeProvider {
     virtual void untrackEdge(EdgeID const& id);
 
 
-    /// \brief Hierachy category should have the first bit set to 1.
-    static constexpr hstd::u16 HierarchyCategoryMask    = 0b1111'1111;
-    static constexpr hstd::u16 HierarchyCategoryMaskBit = 0b1000'0000;
-    /// \brief Regular edge collection should have the first bit set to 0.
-    static constexpr hstd::u16 CollectionCategoryMask = 0b0111'1111;
-
-    static bool isHierarchyEdge(EdgeID const& id);
-
-    static EdgeCollectionID edgeCategoryFromEdge(EdgeID const& id);
-
-    static GraphHierarchyID hierarchyIdFromEdge(EdgeID const& id);
-
-    static bool hierarchyUsesMask(GraphHierarchyID const& id);
+    virtual EdgeCollectionID getCollectionId() const = 0;
 };
 
 /// \brief Hierarchical arrangement of vertices that forms a forest
@@ -283,9 +314,21 @@ class IVertexHierarchy : public IEdgeProvider {
     /// removed automatically based on the hierarchy.
     hstd::UnorderedMap<hstd::Pair<VertexID, VertexID>, EdgeID> edgeTracker;
 
+    /// \brief Default implementation of the hierarchy ID constructoir.
+    ///
+    /// It creates an ID based on the type, which is sufficient if there is
+    /// only one instance of the hierarchy type in a graph.
+    template <typename T>
+    GraphHierarchyID getHierarchyIdImpl(T const* self) const {
+        return hstd::ext::graph::GraphHierarchyID(
+            hstd::hash_bits<15>(typeid(self).hash_code())
+            & HierarchyCategoryMask);
+    }
+
 
   public:
     virtual ~IVertexHierarchy() = default;
+
 
     /// \brief Return hierarchy identifier used in edge masks.
     virtual GraphHierarchyID getHierarchyId() const = 0;
@@ -400,7 +443,7 @@ class IGraph {
   protected:
     hstd::UnorderedMap<EdgeCollectionID, hstd::SPtr<IEdgeCollection>>
         collections;
-    hstd::UnorderedMap<PropertyTrackerID, hstd::SPtr<IPropertyTracker>>
+    hstd::UnorderedMap<AttributeTrackerID, hstd::SPtr<IAttributeTracker>>
         trackers;
     hstd::UnorderedMap<GraphHierarchyID, hstd::SPtr<IVertexHierarchy>>
         hierarchies;
@@ -442,8 +485,8 @@ class IGraph {
         DESC_FIELDS(Crossing, (hierarchy, crossings));
     };
 
-    void addTracker(hstd::SPtr<IPropertyTracker> const& tracker);
-    void delTracker(hstd::SPtr<IPropertyTracker> const& tracker);
+    void addTracker(hstd::SPtr<IAttributeTracker> const& tracker);
+    void delTracker(hstd::SPtr<IAttributeTracker> const& tracker);
     void addCollection(hstd::SPtr<IEdgeCollection> const& collection);
     void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
     void addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
@@ -478,14 +521,14 @@ class IGraph {
         VertexID const&         sub);
 
 
-    /// \brief Track properties and edge information in the graph
+    /// \brief Track attributes and edge information in the graph
     ///
     /// \warning Call after the vertex has been registered. Should be
     /// called with the full list of vertices to track: this method will
     /// not attempt to expand the set of vertices to include nested ones.
     void trackVertexList(hstd::Vec<VertexID> const& ids);
 
-    /// \brief Un-track properties and edge information
+    /// \brief Un-track attributes and edge information
     ///
     /// \note See `trackVertexList`
     void untrackVertexList(hstd::Vec<VertexID> const& ids);
@@ -564,5 +607,70 @@ class IGraph {
 
     virtual json getGraphSerial() const;
 };
+
+namespace layout {
+
+/// \brief Base class for all attributes describing post-layout placement
+/// and shape information for the graph elements.
+class ILayoutAttribute : IAttribute {};
+
+
+class IPortLayoutAttribute : ILayoutAttribute {
+    /// \brief position + size relative to parent.
+    virtual Rect getBBox() = 0;
+};
+
+class IEdgeLayoutAttribute : ILayoutAttribute {
+    virtual Path getPath() = 0;
+};
+
+class IVertexLayoutAttribute : ILayoutAttribute {
+    /// \brief Vertex bounding box + position relative to the parent
+    virtual Rect                                         getBBox() = 0;
+    virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
+        const = 0;
+};
+
+class IGroupLayoutAttribute : ILayoutAttribute {
+    /// \brief Bounding box of the group, size is absolute, position is
+    /// relative to the parent group.
+    virtual Rect                                         getBBox() = 0;
+    virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
+        const = 0;
+};
+
+
+DECL_ID_TYPE(IGroup, GroupID, hstd::u64);
+
+class IPlacementAlgorithm {
+    /// \brief Result of the placement algorithm execution
+    struct Result {
+        hstd::UnorderedMap<GroupID, hstd::SPtr<IGroupLayoutAttribute>>
+            groups;
+        hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>> edges;
+        hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
+            vertices;
+    };
+};
+
+class IConstraint {};
+
+/// \brief Non-structural collection of vertices, edges, constraints and
+/// sub-groups.
+class IGroup {
+    hstd::Vec<GroupID> subGroups;
+    /// \brief Optional instance of the layout algorithm to be executed on
+    /// the current group.
+    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
+    hstd::Vec<hstd::SPtr<IConstraint>>         constraints;
+};
+
+class ILayoutRun {
+    hstd::UnorderedMap<GroupID, hstd::SPtr<IGroup>> groups;
+    hstd::SPtr<IGraph>                              graph;
+};
+
+
+} // namespace layout
 
 } // namespace hstd::ext::graph

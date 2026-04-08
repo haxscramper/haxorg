@@ -158,7 +158,7 @@ class DiaHierarchyEdgeCollection
     hstd::ext::graph::GraphHierarchyID getHierarchyId() const override;
 };
 
-class DiaSubtreeIdProperty : public hstd::ext::graph::IProperty {
+class DiaSubtreeIdProperty : public hstd::ext::graph::IAttribute {
     std::string id;
 
   public:
@@ -170,7 +170,7 @@ class DiaSubtreeIdProperty : public hstd::ext::graph::IProperty {
         return std::hash<std::string>{}(id);
     }
 
-    virtual bool isEqual(IProperty const* other) const override {
+    virtual bool isEqual(IAttribute const* other) const override {
         return other->isInstance<DiaSubtreeIdProperty>()
             && dynamic_cast<DiaSubtreeIdProperty const*>(other)->id == id;
     }
@@ -180,7 +180,7 @@ class DiaSubtreeIdProperty : public hstd::ext::graph::IProperty {
     }
 };
 
-class DiaSubtreeIdTracker : public hstd::ext::graph::IPropertyTracker {
+class DiaSubtreeIdTracker : public hstd::ext::graph::IAttributeTracker {
     hstd::SPtr<DiaGraph>                                        graph;
     hstd::UnorderedMap<std::string, hstd::ext::graph::VertexID> map;
 
@@ -188,9 +188,9 @@ class DiaSubtreeIdTracker : public hstd::ext::graph::IPropertyTracker {
     DiaSubtreeIdTracker(hstd::SPtr<DiaGraph> const& graph)
         : graph{graph} {}
 
-    virtual hstd::ext::graph::PropertyTrackerID getTrackerID()
+    virtual hstd::ext::graph::AttributeTrackerID getTrackerID()
         const override {
-        return hstd::ext::graph::PropertyTrackerID(
+        return hstd::ext::graph::AttributeTrackerID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
@@ -200,7 +200,7 @@ class DiaSubtreeIdTracker : public hstd::ext::graph::IPropertyTracker {
     virtual void untrackVertex(
         hstd::ext::graph::VertexID const& vertex) override;
     virtual hstd::Vec<hstd::ext::graph::VertexID> getVertices(
-        hstd::ext::graph::IProperty const& prop) override;
+        hstd::ext::graph::IAttribute const& prop) override;
 };
 
 class DiaDescriptionListEdge : public hstd::ext::graph::IEdge {
@@ -269,5 +269,9 @@ class DiaDescriptionListEdgeCollection
     virtual const hstd::ext::graph::IEdge& getEdge(
         hstd::ext::graph::EdgeID const& id) const override {
         return store.at(id);
+    }
+
+    hstd::ext::graph::EdgeCollectionID getCollectionId() const override {
+        return getCollectionIdImpl(this);
     }
 };

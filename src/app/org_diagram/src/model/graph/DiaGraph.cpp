@@ -27,8 +27,7 @@ hstd::Vec<hstd::ext::graph::EdgeID> DiaHierarchyEdgeCollection::
 
 hstd::ext::graph::GraphHierarchyID DiaHierarchyEdgeCollection::
     getHierarchyId() const {
-    return hstd::ext::graph::GraphHierarchyID(
-        hstd::hash_bits<15>(typeid(this).hash_code()));
+    return getHierarchyIdImpl(this);
 }
 
 hstd::ext::graph::VertexID DiaGraph::addVertex(DiaUniqId const& id) {
@@ -233,7 +232,7 @@ void DiaSubtreeIdTracker::untrackVertex(
 }
 
 hstd::Vec<hstd::ext::graph::VertexID> DiaSubtreeIdTracker::getVertices(
-    hstd::ext::graph::IProperty const& prop) {
+    hstd::ext::graph::IAttribute const& prop) {
     auto id_prop = dynamic_cast<DiaSubtreeIdProperty const*>(&prop);
     hstd::Vec<hstd::ext::graph::VertexID> res;
     HSLOG_TRACE("Getting vertices for property ID: {}", id_prop->getId());

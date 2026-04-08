@@ -163,11 +163,11 @@ hstd::Vec<VertexID> IVertexHierarchy::getHierarchyCrossings(
     return path;
 }
 
-void IGraph::addTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
+void IGraph::addTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
     trackers.insert_or_assign(tracker->getTrackerID(), tracker);
 }
 
-void IGraph::delTracker(hstd::SPtr<IPropertyTracker> const& tracker) {
+void IGraph::delTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
     trackers.erase(tracker->getTrackerID());
 }
 
@@ -777,19 +777,19 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
     }
 }
 
-bool IEdgeCollection::isHierarchyEdge(EdgeID const& id) {
+bool IEdgeProvider::isHierarchyEdge(EdgeID const& id) {
     return (id.getMask() & HierarchyCategoryMaskBit) != 0;
 }
 
-EdgeCollectionID IEdgeCollection::edgeCategoryFromEdge(EdgeID const& id) {
+EdgeCollectionID IEdgeProvider::edgeCategoryFromEdge(EdgeID const& id) {
     return EdgeCollectionID(hstd::u16(id.getMask()));
 }
 
-GraphHierarchyID IEdgeCollection::hierarchyIdFromEdge(EdgeID const& id) {
+GraphHierarchyID IEdgeProvider::hierarchyIdFromEdge(EdgeID const& id) {
     return GraphHierarchyID(hstd::u16(id.getMask()));
 }
 
-bool IEdgeCollection::hierarchyUsesMask(GraphHierarchyID const& id) {
+bool IEdgeProvider::hierarchyUsesMask(GraphHierarchyID const& id) {
     return (id.t & HierarchyCategoryMaskBit) != 0;
 }
 
