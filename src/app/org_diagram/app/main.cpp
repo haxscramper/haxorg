@@ -102,8 +102,8 @@ class CliApplication : public QCoreApplication {
   public slots:
     void diaRootChanged(DiaVersionStore::DiaRootChange const& change) {
         TRACKED_SLOT("diaRootChanged", change);
-        hstd::Vec<org::graph::VertexID> added;
-        hstd::Vec<org::graph::VertexID> removed;
+        hstd::Vec<hstd::ext::graph::VertexID> added;
+        hstd::Vec<hstd::ext::graph::VertexID> removed;
         for (auto const& edit : change.edits) {
             switch (edit.getKind()) {
                 case DiaEdit::Kind::Delete: {
@@ -119,8 +119,9 @@ class CliApplication : public QCoreApplication {
                 }
 
                 case DiaEdit::Kind::Insert: {
-                    auto aux = [&](DiaAdapter const& a,
-                                   auto&& self) -> org::graph::VertexID {
+                    auto aux =
+                        [&](DiaAdapter const& a,
+                            auto&& self) -> hstd::ext::graph::VertexID {
                         auto added_vertex = dia_graph->addVertex(a.uniq());
                         added.push_back(added_vertex);
                         for (auto const& sub : a.sub(true)) {
