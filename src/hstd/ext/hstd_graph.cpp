@@ -19,16 +19,15 @@ void IGraph::registerVertex(VertexID const& id) {
     vertexIDs.insert(id);
 }
 
-hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> IGraph::
+hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion> IGraph::
     unregisterVertex(VertexID const& id) {
     if (!vertexIDs.contains(id)) {
         throw org_graph_error::init(
             std::format(vertex_not_found_msg, "", id));
     }
 
-    hstd::
-        UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion>
-            result;
+    hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion>
+        result;
 
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
         auto deleted_by_provider = hierarchy->untrackVertex(id);
@@ -195,7 +194,7 @@ void IGraph::delCollection(hstd::SPtr<IEdgeCollection> const& collection) {
 
 void IGraph::addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
     LOGIC_ASSERTION_CHECK_FMT(
-        IEdgeCollection::hierarchyUsesMask(hierarchy->getHierarchyId()),
+        IEdgeProvider::hierarchyUsesMask(hierarchy->getHierarchyId()),
         "Hierarchy ID {} must have the hierarchy edge mask bit set",
         hierarchy->getHierarchyId().t);
 
@@ -346,11 +345,11 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 }
 
 const IEdge& IGraph::getEdge(EdgeID const& id) const {
-    if (IEdgeCollection::isHierarchyEdge(id)) {
-        return hierarchies.at(IEdgeCollection::hierarchyIdFromEdge(id))
+    if (IEdgeProvider::isHierarchyEdge(id)) {
+        return hierarchies.at(IEdgeProvider::hierarchyIdFromEdge(id))
             ->getEdge(id);
     } else {
-        return collections.at(IEdgeCollection::edgeCategoryFromEdge(id))
+        return collections.at(IEdgeProvider::edgeCategoryFromEdge(id))
             ->getEdge(id);
     }
 }

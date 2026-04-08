@@ -498,6 +498,9 @@ class IGraph {
 
     /// \brief Get vertex object associated with the edge ID.
     virtual IVertex const& getVertex(VertexID const& id) const = 0;
+    /// \brief Get the edge from the collection/hierarchy. Use the edge ID
+    /// mask to determine which collection the edge comes from.
+    virtual IEdge const& getEdge(EdgeID const& id) const;
 
     /// \brief For id with given ID, compute the list of vertex
     /// boundaries it crossed in each tracked hierarchy between the source
@@ -546,7 +549,7 @@ class IGraph {
     hstd::Opt<VertexID> getParentVertex(
         GraphHierarchyID const& hierarchy,
         VertexID const&         id) const;
-    IEdge const& getEdge(EdgeID const& id) const;
+
 
     /// \brief Return the highest level of nesting in the hierarchy.
     int getMaxNestingLevel(GraphHierarchyID const& hierarchy) const;
