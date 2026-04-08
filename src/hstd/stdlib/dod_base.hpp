@@ -60,11 +60,11 @@ struct [[nodiscard]] Id {
     using id_base_type = IdType;
     using id_mask_type = MaskType;
     /// Create new ID value from the stored ID index.
-    explicit Id(IdType in) : value(in + 1) {}
+    explicit constexpr Id(IdType in) : value(in + 1) {}
 
     /// Create new ID object from value, without preemptively incrementing
     /// it
-    static auto FromValue(IdType in) -> Id {
+    static constexpr auto FromValue(IdType in) -> Id {
         Id res{IdType{}};
         res.value = in;
         return res;
@@ -88,7 +88,7 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Get number of bits in the mask
-    consteval int getMaskSize() const { return mask_size; }
+    constexpr int getMaskSize() const { return mask_size; }
     /// \brief Get unmasked *value* (do not confuse with index)
     inline IdType getUnmasked() const {
         if (mask_size == 0) {
@@ -150,7 +150,7 @@ struct [[nodiscard]] Id {
     ///
     /// \note This function allows setting ID to state with zero value,
     /// making it 'nil'
-    void setValue(IdType arg) noexcept { value = arg; }
+    constexpr void setValue(IdType arg) noexcept { value = arg; }
     /// Get index of the ID, for accessing the store. Returned value is
     /// computated while accounting for masked bits so it can be different
     /// from the `getValue()`
@@ -235,9 +235,9 @@ struct [[nodiscard]] Id {
         BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());       \
         using value_type = __value;                                       \
                                                                           \
-        static auto Nil() -> __name { return FromValue(0); };             \
+        static constexpr auto Nil() -> __name { return FromValue(0); };   \
                                                                           \
-        static auto FromValue(__type arg) -> __name {                     \
+        static constexpr auto FromValue(__type arg) -> __name {           \
             __name res{__type{}};                                         \
             res.setValue(arg);                                            \
             return res;                                                   \
@@ -247,9 +247,10 @@ struct [[nodiscard]] Id {
             return getValue() == other.getValue();                        \
         }                                                                 \
                                                                           \
-        __name(__name##BaseId const& arg) : __name##BaseId(arg) {}        \
+        constexpr __name(__name##BaseId const& arg)                       \
+            : __name##BaseId(arg) {}                                      \
                                                                           \
-        explicit __name(__type arg) : __name##BaseId(arg) {}              \
+        constexpr explicit __name(__type arg) : __name##BaseId(arg) {}    \
     };
 
 #define EMPTY()

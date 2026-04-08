@@ -82,7 +82,8 @@ class CliApplication : public QCoreApplication {
                   dia_graph,
                   subtree_id_tracker)) {
 
-        // dia_graph->addCollection(hierarchy_collection);
+        dia_graph->subtree_hierarchy = hierarchy_collection;
+        dia_graph->addHierarchy(hierarchy_collection);
         dia_graph->addTracker(subtree_id_tracker);
         dia_graph->addCollection(description_list_collection);
         dia_context->use_padding     = conf.use_padding;
@@ -127,7 +128,10 @@ class CliApplication : public QCoreApplication {
                         for (auto const& sub : a.sub(true)) {
                             auto sub_vertex = self(sub, self);
                             dia_graph->trackSubVertexRelation(
-                                added_vertex, sub_vertex);
+                                dia_graph->subtree_hierarchy
+                                    ->getHierarchyId(),
+                                added_vertex,
+                                sub_vertex);
                         }
 
                         return added_vertex;

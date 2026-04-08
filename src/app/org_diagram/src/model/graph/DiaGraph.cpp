@@ -13,14 +13,22 @@ hstd::Vec<hstd::ext::graph::EdgeID> DiaHierarchyEdgeCollection::
     hstd::Vec<hstd::ext::graph::EdgeID> res;
     for (auto const& sub :
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
-        auto res_id = store.add(
-            DiaHierarchyEdge{vert, graph->getID(sub.uniq())},
-            getCategory().t);
-        trackEdge(res_id);
-        res.push_back(res_id);
+        auto added_edge = trackSubVertexRelation(
+            vert, graph->getID(sub.uniq()));
+
+        store.add_with_id(
+            DiaHierarchyEdge{vert, graph->getID(sub.uniq())}, added_edge);
+
+        res.push_back(added_edge);
     }
     HSLOG_TRACE("get outgoing {}", res);
     return res;
+}
+
+hstd::ext::graph::GraphHierarchyID DiaHierarchyEdgeCollection::
+    getHierarchyId() const {
+    return hstd::ext::graph::GraphHierarchyID(
+        hstd::hash_bits<15>(typeid(this).hash_code()));
 }
 
 hstd::ext::graph::VertexID DiaGraph::addVertex(DiaUniqId const& id) {
@@ -127,7 +135,11 @@ json DiaGraphVertex::getSerialNonRecursive(
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree) {
 
-        res.extra.nestingLevel = graph->getParentChain(id).size();
+        res.extra.nestingLevel = //
+            graph
+                ->getParentChain(
+                    graph->subtree_hierarchy->getHierarchyId(), id)
+                .size();
 
         if (ad.getKind() == DiaNodeKind::Item) {
             auto geometry = ad->as<DiaNodeItem>()->getGeometry();

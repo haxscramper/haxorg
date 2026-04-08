@@ -87,13 +87,14 @@ struct std::hash<DiaGraphVertex> {
     }
 };
 
-
+class DiaHierarchyEdgeCollection;
 class DiaGraph : public hstd::ext::graph::IGraph {
     hstd::UnorderedStore<hstd::ext::graph::VertexID, DiaGraphVertex>
         vertices;
 
   public:
-    DiaContext::Ptr tree_context;
+    DiaContext::Ptr                        tree_context;
+    hstd::SPtr<DiaHierarchyEdgeCollection> subtree_hierarchy;
     DiaGraph(DiaContext::Ptr tree_context) : tree_context{tree_context} {};
 
     hstd::ext::graph::VertexID getID(DiaGraphVertex const& vert) const {
@@ -123,7 +124,7 @@ class DiaHierarchyEdge : public hstd::ext::graph::IEdge {
 };
 
 class DiaHierarchyEdgeCollection
-    : public hstd::ext::graph::IEdgeCollection {
+    : public hstd::ext::graph::IVertexHierarchy {
     DiaContext::Ptr      tree_context;
     hstd::SPtr<DiaGraph> graph;
     hstd::UnorderedStore<hstd::ext::graph::EdgeID, DiaHierarchyEdge> store;
@@ -134,8 +135,9 @@ class DiaHierarchyEdgeCollection
         hstd::SPtr<DiaGraph> graph)
         : tree_context{tree_context}, graph{graph} {}
 
-    virtual hstd::ext::graph::EdgeCategoryID getCategory() const override {
-        return hstd::ext::graph::EdgeCategoryID(
+    virtual hstd::ext::graph::EdgeCollectionID getCategory()
+        const override {
+        return hstd::ext::graph::EdgeCollectionID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
@@ -152,6 +154,8 @@ class DiaHierarchyEdgeCollection
         hstd::ext::graph::EdgeID const& id) const override {
         return store.at(id);
     }
+
+    hstd::ext::graph::GraphHierarchyID getHierarchyId() const override;
 };
 
 class DiaSubtreeIdProperty : public hstd::ext::graph::IProperty {
@@ -251,8 +255,9 @@ class DiaDescriptionListEdgeCollection
     virtual hstd::Vec<hstd::ext::graph::EdgeID> addAllOutgoing(
         hstd::ext::graph::VertexID const& vert) override;
 
-    virtual hstd::ext::graph::EdgeCategoryID getCategory() const override {
-        return hstd::ext::graph::EdgeCategoryID(
+    virtual hstd::ext::graph::EdgeCollectionID getCategory()
+        const override {
+        return hstd::ext::graph::EdgeCollectionID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 

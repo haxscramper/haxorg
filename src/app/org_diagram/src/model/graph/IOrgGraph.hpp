@@ -31,6 +31,15 @@ struct UnorderedStore {
         return result;
     }
 
+    void add_with_id(T const& value, ID const& result) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !store.contains_right(value),
+            "Store already contains value {}",
+            hstd::fmt1_maybe(value));
+
+        store.add_unique(result, value);
+    }
+
     hstd::Vec<ID> keys() const {
         hstd::Vec<ID> res;
         for (auto const& it : store.get_map()) { res.push_back(it.first); }

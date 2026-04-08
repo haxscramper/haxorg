@@ -7,14 +7,15 @@
 #include <hstd/stdlib/Ptrs.hpp>
 
 namespace hstd::ext::graph {
-BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCategoryID);
+BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCollectionID);
 BOOST_STRONG_TYPEDEF(hstd::u16, PropertyTrackerID);
+BOOST_STRONG_TYPEDEF(hstd::u16, GraphHierarchyID);
 } // namespace hstd::ext::graph
 
 template <>
-struct std::hash<hstd::ext::graph::EdgeCategoryID> {
+struct std::hash<hstd::ext::graph::EdgeCollectionID> {
     std::size_t operator()(
-        hstd::ext::graph::EdgeCategoryID const& it) const noexcept {
+        hstd::ext::graph::EdgeCollectionID const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.t);
         return result;
@@ -31,9 +32,21 @@ struct std::hash<hstd::ext::graph::PropertyTrackerID> {
     }
 };
 
+template <>
+struct std::hash<hstd::ext::graph::GraphHierarchyID> {
+    std::size_t operator()(
+        hstd::ext::graph::GraphHierarchyID const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.t);
+        return result;
+    }
+};
 
 namespace hstd::ext::graph {
 
+/// \brief Base class for all graph entries: edges, vertices, groups.
+/// Container classes (vertex hierarchies, edge collections) are not graph
+/// objects.
 class IGraphObjectBase {
   public:
     virtual std::size_t getHash() const                              = 0;
@@ -51,7 +64,6 @@ class IGraphObjectBase {
 
 template <typename T>
 concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
-
 
 DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
 DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
@@ -72,7 +84,6 @@ struct IVertex : public IGraphObjectBase {
         IGraph const*                     graph,
         hstd::ext::graph::VertexID const& id) const = 0;
 };
-
 
 struct IEdge : public IGraphObjectBase {
     using id_type = EdgeID;
@@ -127,6 +138,7 @@ struct IPort : public IGraphObjectBase {
     using id_type = PortID;
     DESC_FIELDS(IPort, ());
 };
+
 } // namespace hstd::ext::graph
 
 template <hstd::ext::graph::IsGraphObject T>
@@ -137,6 +149,7 @@ struct std::hash<T> {
 };
 
 namespace hstd::ext::graph {
+
 struct IProperty {
   public:
     virtual std::size_t getHash() const                       = 0;
@@ -150,7 +163,6 @@ struct IProperty {
     }
 };
 
-
 class IPropertyTracker {
   public:
     virtual void                trackVertex(VertexID const& vertex)   = 0;
@@ -159,7 +171,54 @@ class IPropertyTracker {
     virtual PropertyTrackerID   getTrackerID() const                  = 0;
 };
 
-class IEdgeCollection {
+/// \brief Base class for the collections that provide the edges in the
+/// graph.
+class IEdgeProvider {
+  public:
+    virtual ~IEdgeProvider() = default;
+    /// \brief Return edge category for this collection, uniquely
+    /// identifying this specific one collection.
+    virtual EdgeCollectionID getCategory() const = 0;
+
+    /// \brief Get already constructed edge object from the store.
+    virtual IEdge const& getEdge(EdgeID const& id) const = 0;
+
+    /// \brief Add all edges outgoing from the `id`. The vertex itself
+    /// should already be registered with `trackVertex`.
+    ///
+    /// \note The override of this method should make use of `trackEdge` or
+    /// `trackSubVertexRelation` to populate the edge collection tracker
+    /// tables. The returned list of edges is used
+    virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
+
+    /// \brief Return stable identifier for this edge collection.
+    virtual std::string getStableID() const = 0;
+
+    /// \brief Get the full list of edges stored in the collection
+    virtual hstd::Vec<EdgeID> getEdges() const = 0;
+
+    /// \brief Add the vertex to the edge collection without any of the
+    /// incoming/outgoing edges.
+    virtual void trackVertex(VertexID const& vert) = 0;
+
+    struct DependantDeletion {
+        hstd::Vec<VertexID> vertices;
+        hstd::Vec<EdgeID>   edges;
+    };
+
+    /// \brief Remove the vertex from the collection including any outgoing
+    /// edges. Edge removal is done using `untrackEdge`.
+    virtual DependantDeletion untrackVertex(VertexID const& vert) = 0;
+
+
+    /// \brief Get list of all outgoing edges for the target vertex
+    virtual hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const = 0;
+
+    /// \brief Get list of all incoming edges for the target vertex
+    virtual hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const = 0;
+};
+
+class IEdgeCollection : public IEdgeProvider {
     hstd::UnorderedMap<
         VertexID,
         hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>>
@@ -169,93 +228,131 @@ class IEdgeCollection {
 
 
   public:
-    /// \brief Get list of all outgoing edges for the target vertex
-    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const;
+    hstd::Vec<EdgeID> getEdges() const override;
+    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const override;
+    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const override;
+    void              trackVertex(VertexID const& vert) override;
+    DependantDeletion untrackVertex(VertexID const& vert) override;
 
-    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const;
-
-    /// \brief Add the vertex to the edge collection without any of the
-    /// incoming/outgoing edges.
-    void trackVertex(VertexID const& vert);
-    /// \brief Remove the vertex from the collection including any outgoing
-    /// edges. Edge removal is done using `untrackEdge`.
-    void untrackVertex(VertexID const& vert);
     /// \brief Track the new edge in the collection. Associated
     /// `IEdge`-derived object should already be accessible through the
     /// `getEdge()` virtual method override.
-    void trackEdge(EdgeID const& id);
+    virtual void trackEdge(EdgeID const& id);
     /// \brief Remove the edge from the collection. This method is called
     /// by the `untrackVertex`.
-    void untrackEdge(EdgeID const& id);
+    virtual void untrackEdge(EdgeID const& id);
 
-    /// \brief Get the full list of edges stored in the collection
-    hstd::Vec<EdgeID> getEdges() const;
-    /// \brief Remove the vertex from teh collection and remove all
-    /// incident edges.
-    void delVertex(VertexID const& id);
 
-    /// \brief Return edge category for this collection, uniquely
-    /// identifying this specific one collection.
-    virtual EdgeCategoryID getCategory() const = 0;
+    /// \brief Hierachy category should have the first bit set to 1.
+    static constexpr hstd::u16 HierarchyCategoryMask    = 0b1111'1111;
+    static constexpr hstd::u16 HierarchyCategoryMaskBit = 0b1000'0000;
+    /// \brief Regular edge collection should have the first bit set to 0.
+    static constexpr hstd::u16 CollectionCategoryMask = 0b0111'1111;
 
-    /// \brief Get already constructed edge object from the store.
-    virtual IEdge const& getEdge(EdgeID const& id) const = 0;
+    static bool isHierarchyEdge(EdgeID const& id);
 
-    /// \brief Add all edges outgoing from the `id`. The vertex itself
-    /// should already be registered with `trackVertex`.
-    ///
-    /// \note The override of this method should make use of `trackEdge` to
-    /// populate the edge collection tracker tables. The returned list of
-    /// edges is used
-    virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
+    static EdgeCollectionID edgeCategoryFromEdge(EdgeID const& id);
 
-    virtual std::string getStableID() const = 0;
+    static GraphHierarchyID hierarchyIdFromEdge(EdgeID const& id);
+
+    static bool hierarchyUsesMask(GraphHierarchyID const& id);
 };
 
-struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
-
-class IGraph {
+/// \brief Hierarchical arrangement of vertices that forms a forest
+/// structure, with one or more root nodes and a collection of subnodes.
+///
+/// - Each vertex has zero (root vertices) or one (nested vertices) parents
+/// - Deleting a vertex from hierarchy drops all the nested vertices and
+///   edges
+/// - Edge direction is from the parent vertex down to the nested vertices
+/// - Hierarchy might not include all vertices in an associated graph --
+///   it represents a structured sub-set of the overall vertices. If
+///   something does not fit in the hierarchy, the vertex is not included.
+class IVertexHierarchy : public IEdgeProvider {
   protected:
-    hstd::UnorderedMap<EdgeCategoryID, hstd::SPtr<IEdgeCollection>>
-        collections;
-    hstd::UnorderedMap<PropertyTrackerID, hstd::SPtr<IPropertyTracker>>
-        trackers;
-
-    /// \brief Full set of all vertices in the graph
-    hstd::UnorderedSet<VertexID> vertexIDs;
     /// \brief Parent -> List of Sub-Vertices mapping
     hstd::UnorderedMap<VertexID, hstd::UnorderedSet<VertexID>> nestedInMap;
     /// \brief Sub-Vertex -> Parent mapping
     hstd::UnorderedMap<VertexID, VertexID> parentMap;
     /// \brief Set of vertices that don't have parent items in the map.
     hstd::UnorderedSet<VertexID> rootVertices;
+    /// \brief Full set of all vertices tracked by this hierarchy.
+    hstd::UnorderedSet<VertexID> vertexIDs;
 
-  protected:
-    /// \brief Add the vertex to the graph collection. Will not
-    /// automatically register all nested vertices and recursive data.
-    /// After the base vertex is registered, provide additional structural
-    /// information using `trackSubVertexRelation`.
-    void registerVertex(VertexID const& id);
+    /// \brief Track `(parent, sub-vertex) -> edge ID`. Edges are added and
+    /// removed automatically based on the hierarchy.
+    hstd::UnorderedMap<hstd::Pair<VertexID, VertexID>, EdgeID> edgeTracker;
 
-    /// \brief Remove vertex from the graph collection and recursively drop
-    /// all the nested vertices from the graph to correct the invalid
-    /// state.
-    ///
-    /// \note No follow-up calls to `untrackSubVertexRelation` is
-    /// necessary to match the `trackSubVertexRelation`.
-    ///
-    /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
-    /// under `id`.
-    void unregisterVertex(VertexID const& id);
 
   public:
-    void addTracker(hstd::SPtr<IPropertyTracker> const& tracker);
-    void delTracker(hstd::SPtr<IPropertyTracker> const& tracker);
-    void addCollection(hstd::SPtr<IEdgeCollection> const& collection);
-    void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
+    virtual ~IVertexHierarchy() = default;
 
-    virtual IVertex const& getVertex(VertexID const& id) const = 0;
+    /// \brief Return hierarchy identifier used in edge masks.
+    virtual GraphHierarchyID getHierarchyId() const = 0;
 
+    /// \brief Add the vertex to the hierarchy collection without nesting
+    /// relations.
+    void trackVertex(VertexID const& id) override;
+
+    /// \brief Remove the vertex from the hierarchy together with all
+    /// nested sub-vertices tracked under it.
+    ///
+    /// \returns List of deleted vertex ids including `id`.
+    DependantDeletion untrackVertex(VertexID const& id) override;
+
+    /// \brief Provide additional information about the vertex nesting
+    /// relation.
+    ///
+    /// The vertex can only be nested under one parent and
+    /// present in the graph once. Both parent and sub must be existing
+    /// vertices.
+    ///
+    /// \warning After the vertex has been registered in the main graph
+    /// this method needs to be called to record additional structural
+    /// information about the sub-vertices.
+    EdgeID trackSubVertexRelation(
+        VertexID const& parent,
+        VertexID const& sub);
+
+    /// \brief Remove the vertex nesting information. As `sub` can only be
+    /// nested under one vertex -- `parent`, this makes both `sub` and
+    /// `parent` a root vertices again.
+    ///
+    /// This does not remove the vertices
+    /// from the graph. If `sub` contains its own sub-vertices, they will
+    /// remain under `sub`. If `parent` contains more sub-vertices they
+    /// will also remain where they are.
+    ///
+    /// \note This method will be automatically called on the
+    /// `unregisterVertex`, to prevent malformed graph structure, but it is
+    /// also safe to call this method manually, if the graph nesting
+    /// relations must be edited.
+    void untrackSubVertexRelation(
+        VertexID const& parent,
+        VertexID const& sub);
+
+    /// \brief Return all vertices tracked by this hierarchy.
+    hstd::Vec<VertexID> getAllVertices() const;
+
+    /// \brief Return all root vertices tracked by this hierarchy.
+    hstd::Vec<VertexID> getRootVertices() const;
+
+    /// \brief Return direct sub-vertices for `id`.
+    hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
+
+    /// \brief Return parent vertex for `id` if present.
+    hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
+
+    /// \brief Return full parent chain for `id`, from immediate parent up
+    /// to the root.
+    hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
+
+    hstd::Vec<EdgeID> getEdges() const override;
+    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const override;
+    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const override;
+
+    /// \brief Return the highest level of nesting in the hierarchy.
+    int getMaxNestingLevel() const;
 
     /// \brief For id with given ID, compute the list of vertex
     /// boundaries it crossed between the source and the target.
@@ -286,39 +383,100 @@ class IGraph {
     ///   - traverse `a->b` -- one "down" crossing.
     ///
     /// \returns List of crossings for the provided id.
-    hstd::Vec<VertexID> getHierarchyCrossings(EdgeID const& id) const;
+    hstd::Vec<VertexID> getHierarchyCrossings(
+        VertexID const& source,
+        VertexID const& target) const;
+};
 
+struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
+
+/// \brief Single set of vertices and a collection of associated edge sets.
+///
+/// A graph directly stores all vertices in the store, and indirectly
+/// stores additional sets of edges managed by the `IVertexHierarchy` and
+/// `IEdgeCollection`. Vertices are stored as opaque IDs -- mapping ID to
+/// the specific object is done by the derived classes.
+class IGraph {
+  protected:
+    hstd::UnorderedMap<EdgeCollectionID, hstd::SPtr<IEdgeCollection>>
+        collections;
+    hstd::UnorderedMap<PropertyTrackerID, hstd::SPtr<IPropertyTracker>>
+        trackers;
+    hstd::UnorderedMap<GraphHierarchyID, hstd::SPtr<IVertexHierarchy>>
+        hierarchies;
+
+    /// \brief Full set of all vertices in the graph
+    hstd::UnorderedSet<VertexID> vertexIDs;
+
+  protected:
+    /// \brief Add the vertex to the graph collection. Will not
+    /// automatically register all nested vertices and recursive data.
+    /// After the base vertex is registered, provide additional structural
+    /// information using `trackSubVertexRelation`.
+    void registerVertex(VertexID const& id);
+
+    /// \brief Remove vertex from the graph collection and recursively drop
+    /// all the elements from the hierarchies.
+    ///
+    /// \note No follow-up calls to `untrackSubVertexRelation` is
+    /// necessary to match the `trackSubVertexRelation` -- hierarchy
+    /// deletion is done by this method.
+    ///
+    /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
+    /// under `id` if they are also deleted in all hierarchies.
+    ///
+    /// \return Map of the dependant deletions in the graph hierarchies.
+    /// Un-registering vertex *does not delete sub-vertices from the
+    /// graph*, it only removes invalid edges. The returned value from this
+    /// function contains a mapping from the hierarchy ID to the list of
+    /// sub-vertex deletions for this hierarchy. It is possible to delete
+    /// all the nested vertices with `untrackVertexList` for each set of
+    /// vertices in the dependant deletion.
+    hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> unregisterVertex(
+        VertexID const& id);
+
+  public:
+    struct Crossing {
+        GraphHierarchyID    hierarchy;
+        hstd::Vec<VertexID> crossings;
+        DESC_FIELDS(Crossing, (hierarchy, crossings));
+    };
+
+    void addTracker(hstd::SPtr<IPropertyTracker> const& tracker);
+    void delTracker(hstd::SPtr<IPropertyTracker> const& tracker);
+    void addCollection(hstd::SPtr<IEdgeCollection> const& collection);
+    void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
+    void addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
+    void delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
+
+    /// \brief Get list of all edge providers in the graph: vertex
+    /// hierarchies and general edge collections.
+    hstd::Vec<IEdgeProvider*> getEdgeProviders();
+
+    /// \brief Get vertex object associated with the edge ID.
+    virtual IVertex const& getVertex(VertexID const& id) const = 0;
+
+    /// \brief For id with given ID, compute the list of vertex
+    /// boundaries it crossed in each tracked hierarchy between the source
+    /// and the target.
+    hstd::Vec<Crossing> getHierarchyCrossings(EdgeID const& edge_id) const;
 
     /// \brief Provide additional information about the vertex nesting
-    /// relation.
+    /// relation for a specific hierarchy.
     ///
-    /// The vertex can only be nested under one parent and
-    /// present in the graph once. Both parent and sub must be existing
-    /// vertices.
-    ///
-    /// \warning After the vertex has been register this method needs to be
-    /// called to record additional structural information about the
-    /// sub-vertices.
-    void trackSubVertexRelation(
-        VertexID const& parent,
-        VertexID const& sub);
+    /// \return List of newly added edges in all hierarchies.
+    hstd::Vec<EdgeID> trackSubVertexRelation(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         parent,
+        VertexID const&         sub);
 
-    /// \brief Remove the vertex nesting information. As `sub` can only be
-    /// nested under one vertex -- `parent`, this makes both `sub` and
-    /// `parent` a root vertices again.
-    ///
-    /// This does not remove the vertices
-    /// from the graph. If `sub` contains its own sub-vertices, they will
-    /// remain under `sub`. If `parent` contains more sub-vertices they
-    /// will also remain where they are.
-    ///
-    /// \note This method will be automatically called on the
-    /// `unregisterVertex`, to prevent malformed graph structure, but it is
-    /// also safe to call this method manually, if the graph nesting
-    /// relations must be edited.
+    /// \brief Remove the vertex nesting information from a specific
+    /// hierarchy.
     void untrackSubVertexRelation(
-        VertexID const& parent,
-        VertexID const& sub);
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         parent,
+        VertexID const&         sub);
+
 
     /// \brief Track properties and edge information in the graph
     ///
@@ -332,56 +490,79 @@ class IGraph {
     /// \note See `trackVertexList`
     void untrackVertexList(hstd::Vec<VertexID> const& ids);
 
+    /// \brief Get list of all vertices stored in the graph
     hstd::Vec<VertexID> getAllVertices() const;
-    hstd::Vec<VertexID> getRootVertices() const;
-    hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
-    hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
-    IEdge const&        getEdge(EdgeID const& id) const;
+    /// \brief Get root vertices for the specified hierarchy
+    hstd::Vec<VertexID> getRootVertices(
+        GraphHierarchyID const& hierarchy) const;
+    /// \brief Get sub vertices for the specified hierarchy
+    hstd::Vec<VertexID> getSubVertices(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         id) const;
+    /// \brief Get parent vertices for the specified hierarchy
+    hstd::Opt<VertexID> getParentVertex(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         id) const;
+    IEdge const& getEdge(EdgeID const& id) const;
 
-    /// \brief Return the highest level of nesting in the graph
-    int getMaxNestingLevel() const;
+    /// \brief Return the highest level of nesting in the hierarchy.
+    int getMaxNestingLevel(GraphHierarchyID const& hierarchy) const;
 
-    hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
-
+    /// \brief Return full parent chain for vertex in the selected
+    /// hierarchy.
+    hstd::Vec<VertexID> getParentChain(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         id) const;
 
     struct SerialSchema {
         struct EdgeCategory {
             hstd::Vec<json> edges;
             std::string     categoryName;
+
+            struct HierarchyCrossing {
+                std::string            hierarchyName;
+                hstd::Vec<std::string> crossings;
+                DESC_FIELDS(HierarchyCrossing, (hierarchyName, crossings));
+            };
+
             /// \brief EdgeId -> List of Vertex IDs for parent hierarchies
             /// it has crossed. See `getHierarchyCrossings` method for more
             /// details.
-            hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
+            hstd::UnorderedMap<std::string, hstd::Vec<HierarchyCrossing>>
                 hierarchyEdgeCrossings;
+
             DESC_FIELDS(
                 EdgeCategory,
                 (edges, categoryName, hierarchyEdgeCrossings));
         };
 
+        struct Hierarchy {
+            std::string                                  hierarchyName;
+            hstd::Vec<std::string>                       rootVertexIDs;
+            hstd::UnorderedMap<std::string, std::string> vertexParentMap;
+            hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
+                vertexNestingMap;
+            int maxNestingLevel = 0;
+            DESC_FIELDS(
+                Hierarchy,
+                (hierarchyName,
+                 rootVertexIDs,
+                 vertexParentMap,
+                 vertexNestingMap,
+                 maxNestingLevel));
+        };
 
         hstd::UnorderedMap<std::string, json>         vertices;
         hstd::UnorderedMap<std::string, EdgeCategory> edges;
+        hstd::UnorderedMap<std::string, Hierarchy>    hierarchies;
         hstd::Vec<std::string>                        flatVertexIDs;
-        hstd::Vec<std::string>                        rootVertexIDs;
-        hstd::UnorderedMap<std::string, std::string>  vertexParentMap;
-        hstd::UnorderedMap<std::string, hstd::Vec<std::string>>
-            vertexNestingMap;
-
-        int maxNestingLevel = 0;
 
         DESC_FIELDS(
             SerialSchema,
-            (vertices,
-             edges,
-             flatVertexIDs,
-             rootVertexIDs,
-             vertexParentMap,
-             vertexNestingMap,
-             maxNestingLevel));
+            (vertices, edges, hierarchies, flatVertexIDs));
     };
 
     virtual json getGraphSerial() const;
 };
-
 
 } // namespace hstd::ext::graph
