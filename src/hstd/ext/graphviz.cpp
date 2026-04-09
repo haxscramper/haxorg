@@ -6,8 +6,9 @@
 
 using namespace hstd;
 using namespace hstd::ext;
+using namespace hstd::ext::graph;
 
-Str Graphviz::Node::Record::escape(Str const& input) {
+Str gv::escape(Str const& input) {
     Str escaped;
     escaped.reserve(input.size());
     for (char c : input) {
@@ -25,7 +26,7 @@ Str Graphviz::Node::Record::escape(Str const& input) {
     return escaped;
 }
 
-Str Graphviz::Node::Record::escapeHtml(Str const& input) {
+Str gv::escapeHtml(Str const& input) {
     Str escaped;
     for (char c : input) {
         switch (c) {
@@ -40,7 +41,7 @@ Str Graphviz::Node::Record::escapeHtml(Str const& input) {
     return escaped;
 }
 
-Str Graphviz::Node::Record::toHtml(bool horizontal) const {
+Str gv::NodeAttribute::Record::toHtml(bool horizontal) const {
     auto generateCell = [](Record const& rec) -> Str {
         return rec.isFinal() ? rec.getLabel() : rec.toHtml();
     };
@@ -110,7 +111,7 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
     }
 }
 
-void Graphviz::Node::Record::set(
+void gv::NodeAttribute::Record::set(
     Str const&    columnKey,
     Record const& value) {
     if (isFinal()) {
@@ -130,7 +131,7 @@ void Graphviz::Node::Record::set(
     }
 }
 
-Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
+gv::NodeAttribute::Record gv::NodeAttribute::Record::fromEscapedText(
     Str const& text,
     TextAlign  align) {
     Record res;
@@ -138,25 +139,25 @@ Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
     return res;
 }
 
-Graphviz::Node::Record Graphviz::Node::Record::fromRow(
+gv::NodeAttribute::Record gv::NodeAttribute::Record::fromRow(
     Vec<Record> const& recs) {
     Record res;
     res.content = recs;
     return res;
 }
 
-Graphviz::Node::Record Graphviz::Node::Record::fromEscapedTextRow(
+gv::NodeAttribute::Record gv::NodeAttribute::Record::fromEscapedTextRow(
     Vec<Str> const& cells) {
     Record res = fromRow({});
     for (auto const& cell : cells) { res.add(fromEscapedText(cell)); }
     return res;
 }
 
-Str Graphviz::Node::Record::toString(bool braceCount) const {
+Str gv::NodeAttribute::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {
         if (tag) { result += std::format("<{}>", *tag); }
-        result += Record::escape(getLabel());
+        result += gv::escape(getLabel());
     } else {
         auto const& c = getNested();
         if (!c.empty()) {
@@ -172,7 +173,10 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
     return result;
 }
 
-Graphviz::Edge::Edge(Agraph_t* graph, Node const& head, Node const& tail)
+gv::EdgeAttribute::EdgeAttribute(
+    Agraph_t*            graph,
+    NodeAttribute const& head,
+    NodeAttribute const& tail)
     : graph(graph) {
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
     Agedge_t* edge = agedge(
@@ -189,7 +193,7 @@ Graphviz::Edge::Edge(Agraph_t* graph, Node const& head, Node const& tail)
     }
 }
 
-Graphviz::Graph::Graph(Str const& name, Agdesc_t desc)
+gv::GraphGroup::GraphGroup(Str const& name, Agdesc_t desc)
     : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
@@ -203,7 +207,7 @@ Graphviz::Graph::Graph(Str const& name, Agdesc_t desc)
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
 }
 
-Graphviz::Graph::Graph(fs::path const& file)
+gv::GraphGroup::GraphGroup(fs::path const& file)
     : graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr) {
@@ -216,7 +220,7 @@ Graphviz::Graph::Graph(fs::path const& file)
     initDefaultSetters();
 }
 
-void Graphviz::Graph::initDefaultSetters() {
+void gv::GraphGroup::initDefaultSetters() {
     defaultNode.graph = graph;
     // FIXME simply capturing `this` causes segmentation fault because the
     // graph is deleted somewhere else or the pointer is modified. `graph =
@@ -238,39 +242,59 @@ void Graphviz::Graph::initDefaultSetters() {
     };
 }
 
-void Graphviz::Graph::eachNode(Func<void(Node)> cb) {
+void gv::GraphGroup::eachNode(Func<void(NodeAttribute)> cb) {
     Agnode_t* node;
     for (node = agfstnode(get()); node; node = agnxtnode(get(), node)) {
-        cb(Node(get(), node));
+        cb(NodeAttribute(get(), node));
     }
 }
 
-void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
+void gv::GraphGroup::eachEdge(Func<void(EdgeAttribute)> cb) {
     for (Agnode_t* node = agfstnode(get()); node;
          node           = agnxtnode(get(), node)) {
         for (Agedge_t* edge = agfstedge(get(), node); edge;
              edge           = agnxtedge(get(), edge, node)) {
-            cb(Edge(get(), edge));
+            cb(EdgeAttribute(get(), edge));
         }
     }
 }
 
-void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
+void gv::GraphGroup::eachSubgraph(Func<void(GraphGroup)> cb) const {
     for (Agraph_t* subgraph = agfstsubg(graph); subgraph;
          subgraph           = agnxtsubg(subgraph)) {
-        cb(Graph(subgraph));
+        cb(GraphGroup(subgraph));
     }
 }
 
-void Graphviz::Graph::render(
+hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
+    VertexID const& id) {
+    return this->node(run->getVertex(id).getStableId());
+}
+
+layout::GroupID gv::GraphGroup::addNewSubgroup() {
+    auto result = run->addGroup(
+        newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
+
+    return result;
+}
+
+void gv::GraphGroup::addExistingSubgroup(layout::GroupID const& id) {
+    subGroups.push_back(id);
+}
+
+void gv::GraphGroup::render(
     fs::path const& path,
     LayoutType      layout,
     RenderFormat    format) {
-    hstd::ext::Graphviz gvc;
-    gvc.renderToFile(path, *this, format, layout);
+    LOGIC_ASSERTION_CHECK(
+        algorithm.has_value(),
+        "Cannot generate render for the graphviz sub-group, this method "
+        "can only be used on the graphviz graph");
+    std::dynamic_pointer_cast<gv::Layout>(algorithm.value())
+        ->renderToFile(path, *this, layout, format);
 }
 
-Str Graphviz::alignText(Str const& text, TextAlign direction) {
+Str gv::alignText(Str const& text, TextAlign direction) {
     Str res = text;
     switch (direction) {
         case TextAlign::Left: {
@@ -293,7 +317,7 @@ Str Graphviz::alignText(Str const& text, TextAlign direction) {
     return res;
 }
 
-std::string Graphviz::escapeHtmlForGraphviz(
+std::string gv::escapeHtmlForGraphviz(
     std::string const& input,
     TextAlign          direction) {
     std::string escaped = input;
@@ -317,7 +341,7 @@ std::string Graphviz::escapeHtmlForGraphviz(
     return escaped;
 }
 
-Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
+Str gv::layoutTypeToString(LayoutType layoutType) {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";
         case LayoutType::Neato: return "neato";
@@ -329,7 +353,7 @@ Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
     }
 }
 
-Str Graphviz::renderFormatToString(RenderFormat renderFormat) const {
+Str gv::renderFormatToString(RenderFormat renderFormat) {
     switch (renderFormat) {
         case RenderFormat::PNG: return "png";
         case RenderFormat::PDF: return "pdf";
@@ -344,26 +368,26 @@ Str Graphviz::renderFormatToString(RenderFormat renderFormat) const {
     }
 }
 
-void Graphviz::createLayout(Graph const& graph, LayoutType layout) const {
+void gv::Layout::createLayout(GraphGroup const& graph, LayoutType layout) {
     int res = gvLayout(
-        gvc.get(),
+        gvc->get(),
         const_cast<Agraph_t*>(graph.get()),
         layoutTypeToString(layout).c_str());
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
 }
 
-void Graphviz::freeLayout(Graph graph) const {
+void gv::Layout::freeLayout(GraphGroup graph) {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
-    gvFreeLayout(gvc.get(), const_cast<Agraph_t*>(graph.get()));
+    gvFreeLayout(gvc->get(), const_cast<Agraph_t*>(graph.get()));
 }
 
-void Graphviz::writeFile(
-    fs::path const& fileName,
-    Graph const&    graph,
-    RenderFormat    format) const {
+void gv::Layout::writeFile(
+    fs::path const&   path,
+    GraphGroup const& graph,
+    RenderFormat      format) {
     if (format == RenderFormat::DOT) {
-        FILE* output_file = fopen(fileName.c_str(), "w");
+        FILE* output_file = fopen(path.c_str(), "w");
         if (output_file == NULL) {
             perror("Error opening output file");
             return;
@@ -381,41 +405,41 @@ void Graphviz::writeFile(
             "execute render in one step");
 
         gvRenderFilename(
-            gvc.get(),
+            gvc->get(),
             const_cast<Agraph_t*>(graph.get()),
             renderFormatToString(format).c_str(),
-            fileName.c_str());
+            path.c_str());
     }
 }
 
-void Graphviz::renderToFile(
-    fs::path const& fileName,
-    Graph const&    graph,
-    RenderFormat    format,
-    LayoutType      layout) const {
+void gv::Layout::renderToFile(
+    fs::path const&   path,
+    GraphGroup const& graph,
+    LayoutType        layout,
+    RenderFormat      format) {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
     if (format == RenderFormat::DOT) {
-        writeFile(fileName, graph, format);
+        writeFile(path, graph, format);
 
     } else {
         createLayout(graph, layout);
 
-        writeFile(fileName, graph, format);
+        writeFile(path, graph, format);
         freeLayout(graph);
     }
 }
 
-Graphviz::Node::Node(
+gv::NodeAttribute::NodeAttribute(
     Agraph_t*     graph,
     Str const&    name,
     Record const& record)
-    : Node(graph, name) {
+    : NodeAttribute(graph, name) {
     setShape(Shape::record);
     setLabel(record.toString());
 }
 
-Graphviz::Node::Node(Agraph_t* graph, Str const& name) {
+gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name) {
     auto node_ = agnode(graph, const_cast<char*>(name.c_str()), 1);
     if (!node_) {
         throw std::runtime_error("Failed to create node");
@@ -424,26 +448,5 @@ Graphviz::Node::Node(Agraph_t* graph, Str const& name) {
     }
 }
 
-generator<CRw<Graphviz::Edge>> Graphviz::Node::outgoing() {
-    for (Agedge_t* e = agfstout(graph, node); e; e = agnxtout(graph, e)) {
-        auto value = Edge(graph, e);
-        co_yield std::ref(value);
-    }
-}
-
-generator<CRw<Graphviz::Edge>> Graphviz::Node::ingoing() {
-    for (Agedge_t* e = agfstin(graph, node); e; e = agnxtin(graph, e)) {
-        auto value = Edge(graph, e);
-        co_yield std::ref(value);
-    }
-}
-
-generator<CRw<Graphviz::Edge>> Graphviz::Node::edges() {
-    for (Agedge_t* e = agfstedge(graph, node); e;
-         e           = agnxtedge(graph, e, node)) {
-        auto value = Edge(graph, e);
-        co_yield std::ref(value);
-    }
-}
 
 #endif

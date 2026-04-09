@@ -1,25 +1,26 @@
 #pragma once
+#if false
 
-#include <variant>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/ext/graphviz.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/PairFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
+#    include <variant>
+#    include <hstd/stdlib/Str.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/Ptrs.hpp>
+#    include <hstd/stdlib/Map.hpp>
+#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/stdlib/VariantFormatter.hpp>
+#    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/PairFormatter.hpp>
+#    include <hstd/stdlib/OptFormatter.hpp>
+#    include <hstd/stdlib/MapFormatter.hpp>
 
-#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
-#    pragma warning(push, 0)
-#    include <libavoid/libavoid.h>
-#    include <libdialect/graphs.h>
-#    pragma warning(pop)
-#endif
-#pragma clang diagnostic ignored "-Wunknown-attributes"
+#    ifdef ORG_BUILD_WITH_ADAPTAGRAMS
+#        pragma warning(push, 0)
+#        include <libavoid/libavoid.h>
+#        include <libdialect/graphs.h>
+#        pragma warning(pop)
+#    endif
+#    pragma clang diagnostic ignored "-Wunknown-attributes"
 
 namespace hstd::ext {
 
@@ -92,7 +93,7 @@ struct [[refl]] GraphRect {
 
 /// \brief IR wrapper for the cola layout constraints
 struct [[refl]] GraphNodeConstraint {
-#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
+#    ifdef ORG_BUILD_WITH_ADAPTAGRAMS
     using Res = SPtr<cola::CompoundConstraint>;
 
     struct [[refl]] Empty {
@@ -228,7 +229,7 @@ struct [[refl]] GraphNodeConstraint {
 
 
     DESC_FIELDS(GraphNodeConstraint, (data));
-#endif
+#    endif
 };
 
 struct [[refl]] GraphEdge {
@@ -449,7 +450,7 @@ struct [[refl]] GraphLayoutIR {
         }
     };
 
-#if ORG_BUILD_WITH_CGRAPH
+#    if ORG_BUILD_WITH_CGRAPH
     /// \brief Backend-specific layout results for graphviz graph
     struct GraphvizResult {
         Graphviz::Graph graph;
@@ -475,9 +476,9 @@ struct [[refl]] GraphLayoutIR {
         Graphviz gvc;
         return doGraphvizLayout(gvc).convert();
     }
-#endif
+#    endif
 
-#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
+#    ifdef ORG_BUILD_WITH_ADAPTAGRAMS
     struct HolaResult {
         SPtr<dialect::Graph>                         graph;
         Vec<SPtr<dialect::Node>>                     nodes;
@@ -526,7 +527,8 @@ struct [[refl]] GraphLayoutIR {
     }
 
     [[refl]] std::string doColaStrFormat();
-#endif
+#    endif
 };
 
 } // namespace hstd::ext
+#endif

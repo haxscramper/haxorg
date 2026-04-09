@@ -1,16 +1,17 @@
-#include <adaptagrams/adaptagrams_ir.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Debug.hpp>
+#if false
+#    include <adaptagrams/adaptagrams_ir.hpp>
+#    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd/stdlib/Enumerate.hpp>
+#    include <hstd/stdlib/Set.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/Debug.hpp>
 
-#include <libcola/output_svg.h>
-#include <libtopology/orthogonal_topology.h>
-#include <libavoid/libavoid.h>
-#include <libdialect/hola.h>
-#include <libdialect/opts.h>
-#include <hstd/stdlib/JsonSerde.hpp>
+#    include <libcola/output_svg.h>
+#    include <libtopology/orthogonal_topology.h>
+#    include <libavoid/libavoid.h>
+#    include <libdialect/hola.h>
+#    include <libdialect/opts.h>
+#    include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;
@@ -1258,3 +1259,5 @@ void GraphRect::extend(GraphPoint const& point) {
     height    = max_y - min_y;
     width     = max_x - min_x;
 }
+
+#endif

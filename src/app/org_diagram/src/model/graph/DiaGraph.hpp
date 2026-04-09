@@ -89,7 +89,7 @@ struct std::hash<DiaGraphVertex> {
 
 class DiaHierarchyEdgeCollection;
 class DiaGraph : public hstd::ext::graph::IGraph {
-    hstd::UnorderedStore<hstd::ext::graph::VertexID, DiaGraphVertex>
+    hstd::UnorderedInternStore<hstd::ext::graph::VertexID, DiaGraphVertex>
         vertices;
 
   public:
@@ -127,7 +127,8 @@ class DiaHierarchyEdgeCollection
     : public hstd::ext::graph::IVertexHierarchy {
     DiaContext::Ptr      tree_context;
     hstd::SPtr<DiaGraph> graph;
-    hstd::UnorderedStore<hstd::ext::graph::EdgeID, DiaHierarchyEdge> store;
+    hstd::UnorderedInternStore<hstd::ext::graph::EdgeID, DiaHierarchyEdge>
+        store;
 
   public:
     DiaHierarchyEdgeCollection(
@@ -243,7 +244,9 @@ class DiaDescriptionListEdgeCollection
     hstd::SPtr<DiaGraph>            graph;
     hstd::SPtr<DiaSubtreeIdTracker> tracker;
 
-    hstd::UnorderedStore<hstd::ext::graph::EdgeID, DiaDescriptionListEdge>
+    hstd::UnorderedInternStore<
+        hstd::ext::graph::EdgeID,
+        DiaDescriptionListEdge>
         store;
 
   public:

@@ -7,7 +7,6 @@
 #include <hstd/system/string_base.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
 

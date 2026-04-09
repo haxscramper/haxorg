@@ -157,7 +157,10 @@ void graphviz_processor::track_named_jump(named_jump_info const& info) {
     pending_jump = info.description;
 }
 
-hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
+    get_graphviz(
+        hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run) {
+#        if false
     using namespace hstd::ext;
     Graphviz::Graph                                  graph{"g"_ss};
     std::unordered_map<std::string, Graphviz::Node>  graph_nodes{};
@@ -209,6 +212,7 @@ hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
     }
 
     return graph;
+#        endif
 }
 
 std::string graphviz_processor::get_parent() {

@@ -86,11 +86,18 @@ enum class RenderFormat
     DOT,  /// Write original DOT file
 };
 
-static Str alignText(Str const& text, TextAlign direction);
+Str alignText(Str const& text, TextAlign direction);
 
-static std::string escapeHtmlForGraphviz(
+std::string escapeHtmlForGraphviz(
     std::string const& input,
     TextAlign          direction = TextAlign::Left);
+
+Str escape(Str const& input);
+
+Str escapeHtml(Str const& input);
+
+Str layoutTypeToString(LayoutType layoutType);
+Str renderFormatToString(RenderFormat renderFormat);
 
 
 template <typename T>
@@ -240,14 +247,10 @@ struct GraphvizObjBase : CRTP_this_method<T> {
 
 class NodeAttribute
     : public GraphvizObjBase<NodeAttribute>
-    , public IAttribute {
+    , public layout::IVertexVisualAttribute {
   public:
     static const int graphvizKind = AGNODE;
     struct Record {
-        static Str escape(Str const& input);
-
-        static Str escapeHtml(Str const& input);
-
         Str toHtml(bool horizontal = true) const;
 
 
@@ -507,17 +510,11 @@ class NodeAttribute
   public:
     Agnode_t* node;
     Agraph_t* graph;
-
-    // IGraphObjectBase interface
-  public:
-    std::size_t getHash() const override;
-    bool        isEqual(IGraphObjectBase const* other) const override;
-    std::string getRepr() const override;
 };
 
 class EdgeAttribute
     : public GraphvizObjBase<EdgeAttribute>
-    , public IAttribute {
+    , public layout::IEdgeVisualAttribute {
   public:
     static const int graphvizKind = AGEDGE;
     EdgeAttribute(Agraph_t* graph, Agedge_t* edge)
@@ -567,12 +564,6 @@ class EdgeAttribute
   public:
     Agraph_t* graph;
     Agedge_t* edge_;
-
-    // IGraphObjectBase interface
-  public:
-    std::size_t getHash() const override;
-    bool        isEqual(IGraphObjectBase const* other) const override;
-    std::string getRepr() const override;
 };
 
 
@@ -584,8 +575,6 @@ class GraphGroup
   public:
     static const int graphvizKind = AGRAPH;
 
-    EdgeAttribute defaultNode;
-    EdgeAttribute defaultEdge;
 
     GraphGroup(Str const& name, Agdesc_t desc = Agdirected);
     GraphGroup(fs::path const& file);
@@ -607,8 +596,9 @@ class GraphGroup
     };
 
 
-    GraphGroup newSubgraph(Str const& name) {
-        return GraphGroup(agsubg(graph, strdup("cluster_" + name), 1));
+    hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
+        return std::make_shared<GraphGroup>(
+            agsubg(graph, strdup("cluster_" + name), 1));
     }
 
     void setSplines(Splines splines);
@@ -636,9 +626,9 @@ class GraphGroup
         return (Agraphinfo_t*)AGDATA(graph);
     }
 
-    NodeAttribute node(Str const& name) {
+    hstd::SPtr<NodeAttribute> node(Str const& name) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
-        auto tmp = NodeAttribute(graph, name);
+        auto tmp = std::make_shared<NodeAttribute>(graph, name);
         return tmp;
     }
 
@@ -733,41 +723,56 @@ class GraphGroup
     _attr(Concentrate, concentrate, bool);
 
   public:
-    Agraph_t* graph;
+    Agraph_t*     graph;
+    EdgeAttribute defaultNode;
+    EdgeAttribute defaultEdge;
+
+
+    hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
+        VertexID const& id) override;
+    layout::GroupID addNewSubgroup() override;
+    void addExistingSubgroup(layout::GroupID const& id) override;
 };
 
+class Graphviz;
 class Layout : public layout::IPlacementAlgorithm {
-    Str  layoutTypeToString(LayoutType layoutType) const;
-    Str  renderFormatToString(RenderFormat renderFormat) const;
+  public:
+    Layout(hstd::SPtr<Graphviz> gvc) : gvc{gvc} {}
+
+
     void createLayout(
         GraphGroup const& graph,
-        LayoutType        layout = LayoutType::Dot) const;
+        LayoutType        layout = LayoutType::Dot);
 
-    void freeLayout(GraphGroup graph) const;
+    void freeLayout(GraphGroup graph);
 
     void writeFile(
-        fs::path const&   fileName,
+        fs::path const&   path,
         GraphGroup const& graph,
-        RenderFormat      format = RenderFormat::DOT) const;
+        RenderFormat      format = RenderFormat::DOT);
 
     void renderToFile(
-        fs::path const&   fileName,
+        fs::path const&   path,
         GraphGroup const& graph,
-        RenderFormat      format = RenderFormat::PNG,
-        LayoutType        layout = LayoutType::Dot) const;
+        LayoutType        layout = LayoutType::Dot,
+        RenderFormat      format = RenderFormat::PNG);
+
+    hstd::SPtr<Graphviz> gvc;
 };
 
 class Graphviz {
   public:
-    class EdgeAttribute;
-
-    Graphviz() {
+    hstd::SPtr<layout::LayoutRun> run;
+    Graphviz(hstd::SPtr<layout::LayoutRun> run) : run{run} {
         gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {
             throw std::runtime_error("Failed to create Graphviz context");
         }
     }
 
+    layout::GroupID getNewGraph();
+
+    GVC_t* get() { return gvc.get(); }
 
   private:
     SPtr<GVC_t> gvc;

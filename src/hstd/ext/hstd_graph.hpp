@@ -5,7 +5,95 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include "hstd_geometry.hpp"
+
+namespace hstd {
+template <typename ID, typename T>
+struct UnorderedInternStore {
+    hstd::ext::Unordered1to1Bimap<ID, T> store;
+
+    ID add(
+        T const&                                 value,
+        std::optional<typename ID::id_mask_type> mask = std::nullopt) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !store.contains_right(value),
+            "Store already contains value {}",
+            hstd::fmt1_maybe(value));
+
+        int  current_size = size();
+        auto result = mask.has_value()
+                        ? ID::FromMaskedIdx(current_size, mask.value())
+                        : ID::FromIndex(current_size);
+        store.add_unique(result, value);
+        return result;
+    }
+
+    void add_with_id(T const& value, ID const& result) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !store.contains_right(value),
+            "Store already contains value {}",
+            hstd::fmt1_maybe(value));
+
+        store.add_unique(result, value);
+    }
+
+    hstd::Vec<ID> keys() const {
+        hstd::Vec<ID> res;
+        for (auto const& it : store.get_map()) { res.push_back(it.first); }
+        return res;
+    }
+
+    ID del(T const& value) {
+        ID res = store.at_left(value);
+        store.erase_right(value);
+        return res;
+    }
+
+    T const&  at(ID const& id) const { return store.at_right(id); }
+    ID const& at(T const& value) const { return store.at_left(value); }
+    int       size() const { return store.get_map().size(); }
+};
+
+template <typename ID, typename T>
+struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
+  public:
+    using Base = hstd::UnorderedMap<ID, T>;
+    using Base::at;
+    using Base::contains;
+    using Base::insert_or_assign;
+    using Base::keys;
+    using Base::size;
+
+    ID getNextId(
+        std::optional<typename ID::id_mask_type> mask = std::nullopt)
+        const {
+        int  current_size = size();
+        auto id = mask.has_value()
+                    ? ID::FromMaskedIdx(current_size, mask.value())
+                    : ID::FromIndex(current_size);
+        return id;
+    }
+
+    ID add(
+        T const&                                 value,
+        std::optional<typename ID::id_mask_type> mask = std::nullopt) {
+        auto id = getNextId(mask);
+        add_with_id(value, id);
+        return id;
+    }
+
+    void add_with_id(T const& value, ID const& result) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !contains(result),
+            "Store already contains value {}",
+            hstd::fmt1_maybe(value));
+
+        insert_or_assign(result, value);
+    }
+};
+} // namespace hstd
 
 namespace hstd::ext::graph {
 using namespace hstd::ext::geometry;
@@ -88,7 +176,7 @@ class IGraph;
 /// \brief Base class for all attributes associated with vertices. The
 /// attribute might be an individual value, or a complex composite object,
 /// depending on the use case.
-struct IAttribute : IGraphObjectBase {
+struct IAttribute {
   public:
     virtual ~IAttribute() = default;
 };
@@ -611,30 +699,59 @@ class IGraph {
     virtual json getGraphSerial() const;
 };
 
+/// \brief Generic interface to perform mixed-layout graph visualization
+///
+/// Interface classes in this namespace define a generic algorithm for
+/// graph layout with support for multiple layout solutions in the same
+/// visualization.
+///
+/// Terminology used
+///
+/// - **backend** refers to the particular set of derived classes intended
+///   to wrap a graph visualization library/tool like graphviz, ELK,
+///   Adaptagrams
 namespace layout {
+
+/// \brief Base class for configuring individual edge objects for layout
+///
+/// Each layout group type will have its own set of visual attributes
+/// derived. The attributes may hold any inforamtion, including additional
+/// internal data structures necessary to perform layout. For example,
+/// graphviz visual attributes will hold the `agnode_t`, `agedge_t` etc
+/// objets. The `agraph_t` is held by the `IGroup`-derived object -- there
+/// is no visual attribute subclass for a group, as the group itself only
+/// exists for the visualization configuration.
+///
+/// \see ILayoutAttribute for attributes created after the layout is
+/// complete.
+class IVisualAttribute : public IAttribute {};
+
+class IVertexVisualAttribute : public IVisualAttribute {};
+class IEdgeVisualAttribute : public IVisualAttribute {};
+class IPortVisualAttribute : public IVisualAttribute {};
+
 
 /// \brief Base class for all attributes describing post-layout placement
 /// and shape information for the graph elements.
-class ILayoutAttribute : IAttribute {};
+class ILayoutAttribute : public IAttribute {};
 
-
-class IPortLayoutAttribute : ILayoutAttribute {
+class IPortLayoutAttribute : public ILayoutAttribute {
     /// \brief position + size relative to parent.
     virtual Rect getBBox() = 0;
 };
 
-class IEdgeLayoutAttribute : ILayoutAttribute {
+class IEdgeLayoutAttribute : public ILayoutAttribute {
     virtual Path getPath() = 0;
 };
 
-class IVertexLayoutAttribute : ILayoutAttribute {
+class IVertexLayoutAttribute : public ILayoutAttribute {
     /// \brief Vertex bounding box + position relative to the parent
     virtual Rect                                         getBBox() = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
         const = 0;
 };
 
-class IGroupLayoutAttribute : ILayoutAttribute {
+class IGroupLayoutAttribute : public ILayoutAttribute {
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
     virtual Rect                                         getBBox() = 0;
@@ -645,7 +762,11 @@ class IGroupLayoutAttribute : ILayoutAttribute {
 
 DECL_ID_TYPE(IGroup, GroupID, hstd::u64);
 
+class IGroup;
+class LayoutRun;
+
 class IPlacementAlgorithm {
+  public:
     /// \brief Result of the placement algorithm execution
     struct Result {
         hstd::UnorderedMap<GroupID, hstd::SPtr<IGroupLayoutAttribute>>
@@ -654,23 +775,63 @@ class IPlacementAlgorithm {
         hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
             vertices;
     };
+
+    hstd::SPtr<LayoutRun> run;
+
+    /// \brief Execute single layout run on the input group. If the group
+    /// contains sub-groups with different layout algorithms, their
+    /// placement should already be present in the \ref
+    /// LayoutRun::fullResult.
+    virtual Result getSingleLayout(hstd::SPtr<IGroup> const& group) = 0;
 };
 
 class IConstraint {};
 
+
 /// \brief Non-structural collection of vertices, edges, constraints and
 /// sub-groups.
 class IGroup {
+  public:
     hstd::Vec<GroupID> subGroups;
     /// \brief Optional instance of the layout algorithm to be executed on
     /// the current group.
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
     hstd::Vec<hstd::SPtr<IConstraint>>         constraints;
+    hstd::SPtr<LayoutRun>                      run;
+
+    /// \brief Add the new vertex to this group, and return
+    /// backend-specific attributes.
+    virtual hstd::SPtr<IVertexVisualAttribute> addVertex(
+        VertexID const& id) = 0;
+
+    /// \brief Create a new group object without own layout algorithm and
+    /// add it as a sub-group for the current one. It will insert a new
+    /// group object in the overall layout run map.
+    virtual GroupID addNewSubgroup() = 0;
+
+    /// \brief Add a layout groupt that already exists in the layout run.
+    virtual void addExistingSubgroup(GroupID const&) = 0;
 };
 
-class ILayoutRun {
-    hstd::UnorderedMap<GroupID, hstd::SPtr<IGroup>> groups;
-    hstd::SPtr<IGraph>                              graph;
+class LayoutRun {
+  public:
+    hstd::UnorderedIncrementalStore<GroupID, hstd::SPtr<IGroup>> groups;
+    hstd::SPtr<IGraph>                                           graph;
+
+    /// \brief Full store for the layout results of all recursive runs.
+    IPlacementAlgorithm::Result fullResult;
+
+    IVertex const& getVertex(VertexID const& id) const {
+        return graph->getVertex(id);
+    }
+
+    GroupID addGroup(hstd::SPtr<IGroup> const& group) {
+        return groups.add(group);
+    }
+
+    hstd::SPtr<IGroup> at(GroupID const& id) const {
+        return groups.at(id);
+    }
 };
 
 
