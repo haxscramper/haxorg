@@ -12,16 +12,65 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 
+
 namespace hstd::ext::geometry {
 namespace bg = boost::geometry;
 
-using Point = bg::model::d2::point_xy<int>;
-using Rect  = bg::model::box<Point>;
+using Point = bg::model::d2::point_xy<float>;
+
+struct Rect;
+} // namespace hstd::ext::geometry
+
+namespace boost::geometry::traits {
+
+template <>
+struct tag<hstd::ext::geometry::Rect>
+    : tag<model::box<hstd::ext::geometry::Point>> {};
+
+template <>
+struct point_type<hstd::ext::geometry::Rect>
+    : point_type<model::box<hstd::ext::geometry::Point>> {};
+
+template <std::size_t Corner, std::size_t Dimension>
+struct indexed_access<hstd::ext::geometry::Rect, Corner, Dimension>
+    : indexed_access<
+          model::box<hstd::ext::geometry::Point>,
+          Corner,
+          Dimension> {};
+
+} // namespace boost::geometry::traits
+
+namespace hstd::ext::geometry {
+
+struct Rect : bg::model::box<Point> {
+    using box = bg::model::box<Point>;
+    using box::box;
+
+    Rect() : box(Point(0, 0), Point(0, 0)) {}
+    Rect(float x, float y, float w, float h)
+        : box(Point(x, y), Point(x + w, y + h)) {}
+
+    float x() const { return bg::get<bg::min_corner, 0>(*this); }
+    float y() const { return bg::get<bg::min_corner, 1>(*this); }
+    float width() const {
+        return bg::get<bg::max_corner, 0>(*this)
+             - bg::get<bg::min_corner, 0>(*this);
+    }
+    float height() const {
+        return bg::get<bg::max_corner, 1>(*this)
+             - bg::get<bg::min_corner, 1>(*this);
+    }
+};
+
+} // namespace hstd::ext::geometry
+
+
+namespace hstd::ext::geometry {
 
 struct Size : public Point {
     using Point::Point;
-    int width() const { return this->x(); }
-    int height() const { return this->y(); }
+    float width() const { return this->x(); }
+    float height() const { return this->y(); }
 };
 
 struct Path {
@@ -85,21 +134,21 @@ struct Path {
         return *this;
     }
 
-    Path& moveTo(int x, int y) { return moveTo(Point{x, y}); }
+    Path& moveTo(float x, float y) { return moveTo(Point{x, y}); }
 
     Path& lineTo(Point const& to) {
         commands.push_back(Command::lineTo(to));
         return *this;
     }
 
-    Path& lineTo(int x, int y) { return lineTo(Point{x, y}); }
+    Path& lineTo(float x, float y) { return lineTo(Point{x, y}); }
 
     Path& quadTo(Point const& control, Point const& to) {
         commands.push_back(Command::quadTo(control, to));
         return *this;
     }
 
-    Path& quadTo(int cx, int cy, int x, int y) {
+    Path& quadTo(float cx, float cy, float x, float y) {
         return quadTo(Point{cx, cy}, Point{x, y});
     }
 
@@ -111,7 +160,13 @@ struct Path {
         return *this;
     }
 
-    Path& cubicTo(int c1x, int c1y, int c2x, int c2y, int x, int y) {
+    Path& cubicTo(
+        float c1x,
+        float c1y,
+        float c2x,
+        float c2y,
+        float x,
+        float y) {
         return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
     }
 

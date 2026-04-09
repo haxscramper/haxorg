@@ -96,6 +96,10 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
 } // namespace hstd
 
 namespace hstd::ext::graph {
+
+
+struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
+
 using namespace hstd::ext::geometry;
 /// \brief 16-bit ID to track edge collection. Used as a mask in the
 /// `EdgeID`.
@@ -179,6 +183,11 @@ class IGraph;
 struct IAttribute {
   public:
     virtual ~IAttribute() = default;
+
+    template <typename T>
+    bool isInstance() const {
+        return dynamic_cast<T const*>(this) != nullptr;
+    }
 };
 
 /// \brief Base class for trackers implementing reverse lookup for
@@ -191,19 +200,82 @@ class IAttributeTracker {
     virtual AttributeTrackerID  getTrackerID() const                  = 0;
 };
 
+class IAttributeObject {
+  public:
+    virtual hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const = 0;
+    virtual void addAttribute(hstd::SPtr<IAttribute> const& attr)   = 0;
 
-struct IVertex : public IGraphObjectBase {
+    /// \brief Get first instance of the attribute with dynamic type `T`.
+    template <typename T>
+    hstd::SPtr<T> getOptionalAttribute() const {
+        for (auto const& attr : getAttributes()) {
+            if (attr->isInstance<T>()) {
+                return std::dynamic_pointer_cast<T>(attr);
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    /// \brief Get all attributes with dynamic type T
+    template <typename T>
+    hstd::Vec<hstd::SPtr<T>> getAllAttributes() const {
+        hstd::Vec<hstd::SPtr<T>> result;
+        for (auto const& attr : getAttributes()) {
+            if (attr->isInstance<T>()) {
+                result.push_back(std::dynamic_pointer_cast<T>(attr));
+            }
+        }
+
+        return result;
+    }
+
+    /// \brief Get one attribute with dynamic type T, the attribute is
+    /// expected to be unique.
+    template <typename T>
+    hstd::SPtr<T> getUniqueAttribute() const {
+        hstd::SPtr<T> result;
+        for (auto const& attr : getAttributes()) {
+            if (attr->isInstance<T>()) {
+                if (result == nullptr) {
+                    result = std::dynamic_pointer_cast<T>(attr);
+                } else {
+                    throw org_graph_error::init(
+                        hstd::fmt(
+                            "Graph object is expected to have exactly one "
+                            "attribute of type {}, but found two.",
+                            hstd::value_metadata<T>::typeName()));
+                }
+            }
+        }
+
+        if (result == nullptr) {
+            throw org_graph_error::init(
+                hstd::fmt(
+                    "Graph object is expected to have exactly one "
+                    "attribute of type {}, but found none.",
+                    hstd::value_metadata<T>::typeName()));
+        }
+
+        return result;
+    }
+};
+
+
+struct IVertex
+    : public IGraphObjectBase
+    , public IAttributeObject {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
     virtual json getSerialNonRecursive(
         IGraph const*                     graph,
         hstd::ext::graph::VertexID const& id) const = 0;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes();
 };
 
-struct IEdge : public IGraphObjectBase {
+struct IEdge
+    : public IGraphObjectBase
+    , public IAttributeObject {
     using id_type = EdgeID;
 
     VertexID source;
@@ -241,8 +313,6 @@ struct IEdge : public IGraphObjectBase {
     bool operator==(IEdge const& other) const {
         return this->isEqual(&other);
     }
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes();
 
     VertexID getSource() const { return source; }
     VertexID getTarget() const { return target; }
@@ -295,7 +365,7 @@ class IEdgeProvider {
     virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
 
     /// \brief Return stable identifier for this edge collection.
-    virtual std::string getStableID() const = 0;
+    virtual std::string getStableID() const;
 
     /// \brief Get the full list of edges stored in the collection
     virtual hstd::Vec<EdgeID> getEdges() const = 0;
@@ -372,9 +442,6 @@ class IEdgeCollection : public IEdgeProvider {
     /// \brief Remove the edge from the collection. This method is called
     /// by the `untrackVertex`.
     virtual void untrackEdge(EdgeID const& id);
-
-
-    virtual EdgeCollectionID getCollectionId() const = 0;
 };
 
 /// \brief Hierarchical arrangement of vertices that forms a forest
@@ -519,14 +586,19 @@ class IVertexHierarchy : public IEdgeProvider {
         VertexID const& target) const;
 };
 
-struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
 
 /// \brief Single set of vertices and a collection of associated edge sets.
 ///
-/// A graph directly stores all vertices in the store, and indirectly
-/// stores additional sets of edges managed by the `IVertexHierarchy` and
+/// A graph tracks all vertices in the store, and indirectly
+/// tracks additional sets of edges managed by the `IVertexHierarchy` and
 /// `IEdgeCollection`. Vertices are stored as opaque IDs -- mapping ID to
 /// the specific object is done by the derived classes.
+///
+/// \note Classes derived from graph are not required to *store* the
+/// vertices -- graph API is designed to track which vertex IDs exist, and
+/// map the vertex ID to the vertex object. Most graphs will store the
+/// vertices directly, but it is also suitable for adapting already
+/// existing graphs.
 class IGraph {
   protected:
     hstd::UnorderedMap<EdgeCollectionID, hstd::SPtr<IEdgeCollection>>
@@ -736,25 +808,29 @@ class IPortVisualAttribute : public IVisualAttribute {};
 class ILayoutAttribute : public IAttribute {};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
+  public:
     /// \brief position + size relative to parent.
-    virtual Rect getBBox() = 0;
+    virtual Rect getBBox() const = 0;
 };
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
-    virtual Path getPath() = 0;
+  public:
+    virtual Path getPath() const = 0;
 };
 
 class IVertexLayoutAttribute : public ILayoutAttribute {
+  public:
     /// \brief Vertex bounding box + position relative to the parent
-    virtual Rect                                         getBBox() = 0;
+    virtual Rect getBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
         const = 0;
 };
 
 class IGroupLayoutAttribute : public ILayoutAttribute {
+  public:
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
-    virtual Rect                                         getBBox() = 0;
+    virtual Rect getBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
         const = 0;
 };
@@ -767,6 +843,9 @@ class LayoutRun;
 
 class IPlacementAlgorithm {
   public:
+    static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
+
+
     /// \brief Result of the placement algorithm execution
     struct Result {
         hstd::UnorderedMap<GroupID, hstd::SPtr<IGroupLayoutAttribute>>
@@ -781,8 +860,8 @@ class IPlacementAlgorithm {
     /// \brief Execute single layout run on the input group. If the group
     /// contains sub-groups with different layout algorithms, their
     /// placement should already be present in the \ref
-    /// LayoutRun::fullResult.
-    virtual Result getSingleLayout(hstd::SPtr<IGroup> const& group) = 0;
+    /// LayoutRun::result.
+    virtual Result runSingleLayout(layout::GroupID const& group) = 0;
 };
 
 class IConstraint {};
@@ -799,10 +878,15 @@ class IGroup {
     hstd::Vec<hstd::SPtr<IConstraint>>         constraints;
     hstd::SPtr<LayoutRun>                      run;
 
+    virtual hstd::Vec<VertexID> getVertices() const = 0;
+    virtual hstd::Vec<EdgeID>   getEdges() const    = 0;
+
     /// \brief Add the new vertex to this group, and return
     /// backend-specific attributes.
     virtual hstd::SPtr<IVertexVisualAttribute> addVertex(
         VertexID const& id) = 0;
+
+    virtual hstd::SPtr<IEdgeVisualAttribute> addEdge(EdgeID const& id) = 0;
 
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
@@ -816,21 +900,51 @@ class IGroup {
 class LayoutRun {
   public:
     hstd::UnorderedIncrementalStore<GroupID, hstd::SPtr<IGroup>> groups;
-    hstd::SPtr<IGraph>                                           graph;
+
+    hstd::SPtr<IGraph> graph;
+    hstd::Vec<GroupID> rootGroups;
+
+    void runFullLayout();
 
     /// \brief Full store for the layout results of all recursive runs.
-    IPlacementAlgorithm::Result fullResult;
+    IPlacementAlgorithm::Result result;
 
     IVertex const& getVertex(VertexID const& id) const {
         return graph->getVertex(id);
+    }
+
+    IEdge const& getEdge(VertexID const& id) const {
+        return graph->getEdge(id);
+    }
+
+    hstd::SPtr<IGroup> const& getGroup(GroupID const& id) const {
+        return groups.at(id);
     }
 
     GroupID addGroup(hstd::SPtr<IGroup> const& group) {
         return groups.add(group);
     }
 
+    GroupID addRootGroup(hstd::SPtr<IGroup> const& group) {
+        auto result = groups.add(group);
+        rootGroups.push_back(result);
+        return result;
+    }
+
     hstd::SPtr<IGroup> at(GroupID const& id) const {
         return groups.at(id);
+    }
+
+    IGroupLayoutAttribute const& getLayout(GroupID const& id) const {
+        return *result.groups.at(id);
+    }
+
+    IEdgeLayoutAttribute const& getLayout(EdgeID const& id) const {
+        return *result.edges.at(id);
+    }
+
+    IVertexLayoutAttribute const& getLayout(VertexID const& id) const {
+        return *result.vertices.at(id);
     }
 };
 

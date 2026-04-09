@@ -271,6 +271,13 @@ hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     return this->node(run->getVertex(id).getStableId());
 }
 
+hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
+    EdgeID const& id) {
+    return edge(
+        *nodeAttributes.at(run->getEdge(id).getSource()),
+        *nodeAttributes.at(run->getEdge(id).getTarget()));
+}
+
 layout::GroupID gv::GraphGroup::addNewSubgroup() {
     auto result = run->addGroup(
         newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
@@ -290,8 +297,9 @@ void gv::GraphGroup::render(
         algorithm.has_value(),
         "Cannot generate render for the graphviz sub-group, this method "
         "can only be used on the graphviz graph");
-    std::dynamic_pointer_cast<gv::Layout>(algorithm.value())
-        ->renderToFile(path, *this, layout, format);
+    auto algo = std::dynamic_pointer_cast<gv::Layout>(algorithm.value());
+    algo->layout = layout;
+    algo->renderToFile(path, *this, format);
 }
 
 Str gv::alignText(Str const& text, TextAlign direction) {
@@ -368,7 +376,7 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
     }
 }
 
-void gv::Layout::createLayout(GraphGroup const& graph, LayoutType layout) {
+void gv::Layout::createLayout(GraphGroup const& graph) {
     int res = gvLayout(
         gvc->get(),
         const_cast<Agraph_t*>(graph.get()),
@@ -415,7 +423,6 @@ void gv::Layout::writeFile(
 void gv::Layout::renderToFile(
     fs::path const&   path,
     GraphGroup const& graph,
-    LayoutType        layout,
     RenderFormat      format) {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
@@ -423,11 +430,103 @@ void gv::Layout::renderToFile(
         writeFile(path, graph, format);
 
     } else {
-        createLayout(graph, layout);
+        createLayout(graph);
 
         writeFile(path, graph, format);
         freeLayout(graph);
     }
+}
+
+layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
+    layout::GroupID const& group) {
+    hstd::Vec<layout::GroupID> algorithmSwitches;
+    auto rootGroup = std::dynamic_pointer_cast<GraphGroup>(
+        run->getGroup(group));
+
+    char const* id_attr = "_gv_layout_id";
+
+    auto aux = [&](this auto&&            self,
+                   layout::GroupID const& id,
+                   layout::GroupID const& parent) -> void {
+        auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
+            run->getGroup(parent));
+        auto group = run->getGroup(id);
+        if (group->algorithm) {
+            auto recursiveBBox = run->getLayout(id).getBBox();
+            auto recursiveNode = parentGroup->node(
+                hstd::fmt("tmp-subgraph-node-{}", id));
+            recursiveNode->setFixedWH(
+                recursiveBBox.width(), recursiveBBox.height());
+            algorithmSwitches.push_back(id);
+        } else {
+            auto gv_group = std::dynamic_pointer_cast<GraphGroup>(group);
+            LOGIC_ASSERTION_CHECK(
+                gv_group != nullptr,
+                "Nested subgroup without layout algorithm must be an "
+                "instance of gv::GraphGroup");
+            for (auto const& sub : group->subGroups) { self(sub, id); }
+
+            for (auto const& vertex : group->getVertices()) {
+                gv_group->nodeAttributes[vertex]->setAttr(
+                    id_attr, vertex.getValue());
+            }
+
+
+            for (auto const& edge : group->getEdges()) {
+                gv_group->edgeAttributes[edge]->setAttr(
+                    id_attr, edge.getValue());
+            }
+        }
+    };
+
+    for (auto const& sub : rootGroup->subgroups) { aux(sub.first, group); }
+
+    std::dynamic_pointer_cast<gv::Layout>(rootGroup->algorithm.value())
+        ->createLayout(*rootGroup);
+
+
+    layout::IPlacementAlgorithm::Result result;
+    // 'each node' iterates over all nodes at once, including ones places
+    // in a subgraph
+    rootGroup->eachNode([&](NodeAttribute const& node) {
+        // // 'edge label' nodes do not correspond to any specific
+        // rectangle
+        // // and are instead pushed out to edge properties.
+        // if (auto prop = node.getAttr<bool>("is_edge_label");
+        //     prop.has_value() && *prop) {
+        //     auto key = GraphEdge{
+        //         .source = node.getAttr<int>(source_index_prop).value(),
+        //         .target = node.getAttr<int>(target_index_prop).value(),
+        //     };
+
+        //     res.lines[key].labelRect = getNodeRectangle(
+        //         graph, node, graphviz_size_scaling, res.bbox);
+
+        // } else {
+        //     // assign to a specific index to match original rectangle.
+        VertexID id{node.getAttr<hstd::u64>(id_attr).value()};
+        result.vertices
+            .insert_or_assign(id, hstd::SPtr <)
+
+                res.fixed.resize_at() = getNodeRectangle(
+            graph, node, graphviz_size_scaling, res.bbox);
+        // }
+    });
+
+    rootGroup->eachEdge([&](EdgeAttribute const& edge) {
+        auto key = GraphEdge{
+            .source = edge.getAttr<int>(source_index_prop).value(),
+            .target = edge.getAttr<int>(target_index_prop).value(),
+        };
+
+        // Push back instead of assignment to collect all pieces of
+        // multi-element edges with label nodes.
+        res.lines[key].paths.push_back(
+            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
+    });
+
+
+    return result;
 }
 
 gv::NodeAttribute::NodeAttribute(
@@ -447,6 +546,39 @@ gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name) {
         node = node_;
     }
 }
+void hstd::ext::graph::gv::NodeAttribute::setFixedWH(double w, double h) {
+    setWidth(w);
+    setHeight(h);
+    setAttr("fixedsize", true);
+    setAttr("original_height", h);
+    setAttr("original_width", w);
+}
 
 
+layout::GroupID gv::Graphviz::getNewGraph() {}
+
+namespace {
+Rect getNodeRectangle(
+    gv::GraphGroup const&    g,
+    gv::NodeAttribute const& node,
+    int                      scaling,
+    Rect const&              bbox) {
+    double width  = node.info()->width * scaling;
+    double height = node.info()->height * scaling;
+    double x      = node.info()->coord.x;
+    double y      = bbox.height() - node.info()->coord.y;
+    int    x1     = std::round(x - width / 2);
+    int    y1     = std::round(y - height / 2);
+    auto   result = Rect(
+        std::round(x1),
+        std::round(y1),
+        std::round(width),
+        std::round(height));
+
+    return result;
+}
+} // namespace
+
+
+Rect gv::GraphVertexLayoutAttribute::getBBox() const {}
 #endif

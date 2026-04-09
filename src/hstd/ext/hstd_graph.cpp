@@ -776,6 +776,10 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
     }
 }
 
+std::string IEdgeProvider::getStableID() const {
+    return hstd::fmt("EdgeProvider-{}", getCategory().t);
+}
+
 bool IEdgeProvider::isHierarchyEdge(EdgeID const& id) {
     return (id.getMask() & HierarchyCategoryMaskBit) != 0;
 }
@@ -800,4 +804,17 @@ hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
         }
     }
     return result;
+}
+
+void layout::LayoutRun::runFullLayout() {
+    hstd::Func<void(hstd::SPtr<IGroup> const&)> aux;
+    aux = [&](hstd::SPtr<IGroup> const& group) {
+        for (auto const& sub : group->subGroups) { aux(getGroup(sub)); }
+
+        if (group->algorithm) {
+            group->algorithm.value()->runSingleLayout(group);
+        }
+    };
+
+    for (auto const& root : rootGroups) { aux(getGroup(root)); }
 }

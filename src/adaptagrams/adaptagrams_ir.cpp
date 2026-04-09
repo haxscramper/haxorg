@@ -143,25 +143,6 @@ std::string getNodePropertiesAsString(
     return result;
 }
 
-GraphRect getNodeRectangle(
-    Graphviz::Graph const& g,
-    Graphviz::Node const&  node,
-    int                    scaling,
-    GraphRect const&       bbox) {
-    double width  = node.info()->width * scaling;
-    double height = node.info()->height * scaling;
-    double x      = node.info()->coord.x;
-    double y      = bbox.height - node.info()->coord.y;
-    int    x1     = std::round(x - width / 2);
-    int    y1     = std::round(y - height / 2);
-    auto   result = GraphRect(
-        std::round(x1),
-        std::round(y1),
-        std::round(width),
-        std::round(height));
-
-    return result;
-}
 
 GraphPath getEdgeSpline(
     Graphviz::Edge const& edge,
@@ -945,40 +926,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     res.bbox = getGraphBBox(graph);
     LOGIC_ASSERTION_CHECK(res.bbox.size() != GraphSize(0, 0), "");
 
-    // 'each node' iterates over all nodes at once, including ones places
-    // in a subgraph
-    graph.eachNode([&](Graphviz::Node const& node) {
-        // 'edge label' nodes do not correspond to any specific rectangle
-        // and are instead pushed out to edge properties.
-        if (auto prop = node.getAttr<bool>("is_edge_label");
-            prop.has_value() && *prop) {
-            auto key = GraphEdge{
-                .source = node.getAttr<int>(source_index_prop).value(),
-                .target = node.getAttr<int>(target_index_prop).value(),
-            };
 
-            res.lines[key].labelRect = getNodeRectangle(
-                graph, node, graphviz_size_scaling, res.bbox);
-
-        } else {
-            // assign to a specific index to match original rectangle.
-            res.fixed
-                .resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
-                graph, node, graphviz_size_scaling, res.bbox);
-        }
-    });
-
-    graph.eachEdge([&](Graphviz::Edge const& edge) {
-        auto key = GraphEdge{
-            .source = edge.getAttr<int>(source_index_prop).value(),
-            .target = edge.getAttr<int>(target_index_prop).value(),
-        };
-
-        // Push back instead of assignment to collect all pieces of
-        // multi-element edges with label nodes.
-        res.lines[key].paths.push_back(
-            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
-    });
 
     auto set_graph = [&](this auto&&            self,
                          Result::Subgraph&      out_parent,

@@ -43,6 +43,8 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
     float        toFloat() const;
     float        toDouble() const;
     int          toInt() const;
+    hstd::u64    toU64() const;
+    hstd::i64    toI64() const;
     void         append(Str const& str);
     [[refl]] int size() const;
     bool         contains(char ch) const;

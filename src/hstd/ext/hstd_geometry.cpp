@@ -17,8 +17,8 @@ json hstd::JsonSerde<Rect>::to_json(ext::geometry::Rect const& box) {
 
 Size hstd::JsonSerde<Size>::from_json(json const& j) {
     return Size(
-        j.contains("width") ? j["width"].get<int>() : -1,
-        j.contains("height") ? j["height"].get<int>() : -1);
+        j.contains("width") ? j["width"].get<float>() : -1,
+        j.contains("height") ? j["height"].get<float>() : -1);
 }
 
 json hstd::JsonSerde<Size>::to_json(ext::geometry::Size const& size) {
@@ -28,8 +28,8 @@ json hstd::JsonSerde<Size>::to_json(ext::geometry::Size const& size) {
 
 Point hstd::JsonSerde<Point>::from_json(json const& j) {
     return Point(
-        j.contains("x") ? j["x"].get<int>() : -1,
-        j.contains("y") ? j["y"].get<int>() : -1);
+        j.contains("x") ? j["x"].get<float>() : -1,
+        j.contains("y") ? j["y"].get<float>() : -1);
 }
 
 json hstd::JsonSerde<Point>::to_json(ext::geometry::Point const& point) {

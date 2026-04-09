@@ -163,6 +163,12 @@ struct GraphvizObjBase : CRTP_this_method<T> {
         if (tmp) { value = tmp->toInt(); }
     }
 
+    void getAttr(Str const& key, Opt<hstd::u64>& value) const {
+        Opt<Str> tmp;
+        getAttr(key, tmp);
+        if (tmp) { value = tmp->toU64(); }
+    }
+
     void getAttr(Str const& key, Opt<double>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
@@ -220,6 +226,10 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     }
 
     void setAttr(Str const& key, int value) {
+        _this()->setAttr(key, std::to_string(value));
+    }
+
+    void setAttr(Str const& key, hstd::u64 value) {
         _this()->setAttr(key, std::to_string(value));
     }
 
@@ -507,6 +517,8 @@ class NodeAttribute
         return (Agnodeinfo_t*)AGDATA(node);
     }
 
+    void setFixedWH(double w, double h);
+
   public:
     Agnode_t* node;
     Agraph_t* graph;
@@ -632,15 +644,14 @@ class GraphGroup
         return tmp;
     }
 
-    EdgeAttribute edge(
+    hstd::SPtr<EdgeAttribute> edge(
         NodeAttribute const& head,
         NodeAttribute const& tail) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
-        auto tmp = EdgeAttribute(graph, head, tail);
-        return tmp;
+        return std::make_shared<EdgeAttribute>(graph, head, tail);
     }
 
-    EdgeAttribute edge(Str const& head, Str const& tail) {
+    hstd::SPtr<EdgeAttribute> edge(Str const& head, Str const& tail) {
         return edge(
             NodeAttribute(graph, head), NodeAttribute(graph, tail));
     }
@@ -727,22 +738,48 @@ class GraphGroup
     EdgeAttribute defaultNode;
     EdgeAttribute defaultEdge;
 
+    hstd::UnorderedMap<VertexID, hstd::SPtr<NodeAttribute>> nodeAttributes;
+    hstd::UnorderedMap<EdgeID, hstd::SPtr<EdgeAttribute>>   edgeAttributes;
+    hstd::UnorderedMap<layout::GroupID, hstd::SPtr<GraphGroup>> subgroups;
+
+    void delVertex(VertexID const& id) {
+        agdelnode(get(), nodeAttributes.at(id)->get());
+        nodeAttributes.erase(id);
+    }
+
+    void delEdge(EdgeID const& id) {
+        agdeledge(get(), edgeAttributes.at(id)->get());
+        edgeAttributes.erase(id);
+    }
+
+    void delSubgraph(layout::GroupID const& id) {
+        agdelsubg(get(), subgroups.at(id)->get());
+        subgroups.erase(id);
+    }
 
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
         VertexID const& id) override;
+    hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(
+        EdgeID const& id) override;
     layout::GroupID addNewSubgroup() override;
     void addExistingSubgroup(layout::GroupID const& id) override;
+
+    virtual hstd::Vec<VertexID> getVertices() const override {
+        return nodeAttributes.keys();
+    }
+
+    virtual hstd::Vec<EdgeID> getEdges() const override {
+        return edgeAttributes.keys();
+    }
 };
 
 class Graphviz;
 class Layout : public layout::IPlacementAlgorithm {
   public:
     Layout(hstd::SPtr<Graphviz> gvc) : gvc{gvc} {}
+    LayoutType layout = LayoutType::Dot;
 
-
-    void createLayout(
-        GraphGroup const& graph,
-        LayoutType        layout = LayoutType::Dot);
+    void createLayout(GraphGroup const& graph);
 
     void freeLayout(GraphGroup graph);
 
@@ -754,10 +791,21 @@ class Layout : public layout::IPlacementAlgorithm {
     void renderToFile(
         fs::path const&   path,
         GraphGroup const& graph,
-        LayoutType        layout = LayoutType::Dot,
         RenderFormat      format = RenderFormat::PNG);
 
     hstd::SPtr<Graphviz> gvc;
+
+    Result runSingleLayout(layout::GroupID const& group) override;
+};
+
+class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
+  public:
+    NodeAttribute node;
+    Rect          getBBox() const override;
+    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
+        const override {
+        return {};
+    }
 };
 
 class Graphviz {

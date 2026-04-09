@@ -1,5 +1,178 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
+#include <hstd/ext/hstd_graph.hpp>
+#include <hstd/ext/graphviz.hpp>
+
+using namespace hstd::ext::graph;
+
+struct TestVertex : public IVertex {
+    VertexID selfId;
+    TestVertex(VertexID selfId) : selfId{selfId} {}
+
+    std::size_t getHash() const override {
+        std::size_t result;
+        hstd::hax_hash_combine(result, selfId);
+        return result;
+    }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return this->selfId
+            == dynamic_cast<TestVertex const*>(other)->selfId;
+    }
+
+    std::string getRepr() const override {
+        return hstd::fmt("IVertex({})", selfId);
+    }
+
+    json getSerialNonRecursive(IGraph const* graph, VertexID const& id)
+        const override {
+        return json{};
+    }
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+};
+
+
+struct TestEdge : public IEdge {
+    using IEdge::IEdge;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+};
+
+struct TestEdgeCollection : public IEdgeCollection {
+  public:
+    hstd::UnorderedIncrementalStore<EdgeID, TestEdge> edgeStore;
+
+    EdgeCollectionID getCategory() const override {
+        return getCollectionIdImpl(this);
+    }
+
+    const IEdge& getEdge(EdgeID const& id) const override {
+        return edgeStore.at(id);
+    }
+
+    hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) override {
+        return {};
+    }
+};
+
+struct TestGraph : public IGraph {
+    hstd::UnorderedIncrementalStore<VertexID, TestVertex> vertexStore;
+    hstd::SPtr<TestEdgeCollection>                        edges;
+
+    TestGraph() : edges{std::make_shared<TestEdgeCollection>()} {}
+
+    VertexID addVertex() {
+        return vertexStore.add(TestVertex{vertexStore.getNextId()});
+    }
+
+    const IVertex& getVertex(VertexID const& id) const override {
+        return vertexStore.at(id);
+    }
+
+    EdgeID addEdge(VertexID const& source, VertexID const& target) {
+        return edges->edgeStore.add(TestEdge{source, target});
+    }
+};
+
+
+class GraphUtils_Test : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        graph = std::make_shared<TestGraph>();
+        run   = std::make_shared<layout::LayoutRun>();
+    }
+
+    hstd::SPtr<TestGraph>         graph;
+    hstd::SPtr<layout::LayoutRun> run;
+
+    hstd::SPtr<gv::GraphGroup> getGv(layout::GroupID const& id) {
+        auto result = std::dynamic_pointer_cast<gv::GraphGroup>(
+            run->at(id));
+        LOGIC_ASSERTION_CHECK(result != nullptr, "");
+        return result;
+    }
+
+    hstd::SPtr<gv::NodeAttribute> getGv(VertexID const& id) {
+        return graph->getVertex(id)
+            .getUniqueAttribute<gv::NodeAttribute>();
+    }
+
+    hstd::SPtr<gv::EdgeAttribute> getGv(EdgeID const& id) {
+        return graph->getEdge(id).getUniqueAttribute<gv::EdgeAttribute>();
+    }
+};
+
+
+TEST_F(GraphUtils_Test, GraphvizIr1) {
+    auto v1 = graph->addVertex();
+    auto v2 = graph->addVertex();
+    auto v3 = graph->addVertex();
+    auto v4 = graph->addVertex();
+
+    auto e12 = graph->addEdge(v1, v2);
+    auto e23 = graph->addEdge(v2, v3);
+    auto e31 = graph->addEdge(v3, v1);
+
+    gv::Graphviz gvc{run};
+
+    auto root = gvc.getNewGraph();
+
+    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+
+    group->addVertex(v1);
+    group->addVertex(v2);
+    group->addVertex(v3);
+    group->addVertex(v4);
+
+    getGv(v1)->setFixedWH(5, 5);
+    getGv(v2)->setFixedWH(5, 5);
+    getGv(v3)->setFixedWH(20, 20);
+    getGv(v4)->setFixedWH(20, 20);
+
+    // group->add
+
+    run->runFullLayout();
+
+    // auto lyt = ir.doGraphvizLayout(gvc);
+    // lyt.writeSvg("/tmp/testGraphvizIr1.svg");
+    // lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
+    // auto converted = lyt.convert();
+
+
+    EXPECT_EQ(run->result.vertices.size(), 4);
+
+    EXPECT_EQ(run->getLayout(v1).getBBox().width(), 5);
+    EXPECT_EQ(run->getLayout(v1).getBBox().height(), 5);
+
+    EXPECT_EQ(run->getLayout(v2).getBBox().width(), 5);
+    EXPECT_EQ(run->getLayout(v2).getBBox().height(), 5);
+
+    EXPECT_EQ(run->getLayout(v3).getBBox().width(), 20);
+    EXPECT_EQ(run->getLayout(v3).getBBox().height(), 20);
+
+    EXPECT_EQ(run->getLayout(v4).getBBox().width(), 20);
+    EXPECT_EQ(run->getLayout(v4).getBBox().height(), 20);
+
+    EXPECT_EQ(run->result.edges.size(), 3);
+}
+
 #if ORG_BUILD_WITH_ADAPTAGRAMS
 #    include <libcola/output_svg.h>
 
