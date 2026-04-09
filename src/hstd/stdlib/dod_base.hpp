@@ -194,25 +194,37 @@ struct [[nodiscard]] Id {
         return getValue() != other.getValue();
     }
 
-    /// \brief Write strig representation of the ID into output stream
-    std::string format(std::string name = "Id", bool withMask = true)
-        const {
-        std::string result;
-        if (name.size() != 0) { result += name + "("; }
+    struct FormatConfig {
+        std::string name         = "Id";
+        bool        withMask     = true;
+        char        mask_format  = ' ';
+        int         mask_pad_to  = 0;
+        char        index_format = ' ';
+        int         index_pad_to = 0;
+    };
 
-        if (withMask) {
+    /// \brief Write strig representation of the ID into output stream
+    std::string format(FormatConfig const& conf = FormatConfig{}) const {
+        std::string result;
+        if (conf.name.size() != 0) { result += conf.name + "("; }
+
+        if (conf.withMask) {
             if (0 < mask_size) {
-                result += std::to_string(getMask()) + ":";
+                result += //
+                    format_integer_bits(
+                        getMask(), conf.mask_format, conf.mask_pad_to)
+                    + ":";
             }
         }
 
         if (isNil()) {
             result += "<nil>";
         } else {
-            result += std::to_string(getIndex());
+            result += format_integer_bits(
+                getIndex(), conf.index_format, conf.index_pad_to);
         }
 
-        if (name.size() != 0) { result += ")"; }
+        if (conf.name.size() != 0) { result += ")"; }
 
         return result;
     }

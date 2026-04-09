@@ -842,6 +842,7 @@ class Graphviz {
   public:
     hstd::SPtr<layout::LayoutRun> run;
     Graphviz(hstd::SPtr<layout::LayoutRun> run) : run{run} {
+        LOGIC_ASSERTION_CHECK(run != nullptr, "");
         gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {
             throw std::runtime_error("Failed to create Graphviz context");

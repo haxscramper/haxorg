@@ -278,20 +278,28 @@ hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     VertexID const& id) {
     auto attribute = this->node(run->getVertex(id)->getStableId());
     const_cast<IVertex*>(run->getVertex(id))->addAttribute(attribute);
+    nodeAttributes.insert_or_assign(id, attribute);
     return attribute;
 }
 
 hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     EdgeID const& id) {
-    return edge(
-        *nodeAttributes.at(run->getEdge(id)->getSource()),
-        *nodeAttributes.at(run->getEdge(id)->getTarget()));
+    auto e    = const_cast<IEdge*>(run->getEdge(id));
+    auto attr = edge(
+        *nodeAttributes.at(e->getSource()),
+        *nodeAttributes.at(e->getTarget()));
+    e->addAttribute(attr);
+    edgeAttributes.insert_or_assign(id, attr);
+    return attr;
 }
 
 layout::GroupID gv::GraphGroup::addNewSubgroup() {
     auto result = run->addGroup(
         newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
 
+    subgroups.insert_or_assign(
+        result,
+        std::dynamic_pointer_cast<GraphGroup>(run->getGroup(result)));
     return result;
 }
 

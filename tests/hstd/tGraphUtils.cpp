@@ -76,7 +76,9 @@ struct TestGraph : public IGraph {
     hstd::UnorderedIncrementalStore<VertexID, TestVertex> vertexStore;
     hstd::SPtr<TestEdgeCollection>                        edges;
 
-    TestGraph() : edges{std::make_shared<TestEdgeCollection>()} {}
+    TestGraph() : edges{std::make_shared<TestEdgeCollection>()} {
+        addCollection(edges);
+    }
 
     VertexID addVertex() {
         return vertexStore.add(TestVertex{vertexStore.getNextId()});
@@ -87,7 +89,8 @@ struct TestGraph : public IGraph {
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        return edges->edgeStore.add(TestEdge{source, target});
+        return edges->edgeStore.add(
+            TestEdge{source, target}, edges->getCategory());
     }
 };
 
@@ -146,7 +149,9 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     getGv(v3)->setFixedWH(20, 20);
     getGv(v4)->setFixedWH(20, 20);
 
-    // group->add
+    group->addEdge(e12);
+    group->addEdge(e23);
+    group->addEdge(e31);
 
     run->runFullLayout();
 

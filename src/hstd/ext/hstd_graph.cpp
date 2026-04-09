@@ -346,11 +346,22 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 
 const IEdge* IGraph::getEdge(EdgeID const& id) const {
     if (IEdgeProvider::isHierarchyEdge(id)) {
-        return hierarchies.at(IEdgeProvider::hierarchyIdFromEdge(id))
-            ->getEdge(id);
+        auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
+        LOGIC_ASSERTION_CHECK_FMT(
+            hierarchies.contains(id1),
+            "Graph does not contain hierarchy with ID {} for edge ID {}",
+            id1.t,
+            id);
+        return hierarchies.at(id1)->getEdge(id);
     } else {
-        return collections.at(IEdgeProvider::edgeCategoryFromEdge(id))
-            ->getEdge(id);
+        auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
+        LOGIC_ASSERTION_CHECK_FMT(
+            collections.contains(id2),
+            "Graph does not contain edge collection with ID {} for edge "
+            "ID {}",
+            id2.t,
+            id);
+        return collections.at(id2)->getEdge(id);
     }
 }
 
@@ -812,7 +823,21 @@ void layout::LayoutRun::runFullLayout() {
         for (auto const& sub : group->subGroups) { self(sub); }
 
         if (group->algorithm) {
-            group->algorithm.value()->runSingleLayout(id);
+            auto sub_res = group->algorithm.value()->runSingleLayout(id);
+            for (auto const& [id, attr] : result.groups) {
+                LOGIC_ASSERTION_CHECK(!result.groups.contains(id), "");
+                result.groups.insert_or_assign(id, attr);
+            }
+
+            for (auto const& [id, attr] : result.vertices) {
+                LOGIC_ASSERTION_CHECK(!result.vertices.contains(id), "");
+                result.vertices.insert_or_assign(id, attr);
+            }
+
+            for (auto const& [id, attr] : result.edges) {
+                LOGIC_ASSERTION_CHECK(!result.edges.contains(id), "");
+                result.edges.insert_or_assign(id, attr);
+            }
         }
     };
 
