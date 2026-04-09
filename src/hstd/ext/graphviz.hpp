@@ -780,7 +780,8 @@ class GraphGroup
 class Graphviz;
 class Layout : public layout::IPlacementAlgorithm {
   public:
-    Layout(hstd::SPtr<Graphviz> gvc) : gvc{gvc} {}
+    Layout(Graphviz* gvc, hstd::SPtr<layout::LayoutRun> run)
+        : layout::IPlacementAlgorithm{run}, gvc{gvc} {}
     LayoutType layout = LayoutType::Dot;
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
@@ -801,7 +802,7 @@ class Layout : public layout::IPlacementAlgorithm {
         GraphGroup const& graph,
         RenderFormat      format = RenderFormat::PNG);
 
-    hstd::SPtr<Graphviz> gvc;
+    Graphviz* gvc;
 
     Result runSingleLayout(layout::GroupID const& group) override;
 };

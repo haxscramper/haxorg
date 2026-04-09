@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include "hstd/stdlib/TraceBase.hpp"
 #include "hstd_geometry.hpp"
 
 namespace hstd {
@@ -424,7 +425,7 @@ class IEdgeCollection : public IEdgeProvider {
     EdgeCollectionID getCollectionIdImpl(T const* self) const {
         return hstd::ext::graph::EdgeCollectionID(
             hstd::hash_bits<15>(typeid(self).hash_code())
-            & HierarchyCategoryMask);
+            & CollectionCategoryMask);
     }
 
 
@@ -951,6 +952,8 @@ class IPlacementAlgorithm {
     /// placement should already be present in the \ref
     /// LayoutRun::result.
     virtual Result runSingleLayout(layout::GroupID const& group) = 0;
+
+    IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
 class IConstraint {};
@@ -988,7 +991,7 @@ class IGroup {
     IGroup(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
-class LayoutRun {
+class LayoutRun : public OperationsTracer {
   public:
     hstd::UnorderedIncrementalStore<GroupID, hstd::SPtr<IGroup>> groups;
 

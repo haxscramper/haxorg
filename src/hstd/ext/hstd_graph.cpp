@@ -351,7 +351,7 @@ const IEdge* IGraph::getEdge(EdgeID const& id) const {
             hierarchies.contains(id1),
             "Graph does not contain hierarchy with ID {} for edge ID {}",
             id1.t,
-            id);
+            id.format());
         return hierarchies.at(id1)->getEdge(id);
     } else {
         auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
@@ -360,7 +360,7 @@ const IEdge* IGraph::getEdge(EdgeID const& id) const {
             "Graph does not contain edge collection with ID {} for edge "
             "ID {}",
             id2.t,
-            id);
+            id.format());
         return collections.at(id2)->getEdge(id);
     }
 }
@@ -818,8 +818,14 @@ hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
 }
 
 void layout::LayoutRun::runFullLayout() {
+    message(
+        hstd::fmt(
+            "run full layout for the graph with root IDs {}", rootGroups));
+
     auto aux = [&](this auto&& self, GroupID const& id) -> void {
-        auto group = getGroup(id);
+        message(hstd::fmt("running layout for group ID {}", id));
+        auto __scope = scopeLevel();
+        auto group   = getGroup(id);
         for (auto const& sub : group->subGroups) { self(sub); }
 
         if (group->algorithm) {

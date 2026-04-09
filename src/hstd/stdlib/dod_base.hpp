@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hstd/stdlib/strutils.hpp>
 #include <string>
 
 #include <hstd/system/all.hpp>
@@ -197,7 +198,7 @@ struct [[nodiscard]] Id {
     struct FormatConfig {
         std::string name         = "Id";
         bool        withMask     = true;
-        char        mask_format  = ' ';
+        char        mask_format  = 'b';
         int         mask_pad_to  = 0;
         char        index_format = ' ';
         int         index_pad_to = 0;
@@ -211,7 +212,7 @@ struct [[nodiscard]] Id {
         if (conf.withMask) {
             if (0 < mask_size) {
                 result += //
-                    format_integer_bits(
+                    hstd::format_integer_bits(
                         getMask(), conf.mask_format, conf.mask_pad_to)
                     + ":";
             }
@@ -220,7 +221,7 @@ struct [[nodiscard]] Id {
         if (isNil()) {
             result += "<nil>";
         } else {
-            result += format_integer_bits(
+            result += hstd::format_integer_bits(
                 getIndex(), conf.index_format, conf.index_pad_to);
         }
 

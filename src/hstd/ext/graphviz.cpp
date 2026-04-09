@@ -456,20 +456,25 @@ void gv::Layout::renderToFile(
 }
 
 layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
-    layout::GroupID const& group) {
+    layout::GroupID const& root_id) {
+    hstd::logic_assertion_check_not_nil(run);
+    run->message("running single layout for gv::Layout Algorithm");
+    auto                       __scope = run->scopeLevel();
     hstd::Vec<layout::GroupID> algorithmSwitches;
     auto rootGroup = std::dynamic_pointer_cast<GraphGroup>(
-        run->getGroup(group));
+        run->getGroup(root_id));
 
     char const* id_attr = "_gv_layout_id";
 
-    auto aux = [&](this auto&&            self,
-                   layout::GroupID const& id,
-                   layout::GroupID const& parent) -> void {
-        auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
-            run->getGroup(parent));
+    auto aux = [&](this auto&&                       self,
+                   layout::GroupID const&            id,
+                   hstd::Opt<layout::GroupID> const& parent) -> void {
         auto group = run->getGroup(id);
-        if (group->algorithm) {
+        if (group->algorithm && id != root_id) {
+            auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
+                run->getGroup(parent.value()));
+            run->message(
+                hstd::fmt("group {} has layout algorithm set", id));
             auto recursiveBBox = run->getLayout(id).getBBox();
             auto recursiveNode = parentGroup->node(
                 hstd::fmt("tmp-subgraph-node-{}", id));
@@ -482,22 +487,30 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 gv_group != nullptr,
                 "Nested subgroup without layout algorithm must be an "
                 "instance of gv::GraphGroup");
+            run->message(
+                hstd::fmt("group {} is a part of parent layout", id));
+            auto __scope = run->scopeLevel();
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
             for (auto const& vertex : group->getVertices()) {
+                run->message(hstd::fmt("vertex {}", vertex));
                 gv_group->nodeAttributes[vertex]->setAttr(
                     id_attr, vertex.getValue());
             }
 
 
             for (auto const& edge : group->getEdges()) {
+                run->message(hstd::fmt("edge {}", edge));
                 gv_group->edgeAttributes[edge]->setAttr(
                     id_attr, edge.getValue());
             }
         }
     };
 
-    for (auto const& sub : rootGroup->subgroups) { aux(sub.first, group); }
+    {
+        run->message("collecting nodes for the graphviz layout");
+        aux(root_id, std::nullopt);
+    }
 
     std::dynamic_pointer_cast<gv::Layout>(rootGroup->algorithm.value())
         ->createLayout(*rootGroup);
@@ -552,8 +565,9 @@ void hstd::ext::graph::gv::NodeAttribute::setFixedWH(double w, double h) {
 
 
 layout::GroupID gv::Graphviz::getNewGraph() {
-    return run->addGroup(
-        std::make_shared<gv::GraphGroup>(run, hstd::Str{"root"}));
+    auto group = std::make_shared<gv::GraphGroup>(run, hstd::Str{"root"});
+    group->algorithm = std::make_shared<gv::Layout>(this, run);
+    return run->addRootGroup(group);
 }
 
 namespace {

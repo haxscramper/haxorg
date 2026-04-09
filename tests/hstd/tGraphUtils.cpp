@@ -2,6 +2,7 @@
 #include <adaptagrams/adaptagrams_ir.hpp>
 #include <hstd/ext/hstd_graph.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include "../common.hpp"
 
 using namespace hstd::ext::graph;
 
@@ -100,6 +101,7 @@ class GraphUtils_Test : public ::testing::Test {
     void SetUp() override {
         graph = std::make_shared<TestGraph>();
         run   = std::make_shared<layout::LayoutRun>(graph);
+        run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 
     hstd::SPtr<TestGraph>         graph;
@@ -153,6 +155,9 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     group->addEdge(e23);
     group->addEdge(e31);
 
+    group->render("/tmp/result.png");
+
+    ASSERT_TRUE(run != nullptr);
     run->runFullLayout();
 
     // auto lyt = ir.doGraphvizLayout(gvc);
