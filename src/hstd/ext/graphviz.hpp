@@ -588,10 +588,14 @@ class GraphGroup
     static const int graphvizKind = AGRAPH;
 
 
-    GraphGroup(Str const& name, Agdesc_t desc = Agdirected);
-    GraphGroup(fs::path const& file);
-    GraphGroup(Agraph_t* graph)
-        : graph(graph)
+    GraphGroup(
+        hstd::SPtr<layout::LayoutRun> run,
+        Str const&                    name,
+        Agdesc_t                      desc = Agdirected);
+    GraphGroup(hstd::SPtr<layout::LayoutRun> run, fs::path const& file);
+    GraphGroup(hstd::SPtr<layout::LayoutRun> run, Agraph_t* graph)
+        : layout::IGroup{run}
+        , graph(graph)
         , defaultEdge(graph, nullptr)
         , defaultNode(graph, nullptr) {
         initDefaultSetters();
@@ -610,7 +614,7 @@ class GraphGroup
 
     hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
         return std::make_shared<GraphGroup>(
-            agsubg(graph, strdup("cluster_" + name), 1));
+            run, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
     void setSplines(Splines splines);
@@ -779,6 +783,10 @@ class Layout : public layout::IPlacementAlgorithm {
     Layout(hstd::SPtr<Graphviz> gvc) : gvc{gvc} {}
     LayoutType layout = LayoutType::Dot;
 
+    /// \brief Which DPI to use when converting to and from graphviz sizes.
+    /// Backend-specific, 72 is the default used by graphviz.
+    [[refl]] int graphviz_size_scaling = 72;
+
     void createLayout(GraphGroup const& graph);
 
     void freeLayout(GraphGroup graph);
@@ -801,12 +809,34 @@ class Layout : public layout::IPlacementAlgorithm {
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
     NodeAttribute node;
-    Rect          getBBox() const override;
+    GraphGroup    graph;
+
+    GraphVertexLayoutAttribute(
+        NodeAttribute const& node,
+        GraphGroup const&    graph)
+        : node{node}, graph{graph} {}
+
+    Rect getBBox() const override;
+
     hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
         const override {
         return {};
     }
 };
+
+class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
+  public:
+    EdgeAttribute edge;
+    GraphGroup    graph;
+
+    GraphEdgeLayoutAttribute(
+        EdgeAttribute const& edge,
+        GraphGroup const&    graph)
+        : edge{edge}, graph{graph} {}
+
+    Path getPath() const override;
+};
+
 
 class Graphviz {
   public:

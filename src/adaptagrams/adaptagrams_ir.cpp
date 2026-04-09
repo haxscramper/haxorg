@@ -49,39 +49,9 @@ char const* original_subgraph_index      = "original_index";
 char const* source_index_prop            = "source_index";
 char const* target_index_prop            = "target_index";
 
-/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
-/// (y down). `height` is the vertical size of the main graph bounding box.
-GraphPoint toGvPoint(pointf p, int height) {
-    return GraphPoint(p.x, height - p.y);
-}
 
-/// \brief Get bounding gox for the nested subtraph
-GraphRect getSubgraphBBox(
-    Graphviz::Graph const& g,
-    GraphRect const&       bbox) {
-    boxf      rect = g.info()->bb;
-    GraphRect res{};
-    LOGIC_ASSERTION_CHECK(0 <= bbox.height, "");
-    auto ll    = toGvPoint(rect.LL, bbox.height);
-    auto ur    = toGvPoint(rect.UR, bbox.height);
-    res.left   = ll.x;
-    res.top    = ur.y;
-    res.width  = ur.x - ll.x;
-    res.height = ll.y - ur.y;
-    LOGIC_ASSERTION_CHECK(0 <= res.height, "");
-    return res;
-}
 
-GraphRect getGraphBBox(Graphviz::Graph const& g) {
-    boxf rect = g.info()->bb;
 
-    // +----[UR]
-    // |       |
-    // [LL]----+
-
-    auto res = GraphRect(0, 0, rect.UR.x, rect.UR.y);
-    return res;
-}
 
 std::string getEdgePropertiesAsString(
     Graphviz::Graph const& graph,
@@ -144,33 +114,7 @@ std::string getNodePropertiesAsString(
 }
 
 
-GraphPath getEdgeSpline(
-    Graphviz::Edge const& edge,
-    int                   scaling,
-    GraphRect const&      bbox) {
-    GraphPath path;
-    splines*  spl = edge.info()->spl;
-    path.bezier   = true;
-    int height    = bbox.height;
-    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
-        bezier bez = spl->list[0];
-        if (bez.sflag) {
-            path.startPoint = toGvPoint(bez.sp, height);
-            path.point(toGvPoint(bez.list[0], height));
-        } else {
-            path.point(toGvPoint(bez.list[0], height));
-        }
 
-        for (int i = 1; i < bez.size; i += 3) {
-            path.point(toGvPoint(bez.list[i], height));
-            path.point(toGvPoint(bez.list[i + 1], height));
-            path.point(toGvPoint(bez.list[i + 2], height));
-        }
-
-        if (bez.eflag) { path.endPoint = toGvPoint(bez.ep, height); }
-    }
-    return path;
-}
 } // namespace
 
 

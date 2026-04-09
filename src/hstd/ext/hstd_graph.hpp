@@ -354,7 +354,7 @@ class IEdgeProvider {
     virtual EdgeCollectionID getCategory() const = 0;
 
     /// \brief Get already constructed edge object from the store.
-    virtual IEdge const& getEdge(EdgeID const& id) const = 0;
+    virtual IEdge const* getEdge(EdgeID const& id) const = 0;
 
     /// \brief Add all edges outgoing from the `id`. The vertex itself
     /// should already be registered with `trackVertex`.
@@ -657,10 +657,11 @@ class IGraph {
     hstd::Vec<IEdgeProvider*> getEdgeProviders();
 
     /// \brief Get vertex object associated with the edge ID.
-    virtual IVertex const& getVertex(VertexID const& id) const = 0;
+    virtual IVertex const* getVertex(VertexID const& id) const = 0;
+
     /// \brief Get the edge from the collection/hierarchy. Use the edge ID
     /// mask to determine which collection the edge comes from.
-    virtual IEdge const& getEdge(EdgeID const& id) const;
+    virtual IEdge const* getEdge(EdgeID const& id) const;
 
     /// \brief For id with given ID, compute the list of vertex
     /// boundaries it crossed in each tracked hierarchy between the source
@@ -770,6 +771,94 @@ class IGraph {
 
     virtual json getGraphSerial() const;
 };
+
+
+struct TrivialVertex : public IVertex {
+    VertexID selfId;
+    TrivialVertex(VertexID selfId) : selfId{selfId} {}
+
+    std::size_t getHash() const override {
+        std::size_t result;
+        hstd::hax_hash_combine(result, selfId);
+        return result;
+    }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return this->selfId
+            == dynamic_cast<TrivialVertex const*>(other)->selfId;
+    }
+
+    std::string getRepr() const override {
+        return hstd::fmt("IVertex({})", selfId);
+    }
+
+    json getSerialNonRecursive(IGraph const* graph, VertexID const& id)
+        const override {
+        return json{};
+    }
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+};
+
+
+struct TrivialEdge : public IEdge {
+    using IEdge::IEdge;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+};
+
+struct TrivialEdgeCollection : public IEdgeCollection {
+  public:
+    hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
+
+    EdgeCollectionID getCategory() const override {
+        return getCollectionIdImpl(this);
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return &edgeStore.at(id);
+    }
+
+    hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) override {
+        return {};
+    }
+};
+
+struct TrivialGraph : public IGraph {
+    hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
+    hstd::SPtr<TrivialEdgeCollection>                        edges;
+
+    TrivialGraph() : edges{std::make_shared<TrivialEdgeCollection>()} {}
+
+    VertexID addVertex() {
+        return vertexStore.add(TrivialVertex{vertexStore.getNextId()});
+    }
+
+    const IVertex* getVertex(VertexID const& id) const override {
+        return &vertexStore.at(id);
+    }
+
+    EdgeID addEdge(VertexID const& source, VertexID const& target) {
+        return edges->edgeStore.add(TrivialEdge{source, target});
+    }
+};
+
 
 /// \brief Generic interface to perform mixed-layout graph visualization
 ///
@@ -895,6 +984,8 @@ class IGroup {
 
     /// \brief Add a layout groupt that already exists in the layout run.
     virtual void addExistingSubgroup(GroupID const&) = 0;
+
+    IGroup(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
 class LayoutRun {
@@ -904,16 +995,18 @@ class LayoutRun {
     hstd::SPtr<IGraph> graph;
     hstd::Vec<GroupID> rootGroups;
 
+    LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {}
+
     void runFullLayout();
 
     /// \brief Full store for the layout results of all recursive runs.
     IPlacementAlgorithm::Result result;
 
-    IVertex const& getVertex(VertexID const& id) const {
+    IVertex const* getVertex(VertexID const& id) const {
         return graph->getVertex(id);
     }
 
-    IEdge const& getEdge(VertexID const& id) const {
+    IEdge const* getEdge(VertexID const& id) const {
         return graph->getEdge(id);
     }
 

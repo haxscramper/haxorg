@@ -204,14 +204,16 @@ struct LogGraphTracker : public ::testing::Test {
 
     void finalize_files() {
         {
-            auto           run  = std::make_shared<layout::LayoutRun>();
+            auto graph = std::make_shared<TrivialGraph>();
+            auto run   = std::make_shared<layout::LayoutRun>(graph);
             hstd::fs::path path = getDebugFile("result.png");
             processor->get_graphviz(run)->render(path);
             std::ifstream file{path};
             EXPECT_TRUE(file.good());
         }
         {
-            auto           run  = std::make_shared<layout::LayoutRun>();
+            auto graph = std::make_shared<TrivialGraph>();
+            auto run   = std::make_shared<layout::LayoutRun>(graph);
             hstd::fs::path path = getDebugFile("result.dot");
             processor->get_graphviz(run)->render(
                 path, gv::LayoutType::Dot, gv::RenderFormat::DOT);
@@ -535,6 +537,7 @@ TEST(LogGraphTrackerManual, real_usage_test) {
     real_usage_test_func::a<2>(tracker);
     tracker->end_tracing();
 
-    auto run = std::make_shared<layout::LayoutRun>();
+    auto graph = std::make_shared<TrivialGraph>();
+    auto run   = std::make_shared<layout::LayoutRun>(graph);
     processor->get_graphviz(run)->render(getDebugFile("result.png"));
 }

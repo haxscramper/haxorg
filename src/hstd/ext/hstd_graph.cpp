@@ -233,10 +233,10 @@ hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
     EdgeID const& edge_id) const {
     hstd::Vec<Crossing> result;
 
-    auto const& edge = getEdge(edge_id);
+    auto edge = getEdge(edge_id);
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
         auto crossings = hierarchy->getHierarchyCrossings(
-            edge.getSource(), edge.getTarget());
+            edge->getSource(), edge->getTarget());
         if (!crossings.empty()) {
             result.push_back(
                 Crossing{
@@ -344,7 +344,7 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
     return hierarchies.at(hierarchy)->getParentVertex(id);
 }
 
-const IEdge& IGraph::getEdge(EdgeID const& id) const {
+const IEdge* IGraph::getEdge(EdgeID const& id) const {
     if (IEdgeProvider::isHierarchyEdge(id)) {
         return hierarchies.at(IEdgeProvider::hierarchyIdFromEdge(id))
             ->getEdge(id);
@@ -553,18 +553,18 @@ json IGraph::getGraphSerial() const {
         category.categoryName = collection->getStableID();
         for (auto const& edge : collection->getEdges()) {
             category.edges.push_back(
-                collection->getEdge(edge).getSerialNonRecursive(
+                collection->getEdge(edge)->getSerialNonRecursive(
                     this, edge));
 
             auto& cross = category.hierarchyEdgeCrossings
-                              [collection->getEdge(edge).getStableId()];
+                              [collection->getEdge(edge)->getStableId()];
             for (auto const& item : getHierarchyCrossings(edge)) {
                 SerialSchema::EdgeCategory::HierarchyCrossing crossing;
                 crossing.hierarchyName = hierarchies.at(item.hierarchy)
                                              ->getStableID();
                 for (auto const& c : item.crossings) {
                     crossing.crossings.push_back(
-                        getVertex(c).getStableId());
+                        getVertex(c)->getStableId());
                 }
                 cross.push_back(crossing);
             }
@@ -575,7 +575,7 @@ json IGraph::getGraphSerial() const {
 
     for (auto const& vertex : hstd::sorted(
              hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
-        res.flatVertexIDs.push_back(getVertex(vertex).getStableId());
+        res.flatVertexIDs.push_back(getVertex(vertex)->getStableId());
     }
 
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
@@ -586,16 +586,16 @@ json IGraph::getGraphSerial() const {
         for (auto const& vertex :
              hstd::sorted(hierarchy->getRootVertices())) {
             serial_hierarchy.rootVertexIDs.push_back(
-                getVertex(vertex).getStableId());
+                getVertex(vertex)->getStableId());
         }
 
         for (auto const& parent : hierarchy->getAllVertices()) {
             auto nested = hierarchy->getSubVertices(parent);
             if (!nested.empty()) {
                 auto& arr = serial_hierarchy.vertexNestingMap
-                                [getVertex(parent).getStableId()];
+                                [getVertex(parent)->getStableId()];
                 for (auto const& it : nested) {
-                    arr.push_back(getVertex(it).getStableId());
+                    arr.push_back(getVertex(it)->getStableId());
                 }
             }
         }
@@ -603,9 +603,9 @@ json IGraph::getGraphSerial() const {
         for (auto const& nested : hierarchy->getAllVertices()) {
             if (auto parent = hierarchy->getParentVertex(nested)) {
                 serial_hierarchy.vertexParentMap
-                    [getVertex(nested).getStableId()] = getVertex(
-                                                            parent.value())
-                                                            .getStableId();
+                    [getVertex(nested)
+                         ->getStableId()] = getVertex(parent.value())
+                                                ->getStableId();
             }
         }
 
@@ -614,9 +614,9 @@ json IGraph::getGraphSerial() const {
     }
 
     for (auto const& vertex : vertexIDs) {
-        json this_serial = getVertex(vertex).getSerialNonRecursive(
+        json this_serial = getVertex(vertex)->getSerialNonRecursive(
             this, vertex);
-        res.vertices[getVertex(vertex).getStableId()] = this_serial;
+        res.vertices[getVertex(vertex)->getStableId()] = this_serial;
     }
 
     return hstd::to_json_eval(res);
@@ -651,8 +651,8 @@ json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
 
     SerialSchema res{
         .edgeId      = getStableId(),
-        .sourceId    = graph->getVertex(source).getStableId(),
-        .targetId    = graph->getVertex(target).getStableId(),
+        .sourceId    = graph->getVertex(source)->getStableId(),
+        .targetId    = graph->getVertex(target)->getStableId(),
         .bundleIndex = bundleIndex,
     };
 
@@ -732,9 +732,9 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
 }
 
 void IEdgeCollection::trackEdge(EdgeID const& id) {
-    IEdge const& edge   = getEdge(id);
-    VertexID     source = edge.getSource();
-    VertexID     target = edge.getTarget();
+    IEdge const* edge   = getEdge(id);
+    VertexID     source = edge->getSource();
+    VertexID     target = edge->getTarget();
 
     if (!incidence.contains(source)) {
         incidence.insert_or_assign(
@@ -752,9 +752,9 @@ void IEdgeCollection::trackEdge(EdgeID const& id) {
 }
 
 void IEdgeCollection::untrackEdge(EdgeID const& id) {
-    IEdge const& edge   = getEdge(id);
-    VertexID     source = edge.getSource();
-    VertexID     target = edge.getTarget();
+    IEdge const* edge   = getEdge(id);
+    VertexID     source = edge->getSource();
+    VertexID     target = edge->getTarget();
 
     if (incidence.contains(source)
         && incidence.at(source).contains(target)) {
@@ -807,14 +807,14 @@ hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
 }
 
 void layout::LayoutRun::runFullLayout() {
-    hstd::Func<void(hstd::SPtr<IGroup> const&)> aux;
-    aux = [&](hstd::SPtr<IGroup> const& group) {
-        for (auto const& sub : group->subGroups) { aux(getGroup(sub)); }
+    auto aux = [&](this auto&& self, GroupID const& id) -> void {
+        auto group = getGroup(id);
+        for (auto const& sub : group->subGroups) { self(sub); }
 
         if (group->algorithm) {
-            group->algorithm.value()->runSingleLayout(group);
+            group->algorithm.value()->runSingleLayout(id);
         }
     };
 
-    for (auto const& root : rootGroups) { aux(getGroup(root)); }
+    for (auto const& root : rootGroups) { aux(root); }
 }

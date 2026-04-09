@@ -63,8 +63,8 @@ struct TestEdgeCollection : public IEdgeCollection {
         return getCollectionIdImpl(this);
     }
 
-    const IEdge& getEdge(EdgeID const& id) const override {
-        return edgeStore.at(id);
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return &edgeStore.at(id);
     }
 
     hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) override {
@@ -82,8 +82,8 @@ struct TestGraph : public IGraph {
         return vertexStore.add(TestVertex{vertexStore.getNextId()});
     }
 
-    const IVertex& getVertex(VertexID const& id) const override {
-        return vertexStore.at(id);
+    const IVertex* getVertex(VertexID const& id) const override {
+        return &vertexStore.at(id);
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
@@ -96,7 +96,7 @@ class GraphUtils_Test : public ::testing::Test {
   protected:
     void SetUp() override {
         graph = std::make_shared<TestGraph>();
-        run   = std::make_shared<layout::LayoutRun>();
+        run   = std::make_shared<layout::LayoutRun>(graph);
     }
 
     hstd::SPtr<TestGraph>         graph;
@@ -111,11 +111,11 @@ class GraphUtils_Test : public ::testing::Test {
 
     hstd::SPtr<gv::NodeAttribute> getGv(VertexID const& id) {
         return graph->getVertex(id)
-            .getUniqueAttribute<gv::NodeAttribute>();
+            ->getUniqueAttribute<gv::NodeAttribute>();
     }
 
     hstd::SPtr<gv::EdgeAttribute> getGv(EdgeID const& id) {
-        return graph->getEdge(id).getUniqueAttribute<gv::EdgeAttribute>();
+        return graph->getEdge(id)->getUniqueAttribute<gv::EdgeAttribute>();
     }
 };
 

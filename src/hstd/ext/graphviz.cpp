@@ -193,8 +193,13 @@ gv::EdgeAttribute::EdgeAttribute(
     }
 }
 
-gv::GraphGroup::GraphGroup(Str const& name, Agdesc_t desc)
-    : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
+gv::GraphGroup::GraphGroup(
+    hstd::SPtr<layout::LayoutRun> run,
+    Str const&                    name,
+    Agdesc_t                      desc)
+    : layout::IGroup{run}
+    , defaultEdge(nullptr, nullptr)
+    , defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
     if (!graph_) {
@@ -207,8 +212,11 @@ gv::GraphGroup::GraphGroup(Str const& name, Agdesc_t desc)
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
 }
 
-gv::GraphGroup::GraphGroup(fs::path const& file)
-    : graph(nullptr)
+gv::GraphGroup::GraphGroup(
+    hstd::SPtr<layout::LayoutRun> run,
+    fs::path const&               file)
+    : layout::IGroup{run}
+    , graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr) {
     LOGIC_ASSERTION_CHECK(fs::is_regular_file(file), "");
@@ -262,20 +270,22 @@ void gv::GraphGroup::eachEdge(Func<void(EdgeAttribute)> cb) {
 void gv::GraphGroup::eachSubgraph(Func<void(GraphGroup)> cb) const {
     for (Agraph_t* subgraph = agfstsubg(graph); subgraph;
          subgraph           = agnxtsubg(subgraph)) {
-        cb(GraphGroup(subgraph));
+        cb(GraphGroup(run, subgraph));
     }
 }
 
 hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     VertexID const& id) {
-    return this->node(run->getVertex(id).getStableId());
+    auto attribute = this->node(run->getVertex(id)->getStableId());
+    const_cast<IVertex*>(run->getVertex(id))->addAttribute(attribute);
+    return attribute;
 }
 
 hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     EdgeID const& id) {
     return edge(
-        *nodeAttributes.at(run->getEdge(id).getSource()),
-        *nodeAttributes.at(run->getEdge(id).getTarget()));
+        *nodeAttributes.at(run->getEdge(id)->getSource()),
+        *nodeAttributes.at(run->getEdge(id)->getTarget()));
 }
 
 layout::GroupID gv::GraphGroup::addNewSubgroup() {
@@ -489,40 +499,18 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        // // 'edge label' nodes do not correspond to any specific
-        // rectangle
-        // // and are instead pushed out to edge properties.
-        // if (auto prop = node.getAttr<bool>("is_edge_label");
-        //     prop.has_value() && *prop) {
-        //     auto key = GraphEdge{
-        //         .source = node.getAttr<int>(source_index_prop).value(),
-        //         .target = node.getAttr<int>(target_index_prop).value(),
-        //     };
-
-        //     res.lines[key].labelRect = getNodeRectangle(
-        //         graph, node, graphviz_size_scaling, res.bbox);
-
-        // } else {
-        //     // assign to a specific index to match original rectangle.
         VertexID id{node.getAttr<hstd::u64>(id_attr).value()};
-        result.vertices
-            .insert_or_assign(id, hstd::SPtr <)
-
-                res.fixed.resize_at() = getNodeRectangle(
-            graph, node, graphviz_size_scaling, res.bbox);
-        // }
+        result.vertices.insert_or_assign(
+            id,
+            std::make_shared<GraphVertexLayoutAttribute>(
+                node, *rootGroup));
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto key = GraphEdge{
-            .source = edge.getAttr<int>(source_index_prop).value(),
-            .target = edge.getAttr<int>(target_index_prop).value(),
-        };
-
-        // Push back instead of assignment to collect all pieces of
-        // multi-element edges with label nodes.
-        res.lines[key].paths.push_back(
-            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
+        VertexID id{edge.getAttr<hstd::u64>(id_attr).value()};
+        result.edges.insert_or_assign(
+            id,
+            std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
     });
 
 
@@ -555,9 +543,24 @@ void hstd::ext::graph::gv::NodeAttribute::setFixedWH(double w, double h) {
 }
 
 
-layout::GroupID gv::Graphviz::getNewGraph() {}
+layout::GroupID gv::Graphviz::getNewGraph() {
+    return run->addGroup(
+        std::make_shared<gv::GraphGroup>(run, hstd::Str{"root"}));
+}
 
 namespace {
+Rect getGraphBBox(gv::GraphGroup const& g) {
+    boxf rect = g.info()->bb;
+
+    // +----[UR]
+    // |       |
+    // [LL]----+
+
+    auto res = Rect(0, 0, rect.UR.x, rect.UR.y);
+    return res;
+}
+
+
 Rect getNodeRectangle(
     gv::GraphGroup const&    g,
     gv::NodeAttribute const& node,
@@ -577,8 +580,72 @@ Rect getNodeRectangle(
 
     return result;
 }
+
+/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
+/// (y down). `height` is the vertical size of the main graph bounding box.
+Point toGvPoint(pointf p, float height) {
+    return Point(p.x, height - p.y);
+}
+
+/// \brief Get bounding gox for the nested subtraph
+Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
+    boxf rect = g.info()->bb;
+    LOGIC_ASSERTION_CHECK(0 <= bbox.height(), "");
+    auto ll = toGvPoint(rect.LL, bbox.height());
+    auto ur = toGvPoint(rect.UR, bbox.height());
+    Rect res{ll.x(), ll.y(), ur.x() - ll.x(), ll.y() - ur.y()};
+    LOGIC_ASSERTION_CHECK(0 <= res.height(), "");
+    return res;
+}
+
+Path getEdgeSpline(
+    gv::EdgeAttribute const& edge,
+    int                      scaling,
+    Rect const&              bbox) {
+    Path     path;
+    splines* spl    = edge.info()->spl;
+    int      height = bbox.height();
+    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
+        bezier bez = spl->list[0];
+        if (bez.sflag) {
+            path.quadTo(
+                toGvPoint(bez.sp, height), toGvPoint(bez.list[0], height));
+        } else {
+            path.moveTo(toGvPoint(bez.list[0], height));
+        }
+
+        for (int i = 1; i < bez.size; i += 3) {
+            path.cubicTo(
+                toGvPoint(bez.list[i], height),
+                toGvPoint(bez.list[i + 1], height),
+                toGvPoint(bez.list[i + 2], height));
+        }
+
+        if (bez.eflag) { path.moveTo(toGvPoint(bez.ep, height)); }
+    }
+    return path;
+}
+
 } // namespace
 
 
-Rect gv::GraphVertexLayoutAttribute::getBBox() const {}
+Rect gv::GraphVertexLayoutAttribute::getBBox() const {
+    return getNodeRectangle(
+        graph,
+        node,
+        std::dynamic_pointer_cast<gv::Layout>(graph.algorithm.value())
+            ->graphviz_size_scaling,
+        getGraphBBox(graph));
+}
+
+
+Path gv::GraphEdgeLayoutAttribute::getPath() const {
+    return getEdgeSpline(
+        edge,
+        std::dynamic_pointer_cast<gv::Layout>(graph.algorithm.value())
+            ->graphviz_size_scaling,
+        getGraphBBox(graph));
+}
+
+
 #endif

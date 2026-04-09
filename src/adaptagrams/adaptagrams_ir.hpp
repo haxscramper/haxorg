@@ -375,9 +375,6 @@ struct [[refl]] GraphLayoutIR {
          graphName,
          graphviz_size_scaling));
 
-    /// \brief Which DPI to use when converting to and from graphviz sizes.
-    /// Backend-specific, 72 is the default used by graphviz.
-    [[refl]] int graphviz_size_scaling = 72;
 
     /// \brief validate the edge/rectangle structure for debugging. Throws
     /// assert failure if the structure is incorrect.
