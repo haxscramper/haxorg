@@ -374,6 +374,8 @@ class NodeAttribute
 
     Str name() const { return agnameof(node); }
 
+    std::string getPropertiesAsString() const;
+
     _eattr(
         NodeAttribute,
         Shape,
@@ -556,6 +558,8 @@ class EdgeAttribute
     Agedge_t*       get() { return edge_; }
     Agedge_t const* get() const { return edge_; }
 
+    std::string getPropertiesAsString() const;
+
     NodeAttribute head() { return NodeAttribute(graph, AGHEAD(edge_)); }
     NodeAttribute tail() { return NodeAttribute(graph, AGTAIL(edge_)); }
 
@@ -604,15 +608,32 @@ class GraphGroup
     static const int graphvizKind = AGRAPH;
 
 
+    struct GVContext : hstd::SharedPtrApi<GVContext> {
+        hstd::UnorderedMap<VertexID, hstd::SPtr<NodeAttribute>>
+            nodeAttributes;
+        hstd::UnorderedMap<EdgeID, hstd::SPtr<EdgeAttribute>>
+            edgeAttributes;
+        hstd::UnorderedMap<layout::GroupID, hstd::SPtr<GraphGroup>> groups;
+    };
+
     GraphGroup(
         hstd::SPtr<layout::LayoutRun> run,
+        GVContext::Ptr                context,
         Str const&                    name,
         Agdesc_t                      desc = Agdirected);
-    GraphGroup(hstd::SPtr<layout::LayoutRun> run, fs::path const& file);
-    GraphGroup(hstd::SPtr<layout::LayoutRun> run, Agraph_t* graph);
+    GraphGroup(
+        hstd::SPtr<layout::LayoutRun> run,
+        GVContext::Ptr                context,
+        fs::path const&               file);
+    GraphGroup(
+        hstd::SPtr<layout::LayoutRun> run,
+        GVContext::Ptr                context,
+        Agraph_t*                     graph);
 
     Agraph_t*       get() { return graph; }
     Agraph_t const* get() const { return graph; }
+
+    std::string getPropertiesAsString() const;
 
     enum class Splines
     {
@@ -624,7 +645,7 @@ class GraphGroup
 
     hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
         return std::make_shared<GraphGroup>(
-            run, agsubg(graph, strdup("cluster_" + name), 1));
+            run, context, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
     void setSplines(Splines splines);
@@ -753,23 +774,26 @@ class GraphGroup
     EdgeAttribute defaultEdge;
     std::string   name;
 
-    hstd::UnorderedMap<VertexID, hstd::SPtr<NodeAttribute>> nodeAttributes;
-    hstd::UnorderedMap<EdgeID, hstd::SPtr<EdgeAttribute>>   edgeAttributes;
-    hstd::UnorderedMap<layout::GroupID, hstd::SPtr<GraphGroup>> subgroups;
+
+    GVContext::Ptr               context;
+    hstd::UnorderedSet<VertexID> directVertices;
+    hstd::UnorderedSet<EdgeID>   directEdges;
 
     void delVertex(VertexID const& id) {
-        agdelnode(get(), nodeAttributes.at(id)->get());
-        nodeAttributes.erase(id);
+        agdelnode(get(), context->nodeAttributes.at(id)->get());
+        context->nodeAttributes.erase(id);
+        directVertices.erase(id);
     }
 
     void delEdge(EdgeID const& id) {
-        agdeledge(get(), edgeAttributes.at(id)->get());
-        edgeAttributes.erase(id);
+        agdeledge(get(), context->edgeAttributes.at(id)->get());
+        context->edgeAttributes.erase(id);
+        directEdges.erase(id);
     }
 
     void delSubgraph(layout::GroupID const& id) {
-        agdelsubg(get(), subgroups.at(id)->get());
-        subgroups.erase(id);
+        agdelsubg(get(), context->groups.at(id)->get());
+        context->groups.erase(id);
     }
 
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
@@ -780,11 +804,12 @@ class GraphGroup
     void addExistingSubgroup(layout::GroupID const& id) override;
 
     virtual hstd::Vec<VertexID> getVertices() const override {
-        return nodeAttributes.keys();
+        return hstd::Vec<VertexID>{
+            directVertices.begin(), directVertices.end()};
     }
 
     virtual hstd::Vec<EdgeID> getEdges() const override {
-        return edgeAttributes.keys();
+        return hstd::Vec<EdgeID>{directEdges.begin(), directEdges.end()};
     }
 
     virtual std::string getStableId() const override {
@@ -859,7 +884,10 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 class Graphviz {
   public:
     hstd::SPtr<layout::LayoutRun> run;
-    Graphviz(hstd::SPtr<layout::LayoutRun> run) : run{run} {
+    GraphGroup::GVContext::Ptr    context;
+
+    Graphviz(hstd::SPtr<layout::LayoutRun> run)
+        : run{run}, context{GraphGroup::GVContext::shared()} {
         LOGIC_ASSERTION_CHECK(run != nullptr, "");
         gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {

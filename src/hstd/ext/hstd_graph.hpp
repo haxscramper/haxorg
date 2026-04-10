@@ -960,7 +960,7 @@ class IConstraint {};
 /// sub-groups.
 class IGroup {
   public:
-    hstd::Vec<GroupID> subGroups;
+    hstd::UnorderedSet<GroupID> subGroups;
     /// \brief Optional instance of the layout algorithm to be executed on
     /// the current group.
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;

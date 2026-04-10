@@ -670,7 +670,19 @@ struct hash<Id> {
         return it.getValue();
     }
 };
+
+
 }; // namespace std
+
+
+template <typename Id>
+    requires hstd::dod::IsIdType<Id> && hstd::DescribedRecord<Id>
+struct std::formatter<Id> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(Id const& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(p.format(), ctx);
+    }
+};
 
 
 namespace hstd::dod {

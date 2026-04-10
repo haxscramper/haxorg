@@ -4,6 +4,13 @@
 #include <hstd/ext/graphviz.hpp>
 #include "../common.hpp"
 
+template <typename A, typename T>
+hstd::SPtr<A> as(hstd::SPtr<T> const& value) {
+    auto result = std::dynamic_pointer_cast<A>(value);
+    hstd::logic_assertion_check_not_nil(result);
+    return result;
+}
+
 using namespace hstd::ext::graph;
 
 struct TestVertex : public IVertex {
@@ -128,7 +135,8 @@ class GraphUtils_Test : public ::testing::Test {
 };
 
 
-TEST_F(GraphUtils_Test, GraphvizIr1) {
+TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
+    // Create initial graph structure
     auto v1 = graph->addVertex();
     auto v2 = graph->addVertex();
     auto v3 = graph->addVertex();
@@ -138,32 +146,43 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     auto e23 = graph->addEdge(v2, v3);
     auto e31 = graph->addEdge(v3, v1);
 
+    // create graphviz-specific layout context
     gv::Graphviz gvc{run};
 
+    // creates a graphviz root graph
     auto root = gvc.getNewGraph();
 
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
 
+    // add vertext, the graph group will internally create a visual
+    // attribute and graphviz node object
     group->addVertex(v1);
     group->addVertex(v2);
     group->addVertex(v3);
     group->addVertex(v4);
 
-    // group.
-
+    // configure visual parameters for graphviz nodes. The methods are
+    // specific to the graphviz layout nodes, and use cgraph API
+    // internally.
     auto shape = gv::NodeAttribute::Shape::rect;
-
     getGv(v1)->setFixedWH(2, 2)->setShape(shape);
     getGv(v2)->setFixedWH(2, 2)->setShape(shape);
     getGv(v3)->setFixedWH(4, 4)->setShape(shape);
     getGv(v4)->setFixedWH(4, 4)->setShape(shape);
 
+    // Add edges to the graphviz graph. This links already existing
+    // semantic vertices to the visual representation in the layout.
     group->addEdge(e12);
     group->addEdge(e23);
     group->addEdge(e31);
 
+    // For the graphviz backend, adding vertices and edges is enough to
+    // gnerate a PNG file with cgraph API. It does not populate the layout
+    // attributes for the overall algorithm, but can be used for debugging.
     group->render("/tmp/result.png");
 
+    // Running for layout will populate all maps and fields of the layout
+    // run with placement information.
     ASSERT_TRUE(run != nullptr);
     run->runFullLayout();
 
@@ -171,6 +190,10 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
 
     auto const& res = run->result;
 
+    // verify the structure and geometry of the vertices. Running full
+    // layout should have created an additional collection of objects
+    // derived from `IVisualAttribute` that can provide bounding boxes for
+    // the entries.
     ASSERT_TRUE(res.vertices.contains(v1));
     ASSERT_TRUE(res.vertices.contains(v2));
     ASSERT_TRUE(res.vertices.contains(v3));
@@ -189,6 +212,131 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     EXPECT_EQ(run->getLayout(v4).getBBox().height(), 4);
 
     EXPECT_EQ(run->result.edges.size(), 3);
+
+    EXPECT_TRUE(res.edges.contains(e12));
+    EXPECT_TRUE(res.edges.contains(e23));
+    EXPECT_TRUE(res.edges.contains(e31));
+
+    EXPECT_TRUE(!res.edges.at(e12)->getPath().commands.empty());
+    EXPECT_TRUE(!res.edges.at(e23)->getPath().commands.empty());
+    EXPECT_TRUE(!res.edges.at(e31)->getPath().commands.empty());
+}
+
+TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
+    hstd::Vec<VertexID> vs;
+    hstd::Vec<EdgeID>   es;
+    for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
+
+    auto edge = [&](int source, int target) {
+        es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
+    };
+
+
+    edge(0, 2);  // 0
+    edge(2, 1);  // 1
+    edge(1, 8);  // 2
+    edge(8, 3);  // 3
+    edge(3, 4);  // 4
+    edge(4, 6);  // 5
+    edge(3, 6);  // 6
+    edge(8, 5);  // 7
+    edge(5, 9);  // 8
+    edge(9, 10); // 9
+    edge(10, 7); // 10
+    edge(7, 5);  // 11
+
+    gv::Graphviz gvc{run};
+
+    auto                       root  = gvc.getNewGraph();
+    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+    auto                       ctx   = group->context;
+
+    EXPECT_EQ(ctx->groups.size(), 1);
+
+    layout::GroupID            sub_group_id1 = group->addNewSubgroup();
+    hstd::SPtr<gv::GraphGroup> sub_group1    = as<gv::GraphGroup>(
+        run->getGroup(sub_group_id1));
+
+    layout::GroupID            sub_group_id2 = group->addNewSubgroup();
+    hstd::SPtr<gv::GraphGroup> sub_group2    = as<gv::GraphGroup>(
+        run->getGroup(sub_group_id2));
+
+    auto shape = gv::NodeAttribute::Shape::rect;
+
+
+    EXPECT_EQ(ctx->groups.size(), 3);
+    EXPECT_EQ(ctx->nodeAttributes.size(), 0);
+    EXPECT_EQ(ctx->edgeAttributes.size(), 0);
+
+    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(3)))
+        ->setFixedWH(2, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-3");
+    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(4)))
+        ->setFixedWH(3, 2)
+        ->setShape(shape)
+        ->setLabel("VERT-4");
+    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(6)))
+        ->setFixedWH(4, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-6");
+
+    EXPECT_EQ(ctx->nodeAttributes.size(), 3);
+    EXPECT_EQ(group->directVertices.size(), 0);
+    EXPECT_EQ(group->directEdges.size(), 0);
+    EXPECT_EQ(sub_group1->directEdges.size(), 0);
+    EXPECT_EQ(sub_group1->directVertices.size(), 3);
+
+    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(5)))
+        ->setFixedWH(2, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-5");
+    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(9)))
+        ->setFixedWH(2, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-9");
+    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(7)))
+        ->setFixedWH(2, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-7");
+    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(10)))
+        ->setFixedWH(2, 1)
+        ->setShape(shape)
+        ->setLabel("VERT-10");
+
+    EXPECT_EQ(group->directVertices.size(), 0);
+    EXPECT_EQ(group->directEdges.size(), 0);
+    EXPECT_EQ(sub_group2->directEdges.size(), 0);
+    EXPECT_EQ(sub_group2->directVertices.size(), 4);
+
+    EXPECT_EQ(group->getVertices().size(), 0);
+    EXPECT_EQ(sub_group1->getVertices().size(), 3);
+    EXPECT_EQ(sub_group2->getVertices().size(), 4);
+
+    EXPECT_EQ(ctx->nodeAttributes.size(), 7);
+
+    as<gv::EdgeAttribute>(sub_group1->addEdge(es.at(4)));
+    as<gv::EdgeAttribute>(sub_group1->addEdge(es.at(5)));
+
+    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(8)));
+    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(9)));
+    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(10)));
+
+    EXPECT_EQ(sub_group1->directEdges.size(), 2);
+    EXPECT_EQ(sub_group2->directEdges.size(), 3);
+
+    group->render(getDebugFile("result.png"));
+
+    EXPECT_EQ(group->getVertices().size(), 0);
+    EXPECT_EQ(sub_group1->getVertices().size(), 3);
+    EXPECT_EQ(sub_group2->getVertices().size(), 4);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    EXPECT_EQ(res.vertices.size(), 7);
+    EXPECT_EQ(res.edges.size(), 5);
 }
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
@@ -1010,73 +1158,7 @@ TEST(GraphUtils, tHolaIr1) {
     EXPECT_TRUE(!conv.lines.at({0, 1}).paths.at(0).points.empty());
 }
 
-TEST(GraphUtils, GraphvizIr1) {
-    GraphLayoutIR ir;
-    Graphviz      gvc;
-    ir.edges.push_back({0, 1});
-    ir.edges.push_back({1, 2});
-    ir.edges.push_back({2, 3});
-
-    ir.rectangles.push_back(GraphSize(5, 5));
-    ir.rectangles.push_back(GraphSize(5, 5));
-    ir.rectangles.push_back(GraphSize(20, 20));
-    ir.rectangles.push_back(GraphSize(20, 20));
-    auto lyt = ir.doGraphvizLayout(gvc);
-    lyt.writeSvg("/tmp/testGraphvizIr1.svg");
-    lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
-    auto converted = lyt.convert();
-    EXPECT_EQ(converted.fixed.size(), 4);
-
-    EXPECT_EQ(converted.fixed.at(0).width, 5);
-    EXPECT_EQ(converted.fixed.at(0).height, 5);
-
-    EXPECT_EQ(converted.fixed.at(1).width, 5);
-    EXPECT_EQ(converted.fixed.at(1).height, 5);
-
-    EXPECT_EQ(converted.fixed.at(2).width, 20);
-    EXPECT_EQ(converted.fixed.at(2).height, 20);
-
-    EXPECT_EQ(converted.fixed.at(3).width, 20);
-    EXPECT_EQ(converted.fixed.at(3).height, 20);
-
-    EXPECT_EQ(converted.lines.size(), 3);
-}
-
 TEST(GraphUtils, GraphvizIrClusters) {
-    GraphLayoutIR ir;
-    Graphviz      gvc;
-
-    auto edge = [&](int source, int target) {
-        ir.edges.push_back({source, target});
-    };
-
-    for (int i = 0; i <= 10; ++i) {
-        ir.rectangles.push_back(GraphSize(10, 10));
-    }
-
-    using S = GraphLayoutIR::Subgraph;
-
-
-    edge(0, 2);
-    edge(2, 1);
-    edge(1, 8);
-    edge(8, 3);
-    edge(3, 4);
-    edge(4, 6);
-    edge(3, 6);
-    edge(8, 5);
-    edge(5, 9);
-    edge(9, 10);
-    edge(10, 7);
-    edge(7, 5);
-
-    ir.subgraphs.push_back(
-        S{.nodes     = {}, // No nodes in the first cluster,
-          .subgraphs = {
-              S{.nodes = {3, 4, 6}},
-              S{.nodes = {5, 9, 7, 10}},
-          }});
-
     auto lyt = ir.doGraphvizLayout(gvc);
     lyt.writeSvg("/tmp/testGraphvizIrClusters.svg");
     lyt.writeXDot("/tmp/testGraphvizIrClusters.xdot");

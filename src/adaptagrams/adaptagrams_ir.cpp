@@ -53,67 +53,6 @@ char const* target_index_prop            = "target_index";
 
 
 
-std::string getEdgePropertiesAsString(
-    Graphviz::Graph const& graph,
-    Graphviz::Edge const&  edge) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGEDGE, NULL); sym;
-         sym = agnxtattr(graph.graph, AGEDGE, sym)) {
-        value = agxget(edge.edge_, sym);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-    return result;
-}
-
-std::string getGraphPropertiesAsString(Graphviz::Graph const& graph) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGRAPH, NULL); sym;
-         sym = agnxtattr(graph.graph, AGRAPH, sym)) {
-        value = agget(graph.graph, sym->name);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-    return result;
-}
-
-std::string getNodePropertiesAsString(
-    Graphviz::Graph const& graph,
-    Graphviz::Node const&  node) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGNODE, NULL); sym;
-         sym = agnxtattr(graph.graph, AGNODE, sym)) {
-        value = agxget(node.node, sym);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-
-    return result;
-}
-
-
 
 } // namespace
 
