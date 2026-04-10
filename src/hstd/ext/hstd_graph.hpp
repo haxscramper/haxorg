@@ -959,13 +959,29 @@ class IConstraint {};
 /// \brief Non-structural collection of vertices, edges, constraints and
 /// sub-groups.
 class IGroup {
+    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
+
   public:
     hstd::UnorderedSet<GroupID> subGroups;
     /// \brief Optional instance of the layout algorithm to be executed on
     /// the current group.
-    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
-    hstd::Vec<hstd::SPtr<IConstraint>>         constraints;
-    hstd::SPtr<LayoutRun>                      run;
+    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
+    hstd::SPtr<LayoutRun>              run;
+
+    template <typename T = IPlacementAlgorithm>
+    hstd::SPtr<T> getAlgorithm() const {
+        auto result = std::dynamic_pointer_cast<T>(algorithm.value());
+        hstd::logic_assertion_check_not_nil(result);
+        return result;
+    }
+
+    void setAlgorithm(
+        hstd::SPtr<IPlacementAlgorithm> const& newAlgorithm) {
+        algorithm = newAlgorithm;
+    }
+
+    bool hasAlgorithm() const { return algorithm.has_value(); }
+
 
     virtual std::string         getStableId() const = 0;
     virtual hstd::Vec<VertexID> getVertices() const = 0;

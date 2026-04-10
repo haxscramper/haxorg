@@ -795,8 +795,8 @@ void layout::LayoutRun::runFullLayout() {
         auto group   = getGroup(id);
         for (auto const& sub : group->subGroups) { self(sub); }
 
-        if (group->algorithm) {
-            auto sub_res = group->algorithm.value()->runSingleLayout(id);
+        if (group->hasAlgorithm()) {
+            auto sub_res = group->getAlgorithm()->runSingleLayout(id);
             for (auto const& [id, attr] : sub_res.groups) {
                 LOGIC_ASSERTION_CHECK(!result.groups.contains(id), "");
                 result.groups.insert_or_assign(id, attr);

@@ -362,6 +362,8 @@ layout::GroupID gv::GraphGroup::addNewSubgroup() {
         result,
         std::dynamic_pointer_cast<GraphGroup>(run->getGroup(result)));
 
+    subGroups.insert(result);
+
     return result;
 }
 
@@ -379,10 +381,10 @@ void gv::GraphGroup::render(
     LayoutType      layout,
     RenderFormat    format) {
     LOGIC_ASSERTION_CHECK(
-        algorithm.has_value(),
+        hasAlgorithm(),
         "Cannot generate render for the graphviz sub-group, this method "
         "can only be used on the graphviz graph");
-    auto algo = std::dynamic_pointer_cast<gv::Layout>(algorithm.value());
+    auto algo    = getAlgorithm<gv::Layout>();
     algo->layout = layout;
     algo->renderToFile(path, *this, format);
 }
@@ -537,7 +539,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                    layout::GroupID const&            id,
                    hstd::Opt<layout::GroupID> const& parent) -> void {
         auto group = run->getGroup(id);
-        if (group->algorithm && id != root_id) {
+        if (group->hasAlgorithm() && id != root_id) {
             auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
                 run->getGroup(parent.value()));
             run->message(
@@ -558,8 +560,9 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 "instance of gv::GraphGroup");
             run->message(
                 hstd::fmt(
-                    "group {} is a part of parent layout",
-                    group->getStableId()));
+                    "group '{}' is a part of parent layout '{}'",
+                    group->getStableId(),
+                    parent));
 
             auto __scope = run->scopeLevel();
             for (auto const& sub : group->subGroups) { self(sub, id); }
@@ -584,9 +587,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
         aux(root_id, std::nullopt);
     }
 
-    std::dynamic_pointer_cast<gv::Layout>(rootGroup->algorithm.value())
-        ->createLayout(*rootGroup);
-
+    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup);
 
     layout::IPlacementAlgorithm::Result result;
     // 'each node' iterates over all nodes at once, including ones places
@@ -651,8 +652,8 @@ gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedWH(
 layout::GroupID gv::Graphviz::getNewGraph() {
     auto group = std::make_shared<gv::GraphGroup>(
         run, context, hstd::Str{"root"});
-    group->algorithm = std::make_shared<gv::Layout>(this, run);
-    auto id          = run->addRootGroup(group);
+    group->setAlgorithm(std::make_shared<gv::Layout>(this, run));
+    auto id = run->addRootGroup(group);
     context->groups.insert_or_assign(id, group);
     return id;
 }
@@ -742,8 +743,7 @@ Rect gv::GraphVertexLayoutAttribute::getBBox() const {
     return getNodeRectangle(
         graph,
         node,
-        std::dynamic_pointer_cast<gv::Layout>(graph.algorithm.value())
-            ->graphviz_size_scaling,
+        graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
         getGraphBBox(graph));
 }
 
@@ -751,8 +751,7 @@ Rect gv::GraphVertexLayoutAttribute::getBBox() const {
 Path gv::GraphEdgeLayoutAttribute::getPath() const {
     return getEdgeSpline(
         edge,
-        std::dynamic_pointer_cast<gv::Layout>(graph.algorithm.value())
-            ->graphviz_size_scaling,
+        graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
         getGraphBBox(graph));
 }
 

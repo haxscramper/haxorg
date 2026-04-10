@@ -252,6 +252,7 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     auto                       ctx   = group->context;
 
     EXPECT_EQ(ctx->groups.size(), 1);
+    EXPECT_EQ(group->subGroups.size(), 0);
 
     layout::GroupID            sub_group_id1 = group->addNewSubgroup();
     hstd::SPtr<gv::GraphGroup> sub_group1    = as<gv::GraphGroup>(
@@ -264,6 +265,7 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     auto shape = gv::NodeAttribute::Shape::rect;
 
 
+    EXPECT_EQ(group->subGroups.size(), 2);
     EXPECT_EQ(ctx->groups.size(), 3);
     EXPECT_EQ(ctx->nodeAttributes.size(), 0);
     EXPECT_EQ(ctx->edgeAttributes.size(), 0);
