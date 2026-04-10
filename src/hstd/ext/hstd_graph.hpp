@@ -893,20 +893,19 @@ class IPortVisualAttribute : public IVisualAttribute {};
 
 /// \brief Base class for all attributes describing post-layout placement
 /// and shape information for the graph elements.
-class ILayoutAttribute : public IAttribute {
-  public:
-    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
-};
+class ILayoutAttribute : public IAttribute {};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief position + size relative to parent.
-    virtual Rect getBBox() const = 0;
+    virtual Rect                        getBBox() const   = 0;
+    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
 };
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
-    virtual Path getPath() const = 0;
+    virtual Path                        getPath() const   = 0;
+    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
 };
 
 class IVertexLayoutAttribute : public ILayoutAttribute {
@@ -914,7 +913,8 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
     /// \brief Vertex bounding box + position relative to the parent
     virtual Rect getBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
-        const = 0;
+        const                                             = 0;
+    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
 };
 
 class IGroupLayoutAttribute : public ILayoutAttribute {
@@ -923,7 +923,8 @@ class IGroupLayoutAttribute : public ILayoutAttribute {
     /// relative to the parent group.
     virtual Rect getBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
-        const = 0;
+        const                                  = 0;
+    virtual visual::VisGroup getVisual() const = 0;
 };
 
 
@@ -1076,6 +1077,8 @@ class LayoutRun : public OperationsTracer {
             id);
         return *result.vertices.at(id);
     }
+
+    hstd::Vec<visual::VisGroup> getVisual() const;
 };
 
 

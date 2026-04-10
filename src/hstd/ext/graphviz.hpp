@@ -911,7 +911,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         return {};
     }
 
-    hstd::Vec<visual::VisGroup> getVisual() const override;
+    visual::VisGroup getVisual() const override;
 };
 
 

@@ -8,6 +8,8 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
+static constexpr int scaling = 1;
+
 namespace {
 Rect getGraphBBox(gv::GraphGroup const& g) {
     boxf rect = g.info()->bb;
@@ -957,7 +959,7 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
     const {
     Rect bbox     = getGraphBBox(graph);
-    Rect nodeRect = getNodeRectangle(graph, node, 72, bbox);
+    Rect nodeRect = getNodeRectangle(graph, node, scaling, bbox);
 
     visual::VisGroup result;
     result.offset = Point{nodeRect.x(), nodeRect.y()};
@@ -1069,7 +1071,7 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
     const {
     Rect bbox = getGraphBBox(graph);
-    Path path = getEdgeSpline(edge, 72, bbox);
+    Path path = getEdgeSpline(edge, scaling, bbox);
 
     visual::VisGroup result;
 
@@ -1149,9 +1151,7 @@ hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
     return {result};
 }
 
-
-hstd::Vec<visual::VisGroup> gv::GraphGroupLayoutAttribute::getVisual()
-    const {
+visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     visual::VisGroup result;
 
     // The `graph` field is already a Rect (the subgraph bounding box)
@@ -1170,7 +1170,7 @@ hstd::Vec<visual::VisGroup> gv::GraphGroupLayoutAttribute::getVisual()
     rectElem.data = rect;
     result.elements.push_back(rectElem);
 
-    return {result};
+    return result;
 }
 
 #endif

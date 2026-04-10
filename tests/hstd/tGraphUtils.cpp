@@ -2,6 +2,8 @@
 #include <adaptagrams/adaptagrams_ir.hpp>
 #include <hstd/ext/hstd_graph.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 #include "../common.hpp"
 
 template <typename A, typename T>
@@ -372,7 +374,6 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg_id2));
 
-
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
         ->setFixedWH(1, 1)
         ->setLabel("VERT-0");
@@ -416,6 +417,10 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     EXPECT_EQ(res.vertices.size(), 6);
     EXPECT_EQ(res.edges.size(), 6);
+
+    auto visual = run->getVisual();
+
+    HSLOG_INFO("dump: {}", hstd::to_json_eval(visual).dump(2));
 }
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
