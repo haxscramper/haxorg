@@ -341,6 +341,83 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     EXPECT_EQ(res.edges.size(), 5);
 }
 
+TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
+    hstd::Vec<VertexID> vs;
+    hstd::Vec<EdgeID>   es;
+    for (int i = 0; i < 6; ++i) { vs.push_back(graph->addVertex()); }
+
+    auto edge = [&](int source, int target) {
+        es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
+    };
+
+
+    edge(0, 1); // 0
+    edge(1, 2); // 1
+    edge(2, 0); // 2
+    edge(3, 4); // 3
+    edge(4, 5); // 4
+    edge(5, 3); // 5
+
+    gv::Graphviz gvc{run};
+
+    auto                       root  = gvc.getNewGraph();
+    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+    auto                       ctx   = group->context;
+
+    layout::GroupID            sg_id1 = group->addNewSubgroup();
+    hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
+        run->getGroup(sg_id1));
+
+    layout::GroupID            sg_id2 = group->addNewSubgroup();
+    hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
+        run->getGroup(sg_id2));
+
+
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-0");
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(1)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-1");
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(2)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-2");
+
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(3)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-3");
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(4)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-4");
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(5)))
+        ->setFixedWH(1, 1)
+        ->setLabel("VERT-5");
+
+
+    as<gv::EdgeAttribute>(sg1->addEdge(es.at(0)));
+    as<gv::EdgeAttribute>(sg1->addEdge(es.at(1)));
+    as<gv::EdgeAttribute>(sg1->addEdge(es.at(2)));
+
+    as<gv::EdgeAttribute>(sg2->addEdge(es.at(3)));
+    as<gv::EdgeAttribute>(sg2->addEdge(es.at(4)));
+    as<gv::EdgeAttribute>(sg2->addEdge(es.at(5)));
+
+    auto alg1    = std::make_shared<gv::Layout>(&gvc, run);
+    alg1->layout = gv::LayoutType::Circo;
+    sg1->setAlgorithm(alg1);
+
+    auto alg2    = std::make_shared<gv::Layout>(&gvc, run);
+    alg1->layout = gv::LayoutType::Sfdp;
+    sg2->setAlgorithm(alg1);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    EXPECT_EQ(res.vertices.size(), 6);
+    EXPECT_EQ(res.edges.size(), 6);
+}
+
 #if ORG_BUILD_WITH_ADAPTAGRAMS
 #    include <libcola/output_svg.h>
 

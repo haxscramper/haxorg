@@ -1050,14 +1050,26 @@ class LayoutRun : public OperationsTracer {
     }
 
     IGroupLayoutAttribute const& getLayout(GroupID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.groups.contains(id),
+            "No layout attribute specified for group ID {}",
+            id);
         return *result.groups.at(id);
     }
 
     IEdgeLayoutAttribute const& getLayout(EdgeID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.edges.contains(id),
+            "No layout attribute specified for edge ID {}",
+            id);
         return *result.edges.at(id);
     }
 
     IVertexLayoutAttribute const& getLayout(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.vertices.contains(id),
+            "No layout attribute specified for vertex ID {}",
+            id);
         return *result.vertices.at(id);
     }
 };

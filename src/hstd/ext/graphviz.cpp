@@ -8,6 +8,87 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
+namespace {
+Rect getGraphBBox(gv::GraphGroup const& g) {
+    boxf rect = g.info()->bb;
+
+    // +----[UR]
+    // |       |
+    // [LL]----+
+
+    auto res = Rect(0, 0, rect.UR.x, rect.UR.y);
+    return res;
+}
+
+
+Rect getNodeRectangle(
+    gv::GraphGroup const&    g,
+    gv::NodeAttribute const& node,
+    int                      scaling,
+    Rect const&              bbox) {
+    double width  = node.info()->width * scaling;
+    double height = node.info()->height * scaling;
+    double x      = node.info()->coord.x;
+    double y      = bbox.height() - node.info()->coord.y;
+    int    x1     = std::round(x - width / 2);
+    int    y1     = std::round(y - height / 2);
+    auto   result = Rect(
+        std::round(x1),
+        std::round(y1),
+        std::round(width),
+        std::round(height));
+
+    return result;
+}
+
+/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
+/// (y down). `height` is the vertical size of the main graph bounding box.
+Point toGvPoint(pointf p, float height) {
+    return Point(p.x, height - p.y);
+}
+
+/// \brief Get bounding gox for the nested subtraph
+Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
+    boxf rect = g.info()->bb;
+    LOGIC_ASSERTION_CHECK(0 <= bbox.height(), "");
+    auto ll = toGvPoint(rect.LL, bbox.height());
+    auto ur = toGvPoint(rect.UR, bbox.height());
+    Rect res{ll.x(), ll.y(), ur.x() - ll.x(), ll.y() - ur.y()};
+    LOGIC_ASSERTION_CHECK(0 <= res.height(), "");
+    return res;
+}
+
+Path getEdgeSpline(
+    gv::EdgeAttribute const& edge,
+    int                      scaling,
+    Rect const&              bbox) {
+    Path     path;
+    splines* spl    = edge.info()->spl;
+    int      height = bbox.height();
+    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
+        bezier bez = spl->list[0];
+        if (bez.sflag) {
+            path.quadTo(
+                toGvPoint(bez.sp, height), toGvPoint(bez.list[0], height));
+        } else {
+            path.moveTo(toGvPoint(bez.list[0], height));
+        }
+
+        for (int i = 1; i < bez.size; i += 3) {
+            path.cubicTo(
+                toGvPoint(bez.list[i], height),
+                toGvPoint(bez.list[i + 1], height),
+                toGvPoint(bez.list[i + 2], height));
+        }
+
+        if (bez.eflag) { path.moveTo(toGvPoint(bez.ep, height)); }
+    }
+    return path;
+}
+
+} // namespace
+
+
 Str gv::escape(Str const& input) {
     Str escaped;
     escaped.reserve(input.size());
@@ -533,7 +614,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     auto rootGroup = std::dynamic_pointer_cast<GraphGroup>(
         run->getGroup(root_id));
 
-    char const* id_attr = "_gv_layout_id";
+    char const* id_attr      = "_gv_layout_id";
+    char const* id_sub_group = "_gv_group";
 
     auto aux = [&](this auto&&                       self,
                    layout::GroupID const&            id,
@@ -549,6 +631,9 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto recursiveBBox = run->getLayout(id).getBBox();
             auto recursiveNode = parentGroup->node(
                 hstd::fmt("tmp-subgraph-node-{}", id));
+
+            recursiveNode->setAttr(id_sub_group, id.getValue());
+
             recursiveNode->setFixedWH(
                 recursiveBBox.width(), recursiveBBox.height());
             algorithmSwitches.push_back(id);
@@ -593,17 +678,28 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        auto id_value = node.getAttr<hstd::u64>(id_attr);
-        LOGIC_ASSERTION_CHECK_FMT(
-            id_value.has_value(),
-            "No ID attr property for node {}",
-            node.getPropertiesAsString());
-        auto id = VertexID::FromValue(id_value.value());
-        run->message(hstd::fmt("each-group iterate vertex {}", id));
-        result.vertices.insert_or_assign(
-            id,
-            std::make_shared<GraphVertexLayoutAttribute>(
-                node, *rootGroup));
+        if (hstd::Opt<hstd::u64> _tmp;
+            node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
+            auto id = layout::GroupID::FromValue(_tmp.value());
+            run->message(hstd::fmt("found sub-group {} placement", id));
+            result.groups.insert_or_assign(
+                id,
+                std::make_shared<GraphGroupLayoutAttribute>(
+                    getNodeRectangle(
+                        *rootGroup, node, 1, getGraphBBox(*rootGroup))));
+        } else {
+            auto id_value = node.getAttr<hstd::u64>(id_attr);
+            LOGIC_ASSERTION_CHECK_FMT(
+                id_value.has_value(),
+                "No ID attr property for node {}",
+                node.getPropertiesAsString());
+            auto id = VertexID::FromValue(id_value.value());
+            run->message(hstd::fmt("each-group iterate vertex {}", id));
+            result.vertices.insert_or_assign(
+                id,
+                std::make_shared<GraphVertexLayoutAttribute>(
+                    node, *rootGroup));
+        }
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
@@ -614,6 +710,17 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
     });
+
+    // Bounding box for a group/sub-group is set twice. The first time is
+    // when the group layout is done at the leaf level, then the
+    // configuration only assigns a bounding box with height/width,
+    // postiioned at 0,0. When the group layout is done as an opaque nested
+    // node, then the attribute is reset with a bounding box positioned on
+    // the final coordinates.
+    result.groups.insert_or_assign(
+        root_id,
+        std::make_shared<GraphGroupLayoutAttribute>(
+            getGraphBBox(*rootGroup)));
 
 
     return result;
@@ -658,86 +765,6 @@ layout::GroupID gv::Graphviz::getNewGraph() {
     return id;
 }
 
-namespace {
-Rect getGraphBBox(gv::GraphGroup const& g) {
-    boxf rect = g.info()->bb;
-
-    // +----[UR]
-    // |       |
-    // [LL]----+
-
-    auto res = Rect(0, 0, rect.UR.x, rect.UR.y);
-    return res;
-}
-
-
-Rect getNodeRectangle(
-    gv::GraphGroup const&    g,
-    gv::NodeAttribute const& node,
-    int                      scaling,
-    Rect const&              bbox) {
-    double width  = node.info()->width * scaling;
-    double height = node.info()->height * scaling;
-    double x      = node.info()->coord.x;
-    double y      = bbox.height() - node.info()->coord.y;
-    int    x1     = std::round(x - width / 2);
-    int    y1     = std::round(y - height / 2);
-    auto   result = Rect(
-        std::round(x1),
-        std::round(y1),
-        std::round(width),
-        std::round(height));
-
-    return result;
-}
-
-/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
-/// (y down). `height` is the vertical size of the main graph bounding box.
-Point toGvPoint(pointf p, float height) {
-    return Point(p.x, height - p.y);
-}
-
-/// \brief Get bounding gox for the nested subtraph
-Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
-    boxf rect = g.info()->bb;
-    LOGIC_ASSERTION_CHECK(0 <= bbox.height(), "");
-    auto ll = toGvPoint(rect.LL, bbox.height());
-    auto ur = toGvPoint(rect.UR, bbox.height());
-    Rect res{ll.x(), ll.y(), ur.x() - ll.x(), ll.y() - ur.y()};
-    LOGIC_ASSERTION_CHECK(0 <= res.height(), "");
-    return res;
-}
-
-Path getEdgeSpline(
-    gv::EdgeAttribute const& edge,
-    int                      scaling,
-    Rect const&              bbox) {
-    Path     path;
-    splines* spl    = edge.info()->spl;
-    int      height = bbox.height();
-    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
-        bezier bez = spl->list[0];
-        if (bez.sflag) {
-            path.quadTo(
-                toGvPoint(bez.sp, height), toGvPoint(bez.list[0], height));
-        } else {
-            path.moveTo(toGvPoint(bez.list[0], height));
-        }
-
-        for (int i = 1; i < bez.size; i += 3) {
-            path.cubicTo(
-                toGvPoint(bez.list[i], height),
-                toGvPoint(bez.list[i + 1], height),
-                toGvPoint(bez.list[i + 2], height));
-        }
-
-        if (bez.eflag) { path.moveTo(toGvPoint(bez.ep, height)); }
-    }
-    return path;
-}
-
-} // namespace
-
 
 Rect gv::GraphVertexLayoutAttribute::getBBox() const {
     return getNodeRectangle(
@@ -754,6 +781,9 @@ Path gv::GraphEdgeLayoutAttribute::getPath() const {
         graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
         getGraphBBox(graph));
 }
+
+
+Rect gv::GraphGroupLayoutAttribute::getBBox() const { return graph; }
 
 
 std::string gv::EdgeAttribute::getPropertiesAsString() const {

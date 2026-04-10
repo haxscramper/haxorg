@@ -795,20 +795,40 @@ void layout::LayoutRun::runFullLayout() {
         auto group   = getGroup(id);
         for (auto const& sub : group->subGroups) { self(sub); }
 
+        for (auto const& sub : group->subGroups) {
+            if (getGroup(sub)->hasAlgorithm()) {
+                LOGIC_ASSERTION_CHECK_FMT(
+                    result.groups.contains(sub),
+                    "Sub-group '{}' has algorithm specified, but "
+                    "recursive walk for layout did not assign the "
+                    "bounding box to it. The `runSingleLayout` for a "
+                    "group must create a bounding box for result.",
+                    getGroup(sub)->getStableId());
+            }
+        }
+
         if (group->hasAlgorithm()) {
             auto sub_res = group->getAlgorithm()->runSingleLayout(id);
+
+            LOGIC_ASSERTION_CHECK_FMT(
+                sub_res.groups.contains(id),
+                "Running layout for {} ('{}') should set the bounding box "
+                "for this group.",
+                id,
+                getGroup(id)->getStableId());
+
+            // Use of `insert_or_assign` here is deliberate -- running
+            // layout on the current group might overwrite the positioning
+            // of the nested nodes or edges if necessary.
             for (auto const& [id, attr] : sub_res.groups) {
-                LOGIC_ASSERTION_CHECK(!result.groups.contains(id), "");
                 result.groups.insert_or_assign(id, attr);
             }
 
             for (auto const& [id, attr] : sub_res.vertices) {
-                LOGIC_ASSERTION_CHECK(!result.vertices.contains(id), "");
                 result.vertices.insert_or_assign(id, attr);
             }
 
             for (auto const& [id, attr] : sub_res.edges) {
-                LOGIC_ASSERTION_CHECK(!result.edges.contains(id), "");
                 result.edges.insert_or_assign(id, attr);
             }
         }

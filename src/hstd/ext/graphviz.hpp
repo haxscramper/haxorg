@@ -166,32 +166,32 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     void getAttr(Str const& key, Opt<int>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
-        if (tmp) { value = tmp->toInt(); }
+        if (tmp && !tmp->empty()) { value = tmp->toInt(); }
     }
 
     void getAttr(Str const& key, Opt<hstd::u64>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
-        if (tmp) { value = tmp->toU64(); }
+        if (tmp && !tmp->empty()) { value = tmp->toU64(); }
     }
 
     void getAttr(Str const& key, Opt<double>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
-        if (tmp) { value = tmp->toDouble(); }
+        if (tmp && !tmp->empty()) { value = tmp->toDouble(); }
     }
 
     void getAttr(Str const& key, Opt<bool>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
-        if (tmp) { value = *tmp == "true"; }
+        if (tmp && !tmp->empty()) { value = *tmp == "true"; }
     }
 
 
     void getAttr(Str const& key, Opt<Point>& value) const {
         Opt<Str> tmp;
         getAttr(key, tmp);
-        if (tmp) {
+        if (tmp && !tmp->empty()) {
             auto split = tmp->split(",");
             value      = Point(split[0].toDouble(), split[1].toDouble());
         }
@@ -878,6 +878,21 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
         : edge{edge}, graph{graph} {}
 
     Path getPath() const override;
+};
+
+class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
+  public:
+    Rect graph;
+
+    GraphGroupLayoutAttribute(Rect const& graph) : graph{graph} {}
+
+    virtual Rect getBBox() const override;
+
+
+    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
+        const override {
+        return {};
+    }
 };
 
 
