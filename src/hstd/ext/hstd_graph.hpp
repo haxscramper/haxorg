@@ -612,33 +612,6 @@ class IGraph {
     /// \brief Full set of all vertices in the graph
     hstd::UnorderedSet<VertexID> vertexIDs;
 
-  protected:
-    /// \brief Add the vertex to the graph collection. Will not
-    /// automatically register all nested vertices and recursive data.
-    /// After the base vertex is registered, provide additional structural
-    /// information using `trackSubVertexRelation`.
-    void registerVertex(VertexID const& id);
-
-    /// \brief Remove vertex from the graph collection and recursively drop
-    /// all the elements from the hierarchies.
-    ///
-    /// \note No follow-up calls to `untrackSubVertexRelation` is
-    /// necessary to match the `trackSubVertexRelation` -- hierarchy
-    /// deletion is done by this method.
-    ///
-    /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
-    /// under `id` if they are also deleted in all hierarchies.
-    ///
-    /// \return Map of the dependant deletions in the graph hierarchies.
-    /// Un-registering vertex *does not delete sub-vertices from the
-    /// graph*, it only removes invalid edges. The returned value from this
-    /// function contains a mapping from the hierarchy ID to the list of
-    /// sub-vertex deletions for this hierarchy. It is possible to delete
-    /// all the nested vertices with `untrackVertexList` for each set of
-    /// vertices in the dependant deletion.
-    hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> unregisterVertex(
-        VertexID const& id);
-
   public:
     struct Crossing {
         GraphHierarchyID    hierarchy;
@@ -685,18 +658,37 @@ class IGraph {
         VertexID const&         parent,
         VertexID const&         sub);
 
-
     /// \brief Track attributes and edge information in the graph
     ///
-    /// \warning Call after the vertex has been registered. Should be
-    /// called with the full list of vertices to track: this method will
-    /// not attempt to expand the set of vertices to include nested ones.
-    void trackVertexList(hstd::Vec<VertexID> const& ids);
-
-    /// \brief Un-track attributes and edge information
+    /// Add the vertex to the graph collection. Will not
+    /// automatically register all nested vertices and recursive data.
+    /// After the base vertex is registered, provide additional structural
+    /// information using `trackSubVertexRelation`.
     ///
-    /// \note See `trackVertexList`
-    void untrackVertexList(hstd::Vec<VertexID> const& ids);
+    /// \warning Should be called with the full list of vertices to
+    /// track: this method will not attempt to expand the set of vertices
+    /// to include nested ones.
+    void trackVertex(VertexID const& ids);
+
+    /// \brief Remove vertex from the graph collection and recursively drop
+    /// all the elements from the hierarchies.
+    ///
+    /// \note No follow-up calls to `untrackSubVertexRelation` is
+    /// necessary to match the `trackSubVertexRelation` -- hierarchy
+    /// deletion is done by this method.
+    ///
+    /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
+    /// under `id` if they are also deleted in all hierarchies.
+    ///
+    /// \return Map of the dependant deletions in the graph hierarchies.
+    /// Un-registering vertex *does not delete sub-vertices from the
+    /// graph*, it only removes invalid edges. The returned value from this
+    /// function contains a mapping from the hierarchy ID to the list of
+    /// sub-vertex deletions for this hierarchy. It is possible to delete
+    /// all the nested vertices with `untrackVertexList` for each set of
+    /// vertices in the dependant deletion.
+    hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> untrackVertex(
+        VertexID const& id);
 
     /// \brief Get list of all vertices stored in the graph
     hstd::Vec<VertexID> getAllVertices() const;
@@ -848,7 +840,10 @@ struct TrivialGraph : public IGraph {
     TrivialGraph() : edges{std::make_shared<TrivialEdgeCollection>()} {}
 
     VertexID addVertex() {
-        return vertexStore.add(TrivialVertex{vertexStore.getNextId()});
+        auto result = vertexStore.add(
+            TrivialVertex{vertexStore.getNextId()});
+        trackVertex(result);
+        return result;
     }
 
     const IVertex* getVertex(VertexID const& id) const override {
@@ -856,7 +851,9 @@ struct TrivialGraph : public IGraph {
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        return edges->edgeStore.add(TrivialEdge{source, target});
+        auto result = edges->edgeStore.add(TrivialEdge{source, target});
+        edges->trackEdge(result);
+        return result;
     }
 };
 
@@ -970,6 +967,7 @@ class IGroup {
     hstd::Vec<hstd::SPtr<IConstraint>>         constraints;
     hstd::SPtr<LayoutRun>                      run;
 
+    virtual std::string         getStableId() const = 0;
     virtual hstd::Vec<VertexID> getVertices() const = 0;
     virtual hstd::Vec<EdgeID>   getEdges() const    = 0;
 
@@ -998,7 +996,9 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<IGraph> graph;
     hstd::Vec<GroupID> rootGroups;
 
-    LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {}
+    LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {
+        hstd::logic_assertion_check_not_nil(graph);
+    }
 
     void runFullLayout();
 
@@ -1006,10 +1006,12 @@ class LayoutRun : public OperationsTracer {
     IPlacementAlgorithm::Result result;
 
     IVertex const* getVertex(VertexID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
         return graph->getVertex(id);
     }
 
     IEdge const* getEdge(VertexID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
         return graph->getEdge(id);
     }
 

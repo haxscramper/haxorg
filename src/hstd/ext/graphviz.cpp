@@ -199,7 +199,8 @@ gv::GraphGroup::GraphGroup(
     Agdesc_t                      desc)
     : layout::IGroup{run}
     , defaultEdge(nullptr, nullptr)
-    , defaultNode(nullptr, nullptr) {
+    , defaultNode(nullptr, nullptr)
+    , name{name} {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
     if (!graph_) {
@@ -218,13 +219,25 @@ gv::GraphGroup::GraphGroup(
     : layout::IGroup{run}
     , graph(nullptr)
     , defaultEdge(graph, nullptr)
-    , defaultNode(graph, nullptr) {
+    , defaultNode(graph, nullptr)
+    , name{file.filename()} {
     LOGIC_ASSERTION_CHECK(fs::is_regular_file(file), "");
 
     Str   absolute = file.native();
     FILE* fp       = fopen(absolute.data(), "r");
     graph          = agread(fp, nullptr);
 
+    initDefaultSetters();
+}
+
+gv::GraphGroup::GraphGroup(
+    hstd::SPtr<layout::LayoutRun> run,
+    Agraph_t*                     graph)
+    : layout::IGroup{run}
+    , graph(graph)
+    , defaultEdge(graph, nullptr)
+    , defaultNode(graph, nullptr)
+    , name{agnameof(graph)} {
     initDefaultSetters();
 }
 
@@ -276,15 +289,38 @@ void gv::GraphGroup::eachSubgraph(Func<void(GraphGroup)> cb) const {
 
 hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     VertexID const& id) {
-    auto attribute = this->node(run->getVertex(id)->getStableId());
-    const_cast<IVertex*>(run->getVertex(id))->addAttribute(attribute);
+    hstd::logic_assertion_check_not_nil(run);
+    auto vertex = run->getVertex(id);
+    hstd::logic_assertion_check_not_nil(vertex);
+    run->message(
+        hstd::fmt(
+            "add vertex {} ({})", id.format(), vertex->getStableId()));
+
+    for (auto const& id : run->graph->getAllVertices()) {
+        run->message(
+            hstd::fmt(
+                "vert {} stable ID {}",
+                id.format(),
+                vertex->getStableId()));
+    }
+
+    auto attribute = this->node(vertex->getStableId());
+    const_cast<IVertex*>(vertex)->addAttribute(attribute);
     nodeAttributes.insert_or_assign(id, attribute);
     return attribute;
 }
 
 hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     EdgeID const& id) {
-    auto e    = const_cast<IEdge*>(run->getEdge(id));
+    auto e = const_cast<IEdge*>(run->getEdge(id));
+    run->message(
+        hstd::fmt(
+            "add edge {} ({} -> {}) to group {}",
+            id.format(),
+            e->getSource().format(),
+            e->getTarget().format(),
+            getStableId()));
+
     auto attr = edge(
         *nodeAttributes.at(e->getSource()),
         *nodeAttributes.at(e->getTarget()));
@@ -474,7 +510,9 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
                 run->getGroup(parent.value()));
             run->message(
-                hstd::fmt("group {} has layout algorithm set", id));
+                hstd::fmt(
+                    "group {} has layout algorithm set",
+                    group->getStableId()));
             auto recursiveBBox = run->getLayout(id).getBBox();
             auto recursiveNode = parentGroup->node(
                 hstd::fmt("tmp-subgraph-node-{}", id));
@@ -488,19 +526,22 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 "Nested subgroup without layout algorithm must be an "
                 "instance of gv::GraphGroup");
             run->message(
-                hstd::fmt("group {} is a part of parent layout", id));
+                hstd::fmt(
+                    "group {} is a part of parent layout",
+                    group->getStableId()));
+
             auto __scope = run->scopeLevel();
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
             for (auto const& vertex : group->getVertices()) {
-                run->message(hstd::fmt("vertex {}", vertex));
+                run->message(hstd::fmt("vertex {}", vertex.format()));
                 gv_group->nodeAttributes[vertex]->setAttr(
                     id_attr, vertex.getValue());
             }
 
 
             for (auto const& edge : group->getEdges()) {
-                run->message(hstd::fmt("edge {}", edge));
+                run->message(hstd::fmt("edge {}", edge.format()));
                 gv_group->edgeAttributes[edge]->setAttr(
                     id_attr, edge.getValue());
             }

@@ -11,40 +11,6 @@ constexpr char const* vertex_not_found_msg{
     "{}Vertex {} not found. Missing call to `registerVertex`?"};
 } // namespace
 
-void IGraph::registerVertex(VertexID const& id) {
-    if (vertexIDs.contains(id)) {
-        throw org_graph_error::init(
-            std::format("Vertex {} already registered", id));
-    }
-    vertexIDs.insert(id);
-}
-
-hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion> IGraph::
-    unregisterVertex(VertexID const& id) {
-    if (!vertexIDs.contains(id)) {
-        throw org_graph_error::init(
-            std::format(vertex_not_found_msg, "", id));
-    }
-
-    hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion>
-        result;
-
-    for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
-        auto deleted_by_provider = hierarchy->untrackVertex(id);
-        result.insert_or_assign(hierarchy_id, deleted_by_provider);
-    }
-
-    for (auto const& [collection_id, collection] : collections) {
-        collection->untrackVertex(id);
-    }
-
-
-    untrackVertexList({id});
-    vertexIDs.erase(id);
-    return result;
-}
-
-
 IEdgeProvider::DependantDeletion IVertexHierarchy::untrackVertex(
     VertexID const& id) {
     DependantDeletion result;
@@ -275,50 +241,51 @@ void IGraph::untrackSubVertexRelation(
     hierarchies.at(hierarchy)->untrackSubVertexRelation(parent, sub);
 }
 
-void hstd::ext::graph::IGraph::trackVertexList(
-    hstd::Vec<VertexID> const& ids) {
-    for (const auto& id : ids) {
-        if (!vertexIDs.contains(id)) {
-            throw org_graph_error::init(
-                std::format(vertex_not_found_msg, "", id));
-        }
+void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
+    if (vertexIDs.contains(id)) {
+        throw org_graph_error::init(
+            std::format("Vertex {} already registered", id));
+    }
+    vertexIDs.insert(id);
+
+    for (auto& track : trackers) { track.second->trackVertex(id); }
+
+    for (auto& collection : getEdgeProviders()) {
+        collection->trackVertex(id);
     }
 
-    for (const auto& id : ids) {
-        for (auto& track : trackers) { track.second->trackVertex(id); }
-    }
-
-    for (auto const& id : ids) {
-        for (auto& collection : getEdgeProviders()) {
-            collection->trackVertex(id);
-        }
-    }
-
-    for (const auto& id : ids) {
-        for (auto& collection : getEdgeProviders()) {
-            collection->addAllOutgoing(id);
-        }
+    for (auto& collection : getEdgeProviders()) {
+        collection->addAllOutgoing(id);
     }
 }
 
-void hstd::ext::graph::IGraph::untrackVertexList(
-    hstd::Vec<VertexID> const& ids) {
-    for (const auto& id : ids) {
-        if (!vertexIDs.contains(id)) {
-            throw org_graph_error::init(
-                std::format(vertex_not_found_msg, "", id));
-        }
+hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> hstd::
+    ext::graph::IGraph::untrackVertex(VertexID const& id) {
+    if (!vertexIDs.contains(id)) {
+        throw org_graph_error::init(
+            std::format(vertex_not_found_msg, "", id));
     }
 
-    for (const auto& id : ids) {
-        for (auto& collection : getEdgeProviders()) {
-            collection->untrackVertex(id);
-        }
+    hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion>
+        result;
+
+    for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
+        auto deleted_by_provider = hierarchy->untrackVertex(id);
+        result.insert_or_assign(hierarchy_id, deleted_by_provider);
     }
 
-    for (const auto& id : ids) {
-        for (auto& track : trackers) { track.second->untrackVertex(id); }
+    for (auto const& [collection_id, collection] : collections) {
+        collection->untrackVertex(id);
     }
+
+    for (auto& collection : getEdgeProviders()) {
+        collection->untrackVertex(id);
+    }
+
+    for (auto& track : trackers) { track.second->untrackVertex(id); }
+
+    vertexIDs.erase(id);
+    return result;
 }
 
 hstd::Vec<VertexID> IGraph::getAllVertices() const {

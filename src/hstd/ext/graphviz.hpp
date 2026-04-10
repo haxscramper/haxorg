@@ -593,13 +593,7 @@ class GraphGroup
         Str const&                    name,
         Agdesc_t                      desc = Agdirected);
     GraphGroup(hstd::SPtr<layout::LayoutRun> run, fs::path const& file);
-    GraphGroup(hstd::SPtr<layout::LayoutRun> run, Agraph_t* graph)
-        : layout::IGroup{run}
-        , graph(graph)
-        , defaultEdge(graph, nullptr)
-        , defaultNode(graph, nullptr) {
-        initDefaultSetters();
-    }
+    GraphGroup(hstd::SPtr<layout::LayoutRun> run, Agraph_t* graph);
 
     Agraph_t*       get() { return graph; }
     Agraph_t const* get() const { return graph; }
@@ -741,6 +735,7 @@ class GraphGroup
     Agraph_t*     graph;
     EdgeAttribute defaultNode;
     EdgeAttribute defaultEdge;
+    std::string   name;
 
     hstd::UnorderedMap<VertexID, hstd::SPtr<NodeAttribute>> nodeAttributes;
     hstd::UnorderedMap<EdgeID, hstd::SPtr<EdgeAttribute>>   edgeAttributes;
@@ -774,6 +769,10 @@ class GraphGroup
 
     virtual hstd::Vec<EdgeID> getEdges() const override {
         return edgeAttributes.keys();
+    }
+
+    virtual std::string getStableId() const override {
+        return hstd::fmt("graph-group-{}", name);
     }
 };
 

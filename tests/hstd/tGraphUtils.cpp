@@ -11,9 +11,8 @@ struct TestVertex : public IVertex {
     TestVertex(VertexID selfId) : selfId{selfId} {}
 
     std::size_t getHash() const override {
-        std::size_t result;
-        hstd::hax_hash_combine(result, selfId);
-        return result;
+        hstd::logic_assertion_check_not_nil(this);
+        return std::hash<VertexID>{}(selfId);
     }
 
     bool isEqual(IGraphObjectBase const* other) const override {
@@ -82,7 +81,9 @@ struct TestGraph : public IGraph {
     }
 
     VertexID addVertex() {
-        return vertexStore.add(TestVertex{vertexStore.getNextId()});
+        auto result = vertexStore.add(TestVertex{vertexStore.getNextId()});
+        trackVertex(result);
+        return result;
     }
 
     const IVertex* getVertex(VertexID const& id) const override {
@@ -90,8 +91,10 @@ struct TestGraph : public IGraph {
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        return edges->edgeStore.add(
+        auto result = edges->edgeStore.add(
             TestEdge{source, target}, edges->getCategory());
+        edges->trackEdge(result);
+        return result;
     }
 };
 
@@ -146,10 +149,10 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     group->addVertex(v3);
     group->addVertex(v4);
 
-    getGv(v1)->setFixedWH(5, 5);
-    getGv(v2)->setFixedWH(5, 5);
-    getGv(v3)->setFixedWH(20, 20);
-    getGv(v4)->setFixedWH(20, 20);
+    getGv(v1)->setFixedWH(2, 2);
+    getGv(v2)->setFixedWH(2, 2);
+    getGv(v3)->setFixedWH(4, 4);
+    getGv(v4)->setFixedWH(4, 4);
 
     group->addEdge(e12);
     group->addEdge(e23);
@@ -168,17 +171,17 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
 
     EXPECT_EQ(run->result.vertices.size(), 4);
 
-    EXPECT_EQ(run->getLayout(v1).getBBox().width(), 5);
-    EXPECT_EQ(run->getLayout(v1).getBBox().height(), 5);
+    EXPECT_EQ(run->getLayout(v1).getBBox().width(), 2);
+    EXPECT_EQ(run->getLayout(v1).getBBox().height(), 2);
 
-    EXPECT_EQ(run->getLayout(v2).getBBox().width(), 5);
-    EXPECT_EQ(run->getLayout(v2).getBBox().height(), 5);
+    EXPECT_EQ(run->getLayout(v2).getBBox().width(), 2);
+    EXPECT_EQ(run->getLayout(v2).getBBox().height(), 2);
 
-    EXPECT_EQ(run->getLayout(v3).getBBox().width(), 20);
-    EXPECT_EQ(run->getLayout(v3).getBBox().height(), 20);
+    EXPECT_EQ(run->getLayout(v3).getBBox().width(), 4);
+    EXPECT_EQ(run->getLayout(v3).getBBox().height(), 4);
 
-    EXPECT_EQ(run->getLayout(v4).getBBox().width(), 20);
-    EXPECT_EQ(run->getLayout(v4).getBBox().height(), 20);
+    EXPECT_EQ(run->getLayout(v4).getBBox().width(), 4);
+    EXPECT_EQ(run->getLayout(v4).getBBox().height(), 4);
 
     EXPECT_EQ(run->result.edges.size(), 3);
 }
