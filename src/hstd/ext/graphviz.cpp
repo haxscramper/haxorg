@@ -1153,8 +1153,9 @@ hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
 
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     visual::VisGroup result;
+    result.offset = Point{graph.x(), graph.y()};
 
-    // The `graph` field is already a Rect (the subgraph bounding box)
+    // Boundary rectangle
     visual::VisElement::RectShape rect;
     rect.geometry = Rect(0, 0, graph.width(), graph.height());
     rect.pen      = visual::VisPen{
@@ -1164,11 +1165,69 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     };
     rect.brush = visual::VisBrush::noBrush();
 
-    result.offset = Point{graph.x(), graph.y()};
+    // Read style attributes from the group if available
+    if (group) {
+        if (auto c = group->getColor()) {
+            rect.pen.color = parseGvColor(*c);
+        }
+        if (auto style = group->getStyle()) {
+            if (*style == "dashed") {
+                rect.pen.style = visual::VisPen::LineStyle::Dash;
+            } else if (*style == "dotted") {
+                rect.pen.style = visual::VisPen::LineStyle::Dot;
+            } else if (*style == "solid") {
+                rect.pen.style = visual::VisPen::LineStyle::Solid;
+            } else if (*style == "invis") {
+                rect.pen.style = visual::VisPen::LineStyle::None;
+            }
+            if (style->find("filled") != std::string::npos) {
+                auto fc    = group->getFillColor();
+                rect.brush = visual::VisBrush::solid(
+                    fc ? parseGvColor(*fc)
+                       : visual::VisColor{230, 230, 230, 255});
+            }
+        }
+        if (auto pw = group->getPenWidth()) {
+            rect.pen.width = (float)*pw;
+        }
+    }
 
     visual::VisElement rectElem;
     rectElem.data = rect;
     result.elements.push_back(rectElem);
+
+    // Subgraph label
+    if (group) {
+        Rect         bbox  = getGraphBBox(*group);
+        textlabel_t* label = group->info()->label;
+        if (label && label->text && label->text[0] != '\0') {
+            visual::VisElement::TextShape text;
+            text.content = hstd::Str{label->text};
+            // Label pos is in graph coordinates; convert to local group
+            // coords
+            Point labelGlobal = toGvPoint(label->pos, bbox.height());
+            text.anchor       = Point{
+                labelGlobal.x() - graph.x(), labelGlobal.y() - graph.y()};
+            text.font = buildFontFromLabel(label);
+            text.alignment
+                .horizontal         = visual::VisTextAlign::HAlign::Center;
+            text.alignment.vertical = visual::VisTextAlign::VAlign::Center;
+            if (label->fontcolor) {
+                text.color = parseGvColor(hstd::Str{label->fontcolor});
+            }
+            float lw         = (float)label->dimen.x;
+            float lh         = (float)label->dimen.y;
+            text.boundingBox = Rect(
+                text.anchor.x() - lw / 2.0f,
+                text.anchor.y() - lh / 2.0f,
+                lw,
+                lh);
+
+            visual::VisElement labelElem;
+            labelElem.data = text;
+            result.elements.push_back(labelElem);
+        }
+    }
 
     return result;
 }

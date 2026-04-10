@@ -727,6 +727,12 @@ class GraphGroup
     _attr(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str);
     /// \brief Font color
     _attr(GraphGroup, FontColor, fontcolor, Str);
+    /// \brief border color
+    _attr(GraphGroup, Color, color, Str);
+    _attr(GraphGroup, PenWidth, penwidth, double);
+    _attr(GraphGroup, FillColor, fillcolor, Str);
+    // FIXME: use enum style
+    _attr(GraphGroup, Style, style, Str);
     /// \brief Font name
     _attr(GraphGroup, FontName, fontname, Str);
     /// \brief Font size
