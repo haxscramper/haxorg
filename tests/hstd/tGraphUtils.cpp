@@ -149,10 +149,12 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     group->addVertex(v3);
     group->addVertex(v4);
 
-    getGv(v1)->setFixedWH(2, 2);
-    getGv(v2)->setFixedWH(2, 2);
-    getGv(v3)->setFixedWH(4, 4);
-    getGv(v4)->setFixedWH(4, 4);
+    auto shape = gv::NodeAttribute::Shape::rect;
+
+    getGv(v1)->setFixedWH(2, 2)->setShape(shape);
+    getGv(v2)->setFixedWH(2, 2)->setShape(shape);
+    getGv(v3)->setFixedWH(4, 4)->setShape(shape);
+    getGv(v4)->setFixedWH(4, 4)->setShape(shape);
 
     group->addEdge(e12);
     group->addEdge(e23);

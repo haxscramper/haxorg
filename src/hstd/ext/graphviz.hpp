@@ -17,10 +17,11 @@
 #    include <hstd/stdlib/Filesystem.hpp>
 #    include <hstd/ext/hstd_graph.hpp>
 
-#    define _attr_aligned(Method, key, Type)                              \
-        void set##Method(                                                 \
+#    define _attr_aligned(__Class, Method, key, Type)                     \
+        __Class* set##Method(                                             \
             Type const& value, TextAlign direction = TextAlign::Left) {   \
             setAttr(#key, value, direction);                              \
+            return this;                                                  \
         }                                                                 \
                                                                           \
         Opt<Type> get##Method() const {                                   \
@@ -29,8 +30,11 @@
             return value;                                                 \
         }
 
-#    define _attr(Method, key, Type)                                      \
-        void set##Method(Type const& value) { setAttr(#key, value); }     \
+#    define _attr(__Class, Method, key, Type)                             \
+        __Class* set##Method(Type const& value) {                         \
+            setAttr(#key, value);                                         \
+            return this;                                                  \
+        }                                                                 \
                                                                           \
         Opt<Type> get##Method() const {                                   \
             Opt<Type> value;                                              \
@@ -38,13 +42,15 @@
             return value;                                                 \
         }
 
-#    define _attrx(Method, key, Type) void set##Method(Type const& value);
+#    define _attrx(__Class, Method, key, Type)                            \
+        __Class* set##Method(Type const& value);
 
 
-#    define _eattr(Name, key, ...)                                        \
+#    define _eattr(__Class, Name, key, ...)                               \
         DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                           \
-        void set##Name(Name value) {                                      \
+        __Class* set##Name(Name value) {                                  \
             setAttr(#key, enum_serde<Name>::to_string(value));            \
+            return this;                                                  \
         }
 
 namespace hstd::ext::graph::gv {
@@ -369,6 +375,7 @@ class NodeAttribute
     Str name() const { return agnameof(node); }
 
     _eattr(
+        NodeAttribute,
         Shape,
         shape,
         //
@@ -467,9 +474,18 @@ class NodeAttribute
         setAttr("arrowtail", enum_serde<ArrowType>::to_string(type));
     };
 
-    _eattr(ArrowSize, arrowsize, tiny, small, normal, large, huge);
-    _eattr(Dir, dir, forward, back, both, none);
     _eattr(
+        NodeAttribute,
+        ArrowSize,
+        arrowsize,
+        tiny,
+        small,
+        normal,
+        large,
+        huge);
+    _eattr(NodeAttribute, Dir, dir, forward, back, both, none);
+    _eattr(
+        NodeAttribute,
         Style,
         style,
         solid,
@@ -486,38 +502,38 @@ class NodeAttribute
 
 
     /// \brief Color of the node's border
-    _attr(Color, color, Str);
+    _attr(NodeAttribute, Color, color, Str);
     /// \brief Fill color of the node
-    _attr(FillColor, fillcolor, Str);
+    _attr(NodeAttribute, FillColor, fillcolor, Str);
     /// \brief Font color of the node's label
-    _attr(FontColor, fontcolor, Str);
+    _attr(NodeAttribute, FontColor, fontcolor, Str);
     /// \brief Font name of the node's label
-    _attr(FontName, fontname, Str);
+    _attr(NodeAttribute, FontName, fontname, Str);
     /// \brief Font size of the node's label
-    _attr(FontSize, fontsize, double);
+    _attr(NodeAttribute, FontSize, fontsize, double);
     /// \brief Height of the node
-    _attr(Height, height, double);
+    _attr(NodeAttribute, Height, height, double);
     /// \brief Label (text) of the node
-    _attr_aligned(Label, label, Str);
+    _attr_aligned(NodeAttribute, Label, label, Str);
     /// \brief Position of the node's center
-    _attr(Position, pos, Point);
+    _attr(NodeAttribute, Position, pos, Point);
     /// \brief Shape of the node
-    _attr(Shape, shape, Str);
+    _attr(NodeAttribute, Shape, shape, Str);
     /// \brief URL associated with the node
-    _attr(URL, URL, Str);
+    _attr(NodeAttribute, URL, URL, Str);
     /// \brief Width of the node
-    _attr(Width, width, double);
+    _attr(NodeAttribute, Width, width, double);
     /// \brief External label (text) of the node
-    _attr_aligned(XLabel, xlabel, Str);
+    _attr_aligned(NodeAttribute, XLabel, xlabel, Str);
     /// \brief Position of the node's external label
-    _attr(XLabelPosition, xlabelpos, Point);
+    _attr(NodeAttribute, XLabelPosition, xlabelpos, Point);
 
     Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
     Agnodeinfo_t const* info() const {
         return (Agnodeinfo_t*)AGDATA(node);
     }
 
-    void setFixedWH(double w, double h);
+    NodeAttribute* setFixedWH(double w, double h);
 
   public:
     Agnode_t* node;
@@ -543,27 +559,27 @@ class EdgeAttribute
     NodeAttribute head() { return NodeAttribute(graph, AGHEAD(edge_)); }
     NodeAttribute tail() { return NodeAttribute(graph, AGTAIL(edge_)); }
 
-    _attr(Constraint, constraint, bool);
+    _attr(EdgeAttribute, Constraint, constraint, bool);
     /// \brief Color of the edge
-    _attr(Color, color, Str /*Str*/);
+    _attr(EdgeAttribute, Color, color, Str /*Str*/);
     /// \brief Font color of the edge's label
-    _attr(FontColor, fontcolor, Str /*Str*/);
+    _attr(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);
     /// \brief Font name of the edge's label
-    _attr(FontName, fontname, Str);
+    _attr(EdgeAttribute, FontName, fontname, Str);
     /// \brief Font size of the edge's label
-    _attr(FontSize, fontsize, double);
+    _attr(EdgeAttribute, FontSize, fontsize, double);
     /// \brief Label (text) of the edge
-    _attr_aligned(Label, label, Str);
+    _attr_aligned(EdgeAttribute, Label, label, Str);
     /// \brief Position of the edge's label
-    _attr(LabelPosition, lp, Point);
+    _attr(EdgeAttribute, LabelPosition, lp, Point);
     /// \brief Width of the edge's line
-    _attr(PenWidth, penwidth, double);
+    _attr(EdgeAttribute, PenWidth, penwidth, double);
     /// \brief Style of the edge's line
-    _attr(Style, style, Str);
+    _attr(EdgeAttribute, Style, style, Str);
     /// \brief URL associated with the edge
-    _attr(URL, URL, Str);
-    _attr(LHead, lhead, Str);
-    _attr(LTail, ltail, Str);
+    _attr(EdgeAttribute, URL, URL, Str);
+    _attr(EdgeAttribute, LHead, lhead, Str);
+    _attr(EdgeAttribute, LTail, ltail, Str);
 
     void setLHead(NodeAttribute node) { setLHead(node.name()); }
     void setLTail(NodeAttribute node) { setLTail(node.name()); }
@@ -655,81 +671,81 @@ class GraphGroup
     }
 
     /// \brief Direction of layout ranks
-    _eattr(RankDirection, rankdir, LR, TB, BT, RL);
+    _eattr(GraphGroup, RankDirection, rankdir, LR, TB, BT, RL);
     /// \brief Placement of nodes withing the graph.
     ///
     /// 'none' is the default value (not in the same/source/sink list
     /// that is explicitly recognized by GV), 'same' causes nodes to be
     /// placd on the same level, `source` is closer to the source
     /// nodes, `sink` is closer to the target
-    _eattr(Rank, rank, none, same, source, sink);
+    _eattr(GraphGroup, Rank, rank, none, same, source, sink);
 
     /// \brief Damping factor for force-directed layout
-    _attr(Damping, Damping, double);
+    _attr(GraphGroup, Damping, Damping, double);
     /// \brief Spring constant factor for force-directed layout
-    _attr(K, K, double);
+    _attr(GraphGroup, K, K, double);
     /// \brief URL associated with the graph
-    _attr(URL, URL, Str);
+    _attr(GraphGroup, URL, URL, Str);
     /// \brief Desired aspect ratio of the drawing
-    _attr(AspectRatio, aspect, double);
+    _attr(GraphGroup, AspectRatio, aspect, double);
     /// \brief Background color of the graph
-    _attr(BackgroundColor, bgcolor, Str);
+    _attr(GraphGroup, BackgroundColor, bgcolor, Str);
     /// \brief Default edge length
-    _attr(DefaultDistance, defaultdist, double);
+    _attr(GraphGroup, DefaultDistance, defaultdist, double);
     /// \brief Default node color
-    _attr(DefaultNodeColor, defaultNodeColor, Str);
+    _attr(GraphGroup, DefaultNodeColor, defaultNodeColor, Str);
     /// \brief Default edge color
-    _attr(DefaultEdgeColor, defaultEdgeColor, Str);
+    _attr(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str);
     /// \brief Font color
-    _attr(FontColor, fontcolor, Str);
+    _attr(GraphGroup, FontColor, fontcolor, Str);
     /// \brief Font name
-    _attr(FontName, fontname, Str);
+    _attr(GraphGroup, FontName, fontname, Str);
     /// \brief Font size
-    _attr(FontSize, fontsize, double);
+    _attr(GraphGroup, FontSize, fontsize, double);
     /// \brief Label (title) of the graph
-    _attr_aligned(Label, label, Str);
+    _attr_aligned(GraphGroup, Label, label, Str);
     /// \brief URL associated with the graph label
-    _attr_aligned(LabelURL, labelURL, Str);
+    _attr_aligned(GraphGroup, LabelURL, labelURL, Str);
     /// \brief Horizontal placement of the graph label
-    _attr(LabelJustification, labeljust, Str);
+    _attr(GraphGroup, LabelJustification, labeljust, Str);
     /// \brief Vertical placement of the graph label
-    _attr(LabelLocator, labelloc, Str);
+    _attr(GraphGroup, LabelLocator, labelloc, Str);
     /// \brief Layer separator character
-    _attr(LayerListSeparator, layersep, Str);
+    _attr(GraphGroup, LayerListSeparator, layersep, Str);
     /// \brief List of layers in the graph
-    _attr(Layers, layers, Str);
+    _attr(GraphGroup, Layers, layers, Str);
     /// \brief Margin around the drawing
-    _attr(Margin, margin, Point);
+    _attr(GraphGroup, Margin, margin, Point);
     /// \brief Minimum separation between nodes
-    _attr(NodeSeparation, nodesep, double);
+    _attr(GraphGroup, NodeSeparation, nodesep, double);
     /// \brief Order in which nodes and edges are drawn
-    _attr(OutputOrder, outputorder, Str);
+    _attr(GraphGroup, OutputOrder, outputorder, Str);
     /// \brief Direction of page layout
-    _attr(PageDirection, pagedir, Str);
+    _attr(GraphGroup, PageDirection, pagedir, Str);
     /// \brief Height of output pages
-    _attr(PageHeight, pageheight, double);
+    _attr(GraphGroup, PageHeight, pageheight, double);
     /// \brief Width of output pages
-    _attr(PageWidth, pagewidth, double);
+    _attr(GraphGroup, PageWidth, pagewidth, double);
     /// \brief Cluster quantum scale factor
-    _attr(Quantum, quantum, double);
+    _attr(GraphGroup, Quantum, quantum, double);
     /// \brief Minimum separation between ranks
-    _attr(RankSeparation, ranksep, double);
+    _attr(GraphGroup, RankSeparation, ranksep, double);
     /// \brief Resolution (dpi) of the output image
-    _attr(Resolution, resolution, double);
+    _attr(GraphGroup, Resolution, resolution, double);
     /// \brief Size of the layout search space
-    _attr(SearchSize, searchsize, int);
+    _attr(GraphGroup, SearchSize, searchsize, int);
     /// \brief Maximum size of the drawing
-    _attr(Size, size, Point);
+    _attr(GraphGroup, Size, size, Point);
     /// \brief Type of edges (splines, lines, etc.)
-    _attr(Spline, splines, Str);
+    _attr(GraphGroup, Spline, splines, Str);
     /// \brief Style sheet used for the output
-    _attr(StyleSheet, stylesheet, Str);
+    _attr(GraphGroup, StyleSheet, stylesheet, Str);
     /// \brief Whether to use truecolor in the output
-    _attr(TrueColor, truecolor, bool);
+    _attr(GraphGroup, TrueColor, truecolor, bool);
     /// \brief Viewport size and position
-    _attr(ViewPort, viewport, Point);
-    _attr(Compound, compound, bool);
-    _attr(Concentrate, concentrate, bool);
+    _attr(GraphGroup, ViewPort, viewport, Point);
+    _attr(GraphGroup, Compound, compound, bool);
+    _attr(GraphGroup, Concentrate, concentrate, bool);
 
   public:
     Agraph_t*     graph;

@@ -596,12 +596,16 @@ gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name) {
         node = node_;
     }
 }
-void hstd::ext::graph::gv::NodeAttribute::setFixedWH(double w, double h) {
+
+gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedWH(
+    double w,
+    double h) {
     setWidth(w);
     setHeight(h);
     setAttr("fixedsize", true);
     setAttr("original_height", h);
     setAttr("original_width", w);
+    return this;
 }
 
 
