@@ -686,7 +686,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 id,
                 std::make_shared<GraphGroupLayoutAttribute>(
                     getNodeRectangle(
-                        *rootGroup, node, 1, getGraphBBox(*rootGroup))));
+                        *rootGroup, node, 1, getGraphBBox(*rootGroup)),
+                    rootGroup));
         } else {
             auto id_value = node.getAttr<hstd::u64>(id_attr);
             LOGIC_ASSERTION_CHECK_FMT(
@@ -720,7 +721,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     result.groups.insert_or_assign(
         root_id,
         std::make_shared<GraphGroupLayoutAttribute>(
-            getGraphBBox(*rootGroup)));
+            getGraphBBox(*rootGroup), rootGroup));
 
 
     return result;
@@ -842,5 +843,334 @@ std::string gv::NodeAttribute::getPropertiesAsString() const {
     return result;
 }
 
+
+namespace {
+
+/// Parse a graphviz color string to VisColor.
+/// Handles "#RRGGBB", "#RRGGBBAA", and named colors (black, white, red,
+/// etc.)
+visual::VisColor parseGvColor(hstd::Str const& str) {
+    if (str.empty()) { return visual::VisColor::black(); }
+    if (str[0] == '#') {
+        unsigned int r = 0, g = 0, b = 0, a = 255;
+        if (str.size() == 7) {
+            std::sscanf(str.c_str(), "#%02x%02x%02x", &r, &g, &b);
+        } else if (str.size() == 9) {
+            std::sscanf(str.c_str(), "#%02x%02x%02x%02x", &r, &g, &b, &a);
+        }
+        return visual::VisColor{
+            (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a};
+    }
+    // Basic named colors
+    if (str == "black") { return visual::VisColor::black(); }
+    if (str == "white") { return visual::VisColor::white(); }
+    if (str == "red") { return visual::VisColor::red(); }
+    if (str == "green") { return visual::VisColor::green(); }
+    if (str == "blue") { return visual::VisColor::blue(); }
+    if (str == "transparent" || str == "none") {
+        return visual::VisColor::transparent();
+    }
+    return visual::VisColor::black();
+}
+
+visual::VisPen buildPenFromNode(gv::NodeAttribute const& node) {
+    visual::VisPen pen;
+    if (auto c = node.getColor()) { pen.color = parseGvColor(*c); }
+    // Check for style attribute for dashed/dotted
+    if (auto style = node.getStyle()) {
+        if (*style == gv::NodeAttribute::Style::dashed) {
+            pen.style = visual::VisPen::LineStyle::Dash;
+        } else if (*style == gv::NodeAttribute::Style::dotted) {
+            pen.style = visual::VisPen::LineStyle::Dot;
+        } else if (*style == gv::NodeAttribute::Style::invis) {
+            pen.style = visual::VisPen::LineStyle::None;
+        }
+    }
+    if (auto pw = node.getPenWidth()) { pen.width = (float)*pw; }
+    return pen;
+}
+
+visual::VisBrush buildBrushFromNode(gv::NodeAttribute const& node) {
+    if (auto fc = node.getFillColor()) {
+        return visual::VisBrush::solid(parseGvColor(*fc));
+    }
+    if (auto style = node.getStyle();
+        style == gv::NodeAttribute::Style::filled) {
+        auto c = node.getColor();
+        return visual::VisBrush::solid(
+            c ? parseGvColor(*c) : visual::VisColor{192, 192, 192, 255});
+    }
+    return visual::VisBrush::noBrush();
+}
+
+visual::VisFont buildFontFromLabel(textlabel_t const* label) {
+    visual::VisFont font;
+    if (label->fontname) { font.family = hstd::Str{label->fontname}; }
+    font.pixelSize = (float)label->fontsize;
+    return font;
+}
+
+visual::VisElement makeLabelElement(
+    textlabel_t const* label,
+    float              height) {
+    Point pos = toGvPoint(label->pos, height);
+
+    visual::VisElement            elem;
+    visual::VisElement::TextShape text;
+    text.content              = hstd::Str{label->text};
+    text.anchor               = pos;
+    text.font                 = buildFontFromLabel(label);
+    text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
+    text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
+    if (label->fontcolor) {
+        text.color = parseGvColor(hstd::Str{label->fontcolor});
+    }
+    // Set bounding box from label dimen
+    float lw         = (float)label->dimen.x;
+    float lh         = (float)label->dimen.y;
+    text.boundingBox = Rect(
+        pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
+
+    elem.data = text;
+    return elem;
+}
+
+visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
+    visual::VisPen pen;
+    if (auto c = edge.getColor()) { pen.color = parseGvColor(*c); }
+    if (auto style = edge.getStyle()) {
+        if (*style == "dashed") {
+            pen.style = visual::VisPen::LineStyle::Dash;
+        } else if (*style == "dotted") {
+            pen.style = visual::VisPen::LineStyle::Dot;
+        } else if (*style == "invis") {
+            pen.style = visual::VisPen::LineStyle::None;
+        }
+    }
+    if (auto pw = edge.getPenWidth()) { pen.width = (float)*pw; }
+    return pen;
+}
+
+} // namespace
+
+
+hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
+    const {
+    Rect bbox     = getGraphBBox(graph);
+    Rect nodeRect = getNodeRectangle(graph, node, 72, bbox);
+
+    visual::VisGroup result;
+    result.offset = Point{nodeRect.x(), nodeRect.y()};
+
+    // Determine shape kind
+    auto*       info      = node.info();
+    std::string shapeName = info->shape ? info->shape->name : "box";
+
+    visual::VisPen   pen   = buildPenFromNode(node);
+    visual::VisBrush brush = buildBrushFromNode(node);
+
+    visual::VisElement shapeElem;
+    if (shapeName == "ellipse" || shapeName == "circle"
+        || shapeName == "oval") {
+        visual::VisElement::EllipseShape ellipse;
+        ellipse.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
+        ellipse.pen      = pen;
+        ellipse.brush    = brush;
+        shapeElem.data   = ellipse;
+    } else if (shapeName == "point") {
+        visual::VisElement::PointShape pt;
+        pt.position = Point{
+            nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
+        pt.radius = std::min(nodeRect.width(), nodeRect.height()) / 2.0f;
+        pt.pen    = pen;
+        pt.brush  = brush;
+        shapeElem.data = pt;
+    } else if (
+        shapeName == "polygon" || shapeName == "triangle"
+        || shapeName == "diamond" || shapeName == "pentagon"
+        || shapeName == "hexagon" || shapeName == "octagon") {
+        // Read vertices from polygon shape info
+        polygon_t* poly = (polygon_t*)info->shape_info;
+        if (poly && poly->sides > 0 && poly->vertices) {
+            visual::VisElement::PolygonShape polyShape;
+            float                            cx = nodeRect.width() / 2.0f;
+            float                            cy = nodeRect.height() / 2.0f;
+            for (size_t i = 0; i < poly->sides; ++i) {
+                polyShape.points.push_back(
+                    Point{
+                        cx + (float)poly->vertices[i].x,
+                        cy - (float)poly->vertices[i].y});
+            }
+            polyShape.pen   = pen;
+            polyShape.brush = brush;
+            shapeElem.data  = polyShape;
+        } else {
+            // Fallback to rect
+            visual::VisElement::RectShape rect;
+            rect.geometry = Rect(
+                0, 0, nodeRect.width(), nodeRect.height());
+            rect.pen       = pen;
+            rect.brush     = brush;
+            shapeElem.data = rect;
+        }
+    } else {
+        // Default: box/rect and variants
+        visual::VisElement::RectShape rect;
+        rect.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
+        rect.pen      = pen;
+        rect.brush    = brush;
+        // Check for rounded style
+        if (auto style = node.getStyle();
+            style == gv::NodeAttribute::Style::rounded) {
+            rect.cornerRadius = std::min(
+                                    nodeRect.width(), nodeRect.height())
+                              * 0.1f;
+        }
+        shapeElem.data = rect;
+    }
+
+    result.elements.push_back(shapeElem);
+
+    // Add label if present
+    textlabel_t* label = info->label;
+    if (label && label->text && label->text[0] != '\0') {
+        visual::VisElement::TextShape text;
+        text.content = hstd::Str{label->text};
+        // Label pos is in graph coordinates; convert to local node coords
+        Point labelGlobal = toGvPoint(label->pos, bbox.height());
+        text.anchor       = Point{
+            labelGlobal.x() - nodeRect.x(),
+            labelGlobal.y() - nodeRect.y()};
+        text.font                 = buildFontFromLabel(label);
+        text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
+        text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
+        if (label->fontcolor) {
+            text.color = parseGvColor(hstd::Str{label->fontcolor});
+        } else if (auto fc = node.getFontColor()) {
+            text.color = parseGvColor(*fc);
+        }
+        float lw         = (float)label->dimen.x;
+        float lh         = (float)label->dimen.y;
+        text.boundingBox = Rect(
+            text.anchor.x() - lw / 2.0f,
+            text.anchor.y() - lh / 2.0f,
+            lw,
+            lh);
+
+        visual::VisElement labelElem;
+        labelElem.data = text;
+        result.elements.push_back(labelElem);
+    }
+
+    return {result};
+}
+
+
+hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
+    const {
+    Rect bbox = getGraphBBox(graph);
+    Path path = getEdgeSpline(edge, 72, bbox);
+
+    visual::VisGroup result;
+
+    // Edge path
+    if (!path.empty()) {
+        visual::VisElement::PathShape pathShape;
+        pathShape.path  = path;
+        pathShape.pen   = buildPenFromEdge(edge);
+        pathShape.brush = visual::VisBrush::noBrush();
+
+        visual::VisElement pathElem;
+        pathElem.data = pathShape;
+        result.elements.push_back(pathElem);
+    }
+
+    // Arrowhead at end point
+    auto* info = edge.info();
+    if (info->spl && info->spl->list && 1 <= info->spl->list->size) {
+        bezier& bez = info->spl->list[0];
+        if (bez.eflag) {
+            Point ep      = toGvPoint(bez.ep, bbox.height());
+            Point lastCtl = toGvPoint(
+                bez.list[bez.size - 1], bbox.height());
+
+            // Compute arrow direction
+            float dx  = ep.x() - lastCtl.x();
+            float dy  = ep.y() - lastCtl.y();
+            float len = std::sqrt(dx * dx + dy * dy);
+            if (len > 0.001f) {
+                dx /= len;
+                dy /= len;
+                float arrowLen  = 10.0f;
+                float arrowHalf = 4.0f;
+                // Perpendicular
+                float px = -dy;
+                float py = dx;
+
+                visual::VisElement::PolygonShape arrow;
+                arrow.points.push_back(ep);
+                arrow.points.push_back(
+                    Point{
+                        ep.x() - dx * arrowLen + px * arrowHalf,
+                        ep.y() - dy * arrowLen + py * arrowHalf});
+                arrow.points.push_back(
+                    Point{
+                        ep.x() - dx * arrowLen - px * arrowHalf,
+                        ep.y() - dy * arrowLen - py * arrowHalf});
+
+                arrow.pen   = buildPenFromEdge(edge);
+                arrow.brush = visual::VisBrush::solid(arrow.pen.color);
+
+                visual::VisElement arrowElem;
+                arrowElem.data = arrow;
+                result.elements.push_back(arrowElem);
+            }
+        }
+    }
+
+    // Edge label
+    if (info->label && info->label->text && info->label->text[0] != '\0') {
+        result.elements.push_back(
+            makeLabelElement(info->label, bbox.height()));
+    }
+
+    // Head/tail labels
+    if (info->head_label && info->head_label->text
+        && info->head_label->text[0] != '\0') {
+        result.elements.push_back(
+            makeLabelElement(info->head_label, bbox.height()));
+    }
+    if (info->tail_label && info->tail_label->text
+        && info->tail_label->text[0] != '\0') {
+        result.elements.push_back(
+            makeLabelElement(info->tail_label, bbox.height()));
+    }
+
+    return {result};
+}
+
+
+hstd::Vec<visual::VisGroup> gv::GraphGroupLayoutAttribute::getVisual()
+    const {
+    visual::VisGroup result;
+
+    // The `graph` field is already a Rect (the subgraph bounding box)
+    visual::VisElement::RectShape rect;
+    rect.geometry = Rect(0, 0, graph.width(), graph.height());
+    rect.pen      = visual::VisPen{
+        .color = visual::VisColor{128, 128, 128, 255},
+        .width = 1.0f,
+        .style = visual::VisPen::LineStyle::Dash,
+    };
+    rect.brush = visual::VisBrush::noBrush();
+
+    result.offset = Point{graph.x(), graph.y()};
+
+    visual::VisElement rectElem;
+    rectElem.data = rect;
+    result.elements.push_back(rectElem);
+
+    return {result};
+}
 
 #endif

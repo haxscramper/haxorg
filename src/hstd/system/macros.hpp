@@ -66,6 +66,12 @@
 
 /// \brief Declare enum \arg Name with all it's fields and pass them to
 /// BOOST_DESCRIBE_NESTED_ENUM to generate reflection information.
+///
+/// `DECL_DESCRIBED_ENUM(EnumName, F1, F2)`, will declare an `num class
+/// EnumName` with the specified fields.
+///
+/// To declare enum outside of the class, use \ref
+/// DECL_DESCRIBED_ENUM_STANDALONE with the same API.
 #define DECL_DESCRIBED_ENUM(Name, ...)                                    \
     enum class Name : unsigned short int                                  \
     {                                                                     \
@@ -90,25 +96,51 @@
     VariantName const& sub_variant_get_data() const { return fieldName; } \
     char const*        sub_variant_get_name() const { return #fieldName; }
 
-/// \brief Helper macro for better API when working with discriminant
-/// objects.
-///
-/// \arg EnumName name of the enumeration that is defined to list possible
-///      variant values
-/// \arg VariantName Name of the variant type for wrapping
-///      all results
-/// \arg fieldName Name of the field that is used to store
-///      variant value for a type
-/// \arg kindGetterName name of the method for getting kind from the field.
-///      Also defines static function that can be used to access the kind
-///      of the raw variant value.
-///
-/// \snippet sem/SemOrg.hpp declare variant field for subtree properties
-///
-/// This will generate `getKind()` and `static getKind(Data const&)`
-/// methods, define `Data` as `std::variant<Ordered, ...>` and implement
-/// `getOrdered()`, `getTrigger()` etc. for all provided types
+/**
 
+\brief Helper macro for better API when working with discriminant objects.
+
+\arg EnumName name of the enumeration that is defined to list possible
+     variant values
+\arg VariantName Name of the variant type for wrapping
+     all results
+\arg fieldName Name of the field that is used to store
+     variant value for a type
+\arg kindGetterName name of the method for getting kind from the field.
+     Also defines static function that can be used to access the kind
+     of the raw variant value.
+
+\snippet sem/SemOrg.hpp declare variant field for subtree properties
+
+This will generate `getKind()` and `static getKind(Data const&)`
+methods, define `Data` as `std::variant<Ordered, ...>` and implement
+`getOrdered()`, `getTrigger()` etc. for all provided types
+
+\code{.cpp}
+struct EditTarget {
+    struct Existing { // define first type for variant
+        DiaUniqId target;
+    };
+    struct LastCreated { // second type for variant
+    };
+    // this Sub-variant will declare
+    // - `using Data = std::variant<....`
+    // - enum `Kind` with the values `Existing` and `LastCreated`
+    // - series of methods `is<Kind>`, and `get<Kind>` for accessing
+    //   the specific variant of the object
+    // - `getKind()` method that will return the kind based on teh
+    //   variant index.
+    SUB_VARIANTS(Kind, Data, data, getKind, Existing, LastCreated);
+    // `Data` field must be declared separately.
+    Data data;
+};
+\endcode
+
+When using `EditTarget` from the example above, it is possible either
+`std::visit()` on the data, `switch (getKind())`  or check for the
+individual values with `isExisting()` + `getExisting()`.
+
+**/
 #define SUB_VARIANTS_REFL(                                                \
     EnumName, VariantName, fieldName, kindGetterName, ...)                \
     enum class [[refl]] EnumName : unsigned short int                     \
@@ -153,6 +185,9 @@
         EnumName, VariantName, fieldName, kindGetterName)
 
 
+/// \brief Utility method to list fields for class.
+///
+/// `DESC_FIELDS(<class-name>, (<field1>, <field2>, ...)`
 #define DESC_FIELDS(classname, arg)                                       \
     BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())
 

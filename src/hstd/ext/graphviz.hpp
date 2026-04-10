@@ -51,6 +51,15 @@
         __Class* set##Name(Name value) {                                  \
             setAttr(#key, enum_serde<Name>::to_string(value));            \
             return this;                                                  \
+        }                                                                 \
+        Opt<Name> get##Name() const {                                     \
+            Opt<Str> result;                                              \
+            getAttr(#key, result);                                        \
+            if (result) {                                                 \
+                return enum_serde<Name>::from_string(result.value());     \
+            } else {                                                      \
+                return std::nullopt;                                      \
+            }                                                             \
         }
 
 namespace hstd::ext::graph::gv {
@@ -502,7 +511,8 @@ class NodeAttribute
         diagonals,
         rounded);
 
-
+    /// \brief Width of the edge's line
+    _attr(NodeAttribute, PenWidth, penwidth, double);
     /// \brief Color of the node's border
     _attr(NodeAttribute, Color, color, Str);
     /// \brief Fill color of the node
@@ -519,8 +529,6 @@ class NodeAttribute
     _attr_aligned(NodeAttribute, Label, label, Str);
     /// \brief Position of the node's center
     _attr(NodeAttribute, Position, pos, Point);
-    /// \brief Shape of the node
-    _attr(NodeAttribute, Shape, shape, Str);
     /// \brief URL associated with the node
     _attr(NodeAttribute, URL, URL, Str);
     /// \brief Width of the node
@@ -865,6 +873,8 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         const override {
         return {};
     }
+
+    hstd::Vec<visual::VisGroup> getVisual() const override;
 };
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
@@ -878,13 +888,20 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
         : edge{edge}, graph{graph} {}
 
     Path getPath() const override;
+
+
+    hstd::Vec<visual::VisGroup> getVisual() const override;
 };
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    Rect graph;
+    Rect                   graph;
+    hstd::SPtr<GraphGroup> group;
 
-    GraphGroupLayoutAttribute(Rect const& graph) : graph{graph} {}
+    GraphGroupLayoutAttribute(
+        Rect const&                   graph,
+        hstd::SPtr<GraphGroup> const& group)
+        : graph{graph}, group{group} {}
 
     virtual Rect getBBox() const override;
 
@@ -893,6 +910,8 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         const override {
         return {};
     }
+
+    hstd::Vec<visual::VisGroup> getVisual() const override;
 };
 
 

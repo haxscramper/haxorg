@@ -35,3 +35,48 @@ Point hstd::JsonSerde<Point>::from_json(json const& j) {
 json hstd::JsonSerde<Point>::to_json(ext::geometry::Point const& point) {
     return json::object({{"x", point.x()}, {"y", point.y()}});
 }
+
+Path& Path::addPolyline(std::vector<Point> const& points) {
+    if (points.empty()) { return *this; }
+
+    moveTo(points.front());
+    for (std::size_t i = 1; i < points.size(); ++i) { lineTo(points[i]); }
+    return *this;
+}
+
+Point Path::currentPosition() const {
+    Point current{0, 0};
+    Point subpathStart{0, 0};
+    bool  haveCurrent = false;
+
+    for (auto const& cmd : commands) {
+        switch (cmd.type) {
+            case CommandType::MoveTo:
+                current      = cmd.p1;
+                subpathStart = cmd.p1;
+                haveCurrent  = true;
+                break;
+
+            case CommandType::LineTo:
+                current     = cmd.p1;
+                haveCurrent = true;
+                break;
+
+            case CommandType::QuadTo:
+                current     = cmd.p2;
+                haveCurrent = true;
+                break;
+
+            case CommandType::CubicTo:
+                current     = cmd.p3;
+                haveCurrent = true;
+                break;
+
+            case CommandType::CloseSubpath:
+                if (haveCurrent) { current = subpathStart; }
+                break;
+        }
+    }
+
+    return current;
+}

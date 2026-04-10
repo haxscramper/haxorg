@@ -9,6 +9,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include "hstd/stdlib/TraceBase.hpp"
 #include "hstd_geometry.hpp"
+#include "hstd_visual.hpp"
 
 namespace hstd {
 template <typename ID, typename T>
@@ -892,7 +893,10 @@ class IPortVisualAttribute : public IVisualAttribute {};
 
 /// \brief Base class for all attributes describing post-layout placement
 /// and shape information for the graph elements.
-class ILayoutAttribute : public IAttribute {};
+class ILayoutAttribute : public IAttribute {
+  public:
+    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
+};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
