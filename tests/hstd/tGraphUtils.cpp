@@ -149,6 +149,8 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     group->addVertex(v3);
     group->addVertex(v4);
 
+    // group.
+
     auto shape = gv::NodeAttribute::Shape::rect;
 
     getGv(v1)->setFixedWH(2, 2)->setShape(shape);
@@ -165,13 +167,14 @@ TEST_F(GraphUtils_Test, GraphvizIr1) {
     ASSERT_TRUE(run != nullptr);
     run->runFullLayout();
 
-    // auto lyt = ir.doGraphvizLayout(gvc);
-    // lyt.writeSvg("/tmp/testGraphvizIr1.svg");
-    // lyt.writeXDot("/tmp/testGraphvizIr1.xdot");
-    // auto converted = lyt.convert();
-
-
     EXPECT_EQ(run->result.vertices.size(), 4);
+
+    auto const& res = run->result;
+
+    ASSERT_TRUE(res.vertices.contains(v1));
+    ASSERT_TRUE(res.vertices.contains(v2));
+    ASSERT_TRUE(res.vertices.contains(v3));
+    ASSERT_TRUE(res.vertices.contains(v4));
 
     EXPECT_EQ(run->getLayout(v1).getBBox().width(), 2);
     EXPECT_EQ(run->getLayout(v1).getBBox().height(), 2);

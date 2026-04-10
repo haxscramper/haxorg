@@ -797,17 +797,17 @@ void layout::LayoutRun::runFullLayout() {
 
         if (group->algorithm) {
             auto sub_res = group->algorithm.value()->runSingleLayout(id);
-            for (auto const& [id, attr] : result.groups) {
+            for (auto const& [id, attr] : sub_res.groups) {
                 LOGIC_ASSERTION_CHECK(!result.groups.contains(id), "");
                 result.groups.insert_or_assign(id, attr);
             }
 
-            for (auto const& [id, attr] : result.vertices) {
+            for (auto const& [id, attr] : sub_res.vertices) {
                 LOGIC_ASSERTION_CHECK(!result.vertices.contains(id), "");
                 result.vertices.insert_or_assign(id, attr);
             }
 
-            for (auto const& [id, attr] : result.edges) {
+            for (auto const& [id, attr] : sub_res.edges) {
                 LOGIC_ASSERTION_CHECK(!result.edges.contains(id), "");
                 result.edges.insert_or_assign(id, attr);
             }

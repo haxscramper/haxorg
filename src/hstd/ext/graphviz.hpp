@@ -799,9 +799,11 @@ class Layout : public layout::IPlacementAlgorithm {
         : layout::IPlacementAlgorithm{run}, gvc{gvc} {}
     LayoutType layout = LayoutType::Dot;
 
+    // FIXME: this might not be necessary, using 1 returns the correct
+    // results in tests.
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.
-    [[refl]] int graphviz_size_scaling = 72;
+    [[refl]] int graphviz_size_scaling = 1;
 
     void createLayout(GraphGroup const& graph);
 

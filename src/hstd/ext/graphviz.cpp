@@ -273,8 +273,8 @@ void gv::GraphGroup::eachNode(Func<void(NodeAttribute)> cb) {
 void gv::GraphGroup::eachEdge(Func<void(EdgeAttribute)> cb) {
     for (Agnode_t* node = agfstnode(get()); node;
          node           = agnxtnode(get(), node)) {
-        for (Agedge_t* edge = agfstedge(get(), node); edge;
-             edge           = agnxtedge(get(), edge, node)) {
+        for (Agedge_t* edge = agfstout(get(), node); edge;
+             edge           = agnxtout(get(), edge)) {
             cb(EdgeAttribute(get(), edge));
         }
     }
@@ -561,7 +561,10 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        VertexID id{node.getAttr<hstd::u64>(id_attr).value()};
+        auto id = VertexID::FromValue(
+            node.getAttr<hstd::u64>(id_attr).value());
+        run->message(
+            hstd::fmt("each-group iterate vertex {}", id.format()));
         result.vertices.insert_or_assign(
             id,
             std::make_shared<GraphVertexLayoutAttribute>(
@@ -569,7 +572,9 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        VertexID id{edge.getAttr<hstd::u64>(id_attr).value()};
+        auto id = VertexID::FromValue(
+            edge.getAttr<hstd::u64>(id_attr).value());
+        run->message(hstd::fmt("each-group iterate edge {}", id.format()));
         result.edges.insert_or_assign(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
