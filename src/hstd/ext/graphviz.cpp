@@ -9,7 +9,7 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
-static constexpr int scaling = 1;
+static constexpr int scaling = 72;
 
 namespace {
 Rect getGraphBBox(gv::GraphGroup const& g) {

@@ -229,7 +229,7 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
 
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, true).to_string());
+        hstd::ext::visual::toSvg(visual, false).to_string());
 }
 
 TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {

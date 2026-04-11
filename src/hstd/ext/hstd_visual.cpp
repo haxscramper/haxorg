@@ -140,12 +140,9 @@ struct ShapeWriteResult {
 };
 
 struct SvgWriter {
-    ShapeWriteResult writeShape(
-        VisElement::RectShape const& r,
-        float                        ox,
-        float                        oy) {
-        float x = r.geometry.x() + ox;
-        float y = r.geometry.y() + oy;
+    XmlNode writeShape(VisElement::RectShape const& r) {
+        float x = r.geometry.x();
+        float y = r.geometry.y();
 
         XmlNode rect("rect");
         rect.set_attr("x", hstd::fmt("{}", x));
@@ -159,19 +156,12 @@ struct SvgWriter {
             rect.set_attr("ry", hstd::fmt("{}", *r.cornerRadius));
         }
 
-        return {
-            std::move(rect),
-            Point(
-                x + r.geometry.width() / 2.0f,
-                y + r.geometry.height() / 2.0f)};
+        return std::move(rect);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::EllipseShape const& e,
-        float                           ox,
-        float                           oy) {
-        float cx = e.geometry.x() + e.geometry.width() / 2.0f + ox;
-        float cy = e.geometry.y() + e.geometry.height() / 2.0f + oy;
+    XmlNode writeShape(VisElement::EllipseShape const& e) {
+        float cx = e.geometry.x() + e.geometry.width() / 2.0f;
+        float cy = e.geometry.y() + e.geometry.height() / 2.0f;
         float rx = e.geometry.width() / 2.0f;
         float ry = e.geometry.height() / 2.0f;
 
@@ -183,17 +173,14 @@ struct SvgWriter {
         applyPenAttrs(ellipse, e.pen);
         applyBrushAttrs(ellipse, e.brush);
 
-        return {std::move(ellipse), Point(cx, cy)};
+        return std::move(ellipse);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::LineShape const& l,
-        float                        ox,
-        float                        oy) {
-        float x1 = l.p1.x() + ox;
-        float y1 = l.p1.y() + oy;
-        float x2 = l.p2.x() + ox;
-        float y2 = l.p2.y() + oy;
+    XmlNode writeShape(VisElement::LineShape const& l) {
+        float x1 = l.p1.x();
+        float y1 = l.p1.y();
+        float x2 = l.p2.x();
+        float y2 = l.p2.y();
 
         XmlNode line("line");
         line.set_attr("x1", hstd::fmt("{}", x1));
@@ -202,38 +189,21 @@ struct SvgWriter {
         line.set_attr("y2", hstd::fmt("{}", y2));
         applyPenAttrs(line, l.pen);
 
-        return {
-            std::move(line), Point((x1 + x2) * 0.5f, (y1 + y2) * 0.5f)};
+        return std::move(line);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::PathShape const& p,
-        float                        ox,
-        float                        oy) {
-        XmlNode g("g");
-        g.set_attr("transform", hstd::fmt("translate({},{})", ox, oy));
-
+    XmlNode writeShape(VisElement::PathShape const& p) {
         XmlNode path("path");
         path.set_attr("d", pathToSvgD(p.path));
         applyPenAttrs(path, p.pen);
         applyBrushAttrs(path, p.brush);
-        g.push_back(std::move(path));
-
-        if (!p.path.commands.empty()) {
-            auto const& c = p.path.commands.front();
-            return {std::move(g), Point(c.p1.x() + ox, c.p1.y() + oy)};
-        } else {
-            return {std::move(g), Point(ox, oy)};
-        }
+        return std::move(path);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::PolygonShape const& poly,
-        float                           ox,
-        float                           oy) {
+    XmlNode writeShape(VisElement::PolygonShape const& poly) {
         std::string points;
         for (auto const& pt : poly.points) {
-            points += hstd::fmt("{},{} ", pt.x() + ox, pt.y() + oy);
+            points += hstd::fmt("{},{} ", pt.x(), pt.y());
         }
 
         XmlNode polygon("polygon");
@@ -241,23 +211,12 @@ struct SvgWriter {
         applyPenAttrs(polygon, poly.pen);
         applyBrushAttrs(polygon, poly.brush);
 
-        if (!poly.points.empty()) {
-            return {
-                std::move(polygon),
-                Point(
-                    poly.points.front().x() + ox,
-                    poly.points.front().y() + oy)};
-        } else {
-            return {std::move(polygon), Point(ox, oy)};
-        }
+        return std::move(polygon);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::TextShape const& t,
-        float                        ox,
-        float                        oy) {
-        float x = t.anchor.x() + ox;
-        float y = t.anchor.y() + oy;
+    XmlNode writeShape(VisElement::TextShape const& t) {
+        float x = t.anchor.x();
+        float y = t.anchor.y();
 
         XmlNode text("text");
         text.set_attr("x", hstd::fmt("{}", x));
@@ -274,15 +233,12 @@ struct SvgWriter {
         text.set_attr("fill", colorToSvg(t.color));
         text.set_text(t.content);
 
-        return {std::move(text), Point(x, y)};
+        return std::move(text);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::PixmapShape const& px,
-        float                          ox,
-        float                          oy) {
-        float x = px.geometry.x() + ox;
-        float y = px.geometry.y() + oy;
+    XmlNode writeShape(VisElement::PixmapShape const& px) {
+        float x = px.geometry.x();
+        float y = px.geometry.y();
 
         XmlNode image("image");
         image.set_attr("href", px.path);
@@ -291,19 +247,12 @@ struct SvgWriter {
         image.set_attr("width", hstd::fmt("{}", px.geometry.width()));
         image.set_attr("height", hstd::fmt("{}", px.geometry.height()));
 
-        return {
-            std::move(image),
-            Point(
-                x + px.geometry.width() / 2.0f,
-                y + px.geometry.height() / 2.0f)};
+        return std::move(image);
     }
 
-    ShapeWriteResult writeShape(
-        VisElement::PointShape const& pt,
-        float                         ox,
-        float                         oy) {
-        float cx = pt.position.x() + ox;
-        float cy = pt.position.y() + oy;
+    XmlNode writeShape(VisElement::PointShape const& pt) {
+        float cx = pt.position.x();
+        float cy = pt.position.y();
 
         XmlNode circle("circle");
         circle.set_attr("cx", hstd::fmt("{}", cx));
@@ -312,7 +261,7 @@ struct SvgWriter {
         applyPenAttrs(circle, pt.pen);
         applyBrushAttrs(circle, pt.brush);
 
-        return {std::move(circle), Point(cx, cy)};
+        return std::move(circle);
     }
 
     XmlNode buildDebugMarker(
@@ -353,20 +302,17 @@ struct SvgWriter {
 
     XmlNode writeElement(
         VisElement const&     elem,
-        float                 ox,
-        float                 oy,
         hstd::Vec<int> const& path,
         bool                  debug) {
-        ShapeWriteResult result = std::visit(
-            [&](auto const& shape) { return writeShape(shape, ox, oy); },
+        XmlNode result = std::visit(
+            [&](auto const& shape) -> XmlNode {
+                return writeShape(shape);
+            },
             elem.data);
 
-        if (!debug) { return std::move(result.node); }
+        if (!debug) { return std::move(result); }
 
-        XmlNode g("g");
-        g.push_back(std::move(result.node));
-        g.push_back(buildDebugMarker(path, result.coord, elem.extra));
-        return g;
+        return result;
     }
 
     XmlNode writeGroup(
@@ -379,9 +325,13 @@ struct SvgWriter {
         float gy = oy + group.offset.y();
 
         XmlNode g("g");
+        g.set_attr(
+            "transform",
+            hstd::fmt(
+                "translate({},{})", group.offset.x(), group.offset.y()));
 
         for (auto const& elem : group.elements) {
-            g.push_back(writeElement(elem, gx, gy, path, debug));
+            g.push_back(writeElement(elem, path, debug));
         }
 
         for (int i = 0; i < group.subgroups.size(); ++i) {
