@@ -280,7 +280,6 @@ gv::GraphGroup::GraphGroup(
     : layout::IGroup{ctx.run}
     , defaultEdge(nullptr, nullptr)
     , defaultNode(nullptr, nullptr)
-    , name{name}
     , ctx{ctx} {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
@@ -299,7 +298,6 @@ gv::GraphGroup::GraphGroup(GroupContext ctx, fs::path const& file)
     , graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr)
-    , name{file.filename()}
     , ctx{ctx} {
     LOGIC_ASSERTION_CHECK(fs::is_regular_file(file), "");
 
@@ -315,7 +313,6 @@ gv::GraphGroup::GraphGroup(GroupContext ctx, Agraph_t* graph)
     , graph(graph)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr)
-    , name{agnameof(graph)}
     , ctx{ctx} {
     initDefaultSetters();
 }
@@ -626,7 +623,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 hstd::fmt(
                     "group '{}' has layout algorithm set",
                     group->getStableId()));
-            auto recursiveBBox = run->getLayout(id).getBBox();
+            auto recursiveBBox = run->getLayout(id)->getBBox();
             auto recursiveNode = parentGroup->node(
                 hstd::fmt("tmp-subgraph-node-{}", id));
 
@@ -653,14 +650,14 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
             for (auto const& vertex : group->getVertices()) {
-                run->message(hstd::fmt("vertex {}", vertex));
+                // run->message(hstd::fmt("vertex {}", vertex));
                 gv_group->nodeAttributes()[vertex]->setAttr(
                     id_attr, vertex.getValue());
             }
 
 
             for (auto const& edge : group->getEdges()) {
-                run->message(hstd::fmt("edge {}", edge));
+                // run->message(hstd::fmt("edge {}", edge));
                 gv_group->edgeAttributes()[edge]->setAttr(
                     id_attr, edge.getValue());
             }
@@ -685,16 +682,40 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto rect = getNodeRectangle(*rootGroup, node, bbox);
             run->message(
                 hstd::fmt(
-                    "found sub-group {} placement rect {} bbox {}",
+                    "found sub-group {} placement rect {} bbox {} ({}, "
+                    "{})",
                     id,
                     rect,
-                    bbox));
-            run->message(
-                hstd::fmt("from node {}", node.getPropertiesAsString()));
-            result.groups.insert_or_assign(
-                id,
-                std::make_shared<GraphGroupLayoutAttribute>(
-                    rect, rootGroup));
+                    bbox,
+                    node.info()->coord.x,
+                    node.info()->coord.y));
+
+            // Full layout run will place all the nested subgroups and then
+            // will execute layout for the parent group, so the
+            // `getLayout()` is guaranteed to be safe to call here.
+            auto const& prev_attribute = run->getLayout(id);
+
+            run->message("replacing existing group attribute");
+            auto prev_cast = std::dynamic_pointer_cast<
+                GraphGroupLayoutAttribute>(prev_attribute);
+            if (prev_attribute) {
+                run->message("previous attribute was a graphviz layout");
+                result.groups.insert_or_assign(
+                    id,
+                    std::make_shared<GraphGroupLayoutAttribute>(
+                        rect, prev_cast->group));
+            } else {
+                run->message(
+                    hstd::fmt(
+                        "previous attribute was {}",
+                        typeid(prev_cast.get()).name()));
+                result.groups.insert_or_assign(
+                    id,
+                    std::make_shared<GraphGroupLayoutAttribute>(
+                        rect, rootGroup));
+            }
+
+
         } else {
             auto id_value = node.getAttr<hstd::u64>(id_attr);
             LOGIC_ASSERTION_CHECK_FMT(
@@ -830,6 +851,27 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
     return result;
 }
 
+layout::GroupID gv::GraphGroup::newSubLayoutGraph() {
+    auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
+    if (!gvc) {
+        throw std::runtime_error("Failed to create Graphviz context");
+    }
+
+    auto result = std::make_shared<GraphGroup>(
+        GroupContext{
+            .run     = run,
+            .context = GVContext::shared(),
+            .gvc     = gvc,
+        },
+        hstd::Str{hstd::fmt("sub-layout-{}", run->groups.getNextId())});
+
+    result->algorithm = std::make_shared<gv::Layout>(gvc, run);
+    auto id           = run->addGroup(result);
+    result->groups().insert_or_assign(id, result);
+    addExistingSubgroup(id);
+    return id;
+}
+
 layout::GroupID gv::GraphGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
@@ -839,9 +881,9 @@ layout::GroupID gv::GraphGroup::newRootGraph(
 
     auto result = std::make_shared<GraphGroup>(
         GroupContext{
+            .run     = run,
             .context = GVContext::shared(),
             .gvc     = gvc,
-            .run     = run,
         },
         hstd::Str{"root"});
 
@@ -1245,7 +1287,8 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     }
 
     visual::VisElement rectElem;
-    rectElem.comment.push_back(hstd::fmt("group {}", group->name));
+    rectElem.comment.push_back(
+        hstd::fmt("graphviz group visual '{}'", group->name()));
     rectElem.data = rect;
     result.elements.push_back(rectElem);
 

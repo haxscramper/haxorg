@@ -202,17 +202,17 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     ASSERT_TRUE(res.vertices.contains(v3));
     ASSERT_TRUE(res.vertices.contains(v4));
 
-    EXPECT_EQ(run->getLayout(v1).getBBox().width(), 2);
-    EXPECT_EQ(run->getLayout(v1).getBBox().height(), 2);
+    EXPECT_EQ(run->getLayout(v1)->getBBox().width(), 2);
+    EXPECT_EQ(run->getLayout(v1)->getBBox().height(), 2);
 
-    EXPECT_EQ(run->getLayout(v2).getBBox().width(), 2);
-    EXPECT_EQ(run->getLayout(v2).getBBox().height(), 2);
+    EXPECT_EQ(run->getLayout(v2)->getBBox().width(), 2);
+    EXPECT_EQ(run->getLayout(v2)->getBBox().height(), 2);
 
-    EXPECT_EQ(run->getLayout(v3).getBBox().width(), 4);
-    EXPECT_EQ(run->getLayout(v3).getBBox().height(), 4);
+    EXPECT_EQ(run->getLayout(v3)->getBBox().width(), 4);
+    EXPECT_EQ(run->getLayout(v3)->getBBox().height(), 4);
 
-    EXPECT_EQ(run->getLayout(v4).getBBox().width(), 4);
-    EXPECT_EQ(run->getLayout(v4).getBBox().height(), 4);
+    EXPECT_EQ(run->getLayout(v4)->getBBox().width(), 4);
+    EXPECT_EQ(run->getLayout(v4)->getBBox().height(), 4);
 
     EXPECT_EQ(run->result.edges.size(), 3);
 
@@ -375,18 +375,14 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     auto                       ctx   = group->context();
 
 
-    layout::GroupID            sg_id1 = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
-        run->getGroup(sg_id1));
+    hstd::SPtr<gv::GraphGroup> sg1 = as<gv::GraphGroup>(
+        run->getGroup(group->newSubLayoutGraph()));
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
-    group->addExistingSubgroup(sg_id1);
 
-
-    layout::GroupID            sg_id2 = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
-        run->getGroup(sg_id2));
+    hstd::SPtr<gv::GraphGroup> sg2 = as<gv::GraphGroup>(
+        run->getGroup(group->newSubLayoutGraph()));
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
-    group->addExistingSubgroup(sg_id2);
+
 
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
         ->setFixedWH(1, 1)
@@ -424,8 +420,20 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     EXPECT_EQ(res.vertices.size(), 6);
     EXPECT_EQ(res.edges.size(), 6);
+    EXPECT_EQ(res.groups.size(), 3);
+
+    HSLOG_TRACE("{}", res.groups.keys());
 
     auto visual = run->getVisual();
+
+    EXPECT_EQ(visual.size(), 1);
+    EXPECT_EQ(visual.at(0).subgroups.size(), 2);
+
+    auto const vsg0 = visual.at(0).subgroups.at(0);
+    auto const vsg1 = visual.at(0).subgroups.at(1);
+    EXPECT_EQ(vsg0.subgroups.size(), 6);
+    EXPECT_EQ(vsg1.subgroups.size(), 6);
+
     hstd::writeFile(
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, false).to_string());

@@ -663,6 +663,8 @@ class GraphGroup
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
+    layout::GroupID newSubLayoutGraph();
+
     static layout::GroupID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
 
     void setSplines(Splines splines);
@@ -795,9 +797,9 @@ class GraphGroup
     Agraph_t*     graph;
     EdgeAttribute defaultNode;
     EdgeAttribute defaultEdge;
-    std::string   name;
     GroupContext  ctx;
 
+    Str            name() const { return agnameof(graph); }
     GVContext::Ptr context() { return ctx.context; }
 
     auto& nodeAttributes() { return ctx.context->nodeAttributes; }
@@ -843,7 +845,7 @@ class GraphGroup
     }
 
     virtual std::string getStableId() const override {
-        return hstd::fmt("graph-group-{}", name);
+        return hstd::fmt("graph-group-{}", name());
     }
 };
 

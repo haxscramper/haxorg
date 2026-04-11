@@ -1050,28 +1050,29 @@ class LayoutRun : public OperationsTracer {
         return groups.at(id);
     }
 
-    IGroupLayoutAttribute const& getLayout(GroupID const& id) const {
+    hstd::SPtr<IGroupLayoutAttribute> getLayout(GroupID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.groups.contains(id),
             "No layout attribute specified for group ID {}",
             id);
-        return *result.groups.at(id);
+        return result.groups.at(id);
     }
 
-    IEdgeLayoutAttribute const& getLayout(EdgeID const& id) const {
+    hstd::SPtr<IEdgeLayoutAttribute> getLayout(EdgeID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.edges.contains(id),
             "No layout attribute specified for edge ID {}",
             id);
-        return *result.edges.at(id);
+        return result.edges.at(id);
     }
 
-    IVertexLayoutAttribute const& getLayout(VertexID const& id) const {
+    hstd::SPtr<IVertexLayoutAttribute> getLayout(
+        VertexID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.vertices.contains(id),
             "No layout attribute specified for vertex ID {}",
             id);
-        return *result.vertices.at(id);
+        return result.vertices.at(id);
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;
