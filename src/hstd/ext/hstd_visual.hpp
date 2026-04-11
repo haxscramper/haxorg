@@ -222,10 +222,30 @@ struct VisGroup {
     json                  extra;
     hstd::Vec<hstd::Str>  comment;
 
+    template <typename T>
+    hstd::Vec<T> getElements() const {
+        hstd::Vec<T> result;
+        for (auto const& it : elements) {
+            std::visit(
+                [&]<typename It>(It const& it) {
+                    if constexpr (std::is_same_v<It, T>) {
+                        result.push_back(it);
+                    }
+                },
+                it.data);
+        }
+
+        return result;
+    }
+
     Rect computeBounds(double ox = 0, double gx = 0) const;
 
     Rect computeBounds(Point const& o) const {
         return computeBounds(o.x(), o.y());
+    }
+
+    Rect computeBoundsNoSelfOffset() const {
+        return computeBounds(-offset.x(), -offset.y());
     }
 
     DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
@@ -233,5 +253,7 @@ struct VisGroup {
 
 /// Convert a VisGroup hierarchy to an SVG string.
 XmlNode toSvg(hstd::Vec<VisGroup> const& group, bool debug = false);
+
+Rect computeBounds(hstd::Vec<VisGroup> const& groups);
 
 } // namespace hstd::ext::visual

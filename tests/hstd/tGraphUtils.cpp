@@ -376,12 +376,14 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     auto                       ctx   = group->context();
 
 
-    hstd::SPtr<gv::GraphGroup> sg1 = as<gv::GraphGroup>(
-        run->getGroup(group->newSubLayoutGraph()));
+    layout::GroupID            sg1_id = group->newSubLayoutGraph();
+    hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
+        run->getGroup(sg1_id));
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
 
-    hstd::SPtr<gv::GraphGroup> sg2 = as<gv::GraphGroup>(
-        run->getGroup(group->newSubLayoutGraph()));
+    layout::GroupID            sg2_id = group->newSubLayoutGraph();
+    hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
+        run->getGroup(sg2_id));
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
 
@@ -431,13 +433,13 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_EQ(visual.at(0).subgroups.size(), 2);
 
     auto const vsg  = visual.at(0);
-    auto const vsg0 = visual.at(0).subgroups.at(0);
-    auto const vsg1 = visual.at(0).subgroups.at(1);
-    EXPECT_EQ(vsg0.subgroups.size(), 6);
+    auto const vsg1 = visual.at(0).subgroups.at(0);
+    auto const vsg2 = visual.at(0).subgroups.at(1);
     EXPECT_EQ(vsg1.subgroups.size(), 6);
+    EXPECT_EQ(vsg2.subgroups.size(), 6);
 
-    EXPECT_EQ(vsg0.elements.size(), 1);
     EXPECT_EQ(vsg1.elements.size(), 1);
+    EXPECT_EQ(vsg2.elements.size(), 1);
 
     // ...............................................
     // :                  :                          :
@@ -462,16 +464,41 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, false).to_string());
 
-    // VSG0 is a left layout group
-    // VSG1 is a right one
-    EXPECT_OUTCOME_OK(checkLeftOf(vsg0.offset, vsg1.offset));
+    hstd::writeFile(
+        getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
 
-    EXPECT_OUTCOME_OK(
-        checkFullyCovers(vsg.computeBounds(), vsg0.computeBounds()));
+    // VSG1 is a left layout group
+    // VSG2 is a right one
+    EXPECT_OUTCOME_OK(checkLeftOf(vsg1.offset, vsg2.offset));
 
     EXPECT_OUTCOME_OK(
         checkFullyCovers(vsg.computeBounds(), vsg1.computeBounds()));
+
+    EXPECT_OUTCOME_OK(
+        checkFullyCovers(vsg.computeBounds(), vsg2.computeBounds()));
+
+    using VE = hstd::ext::visual::VisElement;
+
+    // group 0
+    for (auto const& group : hstd::as_vec(&vsg1, &vsg2)) {
+        for (int i : hstd::as_vec(0, 1, 2)) {
+            EXPECT_OUTCOME_OK(checkFullyCovers(
+                group->computeBoundsNoSelfOffset(),
+                group->getElements<VE::RectShape>().at(i).geometry));
+        }
+    }
+
+    // re-checking the same element placement, but now via the visual
+    // attribute API access
+    for (layout::GroupID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
+        for (int i : hstd::as_vec(0, 1, 2)) {
+            EXPECT_OUTCOME_OK(checkFullyCovers(
+                run->getVisual(gid).computeBoundsNoSelfOffset(),
+                computeBounds(run->getVisual(vs.at(i)))));
+        }
+    }
 }
+
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
 #    include <libcola/output_svg.h>

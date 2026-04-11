@@ -1076,6 +1076,15 @@ class LayoutRun : public OperationsTracer {
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;
+    hstd::Vec<visual::VisGroup> getVisual(EdgeID const& id) const {
+        return getLayout(id)->getVisual();
+    }
+    hstd::Vec<visual::VisGroup> getVisual(VertexID const& id) const {
+        return getLayout(id)->getVisual();
+    }
+    visual::VisGroup getVisual(GroupID const& id) const {
+        return getLayout(id)->getVisual();
+    }
 };
 
 

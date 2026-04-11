@@ -437,9 +437,7 @@ Rect VisGroup::computeBounds(double ox, double oy) const {
     return Rect(minX, minY, maxX - minX, maxY - minY);
 }
 
-XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
-    SvgWriter writer;
-
+Rect computeBounds(hstd::Vec<VisGroup> const& groups) {
     double minX = 0.0f;
     double minY = 0.0f;
     double maxX = 0.0f;
@@ -461,11 +459,19 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
         }
     }
 
+    return Rect(minX, minY, maxX - minX, maxY - minY);
+}
+
+XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
+    SvgWriter writer;
+
+    Rect bounds = computeBounds(groups);
+
     double margin = 4.0f;
-    double viewX  = minX - margin;
-    double viewY  = minY - margin;
-    double viewW  = (maxX - minX) + 2.0f * margin;
-    double viewH  = (maxY - minY) + 2.0f * margin;
+    double viewX  = bounds.x() - margin;
+    double viewY  = bounds.y() - margin;
+    double viewW  = bounds.width() + 2.0f * margin;
+    double viewH  = bounds.height() + 2.0f * margin;
 
     XmlNode svg("svg");
     svg.set_attr("xmlns", "http://www.w3.org/2000/svg");

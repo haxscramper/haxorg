@@ -459,6 +459,11 @@ class [[refl(R"({
     }
 };
 
+template <typename T, typename... Args>
+hstd::Vec<T> as_vec(T const& value, Args&&... args) {
+    return Vec<T>::Splice(value, std::forward<Args>(args)...);
+}
+
 template <typename T, int StartSize>
 struct SmallVec
     :
