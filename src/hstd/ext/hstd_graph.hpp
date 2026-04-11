@@ -998,9 +998,7 @@ class IGroup {
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
     /// group object in the overall layout run map.
-    virtual GroupID addNewSubgroup(
-        hstd::Opt<hstd::SPtr<IPlacementAlgorithm>>
-            algorithm = std::nullopt) = 0;
+    virtual GroupID addNewNativeSubgroup() = 0;
 
     /// \brief Add a layout groupt that already exists in the layout run.
     virtual void addExistingSubgroup(GroupID const&) = 0;

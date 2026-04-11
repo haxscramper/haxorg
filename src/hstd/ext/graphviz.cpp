@@ -423,12 +423,9 @@ hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     return attr;
 }
 
-layout::GroupID gv::GraphGroup::addNewSubgroup(
-    hstd::Opt<hstd::SPtr<layout::IPlacementAlgorithm>> algorithm) {
+layout::GroupID gv::GraphGroup::addNewNativeSubgroup() {
     auto result = run->addGroup(
-        algorithm
-            ? gv::GraphGroup::newRootGraph(ctx.run)
-            : newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
+        newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
 
     groups().insert_or_assign(
         result,
@@ -705,7 +702,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 "No ID attr property for node {}",
                 node.getPropertiesAsString());
             auto id = VertexID::FromValue(id_value.value());
-            run->message(hstd::fmt("each-group iterate vertex {}", id));
+            // run->message(hstd::fmt("each-group iterate vertex {}", id));
             result.vertices.insert_or_assign(
                 id,
                 std::make_shared<GraphVertexLayoutAttribute>(
@@ -716,7 +713,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
         auto id = VertexID::FromValue(
             edge.getAttr<hstd::u64>(id_attr).value());
-        run->message(hstd::fmt("each-group iterate edge {}", id));
+        // run->message(hstd::fmt("each-group iterate edge {}", id));
         result.edges.insert_or_assign(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
@@ -834,8 +831,7 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
 }
 
 layout::GroupID gv::GraphGroup::newRootGraph(
-    hstd::SPtr<layout::LayoutRun>     run,
-    hstd::Opt<hstd::SPtr<gv::Layout>> algorithm) {
+    hstd::SPtr<layout::LayoutRun> run) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
     if (!gvc) {
         throw std::runtime_error("Failed to create Graphviz context");

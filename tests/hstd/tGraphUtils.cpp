@@ -260,12 +260,12 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     EXPECT_EQ(ctx->groups.size(), 1);
     EXPECT_EQ(group->subGroups.size(), 0);
 
-    layout::GroupID            sub_group_id1 = group->addNewSubgroup();
-    hstd::SPtr<gv::GraphGroup> sub_group1    = as<gv::GraphGroup>(
+    layout::GroupID sub_group_id1         = group->addNewNativeSubgroup();
+    hstd::SPtr<gv::GraphGroup> sub_group1 = as<gv::GraphGroup>(
         run->getGroup(sub_group_id1));
 
-    layout::GroupID            sub_group_id2 = group->addNewSubgroup();
-    hstd::SPtr<gv::GraphGroup> sub_group2    = as<gv::GraphGroup>(
+    layout::GroupID sub_group_id2         = group->addNewNativeSubgroup();
+    hstd::SPtr<gv::GraphGroup> sub_group2 = as<gv::GraphGroup>(
         run->getGroup(sub_group_id2));
 
     auto shape = gv::NodeAttribute::Shape::rect;
@@ -374,19 +374,19 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
     auto                       ctx   = group->context();
 
-    auto alg1    = std::make_shared<gv::Layout>(group->gvc(), run);
-    alg1->layout = gv::LayoutType::Circo;
 
-    layout::GroupID            sg_id1 = group->addNewSubgroup(alg1);
+    layout::GroupID            sg_id1 = gv::GraphGroup::newRootGraph(run);
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg_id1));
+    sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    group->addExistingSubgroup(sg_id1);
 
-    auto alg2    = std::make_shared<gv::Layout>(group->gvc(), run);
-    alg1->layout = gv::LayoutType::Sfdp;
 
-    layout::GroupID            sg_id2 = group->addNewSubgroup(alg2);
+    layout::GroupID            sg_id2 = gv::GraphGroup::newRootGraph(run);
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg_id2));
+    sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
+    group->addExistingSubgroup(sg_id2);
 
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
         ->setFixedWH(1, 1)

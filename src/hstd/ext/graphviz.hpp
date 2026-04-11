@@ -663,9 +663,7 @@ class GraphGroup
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
-    static layout::GroupID newRootGraph(
-        hstd::SPtr<layout::LayoutRun>     run,
-        hstd::Opt<hstd::SPtr<gv::Layout>> algorithm = std::nullopt);
+    static layout::GroupID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -831,9 +829,7 @@ class GraphGroup
         VertexID const& id) override;
     hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(
         EdgeID const& id) override;
-    layout::GroupID addNewSubgroup(
-        hstd::Opt<hstd::SPtr<layout::IPlacementAlgorithm>>
-            algorithm = std::nullopt) override;
+    layout::GroupID addNewNativeSubgroup() override;
 
     void addExistingSubgroup(layout::GroupID const& id) override;
 
