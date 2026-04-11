@@ -3,7 +3,19 @@
 
 using namespace hstd;
 
-XmlNode::XmlNode(std::string tag) : tag(std::move(tag)) {}
+XmlNode::XmlNode(std::string tag)
+    : type(Kind::Element), tag(std::move(tag)) {}
+
+XmlNode::XmlNode(Kind type, std::string content)
+    : type(type), text(std::move(content)) {}
+
+XmlNode XmlNode::comment(std::string const& text) {
+    return XmlNode(Kind::Comment, text);
+}
+
+XmlNode XmlNode::cdata(std::string const& text) {
+    return XmlNode(Kind::CData, text);
+}
 
 void XmlNode::set_attr(std::string const& name, std::string const& value) {
     for (auto& [k, v] : attrs) {
@@ -34,6 +46,16 @@ std::string XmlNode::to_string(int indent) const {
 void XmlNode::serialize_impl(std::ostream& os, int depth, int indent)
     const {
     std::string pad(depth * indent, ' ');
+
+    if (type == Kind::Comment) {
+        os << pad << "<!--" << text << "-->\n";
+        return;
+    }
+
+    if (type == Kind::CData) {
+        os << pad << "<![CDATA[" << text << "]]>\n";
+        return;
+    }
 
     os << pad << "<" << tag;
     for (auto const& [name, value] : attrs) {

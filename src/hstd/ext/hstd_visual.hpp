@@ -208,10 +208,11 @@ struct VisElement {
         PixmapShape,
         PointShape);
 
-    Data data;
-    json extra;
+    Data                 data;
+    json                 extra;
+    hstd::Vec<hstd::Str> comment;
 
-    DESC_FIELDS(VisElement, (data, extra));
+    DESC_FIELDS(VisElement, (data, extra, comment));
 };
 
 struct VisGroup {
@@ -219,8 +220,9 @@ struct VisGroup {
     hstd::Vec<VisElement> elements;
     hstd::Vec<VisGroup>   subgroups;
     json                  extra;
+    hstd::Vec<hstd::Str>  comment;
 
-    DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra));
+    DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
 };
 
 /// Convert a VisGroup hierarchy to an SVG string.

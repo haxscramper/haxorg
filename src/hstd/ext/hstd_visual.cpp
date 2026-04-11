@@ -310,8 +310,6 @@ struct SvgWriter {
             },
             elem.data);
 
-        if (!debug) { return std::move(result); }
-
         return result;
     }
 
@@ -331,16 +329,19 @@ struct SvgWriter {
                 "translate({},{})", group.offset.x(), group.offset.y()));
 
         for (auto const& elem : group.elements) {
+            for (auto const& comment : elem.comment) {
+                g.push_back(XmlNode::comment(comment));
+            }
             g.push_back(writeElement(elem, path, debug));
         }
 
         for (int i = 0; i < group.subgroups.size(); ++i) {
-            g.push_back(writeGroup(
-                group.subgroups[i],
-                gx,
-                gy,
-                path + hstd::Vec<int>{i},
-                debug));
+            auto const& sg = group.subgroups[i];
+            for (auto const& comment : sg.comment) {
+                g.push_back(XmlNode::comment(comment));
+            }
+            g.push_back(
+                writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}, debug));
         }
 
         if (debug) {

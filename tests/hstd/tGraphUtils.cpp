@@ -224,9 +224,6 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     EXPECT_TRUE(!res.edges.at(e31)->getPath().commands.empty());
 
     auto visual = run->getVisual();
-
-    HSLOG_INFO("dump: {}", hstd::to_json_eval(visual).dump(2));
-
     hstd::writeFile(
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, false).to_string());
@@ -349,6 +346,12 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
 
     EXPECT_EQ(res.vertices.size(), 7);
     EXPECT_EQ(res.edges.size(), 5);
+    EXPECT_EQ(res.groups.size(), 3);
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, false).to_string());
 }
 
 TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
@@ -427,6 +430,9 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_EQ(res.edges.size(), 6);
 
     auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, false).to_string());
 }
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS

@@ -3,6 +3,7 @@
 #    include <filesystem>
 #    include <format>
 #    include <hstd/ext/logger.hpp>
+#    include <hstd/stdlib/Debug.hpp>
 
 
 using namespace hstd;
@@ -544,11 +545,16 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 }
 
 void gv::Layout::createLayout(GraphGroup const& graph) {
-    int res = gvLayout(
-        gvc->get(),
-        const_cast<Agraph_t*>(graph.get()),
-        layoutTypeToString(layout).c_str());
+    auto g    = const_cast<Agraph_t*>(graph.get());
+    auto algo = layoutTypeToString(layout).c_str();
+    int  res  = gvLayout(gvc->get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
+    // Layout does not position the labels, need to call rendering pass.
+    // 'dot' here is the name of the rendering backend.
+    res = gvRender(gvc->get(), g, "xdot", NULL);
+    if (res != 0) {
+        throw std::logic_error("Could not execute render for the layout");
+    }
 }
 
 void gv::Layout::freeLayout(GraphGroup graph) {
@@ -648,6 +654,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                     group->getStableId(),
                     parent));
 
+            gv_group->setAttr(id_sub_group, id.getValue());
+
             auto __scope = run->scopeLevel();
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
@@ -709,6 +717,20 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
         result.edges.insert_or_assign(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
+    });
+
+    rootGroup->eachSubgraph([&](GraphGroup const& group) {
+        auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_attr.has_value(),
+            "No ID attr property set for node {}",
+            group.getPropertiesAsString());
+        auto id = layout::GroupID::FromValue(id_attr.value());
+        run->message(hstd::fmt("each-group iterate group {}", id));
+        result.groups.insert_or_assign(
+            id,
+            std::make_shared<GraphGroupLayoutAttribute>(
+                getGraphBBox(group), std::make_shared<GraphGroup>(group)));
     });
 
     // Bounding box for a group/sub-group is set twice. The first time is
@@ -1073,6 +1095,16 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 
         visual::VisElement labelElem;
         labelElem.data = text;
+        labelElem.comment.push_back(
+            hstd::fmt(
+                "label pos xy:{}, {} label dimen xy:{}, {}",
+                label->pos.x,
+                label->pos.y,
+                label->dimen.x,
+                label->dimen.y));
+        labelElem.comment.push_back(hstd::fmt("node rect:{}", nodeRect));
+        labelElem.comment.push_back(
+            hstd::fmt("anchor:{} bbox:{}", text.anchor, text.boundingBox));
         result.elements.push_back(labelElem);
     }
 
@@ -1204,6 +1236,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     }
 
     visual::VisElement rectElem;
+    rectElem.comment.push_back(hstd::fmt("group {}", group->name));
     rectElem.data = rect;
     result.elements.push_back(rectElem);
 
