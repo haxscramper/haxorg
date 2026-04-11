@@ -128,10 +128,10 @@ std::string pathToSvgD(Path const& path) {
     return d;
 }
 
-std::string groupPathToString(hstd::Vec<int> const& path) {
+std::string pathToString(hstd::Vec<int> const& path) {
     std::string result;
-    for (int idx : path) { result += hstd::fmt(".group[{}]", idx); }
-    return result.empty() ? ".group" : result;
+    for (int idx : path) { result += hstd::fmt("{}/", idx); }
+    return result.empty() ? "/" : result;
 }
 
 struct SvgWriter {
@@ -320,7 +320,7 @@ struct SvgWriter {
 
     void appendDebugMarker(
         XmlNode&              parent,
-        hstd::Vec<int> const& groupPath,
+        hstd::Vec<int> const& path,
         Point const&          coord,
         json const&           extra) {
         XmlNode g("g");
@@ -338,17 +338,18 @@ struct SvgWriter {
         label.set_attr("x", hstd::fmt("{}", coord.x() + 4.0f));
         label.set_attr("y", hstd::fmt("{}", coord.y() - 4.0f));
         label.set_attr("font-family", "monospace");
-        label.set_attr("font-size", "9");
+        label.set_attr("font-size", "4");
         label.set_attr("fill", "#aa0066");
         label.set_attr("text-anchor", "start");
         label.set_attr("dominant-baseline", "alphabetic");
         label.set_text(
             hstd::fmt(
-                "{} @ ({:.2f},{:.2f}) extra={}",
-                groupPathToString(groupPath),
+                "{} @ ({:.2f},{:.2f}){}",
+                pathToString(path),
                 coord.x(),
                 coord.y(),
-                extra.dump()));
+                extra.is_null() ? ""
+                                : hstd::fmt(" extra={}", extra.dump())));
         g.push_back(std::move(label));
 
         parent.push_back(std::move(g));
@@ -359,7 +360,7 @@ struct SvgWriter {
         VisElement const&     elem,
         float                 ox,
         float                 oy,
-        hstd::Vec<int> const& groupPath,
+        hstd::Vec<int> const& path,
         bool                  debug) {
         Point coord = std::visit(
             [&](auto const& shape) {
@@ -367,9 +368,7 @@ struct SvgWriter {
             },
             elem.data);
 
-        if (debug) {
-            appendDebugMarker(parent, groupPath, coord, elem.extra);
-        }
+        if (debug) { appendDebugMarker(parent, path, coord, elem.extra); }
     }
 
     void writeGroup(
@@ -377,19 +376,27 @@ struct SvgWriter {
         VisGroup const&       group,
         float                 ox,
         float                 oy,
-        hstd::Vec<int> const& groupPath,
+        hstd::Vec<int> const& path,
         bool                  debug) {
         float gx = ox + group.offset.x();
         float gy = oy + group.offset.y();
 
         for (auto const& elem : group.elements) {
-            writeElement(parent, elem, gx, gy, groupPath, debug);
+            writeElement(parent, elem, gx, gy, path, debug);
         }
 
-        for (std::size_t i = 0; i < group.subgroups.size(); ++i) {
-            hstd::Vec<int> subPath = groupPath;
-            subPath.push_back(static_cast<int>(i));
-            writeGroup(parent, group.subgroups[i], gx, gy, subPath, debug);
+        for (int i = 0; i < group.subgroups.size(); ++i) {
+            writeGroup(
+                parent,
+                group.subgroups[i],
+                gx,
+                gy,
+                path + hstd::Vec<int>{i},
+                debug);
+        }
+
+        if (debug) {
+            appendDebugMarker(parent, path, {ox, oy}, group.extra);
         }
     }
 
@@ -480,9 +487,7 @@ struct SvgWriter {
 
 } // namespace
 
-XmlNode hstd::ext::visual::toSvg(
-    hstd::Vec<VisGroup> const& groups,
-    bool                       debug) {
+XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     SvgWriter writer;
 
     float minX = 0.0f;
@@ -497,7 +502,7 @@ XmlNode hstd::ext::visual::toSvg(
         maxX       = first.x() + first.width();
         maxY       = first.y() + first.height();
 
-        for (std::size_t i = 1; i < groups.size(); ++i) {
+        for (int i = 1; i < groups.size(); ++i) {
             Rect b = writer.computeBounds(groups[i], 0, 0);
             minX   = std::min(minX, b.x());
             minY   = std::min(minY, b.y());
@@ -521,10 +526,8 @@ XmlNode hstd::ext::visual::toSvg(
     svg.set_attr("width", hstd::fmt("{}", viewW));
     svg.set_attr("height", hstd::fmt("{}", viewH));
 
-    for (std::size_t i = 0; i < groups.size(); ++i) {
-        hstd::Vec<int> path;
-        path.push_back(static_cast<int>(i));
-        writer.writeGroup(svg, groups[i], 0.0f, 0.0f, path, debug);
+    for (int i = 0; i < groups.size(); ++i) {
+        writer.writeGroup(svg, groups[i], 0.0f, 0.0f, {i}, debug);
     }
 
     return svg;

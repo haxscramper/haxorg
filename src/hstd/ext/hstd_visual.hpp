@@ -218,8 +218,9 @@ struct VisGroup {
     Point                 offset = Point{0.0f, 0.0f};
     hstd::Vec<VisElement> elements;
     hstd::Vec<VisGroup>   subgroups;
+    json                  extra;
 
-    DESC_FIELDS(VisGroup, (offset, elements, subgroups));
+    DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra));
 };
 
 /// Convert a VisGroup hierarchy to an SVG string.

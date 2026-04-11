@@ -960,6 +960,7 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 
     visual::VisGroup result;
     result.offset = Point{nodeRect.x(), nodeRect.y()};
+    result.extra  = json{node.getPropertiesAsString()};
 
     // Determine shape kind
     auto*            info  = node.info();
