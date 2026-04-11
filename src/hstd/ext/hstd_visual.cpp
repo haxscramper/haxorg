@@ -141,8 +141,8 @@ struct ShapeWriteResult {
 
 struct SvgWriter {
     XmlNode writeShape(VisElement::RectShape const& r) {
-        float x = r.geometry.x();
-        float y = r.geometry.y();
+        double x = r.geometry.x();
+        double y = r.geometry.y();
 
         XmlNode rect("rect");
         rect.set_attr("x", hstd::fmt("{}", x));
@@ -160,10 +160,10 @@ struct SvgWriter {
     }
 
     XmlNode writeShape(VisElement::EllipseShape const& e) {
-        float cx = e.geometry.x() + e.geometry.width() / 2.0f;
-        float cy = e.geometry.y() + e.geometry.height() / 2.0f;
-        float rx = e.geometry.width() / 2.0f;
-        float ry = e.geometry.height() / 2.0f;
+        double cx = e.geometry.x() + e.geometry.width() / 2.0f;
+        double cy = e.geometry.y() + e.geometry.height() / 2.0f;
+        double rx = e.geometry.width() / 2.0f;
+        double ry = e.geometry.height() / 2.0f;
 
         XmlNode ellipse("ellipse");
         ellipse.set_attr("cx", hstd::fmt("{}", cx));
@@ -177,10 +177,10 @@ struct SvgWriter {
     }
 
     XmlNode writeShape(VisElement::LineShape const& l) {
-        float x1 = l.p1.x();
-        float y1 = l.p1.y();
-        float x2 = l.p2.x();
-        float y2 = l.p2.y();
+        double x1 = l.p1.x();
+        double y1 = l.p1.y();
+        double x2 = l.p2.x();
+        double y2 = l.p2.y();
 
         XmlNode line("line");
         line.set_attr("x1", hstd::fmt("{}", x1));
@@ -215,8 +215,8 @@ struct SvgWriter {
     }
 
     XmlNode writeShape(VisElement::TextShape const& t) {
-        float x = t.anchor.x();
-        float y = t.anchor.y();
+        double x = t.anchor.x();
+        double y = t.anchor.y();
 
         XmlNode text("text");
         text.set_attr("x", hstd::fmt("{}", x));
@@ -237,8 +237,8 @@ struct SvgWriter {
     }
 
     XmlNode writeShape(VisElement::PixmapShape const& px) {
-        float x = px.geometry.x();
-        float y = px.geometry.y();
+        double x = px.geometry.x();
+        double y = px.geometry.y();
 
         XmlNode image("image");
         image.set_attr("href", px.path);
@@ -251,8 +251,8 @@ struct SvgWriter {
     }
 
     XmlNode writeShape(VisElement::PointShape const& pt) {
-        float cx = pt.position.x();
-        float cy = pt.position.y();
+        double cx = pt.position.x();
+        double cy = pt.position.y();
 
         XmlNode circle("circle");
         circle.set_attr("cx", hstd::fmt("{}", cx));
@@ -315,12 +315,12 @@ struct SvgWriter {
 
     XmlNode writeGroup(
         VisGroup const&       group,
-        float                 ox,
-        float                 oy,
+        double                ox,
+        double                oy,
         hstd::Vec<int> const& path,
         bool                  debug) {
-        float gx = ox + group.offset.x();
-        float gy = oy + group.offset.y();
+        double gx = ox + group.offset.x();
+        double gy = oy + group.offset.y();
 
         XmlNode g("g");
         g.set_attr(
@@ -351,22 +351,22 @@ struct SvgWriter {
         return g;
     }
 
-    Rect computeBounds(VisGroup const& group, float ox, float oy) {
-        float gx   = ox + group.offset.x();
-        float gy   = oy + group.offset.y();
-        float minX = std::numeric_limits<float>::max();
-        float minY = std::numeric_limits<float>::max();
-        float maxX = std::numeric_limits<float>::lowest();
-        float maxY = std::numeric_limits<float>::lowest();
+    Rect computeBounds(VisGroup const& group, double ox, double oy) {
+        double gx   = ox + group.offset.x();
+        double gy   = oy + group.offset.y();
+        double minX = std::numeric_limits<double>::max();
+        double minY = std::numeric_limits<double>::max();
+        double maxX = std::numeric_limits<double>::lowest();
+        double maxY = std::numeric_limits<double>::lowest();
 
-        auto expand = [&](float x, float y) {
+        auto expand = [&](double x, double y) {
             minX = std::min(minX, x);
             minY = std::min(minY, y);
             maxX = std::max(maxX, x);
             maxY = std::max(maxY, y);
         };
 
-        auto expandRect = [&](Rect const& r, float ex, float ey) {
+        auto expandRect = [&](Rect const& r, double ex, double ey) {
             expand(r.x() + ex, r.y() + ey);
             expand(r.x() + r.width() + ex, r.y() + r.height() + ey);
         };
@@ -441,10 +441,10 @@ struct SvgWriter {
 XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     SvgWriter writer;
 
-    float minX = 0.0f;
-    float minY = 0.0f;
-    float maxX = 0.0f;
-    float maxY = 0.0f;
+    double minX = 0.0f;
+    double minY = 0.0f;
+    double maxX = 0.0f;
+    double maxY = 0.0f;
 
     if (!groups.empty()) {
         Rect first = writer.computeBounds(groups.front(), 0, 0);
@@ -455,18 +455,18 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
 
         for (int i = 1; i < groups.size(); ++i) {
             Rect b = writer.computeBounds(groups[i], 0, 0);
-            minX   = std::min(minX, b.x());
-            minY   = std::min(minY, b.y());
-            maxX   = std::max(maxX, b.x() + b.width());
-            maxY   = std::max(maxY, b.y() + b.height());
+            minX   = std::min<double>(minX, b.x());
+            minY   = std::min<double>(minY, b.y());
+            maxX   = std::max<double>(maxX, b.x() + b.width());
+            maxY   = std::max<double>(maxY, b.y() + b.height());
         }
     }
 
-    float margin = 4.0f;
-    float viewX  = minX - margin;
-    float viewY  = minY - margin;
-    float viewW  = (maxX - minX) + 2.0f * margin;
-    float viewH  = (maxY - minY) + 2.0f * margin;
+    double margin = 4.0f;
+    double viewX  = minX - margin;
+    double viewY  = minY - margin;
+    double viewW  = (maxX - minX) + 2.0f * margin;
+    double viewH  = (maxY - minY) + 2.0f * margin;
 
     XmlNode svg("svg");
     svg.set_attr("xmlns", "http://www.w3.org/2000/svg");

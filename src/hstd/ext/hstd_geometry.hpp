@@ -16,7 +16,7 @@
 namespace hstd::ext::geometry {
 namespace bg = boost::geometry;
 
-using Point = bg::model::d2::point_xy<float>;
+using Point = bg::model::d2::point_xy<double>;
 
 struct Rect;
 } // namespace hstd::ext::geometry
@@ -47,16 +47,16 @@ struct Rect : bg::model::box<Point> {
     using box::box;
 
     Rect() : box(Point(0, 0), Point(0, 0)) {}
-    Rect(float x, float y, float w, float h)
+    Rect(double x, double y, double w, double h)
         : box(Point(x, y), Point(x + w, y + h)) {}
 
-    float x() const { return bg::get<bg::min_corner, 0>(*this); }
-    float y() const { return bg::get<bg::min_corner, 1>(*this); }
-    float width() const {
+    double x() const { return bg::get<bg::min_corner, 0>(*this); }
+    double y() const { return bg::get<bg::min_corner, 1>(*this); }
+    double width() const {
         return bg::get<bg::max_corner, 0>(*this)
              - bg::get<bg::min_corner, 0>(*this);
     }
-    float height() const {
+    double height() const {
         return bg::get<bg::max_corner, 1>(*this)
              - bg::get<bg::min_corner, 1>(*this);
     }
@@ -69,8 +69,8 @@ namespace hstd::ext::geometry {
 
 struct Size : public Point {
     using Point::Point;
-    float width() const { return this->x(); }
-    float height() const { return this->y(); }
+    double width() const { return this->x(); }
+    double height() const { return this->y(); }
 };
 
 struct Path {
@@ -134,21 +134,21 @@ struct Path {
         return *this;
     }
 
-    Path& moveTo(float x, float y) { return moveTo(Point{x, y}); }
+    Path& moveTo(double x, double y) { return moveTo(Point{x, y}); }
 
     Path& lineTo(Point const& to) {
         commands.push_back(Command::lineTo(to));
         return *this;
     }
 
-    Path& lineTo(float x, float y) { return lineTo(Point{x, y}); }
+    Path& lineTo(double x, double y) { return lineTo(Point{x, y}); }
 
     Path& quadTo(Point const& control, Point const& to) {
         commands.push_back(Command::quadTo(control, to));
         return *this;
     }
 
-    Path& quadTo(float cx, float cy, float x, float y) {
+    Path& quadTo(double cx, double cy, double x, double y) {
         return quadTo(Point{cx, cy}, Point{x, y});
     }
 
@@ -161,12 +161,12 @@ struct Path {
     }
 
     Path& cubicTo(
-        float c1x,
-        float c1y,
-        float c2x,
-        float c2y,
-        float x,
-        float y) {
+        double c1x,
+        double c1y,
+        double c2x,
+        double c2y,
+        double x,
+        double y) {
         return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
     }
 

@@ -10,7 +10,7 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
-static constexpr int scaling = 72;
+static constexpr float scaling = 72.0f;
 
 namespace {
 Rect getGraphBBox(gv::GraphGroup const& g) {
@@ -20,7 +20,7 @@ Rect getGraphBBox(gv::GraphGroup const& g) {
     // |       |
     // [LL]----+
 
-    auto res = Rect(0, 0, rect.UR.x / 72, rect.UR.y / 72);
+    auto res = Rect(0, 0, rect.UR.x, rect.UR.y);
     return res;
 }
 
@@ -28,7 +28,6 @@ Rect getGraphBBox(gv::GraphGroup const& g) {
 Rect getNodeRectangle(
     gv::GraphGroup const&    g,
     gv::NodeAttribute const& node,
-    int                      scaling,
     Rect const&              bbox) {
     double width  = node.info()->width * scaling;
     double height = node.info()->height * scaling;
@@ -37,6 +36,14 @@ Rect getNodeRectangle(
     int    x1     = std::round(x - width / 2);
     int    y1     = std::round(y - height / 2);
     auto   result = Rect(x1, y1, width, height);
+
+    _dfmt(
+        node.info()->width,
+        node.info()->height,
+        bbox.width(),
+        bbox.height(),
+        node.info()->coord.x,
+        node.info()->coord.y);
 
     return result;
 }
@@ -693,7 +700,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 id,
                 std::make_shared<GraphGroupLayoutAttribute>(
                     getNodeRectangle(
-                        *rootGroup, node, 1, getGraphBBox(*rootGroup)),
+                        *rootGroup, node, getGraphBBox(*rootGroup)),
                     rootGroup));
         } else {
             auto id_value = node.getAttr<hstd::u64>(id_attr);
@@ -789,11 +796,7 @@ layout::GroupID gv::Graphviz::getNewGraph() {
 
 
 Rect gv::GraphVertexLayoutAttribute::getBBox() const {
-    return getNodeRectangle(
-        graph,
-        node,
-        graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
-        getGraphBBox(graph));
+    return getNodeRectangle(graph, node, getGraphBBox(graph));
 }
 
 
@@ -978,11 +981,19 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
     const {
     Rect bbox     = getGraphBBox(graph);
-    Rect nodeRect = getNodeRectangle(graph, node, scaling, bbox);
+    Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
     visual::VisGroup result;
+    result.comment.push_back(hstd::fmt("vertex {}", node.name()));
     result.offset = Point{nodeRect.x(), nodeRect.y()};
-    result.extra  = json{node.getPropertiesAsString()};
+    result.comment.push_back(
+        hstd::fmt("node-rect {} bbox {}", nodeRect, bbox));
+    result.comment.push_back(
+        hstd::fmt(
+            "node-geometry ({}, {})",
+            node.info()->width,
+            node.info()->height));
+    result.extra = json{node.getPropertiesAsString()};
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1062,6 +1073,8 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
                                   * 0.1f;
             }
             shapeElem.data = rect;
+            shapeElem.comment.push_back("rect shape");
+            break;
         }
     }
 
@@ -1095,16 +1108,17 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 
         visual::VisElement labelElem;
         labelElem.data = text;
-        labelElem.comment.push_back(
-            hstd::fmt(
-                "label pos xy:{}, {} label dimen xy:{}, {}",
-                label->pos.x,
-                label->pos.y,
-                label->dimen.x,
-                label->dimen.y));
-        labelElem.comment.push_back(hstd::fmt("node rect:{}", nodeRect));
-        labelElem.comment.push_back(
-            hstd::fmt("anchor:{} bbox:{}", text.anchor, text.boundingBox));
+        // labelElem.comment.push_back(
+        //     hstd::fmt(
+        //         "label pos xy:{}, {} label dimen xy:{}, {}",
+        //         label->pos.x,
+        //         label->pos.y,
+        //         label->dimen.x,
+        //         label->dimen.y));
+        // labelElem.comment.push_back(hstd::fmt("node rect:{}",
+        // nodeRect)); labelElem.comment.push_back(
+        //     hstd::fmt("anchor:{} bbox:{}", text.anchor,
+        //     text.boundingBox));
         result.elements.push_back(labelElem);
     }
 

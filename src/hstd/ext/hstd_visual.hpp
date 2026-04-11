@@ -41,7 +41,7 @@ struct VisPen {
     DECL_DESCRIBED_ENUM(LineStyle, Solid, Dash, Dot, DashDot, None);
 
     VisColor  color = VisColor::black();
-    float     width = 1.0f;
+    double    width = 1.0f;
     LineStyle style = LineStyle::Solid;
 
     DESC_FIELDS(VisPen, (color, width, style));
@@ -80,7 +80,7 @@ struct VisFont {
     DECL_DESCRIBED_ENUM(FontStyle, Normal, Italic, Oblique);
 
     hstd::Str family    = "Arial";
-    float     pixelSize = 12.0f;
+    double    pixelSize = 12.0f;
     Weight    weight    = Weight::Normal;
     FontStyle fontStyle = FontStyle::Normal;
 
@@ -100,10 +100,10 @@ struct VisTextAlign {
 
 struct VisElement {
     struct RectShape {
-        Rect             geometry;
-        VisPen           pen;
-        VisBrush         brush;
-        hstd::Opt<float> cornerRadius;
+        Rect              geometry;
+        VisPen            pen;
+        VisBrush          brush;
+        hstd::Opt<double> cornerRadius;
 
         DESC_FIELDS(RectShape, (geometry, pen, brush, cornerRadius));
     };
@@ -117,8 +117,8 @@ struct VisElement {
 
         static EllipseShape fromCenter(
             Point const& center,
-            float        rx,
-            float        ry,
+            double       rx,
+            double       ry,
             VisPen       pen   = VisPen{},
             VisBrush     brush = VisBrush{}) {
             return EllipseShape{
@@ -134,7 +134,7 @@ struct VisElement {
 
         static EllipseShape circle(
             Point const& center,
-            float        radius,
+            double       radius,
             VisPen       pen   = VisPen{},
             VisBrush     brush = VisBrush{}) {
             return fromCenter(center, radius, radius, pen, brush);
@@ -189,7 +189,7 @@ struct VisElement {
         Point    position;
         VisPen   pen;
         VisBrush brush;
-        float    radius = 2.0f;
+        double   radius = 2.0f;
 
         DESC_FIELDS(PointShape, (position, pen, brush, radius));
     };

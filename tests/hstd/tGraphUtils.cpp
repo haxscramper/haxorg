@@ -47,6 +47,10 @@ struct TestVertex : public IVertex {
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
     }
+
+    std::string getStableId() const override {
+        return hstd::fmt("test-vertex-{}", selfId);
+    }
 };
 
 
