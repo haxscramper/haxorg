@@ -152,11 +152,8 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     auto e23 = graph->addEdge(v2, v3);
     auto e31 = graph->addEdge(v3, v1);
 
-    // create graphviz-specific layout context
-    gv::Graphviz gvc{run};
-
     // creates a graphviz root graph
-    auto root = gvc.getNewGraph();
+    auto root = gv::GraphGroup::newRootGraph(run);
 
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
 
@@ -256,11 +253,9 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     edge(10, 7); // 10
     edge(7, 5);  // 11
 
-    gv::Graphviz gvc{run};
-
-    auto                       root  = gvc.getNewGraph();
+    auto                       root  = gv::GraphGroup::newRootGraph(run);
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
-    auto                       ctx   = group->context;
+    auto                       ctx   = group->context();
 
     EXPECT_EQ(ctx->groups.size(), 1);
     EXPECT_EQ(group->subGroups.size(), 0);
@@ -375,17 +370,21 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     edge(4, 5); // 4
     edge(5, 3); // 5
 
-    gv::Graphviz gvc{run};
-
-    auto                       root  = gvc.getNewGraph();
+    auto                       root  = gv::GraphGroup::newRootGraph(run);
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
-    auto                       ctx   = group->context;
+    auto                       ctx   = group->context();
 
-    layout::GroupID            sg_id1 = group->addNewSubgroup();
+    auto alg1    = std::make_shared<gv::Layout>(group->gvc(), run);
+    alg1->layout = gv::LayoutType::Circo;
+
+    layout::GroupID            sg_id1 = group->addNewSubgroup(alg1);
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg_id1));
 
-    layout::GroupID            sg_id2 = group->addNewSubgroup();
+    auto alg2    = std::make_shared<gv::Layout>(group->gvc(), run);
+    alg1->layout = gv::LayoutType::Sfdp;
+
+    layout::GroupID            sg_id2 = group->addNewSubgroup(alg2);
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg_id2));
 
@@ -418,13 +417,6 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     as<gv::EdgeAttribute>(sg2->addEdge(es.at(4)));
     as<gv::EdgeAttribute>(sg2->addEdge(es.at(5)));
 
-    auto alg1    = std::make_shared<gv::Layout>(&gvc, run);
-    alg1->layout = gv::LayoutType::Circo;
-    sg1->setAlgorithm(alg1);
-
-    auto alg2    = std::make_shared<gv::Layout>(&gvc, run);
-    alg1->layout = gv::LayoutType::Sfdp;
-    sg2->setAlgorithm(alg1);
 
     run->runFullLayout();
 

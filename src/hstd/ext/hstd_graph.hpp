@@ -964,6 +964,7 @@ class IConstraint {};
 /// \brief Non-structural collection of vertices, edges, constraints and
 /// sub-groups.
 class IGroup {
+  protected:
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
 
   public:
@@ -978,11 +979,6 @@ class IGroup {
         auto result = std::dynamic_pointer_cast<T>(algorithm.value());
         hstd::logic_assertion_check_not_nil(result);
         return result;
-    }
-
-    void setAlgorithm(
-        hstd::SPtr<IPlacementAlgorithm> const& newAlgorithm) {
-        algorithm = newAlgorithm;
     }
 
     bool hasAlgorithm() const { return algorithm.has_value(); }
@@ -1002,7 +998,9 @@ class IGroup {
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
     /// group object in the overall layout run map.
-    virtual GroupID addNewSubgroup() = 0;
+    virtual GroupID addNewSubgroup(
+        hstd::Opt<hstd::SPtr<IPlacementAlgorithm>>
+            algorithm = std::nullopt) = 0;
 
     /// \brief Add a layout groupt that already exists in the layout run.
     virtual void addExistingSubgroup(GroupID const&) = 0;

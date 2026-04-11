@@ -37,14 +37,6 @@ Rect getNodeRectangle(
     int    y1     = std::round(y - height / 2);
     auto   result = Rect(x1, y1, width, height);
 
-    _dfmt(
-        node.info()->width,
-        node.info()->height,
-        bbox.width(),
-        bbox.height(),
-        node.info()->coord.x,
-        node.info()->coord.y);
-
     return result;
 }
 
@@ -282,15 +274,14 @@ gv::EdgeAttribute::EdgeAttribute(
 }
 
 gv::GraphGroup::GraphGroup(
-    hstd::SPtr<layout::LayoutRun> run,
-    GVContext::Ptr                context,
-    Str const&                    name,
-    Agdesc_t                      desc)
-    : layout::IGroup{run}
+    GroupContext ctx,
+    Str const&   name,
+    Agdesc_t     desc)
+    : layout::IGroup{ctx.run}
     , defaultEdge(nullptr, nullptr)
     , defaultNode(nullptr, nullptr)
     , name{name}
-    , context{context} {
+    , ctx{ctx} {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
     if (!graph_) {
@@ -303,16 +294,13 @@ gv::GraphGroup::GraphGroup(
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
 }
 
-gv::GraphGroup::GraphGroup(
-    hstd::SPtr<layout::LayoutRun> run,
-    GVContext::Ptr                context,
-    fs::path const&               file)
-    : layout::IGroup{run}
+gv::GraphGroup::GraphGroup(GroupContext ctx, fs::path const& file)
+    : layout::IGroup{ctx.run}
     , graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr)
     , name{file.filename()}
-    , context{context} {
+    , ctx{ctx} {
     LOGIC_ASSERTION_CHECK(fs::is_regular_file(file), "");
 
     Str   absolute = file.native();
@@ -322,16 +310,13 @@ gv::GraphGroup::GraphGroup(
     initDefaultSetters();
 }
 
-gv::GraphGroup::GraphGroup(
-    hstd::SPtr<layout::LayoutRun> run,
-    GVContext::Ptr                context,
-    Agraph_t*                     graph)
-    : layout::IGroup{run}
+gv::GraphGroup::GraphGroup(GroupContext ctx, Agraph_t* graph)
+    : layout::IGroup{ctx.run}
     , graph(graph)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr)
     , name{agnameof(graph)}
-    , context{context} {
+    , ctx{ctx} {
     initDefaultSetters();
 }
 
@@ -377,14 +362,14 @@ void gv::GraphGroup::eachEdge(Func<void(EdgeAttribute)> cb) {
 void gv::GraphGroup::eachSubgraph(Func<void(GraphGroup)> cb) const {
     for (Agraph_t* subgraph = agfstsubg(graph); subgraph;
          subgraph           = agnxtsubg(subgraph)) {
-        cb(GraphGroup(run, context, subgraph));
+        cb(GraphGroup(ctx, subgraph));
     }
 }
 
 hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     VertexID const& id) {
     LOGIC_ASSERTION_CHECK_FMT(
-        !context->nodeAttributes.contains(id),
+        !nodeAttributes().contains(id),
         "Canot add vertex ID {} to the graph group {}, it is already "
         "added to another group",
         id,
@@ -398,7 +383,7 @@ hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
 
     auto attribute = this->node(vertex->getStableId());
     const_cast<IVertex*>(vertex)->addAttribute(attribute);
-    context->nodeAttributes.insert_or_assign(id, attribute);
+    nodeAttributes().insert_or_assign(id, attribute);
     directVertices.insert(id);
     return attribute;
 }
@@ -407,7 +392,7 @@ hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     EdgeID const& id) {
 
     LOGIC_ASSERTION_CHECK_FMT(
-        !context->edgeAttributes.contains(id),
+        !edgeAttributes().contains(id),
         "Canot add edge ID {} to the graph group '{}', it is already "
         "added to another group",
         id,
@@ -416,14 +401,10 @@ hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
     auto e = const_cast<IEdge*>(run->getEdge(id));
 
     LOGIC_ASSERTION_CHECK_FMT(
-        context->nodeAttributes.contains(e->getSource()),
-        "{}",
-        e->getSource());
+        nodeAttributes().contains(e->getSource()), "{}", e->getSource());
 
     LOGIC_ASSERTION_CHECK_FMT(
-        context->nodeAttributes.contains(e->getTarget()),
-        "{}",
-        e->getTarget());
+        nodeAttributes().contains(e->getTarget()), "{}", e->getTarget());
 
     run->message(
         hstd::fmt(
@@ -434,19 +415,22 @@ hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
             getStableId()));
 
     auto attr = edge(
-        *context->nodeAttributes.at(e->getSource()),
-        *context->nodeAttributes.at(e->getTarget()));
+        *nodeAttributes().at(e->getSource()),
+        *nodeAttributes().at(e->getTarget()));
     e->addAttribute(attr);
-    context->edgeAttributes.insert_or_assign(id, attr);
+    edgeAttributes().insert_or_assign(id, attr);
     directEdges.insert(id);
     return attr;
 }
 
-layout::GroupID gv::GraphGroup::addNewSubgroup() {
+layout::GroupID gv::GraphGroup::addNewSubgroup(
+    hstd::Opt<hstd::SPtr<layout::IPlacementAlgorithm>> algorithm) {
     auto result = run->addGroup(
-        newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
+        algorithm
+            ? gv::GraphGroup::newRootGraph(ctx.run)
+            : newSubgraph(hstd::fmt("GV_{}", run->groups.getNextId())));
 
-    context->groups.insert_or_assign(
+    groups().insert_or_assign(
         result,
         std::dynamic_pointer_cast<GraphGroup>(run->getGroup(result)));
 
@@ -554,11 +538,11 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 void gv::Layout::createLayout(GraphGroup const& graph) {
     auto g    = const_cast<Agraph_t*>(graph.get());
     auto algo = layoutTypeToString(layout).c_str();
-    int  res  = gvLayout(gvc->get(), g, algo);
+    int  res  = gvLayout(gvc.get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
     // Layout does not position the labels, need to call rendering pass.
     // 'dot' here is the name of the rendering backend.
-    res = gvRender(gvc->get(), g, "xdot", NULL);
+    res = gvRender(gvc.get(), g, "xdot", NULL);
     if (res != 0) {
         throw std::logic_error("Could not execute render for the layout");
     }
@@ -567,7 +551,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
 void gv::Layout::freeLayout(GraphGroup graph) {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
-    gvFreeLayout(gvc->get(), const_cast<Agraph_t*>(graph.get()));
+    gvFreeLayout(gvc.get(), const_cast<Agraph_t*>(graph.get()));
 }
 
 void gv::Layout::writeFile(
@@ -593,7 +577,7 @@ void gv::Layout::writeFile(
             "execute render in one step");
 
         gvRenderFilename(
-            gvc->get(),
+            gvc.get(),
             const_cast<Agraph_t*>(graph.get()),
             renderFormatToString(format).c_str(),
             path.c_str());
@@ -621,13 +605,18 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     layout::GroupID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
     run->message("running single layout for gv::Layout Algorithm");
-    auto                       __scope = run->scopeLevel();
-    hstd::Vec<layout::GroupID> algorithmSwitches;
+    auto __scope   = run->scopeLevel();
     auto rootGroup = std::dynamic_pointer_cast<GraphGroup>(
         run->getGroup(root_id));
 
     char const* id_attr      = "_gv_layout_id";
     char const* id_sub_group = "_gv_group";
+
+    if (auto algo = rootGroup->getAlgorithm<gv::Layout>()) {
+        rootGroup->render(hstd::fmt("/tmp/{}.png", root_id), algo->layout);
+    } else {
+        rootGroup->render(hstd::fmt("/tmp/{}.png", root_id));
+    }
 
     auto aux = [&](this auto&&                       self,
                    layout::GroupID const&            id,
@@ -647,8 +636,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             recursiveNode->setAttr(id_sub_group, id.getValue());
 
             recursiveNode->setFixedWH(
-                recursiveBBox.width(), recursiveBBox.height());
-            algorithmSwitches.push_back(id);
+                recursiveBBox.width() / scaling,
+                recursiveBBox.height() / scaling);
         } else {
             auto gv_group = std::dynamic_pointer_cast<GraphGroup>(group);
             LOGIC_ASSERTION_CHECK(
@@ -668,14 +657,14 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
             for (auto const& vertex : group->getVertices()) {
                 run->message(hstd::fmt("vertex {}", vertex));
-                gv_group->context->nodeAttributes[vertex]->setAttr(
+                gv_group->nodeAttributes()[vertex]->setAttr(
                     id_attr, vertex.getValue());
             }
 
 
             for (auto const& edge : group->getEdges()) {
                 run->message(hstd::fmt("edge {}", edge));
-                gv_group->context->edgeAttributes[edge]->setAttr(
+                gv_group->edgeAttributes()[edge]->setAttr(
                     id_attr, edge.getValue());
             }
         }
@@ -694,14 +683,21 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     rootGroup->eachNode([&](NodeAttribute const& node) {
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
-            auto id = layout::GroupID::FromValue(_tmp.value());
-            run->message(hstd::fmt("found sub-group {} placement", id));
+            auto id   = layout::GroupID::FromValue(_tmp.value());
+            auto bbox = getGraphBBox(*rootGroup);
+            auto rect = getNodeRectangle(*rootGroup, node, bbox);
+            run->message(
+                hstd::fmt(
+                    "found sub-group {} placement rect {} bbox {}",
+                    id,
+                    rect,
+                    bbox));
+            run->message(
+                hstd::fmt("from node {}", node.getPropertiesAsString()));
             result.groups.insert_or_assign(
                 id,
                 std::make_shared<GraphGroupLayoutAttribute>(
-                    getNodeRectangle(
-                        *rootGroup, node, getGraphBBox(*rootGroup)),
-                    rootGroup));
+                    rect, rootGroup));
         } else {
             auto id_value = node.getAttr<hstd::u64>(id_attr);
             LOGIC_ASSERTION_CHECK_FMT(
@@ -785,16 +781,6 @@ gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedWH(
 }
 
 
-layout::GroupID gv::Graphviz::getNewGraph() {
-    auto group = std::make_shared<gv::GraphGroup>(
-        run, context, hstd::Str{"root"});
-    group->setAlgorithm(std::make_shared<gv::Layout>(this, run));
-    auto id = run->addRootGroup(group);
-    context->groups.insert_or_assign(id, group);
-    return id;
-}
-
-
 Rect gv::GraphVertexLayoutAttribute::getBBox() const {
     return getNodeRectangle(graph, node, getGraphBBox(graph));
 }
@@ -845,6 +831,28 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
         result.pop_back();
     }
     return result;
+}
+
+layout::GroupID gv::GraphGroup::newRootGraph(
+    hstd::SPtr<layout::LayoutRun>     run,
+    hstd::Opt<hstd::SPtr<gv::Layout>> algorithm) {
+    auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
+    if (!gvc) {
+        throw std::runtime_error("Failed to create Graphviz context");
+    }
+
+    auto result = std::make_shared<GraphGroup>(
+        GroupContext{
+            .context = GVContext::shared(),
+            .gvc     = gvc,
+            .run     = run,
+        },
+        hstd::Str{"root"});
+
+    result->algorithm = std::make_shared<gv::Layout>(gvc, run);
+    auto id           = run->addRootGroup(result);
+    result->groups().insert_or_assign(id, result);
+    return id;
 }
 
 std::string gv::NodeAttribute::getPropertiesAsString() const {
@@ -984,16 +992,8 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
     visual::VisGroup result;
-    result.comment.push_back(hstd::fmt("vertex {}", node.name()));
     result.offset = Point{nodeRect.x(), nodeRect.y()};
-    result.comment.push_back(
-        hstd::fmt("node-rect {} bbox {}", nodeRect, bbox));
-    result.comment.push_back(
-        hstd::fmt(
-            "node-geometry ({}, {})",
-            node.info()->width,
-            node.info()->height));
-    result.extra = json{node.getPropertiesAsString()};
+    result.extra  = json{node.getPropertiesAsString()};
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1073,7 +1073,6 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
                                   * 0.1f;
             }
             shapeElem.data = rect;
-            shapeElem.comment.push_back("rect shape");
             break;
         }
     }

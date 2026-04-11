@@ -612,7 +612,7 @@ class EdgeAttribute
     Agedge_t* edge_;
 };
 
-
+class Layout;
 class GraphGroup
     : public GraphvizObjBase<GraphGroup>
     , public layout::IGroup {
@@ -630,22 +630,23 @@ class GraphGroup
         hstd::UnorderedMap<layout::GroupID, hstd::SPtr<GraphGroup>> groups;
     };
 
+    struct GroupContext {
+        hstd::SPtr<layout::LayoutRun> run;
+        GVContext::Ptr                context;
+        SPtr<GVC_t>                   gvc;
+    };
+
     GraphGroup(
-        hstd::SPtr<layout::LayoutRun> run,
-        GVContext::Ptr                context,
-        Str const&                    name,
-        Agdesc_t                      desc = Agdirected);
-    GraphGroup(
-        hstd::SPtr<layout::LayoutRun> run,
-        GVContext::Ptr                context,
-        fs::path const&               file);
-    GraphGroup(
-        hstd::SPtr<layout::LayoutRun> run,
-        GVContext::Ptr                context,
-        Agraph_t*                     graph);
+        GroupContext ctx,
+        Str const&   name,
+        Agdesc_t     desc = Agdirected);
+    GraphGroup(GroupContext ctx, fs::path const& file);
+    GraphGroup(GroupContext ctx, Agraph_t* graph);
 
     Agraph_t*       get() { return graph; }
     Agraph_t const* get() const { return graph; }
+
+    SPtr<GVC_t> gvc() { return ctx.gvc; }
 
     std::string getPropertiesAsString() const;
 
@@ -659,8 +660,12 @@ class GraphGroup
 
     hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
         return std::make_shared<GraphGroup>(
-            run, context, agsubg(graph, strdup("cluster_" + name), 1));
+            ctx, agsubg(graph, strdup("cluster_" + name), 1));
     }
+
+    static layout::GroupID newRootGraph(
+        hstd::SPtr<layout::LayoutRun>     run,
+        hstd::Opt<hstd::SPtr<gv::Layout>> algorithm = std::nullopt);
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -793,34 +798,43 @@ class GraphGroup
     EdgeAttribute defaultNode;
     EdgeAttribute defaultEdge;
     std::string   name;
+    GroupContext  ctx;
+
+    GVContext::Ptr context() { return ctx.context; }
+
+    auto& nodeAttributes() { return ctx.context->nodeAttributes; }
+    auto& edgeAttributes() { return ctx.context->edgeAttributes; }
+    auto& groups() { return ctx.context->groups; }
 
 
-    GVContext::Ptr               context;
     hstd::UnorderedSet<VertexID> directVertices;
     hstd::UnorderedSet<EdgeID>   directEdges;
 
     void delVertex(VertexID const& id) {
-        agdelnode(get(), context->nodeAttributes.at(id)->get());
-        context->nodeAttributes.erase(id);
+        agdelnode(get(), nodeAttributes().at(id)->get());
+        nodeAttributes().erase(id);
         directVertices.erase(id);
     }
 
     void delEdge(EdgeID const& id) {
-        agdeledge(get(), context->edgeAttributes.at(id)->get());
-        context->edgeAttributes.erase(id);
+        agdeledge(get(), edgeAttributes().at(id)->get());
+        edgeAttributes().erase(id);
         directEdges.erase(id);
     }
 
     void delSubgraph(layout::GroupID const& id) {
-        agdelsubg(get(), context->groups.at(id)->get());
-        context->groups.erase(id);
+        agdelsubg(get(), groups().at(id)->get());
+        groups().erase(id);
     }
 
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
         VertexID const& id) override;
     hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(
         EdgeID const& id) override;
-    layout::GroupID addNewSubgroup() override;
+    layout::GroupID addNewSubgroup(
+        hstd::Opt<hstd::SPtr<layout::IPlacementAlgorithm>>
+            algorithm = std::nullopt) override;
+
     void addExistingSubgroup(layout::GroupID const& id) override;
 
     virtual hstd::Vec<VertexID> getVertices() const override {
@@ -840,7 +854,7 @@ class GraphGroup
 class Graphviz;
 class Layout : public layout::IPlacementAlgorithm {
   public:
-    Layout(Graphviz* gvc, hstd::SPtr<layout::LayoutRun> run)
+    Layout(SPtr<GVC_t> gvc, hstd::SPtr<layout::LayoutRun> run)
         : layout::IPlacementAlgorithm{run}, gvc{gvc} {}
     LayoutType layout = LayoutType::Dot;
 
@@ -864,7 +878,7 @@ class Layout : public layout::IPlacementAlgorithm {
         GraphGroup const& graph,
         RenderFormat      format = RenderFormat::PNG);
 
-    Graphviz* gvc;
+    SPtr<GVC_t> gvc;
 
     Result runSingleLayout(layout::GroupID const& group) override;
 };
@@ -924,29 +938,6 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     }
 
     visual::VisGroup getVisual() const override;
-};
-
-
-class Graphviz {
-  public:
-    hstd::SPtr<layout::LayoutRun> run;
-    GraphGroup::GVContext::Ptr    context;
-
-    Graphviz(hstd::SPtr<layout::LayoutRun> run)
-        : run{run}, context{GraphGroup::GVContext::shared()} {
-        LOGIC_ASSERTION_CHECK(run != nullptr, "");
-        gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
-        if (!gvc) {
-            throw std::runtime_error("Failed to create Graphviz context");
-        }
-    }
-
-    layout::GroupID getNewGraph();
-
-    GVC_t* get() { return gvc.get(); }
-
-  private:
-    SPtr<GVC_t> gvc;
 };
 
 } // namespace hstd::ext::graph::gv
