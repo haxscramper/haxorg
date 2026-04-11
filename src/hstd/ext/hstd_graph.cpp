@@ -793,9 +793,11 @@ void layout::LayoutRun::runFullLayout() {
         message(hstd::fmt("running layout for group ID {}", id));
         auto __scope = scopeLevel();
         auto group   = getGroup(id);
-        for (auto const& sub : group->subGroups) { self(sub); }
+        for (auto const& sub : hstd::sorted(group->subGroups.items())) {
+            self(sub);
+        }
 
-        for (auto const& sub : group->subGroups) {
+        for (auto const& sub : hstd::sorted(group->subGroups.items())) {
             if (getGroup(sub)->hasAlgorithm()) {
                 LOGIC_ASSERTION_CHECK_FMT(
                     result.groups.contains(sub),

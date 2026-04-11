@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/Outcome.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
@@ -137,3 +138,20 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
                           .toString(false);                               \
         }                                                                 \
     }
+
+
+#define EXPECT_OUTCOME_OK(expr)                                           \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        EXPECT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message();                         \
+    } while (0)
+
+#define ASSERT_OUTCOME_OK(expr)                                           \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        ASSERT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message();                         \
+    } while (0)

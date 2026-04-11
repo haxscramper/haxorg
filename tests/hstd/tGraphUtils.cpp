@@ -4,6 +4,7 @@
 #include <hstd/ext/graphviz.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/ext/hstd_geometry_test.hpp>
 #include "../common.hpp"
 
 template <typename A, typename T>
@@ -433,6 +434,32 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     auto const vsg1 = visual.at(0).subgroups.at(1);
     EXPECT_EQ(vsg0.subgroups.size(), 6);
     EXPECT_EQ(vsg1.subgroups.size(), 6);
+
+    EXPECT_EQ(vsg0.elements.size(), 1);
+    EXPECT_EQ(vsg1.elements.size(), 1);
+
+    // ...............................................
+    // :                  :                          :
+    // :   +---------+    : +---------+..............:
+    // :   |  VERT-3 |<-\ : |  VERT-1 |              :
+    // :   +---------+  | : +---------+              :
+    // :        |       | :      ^     \             :
+    // :        v       | :      |      \            :
+    // :   +---------+  | :      |       v           :
+    // :   |  VERT-4 |  | :      |    +---------+    :
+    // :   +---------+  | :      |    |  VERT-2 |    :
+    // :        |       | :      |    +---------+    :
+    // :        v       | :      |       /           :
+    // :   +---------+  | :      |      /            :
+    // :   |  VERT-5 |--/ : +---------+<             :
+    // :   +---------+    : |  VERT-0 |              :
+    // :                  : +---------+..............:
+    // :                  :                          :
+    // ...............................................
+
+    // VSG0 is a left layout group
+    // VSG1 is a right one
+    EXPECT_OUTCOME_OK(checkLeftOf(vsg0.offset, vsg1.offset));
 
     hstd::writeFile(
         getDebugFile("result.svg"),
