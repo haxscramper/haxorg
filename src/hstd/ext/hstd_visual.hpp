@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/ColText.hpp"
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Opt.hpp>
@@ -235,6 +236,10 @@ struct VisGroup {
                 it.data);
         }
 
+        for (auto const& sub : subgroups) {
+            result.append(sub.getElements<T>());
+        }
+
         return result;
     }
 
@@ -247,6 +252,8 @@ struct VisGroup {
     Rect computeBoundsNoSelfOffset() const {
         return computeBounds(-offset.x(), -offset.y());
     }
+
+    hstd::ColText treeRepr() const;
 
     DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
 };

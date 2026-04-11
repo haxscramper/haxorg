@@ -1,10 +1,20 @@
 #include "hstd_visual.hpp"
 #include <fmt/format.h>
 #include <hstd/stdlib/Xml.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 
 namespace hstd::ext::visual {
 
 namespace {
+
+bool is_empty(json const& j) {
+    return j.is_null()
+        || ((j.is_object()   //
+             || j.is_array() //
+             || j.is_string())
+            && !j.empty());
+}
 
 std::string colorToSvg(VisColor const& c) {
     if (c.a == 255) {
@@ -140,6 +150,7 @@ struct ShapeWriteResult {
 };
 
 struct SvgWriter {
+    bool    debug;
     XmlNode writeShape(VisElement::RectShape const& r) {
         double x = r.geometry.x();
         double y = r.geometry.y();
@@ -233,7 +244,28 @@ struct SvgWriter {
         text.set_attr("fill", colorToSvg(t.color));
         text.set_text(t.content);
 
-        return std::move(text);
+        if (debug && t.boundingBox) {
+            XmlNode               result{"g"};
+            VisElement::RectShape dr;
+            dr.geometry = t.boundingBox.value();
+            // dr.pen .
+            result.push_back(writeShape(dr));
+            result.push_back(buildDebugMarker(
+                dr.geometry.min_corner(),
+                hstd::fmt(
+                    "({:.2f},{:.2f}+{},{})",
+                    dr.geometry.x(),
+                    dr.geometry.y(),
+                    dr.geometry.width(),
+                    dr.geometry.height()),
+                json{},
+                2));
+
+            result.push_back(text);
+            return result;
+        } else {
+            return std::move(text);
+        }
     }
 
     XmlNode writeShape(VisElement::PixmapShape const& px) {
@@ -265,9 +297,10 @@ struct SvgWriter {
     }
 
     XmlNode buildDebugMarker(
-        hstd::Vec<int> const& path,
-        Point const&          coord,
-        json const&           extra) {
+        Point const&     coord,
+        hstd::Str const& message,
+        json const&      extra     = json{},
+        int              font_size = 4) {
         XmlNode g("g");
         g.set_attr("class", "debug-node");
 
@@ -283,18 +316,11 @@ struct SvgWriter {
         label.set_attr("x", hstd::fmt("{}", coord.x() + 4.0f));
         label.set_attr("y", hstd::fmt("{}", coord.y() - 4.0f));
         label.set_attr("font-family", "monospace");
-        label.set_attr("font-size", "4");
+        label.set_attr("font-size", font_size);
         label.set_attr("fill", "#aa0066");
         label.set_attr("text-anchor", "start");
         label.set_attr("dominant-baseline", "alphabetic");
-        label.set_text(
-            hstd::fmt(
-                "{} @ ({:.2f},{:.2f}){}",
-                pathToString(path),
-                coord.x(),
-                coord.y(),
-                extra.is_null() ? ""
-                                : hstd::fmt(" extra={}", extra.dump())));
+        label.set_text(message);
         g.push_back(std::move(label));
 
         return g;
@@ -302,8 +328,7 @@ struct SvgWriter {
 
     XmlNode writeElement(
         VisElement const&     elem,
-        hstd::Vec<int> const& path,
-        bool                  debug) {
+        hstd::Vec<int> const& path) {
         XmlNode result = std::visit(
             [&](auto const& shape) -> XmlNode {
                 return writeShape(shape);
@@ -317,8 +342,7 @@ struct SvgWriter {
         VisGroup const&       group,
         double                ox,
         double                oy,
-        hstd::Vec<int> const& path,
-        bool                  debug) {
+        hstd::Vec<int> const& path) {
         double gx = ox + group.offset.x();
         double gy = oy + group.offset.y();
 
@@ -332,7 +356,11 @@ struct SvgWriter {
             for (auto const& comment : elem.comment) {
                 g.push_back(XmlNode::comment(comment));
             }
-            g.push_back(writeElement(elem, path, debug));
+            g.push_back(writeElement(elem, path));
+        }
+
+        if (!is_empty(group.extra)) {
+            g.push_back(XmlNode::comment(hstd::fmt("// {}", group.extra)));
         }
 
         for (int i = 0; i < group.subgroups.size(); ++i) {
@@ -340,12 +368,21 @@ struct SvgWriter {
             for (auto const& comment : sg.comment) {
                 g.push_back(XmlNode::comment(comment));
             }
-            g.push_back(
-                writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}, debug));
+            g.push_back(writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}));
         }
 
         if (debug) {
-            g.push_back(buildDebugMarker(path, {ox, oy}, group.extra));
+            g.push_back(buildDebugMarker(
+                {0, 0},
+                hstd::fmt(
+                    "{} @ ({:.2f},{:.2f}){}",
+                    pathToString(path),
+                    group.offset.x(),
+                    group.offset.y(),
+                    is_empty(group.extra)
+                        ? ""
+                        : hstd::fmt(" extra={}", group.extra.dump())),
+                group.extra));
         }
 
         return g;
@@ -437,6 +474,42 @@ Rect VisGroup::computeBounds(double ox, double oy) const {
     return Rect(minX, minY, maxX - minX, maxY - minY);
 }
 
+ColText VisGroup::treeRepr() const {
+    auto aux = [](this auto&&           self,
+                  VisGroup const&       group,
+                  hstd::ColStream&      os,
+                  int                   level,
+                  hstd::Vec<int> const& path) -> void {
+        os.indent(level * 2);
+        os << hstd::fmt(
+            "group [{}] {}", hstd::join("/", path), group.offset);
+        if (!is_empty(group.extra)) {
+            os.newline();
+            os.indent((level + 1) * 2);
+            os << hstd::fmt("// {}", group.extra);
+        }
+        for (auto const& comment : group.comment) {
+            os.newline();
+            os.indent((level + 1) * 2);
+            os << hstd::fmt("# {}", comment);
+        }
+        for (auto const& [idx, elem] : hstd::enumerate(group.elements)) {
+            os.newline();
+            os.indent((level + 1) * 2);
+            os << hstd::fmt("[{}] {} {}", idx, elem.getKind(), elem);
+        }
+
+        for (auto const& [idx, sub] : hstd::enumerate(group.subgroups)) {
+            os.newline();
+            self(sub, os, level + 1, path + hstd::as_vec(idx));
+        }
+    };
+
+    hstd::ColStream res;
+    aux(*this, res, 0, {});
+    return res.getBuffer();
+}
+
 Rect computeBounds(hstd::Vec<VisGroup> const& groups) {
     double minX = 0.0f;
     double minY = 0.0f;
@@ -464,6 +537,7 @@ Rect computeBounds(hstd::Vec<VisGroup> const& groups) {
 
 XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     SvgWriter writer;
+    writer.debug = debug;
 
     Rect bounds = computeBounds(groups);
 
@@ -483,8 +557,7 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     svg.set_attr("height", hstd::fmt("{}", viewH));
 
     for (int i = 0; i < groups.size(); ++i) {
-        svg.push_back(
-            writer.writeGroup(groups[i], 0.0f, 0.0f, {i}, debug));
+        svg.push_back(writer.writeGroup(groups[i], 0.0f, 0.0f, {i}));
     }
 
     return svg;

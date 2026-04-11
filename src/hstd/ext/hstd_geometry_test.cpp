@@ -45,7 +45,7 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
         return boost::outcome_v2::failure(
             GeometryError::init(
                 R"(
-error=path is empty
+error = path is empty
 )"));
     }
 
@@ -54,8 +54,8 @@ error=path is empty
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=path must start with MoveTo
-firstCommand={}
+error        = path must start with MoveTo
+firstCommand = {}
 )",
                     path.commands.front())));
     }
@@ -82,9 +82,9 @@ firstCommand={}
                 GeometryError::init(
                     hstd::fmt(
                         R"(
-error=command has no current point
-commandIndex={}
-command={}
+error        = command has no current point
+commandIndex = {}
+command      = {}
 )",
                         i,
                         cmd)));
@@ -154,8 +154,8 @@ command={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=path has no drawable segments
-path={}
+error = path has no drawable segments
+path  = {}
 )",
                     path)));
     }
@@ -208,11 +208,11 @@ GeometryCheckResult checkLeftOfBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=left-of-bounds
-firstRight={}
-secondLeft={}
-first={}
-second={}
+check      = left-of-bounds
+firstRight = {}
+secondLeft = {}
+first      = {}
+second     = {}
 )",
                 firstRight,
                 secondLeft,
@@ -232,11 +232,11 @@ GeometryCheckResult checkRightOfBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=right-of-bounds
-firstLeft={}
-secondRight={}
-first={}
-second={}
+check       = right-of-bounds
+firstLeft   = {}
+secondRight = {}
+first       = {}
+second      = {}
 )",
                 firstLeft,
                 secondRight,
@@ -256,11 +256,11 @@ GeometryCheckResult checkAboveBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=above-bounds
-firstBottom={}
-secondTop={}
-first={}
-second={}
+check       = above-bounds
+firstBottom = {}
+secondTop   = {}
+first       = {}
+second      = {}
 )",
                 firstBottom,
                 secondTop,
@@ -280,11 +280,11 @@ GeometryCheckResult checkBelowBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=below-bounds
-firstTop={}
-secondBottom={}
-first={}
-second={}
+check        = below-bounds
+firstTop     = {}
+secondBottom = {}
+first        = {}
+second       = {}
 )",
                 firstTop,
                 secondBottom,
@@ -314,17 +314,17 @@ GeometryCheckResult checkFullyCoversBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=fully-covers-bounds
-firstLeft={}
-firstTop={}
-firstRight={}
-firstBottom={}
-secondLeft={}
-secondTop={}
-secondRight={}
-secondBottom={}
-first={}
-second={}
+check        = fully-covers-bounds
+firstLeft    = {}
+firstTop     = {}
+firstRight   = {}
+firstBottom  = {}
+secondLeft   = {}
+secondTop    = {}
+secondRight  = {}
+secondBottom = {}
+first        = {}
+second       = {}
 )",
                 firstLeft,
                 firstTop,
@@ -351,9 +351,9 @@ GeometryCheckResult checkIntersects(
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=point-point-intersects
-first={}
-second={}
+check  = point-point-intersects
+first  = {}
+second = {}
 )",
                 first,
                 second)));
@@ -368,9 +368,9 @@ GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=point-rect-intersects
-point={}
-rect={}
+check = point-rect-intersects
+point = {}
+rect  = {}
 )",
                 point,
                 rect)));
@@ -387,9 +387,9 @@ GeometryCheckResult checkIntersects(Point const& point, Path const& path) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=point-path-intersects
-error=cannot flatten path
-reason={}
+check  = point-path-intersects
+error  = cannot flatten path
+reason = {}
 )",
                     segs.error().message())));
     }
@@ -403,9 +403,9 @@ reason={}
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=point-path-intersects
-point={}
-path={}
+check = point-path-intersects
+point = {}
+path  = {}
 )",
                 point,
                 path)));
@@ -422,9 +422,9 @@ GeometryCheckResult checkIntersects(Rect const& rect, Path const& path) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=rect-path-intersects
-error=cannot flatten path
-reason={}
+check  = rect-path-intersects
+error  = cannot flatten path
+reason = {}
 )",
                     segs.error().message())));
     }
@@ -439,9 +439,9 @@ reason={}
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=rect-path-intersects
-rect={}
-path={}
+check = rect-path-intersects
+rect  = {}
+path  = {}
 )",
                 rect,
                 path)));
@@ -460,9 +460,9 @@ GeometryCheckResult checkIntersects(
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=path-path-intersects
-error=cannot flatten first path
-reason={}
+check  = path-path-intersects
+error  = cannot flatten first path
+reason = {}
 )",
                     a.error().message())));
     }
@@ -473,9 +473,9 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=path-path-intersects
-error=cannot flatten second path
-reason={}
+check  = path-path-intersects
+error  = cannot flatten second path
+reason = {}
 )",
                     b.error().message())));
     }
@@ -492,9 +492,9 @@ reason={}
         GeometryError::init(
             hstd::fmt(
                 R"(
-check=path-path-intersects
-first={}
-second={}
+check  = path-path-intersects
+first  = {}
+second = {}
 )",
                 first,
                 second)));

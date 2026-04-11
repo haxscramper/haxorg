@@ -5,6 +5,7 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/diffs.hpp>
 #include <hstd/stdlib/Outcome.hpp>
+#include <boost/preprocessor/facilities/overload.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
@@ -140,7 +141,10 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     }
 
 
-#define EXPECT_OUTCOME_OK(expr)                                           \
+#define EXPECT_OUTCOME_OK(...)                                            \
+    BOOST_PP_OVERLOAD(EXPECT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
+
+#define EXPECT_OUTCOME_OK_1(expr)                                         \
     do {                                                                  \
         auto _outcome_result = (expr);                                    \
         EXPECT_TRUE(_outcome_result.has_value())                          \
@@ -148,10 +152,29 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
             << _outcome_result.error().message();                         \
     } while (0)
 
-#define ASSERT_OUTCOME_OK(expr)                                           \
+#define EXPECT_OUTCOME_OK_2(expr, extra)                                  \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        EXPECT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message() << " " << (extra);       \
+    } while (0)
+
+#define ASSERT_OUTCOME_OK(...)                                            \
+    BOOST_PP_OVERLOAD(ASSERT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
+
+#define ASSERT_OUTCOME_OK_1(expr)                                         \
     do {                                                                  \
         auto _outcome_result = (expr);                                    \
         ASSERT_TRUE(_outcome_result.has_value())                          \
             << "Expected success, got failure: "                          \
             << _outcome_result.error().message();                         \
+    } while (0)
+
+#define ASSERT_OUTCOME_OK_2(expr, extra)                                  \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        ASSERT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message() << " " << (extra);       \
     } while (0)

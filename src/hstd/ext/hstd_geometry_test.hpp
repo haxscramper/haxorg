@@ -78,8 +78,8 @@ GeometryCheckResult checkLeftOf(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute first bounds
-reason={}
+error  = failed to compute first bounds
+reason = {}
 )",
                     fb.error().message())));
     }
@@ -90,8 +90,8 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute second bounds
-reason={}
+error  = failed to compute second bounds
+reason = {}
 )",
                     sb.error().message())));
     }
@@ -102,10 +102,10 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=left-of
-first={}
-second={}
-reason={}
+check  = left-of
+first  = {}
+second = {}
+reason = {}
 )",
                     first,
                     second,
@@ -123,8 +123,8 @@ GeometryCheckResult checkRightOf(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute first bounds
-reason={}
+error  = failed to compute first bounds
+reason = {}
 )",
                     fb.error().message())));
     }
@@ -135,8 +135,8 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute second bounds
-reason={}
+error  = failed to compute second bounds
+reason = {}
 )",
                     sb.error().message())));
     }
@@ -147,10 +147,10 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=right-of
-first={}
-second={}
-reason={}
+check  = right-of
+first  = {}
+second = {}
+reason = {}
 )",
                     first,
                     second,
@@ -168,8 +168,8 @@ GeometryCheckResult checkAbove(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute first bounds
-reason={}
+error  = failed to compute first bounds
+reason = {}
 )",
                     fb.error().message())));
     }
@@ -180,8 +180,8 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute second bounds
-reason={}
+error  = failed to compute second bounds
+reason = {}
 )",
                     sb.error().message())));
     }
@@ -192,10 +192,10 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=above
-first={}
-second={}
-reason={}
+check  = above
+first  = {}
+second = {}
+reason = {}
 )",
                     first,
                     second,
@@ -213,8 +213,8 @@ GeometryCheckResult checkBelow(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute first bounds
-reason={}
+error  = failed to compute first bounds
+reason = {}
 )",
                     fb.error().message())));
     }
@@ -225,8 +225,8 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute second bounds
-reason={}
+error  = failed to compute second bounds
+reason = {}
 )",
                     sb.error().message())));
     }
@@ -237,10 +237,10 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=below
-first={}
-second={}
-reason={}
+check  = below
+first  = {}
+second = {}
+reason = {}
 )",
                     first,
                     second,
@@ -258,8 +258,8 @@ GeometryCheckResult checkFullyCovers(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute first bounds
-reason={}
+error  = failed to compute first bounds
+reason = {}
 )",
                     fb.error().message())));
     }
@@ -270,8 +270,8 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-error=failed to compute second bounds
-reason={}
+error  = failed to compute second bounds
+reason = {}
 )",
                     sb.error().message())));
     }
@@ -282,10 +282,10 @@ reason={}
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check=fully-covers
-first={}
-second={}
-reason={}
+check  = fully-covers
+first  = {}
+second = {}
+reason = {}
 )",
                     first,
                     second,

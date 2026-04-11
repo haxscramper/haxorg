@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hstd/stdlib/Formatter.hpp>
 #include <string>
 #include <vector>
 #include <map>
@@ -18,6 +19,12 @@ class XmlNode {
     static XmlNode cdata(std::string const& text);
 
     void set_attr(std::string const& name, std::string const& value);
+
+    template <typename T>
+    void set_attr(std::string const& name, T const& value) {
+        set_attr(name, hstd::fmt1(value));
+    }
+
     void push_back(XmlNode child);
     void set_text(std::string const& text);
 

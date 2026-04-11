@@ -15,6 +15,7 @@ hstd::SPtr<A> as(hstd::SPtr<T> const& value) {
 }
 
 using namespace hstd::ext::graph;
+using namespace hstd::ext;
 
 struct TestVertex : public IVertex {
     VertexID selfId;
@@ -380,11 +381,13 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg1_id));
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    sg1->setMargin({4, 4});
 
     layout::GroupID            sg2_id = group->newSubLayoutGraph();
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg2_id));
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
+    sg2->setMargin({4, 4});
 
 
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
@@ -462,10 +465,14 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, false).to_string());
+        hstd::ext::visual::toSvg(visual, true).to_string());
 
     hstd::writeFile(
         getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
+
+    hstd::writeFile(
+        getDebugFile("result.txt"),
+        visual::VisGroup{.subgroups = visual}.treeRepr().toString());
 
     // VSG1 is a left layout group
     // VSG2 is a right one
@@ -480,11 +487,14 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     using VE = hstd::ext::visual::VisElement;
 
     // group 0
-    for (auto const& group : hstd::as_vec(&vsg1, &vsg2)) {
+    for (auto const& [group_idx, group] :
+         hstd::enumerate(hstd::as_vec(&vsg1, &vsg2))) {
         for (int i : hstd::as_vec(0, 1, 2)) {
-            EXPECT_OUTCOME_OK(checkFullyCovers(
-                group->computeBoundsNoSelfOffset(),
-                group->getElements<VE::RectShape>().at(i).geometry));
+            EXPECT_OUTCOME_OK(
+                checkFullyCovers(
+                    group->computeBoundsNoSelfOffset(),
+                    group->getElements<VE::RectShape>().at(i).geometry),
+                hstd::fmt("\ngroup {} element {}", group_idx, i));
         }
     }
 
@@ -492,9 +502,27 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     // attribute API access
     for (layout::GroupID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
         for (int i : hstd::as_vec(0, 1, 2)) {
-            EXPECT_OUTCOME_OK(checkFullyCovers(
-                run->getVisual(gid).computeBoundsNoSelfOffset(),
-                computeBounds(run->getVisual(vs.at(i)))));
+            auto const& group_visual = run->getVisual(gid);
+            auto const& item_visual  = run->getVisual(vs.at(i));
+            EXPECT_OUTCOME_OK(
+                checkFullyCovers(
+                    group_visual.computeBoundsNoSelfOffset(),
+                    computeBounds(item_visual)),
+                hstd::fmt(
+                    R"(
+group: {}
+item:  {}
+group_visual:
+{}
+item_visual:
+{}
+)",
+                    gid,
+                    i,
+                    group_visual.treeRepr().toString(),
+                    visual::VisGroup{.subgroups = item_visual}
+                        .treeRepr()
+                        .toString()));
         }
     }
 }

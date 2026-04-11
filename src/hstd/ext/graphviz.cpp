@@ -532,7 +532,19 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 void gv::Layout::createLayout(GraphGroup const& graph) {
     auto g    = const_cast<Agraph_t*>(graph.get());
     auto algo = layoutTypeToString(layout).c_str();
-    int  res  = gvLayout(gvc.get(), g, algo);
+    // _dbg("agwrite before layout");
+    agwrite(g, stderr);
+
+    char* margin = agget(g, (char*)"margin");
+    fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
+
+    char* pad = agget(g, (char*)"pad");
+    fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
+
+    char* bb = agget(g, (char*)"bb");
+    fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb : "(null)");
+
+    int res = gvLayout(gvc.get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
     // Layout does not position the labels, need to call rendering pass.
     // 'dot' here is the name of the rendering backend.
@@ -540,6 +552,10 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     if (res != 0) {
         throw std::logic_error("Could not execute render for the layout");
     }
+    // _dbg("agwrite after layout");
+    bb = agget(g, (char*)"bb");
+    fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb : "(null)");
+    agwrite(g, stderr);
 }
 
 void gv::Layout::freeLayout(GraphGroup graph) {
@@ -605,13 +621,6 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
     char const* id_attr      = "_gv_layout_id";
     char const* id_sub_group = "_gv_group";
-
-    if (auto algo = rootGroup->getAlgorithm<gv::Layout>()) {
-        rootGroup->render(hstd::fmt("/tmp/{}.png", root_id), algo->layout);
-    } else {
-        rootGroup->render(hstd::fmt("/tmp/{}.png", root_id));
-    }
-
     auto aux = [&](this auto&&                       self,
                    layout::GroupID const&            id,
                    hstd::Opt<layout::GroupID> const& parent) -> void {
@@ -1031,7 +1040,8 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 
     visual::VisGroup result;
     result.offset = Point{nodeRect.x(), nodeRect.y()};
-    result.extra  = json{node.getPropertiesAsString()};
+    result.extra  = json::object();
+    result.extra["graphviz"]["vertex_name"] = node.name();
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1165,10 +1175,10 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
 
 hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
     const {
-    Rect bbox = getGraphBBox(graph);
-    Path path = getEdgeSpline(edge, scaling, bbox);
-
+    Rect             bbox = getGraphBBox(graph);
+    Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
+
 
     // Edge path
     if (!path.empty()) {
@@ -1249,6 +1259,9 @@ hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
     visual::VisGroup result;
     result.offset = Point{graph.x(), graph.y()};
+
+    result.extra                           = json::object();
+    result.extra["graphviz"]["group_name"] = group->name();
 
     // Boundary rectangle
     visual::VisElement::RectShape rect;
