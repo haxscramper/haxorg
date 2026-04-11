@@ -941,11 +941,11 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
     visual::VisPen pen;
     if (auto c = edge.getColor()) { pen.color = parseGvColor(*c); }
     if (auto style = edge.getStyle()) {
-        if (*style == "dashed") {
+        if (*style == gv::EdgeAttribute::Style::dashed) {
             pen.style = visual::VisPen::LineStyle::Dash;
-        } else if (*style == "dotted") {
+        } else if (*style == gv::EdgeAttribute::Style::dotted) {
             pen.style = visual::VisPen::LineStyle::Dot;
-        } else if (*style == "invis") {
+        } else if (*style == gv::EdgeAttribute::Style::invis) {
             pen.style = visual::VisPen::LineStyle::None;
         }
     }
@@ -965,70 +965,84 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
     result.offset = Point{nodeRect.x(), nodeRect.y()};
 
     // Determine shape kind
-    auto*       info      = node.info();
-    std::string shapeName = info->shape ? info->shape->name : "box";
-
+    auto*            info  = node.info();
     visual::VisPen   pen   = buildPenFromNode(node);
     visual::VisBrush brush = buildBrushFromNode(node);
 
     visual::VisElement shapeElem;
-    if (shapeName == "ellipse" || shapeName == "circle"
-        || shapeName == "oval") {
-        visual::VisElement::EllipseShape ellipse;
-        ellipse.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
-        ellipse.pen      = pen;
-        ellipse.brush    = brush;
-        shapeElem.data   = ellipse;
-    } else if (shapeName == "point") {
-        visual::VisElement::PointShape pt;
-        pt.position = Point{
-            nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
-        pt.radius = std::min(nodeRect.width(), nodeRect.height()) / 2.0f;
-        pt.pen    = pen;
-        pt.brush  = brush;
-        shapeElem.data = pt;
-    } else if (
-        shapeName == "polygon" || shapeName == "triangle"
-        || shapeName == "diamond" || shapeName == "pentagon"
-        || shapeName == "hexagon" || shapeName == "octagon") {
-        // Read vertices from polygon shape info
-        polygon_t* poly = (polygon_t*)info->shape_info;
-        if (poly && poly->sides > 0 && poly->vertices) {
-            visual::VisElement::PolygonShape polyShape;
-            float                            cx = nodeRect.width() / 2.0f;
-            float                            cy = nodeRect.height() / 2.0f;
-            for (size_t i = 0; i < poly->sides; ++i) {
-                polyShape.points.push_back(
-                    Point{
-                        cx + (float)poly->vertices[i].x,
-                        cy - (float)poly->vertices[i].y});
+    using S = gv::NodeAttribute::Shape;
+    switch (node.getShape().value_or(S::box)) {
+        case S::ellipse:
+        case S::circle:
+        case S::oval: {
+            visual::VisElement::EllipseShape ellipse;
+            ellipse.geometry = Rect(
+                0, 0, nodeRect.width(), nodeRect.height());
+            ellipse.pen    = pen;
+            ellipse.brush  = brush;
+            shapeElem.data = ellipse;
+            break;
+        }
+        case S::point: {
+            visual::VisElement::PointShape pt;
+            pt.position = Point{
+                nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
+            pt.radius      = std::min(nodeRect.width(), nodeRect.height())
+                           / 2.0f;
+            pt.pen         = pen;
+            pt.brush       = brush;
+            shapeElem.data = pt;
+            break;
+        }
+        case S::polygon:
+        case S::triangle:
+        case S::pentagon:
+        case S::octagon:
+        case S::hexagon:
+        case S::diamond: {
+            // Read vertices from polygon shape info
+            polygon_t* poly = (polygon_t*)info->shape_info;
+            if (poly && poly->sides > 0 && poly->vertices) {
+                visual::VisElement::PolygonShape polyShape;
+                float cx = nodeRect.width() / 2.0f;
+                float cy = nodeRect.height() / 2.0f;
+                for (size_t i = 0; i < poly->sides; ++i) {
+                    polyShape.points.push_back(
+                        Point{
+                            cx + (float)poly->vertices[i].x,
+                            cy - (float)poly->vertices[i].y});
+                }
+                polyShape.pen   = pen;
+                polyShape.brush = brush;
+                shapeElem.data  = polyShape;
+            } else {
+                // Fallback to rect
+                visual::VisElement::RectShape rect;
+                rect.geometry = Rect(
+                    0, 0, nodeRect.width(), nodeRect.height());
+                rect.pen       = pen;
+                rect.brush     = brush;
+                shapeElem.data = rect;
             }
-            polyShape.pen   = pen;
-            polyShape.brush = brush;
-            shapeElem.data  = polyShape;
-        } else {
-            // Fallback to rect
+            break;
+        }
+        default: {
+            // Default: box/rect and variants
             visual::VisElement::RectShape rect;
             rect.geometry = Rect(
                 0, 0, nodeRect.width(), nodeRect.height());
-            rect.pen       = pen;
-            rect.brush     = brush;
+            rect.pen   = pen;
+            rect.brush = brush;
+            // Check for rounded style
+            if (auto style = node.getStyle();
+                style == gv::NodeAttribute::Style::rounded) {
+                rect.cornerRadius = std::min(
+                                        nodeRect.width(),
+                                        nodeRect.height())
+                                  * 0.1f;
+            }
             shapeElem.data = rect;
         }
-    } else {
-        // Default: box/rect and variants
-        visual::VisElement::RectShape rect;
-        rect.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
-        rect.pen      = pen;
-        rect.brush    = brush;
-        // Check for rounded style
-        if (auto style = node.getStyle();
-            style == gv::NodeAttribute::Style::rounded) {
-            rect.cornerRadius = std::min(
-                                    nodeRect.width(), nodeRect.height())
-                              * 0.1f;
-        }
-        shapeElem.data = rect;
     }
 
     result.elements.push_back(shapeElem);
@@ -1171,16 +1185,15 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
             rect.pen.color = parseGvColor(*c);
         }
         if (auto style = group->getStyle()) {
-            if (*style == "dashed") {
+            if (style == gv::GraphGroup::Style::dashed) {
                 rect.pen.style = visual::VisPen::LineStyle::Dash;
-            } else if (*style == "dotted") {
+            } else if (style == gv::GraphGroup::Style::dotted) {
                 rect.pen.style = visual::VisPen::LineStyle::Dot;
-            } else if (*style == "solid") {
+            } else if (style == gv::GraphGroup::Style::solid) {
                 rect.pen.style = visual::VisPen::LineStyle::Solid;
-            } else if (*style == "invis") {
+            } else if (style == gv::GraphGroup::Style::invis) {
                 rect.pen.style = visual::VisPen::LineStyle::None;
-            }
-            if (style->find("filled") != std::string::npos) {
+            } else if (style == gv::GraphGroup::Style::filled) {
                 auto fc    = group->getFillColor();
                 rect.brush = visual::VisBrush::solid(
                     fc ? parseGvColor(*fc)

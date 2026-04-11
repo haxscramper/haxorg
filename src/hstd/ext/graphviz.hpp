@@ -46,8 +46,7 @@
         __Class* set##Method(Type const& value);
 
 
-#    define _eattr(__Class, Name, key, ...)                               \
-        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                           \
+#    define _eattr_use(__Class, Name, key)                                \
         __Class* set##Name(Name value) {                                  \
             setAttr(#key, enum_serde<Name>::to_string(value));            \
             return this;                                                  \
@@ -61,6 +60,12 @@
                 return std::nullopt;                                      \
             }                                                             \
         }
+
+
+#    define _eattr(__Class, Name, key, ...)                               \
+        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                           \
+        _eattr_use(__Class, Name, key);
+
 
 namespace hstd::ext::graph::gv {
 
@@ -586,8 +591,9 @@ class EdgeAttribute
     _attr(EdgeAttribute, LabelPosition, lp, Point);
     /// \brief Width of the edge's line
     _attr(EdgeAttribute, PenWidth, penwidth, double);
+    using Style = gv::NodeAttribute::Style;
     /// \brief Style of the edge's line
-    _attr(EdgeAttribute, Style, style, Str);
+    _eattr_use(EdgeAttribute, Style, style);
     /// \brief URL associated with the edge
     _attr(EdgeAttribute, URL, URL, Str);
     _attr(EdgeAttribute, LHead, lhead, Str);
@@ -731,8 +737,8 @@ class GraphGroup
     _attr(GraphGroup, Color, color, Str);
     _attr(GraphGroup, PenWidth, penwidth, double);
     _attr(GraphGroup, FillColor, fillcolor, Str);
-    // FIXME: use enum style
-    _attr(GraphGroup, Style, style, Str);
+    using Style = NodeAttribute::Style;
+    _eattr_use(GraphGroup, Style, style);
     /// \brief Font name
     _attr(GraphGroup, FontName, fontname, Str);
     /// \brief Font size
