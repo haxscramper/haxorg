@@ -40,6 +40,9 @@ GeometryCheckResult checkAbove(L const& first, R const& second);
 
 template <typename L, typename R>
 GeometryCheckResult checkBelow(L const& first, R const& second);
+
+template <typename L, typename R>
+GeometryCheckResult checkFullyCovers(L const& first, R const& second);
 } // namespace hstd::ext::geometry
 
 
@@ -62,6 +65,9 @@ GeometryCheckResult checkAboveBounds(
 GeometryCheckResult checkBelowBounds(
     Rect const& first,
     Rect const& second);
+GeometryCheckResult checkFullyCoversBounds(
+    Rect const& first,
+    Rect const& second);
 } // namespace detail
 
 template <typename L, typename R>
@@ -71,7 +77,10 @@ GeometryCheckResult checkLeftOf(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute first bounds: {}",
+                    R"(
+error=failed to compute first bounds
+reason={}
+)",
                     fb.error().message())));
     }
 
@@ -80,7 +89,10 @@ GeometryCheckResult checkLeftOf(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute second bounds: {}",
+                    R"(
+error=failed to compute second bounds
+reason={}
+)",
                     sb.error().message())));
     }
 
@@ -90,10 +102,10 @@ GeometryCheckResult checkLeftOf(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-left-of check failed:
-first  = {}
-second = {}
-reason = {}
+check=left-of
+first={}
+second={}
+reason={}
 )",
                     first,
                     second,
@@ -110,7 +122,10 @@ GeometryCheckResult checkRightOf(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute first bounds: {}",
+                    R"(
+error=failed to compute first bounds
+reason={}
+)",
                     fb.error().message())));
     }
 
@@ -119,7 +134,10 @@ GeometryCheckResult checkRightOf(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute second bounds: {}",
+                    R"(
+error=failed to compute second bounds
+reason={}
+)",
                     sb.error().message())));
     }
 
@@ -129,10 +147,10 @@ GeometryCheckResult checkRightOf(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-right-of check failed:
-first  = {}
-second = {}
-reason = {}
+check=right-of
+first={}
+second={}
+reason={}
 )",
                     first,
                     second,
@@ -149,7 +167,10 @@ GeometryCheckResult checkAbove(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute first bounds: {}",
+                    R"(
+error=failed to compute first bounds
+reason={}
+)",
                     fb.error().message())));
     }
 
@@ -158,7 +179,10 @@ GeometryCheckResult checkAbove(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute second bounds: {}",
+                    R"(
+error=failed to compute second bounds
+reason={}
+)",
                     sb.error().message())));
     }
 
@@ -168,10 +192,10 @@ GeometryCheckResult checkAbove(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-above check failed:
-first  = {}
-second = {}
-reason = {}
+check=above
+first={}
+second={}
+reason={}
 )",
                     first,
                     second,
@@ -188,7 +212,10 @@ GeometryCheckResult checkBelow(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute first bounds: {}",
+                    R"(
+error=failed to compute first bounds
+reason={}
+)",
                     fb.error().message())));
     }
 
@@ -197,7 +224,10 @@ GeometryCheckResult checkBelow(L const& first, R const& second) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Failed to compute second bounds: {}",
+                    R"(
+error=failed to compute second bounds
+reason={}
+)",
                     sb.error().message())));
     }
 
@@ -207,10 +237,55 @@ GeometryCheckResult checkBelow(L const& first, R const& second) {
             GeometryError::init(
                 hstd::fmt(
                     R"(
-below failed:
-first  = {}
-second = {}
-reason = {}
+check=below
+first={}
+second={}
+reason={}
+)",
+                    first,
+                    second,
+                    r.error().message())));
+    }
+
+    return boost::outcome_v2::success();
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkFullyCovers(L const& first, R const& second) {
+    auto fb = detail::boundsOf(first);
+    if (!fb) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+error=failed to compute first bounds
+reason={}
+)",
+                    fb.error().message())));
+    }
+
+    auto sb = detail::boundsOf(second);
+    if (!sb) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+error=failed to compute second bounds
+reason={}
+)",
+                    sb.error().message())));
+    }
+
+    auto r = detail::checkFullyCoversBounds(fb.value(), sb.value());
+    if (!r) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+check=fully-covers
+first={}
+second={}
+reason={}
 )",
                     first,
                     second,

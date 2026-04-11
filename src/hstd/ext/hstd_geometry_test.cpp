@@ -43,14 +43,20 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
     Path const& path) {
     if (path.commands.empty()) {
         return boost::outcome_v2::failure(
-            GeometryError::init("Path is empty"));
+            GeometryError::init(
+                R"(
+error=path is empty
+)"));
     }
 
     if (path.commands.front().type != Path::CommandType::MoveTo) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Path must start with MoveTo, got {}",
+                    R"(
+error=path must start with MoveTo
+firstCommand={}
+)",
                     path.commands.front())));
     }
 
@@ -75,7 +81,13 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
             return boost::outcome_v2::failure(
                 GeometryError::init(
                     hstd::fmt(
-                        "Command {} has no current point: {}", i, cmd)));
+                        R"(
+error=command has no current point
+commandIndex={}
+command={}
+)",
+                        i,
+                        cmd)));
         }
 
         if (cmd.type == Path::CommandType::LineTo) {
@@ -140,7 +152,12 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
     if (segments.empty()) {
         return boost::outcome_v2::failure(
             GeometryError::init(
-                hstd::fmt("Path has no drawable segments: {}", path)));
+                hstd::fmt(
+                    R"(
+error=path has no drawable segments
+path={}
+)",
+                    path)));
     }
 
     return segments;
@@ -191,12 +208,12 @@ GeometryCheckResult checkLeftOfBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-Expected first rect to be left of second, but
-firstRight={} > secondLeft={}
-first  = {}
-second = {}
+check=left-of-bounds
+firstRight={}
+secondLeft={}
+first={}
+second={}
 )",
-
                 firstRight,
                 secondLeft,
                 first,
@@ -215,10 +232,11 @@ GeometryCheckResult checkRightOfBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-Expected first rect to be right of second, but
-firstLeft={} < secondRight={}
-first  = {}
-second = {}
+check=right-of-bounds
+firstLeft={}
+secondRight={}
+first={}
+second={}
 )",
                 firstLeft,
                 secondRight,
@@ -238,10 +256,11 @@ GeometryCheckResult checkAboveBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-Expected first rect to be above second, but
-firstBottom={} > secondTop={}
-first  = {}
-second = {}
+check=above-bounds
+firstBottom={}
+secondTop={}
+first={}
+second={}
 )",
                 firstBottom,
                 secondTop,
@@ -261,12 +280,59 @@ GeometryCheckResult checkBelowBounds(
         GeometryError::init(
             hstd::fmt(
                 R"(
-Expected first rect to be below second, but
-firstTop={} < secondBottom={}
-first  = {}
-second = {}
+check=below-bounds
+firstTop={}
+secondBottom={}
+first={}
+second={}
 )",
                 firstTop,
+                secondBottom,
+                first,
+                second)));
+}
+
+GeometryCheckResult checkFullyCoversBounds(
+    Rect const& first,
+    Rect const& second) {
+    double firstLeft   = bg::get<bg::min_corner, 0>(first);
+    double firstTop    = bg::get<bg::min_corner, 1>(first);
+    double firstRight  = bg::get<bg::max_corner, 0>(first);
+    double firstBottom = bg::get<bg::max_corner, 1>(first);
+
+    double secondLeft   = bg::get<bg::min_corner, 0>(second);
+    double secondTop    = bg::get<bg::min_corner, 1>(second);
+    double secondRight  = bg::get<bg::max_corner, 0>(second);
+    double secondBottom = bg::get<bg::max_corner, 1>(second);
+
+    bool covers = firstLeft <= secondLeft && firstTop <= secondTop
+               && secondRight <= firstRight && secondBottom <= firstBottom;
+
+    if (covers) { return boost::outcome_v2::success(); }
+
+    return boost::outcome_v2::failure(
+        GeometryError::init(
+            hstd::fmt(
+                R"(
+check=fully-covers-bounds
+firstLeft={}
+firstTop={}
+firstRight={}
+firstBottom={}
+secondLeft={}
+secondTop={}
+secondRight={}
+secondBottom={}
+first={}
+second={}
+)",
+                firstLeft,
+                firstTop,
+                firstRight,
+                firstBottom,
+                secondLeft,
+                secondTop,
+                secondRight,
                 secondBottom,
                 first,
                 second)));
@@ -284,9 +350,11 @@ GeometryCheckResult checkIntersects(
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
-                "Expected point intersection, but points differ: "
-                "first={}, "
-                "second={}",
+                R"(
+check=point-point-intersects
+first={}
+second={}
+)",
                 first,
                 second)));
 }
@@ -299,8 +367,11 @@ GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
-                "Expected point-rect intersection, but point is outside: "
-                "point={}, rect={}",
+                R"(
+check=point-rect-intersects
+point={}
+rect={}
+)",
                 point,
                 rect)));
 }
@@ -315,7 +386,11 @@ GeometryCheckResult checkIntersects(Point const& point, Path const& path) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Cannot check point-path intersection: {}",
+                    R"(
+check=point-path-intersects
+error=cannot flatten path
+reason={}
+)",
                     segs.error().message())));
     }
 
@@ -327,9 +402,11 @@ GeometryCheckResult checkIntersects(Point const& point, Path const& path) {
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
-                "Expected point-path intersection, but point is not on "
-                "path: "
-                "point={}, path={}",
+                R"(
+check=point-path-intersects
+point={}
+path={}
+)",
                 point,
                 path)));
 }
@@ -344,7 +421,11 @@ GeometryCheckResult checkIntersects(Rect const& rect, Path const& path) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Cannot check rect-path intersection: {}",
+                    R"(
+check=rect-path-intersects
+error=cannot flatten path
+reason={}
+)",
                     segs.error().message())));
     }
 
@@ -357,8 +438,11 @@ GeometryCheckResult checkIntersects(Rect const& rect, Path const& path) {
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
-                "Expected rect-path intersection, but no path segment "
-                "intersects rectangle: rect={}, path={}",
+                R"(
+check=rect-path-intersects
+rect={}
+path={}
+)",
                 rect,
                 path)));
 }
@@ -375,7 +459,11 @@ GeometryCheckResult checkIntersects(
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Cannot check path-path intersection (first path): {}",
+                    R"(
+check=path-path-intersects
+error=cannot flatten first path
+reason={}
+)",
                     a.error().message())));
     }
 
@@ -384,8 +472,11 @@ GeometryCheckResult checkIntersects(
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
-                    "Cannot check path-path intersection (second path): "
-                    "{}",
+                    R"(
+check=path-path-intersects
+error=cannot flatten second path
+reason={}
+)",
                     b.error().message())));
     }
 
@@ -400,9 +491,11 @@ GeometryCheckResult checkIntersects(
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
-                "Expected path-path intersection, but no segments "
-                "intersect: "
-                "first={}, second={}",
+                R"(
+check=path-path-intersects
+first={}
+second={}
+)",
                 first,
                 second)));
 }

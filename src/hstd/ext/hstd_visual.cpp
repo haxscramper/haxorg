@@ -350,93 +350,92 @@ struct SvgWriter {
 
         return g;
     }
-
-    Rect computeBounds(VisGroup const& group, double ox, double oy) {
-        double gx   = ox + group.offset.x();
-        double gy   = oy + group.offset.y();
-        double minX = std::numeric_limits<double>::max();
-        double minY = std::numeric_limits<double>::max();
-        double maxX = std::numeric_limits<double>::lowest();
-        double maxY = std::numeric_limits<double>::lowest();
-
-        auto expand = [&](double x, double y) {
-            minX = std::min(minX, x);
-            minY = std::min(minY, y);
-            maxX = std::max(maxX, x);
-            maxY = std::max(maxY, y);
-        };
-
-        auto expandRect = [&](Rect const& r, double ex, double ey) {
-            expand(r.x() + ex, r.y() + ey);
-            expand(r.x() + r.width() + ex, r.y() + r.height() + ey);
-        };
-
-        for (auto const& elem : group.elements) {
-            std::visit(
-                hstd::overloaded{
-                    [&](VisElement::RectShape const& s) {
-                        expandRect(s.geometry, gx, gy);
-                    },
-                    [&](VisElement::EllipseShape const& s) {
-                        expandRect(s.geometry, gx, gy);
-                    },
-                    [&](VisElement::LineShape const& s) {
-                        expand(s.p1.x() + gx, s.p1.y() + gy);
-                        expand(s.p2.x() + gx, s.p2.y() + gy);
-                    },
-                    [&](VisElement::PathShape const& s) {
-                        for (auto const& cmd : s.path.commands) {
-                            expand(cmd.p1.x() + gx, cmd.p1.y() + gy);
-                            if (cmd.type == Path::CommandType::QuadTo
-                                || cmd.type
-                                       == Path::CommandType::CubicTo) {
-                                expand(cmd.p2.x() + gx, cmd.p2.y() + gy);
-                            }
-                            if (cmd.type == Path::CommandType::CubicTo) {
-                                expand(cmd.p3.x() + gx, cmd.p3.y() + gy);
-                            }
-                        }
-                    },
-                    [&](VisElement::PolygonShape const& s) {
-                        for (auto const& pt : s.points) {
-                            expand(pt.x() + gx, pt.y() + gy);
-                        }
-                    },
-                    [&](VisElement::TextShape const& s) {
-                        expand(s.anchor.x() + gx, s.anchor.y() + gy);
-                        if (s.boundingBox) {
-                            expandRect(*s.boundingBox, gx, gy);
-                        }
-                    },
-                    [&](VisElement::PixmapShape const& s) {
-                        expandRect(s.geometry, gx, gy);
-                    },
-                    [&](VisElement::PointShape const& s) {
-                        expand(
-                            s.position.x() - s.radius + gx,
-                            s.position.y() - s.radius + gy);
-                        expand(
-                            s.position.x() + s.radius + gx,
-                            s.position.y() + s.radius + gy);
-                    },
-                },
-                elem.data);
-        }
-
-        for (auto const& sub : group.subgroups) {
-            Rect subBounds = computeBounds(sub, gx, gy);
-            expand(subBounds.x(), subBounds.y());
-            expand(
-                subBounds.x() + subBounds.width(),
-                subBounds.y() + subBounds.height());
-        }
-
-        if (minX > maxX) { return Rect(0, 0, 0, 0); }
-        return Rect(minX, minY, maxX - minX, maxY - minY);
-    }
 };
 
 } // namespace
+
+Rect VisGroup::computeBounds(double ox, double oy) const {
+    double gx   = ox + offset.x();
+    double gy   = oy + offset.y();
+    double minX = std::numeric_limits<double>::max();
+    double minY = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::lowest();
+    double maxY = std::numeric_limits<double>::lowest();
+
+    auto expand = [&](double x, double y) {
+        minX = std::min(minX, x);
+        minY = std::min(minY, y);
+        maxX = std::max(maxX, x);
+        maxY = std::max(maxY, y);
+    };
+
+    auto expandRect = [&](Rect const& r, double ex, double ey) {
+        expand(r.x() + ex, r.y() + ey);
+        expand(r.x() + r.width() + ex, r.y() + r.height() + ey);
+    };
+
+    for (auto const& elem : elements) {
+        std::visit(
+            hstd::overloaded{
+                [&](VisElement::RectShape const& s) {
+                    expandRect(s.geometry, gx, gy);
+                },
+                [&](VisElement::EllipseShape const& s) {
+                    expandRect(s.geometry, gx, gy);
+                },
+                [&](VisElement::LineShape const& s) {
+                    expand(s.p1.x() + gx, s.p1.y() + gy);
+                    expand(s.p2.x() + gx, s.p2.y() + gy);
+                },
+                [&](VisElement::PathShape const& s) {
+                    for (auto const& cmd : s.path.commands) {
+                        expand(cmd.p1.x() + gx, cmd.p1.y() + gy);
+                        if (cmd.type == Path::CommandType::QuadTo
+                            || cmd.type == Path::CommandType::CubicTo) {
+                            expand(cmd.p2.x() + gx, cmd.p2.y() + gy);
+                        }
+                        if (cmd.type == Path::CommandType::CubicTo) {
+                            expand(cmd.p3.x() + gx, cmd.p3.y() + gy);
+                        }
+                    }
+                },
+                [&](VisElement::PolygonShape const& s) {
+                    for (auto const& pt : s.points) {
+                        expand(pt.x() + gx, pt.y() + gy);
+                    }
+                },
+                [&](VisElement::TextShape const& s) {
+                    expand(s.anchor.x() + gx, s.anchor.y() + gy);
+                    if (s.boundingBox) {
+                        expandRect(*s.boundingBox, gx, gy);
+                    }
+                },
+                [&](VisElement::PixmapShape const& s) {
+                    expandRect(s.geometry, gx, gy);
+                },
+                [&](VisElement::PointShape const& s) {
+                    expand(
+                        s.position.x() - s.radius + gx,
+                        s.position.y() - s.radius + gy);
+                    expand(
+                        s.position.x() + s.radius + gx,
+                        s.position.y() + s.radius + gy);
+                },
+            },
+            elem.data);
+    }
+
+    for (auto const& sub : subgroups) {
+        Rect subBounds = sub.computeBounds(gx, gy);
+        expand(subBounds.x(), subBounds.y());
+        expand(
+            subBounds.x() + subBounds.width(),
+            subBounds.y() + subBounds.height());
+    }
+
+    if (minX > maxX) { return Rect(0, 0, 0, 0); }
+    return Rect(minX, minY, maxX - minX, maxY - minY);
+}
 
 XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     SvgWriter writer;
@@ -447,14 +446,14 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     double maxY = 0.0f;
 
     if (!groups.empty()) {
-        Rect first = writer.computeBounds(groups.front(), 0, 0);
+        Rect first = groups.front().computeBounds(0, 0);
         minX       = first.x();
         minY       = first.y();
         maxX       = first.x() + first.width();
         maxY       = first.y() + first.height();
 
         for (int i = 1; i < groups.size(); ++i) {
-            Rect b = writer.computeBounds(groups[i], 0, 0);
+            Rect b = groups[i].computeBounds(0, 0);
             minX   = std::min<double>(minX, b.x());
             minY   = std::min<double>(minY, b.y());
             maxX   = std::max<double>(maxX, b.x() + b.width());

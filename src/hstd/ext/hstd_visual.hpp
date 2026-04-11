@@ -222,6 +222,12 @@ struct VisGroup {
     json                  extra;
     hstd::Vec<hstd::Str>  comment;
 
+    Rect computeBounds(double ox = 0, double gx = 0) const;
+
+    Rect computeBounds(Point const& o) const {
+        return computeBounds(o.x(), o.y());
+    }
+
     DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
 };
 

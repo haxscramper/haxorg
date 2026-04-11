@@ -430,6 +430,7 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_EQ(visual.size(), 1);
     EXPECT_EQ(visual.at(0).subgroups.size(), 2);
 
+    auto const vsg  = visual.at(0);
     auto const vsg0 = visual.at(0).subgroups.at(0);
     auto const vsg1 = visual.at(0).subgroups.at(1);
     EXPECT_EQ(vsg0.subgroups.size(), 6);
@@ -457,13 +458,19 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     // :                  :                          :
     // ...............................................
 
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, false).to_string());
+
     // VSG0 is a left layout group
     // VSG1 is a right one
     EXPECT_OUTCOME_OK(checkLeftOf(vsg0.offset, vsg1.offset));
 
-    hstd::writeFile(
-        getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, false).to_string());
+    EXPECT_OUTCOME_OK(
+        checkFullyCovers(vsg.computeBounds(), vsg0.computeBounds()));
+
+    EXPECT_OUTCOME_OK(
+        checkFullyCovers(vsg.computeBounds(), vsg1.computeBounds()));
 }
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
