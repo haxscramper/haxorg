@@ -2,6 +2,7 @@
 #    include <hstd/ext/graphviz.hpp>
 #    include <filesystem>
 #    include <format>
+#    include <hstd/ext/logger.hpp>
 
 
 using namespace hstd;
@@ -18,7 +19,7 @@ Rect getGraphBBox(gv::GraphGroup const& g) {
     // |       |
     // [LL]----+
 
-    auto res = Rect(0, 0, rect.UR.x, rect.UR.y);
+    auto res = Rect(0, 0, rect.UR.x / 72, rect.UR.y / 72);
     return res;
 }
 
@@ -34,11 +35,7 @@ Rect getNodeRectangle(
     double y      = bbox.height() - node.info()->coord.y;
     int    x1     = std::round(x - width / 2);
     int    y1     = std::round(y - height / 2);
-    auto   result = Rect(
-        std::round(x1),
-        std::round(y1),
-        std::round(width),
-        std::round(height));
+    auto   result = Rect(x1, y1, width, height);
 
     return result;
 }

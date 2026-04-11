@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/ext/hstd_geometry.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Xml.hpp>
 
 namespace hstd::ext::visual {
 
@@ -208,8 +209,9 @@ struct VisElement {
         PointShape);
 
     Data data;
+    json extra;
 
-    DESC_FIELDS(VisElement, (data));
+    DESC_FIELDS(VisElement, (data, extra));
 };
 
 struct VisGroup {
@@ -221,6 +223,6 @@ struct VisGroup {
 };
 
 /// Convert a VisGroup hierarchy to an SVG string.
-hstd::Str toSvg(VisGroup const& group);
+XmlNode toSvg(hstd::Vec<VisGroup> const& group, bool debug = false);
 
 } // namespace hstd::ext::visual

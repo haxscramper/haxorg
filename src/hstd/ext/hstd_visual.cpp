@@ -1,5 +1,6 @@
 #include "hstd_visual.hpp"
 #include <fmt/format.h>
+#include <hstd/stdlib/Xml.hpp>
 
 namespace hstd::ext::visual {
 
@@ -7,58 +8,52 @@ namespace {
 
 std::string colorToSvg(VisColor const& c) {
     if (c.a == 255) {
-        return fmt::format("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
+        return hstd::fmt("#{:02x}{:02x}{:02x}", c.r, c.g, c.b);
     } else {
-        return fmt::format(
-            "rgba({},{},{},{})", c.r, c.g, c.b, c.a / 255.0f);
+        return hstd::fmt("rgba({},{},{},{})", c.r, c.g, c.b, c.a / 255.0f);
     }
 }
 
-std::string penToSvgAttrs(VisPen const& pen) {
+void applyPenAttrs(XmlNode& node, VisPen const& pen) {
     if (pen.style == VisPen::LineStyle::None) {
-        return R"(stroke="none")";
+        node.set_attr("stroke", "none");
+        return;
     }
 
-    std::string result = fmt::format(
-        R"(stroke="{}" stroke-width="{}")",
-        colorToSvg(pen.color),
-        pen.width);
+    node.set_attr("stroke", colorToSvg(pen.color));
+    node.set_attr("stroke-width", hstd::fmt("{}", pen.width));
 
     switch (pen.style) {
         case VisPen::LineStyle::Dash:
-            result += fmt::format(
-                R"svg( stroke-dasharray="{},{})")svg",
-                pen.width * 4,
-                pen.width * 2);
+            node.set_attr(
+                "stroke-dasharray",
+                hstd::fmt("{},{}", pen.width * 4, pen.width * 2));
             break;
         case VisPen::LineStyle::Dot:
-            result += fmt::format(
-                R"svg( stroke-dasharray="{},{})")svg",
-                pen.width,
-                pen.width * 2);
+            node.set_attr(
+                "stroke-dasharray",
+                hstd::fmt("{},{}", pen.width, pen.width * 2));
             break;
         case VisPen::LineStyle::DashDot:
-            result += fmt::format(
-                R"svg( stroke-dasharray="{},{},{},{})")svg",
-                pen.width * 4,
-                pen.width * 2,
-                pen.width,
-                pen.width * 2);
+            node.set_attr(
+                "stroke-dasharray",
+                hstd::fmt(
+                    "{},{},{},{}",
+                    pen.width * 4,
+                    pen.width * 2,
+                    pen.width,
+                    pen.width * 2));
             break;
         default: break;
     }
-
-    return result;
 }
 
-std::string brushToSvgAttr(VisBrush const& brush) {
+void applyBrushAttrs(XmlNode& node, VisBrush const& brush) {
     if (brush.style == VisBrush::BrushStyle::None) {
-        return R"(fill="none")";
+        node.set_attr("fill", "none");
+        return;
     }
-    // For pattern fills in SVG we'd need <defs>/<pattern> elements.
-    // For the initial implementation, solid fill covers the common case.
-    // Pattern fills are rendered as solid with the specified color.
-    return fmt::format(R"(fill="{}")", colorToSvg(brush.color));
+    node.set_attr("fill", colorToSvg(brush.color));
 }
 
 std::string fontWeightToSvg(VisFont::Weight w) {
@@ -104,13 +99,13 @@ std::string pathToSvgD(Path const& path) {
     for (auto const& cmd : path.commands) {
         switch (cmd.type) {
             case Path::CommandType::MoveTo:
-                d += fmt::format("M {} {} ", cmd.p1.x(), cmd.p1.y());
+                d += hstd::fmt("M {} {} ", cmd.p1.x(), cmd.p1.y());
                 break;
             case Path::CommandType::LineTo:
-                d += fmt::format("L {} {} ", cmd.p1.x(), cmd.p1.y());
+                d += hstd::fmt("L {} {} ", cmd.p1.x(), cmd.p1.y());
                 break;
             case Path::CommandType::QuadTo:
-                d += fmt::format(
+                d += hstd::fmt(
                     "Q {} {} {} {} ",
                     cmd.p1.x(),
                     cmd.p1.y(),
@@ -118,7 +113,7 @@ std::string pathToSvgD(Path const& path) {
                     cmd.p2.y());
                 break;
             case Path::CommandType::CubicTo:
-                d += fmt::format(
+                d += hstd::fmt(
                     "C {} {} {} {} {} {} ",
                     cmd.p1.x(),
                     cmd.p1.y(),
@@ -133,36 +128,40 @@ std::string pathToSvgD(Path const& path) {
     return d;
 }
 
+std::string groupPathToString(hstd::Vec<int> const& path) {
+    std::string result;
+    for (int idx : path) { result += hstd::fmt(".group[{}]", idx); }
+    return result.empty() ? ".group" : result;
+}
+
 struct SvgWriter {
-    std::string output;
-    float       globalOffsetX = 0;
-    float       globalOffsetY = 0;
-
-    void writeElement(VisElement const& elem, float ox, float oy) {
-        std::visit(
-            [&](auto const& shape) { writeShape(shape, ox, oy); },
-            elem.data);
-    }
-
-    void writeShape(VisElement::RectShape const& r, float ox, float oy) {
+    Point writeShape(
+        XmlNode&                     parent,
+        VisElement::RectShape const& r,
+        float                        ox,
+        float                        oy) {
         float x = r.geometry.x() + ox;
         float y = r.geometry.y() + oy;
-        output += fmt::format(
-            R"(<rect x="{}" y="{}" width="{}" height="{}" {} {})",
-            x,
-            y,
-            r.geometry.width(),
-            r.geometry.height(),
-            penToSvgAttrs(r.pen),
-            brushToSvgAttr(r.brush));
+
+        XmlNode rect("rect");
+        rect.set_attr("x", hstd::fmt("{}", x));
+        rect.set_attr("y", hstd::fmt("{}", y));
+        rect.set_attr("width", hstd::fmt("{}", r.geometry.width()));
+        rect.set_attr("height", hstd::fmt("{}", r.geometry.height()));
+        applyPenAttrs(rect, r.pen);
+        applyBrushAttrs(rect, r.brush);
         if (r.cornerRadius) {
-            output += fmt::format(
-                R"( rx="{}" ry="{}")", *r.cornerRadius, *r.cornerRadius);
+            rect.set_attr("rx", hstd::fmt("{}", *r.cornerRadius));
+            rect.set_attr("ry", hstd::fmt("{}", *r.cornerRadius));
         }
-        output += "/>\n";
+        parent.push_back(std::move(rect));
+
+        return Point(
+            x + r.geometry.width() / 2.0f, y + r.geometry.height() / 2.0f);
     }
 
-    void writeShape(
+    Point writeShape(
+        XmlNode&                        parent,
         VisElement::EllipseShape const& e,
         float                           ox,
         float                           oy) {
@@ -170,117 +169,230 @@ struct SvgWriter {
         float cy = e.geometry.y() + e.geometry.height() / 2.0f + oy;
         float rx = e.geometry.width() / 2.0f;
         float ry = e.geometry.height() / 2.0f;
-        output += fmt::format(
-            R"(<ellipse cx="{}" cy="{}" rx="{}" ry="{}" {} {}/>)"
-            "\n",
-            cx,
-            cy,
-            rx,
-            ry,
-            penToSvgAttrs(e.pen),
-            brushToSvgAttr(e.brush));
+
+        XmlNode ellipse("ellipse");
+        ellipse.set_attr("cx", hstd::fmt("{}", cx));
+        ellipse.set_attr("cy", hstd::fmt("{}", cy));
+        ellipse.set_attr("rx", hstd::fmt("{}", rx));
+        ellipse.set_attr("ry", hstd::fmt("{}", ry));
+        applyPenAttrs(ellipse, e.pen);
+        applyBrushAttrs(ellipse, e.brush);
+        parent.push_back(std::move(ellipse));
+
+        return Point(cx, cy);
     }
 
-    void writeShape(VisElement::LineShape const& l, float ox, float oy) {
-        output += fmt::format(
-            R"(<line x1="{}" y1="{}" x2="{}" y2="{}" {}/>)"
-            "\n",
-            l.p1.x() + ox,
-            l.p1.y() + oy,
-            l.p2.x() + ox,
-            l.p2.y() + oy,
-            penToSvgAttrs(l.pen));
+    Point writeShape(
+        XmlNode&                     parent,
+        VisElement::LineShape const& l,
+        float                        ox,
+        float                        oy) {
+        float x1 = l.p1.x() + ox;
+        float y1 = l.p1.y() + oy;
+        float x2 = l.p2.x() + ox;
+        float y2 = l.p2.y() + oy;
+
+        XmlNode line("line");
+        line.set_attr("x1", hstd::fmt("{}", x1));
+        line.set_attr("y1", hstd::fmt("{}", y1));
+        line.set_attr("x2", hstd::fmt("{}", x2));
+        line.set_attr("y2", hstd::fmt("{}", y2));
+        applyPenAttrs(line, l.pen);
+        parent.push_back(std::move(line));
+
+        return Point((x1 + x2) * 0.5f, (y1 + y2) * 0.5f);
     }
 
-    void writeShape(VisElement::PathShape const& p, float ox, float oy) {
-        // Apply offset by wrapping in a translated group
-        output += fmt::format(
-            R"svg(<g transform="translate({},{})">)svg"
-            "\n",
-            ox,
-            oy);
-        output += fmt::format(
-            R"(<path d="{}" {} {}/>)"
-            "\n",
-            pathToSvgD(p.path),
-            penToSvgAttrs(p.pen),
-            brushToSvgAttr(p.brush));
-        output += "</g>\n";
+    Point writeShape(
+        XmlNode&                     parent,
+        VisElement::PathShape const& p,
+        float                        ox,
+        float                        oy) {
+        XmlNode g("g");
+        g.set_attr("transform", hstd::fmt("translate({},{})", ox, oy));
+
+        XmlNode path("path");
+        path.set_attr("d", pathToSvgD(p.path));
+        applyPenAttrs(path, p.pen);
+        applyBrushAttrs(path, p.brush);
+        g.push_back(std::move(path));
+        parent.push_back(std::move(g));
+
+        if (!p.path.commands.empty()) {
+            auto const& c = p.path.commands.front();
+            return Point(c.p1.x() + ox, c.p1.y() + oy);
+        } else {
+            return Point(ox, oy);
+        }
     }
 
-    void writeShape(
+    Point writeShape(
+        XmlNode&                        parent,
         VisElement::PolygonShape const& poly,
         float                           ox,
         float                           oy) {
         std::string points;
         for (auto const& pt : poly.points) {
-            points += fmt::format("{},{} ", pt.x() + ox, pt.y() + oy);
+            points += hstd::fmt("{},{} ", pt.x() + ox, pt.y() + oy);
         }
-        output += fmt::format(
-            R"(<polygon points="{}" {} {}/>)"
-            "\n",
-            points,
-            penToSvgAttrs(poly.pen),
-            brushToSvgAttr(poly.brush));
+
+        XmlNode polygon("polygon");
+        polygon.set_attr("points", points);
+        applyPenAttrs(polygon, poly.pen);
+        applyBrushAttrs(polygon, poly.brush);
+        parent.push_back(std::move(polygon));
+
+        if (!poly.points.empty()) {
+            return Point(
+                poly.points.front().x() + ox,
+                poly.points.front().y() + oy);
+        } else {
+            return Point(ox, oy);
+        }
     }
 
-    void writeShape(VisElement::TextShape const& t, float ox, float oy) {
-        output += fmt::format(
-            R"(<text x="{}" y="{}" )"
-            R"(font-family="{}" font-size="{}" )"
-            R"(font-weight="{}" font-style="{}" )"
-            R"(text-anchor="{}" dominant-baseline="{}" )"
-            R"(fill="{}">)",
-            t.anchor.x() + ox,
-            t.anchor.y() + oy,
-            t.font.family,
-            t.font.pixelSize,
-            fontWeightToSvg(t.font.weight),
-            fontStyleToSvg(t.font.fontStyle),
-            textAnchorToSvg(t.alignment.horizontal),
-            dominantBaselineToSvg(t.alignment.vertical),
-            colorToSvg(t.color));
-        output += fmt::format("{}</text>\n", t.content);
+    Point writeShape(
+        XmlNode&                     parent,
+        VisElement::TextShape const& t,
+        float                        ox,
+        float                        oy) {
+        float x = t.anchor.x() + ox;
+        float y = t.anchor.y() + oy;
+
+        XmlNode text("text");
+        text.set_attr("x", hstd::fmt("{}", x));
+        text.set_attr("y", hstd::fmt("{}", y));
+        text.set_attr("font-family", t.font.family);
+        text.set_attr("font-size", hstd::fmt("{}", t.font.pixelSize));
+        text.set_attr("font-weight", fontWeightToSvg(t.font.weight));
+        text.set_attr("font-style", fontStyleToSvg(t.font.fontStyle));
+        text.set_attr(
+            "text-anchor", textAnchorToSvg(t.alignment.horizontal));
+        text.set_attr(
+            "dominant-baseline",
+            dominantBaselineToSvg(t.alignment.vertical));
+        text.set_attr("fill", colorToSvg(t.color));
+        text.set_text(t.content);
+        parent.push_back(std::move(text));
+
+        return Point(x, y);
     }
 
-    void writeShape(
+    Point writeShape(
+        XmlNode&                       parent,
         VisElement::PixmapShape const& px,
         float                          ox,
         float                          oy) {
-        output += fmt::format(
-            R"(<image href="{}" x="{}" y="{}" width="{}" height="{}"/>)"
-            "\n",
-            px.path,
-            px.geometry.x() + ox,
-            px.geometry.y() + oy,
-            px.geometry.width(),
-            px.geometry.height());
+        float x = px.geometry.x() + ox;
+        float y = px.geometry.y() + oy;
+
+        XmlNode image("image");
+        image.set_attr("href", px.path);
+        image.set_attr("x", hstd::fmt("{}", x));
+        image.set_attr("y", hstd::fmt("{}", y));
+        image.set_attr("width", hstd::fmt("{}", px.geometry.width()));
+        image.set_attr("height", hstd::fmt("{}", px.geometry.height()));
+        parent.push_back(std::move(image));
+
+        return Point(
+            x + px.geometry.width() / 2.0f,
+            y + px.geometry.height() / 2.0f);
     }
 
-    void writeShape(VisElement::PointShape const& pt, float ox, float oy) {
-        output += fmt::format(
-            R"(<circle cx="{}" cy="{}" r="{}" {} {}/>)"
-            "\n",
-            pt.position.x() + ox,
-            pt.position.y() + oy,
-            pt.radius,
-            penToSvgAttrs(pt.pen),
-            brushToSvgAttr(pt.brush));
+    Point writeShape(
+        XmlNode&                      parent,
+        VisElement::PointShape const& pt,
+        float                         ox,
+        float                         oy) {
+        float cx = pt.position.x() + ox;
+        float cy = pt.position.y() + oy;
+
+        XmlNode circle("circle");
+        circle.set_attr("cx", hstd::fmt("{}", cx));
+        circle.set_attr("cy", hstd::fmt("{}", cy));
+        circle.set_attr("r", hstd::fmt("{}", pt.radius));
+        applyPenAttrs(circle, pt.pen);
+        applyBrushAttrs(circle, pt.brush);
+        parent.push_back(std::move(circle));
+
+        return Point(cx, cy);
     }
 
-    void writeGroup(VisGroup const& group, float ox, float oy) {
+    void appendDebugMarker(
+        XmlNode&              parent,
+        hstd::Vec<int> const& groupPath,
+        Point const&          coord,
+        json const&           extra) {
+        XmlNode g("g");
+        g.set_attr("class", "debug-node");
+
+        XmlNode marker("circle");
+        marker.set_attr("cx", hstd::fmt("{}", coord.x()));
+        marker.set_attr("cy", hstd::fmt("{}", coord.y()));
+        marker.set_attr("r", "2.5");
+        marker.set_attr("fill", "#ff00ff");
+        marker.set_attr("stroke", "none");
+        g.push_back(std::move(marker));
+
+        XmlNode label("text");
+        label.set_attr("x", hstd::fmt("{}", coord.x() + 4.0f));
+        label.set_attr("y", hstd::fmt("{}", coord.y() - 4.0f));
+        label.set_attr("font-family", "monospace");
+        label.set_attr("font-size", "9");
+        label.set_attr("fill", "#aa0066");
+        label.set_attr("text-anchor", "start");
+        label.set_attr("dominant-baseline", "alphabetic");
+        label.set_text(
+            hstd::fmt(
+                "{} @ ({:.2f},{:.2f}) extra={}",
+                groupPathToString(groupPath),
+                coord.x(),
+                coord.y(),
+                extra.dump()));
+        g.push_back(std::move(label));
+
+        parent.push_back(std::move(g));
+    }
+
+    void writeElement(
+        XmlNode&              parent,
+        VisElement const&     elem,
+        float                 ox,
+        float                 oy,
+        hstd::Vec<int> const& groupPath,
+        bool                  debug) {
+        Point coord = std::visit(
+            [&](auto const& shape) {
+                return writeShape(parent, shape, ox, oy);
+            },
+            elem.data);
+
+        if (debug) {
+            appendDebugMarker(parent, groupPath, coord, elem.extra);
+        }
+    }
+
+    void writeGroup(
+        XmlNode&              parent,
+        VisGroup const&       group,
+        float                 ox,
+        float                 oy,
+        hstd::Vec<int> const& groupPath,
+        bool                  debug) {
         float gx = ox + group.offset.x();
         float gy = oy + group.offset.y();
 
         for (auto const& elem : group.elements) {
-            writeElement(elem, gx, gy);
+            writeElement(parent, elem, gx, gy, groupPath, debug);
         }
-        for (auto const& sub : group.subgroups) {
-            writeGroup(sub, gx, gy);
+
+        for (std::size_t i = 0; i < group.subgroups.size(); ++i) {
+            hstd::Vec<int> subPath = groupPath;
+            subPath.push_back(static_cast<int>(i));
+            writeGroup(parent, group.subgroups[i], gx, gy, subPath, debug);
         }
     }
 
-    /// Compute the bounding box of the entire group hierarchy.
     Rect computeBounds(VisGroup const& group, float ox, float oy) {
         float gx   = ox + group.offset.x();
         float gy   = oy + group.offset.y();
@@ -365,37 +477,57 @@ struct SvgWriter {
         return Rect(minX, minY, maxX - minX, maxY - minY);
     }
 };
+
 } // namespace
 
-hstd::Str toSvg(VisGroup const& group) {
+XmlNode hstd::ext::visual::toSvg(
+    hstd::Vec<VisGroup> const& groups,
+    bool                       debug) {
     SvgWriter writer;
-    Rect      bounds = writer.computeBounds(group, 0, 0);
+
+    float minX = 0.0f;
+    float minY = 0.0f;
+    float maxX = 0.0f;
+    float maxY = 0.0f;
+
+    if (!groups.empty()) {
+        Rect first = writer.computeBounds(groups.front(), 0, 0);
+        minX       = first.x();
+        minY       = first.y();
+        maxX       = first.x() + first.width();
+        maxY       = first.y() + first.height();
+
+        for (std::size_t i = 1; i < groups.size(); ++i) {
+            Rect b = writer.computeBounds(groups[i], 0, 0);
+            minX   = std::min(minX, b.x());
+            minY   = std::min(minY, b.y());
+            maxX   = std::max(maxX, b.x() + b.width());
+            maxY   = std::max(maxY, b.y() + b.height());
+        }
+    }
 
     float margin = 4.0f;
-    float viewX  = bounds.x() - margin;
-    float viewY  = bounds.y() - margin;
-    float viewW  = bounds.width() + 2 * margin;
-    float viewH  = bounds.height() + 2 * margin;
+    float viewX  = minX - margin;
+    float viewY  = minY - margin;
+    float viewW  = (maxX - minX) + 2.0f * margin;
+    float viewH  = (maxY - minY) + 2.0f * margin;
 
-    writer.output = fmt::format(
-        R"(<?xml version="1.0" encoding="UTF-8"?>)"
-        "\n"
-        R"(<svg xmlns="http://www.w3.org/2000/svg" )"
-        R"(xmlns:xlink="http://www.w3.org/1999/xlink" )"
-        R"(viewBox="{} {} {} {}" )"
-        R"(width="{}" height="{}">)"
-        "\n",
-        viewX,
-        viewY,
-        viewW,
-        viewH,
-        viewW,
-        viewH);
+    XmlNode svg("svg");
+    svg.set_attr("xmlns", "http://www.w3.org/2000/svg");
+    svg.set_attr("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    svg.set_attr("style", "background-color: white");
+    svg.set_attr(
+        "viewBox", hstd::fmt("{} {} {} {}", viewX, viewY, viewW, viewH));
+    svg.set_attr("width", hstd::fmt("{}", viewW));
+    svg.set_attr("height", hstd::fmt("{}", viewH));
 
-    writer.writeGroup(group, 0, 0);
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        hstd::Vec<int> path;
+        path.push_back(static_cast<int>(i));
+        writer.writeGroup(svg, groups[i], 0.0f, 0.0f, path, debug);
+    }
 
-    writer.output += "</svg>\n";
-    return hstd::Str{writer.output};
+    return svg;
 }
 
 } // namespace hstd::ext::visual
