@@ -222,6 +222,9 @@ struct VisGroup {
     hstd::Vec<VisGroup>   subgroups;
     json                  extra;
     hstd::Vec<hstd::Str>  comment;
+    /// \brief Max point of the visual group in its inner coordinate system
+    /// -- effectively a (width, height) for the group.
+    hstd::Opt<Point> max_point;
 
     template <typename T>
     hstd::Vec<T> getElements() const {
@@ -243,15 +246,16 @@ struct VisGroup {
         return result;
     }
 
-    Rect computeBounds(double ox = 0, double gx = 0) const;
-
-    Rect computeBounds(Point const& o) const {
-        return computeBounds(o.x(), o.y());
+    Rect computeBounds(double ox, double oy) const {
+        auto res = computeBoundsNoSelfOffset();
+        return Rect(res.x() + ox, res.y() + oy, res.width(), res.height());
     }
 
-    Rect computeBoundsNoSelfOffset() const {
-        return computeBounds(-offset.x(), -offset.y());
+    Rect computeBounds() const {
+        return computeBounds(offset.x(), offset.y());
     }
+
+    Rect computeBoundsNoSelfOffset() const;
 
     hstd::ColText treeRepr() const;
 

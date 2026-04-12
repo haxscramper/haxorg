@@ -356,6 +356,11 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
 }
 
 TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
+    auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+        return ::hstd::log::init_file_sink(
+            getDebugFile("hslog_trace.log"));
+    });
+
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
     for (int i = 0; i < 6; ++i) { vs.push_back(graph->addVertex()); }
@@ -381,14 +386,11 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg1_id));
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
-    sg1->setMargin({4, 4});
 
     layout::GroupID            sg2_id = group->newSubLayoutGraph();
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg2_id));
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
-    sg2->setMargin({4, 4});
-
 
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
         ->setFixedWH(1, 1)
@@ -501,9 +503,19 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     // re-checking the same element placement, but now via the visual
     // attribute API access
     for (layout::GroupID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
-        for (int i : hstd::as_vec(0, 1, 2)) {
+        auto const& group = run->getGroup(gid);
+        for (VertexID vert : group->getVertices()) {
             auto const& group_visual = run->getVisual(gid);
-            auto const& item_visual  = run->getVisual(vs.at(i));
+            auto const& item_visual  = run->getVisual(vert);
+            {
+                auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([&]() {
+                    return ::hstd::log::init_file_sink(getDebugFile(
+                        hstd::fmt("trace-{}-{}.log", gid, vert)));
+                });
+                group_visual.computeBoundsNoSelfOffset();
+                HSLOG_TRACE("Item visual group");
+                computeBounds(item_visual);
+            }
             EXPECT_OUTCOME_OK(
                 checkFullyCovers(
                     group_visual.computeBoundsNoSelfOffset(),
@@ -512,13 +524,17 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
                     R"(
 group: {}
 item:  {}
+irepr: {}
+arepr: {}
 group_visual:
 {}
 item_visual:
 {}
 )",
                     gid,
-                    i,
+                    vert,
+                    run->getVertex(vert)->getRepr(),
+                    run->getLayout(vert)->getRepr(),
                     group_visual.treeRepr().toString(),
                     visual::VisGroup{.subgroups = item_visual}
                         .treeRepr()

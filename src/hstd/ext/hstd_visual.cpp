@@ -1,3 +1,5 @@
+#include "hstd/ext/logger.hpp"
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "hstd_visual.hpp"
 #include <fmt/format.h>
 #include <hstd/stdlib/Xml.hpp>
@@ -149,6 +151,92 @@ struct ShapeWriteResult {
     Point   coord;
 };
 
+struct DebugConf {
+    std::string         color             = "#ff00ff";
+    int                 font_size         = 4;
+    float               marker_radius     = 2.5f;
+    float               label_offset_x    = 4.0f;
+    float               label_offset_y    = -4.0f;
+    std::string         font_family       = "monospace";
+    std::string         text_anchor       = "start";
+    std::string         dominant_baseline = "alphabetic";
+    std::string         marker_fill_attr  = ""; // empty means use `color`
+    std::string         marker_stroke     = "none";
+    std::string         node_class        = "debug-node";
+    json                extra             = json{};
+    std::optional<Rect> bbox              = std::nullopt;
+    float               bbox_stroke_width = 1.0f;
+    std::string         bbox_stroke       = ""; // empty means use `color`
+    std::string         bbox_fill         = "none";
+};
+
+XmlNode buildDebugMarker(
+    Point const&                coord,
+    hstd::Vec<hstd::Str> const& messages,
+    DebugConf const&            conf = DebugConf{}) {
+
+    std::string const& fill_color = conf.marker_fill_attr.empty()
+                                      ? conf.color
+                                      : conf.marker_fill_attr;
+
+    XmlNode g("g");
+    g.set_attr("class", conf.node_class);
+
+    XmlNode marker("circle");
+    marker.set_attr("cx", coord.x());
+    marker.set_attr("cy", coord.y());
+    marker.set_attr("r", conf.marker_radius);
+    marker.set_attr("fill", fill_color);
+    marker.set_attr("stroke", conf.marker_stroke);
+    g.push_back(std::move(marker));
+
+    float y_offset = conf.label_offset_y;
+    for (auto const& message : messages) {
+        XmlNode label("text");
+        label.set_attr(
+            "x", hstd::fmt("{}", coord.x() + conf.label_offset_x));
+        label.set_attr("y", hstd::fmt("{}", coord.y() + y_offset));
+        label.set_attr("font-family", conf.font_family);
+        label.set_attr("font-size", conf.font_size);
+        label.set_attr("fill", conf.color);
+        label.set_attr("text-anchor", conf.text_anchor);
+        label.set_attr("dominant-baseline", conf.dominant_baseline);
+        label.set_text(message);
+        g.push_back(std::move(label));
+        y_offset += conf.font_size;
+    }
+
+    if (conf.bbox.has_value()) {
+        auto const&        r      = conf.bbox.value();
+        std::string const& stroke = conf.bbox_stroke.empty()
+                                      ? conf.color
+                                      : conf.bbox_stroke;
+        XmlNode            rect("rect");
+        rect.set_attr("x", hstd::fmt("{}", r.x()));
+        rect.set_attr("y", hstd::fmt("{}", r.y()));
+        rect.set_attr("width", hstd::fmt("{}", r.width()));
+        rect.set_attr("height", hstd::fmt("{}", r.height()));
+        rect.set_attr("fill", conf.bbox_fill);
+        rect.set_attr("stroke", stroke);
+        rect.set_attr(
+            "stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
+        g.push_back(std::move(rect));
+
+        XmlNode line("line");
+        line.set_attr("x1", hstd::fmt("{}", r.x()));
+        line.set_attr("y1", hstd::fmt("{}", r.y()));
+        line.set_attr("x2", hstd::fmt("{}", coord.x()));
+        line.set_attr("y2", hstd::fmt("{}", coord.y()));
+        line.set_attr("stroke", stroke);
+        line.set_attr(
+            "stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
+        g.push_back(std::move(line));
+    }
+
+    return g;
+}
+
+
 struct SvgWriter {
     bool    debug;
     XmlNode writeShape(VisElement::RectShape const& r) {
@@ -252,14 +340,13 @@ struct SvgWriter {
             result.push_back(writeShape(dr));
             result.push_back(buildDebugMarker(
                 dr.geometry.min_corner(),
-                hstd::fmt(
+                {hstd::fmt(
                     "({:.2f},{:.2f}+{},{})",
                     dr.geometry.x(),
                     dr.geometry.y(),
                     dr.geometry.width(),
-                    dr.geometry.height()),
-                json{},
-                2));
+                    dr.geometry.height())},
+                DebugConf{.font_size = 2}));
 
             result.push_back(text);
             return result;
@@ -296,35 +383,6 @@ struct SvgWriter {
         return std::move(circle);
     }
 
-    XmlNode buildDebugMarker(
-        Point const&     coord,
-        hstd::Str const& message,
-        json const&      extra     = json{},
-        int              font_size = 4) {
-        XmlNode g("g");
-        g.set_attr("class", "debug-node");
-
-        XmlNode marker("circle");
-        marker.set_attr("cx", hstd::fmt("{}", coord.x()));
-        marker.set_attr("cy", hstd::fmt("{}", coord.y()));
-        marker.set_attr("r", "2.5");
-        marker.set_attr("fill", "#ff00ff");
-        marker.set_attr("stroke", "none");
-        g.push_back(std::move(marker));
-
-        XmlNode label("text");
-        label.set_attr("x", hstd::fmt("{}", coord.x() + 4.0f));
-        label.set_attr("y", hstd::fmt("{}", coord.y() - 4.0f));
-        label.set_attr("font-family", "monospace");
-        label.set_attr("font-size", font_size);
-        label.set_attr("fill", "#aa0066");
-        label.set_attr("text-anchor", "start");
-        label.set_attr("dominant-baseline", "alphabetic");
-        label.set_text(message);
-        g.push_back(std::move(label));
-
-        return g;
-    }
 
     XmlNode writeElement(
         VisElement const&     elem,
@@ -359,6 +417,18 @@ struct SvgWriter {
             g.push_back(writeElement(elem, path));
         }
 
+        auto const& self_bounds = group.computeBounds();
+        auto const&
+            self_bounds_no_offset = group.computeBoundsNoSelfOffset();
+
+        auto bbox_fmt = hstd::fmt(
+            "bbox={:.2f},{:.2f} bbox-no={:.2f},{:.2f}",
+            self_bounds.x(),
+            self_bounds.y(),
+            self_bounds_no_offset.x(),
+            self_bounds_no_offset.y());
+        g.push_back(XmlNode::comment(bbox_fmt));
+
         if (!is_empty(group.extra)) {
             g.push_back(XmlNode::comment(hstd::fmt("// {}", group.extra)));
         }
@@ -371,18 +441,30 @@ struct SvgWriter {
             g.push_back(writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}));
         }
 
-        if (debug) {
+        if (debug && group.max_point) {
+            auto const& mp = group.max_point.value();
             g.push_back(buildDebugMarker(
-                {0, 0},
-                hstd::fmt(
-                    "{} @ ({:.2f},{:.2f}){}",
-                    pathToString(path),
-                    group.offset.x(),
-                    group.offset.y(),
-                    is_empty(group.extra)
-                        ? ""
-                        : hstd::fmt(" extra={}", group.extra.dump())),
-                group.extra));
+                {mp.x() / 2.0, mp.y() / 2.0},
+                {
+                    hstd::fmt(
+                        "({:.2f},{:.2f} + {:.2f},{:.2f}) {}",
+                        group.offset.x(),
+                        group.offset.y(),
+                        mp.x(),
+                        mp.y(),
+                        is_empty(group.extra)
+                            ? ""
+                            : hstd::fmt(" extra={}", group.extra.dump())),
+                    hstd::fmt("path={}", hstd::join("/", path)),
+                    bbox_fmt,
+                },
+                DebugConf{
+                    .extra             = group.extra,
+                    .font_size         = 2,
+                    .color             = "red",
+                    .bbox              = Rect(0, 0, mp.x(), mp.y()),
+                    .bbox_stroke_width = 0.5,
+                }));
         }
 
         return g;
@@ -391,79 +473,92 @@ struct SvgWriter {
 
 } // namespace
 
-Rect VisGroup::computeBounds(double ox, double oy) const {
-    double gx   = ox + offset.x();
-    double gy   = oy + offset.y();
+Rect VisGroup::computeBoundsNoSelfOffset() const {
+    // HSLOG_DEPTH_SCOPE_ANON();
+    // HSLOG_TRACE("Compute bounding box w/o offset {}", offset);
     double minX = std::numeric_limits<double>::max();
     double minY = std::numeric_limits<double>::max();
     double maxX = std::numeric_limits<double>::lowest();
     double maxY = std::numeric_limits<double>::lowest();
+
+    if (max_point) {
+        maxX = max_point->x();
+        maxY = max_point->y();
+    }
 
     auto expand = [&](double x, double y) {
         minX = std::min(minX, x);
         minY = std::min(minY, y);
         maxX = std::max(maxX, x);
         maxY = std::max(maxY, y);
+        // HSLOG_DEBUG(
+        //     "({:.3f}, {:.3f}) -> [({:.3f}, {:.3f}), ({:.3f}, {:.3f})]",
+        //     x,
+        //     y,
+        //     minX,
+        //     minY,
+        //     maxX,
+        //     maxY);
     };
 
-    auto expandRect = [&](Rect const& r, double ex, double ey) {
-        expand(r.x() + ex, r.y() + ey);
-        expand(r.x() + r.width() + ex, r.y() + r.height() + ey);
+    auto expandRect = [&](Rect const& r) {
+        expand(r.x(), r.y());
+        expand(r.x() + r.width(), r.y() + r.height());
     };
 
     for (auto const& elem : elements) {
+        // HSLOG_DEBUG_FMT_LINE(elem);
+        // HSLOG_DEPTH_SCOPE_ANON();
         std::visit(
             hstd::overloaded{
                 [&](VisElement::RectShape const& s) {
-                    expandRect(s.geometry, gx, gy);
+                    expandRect(s.geometry);
                 },
                 [&](VisElement::EllipseShape const& s) {
-                    expandRect(s.geometry, gx, gy);
+                    expandRect(s.geometry);
                 },
                 [&](VisElement::LineShape const& s) {
-                    expand(s.p1.x() + gx, s.p1.y() + gy);
-                    expand(s.p2.x() + gx, s.p2.y() + gy);
+                    expand(s.p1.x(), s.p1.y());
+                    expand(s.p2.x(), s.p2.y());
                 },
                 [&](VisElement::PathShape const& s) {
                     for (auto const& cmd : s.path.commands) {
-                        expand(cmd.p1.x() + gx, cmd.p1.y() + gy);
+                        expand(cmd.p1.x(), cmd.p1.y());
                         if (cmd.type == Path::CommandType::QuadTo
                             || cmd.type == Path::CommandType::CubicTo) {
-                            expand(cmd.p2.x() + gx, cmd.p2.y() + gy);
+                            expand(cmd.p2.x(), cmd.p2.y());
                         }
                         if (cmd.type == Path::CommandType::CubicTo) {
-                            expand(cmd.p3.x() + gx, cmd.p3.y() + gy);
+                            expand(cmd.p3.x(), cmd.p3.y());
                         }
                     }
                 },
                 [&](VisElement::PolygonShape const& s) {
                     for (auto const& pt : s.points) {
-                        expand(pt.x() + gx, pt.y() + gy);
+                        expand(pt.x(), pt.y());
                     }
                 },
                 [&](VisElement::TextShape const& s) {
-                    expand(s.anchor.x() + gx, s.anchor.y() + gy);
-                    if (s.boundingBox) {
-                        expandRect(*s.boundingBox, gx, gy);
-                    }
+                    expand(s.anchor.x(), s.anchor.y());
+                    if (s.boundingBox) { expandRect(*s.boundingBox); }
                 },
                 [&](VisElement::PixmapShape const& s) {
-                    expandRect(s.geometry, gx, gy);
+                    expandRect(s.geometry);
                 },
                 [&](VisElement::PointShape const& s) {
                     expand(
-                        s.position.x() - s.radius + gx,
-                        s.position.y() - s.radius + gy);
+                        s.position.x() - s.radius,
+                        s.position.y() - s.radius);
                     expand(
-                        s.position.x() + s.radius + gx,
-                        s.position.y() + s.radius + gy);
+                        s.position.x() + s.radius,
+                        s.position.y() + s.radius);
                 },
             },
             elem.data);
     }
 
     for (auto const& sub : subgroups) {
-        Rect subBounds = sub.computeBounds(gx, gy);
+        Rect subBounds = sub.computeBounds();
         expand(subBounds.x(), subBounds.y());
         expand(
             subBounds.x() + subBounds.width(),
@@ -471,7 +566,9 @@ Rect VisGroup::computeBounds(double ox, double oy) const {
     }
 
     if (minX > maxX) { return Rect(0, 0, 0, 0); }
-    return Rect(minX, minY, maxX - minX, maxY - minY);
+    auto result = Rect(minX, minY, maxX - minX, maxY - minY);
+    // HSLOG_DEBUG("RES {}", result);
+    return result;
 }
 
 ColText VisGroup::treeRepr() const {
@@ -517,14 +614,14 @@ Rect computeBounds(hstd::Vec<VisGroup> const& groups) {
     double maxY = 0.0f;
 
     if (!groups.empty()) {
-        Rect first = groups.front().computeBounds(0, 0);
+        Rect first = groups.front().computeBounds();
         minX       = first.x();
         minY       = first.y();
         maxX       = first.x() + first.width();
         maxY       = first.y() + first.height();
 
         for (int i = 1; i < groups.size(); ++i) {
-            Rect b = groups[i].computeBounds(0, 0);
+            Rect b = groups[i].computeBounds();
             minX   = std::min<double>(minX, b.x());
             minY   = std::min<double>(minY, b.y());
             maxX   = std::max<double>(maxX, b.x() + b.width());

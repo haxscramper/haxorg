@@ -186,6 +186,8 @@ struct IAttribute {
   public:
     virtual ~IAttribute() = default;
 
+    virtual std::string getRepr() const { return ""; }
+
     template <typename T>
     bool isInstance() const {
         return dynamic_cast<T const*>(this) != nullptr;

@@ -293,49 +293,55 @@ second       = {}
 }
 
 GeometryCheckResult checkFullyCoversBounds(
-    Rect const& first,
-    Rect const& second) {
-    double firstLeft   = bg::get<bg::min_corner, 0>(first);
-    double firstTop    = bg::get<bg::min_corner, 1>(first);
-    double firstRight  = bg::get<bg::max_corner, 0>(first);
-    double firstBottom = bg::get<bg::max_corner, 1>(first);
+    Rect const& main,
+    Rect const& nested) {
+    double mainLeft   = bg::get<bg::min_corner, 0>(main);
+    double mainTop    = bg::get<bg::min_corner, 1>(main);
+    double mainRight  = bg::get<bg::max_corner, 0>(main);
+    double mainBottom = bg::get<bg::max_corner, 1>(main);
 
-    double secondLeft   = bg::get<bg::min_corner, 0>(second);
-    double secondTop    = bg::get<bg::min_corner, 1>(second);
-    double secondRight  = bg::get<bg::max_corner, 0>(second);
-    double secondBottom = bg::get<bg::max_corner, 1>(second);
+    double nestedLeft   = bg::get<bg::min_corner, 0>(nested);
+    double nestedTop    = bg::get<bg::min_corner, 1>(nested);
+    double nestedRight  = bg::get<bg::max_corner, 0>(nested);
+    double nestedBottom = bg::get<bg::max_corner, 1>(nested);
 
-    bool covers = firstLeft <= secondLeft && firstTop <= secondTop
-               && secondRight <= firstRight && secondBottom <= firstBottom;
+    bool covers =                     //
+        mainLeft <= nestedLeft        //
+        && mainTop <= nestedTop       //
+        && nestedRight <= mainRight   //
+        && nestedBottom <= mainBottom //
+        ;
 
     if (covers) { return boost::outcome_v2::success(); }
 
+    // TODO: Generate a message showing the percentage of the overlap
+    // between the two shapes, in range 0-100%
     return boost::outcome_v2::failure(
         GeometryError::init(
             hstd::fmt(
                 R"(
 check        = fully-covers-bounds
-firstLeft    = {}
-firstTop     = {}
-firstRight   = {}
-firstBottom  = {}
-secondLeft   = {}
-secondTop    = {}
-secondRight  = {}
-secondBottom = {}
-first        = {}
-second       = {}
+mainLeft     = {}
+mainTop      = {}
+mainRight    = {}
+mainBottom   = {}
+nestedLeft   = {}
+nestedTop    = {}
+nestedRight  = {}
+nestedBottom = {}
+main         = {}
+nested       = {}
 )",
-                firstLeft,
-                firstTop,
-                firstRight,
-                firstBottom,
-                secondLeft,
-                secondTop,
-                secondRight,
-                secondBottom,
-                first,
-                second)));
+                mainLeft,
+                mainTop,
+                mainRight,
+                mainBottom,
+                nestedLeft,
+                nestedTop,
+                nestedRight,
+                nestedBottom,
+                main,
+                nested)));
 }
 
 } // namespace detail

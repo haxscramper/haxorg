@@ -452,6 +452,7 @@ void gv::GraphGroup::render(
         "can only be used on the graphviz graph");
     auto algo    = getAlgorithm<gv::Layout>();
     algo->layout = layout;
+    hstd::logic_assertion_check_not_nil(algo);
     algo->renderToFile(path, *this, format);
 }
 
@@ -530,19 +531,23 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 }
 
 void gv::Layout::createLayout(GraphGroup const& graph) {
+    hstd::logic_assertion_check_not_nil(this);
     auto g    = const_cast<Agraph_t*>(graph.get());
-    auto algo = layoutTypeToString(layout).c_str();
+    auto algo = strdup(layoutTypeToString(layout).c_str());
+    LOGIC_ASSERTION_CHECK(algo != nullptr, "");
+    LOGIC_ASSERTION_CHECK(std::string{algo} != "", "");
     // _dbg("agwrite before layout");
-    agwrite(g, stderr);
+    // agwrite(g, stderr);
 
-    char* margin = agget(g, (char*)"margin");
-    fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
+    // char* margin = agget(g, (char*)"margin");
+    // fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
 
-    char* pad = agget(g, (char*)"pad");
-    fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
+    // char* pad = agget(g, (char*)"pad");
+    // fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
 
-    char* bb = agget(g, (char*)"bb");
-    fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb : "(null)");
+    // char* bb = agget(g, (char*)"bb");
+    // fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb :
+    // "(null)");
 
     int res = gvLayout(gvc.get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
@@ -553,9 +558,9 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
         throw std::logic_error("Could not execute render for the layout");
     }
     // _dbg("agwrite after layout");
-    bb = agget(g, (char*)"bb");
-    fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb : "(null)");
-    agwrite(g, stderr);
+    // bb = agget(g, (char*)"bb");
+    // fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb :
+    // "(null)"); agwrite(g, stderr);
 }
 
 void gv::Layout::freeLayout(GraphGroup graph) {
@@ -600,6 +605,7 @@ void gv::Layout::renderToFile(
     RenderFormat      format) {
     LOGIC_ASSERTION_CHECK(graph.get() != nullptr, "");
     LOGIC_ASSERTION_CHECK(gvc != nullptr, "");
+    hstd::logic_assertion_check_not_nil(this);
     if (format == RenderFormat::DOT) {
         writeFile(path, graph, format);
 
@@ -621,6 +627,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
     char const* id_attr      = "_gv_layout_id";
     char const* id_sub_group = "_gv_group";
+
     auto aux = [&](this auto&&                       self,
                    layout::GroupID const&            id,
                    hstd::Opt<layout::GroupID> const& parent) -> void {
@@ -1042,6 +1049,7 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
     result.offset = Point{nodeRect.x(), nodeRect.y()};
     result.extra  = json::object();
     result.extra["graphviz"]["vertex_name"] = node.name();
+    result.max_point = Point{nodeRect.width(), nodeRect.height()};
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1262,6 +1270,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
 
     result.extra                           = json::object();
     result.extra["graphviz"]["group_name"] = group->name();
+    result.max_point = getGraphBBox(*group).max_corner();
 
     // Boundary rectangle
     visual::VisElement::RectShape rect;

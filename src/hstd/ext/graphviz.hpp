@@ -388,6 +388,10 @@ class NodeAttribute
 
     Str name() const { return agnameof(node); }
 
+    std::string getRepr() const override {
+        return getPropertiesAsString();
+    }
+
     std::string getPropertiesAsString() const;
 
     _eattr(
@@ -542,6 +546,8 @@ class NodeAttribute
     _attr_aligned(NodeAttribute, XLabel, xlabel, Str);
     /// \brief Position of the node's external label
     _attr(NodeAttribute, XLabelPosition, xlabelpos, Point);
+    /// \brief Margin around the drawing
+    _attr(NodeAttribute, Margin, margin, Point);
 
     Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
     Agnodeinfo_t const* info() const {
@@ -762,6 +768,8 @@ class GraphGroup
     _attr(GraphGroup, Layers, layers, Str);
     /// \brief Margin around the drawing
     _attr(GraphGroup, Margin, margin, Point);
+    /// \brief Padding inside of the cluster
+    _attr(GraphGroup, Pad, pad, Point);
     /// \brief Minimum separation between nodes
     _attr(GraphGroup, NodeSeparation, nodesep, double);
     /// \brief Order in which nodes and edges are drawn
@@ -893,6 +901,10 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
     Rect getBBox() const override;
 
+    std::string getRepr() const override {
+        return node.getPropertiesAsString();
+    }
+
     hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
         const override {
         return {};
@@ -913,6 +925,10 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
     Path getPath() const override;
 
+    std::string getRepr() const override {
+        return edge.getPropertiesAsString();
+    }
+
 
     hstd::Vec<visual::VisGroup> getVisual() const override;
 };
@@ -928,6 +944,10 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         : graph{graph}, group{group} {}
 
     virtual Rect getBBox() const override;
+
+    std::string getRepr() const override {
+        return group->getPropertiesAsString();
+    }
 
 
     hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
