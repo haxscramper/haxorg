@@ -1,4 +1,3 @@
-// hstd_geometry_test.cpp
 #include <hstd/ext/hstd_geometry_test.hpp>
 #include <boost/geometry/geometries/segment.hpp>
 #include <algorithm>
@@ -261,43 +260,69 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 }
 
 GeometryCheckResult checkLeftOfBounds(
-    Rect const& first,
-    Rect const& second) {
-    double firstRight = bg::get<bg::max_corner, 0>(first);
-    double secondLeft = bg::get<bg::min_corner, 0>(second);
+    Rect const& stationary,
+    Rect const& relative) {
+    double stationaryLeft = bg::get<bg::min_corner, 0>(stationary);
+    double relativeRight  = bg::get<bg::max_corner, 0>(relative);
 
-    if (firstRight <= secondLeft) { return boost::outcome_v2::success(); }
+    if (relativeRight <= stationaryLeft) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(left-of-bounds)", firstRight, secondLeft, first, second);
+        R"(left-of-bounds)",
+        stationaryLeft,
+        relativeRight,
+        stationary,
+        relative);
 }
 
 GeometryCheckResult checkRightOfBounds(
-    Rect const& first,
-    Rect const& second) {
-    double firstLeft   = bg::get<bg::min_corner, 0>(first);
-    double secondRight = bg::get<bg::max_corner, 0>(second);
+    Rect const& stationary,
+    Rect const& relative) {
+    double stationaryRight = bg::get<bg::max_corner, 0>(stationary);
+    double relativeLeft    = bg::get<bg::min_corner, 0>(relative);
 
-    if (secondRight <= firstLeft) { return boost::outcome_v2::success(); }
+    if (stationaryRight <= relativeLeft) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(right-of-bounds)", firstLeft, secondRight, first, second);
+        R"(right-of-bounds)",
+        stationaryRight,
+        relativeLeft,
+        stationary,
+        relative);
 }
 
 GeometryCheckResult checkAboveBounds(
-    Rect const& first,
-    Rect const& second) {
-    double firstBottom = bg::get<bg::max_corner, 1>(first);
-    double secondTop   = bg::get<bg::min_corner, 1>(second);
+    Rect const& stationary,
+    Rect const& relative) {
+    double stationaryTop = bg::get<bg::min_corner, 1>(stationary);
+    double relativeBot   = bg::get<bg::max_corner, 1>(relative);
 
-    if (firstBottom <= secondTop) { return boost::outcome_v2::success(); }
+    if (relativeBot <= stationaryTop) {
+        return boost::outcome_v2::success();
+    }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(above-bounds)", firstBottom, secondTop, first, second);
+    return boost ::outcome_v2 ::failure(
+        GeometryError ::init(
+            ::hstd ::ext ::geometry ::detail ::fail_check_format(
+                R"(above-bounds)",
+                {
+                    "stationaryTop",
+                    "relativeBot",
+                    "stationary",
+                    "relative",
+                },
+                stationaryTop,
+                relativeBot,
+                stationary,
+                relative)));
 }
 
 GeometryCheckResult checkPartiallyAboveBounds(
-    Rect const& fixed,
+    Rect const& stationary,
     Rect const& relative,
     double      maxUnderPercent) {
     if (maxUnderPercent < 0.0 || 100.0 < maxUnderPercent) {
@@ -306,7 +331,7 @@ GeometryCheckResult checkPartiallyAboveBounds(
             maxUnderPercent);
     }
 
-    double lineY       = bg::get<bg::min_corner, 1>(fixed);
+    double lineY       = bg::get<bg::min_corner, 1>(stationary);
     double relativeTop = bg::get<bg::min_corner, 1>(relative);
     double relativeBot = bg::get<bg::max_corner, 1>(relative);
     double relHeight   = std::max(0.0, relativeBot - relativeTop);
@@ -337,20 +362,26 @@ GeometryCheckResult checkPartiallyAboveBounds(
         underLen,
         underPercent,
         maxUnderPercent,
-        fixed,
+        stationary,
         relative);
 }
 
 GeometryCheckResult checkBelowBounds(
-    Rect const& first,
-    Rect const& second) {
-    double firstTop     = bg::get<bg::min_corner, 1>(first);
-    double secondBottom = bg::get<bg::max_corner, 1>(second);
+    Rect const& stationary,
+    Rect const& relative) {
+    double stationaryBottom = bg::get<bg::max_corner, 1>(stationary);
+    double relativeTop      = bg::get<bg::min_corner, 1>(relative);
 
-    if (secondBottom <= firstTop) { return boost::outcome_v2::success(); }
+    if (stationaryBottom <= relativeTop) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(below-bounds)", firstTop, secondBottom, first, second);
+        R"(below-bounds)",
+        stationaryBottom,
+        relativeTop,
+        stationary,
+        relative);
 }
 
 GeometryCheckResult checkFullyCoversBounds(

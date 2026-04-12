@@ -229,7 +229,7 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     auto visual = run->getVisual();
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, false).to_string());
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
 
 TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
@@ -352,7 +352,7 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     auto visual = run->getVisual();
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, false).to_string());
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
 
 TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
@@ -467,7 +467,7 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, false).to_string());
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 
     hstd::writeFile(
         getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
@@ -478,7 +478,8 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     // VSG1 is a left layout group
     // VSG2 is a right one
-    EXPECT_OUTCOME_OK(checkLeftOf(vsg1.offset, vsg2.offset));
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(/*stationary=*/vsg2.offset, /*relative=*/vsg1.offset));
 
     EXPECT_OUTCOME_OK(
         checkFullyCovers(vsg.computeBounds(), vsg1.computeBounds()));
@@ -488,14 +489,14 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     using VE = hstd::ext::visual::VisElement;
 
-    EXPECT_OUTCOME_OK(
-        checkLeftOf(run->getVisual(vs.at(0)), run->getVisual(vs.at(2))));
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
+                                  /*relative=*/run->getVisual(vs.at(0))));
 
-    EXPECT_OUTCOME_OK(
-        checkLeftOf(run->getVisual(vs.at(1)), run->getVisual(vs.at(2))));
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
+                                  /*relative=*/run->getVisual(vs.at(1))));
 
-    EXPECT_OUTCOME_OK(
-        checkAbove(run->getVisual(vs.at(1)), run->getVisual(vs.at(0))));
+    EXPECT_OUTCOME_OK(checkAbove(/*stationary=*/run->getVisual(vs.at(0)),
+                                 /*relative=*/run->getVisual(vs.at(1))));
 
     // group 0
     for (auto const& [group_idx, group] :

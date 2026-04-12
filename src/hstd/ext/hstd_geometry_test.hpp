@@ -56,7 +56,7 @@ void fail_check_append(
 
 inline std::string fail_check_format(char const* error_name) {
     return hstd::fmt(
-        "{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
+        "\n{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
 }
 
 template <typename... Args>
@@ -112,6 +112,8 @@ std::string fail_check_format(
     ...)                                                                  \
     N
 
+/// \brief Builds a formatted GeometryError failure result from an error
+/// label and optional key/value payload arguments.
 #define HSDT_GEOMETRY_FAIL_CHECK(...)                                     \
     __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                      \
         __VA_ARGS__,                                                      \
@@ -135,87 +137,123 @@ std::string fail_check_format(
 
 } // namespace detail
 
+/// \brief Checks whether two points intersect by exact coordinate
+/// equality.
 GeometryCheckResult checkIntersects(
     Point const& first,
     Point const& second);
 
+/// \brief Checks whether a point lies inside or on the boundary of a
+/// rectangle.
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect);
 
+/// \brief Checks whether a point lies inside or on the boundary of a
+/// rectangle.
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point);
 
+/// \brief Checks whether a point intersects any drawable segment of a
+/// path.
 GeometryCheckResult checkIntersects(Point const& point, Path const& path);
 
+/// \brief Checks whether a point intersects any drawable segment of a
+/// path.
 GeometryCheckResult checkIntersects(Path const& path, Point const& point);
 
+/// \brief Checks whether a rectangle intersects any drawable segment of a
+/// path.
 GeometryCheckResult checkIntersects(Rect const& rect, Path const& path);
 
+/// \brief Checks whether a rectangle intersects any drawable segment of a
+/// path.
 GeometryCheckResult checkIntersects(Path const& path, Rect const& rect);
 
+/// \brief Checks whether any segments of two paths intersect.
 GeometryCheckResult checkIntersects(Path const& first, Path const& second);
 
+/// \brief Checks whether relative is fully on the left side of stationary.
 template <typename L, typename R>
-GeometryCheckResult checkLeftOf(L const& first, R const& second);
+GeometryCheckResult checkLeftOf(L const& stationary, R const& relative);
 
+/// \brief Checks whether relative is fully on the right side of
+/// stationary.
 template <typename L, typename R>
-GeometryCheckResult checkRightOf(L const& first, R const& second);
+GeometryCheckResult checkRightOf(L const& stationary, R const& relative);
 
+/// \brief Checks whether relative is fully above stationary.
 template <typename L, typename R>
-GeometryCheckResult checkAbove(L const& first, R const& second);
+GeometryCheckResult checkAbove(L const& stationary, R const& relative);
 
+/// \brief Checks whether relative is above stationary allowing limited
+/// underflow. The allowed portion under stationary is controlled by
+/// maxUnderPercent.
 template <typename L, typename R>
 GeometryCheckResult checkPartiallyAbove(
-    L const& first,
-    R const& second,
+    L const& stationary,
+    R const& relative,
     double   maxUnderPercent);
 
+/// \brief Checks whether relative is fully below stationary.
 template <typename L, typename R>
-GeometryCheckResult checkBelow(L const& first, R const& second);
+GeometryCheckResult checkBelow(L const& stationary, R const& relative);
 
+/// \brief Checks whether the first shape fully covers the second shape
+/// bounds.
 template <typename L, typename R>
 GeometryCheckResult checkFullyCovers(L const& first, R const& second);
 
+/// \brief Checks whether two shapes are horizontally center-aligned.
 template <typename L, typename R>
 GeometryCheckResult checkAlignedHorizontally(
     L const& first,
     R const& second,
     double   tolerance = 0.0);
 
+/// \brief Checks whether two shapes are vertically center-aligned.
 template <typename L, typename R>
 GeometryCheckResult checkAlignedVertically(
     L const& first,
     R const& second,
     double   tolerance = 0.0);
 
+/// \brief Checks whether the minimal distance between two shapes is large
+/// enough.
 template <typename L, typename R>
 GeometryCheckResult checkMinDistance(
     L const& first,
     R const& second,
     double   minDistance);
 
+/// \brief Checks whether the minimal distance between two shapes stays
+/// below a limit.
 template <typename L, typename R>
 GeometryCheckResult checkMaxDistance(
     L const& first,
     R const& second,
     double   maxDistance);
 
+/// \brief Checks whether two shapes have matching width and height.
 template <typename L, typename R>
 GeometryCheckResult checkSameSize(
     L const& first,
     R const& second,
     double   tolerance = 0.0);
 
+/// \brief Checks whether two shapes have matching widths.
 template <typename L, typename R>
 GeometryCheckResult checkSameWidth(
     L const& first,
     R const& second,
     double   tolerance = 0.0);
 
+/// \brief Checks whether two shapes have matching heights.
 template <typename L, typename R>
 GeometryCheckResult checkSameHeight(
     L const& first,
     R const& second,
     double   tolerance = 0.0);
 
+/// \brief Checks whether a sequence of shapes is evenly spaced along one
+/// axis.
 template <typename T>
 GeometryCheckResult checkEquidistant(
     hstd::Vec<T> const& values,
@@ -235,21 +273,21 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     hstd::Vec<visual::VisGroup> const& value);
 
 GeometryCheckResult checkLeftOfBounds(
-    Rect const& first,
-    Rect const& second);
+    Rect const& stationary,
+    Rect const& relative);
 GeometryCheckResult checkRightOfBounds(
-    Rect const& first,
-    Rect const& second);
+    Rect const& stationary,
+    Rect const& relative);
 GeometryCheckResult checkAboveBounds(
-    Rect const& first,
-    Rect const& second);
+    Rect const& stationary,
+    Rect const& relative);
 GeometryCheckResult checkPartiallyAboveBounds(
-    Rect const& fixed,
+    Rect const& stationary,
     Rect const& relative,
     double      maxUnderPercent);
 GeometryCheckResult checkBelowBounds(
-    Rect const& first,
-    Rect const& second);
+    Rect const& stationary,
+    Rect const& relative);
 GeometryCheckResult checkFullyCoversBounds(
     Rect const& first,
     Rect const& second);
@@ -311,11 +349,7 @@ GeometryCheckResult runBinaryBoundsCheck(
     auto r = std::forward<Fn>(fn)(fb.value(), sb.value());
     if (!r) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            "general-error",
-            checkName,
-            first,
-            second,
-            r.error().message());
+            "general-error", checkName, r.error().message());
     }
 
     return boost::outcome_v2::success();
@@ -324,38 +358,41 @@ GeometryCheckResult runBinaryBoundsCheck(
 } // namespace detail
 
 template <typename L, typename R>
-GeometryCheckResult checkLeftOf(L const& first, R const& second) {
+GeometryCheckResult checkLeftOf(L const& stationary, R const& relative) {
     return detail::runBinaryBoundsCheck(
-        "left-of", first, second, [](Rect const& a, Rect const& b) {
+        "left-of", stationary, relative, [](Rect const& a, Rect const& b) {
             return detail::checkLeftOfBounds(a, b);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkRightOf(L const& first, R const& second) {
+GeometryCheckResult checkRightOf(L const& stationary, R const& relative) {
     return detail::runBinaryBoundsCheck(
-        "right-of", first, second, [](Rect const& a, Rect const& b) {
+        "right-of",
+        stationary,
+        relative,
+        [](Rect const& a, Rect const& b) {
             return detail::checkRightOfBounds(a, b);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkAbove(L const& first, R const& second) {
+GeometryCheckResult checkAbove(L const& stationary, R const& relative) {
     return detail::runBinaryBoundsCheck(
-        "above", first, second, [](Rect const& a, Rect const& b) {
+        "above", stationary, relative, [](Rect const& a, Rect const& b) {
             return detail::checkAboveBounds(a, b);
         });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkPartiallyAbove(
-    L const& first,
-    R const& second,
+    L const& stationary,
+    R const& relative,
     double   maxUnderPercent) {
     return detail::runBinaryBoundsCheck(
         "partially-above",
-        first,
-        second,
+        stationary,
+        relative,
         [maxUnderPercent](Rect const& a, Rect const& b) {
             return detail::checkPartiallyAboveBounds(
                 a, b, maxUnderPercent);
@@ -363,9 +400,9 @@ GeometryCheckResult checkPartiallyAbove(
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkBelow(L const& first, R const& second) {
+GeometryCheckResult checkBelow(L const& stationary, R const& relative) {
     return detail::runBinaryBoundsCheck(
-        "below", first, second, [](Rect const& a, Rect const& b) {
+        "below", stationary, relative, [](Rect const& a, Rect const& b) {
             return detail::checkBelowBounds(a, b);
         });
 }
