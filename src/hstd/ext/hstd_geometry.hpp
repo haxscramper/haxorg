@@ -16,7 +16,83 @@
 namespace hstd::ext::geometry {
 namespace bg = boost::geometry;
 
-using Point = bg::model::d2::point_xy<double>;
+struct Point : public bg::model::d2::point_xy<double> {
+    using bg::model::d2::point_xy<double>::point_xy;
+
+    Point& operator+=(Point const& other) {
+        this->x(this->x() + other.x());
+        this->y(this->y() + other.y());
+        return *this;
+    }
+
+    Point& operator-=(Point const& other) {
+        this->x(this->x() - other.x());
+        this->y(this->y() - other.y());
+        return *this;
+    }
+
+    Point& operator*=(double scalar) {
+        this->x(this->x() * scalar);
+        this->y(this->y() * scalar);
+        return *this;
+    }
+
+    Point& operator/=(double scalar) {
+        this->x(this->x() / scalar);
+        this->y(this->y() / scalar);
+        return *this;
+    }
+
+    Point operator-() const { return Point(-this->x(), -this->y()); }
+
+    double dot(Point const& other) const {
+        return this->x() * other.x() + this->y() * other.y();
+    }
+
+    double cross(Point const& other) const {
+        return this->x() * other.y() - this->y() * other.x();
+    }
+
+    double squared_length() const {
+        return this->x() * this->x() + this->y() * this->y();
+    }
+
+    double length() const { return std::sqrt(squared_length()); }
+
+    friend Point operator+(Point lhs, Point const& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend Point operator-(Point lhs, Point const& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
+
+    friend Point operator*(Point lhs, double scalar) {
+        lhs *= scalar;
+        return lhs;
+    }
+
+    friend Point operator*(double scalar, Point rhs) {
+        rhs *= scalar;
+        return rhs;
+    }
+
+    friend Point operator/(Point lhs, double scalar) {
+        lhs /= scalar;
+        return lhs;
+    }
+
+    friend bool operator==(Point const& a, Point const& b) {
+        return a.x() == b.x() && a.y() == b.y();
+    }
+
+    friend bool operator!=(Point const& a, Point const& b) {
+        return !(a == b);
+    }
+};
+
 
 struct Rect;
 } // namespace hstd::ext::geometry
@@ -24,12 +100,15 @@ struct Rect;
 namespace boost::geometry::traits {
 
 template <>
-struct tag<hstd::ext::geometry::Rect>
-    : tag<model::box<hstd::ext::geometry::Point>> {};
+struct tag<hstd::ext::geometry::Rect> {
+    using type = box_tag;
+};
 
 template <>
-struct point_type<hstd::ext::geometry::Rect>
-    : point_type<model::box<hstd::ext::geometry::Point>> {};
+struct point_type<hstd::ext::geometry::Rect> {
+    using type = hstd::ext::geometry::Point;
+};
+
 
 template <std::size_t Corner, std::size_t Dimension>
 struct indexed_access<hstd::ext::geometry::Rect, Corner, Dimension>
@@ -38,6 +117,172 @@ struct indexed_access<hstd::ext::geometry::Rect, Corner, Dimension>
           Corner,
           Dimension> {};
 
+template <>
+struct tag<hstd::ext::geometry::Point> {
+    using type = point_tag;
+};
+
+template <>
+struct coordinate_type<hstd::ext::geometry::Point> {
+    using type = double;
+};
+
+template <>
+struct coordinate_system<hstd::ext::geometry::Point> {
+    using type = boost::geometry::cs::cartesian;
+};
+
+template <>
+struct dimension<hstd::ext::geometry::Point> : boost::mpl::int_<2> {};
+
+template <>
+struct access<hstd::ext::geometry::Point, 0> {
+    static double get(hstd::ext::geometry::Point const& p) {
+        return p.x();
+    }
+    static void set(hstd::ext::geometry::Point& p, double const& value) {
+        p.x(value);
+    }
+};
+
+template <>
+struct access<hstd::ext::geometry::Point, 1> {
+    static double get(hstd::ext::geometry::Point const& p) {
+        return p.y();
+    }
+    static void set(hstd::ext::geometry::Point& p, double const& value) {
+        p.y(value);
+    }
+};
+
+} // namespace boost::geometry::traits
+
+namespace hstd::ext::geometry {
+
+struct Polygon : public bg::model::polygon<Point> {
+    using base_t = bg::model::polygon<Point>;
+    using base_t::base_t;
+
+    auto begin() const { return base_t::outer().begin(); }
+    auto end() const { return base_t::outer().end(); }
+    auto begin() { return base_t::outer().begin(); }
+    auto end() { return base_t::outer().end(); }
+
+    void push_back(Point const& p) { bg::append(*this, p); }
+
+    Polygon& operator*=(double factor) {
+        bg::for_each_point(*this, [factor](Point& p) {
+            bg::set<0>(p, bg::get<0>(p) * factor);
+            bg::set<1>(p, bg::get<1>(p) * factor);
+        });
+        return *this;
+    }
+
+    Polygon& operator/=(double factor) {
+        return (*this *= (1.0 / factor));
+    }
+
+    Polygon& operator+=(Point const& delta) {
+        const double dx = bg::get<0>(delta);
+        const double dy = bg::get<1>(delta);
+
+        bg::for_each_point(*this, [dx, dy](Point& p) {
+            bg::set<0>(p, bg::get<0>(p) + dx);
+            bg::set<1>(p, bg::get<1>(p) + dy);
+        });
+        return *this;
+    }
+
+    Polygon& operator-=(Point const& delta) {
+        const double dx = bg::get<0>(delta);
+        const double dy = bg::get<1>(delta);
+
+        bg::for_each_point(*this, [dx, dy](Point& p) {
+            bg::set<0>(p, bg::get<0>(p) - dx);
+            bg::set<1>(p, bg::get<1>(p) - dy);
+        });
+        return *this;
+    }
+
+    Polygon operator*(double factor) const {
+        Polygon copy = *this;
+        copy *= factor;
+        return copy;
+    }
+
+    Polygon operator/(double factor) const {
+        Polygon copy = *this;
+        copy /= factor;
+        return copy;
+    }
+
+    Polygon operator+(Point const& delta) const {
+        Polygon copy = *this;
+        copy += delta;
+        return copy;
+    }
+
+    Polygon operator-(Point const& delta) const {
+        Polygon copy = *this;
+        copy -= delta;
+        return copy;
+    }
+};
+
+
+} // namespace hstd::ext::geometry
+
+namespace boost::geometry::traits {
+template <>
+struct tag<hstd::ext::geometry::Polygon> {
+    using type = polygon_tag;
+};
+
+template <>
+struct ring_const_type<hstd::ext::geometry::Polygon> {
+    using type = hstd::ext::geometry::Polygon::ring_type const&;
+};
+
+template <>
+struct ring_mutable_type<hstd::ext::geometry::Polygon> {
+    using type = hstd::ext::geometry::Polygon::ring_type&;
+};
+
+template <>
+struct interior_const_type<hstd::ext::geometry::Polygon> {
+    using type = hstd::ext::geometry::Polygon::inner_container_type const&;
+};
+
+template <>
+struct interior_mutable_type<hstd::ext::geometry::Polygon> {
+    using type = hstd::ext::geometry::Polygon::inner_container_type&;
+};
+
+template <>
+struct exterior_ring<hstd::ext::geometry::Polygon> {
+    static hstd::ext::geometry::Polygon::ring_type& get(
+        hstd::ext::geometry::Polygon& poly) {
+        return poly.outer();
+    }
+
+    static hstd::ext::geometry::Polygon::ring_type const& get(
+        hstd::ext::geometry::Polygon const& poly) {
+        return poly.outer();
+    }
+};
+
+template <>
+struct interior_rings<hstd::ext::geometry::Polygon> {
+    static hstd::ext::geometry::Polygon::inner_container_type& get(
+        hstd::ext::geometry::Polygon& poly) {
+        return poly.inners();
+    }
+
+    static hstd::ext::geometry::Polygon::inner_container_type const& get(
+        hstd::ext::geometry::Polygon const& poly) {
+        return poly.inners();
+    }
+};
 } // namespace boost::geometry::traits
 
 namespace hstd::ext::geometry {
@@ -60,9 +305,49 @@ struct Rect : bg::model::box<Point> {
         return bg::get<bg::max_corner, 1>(*this)
              - bg::get<bg::min_corner, 1>(*this);
     }
+
+    Rect operator/(double other) const {
+        return Rect(
+            x() / other, y() / other, width() / other, height() / other);
+    }
+
+    Rect operator*(double other) const {
+        return Rect(
+            x() * other, y() * other, width() * other, height() * other);
+    }
+};
+} // namespace hstd::ext::geometry
+
+namespace boost::geometry::traits {
+
+
+template <std::size_t Dimension>
+struct indexed_access<hstd::ext::geometry::Rect, min_corner, Dimension> {
+    static double get(hstd::ext::geometry::Rect const& b) {
+        return boost::geometry::get<min_corner, Dimension>(
+            static_cast<hstd::ext::geometry::Rect::box const&>(b));
+    }
+
+    static void set(hstd::ext::geometry::Rect& b, double const& value) {
+        boost::geometry::set<min_corner, Dimension>(
+            static_cast<hstd::ext::geometry::Rect::box&>(b), value);
+    }
 };
 
-} // namespace hstd::ext::geometry
+template <std::size_t Dimension>
+struct indexed_access<hstd::ext::geometry::Rect, max_corner, Dimension> {
+    static double get(hstd::ext::geometry::Rect const& b) {
+        return boost::geometry::get<max_corner, Dimension>(
+            static_cast<hstd::ext::geometry::Rect::box const&>(b));
+    }
+
+    static void set(hstd::ext::geometry::Rect& b, double const& value) {
+        boost::geometry::set<max_corner, Dimension>(
+            static_cast<hstd::ext::geometry::Rect::box&>(b), value);
+    }
+};
+
+} // namespace boost::geometry::traits
 
 
 namespace hstd::ext::geometry {
@@ -71,6 +356,14 @@ struct Size : public Point {
     using Point::Point;
     double width() const { return this->x(); }
     double height() const { return this->y(); }
+
+    Size operator/(double other) const {
+        return Size(x() / other, y() / other);
+    }
+
+    Size operator*(double other) const {
+        return Size(x() * other, y() * other);
+    }
 };
 
 struct Path {
@@ -124,6 +417,59 @@ struct Path {
     };
 
     std::vector<Command> commands;
+
+  private:
+    template <typename Fn>
+    static void forEachUsedPoint(Command& cmd, Fn&& fn) {
+        switch (cmd.type) {
+            case CommandType::MoveTo:
+            case CommandType::LineTo: fn(cmd.p1); break;
+            case CommandType::QuadTo:
+                fn(cmd.p1);
+                fn(cmd.p2);
+                break;
+            case CommandType::CubicTo:
+                fn(cmd.p1);
+                fn(cmd.p2);
+                fn(cmd.p3);
+                break;
+            case CommandType::CloseSubpath: break;
+        }
+    }
+
+  public:
+    Path operator*(double v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p *= v; });
+        }
+        return out;
+    }
+
+    Path operator/(double v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p /= v; });
+        }
+        return out;
+    }
+
+    Path operator+(Point const& v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p += v; });
+        }
+        return out;
+    }
+
+    Path operator-(Point const& v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p -= v; });
+        }
+        return out;
+    }
+
 
     DESC_FIELDS(Path, (commands));
 
@@ -286,5 +632,10 @@ struct JsonSerde<hstd::ext::geometry::Rect> {
     static hstd::ext::geometry::Rect from_json(json const& j);
 };
 
+template <>
+struct JsonSerde<hstd::ext::geometry::Polygon> {
+    static json to_json(hstd::ext::geometry::Polygon const& box);
+    static hstd::ext::geometry::Polygon from_json(json const& j);
+};
 
 } // namespace hstd

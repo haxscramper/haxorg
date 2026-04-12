@@ -108,6 +108,8 @@ std::string fail_check_format(
     _14,                                                                  \
     _15,                                                                  \
     _16,                                                                  \
+    _17,                                                                  \
+    _18,                                                                  \
     N,                                                                    \
     ...)                                                                  \
     N
@@ -117,6 +119,8 @@ std::string fail_check_format(
 #define HSDT_GEOMETRY_FAIL_CHECK(...)                                     \
     __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                      \
         __VA_ARGS__,                                                      \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
         __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
         __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
         __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
@@ -172,16 +176,28 @@ GeometryCheckResult checkIntersects(Path const& first, Path const& second);
 
 /// \brief Checks whether relative is fully on the left side of stationary.
 template <typename L, typename R>
-GeometryCheckResult checkLeftOf(L const& stationary, R const& relative);
+GeometryCheckResult checkLeftOf(
+    L const& stationary,
+    R const& relative,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether relative is fully on the right side of
 /// stationary.
 template <typename L, typename R>
-GeometryCheckResult checkRightOf(L const& stationary, R const& relative);
+GeometryCheckResult checkRightOf(
+    L const& stationary,
+    R const& relative,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether relative is fully above stationary.
 template <typename L, typename R>
-GeometryCheckResult checkAbove(L const& stationary, R const& relative);
+GeometryCheckResult checkAbove(
+    L const& stationary,
+    R const& relative,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether relative is above stationary allowing limited
 /// underflow. The allowed portion under stationary is controlled by
@@ -190,30 +206,44 @@ template <typename L, typename R>
 GeometryCheckResult checkPartiallyAbove(
     L const& stationary,
     R const& relative,
-    double   maxUnderPercent);
+    double   maxUnderPercent,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether relative is fully below stationary.
 template <typename L, typename R>
-GeometryCheckResult checkBelow(L const& stationary, R const& relative);
+GeometryCheckResult checkBelow(
+    L const& stationary,
+    R const& relative,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether the first shape fully covers the second shape
 /// bounds.
 template <typename L, typename R>
-GeometryCheckResult checkFullyCovers(L const& first, R const& second);
+GeometryCheckResult checkFullyCovers(
+    L const& first,
+    R const& second,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether two shapes are horizontally center-aligned.
 template <typename L, typename R>
 GeometryCheckResult checkAlignedHorizontally(
     L const& first,
     R const& second,
-    double   tolerance = 0.0);
+    double   tolerance = 0.0,
+    double   rtol      = 1e-5,
+    double   atol      = 1e-8);
 
 /// \brief Checks whether two shapes are vertically center-aligned.
 template <typename L, typename R>
 GeometryCheckResult checkAlignedVertically(
     L const& first,
     R const& second,
-    double   tolerance = 0.0);
+    double   tolerance = 0.0,
+    double   rtol      = 1e-5,
+    double   atol      = 1e-8);
 
 /// \brief Checks whether the minimal distance between two shapes is large
 /// enough.
@@ -221,7 +251,9 @@ template <typename L, typename R>
 GeometryCheckResult checkMinDistance(
     L const& first,
     R const& second,
-    double   minDistance);
+    double   minDistance,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether the minimal distance between two shapes stays
 /// below a limit.
@@ -229,28 +261,36 @@ template <typename L, typename R>
 GeometryCheckResult checkMaxDistance(
     L const& first,
     R const& second,
-    double   maxDistance);
+    double   maxDistance,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
 
 /// \brief Checks whether two shapes have matching width and height.
 template <typename L, typename R>
 GeometryCheckResult checkSameSize(
     L const& first,
     R const& second,
-    double   tolerance = 0.0);
+    double   tolerance = 0.0,
+    double   rtol      = 1e-5,
+    double   atol      = 1e-8);
 
 /// \brief Checks whether two shapes have matching widths.
 template <typename L, typename R>
 GeometryCheckResult checkSameWidth(
     L const& first,
     R const& second,
-    double   tolerance = 0.0);
+    double   tolerance = 0.0,
+    double   rtol      = 1e-5,
+    double   atol      = 1e-8);
 
 /// \brief Checks whether two shapes have matching heights.
 template <typename L, typename R>
 GeometryCheckResult checkSameHeight(
     L const& first,
     R const& second,
-    double   tolerance = 0.0);
+    double   tolerance = 0.0,
+    double   rtol      = 1e-5,
+    double   atol      = 1e-8);
 
 /// \brief Checks whether a sequence of shapes is evenly spaced along one
 /// axis.
@@ -274,52 +314,77 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 
 GeometryCheckResult checkLeftOfBounds(
     Rect const& stationary,
-    Rect const& relative);
+    Rect const& relative,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkRightOfBounds(
     Rect const& stationary,
-    Rect const& relative);
+    Rect const& relative,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkAboveBounds(
     Rect const& stationary,
-    Rect const& relative);
+    Rect const& relative,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& stationary,
     Rect const& relative,
-    double      maxUnderPercent);
+    double      maxUnderPercent,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkBelowBounds(
     Rect const& stationary,
-    Rect const& relative);
+    Rect const& relative,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkFullyCoversBounds(
     Rect const& first,
-    Rect const& second);
-
+    Rect const& second,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkAlignedHorizontallyBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance);
+    double      tolerance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkAlignedVerticallyBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance);
+    double      tolerance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkMinDistanceBounds(
     Rect const& first,
     Rect const& second,
-    double      minDistance);
+    double      minDistance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkMaxDistanceBounds(
     Rect const& first,
     Rect const& second,
-    double      maxDistance);
+    double      maxDistance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkSameSizeBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance);
+    double      tolerance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkSameWidthBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance);
+    double      tolerance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkSameHeightBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance);
+    double      tolerance,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
 GeometryCheckResult checkEquidistantBounds(
     hstd::Vec<Rect> const& items,
     double                 tolerance);
@@ -358,29 +423,44 @@ GeometryCheckResult runBinaryBoundsCheck(
 } // namespace detail
 
 template <typename L, typename R>
-GeometryCheckResult checkLeftOf(L const& stationary, R const& relative) {
+GeometryCheckResult checkLeftOf(
+    L const& stationary,
+    R const& relative,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "left-of", stationary, relative, [](Rect const& a, Rect const& b) {
-            return detail::checkLeftOfBounds(a, b);
+        "left-of",
+        stationary,
+        relative,
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkLeftOfBounds(a, b, rtol, atol);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkRightOf(L const& stationary, R const& relative) {
+GeometryCheckResult checkRightOf(
+    L const& stationary,
+    R const& relative,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
         "right-of",
         stationary,
         relative,
-        [](Rect const& a, Rect const& b) {
-            return detail::checkRightOfBounds(a, b);
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkRightOfBounds(a, b, rtol, atol);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkAbove(L const& stationary, R const& relative) {
+GeometryCheckResult checkAbove(
+    L const& stationary,
+    R const& relative,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "above", stationary, relative, [](Rect const& a, Rect const& b) {
-            return detail::checkAboveBounds(a, b);
+        "above", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkAboveBounds(a, b, rtol, atol);
         });
 }
 
@@ -388,30 +468,40 @@ template <typename L, typename R>
 GeometryCheckResult checkPartiallyAbove(
     L const& stationary,
     R const& relative,
-    double   maxUnderPercent) {
+    double   maxUnderPercent,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
         "partially-above",
         stationary,
         relative,
-        [maxUnderPercent](Rect const& a, Rect const& b) {
+        [&](Rect const& a, Rect const& b) {
             return detail::checkPartiallyAboveBounds(
-                a, b, maxUnderPercent);
+                a, b, maxUnderPercent, rtol, atol);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkBelow(L const& stationary, R const& relative) {
+GeometryCheckResult checkBelow(
+    L const& stationary,
+    R const& relative,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "below", stationary, relative, [](Rect const& a, Rect const& b) {
-            return detail::checkBelowBounds(a, b);
+        "below", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkBelowBounds(a, b, rtol, atol);
         });
 }
 
 template <typename L, typename R>
-GeometryCheckResult checkFullyCovers(L const& first, R const& second) {
+GeometryCheckResult checkFullyCovers(
+    L const& main,
+    R const& nested,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "fully-covers", first, second, [](Rect const& a, Rect const& b) {
-            return detail::checkFullyCoversBounds(a, b);
+        "fully-covers", main, nested, [&](Rect const& a, Rect const& b) {
+            return detail::checkFullyCoversBounds(a, b, rtol, atol);
         });
 }
 
@@ -419,13 +509,16 @@ template <typename L, typename R>
 GeometryCheckResult checkAlignedHorizontally(
     L const& first,
     R const& second,
-    double   tolerance) {
+    double   tolerance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
         "aligned-horizontally",
         first,
         second,
-        [tolerance](Rect const& a, Rect const& b) {
-            return detail::checkAlignedHorizontallyBounds(a, b, tolerance);
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkAlignedHorizontallyBounds(
+                a, b, tolerance, rtol, atol);
         });
 }
 
@@ -433,13 +526,16 @@ template <typename L, typename R>
 GeometryCheckResult checkAlignedVertically(
     L const& first,
     R const& second,
-    double   tolerance) {
+    double   tolerance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
         "aligned-vertically",
         first,
         second,
-        [tolerance](Rect const& a, Rect const& b) {
-            return detail::checkAlignedVerticallyBounds(a, b, tolerance);
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkAlignedVerticallyBounds(
+                a, b, tolerance, rtol, atol);
         });
 }
 
@@ -447,13 +543,13 @@ template <typename L, typename R>
 GeometryCheckResult checkMinDistance(
     L const& first,
     R const& second,
-    double   minDistance) {
+    double   minDistance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "min-distance",
-        first,
-        second,
-        [minDistance](Rect const& a, Rect const& b) {
-            return detail::checkMinDistanceBounds(a, b, minDistance);
+        "min-distance", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkMinDistanceBounds(
+                a, b, minDistance, rtol, atol);
         });
 }
 
@@ -461,13 +557,13 @@ template <typename L, typename R>
 GeometryCheckResult checkMaxDistance(
     L const& first,
     R const& second,
-    double   maxDistance) {
+    double   maxDistance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "max-distance",
-        first,
-        second,
-        [maxDistance](Rect const& a, Rect const& b) {
-            return detail::checkMaxDistanceBounds(a, b, maxDistance);
+        "max-distance", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkMaxDistanceBounds(
+                a, b, maxDistance, rtol, atol);
         });
 }
 
@@ -475,13 +571,13 @@ template <typename L, typename R>
 GeometryCheckResult checkSameSize(
     L const& first,
     R const& second,
-    double   tolerance) {
+    double   tolerance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "same-size",
-        first,
-        second,
-        [tolerance](Rect const& a, Rect const& b) {
-            return detail::checkSameSizeBounds(a, b, tolerance);
+        "same-size", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkSameSizeBounds(
+                a, b, tolerance, rtol, atol);
         });
 }
 
@@ -489,13 +585,13 @@ template <typename L, typename R>
 GeometryCheckResult checkSameWidth(
     L const& first,
     R const& second,
-    double   tolerance) {
+    double   tolerance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "same-width",
-        first,
-        second,
-        [tolerance](Rect const& a, Rect const& b) {
-            return detail::checkSameWidthBounds(a, b, tolerance);
+        "same-width", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkSameWidthBounds(
+                a, b, tolerance, rtol, atol);
         });
 }
 
@@ -503,13 +599,13 @@ template <typename L, typename R>
 GeometryCheckResult checkSameHeight(
     L const& first,
     R const& second,
-    double   tolerance) {
+    double   tolerance,
+    double   rtol,
+    double   atol) {
     return detail::runBinaryBoundsCheck(
-        "same-height",
-        first,
-        second,
-        [tolerance](Rect const& a, Rect const& b) {
-            return detail::checkSameHeightBounds(a, b, tolerance);
+        "same-height", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkSameHeightBounds(
+                a, b, tolerance, rtol, atol);
         });
 }
 

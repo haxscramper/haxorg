@@ -261,11 +261,14 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 
 GeometryCheckResult checkLeftOfBounds(
     Rect const& stationary,
-    Rect const& relative) {
+    Rect const& relative,
+    double      rtol,
+    double      atol) {
     double stationaryLeft = bg::get<bg::min_corner, 0>(stationary);
     double relativeRight  = bg::get<bg::max_corner, 0>(relative);
 
-    if (relativeRight <= stationaryLeft) {
+    if (relativeRight <= stationaryLeft
+        || isclose(stationaryLeft, relativeRight, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
@@ -279,11 +282,14 @@ GeometryCheckResult checkLeftOfBounds(
 
 GeometryCheckResult checkRightOfBounds(
     Rect const& stationary,
-    Rect const& relative) {
+    Rect const& relative,
+    double      rtol,
+    double      atol) {
     double stationaryRight = bg::get<bg::max_corner, 0>(stationary);
     double relativeLeft    = bg::get<bg::min_corner, 0>(relative);
 
-    if (stationaryRight <= relativeLeft) {
+    if (stationaryRight <= relativeLeft
+        || isclose(stationaryRight, relativeLeft, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
@@ -297,11 +303,14 @@ GeometryCheckResult checkRightOfBounds(
 
 GeometryCheckResult checkAboveBounds(
     Rect const& stationary,
-    Rect const& relative) {
+    Rect const& relative,
+    double      rtol,
+    double      atol) {
     double stationaryTop = bg::get<bg::min_corner, 1>(stationary);
     double relativeBot   = bg::get<bg::max_corner, 1>(relative);
 
-    if (relativeBot <= stationaryTop) {
+    if (relativeBot <= stationaryTop
+        || isclose(stationaryTop, relativeBot, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
@@ -324,7 +333,9 @@ GeometryCheckResult checkAboveBounds(
 GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& stationary,
     Rect const& relative,
-    double      maxUnderPercent) {
+    double      maxUnderPercent,
+    double      rtol,
+    double      atol) {
     if (maxUnderPercent < 0.0 || 100.0 < maxUnderPercent) {
         return HSDT_GEOMETRY_FAIL_CHECK(
             R"(partially-above-bounds maxUnderPercent must be in [0, 100])",
@@ -349,7 +360,8 @@ GeometryCheckResult checkPartiallyAboveBounds(
                             ? (lineY <= relativeTop ? 100.0 : 0.0)
                             : (underLen / relHeight) * 100.0;
 
-    if (underPercent <= maxUnderPercent) {
+    if (underPercent <= maxUnderPercent
+        || isclose(maxUnderPercent, underPercent, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
@@ -368,11 +380,14 @@ GeometryCheckResult checkPartiallyAboveBounds(
 
 GeometryCheckResult checkBelowBounds(
     Rect const& stationary,
-    Rect const& relative) {
+    Rect const& relative,
+    double      rtol,
+    double      atol) {
     double stationaryBottom = bg::get<bg::max_corner, 1>(stationary);
     double relativeTop      = bg::get<bg::min_corner, 1>(relative);
 
-    if (stationaryBottom <= relativeTop) {
+    if (stationaryBottom <= relativeTop
+        || isclose(stationaryBottom, relativeTop, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
@@ -386,7 +401,9 @@ GeometryCheckResult checkBelowBounds(
 
 GeometryCheckResult checkFullyCoversBounds(
     Rect const& main,
-    Rect const& nested) {
+    Rect const& nested,
+    double      rtol,
+    double      atol) {
     double mainLeft   = bg::get<bg::min_corner, 0>(main);
     double mainTop    = bg::get<bg::min_corner, 1>(main);
     double mainRight  = bg::get<bg::max_corner, 0>(main);
@@ -397,14 +414,6 @@ GeometryCheckResult checkFullyCoversBounds(
     double nestedRight  = bg::get<bg::max_corner, 0>(nested);
     double nestedBottom = bg::get<bg::max_corner, 1>(nested);
 
-    bool covers =                     //
-        mainLeft <= nestedLeft        //
-        && mainTop <= nestedTop       //
-        && nestedRight <= mainRight   //
-        && nestedBottom <= mainBottom //
-        ;
-
-    if (covers) { return boost::outcome_v2::success(); }
 
     double interArea    = overlapArea(main, nested);
     double mainArea     = rectArea(main);
@@ -412,8 +421,21 @@ GeometryCheckResult checkFullyCoversBounds(
     double mainByNested = overlapPercent(interArea, mainArea);
     double nestedByMain = overlapPercent(interArea, nestedArea);
 
+    auto expected = 100.0;
+    if (hstd::isclose(nestedByMain, expected, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
+
+    auto relative = hstd::fmt(
+        "sdt::abs({} - {}) = {} !<= {} :: rtol * abs(b) = {}",
+        nestedByMain,
+        expected,
+        std::abs(nestedByMain - expected),
+        atol + rtol * std::abs(expected),
+        rtol * std::abs(expected));
+
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(ully-covers-bounds)",
+        R"(fully-covers-bounds)",
         mainLeft,
         mainTop,
         mainRight,
@@ -428,13 +450,16 @@ GeometryCheckResult checkFullyCoversBounds(
         mainByNested,
         nestedByMain,
         main,
-        nested);
+        nested,
+        detail::FailVerbatimLine{relative});
 }
 
 GeometryCheckResult checkAlignedHorizontallyBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance) {
+    double      tolerance,
+    double      rtol,
+    double      atol) {
     double firstCy  = (bg::get<bg::min_corner, 1>(first)
                        + bg::get<bg::max_corner, 1>(first))
                     * 0.5;
@@ -443,7 +468,9 @@ GeometryCheckResult checkAlignedHorizontallyBounds(
                     * 0.5;
     double delta    = std::abs(firstCy - secondCy);
 
-    if (delta <= tolerance) { return boost::outcome_v2::success(); }
+    if (delta <= tolerance || isclose(delta, tolerance, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(aligned-horizontally-bounds)",
@@ -458,7 +485,9 @@ GeometryCheckResult checkAlignedHorizontallyBounds(
 GeometryCheckResult checkAlignedVerticallyBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance) {
+    double      tolerance,
+    double      rtol,
+    double      atol) {
     double firstCx  = (bg::get<bg::min_corner, 0>(first)
                        + bg::get<bg::max_corner, 0>(first))
                     * 0.5;
@@ -467,7 +496,9 @@ GeometryCheckResult checkAlignedVerticallyBounds(
                     * 0.5;
     double delta    = std::abs(firstCx - secondCx);
 
-    if (delta <= tolerance) { return boost::outcome_v2::success(); }
+    if (delta <= tolerance || isclose(delta, tolerance, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(aligned-vertically-bounds)",
@@ -482,9 +513,13 @@ GeometryCheckResult checkAlignedVerticallyBounds(
 GeometryCheckResult checkMinDistanceBounds(
     Rect const& first,
     Rect const& second,
-    double      minDistance) {
+    double      minDistance,
+    double      rtol,
+    double      atol) {
     double d = bg::distance(first, second);
-    if (minDistance <= d) { return boost::outcome_v2::success(); }
+    if (minDistance <= d || isclose(minDistance, d, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(min-distance-bounds)", d, minDistance, first, second);
@@ -493,9 +528,13 @@ GeometryCheckResult checkMinDistanceBounds(
 GeometryCheckResult checkMaxDistanceBounds(
     Rect const& first,
     Rect const& second,
-    double      maxDistance) {
+    double      maxDistance,
+    double      rtol,
+    double      atol) {
     double d = bg::distance(first, second);
-    if (d <= maxDistance) { return boost::outcome_v2::success(); }
+    if (d <= maxDistance || isclose(maxDistance, d, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(max-distance-bounds)", d, maxDistance, first, second);
@@ -504,12 +543,16 @@ GeometryCheckResult checkMaxDistanceBounds(
 GeometryCheckResult checkSameWidthBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance) {
+    double      tolerance,
+    double      rtol,
+    double      atol) {
     double fw = rectWidth(first);
     double sw = rectWidth(second);
     double d  = std::abs(fw - sw);
 
-    if (d <= tolerance) { return boost::outcome_v2::success(); }
+    if (d <= tolerance || isclose(tolerance, d, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(same-width-bounds)", fw, sw, d, tolerance, first, second);
@@ -518,12 +561,16 @@ GeometryCheckResult checkSameWidthBounds(
 GeometryCheckResult checkSameHeightBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance) {
+    double      tolerance,
+    double      rtol,
+    double      atol) {
     double fh = rectHeight(first);
     double sh = rectHeight(second);
     double d  = std::abs(fh - sh);
 
-    if (d <= tolerance) { return boost::outcome_v2::success(); }
+    if (d <= tolerance || isclose(tolerance, d, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(same-height-bounds)", fh, sh, d, tolerance, first, second);
@@ -532,11 +579,13 @@ GeometryCheckResult checkSameHeightBounds(
 GeometryCheckResult checkSameSizeBounds(
     Rect const& first,
     Rect const& second,
-    double      tolerance) {
-    auto w = checkSameWidthBounds(first, second, tolerance);
+    double      tolerance,
+    double      rtol,
+    double      atol) {
+    auto w = checkSameWidthBounds(first, second, tolerance, rtol, atol);
     if (!w) { return w; }
 
-    auto h = checkSameHeightBounds(first, second, tolerance);
+    auto h = checkSameHeightBounds(first, second, tolerance, rtol, atol);
     if (!h) { return h; }
 
     return boost::outcome_v2::success();

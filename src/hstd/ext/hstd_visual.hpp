@@ -159,9 +159,9 @@ struct VisElement {
     };
 
     struct PolygonShape {
-        hstd::Vec<Point> points;
-        VisPen           pen;
-        VisBrush         brush;
+        Polygon  points;
+        VisPen   pen;
+        VisBrush brush;
 
         DESC_FIELDS(PolygonShape, (points, pen, brush));
     };

@@ -69,6 +69,8 @@
 
 namespace hstd::ext::graph::gv {
 
+static constexpr double scaling = 72.0f;
+
 struct UserDataBase {
     Agrec_t header;
 };
@@ -549,12 +551,52 @@ class NodeAttribute
     /// \brief Margin around the drawing
     _attr(NodeAttribute, Margin, margin, Point);
 
+
+    NodeAttribute* setInchWidth(double inches) {
+        setAttr("width", inches);
+        return this;
+    }
+
+    NodeAttribute* setPointWidth(double points) {
+        setInchWidth(points / scaling);
+        return this;
+    }
+
+    double getInchWidth() const {
+        hstd::Opt<double> result = 0;
+        getAttr("width", result);
+        return result.value();
+    }
+
+    double getPointWidth() const { return getInchWidth() * scaling; }
+
+    NodeAttribute* setInchHeight(double inches) {
+        setAttr("height", inches);
+        return this;
+    }
+
+    NodeAttribute* setPointHeight(double points) {
+        setInchHeight(points / scaling);
+        return this;
+    }
+
+    double getInchHeight() const {
+        hstd::Opt<double> result = 0;
+        getAttr("height", result);
+        return result.value();
+    }
+
+    double getPointHeight() const { return getInchHeight() * scaling; }
+
     Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
     Agnodeinfo_t const* info() const {
         return (Agnodeinfo_t*)AGDATA(node);
     }
 
-    NodeAttribute* setFixedWH(double w, double h);
+    NodeAttribute* setFixedInchesWH(double w, double h);
+    NodeAttribute* setFixedPointWH(double w, double h) {
+        return setFixedInchesWH(w / scaling, h / scaling);
+    }
 
   public:
     Agnode_t* node;
@@ -943,7 +985,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    virtual Rect getBBox() const override;
+    virtual Rect getPointsBBox() const override;
 
     std::string getRepr() const override {
         return group->getPropertiesAsString();

@@ -899,7 +899,8 @@ class ILayoutAttribute : public IAttribute {};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
-    /// \brief position + size relative to parent.
+    /// \brief position + size relative to parent. Return size in universal
+    /// coordinates.
     virtual Rect                        getBBox() const   = 0;
     virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
 };
@@ -923,7 +924,7 @@ class IGroupLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
-    virtual Rect getBBox() const = 0;
+    virtual Rect getPointsBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
         const                                  = 0;
     virtual visual::VisGroup getVisual() const = 0;

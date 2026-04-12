@@ -10,8 +10,6 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
-static constexpr float scaling = 72.0f;
-
 namespace {
 Rect getGraphBBox(gv::GraphGroup const& g) {
     boxf rect = g.info()->bb;
@@ -29,8 +27,8 @@ Rect getNodeRectangle(
     gv::GraphGroup const&    g,
     gv::NodeAttribute const& node,
     Rect const&              bbox) {
-    double width  = node.info()->width * scaling;
-    double height = node.info()->height * scaling;
+    double width  = node.info()->width * gv::scaling;
+    double height = node.info()->height * gv::scaling;
     double x      = node.info()->coord.x;
     double y      = bbox.height() - node.info()->coord.y;
     int    x1     = std::round(x - width / 2);
@@ -639,13 +637,13 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 hstd::fmt(
                     "group '{}' has layout algorithm set",
                     group->getStableId()));
-            auto recursiveBBox = run->getLayout(id)->getBBox();
+            auto recursiveBBox = run->getLayout(id)->getPointsBBox();
             auto recursiveNode = parentGroup->node(
                 hstd::fmt("tmp-subgraph-node-{}", id));
 
             recursiveNode->setAttr(id_sub_group, id.getValue());
 
-            recursiveNode->setFixedWH(
+            recursiveNode->setFixedInchesWH(
                 recursiveBBox.width() / scaling,
                 recursiveBBox.height() / scaling);
         } else {
@@ -803,7 +801,7 @@ gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name) {
     }
 }
 
-gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedWH(
+gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedInchesWH(
     double w,
     double h) {
     setWidth(w);
@@ -828,7 +826,7 @@ Path gv::GraphEdgeLayoutAttribute::getPath() const {
 }
 
 
-Rect gv::GraphGroupLayoutAttribute::getBBox() const { return graph; }
+Rect gv::GraphGroupLayoutAttribute::getPointsBBox() const { return graph; }
 
 
 std::string gv::EdgeAttribute::getPropertiesAsString() const {

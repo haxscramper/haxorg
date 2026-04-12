@@ -170,10 +170,10 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     // specific to the graphviz layout nodes, and use cgraph API
     // internally.
     auto shape = gv::NodeAttribute::Shape::rect;
-    getGv(v1)->setFixedWH(2, 2)->setShape(shape);
-    getGv(v2)->setFixedWH(2, 2)->setShape(shape);
-    getGv(v3)->setFixedWH(4, 4)->setShape(shape);
-    getGv(v4)->setFixedWH(4, 4)->setShape(shape);
+    getGv(v1)->setFixedPointWH(120, 120)->setShape(shape);
+    getGv(v2)->setFixedPointWH(120, 120)->setShape(shape);
+    getGv(v3)->setFixedPointWH(240, 240)->setShape(shape);
+    getGv(v4)->setFixedPointWH(240, 240)->setShape(shape);
 
     // Add edges to the graphviz graph. This links already existing
     // semantic vertices to the visual representation in the layout.
@@ -204,17 +204,17 @@ TEST_F(GraphUtils_Test, GraphvizSimpleConstruction) {
     ASSERT_TRUE(res.vertices.contains(v3));
     ASSERT_TRUE(res.vertices.contains(v4));
 
-    EXPECT_EQ(run->getLayout(v1)->getBBox().width(), 2);
-    EXPECT_EQ(run->getLayout(v1)->getBBox().height(), 2);
+    EXPECT_NEAR(run->getLayout(v1)->getBBox().width(), 120, 0.005);
+    EXPECT_NEAR(run->getLayout(v1)->getBBox().height(), 120, 0.005);
 
-    EXPECT_EQ(run->getLayout(v2)->getBBox().width(), 2);
-    EXPECT_EQ(run->getLayout(v2)->getBBox().height(), 2);
+    EXPECT_NEAR(run->getLayout(v2)->getBBox().width(), 120, 0.005);
+    EXPECT_NEAR(run->getLayout(v2)->getBBox().height(), 120, 0.005);
 
-    EXPECT_EQ(run->getLayout(v3)->getBBox().width(), 4);
-    EXPECT_EQ(run->getLayout(v3)->getBBox().height(), 4);
+    EXPECT_NEAR(run->getLayout(v3)->getBBox().width(), 240, 0.005);
+    EXPECT_NEAR(run->getLayout(v3)->getBBox().height(), 240, 0.005);
 
-    EXPECT_EQ(run->getLayout(v4)->getBBox().width(), 4);
-    EXPECT_EQ(run->getLayout(v4)->getBBox().height(), 4);
+    EXPECT_NEAR(run->getLayout(v4)->getBBox().width(), 240, 0.005);
+    EXPECT_NEAR(run->getLayout(v4)->getBBox().height(), 240, 0.005);
 
     EXPECT_EQ(run->result.edges.size(), 3);
 
@@ -279,15 +279,15 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     EXPECT_EQ(ctx->edgeAttributes.size(), 0);
 
     as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(3)))
-        ->setFixedWH(2, 1)
+        ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-3");
     as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(4)))
-        ->setFixedWH(3, 2)
+        ->setFixedPointWH(180, 120)
         ->setShape(shape)
         ->setLabel("VERT-4");
     as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(6)))
-        ->setFixedWH(4, 1)
+        ->setFixedPointWH(240, 60)
         ->setShape(shape)
         ->setLabel("VERT-6");
 
@@ -298,19 +298,19 @@ TEST_F(GraphUtils_Test, GraphvizSameLayoutClusters) {
     EXPECT_EQ(sub_group1->directVertices.size(), 3);
 
     as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(5)))
-        ->setFixedWH(2, 1)
+        ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-5");
     as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(9)))
-        ->setFixedWH(2, 1)
+        ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-9");
     as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(7)))
-        ->setFixedWH(2, 1)
+        ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-7");
     as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(10)))
-        ->setFixedWH(2, 1)
+        ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-10");
 
@@ -381,7 +381,6 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
     auto                       ctx   = group->context();
 
-
     layout::GroupID            sg1_id = group->newSubLayoutGraph();
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg1_id));
@@ -393,23 +392,23 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-0");
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(1)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-1");
     as<gv::NodeAttribute>(sg1->addVertex(vs.at(2)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-2");
 
     as<gv::NodeAttribute>(sg2->addVertex(vs.at(3)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-3");
     as<gv::NodeAttribute>(sg2->addVertex(vs.at(4)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-4");
     as<gv::NodeAttribute>(sg2->addVertex(vs.at(5)))
-        ->setFixedWH(1, 1)
+        ->setFixedPointWH(60, 60)
         ->setLabel("VERT-5");
 
 
@@ -481,13 +480,16 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_OUTCOME_OK(
         checkLeftOf(/*stationary=*/vsg2.offset, /*relative=*/vsg1.offset));
 
-    EXPECT_OUTCOME_OK(
-        checkFullyCovers(vsg.computeBounds(), vsg1.computeBounds()));
+    EXPECT_OUTCOME_OK(checkFullyCovers(/*main=*/vsg.computeBounds(),
+                                       /*nested=*/vsg1.computeBounds()));
 
-    EXPECT_OUTCOME_OK(
-        checkFullyCovers(vsg.computeBounds(), vsg2.computeBounds()));
+    EXPECT_OUTCOME_OK(checkFullyCovers(/*main=*/vsg.computeBounds(),
+                                       /*nested=*/vsg2.computeBounds()));
 
     using VE = hstd::ext::visual::VisElement;
+
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg1_id),
+                                  /*relative=*/run->getVisual(sg2_id)));
 
     EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
                                   /*relative=*/run->getVisual(vs.at(0))));
@@ -497,6 +499,12 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     EXPECT_OUTCOME_OK(checkAbove(/*stationary=*/run->getVisual(vs.at(0)),
                                  /*relative=*/run->getVisual(vs.at(1))));
+
+    EXPECT_OUTCOME_OK(checkBelow(/*stationary=*/run->getVisual(vs.at(3)),
+                                 /*relative=*/run->getVisual(vs.at(4))));
+
+    EXPECT_OUTCOME_OK(checkBelow(/*stationary=*/run->getVisual(vs.at(4)),
+                                 /*relative=*/run->getVisual(vs.at(5))));
 
     // group 0
     for (auto const& [group_idx, group] :
@@ -520,7 +528,10 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
             EXPECT_OUTCOME_OK(
                 checkFullyCovers(
                     group_visual.computeBoundsNoSelfOffset(),
-                    computeBounds(item_visual)),
+                    computeBounds(item_visual),
+                    // precision loss around 1% for checking the
+                    // boundaries.
+                    /*rtol=*/1e-2),
                 hstd::fmt(
                     R"(
 group: {}
