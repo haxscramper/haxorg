@@ -1,7 +1,10 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
+
 #include <hstd/ext/hstd_graph.hpp>
 #include <hstd/ext/graphviz.hpp>
+#include <hstd/ext/adaptagrams.hpp>
+
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/ext/hstd_geometry_test.hpp>
@@ -594,52 +597,142 @@ TEST_F(GraphUtils_Test, LibcolaApi) {
 }
 
 TEST_F(GraphUtils_Test, LibcolaRaw1) {
+    // Expected shape for the visualization
+    //     rect_width
+    //    ├───────────┤
+    // 0,0┌───────────┐
+    //    │           │
+    //    │           ├──────────┐
+    //    │           │          │
+    //    │           │          │
+    //    │           ├───────┐  │
+    //    │           │       │  │
+    //    │           │       │  │
+    //    │           ├────┐  │  │
+    //    │           │    │  │  │
+    //    │           │    │  │  │    650,350┌────────────┐
+    //    └───────────┘    │  │  │           │            │
+    //                     │  │  └───────────┤            │
+    //                     │  │              │            │
+    //                     │  │              │            │
+    //                     │  └──────────────┤            │
+    //                     │                 │            │
+    //                     │                 │            │
+    //                     └─────────────────┤            │
+    //                                       │            │
+    //                                       └────────────┘
+
+
     Avoid::Router router_it{
         Avoid::PolyLineRouting | Avoid::OrthogonalRouting};
     Avoid::Router* router = &router_it;
-    router->setRoutingPenalty((Avoid::PenaltyType)0, 50);
-    router->setRoutingPenalty((Avoid::PenaltyType)1, 0);
-    router->setRoutingPenalty((Avoid::PenaltyType)2, 400);
-    router->setRoutingPenalty((Avoid::PenaltyType)3, 4000);
-    router->setRoutingPenalty((Avoid::PenaltyType)4, 110);
+    router->setRoutingPenalty(Avoid::RoutingParameter::segmentPenalty, 50);
+    router->setRoutingPenalty(Avoid::RoutingParameter::anglePenalty, 0);
+    router->setRoutingPenalty(
+        Avoid::RoutingParameter::crossingPenalty, 400);
+    router->setRoutingPenalty(
+        Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
+    router->setRoutingPenalty(
+        Avoid::RoutingParameter::fixedSharedPathPenalty, 110);
     router->setRoutingParameter(Avoid::idealNudgingDistance, 25);
 
-    Avoid::Polygon poly143407352(4);
-    poly143407352.ps[0] = Avoid::Point(5810, 4340);
-    poly143407352.ps[1] = Avoid::Point(5810, 5035);
-    poly143407352.ps[2] = Avoid::Point(5450, 5035);
-    poly143407352.ps[3] = Avoid::Point(5450, 4340);
-    new Avoid::ShapeRef(router, poly143407352, 143407352);
+    double right_rect_x = 650;
+    double right_rect_y = 350;
+    // Use non-zero inset to move the connection edges slightly inside of
+    // the shape so libavoid does not consider them free-floating (if this
+    // happens the start/end segment of edge can run perfectly flush along
+    // the rectangle boundary).
+    //
+    // Alternative solutions to enforce edges orthogonal to the rect side
+    // - Boundary Inflation: Use
+    //   `router->setRoutingParameter(Avoid::shapeBufferDistance, 5);`
+    //   This globally inflates the routing obstacles so points on the
+    //   visual edge are treated as being inside the routing boundary,
+    //   enforcing the direction flags.
+    // - Shape Connection Pins: Instead of using absolute free-floating
+    //   coordinates, attach the connections using
+    //   `Avoid::ShapeConnectionPin`. This natively
+    //   forces perpendicular exits from the shape's edges without relying
+    //   on coordinate math.
+    double inset = 0.001;
+    // with inset 0 the shape will be
+    // ┌──────────────┐
+    // │              │
+    // │              │
+    // │              │
+    // │              │
+    // │              ├──────────────────────────┐
+    // │              ├──────────────────────────┤
+    // │              │                          │
+    // │              ├──────────────────────────┤
+    // └──────────────┘                          │
+    //                                           │
+    //                                           ├──────────────┐
+    //                                           │              │
+    //                                           │              │
+    //                                           │              │
+    //                                           │              │
+    //                                           │              │
+    //                                           └──────────────┘
 
-    Avoid::Polygon poly124950386(4);
-    poly124950386.ps[0] = Avoid::Point(4900, 4090);
-    poly124950386.ps[1] = Avoid::Point(4900, 4785);
-    poly124950386.ps[2] = Avoid::Point(4540, 4785);
-    poly124950386.ps[3] = Avoid::Point(4540, 4090);
-    new Avoid::ShapeRef(router, poly124950386, 124950386);
+    double rect_width     = 300;
+    double rect_height    = 700;
+    double connector_step = 60;
+    // right rectangle
+    Avoid::Polygon poly4(4);
+    poly4.ps[0] = Avoid::Point(right_rect_x + rect_width, right_rect_y);
+    poly4.ps[1] = Avoid::Point(
+        right_rect_x + rect_width, right_rect_y + rect_height);
+    poly4.ps[2] = Avoid::Point(right_rect_x, right_rect_y + rect_height);
+    poly4.ps[3] = Avoid::Point(right_rect_x, right_rect_y);
+    new Avoid::ShapeRef(router, poly4, /*id=*/4);
 
-    Avoid::ConnRef* connRef373967044 = new Avoid::ConnRef(
-        router, 373967044);
-    Avoid::ConnEnd srcPt373967044(Avoid::Point(4890, 4250), 8);
-    connRef373967044->setSourceEndpoint(srcPt373967044);
-    Avoid::ConnEnd dstPt373967044(Avoid::Point(5460, 4500), 4);
-    connRef373967044->setDestEndpoint(dstPt373967044);
-    connRef373967044->setRoutingType((Avoid::ConnType)2);
+    // left rectangle
+    Avoid::Polygon poly5(4);
+    poly5.ps[0] = Avoid::Point(rect_width, 0);
+    poly5.ps[1] = Avoid::Point(rect_width, rect_height);
+    poly5.ps[2] = Avoid::Point(0, rect_height);
+    poly5.ps[3] = Avoid::Point(0, 0);
+    new Avoid::ShapeRef(router, poly5, /*id=*/5);
 
-    Avoid::ConnRef* connRef681881486 = new Avoid::ConnRef(
-        router, 681881486);
-    Avoid::ConnEnd srcPt681881486(Avoid::Point(4890, 4325), 8);
-    connRef681881486->setSourceEndpoint(srcPt681881486);
-    Avoid::ConnEnd dstPt681881486(Avoid::Point(5460, 4575), 4);
-    connRef681881486->setDestEndpoint(dstPt681881486);
-    connRef681881486->setRoutingType((Avoid::ConnType)2);
+    // first edge
+    Avoid::ConnRef* connRef1 = new Avoid::ConnRef(router, /*id=*/1);
+    Avoid::ConnEnd  srcPt1(
+        Avoid::Point(rect_width - inset, connector_step * 2),
+        Avoid::ConnDirRight);
+    connRef1->setSourceEndpoint(srcPt1);
+    Avoid::ConnEnd dstPt1(
+        Avoid::Point(
+            right_rect_x + inset, right_rect_y + connector_step * 2),
+        Avoid::ConnDirLeft);
+    connRef1->setDestEndpoint(dstPt1);
+    connRef1->setRoutingType((Avoid::ConnType)2);
 
-    Avoid::ConnRef* connRef829752 = new Avoid::ConnRef(router, 829752);
-    Avoid::ConnEnd  srcPt829752(Avoid::Point(4890, 4400), 8);
-    connRef829752->setSourceEndpoint(srcPt829752);
-    Avoid::ConnEnd dstPt829752(Avoid::Point(5460, 4650), 4);
-    connRef829752->setDestEndpoint(dstPt829752);
-    connRef829752->setRoutingType((Avoid::ConnType)2);
+    // second edge
+    Avoid::ConnRef* connRef2 = new Avoid::ConnRef(router, /*id=*/2);
+    Avoid::ConnEnd  srcPt2(
+        Avoid::Point(rect_width - inset, connector_step * 3),
+        Avoid::ConnDirRight);
+    connRef2->setSourceEndpoint(srcPt2);
+    Avoid::ConnEnd dstPt2(
+        Avoid::Point(
+            right_rect_x + inset, right_rect_y + connector_step * 3),
+        Avoid::ConnDirLeft);
+    connRef2->setDestEndpoint(dstPt2);
+    connRef2->setRoutingType((Avoid::ConnType)2);
+
+    // third edge
+    Avoid::ConnRef* connRef3 = new Avoid::ConnRef(router, /*id=*/3);
+    Avoid::ConnEnd  srcPt3(
+        Avoid::Point(rect_width - inset, connector_step * 4),
+        Avoid::ConnDirRight);
+    connRef3->setSourceEndpoint(srcPt3);
+    Avoid::ConnEnd dstPt3(
+        Avoid::Point(
+            right_rect_x + inset, right_rect_y + connector_step * 4),
+        Avoid::ConnDirLeft);
+    connRef3->setDestEndpoint(dstPt3);
+    connRef3->setRoutingType((Avoid::ConnType)2);
 
     router->processTransaction();
     router->outputDiagramText("/tmp/orthordering-01");
@@ -661,9 +754,9 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
             pinClass,
             Avoid::ATTACH_POS_CENTRE,
             Avoid::ATTACH_POS_CENTRE,
-            true,
-            0,
-            Avoid::ConnDirNone);
+            /*proportional=*/true,
+            /*insideOffset=*/0,
+            /*visDirs=*/Avoid::ConnDirNone);
     };
 
     { // Edge routing works with already positioned elements
@@ -739,7 +832,7 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
 }
 
 TEST_F(GraphUtils_Test, LibavoidRaw1) {
-    Avoid::Router* router = new Avoid::Router(
+    auto router = std::make_shared<Avoid::Router>(
         Avoid::PolyLineRouting | Avoid::OrthogonalRouting);
     router->setRoutingParameter((Avoid::RoutingParameter)0, 50);
     router->setRoutingParameter((Avoid::RoutingParameter)1, 0);
@@ -792,8 +885,8 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
         poly.ps[1] = Avoid::Point{rectMaxX, rectY + rectSize};
         poly.ps[2] = Avoid::Point{rectMinX, rectY + rectSize};
         poly.ps[3] = Avoid::Point{rectMinX, rectY};
-        new Avoid::ShapeRef{router, poly, shapeRefId};
-        Avoid::ConnRef* conn = new Avoid::ConnRef(router, connId);
+        new Avoid::ShapeRef{router.get(), poly, shapeRefId};
+        Avoid::ConnRef* conn = new Avoid::ConnRef(router.get(), connId);
         Avoid::ConnEnd  srcPt(
             Avoid::Point(rectConnectorX, rectY + rectSize / 2), 8);
         conn->setSourceEndpoint(srcPt);
@@ -819,7 +912,7 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
         dest.ps[1] = Avoid::Point(180, 280);
         dest.ps[2] = Avoid::Point(120, 280);
         dest.ps[3] = Avoid::Point(120, 200);
-        new Avoid::ShapeRef(router, dest, 42);
+        new Avoid::ShapeRef(router.get(), dest, 42);
     }
 
     {
@@ -828,7 +921,7 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
         obstacle.ps[1] = Avoid::Point(-120, 830);
         obstacle.ps[2] = Avoid::Point(-180, 830);
         obstacle.ps[3] = Avoid::Point(-180, 690);
-        new Avoid::ShapeRef(router, obstacle, 59);
+        new Avoid::ShapeRef(router.get(), obstacle, 59);
     }
 
     {
@@ -837,14 +930,12 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
         obstacle.ps[1] = Avoid::Point(-120, 250);
         obstacle.ps[2] = Avoid::Point(-180, 250);
         obstacle.ps[3] = Avoid::Point(-180, 100);
-        new Avoid::ShapeRef(router, obstacle, 60);
+        new Avoid::ShapeRef(router.get(), obstacle, 60);
     }
 
 
     router->processTransaction();
     router->outputInstanceToSVG("/tmp/nudgingSkipsCheckpoint02");
-
-    delete router;
 }
 
 TEST_F(GraphUtils_Test, LibcolaRaw3) {

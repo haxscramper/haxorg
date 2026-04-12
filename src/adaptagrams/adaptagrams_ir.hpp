@@ -14,14 +14,6 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 
-#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
-#    pragma warning(push, 0)
-#    include <libavoid/libavoid.h>
-#    include <libdialect/graphs.h>
-#    pragma warning(pop)
-#endif
-#pragma clang diagnostic ignored "-Wunknown-attributes"
-
 #if false
 namespace hstd::ext {
 
