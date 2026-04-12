@@ -467,7 +467,7 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     hstd::writeFile(
         getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, true).to_string());
+        hstd::ext::visual::toSvg(visual, false).to_string());
 
     hstd::writeFile(
         getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
@@ -488,6 +488,15 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
 
     using VE = hstd::ext::visual::VisElement;
 
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(run->getVisual(vs.at(0)), run->getVisual(vs.at(2))));
+
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(run->getVisual(vs.at(1)), run->getVisual(vs.at(2))));
+
+    EXPECT_OUTCOME_OK(
+        checkAbove(run->getVisual(vs.at(1)), run->getVisual(vs.at(0))));
+
     // group 0
     for (auto const& [group_idx, group] :
          hstd::enumerate(hstd::as_vec(&vsg1, &vsg2))) {
@@ -507,15 +516,6 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
         for (VertexID vert : group->getVertices()) {
             auto const& group_visual = run->getVisual(gid);
             auto const& item_visual  = run->getVisual(vert);
-            {
-                auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([&]() {
-                    return ::hstd::log::init_file_sink(getDebugFile(
-                        hstd::fmt("trace-{}-{}.log", gid, vert)));
-                });
-                group_visual.computeBoundsNoSelfOffset();
-                HSLOG_TRACE("Item visual group");
-                computeBounds(item_visual);
-            }
             EXPECT_OUTCOME_OK(
                 checkFullyCovers(
                     group_visual.computeBoundsNoSelfOffset(),

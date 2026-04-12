@@ -344,6 +344,16 @@ nested       = {}
                 nested)));
 }
 
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(
+    visual::VisGroup const& value) {
+    return value.computeBounds();
+}
+
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(
+    hstd::Vec<visual::VisGroup> const& value) {
+    return visual::computeBounds(value);
+}
+
 } // namespace detail
 
 GeometryCheckResult checkIntersects(

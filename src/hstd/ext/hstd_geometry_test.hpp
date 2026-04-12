@@ -1,9 +1,13 @@
 #pragma once
 
 #include <hstd/ext/hstd_geometry.hpp>
+#include <hstd/ext/hstd_visual.hpp>
 #include <hstd/stdlib/Outcome.hpp>
 #include <boost/outcome/result.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 namespace hstd::ext::geometry {
 
@@ -52,6 +56,10 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(Rect const& value);
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     Point const& value);
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(Path const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(
+    visual::VisGroup const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(
+    hstd::Vec<visual::VisGroup> const& value);
 
 GeometryCheckResult checkLeftOfBounds(
     Rect const& first,
