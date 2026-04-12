@@ -8,6 +8,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <utility>
 
 namespace hstd::ext::geometry {
 
@@ -43,15 +44,68 @@ template <typename L, typename R>
 GeometryCheckResult checkAbove(L const& first, R const& second);
 
 template <typename L, typename R>
+GeometryCheckResult checkPartiallyAbove(
+    L const& first,
+    R const& second,
+    double   maxUnderPercent);
+
+template <typename L, typename R>
 GeometryCheckResult checkBelow(L const& first, R const& second);
 
 template <typename L, typename R>
 GeometryCheckResult checkFullyCovers(L const& first, R const& second);
-} // namespace hstd::ext::geometry
 
+template <typename L, typename R>
+GeometryCheckResult checkAlignedHorizontally(
+    L const& first,
+    R const& second,
+    double   tolerance = 0.0);
+
+template <typename L, typename R>
+GeometryCheckResult checkAlignedVertically(
+    L const& first,
+    R const& second,
+    double   tolerance = 0.0);
+
+template <typename L, typename R>
+GeometryCheckResult checkMinDistance(
+    L const& first,
+    R const& second,
+    double   minDistance);
+
+template <typename L, typename R>
+GeometryCheckResult checkMaxDistance(
+    L const& first,
+    R const& second,
+    double   maxDistance);
+
+template <typename L, typename R>
+GeometryCheckResult checkSameSize(
+    L const& first,
+    R const& second,
+    double   tolerance = 0.0);
+
+template <typename L, typename R>
+GeometryCheckResult checkSameWidth(
+    L const& first,
+    R const& second,
+    double   tolerance = 0.0);
+
+template <typename L, typename R>
+GeometryCheckResult checkSameHeight(
+    L const& first,
+    R const& second,
+    double   tolerance = 0.0);
+
+template <typename T>
+GeometryCheckResult checkEquidistant(
+    hstd::Vec<T> const& values,
+    double              tolerance = 0.0);
+} // namespace hstd::ext::geometry
 
 namespace hstd::ext::geometry {
 namespace detail {
+
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(Rect const& value);
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     Point const& value);
@@ -70,236 +124,296 @@ GeometryCheckResult checkRightOfBounds(
 GeometryCheckResult checkAboveBounds(
     Rect const& first,
     Rect const& second);
+GeometryCheckResult checkPartiallyAboveBounds(
+    Rect const& fixed,
+    Rect const& relative,
+    double      maxUnderPercent);
 GeometryCheckResult checkBelowBounds(
     Rect const& first,
     Rect const& second);
 GeometryCheckResult checkFullyCoversBounds(
     Rect const& first,
     Rect const& second);
+
+GeometryCheckResult checkAlignedHorizontallyBounds(
+    Rect const& first,
+    Rect const& second,
+    double      tolerance);
+GeometryCheckResult checkAlignedVerticallyBounds(
+    Rect const& first,
+    Rect const& second,
+    double      tolerance);
+GeometryCheckResult checkMinDistanceBounds(
+    Rect const& first,
+    Rect const& second,
+    double      minDistance);
+GeometryCheckResult checkMaxDistanceBounds(
+    Rect const& first,
+    Rect const& second,
+    double      maxDistance);
+GeometryCheckResult checkSameSizeBounds(
+    Rect const& first,
+    Rect const& second,
+    double      tolerance);
+GeometryCheckResult checkSameWidthBounds(
+    Rect const& first,
+    Rect const& second,
+    double      tolerance);
+GeometryCheckResult checkSameHeightBounds(
+    Rect const& first,
+    Rect const& second,
+    double      tolerance);
+GeometryCheckResult checkEquidistantBounds(
+    hstd::Vec<Rect> const& items,
+    double                 tolerance);
+
+template <typename L, typename R, typename Fn>
+GeometryCheckResult runBinaryBoundsCheck(
+    char const* checkName,
+    L const&    first,
+    R const&    second,
+    Fn&&        fn) {
+    auto fb = boundsOf(first);
+    if (!fb) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+check  = {}
+error  = failed to compute first bounds
+reason = {}
+)",
+                    checkName,
+                    fb.error().message())));
+    }
+
+    auto sb = boundsOf(second);
+    if (!sb) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+check  = {}
+error  = failed to compute second bounds
+reason = {}
+)",
+                    checkName,
+                    sb.error().message())));
+    }
+
+    auto r = std::forward<Fn>(fn)(fb.value(), sb.value());
+    if (!r) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+check  = {}
+first  = {}
+second = {}
+reason = {}
+)",
+                    checkName,
+                    first,
+                    second,
+                    r.error().message())));
+    }
+
+    return boost::outcome_v2::success();
+}
+
 } // namespace detail
 
 template <typename L, typename R>
 GeometryCheckResult checkLeftOf(L const& first, R const& second) {
-    auto fb = detail::boundsOf(first);
-    if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute first bounds
-reason = {}
-)",
-                    fb.error().message())));
-    }
-
-    auto sb = detail::boundsOf(second);
-    if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute second bounds
-reason = {}
-)",
-                    sb.error().message())));
-    }
-
-    auto r = detail::checkLeftOfBounds(fb.value(), sb.value());
-    if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = left-of
-first  = {}
-second = {}
-reason = {}
-)",
-                    first,
-                    second,
-                    r.error().message())));
-    }
-
-    return boost::outcome_v2::success();
+    return detail::runBinaryBoundsCheck(
+        "left-of", first, second, [](Rect const& a, Rect const& b) {
+            return detail::checkLeftOfBounds(a, b);
+        });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkRightOf(L const& first, R const& second) {
-    auto fb = detail::boundsOf(first);
-    if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute first bounds
-reason = {}
-)",
-                    fb.error().message())));
-    }
-
-    auto sb = detail::boundsOf(second);
-    if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute second bounds
-reason = {}
-)",
-                    sb.error().message())));
-    }
-
-    auto r = detail::checkRightOfBounds(fb.value(), sb.value());
-    if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = right-of
-first  = {}
-second = {}
-reason = {}
-)",
-                    first,
-                    second,
-                    r.error().message())));
-    }
-
-    return boost::outcome_v2::success();
+    return detail::runBinaryBoundsCheck(
+        "right-of", first, second, [](Rect const& a, Rect const& b) {
+            return detail::checkRightOfBounds(a, b);
+        });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkAbove(L const& first, R const& second) {
-    auto fb = detail::boundsOf(first);
-    if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute first bounds
-reason = {}
-)",
-                    fb.error().message())));
-    }
+    return detail::runBinaryBoundsCheck(
+        "above", first, second, [](Rect const& a, Rect const& b) {
+            return detail::checkAboveBounds(a, b);
+        });
+}
 
-    auto sb = detail::boundsOf(second);
-    if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute second bounds
-reason = {}
-)",
-                    sb.error().message())));
-    }
-
-    auto r = detail::checkAboveBounds(fb.value(), sb.value());
-    if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = above
-first  = {}
-second = {}
-reason = {}
-)",
-                    first,
-                    second,
-                    r.error().message())));
-    }
-
-    return boost::outcome_v2::success();
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyAbove(
+    L const& first,
+    R const& second,
+    double   maxUnderPercent) {
+    return detail::runBinaryBoundsCheck(
+        "partially-above",
+        first,
+        second,
+        [maxUnderPercent](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyAboveBounds(
+                a, b, maxUnderPercent);
+        });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkBelow(L const& first, R const& second) {
-    auto fb = detail::boundsOf(first);
-    if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute first bounds
-reason = {}
-)",
-                    fb.error().message())));
-    }
-
-    auto sb = detail::boundsOf(second);
-    if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute second bounds
-reason = {}
-)",
-                    sb.error().message())));
-    }
-
-    auto r = detail::checkBelowBounds(fb.value(), sb.value());
-    if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = below
-first  = {}
-second = {}
-reason = {}
-)",
-                    first,
-                    second,
-                    r.error().message())));
-    }
-
-    return boost::outcome_v2::success();
+    return detail::runBinaryBoundsCheck(
+        "below", first, second, [](Rect const& a, Rect const& b) {
+            return detail::checkBelowBounds(a, b);
+        });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkFullyCovers(L const& first, R const& second) {
-    auto fb = detail::boundsOf(first);
-    if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute first bounds
+    return detail::runBinaryBoundsCheck(
+        "fully-covers", first, second, [](Rect const& a, Rect const& b) {
+            return detail::checkFullyCoversBounds(a, b);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkAlignedHorizontally(
+    L const& first,
+    R const& second,
+    double   tolerance) {
+    return detail::runBinaryBoundsCheck(
+        "aligned-horizontally",
+        first,
+        second,
+        [tolerance](Rect const& a, Rect const& b) {
+            return detail::checkAlignedHorizontallyBounds(a, b, tolerance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkAlignedVertically(
+    L const& first,
+    R const& second,
+    double   tolerance) {
+    return detail::runBinaryBoundsCheck(
+        "aligned-vertically",
+        first,
+        second,
+        [tolerance](Rect const& a, Rect const& b) {
+            return detail::checkAlignedVerticallyBounds(a, b, tolerance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkMinDistance(
+    L const& first,
+    R const& second,
+    double   minDistance) {
+    return detail::runBinaryBoundsCheck(
+        "min-distance",
+        first,
+        second,
+        [minDistance](Rect const& a, Rect const& b) {
+            return detail::checkMinDistanceBounds(a, b, minDistance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkMaxDistance(
+    L const& first,
+    R const& second,
+    double   maxDistance) {
+    return detail::runBinaryBoundsCheck(
+        "max-distance",
+        first,
+        second,
+        [maxDistance](Rect const& a, Rect const& b) {
+            return detail::checkMaxDistanceBounds(a, b, maxDistance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkSameSize(
+    L const& first,
+    R const& second,
+    double   tolerance) {
+    return detail::runBinaryBoundsCheck(
+        "same-size",
+        first,
+        second,
+        [tolerance](Rect const& a, Rect const& b) {
+            return detail::checkSameSizeBounds(a, b, tolerance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkSameWidth(
+    L const& first,
+    R const& second,
+    double   tolerance) {
+    return detail::runBinaryBoundsCheck(
+        "same-width",
+        first,
+        second,
+        [tolerance](Rect const& a, Rect const& b) {
+            return detail::checkSameWidthBounds(a, b, tolerance);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkSameHeight(
+    L const& first,
+    R const& second,
+    double   tolerance) {
+    return detail::runBinaryBoundsCheck(
+        "same-height",
+        first,
+        second,
+        [tolerance](Rect const& a, Rect const& b) {
+            return detail::checkSameHeightBounds(a, b, tolerance);
+        });
+}
+
+template <typename T>
+GeometryCheckResult checkEquidistant(
+    hstd::Vec<T> const& values,
+    double              tolerance) {
+    hstd::Vec<Rect> bounds;
+    bounds.reserve(values.size());
+
+    for (auto const& value : values) {
+        auto b = detail::boundsOf(value);
+        if (!b) {
+            return boost::outcome_v2::failure(
+                GeometryError::init(
+                    hstd::fmt(
+                        R"(
+check  = equidistant
+error  = failed to compute bounds
 reason = {}
 )",
-                    fb.error().message())));
+                        b.error().message())));
+        }
+        bounds.push_back(b.value());
     }
 
-    auto sb = detail::boundsOf(second);
-    if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-error  = failed to compute second bounds
-reason = {}
-)",
-                    sb.error().message())));
-    }
-
-    auto r = detail::checkFullyCoversBounds(fb.value(), sb.value());
+    auto r = detail::checkEquidistantBounds(bounds, tolerance);
     if (!r) {
         return boost::outcome_v2::failure(
             GeometryError::init(
                 hstd::fmt(
                     R"(
-check  = fully-covers
-first  = {}
-second = {}
+check  = equidistant
+values = {}
 reason = {}
 )",
-                    first,
-                    second,
+                    values,
                     r.error().message())));
     }
 
     return boost::outcome_v2::success();
 }
+
 } // namespace hstd::ext::geometry
