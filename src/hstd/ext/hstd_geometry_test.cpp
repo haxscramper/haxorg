@@ -20,92 +20,6 @@ struct PathSegment {
     std::size_t pieceIndex;
 };
 
-constexpr int FAIL_CHECK_LABEL_WIDTH = 30;
-
-struct FailVerbatimLine {
-    std::string line;
-};
-
-struct FailVerbatimKV {
-    std::string key;
-    std::string value;
-};
-
-namespace detail {
-
-inline void fail_check_append(
-    std::string&            result,
-    char const*             name,
-    FailVerbatimLine const& v) {
-    result += v.line;
-    result += "\n";
-}
-
-inline void fail_check_append(
-    std::string&          result,
-    char const*           name,
-    FailVerbatimKV const& v) {
-    result += hstd::fmt(
-        "{:<{}} = {}\n", v.key, FAIL_CHECK_LABEL_WIDTH, v.value);
-}
-
-template <typename T>
-void fail_check_append(
-    std::string& result,
-    char const*  name,
-    T const&     value) {
-    result += hstd::fmt(
-        "{:<{}} = {}\n", name, FAIL_CHECK_LABEL_WIDTH, value);
-}
-
-} // namespace detail
-
-inline std::string fail_check_format(char const* error_name) {
-    return hstd::fmt(
-        "{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
-}
-
-template <typename... Args>
-std::string fail_check_format(
-    char const*                        error_name,
-    std::initializer_list<const char*> names,
-    Args const&... args) {
-    std::string result  = fail_check_format(error_name);
-    auto        name_it = names.begin();
-    (detail::fail_check_append(result, *name_it++, args), ...);
-    return result;
-}
-
-#define FAIL_CHECK_NAME(r, data, i, elem) BOOST_PP_STRINGIZE(elem),
-
-#define FAIL_CHECK_VAL(r, data, i, elem) elem,
-
-#define FAIL_CHECK_WITH_ARGS(error_name, ...)                             \
-    boost::outcome_v2::failure(                                           \
-        GeometryError::init(fail_check_format(                            \
-            error_name,                                                   \
-            {BOOST_PP_SEQ_FOR_EACH_I(                                     \
-                FAIL_CHECK_NAME,                                          \
-                _,                                                        \
-                BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))},                  \
-            BOOST_PP_SEQ_FOR_EACH_I(                                      \
-                FAIL_CHECK_VAL,                                           \
-                _,                                                        \
-                BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))))
-
-#define FAIL_CHECK_NO_ARGS(error_name)                                    \
-    boost::outcome_v2::failure(                                           \
-        GeometryError::init(fail_check_format(error_name)))
-
-#define FAIL_CHECK_DISPATCH(error_name, ...)                              \
-    BOOST_PP_IF(                                                          \
-        BOOST_PP_EQUAL(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__), 1),           \
-        FAIL_CHECK_NO_ARGS,                                               \
-        FAIL_CHECK_WITH_ARGS)                                             \
-    (error_name, ##__VA_ARGS__)
-
-#define FAIL_CHECK(...) FAIL_CHECK_DISPATCH(__VA_ARGS__, )
-
 
 static double rectWidth(Rect const& r) {
     return bg::get<bg::max_corner, 0>(r) - bg::get<bg::min_corner, 0>(r);
@@ -175,15 +89,13 @@ static Point cubicAt(
 
 static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flattenPath(
     Path const& path) {
-    if (path.commands.empty()) { return FAIL_CHECK("path is empty"); }
+    if (path.commands.empty()) {
+        return HSDT_GEOMETRY_FAIL_CHECK("path is empty");
+    }
 
     if (path.commands.front().type != Path::CommandType::MoveTo) {
-        return boost::outcome_v2::failure(makeError(
-            R"(
-error        = path must start with MoveTo
-firstCommand = {}
-)",
-            path.commands.front()));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(path must start with MoveTo)", path.commands.front());
     }
 
     constexpr int steps = 24;
@@ -204,14 +116,8 @@ firstCommand = {}
         }
 
         if (!hasCurrent) {
-            return boost::outcome_v2::failure(makeError(
-                R"(
-error        = command has no current point
-commandIndex = {}
-command      = {}
-)",
-                i,
-                cmd));
+            return HSDT_GEOMETRY_FAIL_CHECK(
+                R"(command has no current point)", i, cmd);
         }
 
         if (cmd.type == Path::CommandType::LineTo) {
@@ -274,15 +180,51 @@ command      = {}
     }
 
     if (segments.empty()) {
-        return boost::outcome_v2::failure(makeError(
-            R"(
-error = path has no drawable segments
-path  = {}
-)",
-            path));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(path has no drawable segments)", path);
     }
 
     return segments;
+}
+
+template <typename T>
+GeometryCheckResult checkEquidistant(
+    hstd::Vec<T> const& values,
+    double              tolerance) {
+    hstd::Vec<Rect> bounds;
+    bounds.reserve(values.size());
+
+    for (auto const& value : values) {
+        auto b = detail::boundsOf(value);
+        if (!b) {
+            return boost::outcome_v2::failure(
+                GeometryError::init(
+                    hstd::fmt(
+                        R"(
+check  = equidistant
+error  = failed to compute bounds
+reason = {}
+)",
+                        b.error().message())));
+        }
+        bounds.push_back(b.value());
+    }
+
+    auto r = detail::checkEquidistantBounds(bounds, tolerance);
+    if (!r) {
+        return boost::outcome_v2::failure(
+            GeometryError::init(
+                hstd::fmt(
+                    R"(
+check  = equidistant
+values = {}
+reason = {}
+)",
+                    values,
+                    r.error().message())));
+    }
+
+    return boost::outcome_v2::success();
 }
 
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(
@@ -326,18 +268,8 @@ GeometryCheckResult checkLeftOfBounds(
 
     if (firstRight <= secondLeft) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check      = left-of-bounds
-firstRight = {}
-secondLeft = {}
-first      = {}
-second     = {}
-)",
-        firstRight,
-        secondLeft,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(left-of-bounds)", firstRight, secondLeft, first, second);
 }
 
 GeometryCheckResult checkRightOfBounds(
@@ -348,18 +280,8 @@ GeometryCheckResult checkRightOfBounds(
 
     if (secondRight <= firstLeft) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check       = right-of-bounds
-firstLeft   = {}
-secondRight = {}
-first       = {}
-second      = {}
-)",
-        firstLeft,
-        secondRight,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(right-of-bounds)", firstLeft, secondRight, first, second);
 }
 
 GeometryCheckResult checkAboveBounds(
@@ -370,31 +292,17 @@ GeometryCheckResult checkAboveBounds(
 
     if (firstBottom <= secondTop) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check       = above-bounds
-firstBottom = {}
-secondTop   = {}
-first       = {}
-second      = {}
-)",
-        firstBottom,
-        secondTop,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(above-bounds)", firstBottom, secondTop, first, second);
 }
 
 GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& fixed,
     Rect const& relative,
     double      maxUnderPercent) {
-    if (maxUnderPercent < 0.0 || maxUnderPercent > 100.0) {
-        return failCheck(
-            R"(
-check           = partially-above-bounds
-error           = maxUnderPercent must be in [0, 100]
-maxUnderPercent = {}
-)",
+    if (maxUnderPercent < 0.0 || 100.0 < maxUnderPercent) {
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(partially-above-bounds maxUnderPercent must be in [0, 100])",
             maxUnderPercent);
     }
 
@@ -420,19 +328,8 @@ maxUnderPercent = {}
         return boost::outcome_v2::success();
     }
 
-    return failCheck(
-        R"(
-check                   = partially-above-bounds
-lineY                   = {}
-relativeTop             = {}
-relativeBottom          = {}
-relativeHeight          = {}
-relativeUnderLine       = {}
-relativeUnderLinePct    = {:.2f}
-allowedUnderLinePctMax  = {:.2f}
-fixed                   = {}
-relative                = {}
-)",
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(partially-above-bounds)",
         lineY,
         relativeTop,
         relativeBot,
@@ -452,18 +349,8 @@ GeometryCheckResult checkBelowBounds(
 
     if (secondBottom <= firstTop) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check        = below-bounds
-firstTop     = {}
-secondBottom = {}
-first        = {}
-second       = {}
-)",
-        firstTop,
-        secondBottom,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(below-bounds)", firstTop, secondBottom, first, second);
 }
 
 GeometryCheckResult checkFullyCoversBounds(
@@ -494,25 +381,8 @@ GeometryCheckResult checkFullyCoversBounds(
     double mainByNested = overlapPercent(interArea, mainArea);
     double nestedByMain = overlapPercent(interArea, nestedArea);
 
-    return failCheck(
-        R"(
-check                         = fully-covers-bounds
-mainLeft                      = {}
-mainTop                       = {}
-mainRight                     = {}
-mainBottom                    = {}
-nestedLeft                    = {}
-nestedTop                     = {}
-nestedRight                   = {}
-nestedBottom                  = {}
-overlapArea                   = {}
-mainArea                      = {}
-nestedArea                    = {}
-main overlapped by nested by  = {:.2f}%
-nested overlapped by main by  = {:.2f}%
-main                          = {}
-nested                        = {}
-)",
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(ully-covers-bounds)",
         mainLeft,
         mainTop,
         mainRight,
@@ -544,16 +414,8 @@ GeometryCheckResult checkAlignedHorizontallyBounds(
 
     if (delta <= tolerance) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check      = aligned-horizontally-bounds
-firstCy    = {}
-secondCy   = {}
-delta      = {}
-tolerance  = {}
-first      = {}
-second     = {}
-)",
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(aligned-horizontally-bounds)",
         firstCy,
         secondCy,
         delta,
@@ -576,16 +438,8 @@ GeometryCheckResult checkAlignedVerticallyBounds(
 
     if (delta <= tolerance) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check      = aligned-vertically-bounds
-firstCx    = {}
-secondCx   = {}
-delta      = {}
-tolerance  = {}
-first      = {}
-second     = {}
-)",
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(aligned-vertically-bounds)",
         firstCx,
         secondCx,
         delta,
@@ -601,18 +455,8 @@ GeometryCheckResult checkMinDistanceBounds(
     double d = bg::distance(first, second);
     if (minDistance <= d) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check       = min-distance-bounds
-distance    = {}
-minDistance = {}
-first       = {}
-second      = {}
-)",
-        d,
-        minDistance,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(min-distance-bounds)", d, minDistance, first, second);
 }
 
 GeometryCheckResult checkMaxDistanceBounds(
@@ -622,18 +466,8 @@ GeometryCheckResult checkMaxDistanceBounds(
     double d = bg::distance(first, second);
     if (d <= maxDistance) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check       = max-distance-bounds
-distance    = {}
-maxDistance = {}
-first       = {}
-second      = {}
-)",
-        d,
-        maxDistance,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(max-distance-bounds)", d, maxDistance, first, second);
 }
 
 GeometryCheckResult checkSameWidthBounds(
@@ -646,22 +480,8 @@ GeometryCheckResult checkSameWidthBounds(
 
     if (d <= tolerance) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check     = same-width-bounds
-firstW    = {}
-secondW   = {}
-delta     = {}
-tolerance = {}
-first     = {}
-second    = {}
-)",
-        fw,
-        sw,
-        d,
-        tolerance,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(same-width-bounds)", fw, sw, d, tolerance, first, second);
 }
 
 GeometryCheckResult checkSameHeightBounds(
@@ -674,22 +494,8 @@ GeometryCheckResult checkSameHeightBounds(
 
     if (d <= tolerance) { return boost::outcome_v2::success(); }
 
-    return failCheck(
-        R"(
-check     = same-height-bounds
-firstH    = {}
-secondH   = {}
-delta     = {}
-tolerance = {}
-first     = {}
-second    = {}
-)",
-        fh,
-        sh,
-        d,
-        tolerance,
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(same-height-bounds)", fh, sh, d, tolerance, first, second);
 }
 
 GeometryCheckResult checkSameSizeBounds(
@@ -709,12 +515,8 @@ GeometryCheckResult checkEquidistantBounds(
     hstd::Vec<Rect> const& items,
     double                 tolerance) {
     if (items.size() < 3) {
-        return failCheck(
-            R"(
-check = equidistant-bounds
-error = need at least three shapes
-count = {}
-)",
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(equidistant-bounds need at least three shapes)",
             items.size());
     }
 
@@ -750,15 +552,9 @@ count = {}
     double expected = spacing.front();
     for (double s : spacing) {
         if (std::abs(s - expected) > tolerance) {
-            return failCheck(
-                R"(
-check      = equidistant-bounds
-axis       = {}
-spacing    = {}
-expected   = {}
-tolerance  = {}
-)",
-                useHorizontalAxis ? "horizontal" : "vertical",
+            return HSDT_GEOMETRY_FAIL_CHECK(
+                R"(equidistant-bounds)",
+                useHorizontalAxis,
                 spacing,
                 expected,
                 tolerance);
@@ -787,14 +583,8 @@ GeometryCheckResult checkIntersects(
         return boost::outcome_v2::success();
     }
 
-    return detail::failCheck(
-        R"(
-check  = point-point-intersects
-first  = {}
-second = {}
-)",
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(point-point-intersects)", first, second);
 }
 
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
@@ -802,14 +592,8 @@ GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
         return boost::outcome_v2::success();
     }
 
-    return detail::failCheck(
-        R"(
-check = point-rect-intersects
-point = {}
-rect  = {}
-)",
-        point,
-        rect);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(point-rect-intersects)", point, rect);
 }
 
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point) {
@@ -819,12 +603,8 @@ GeometryCheckResult checkIntersects(Rect const& rect, Point const& point) {
 GeometryCheckResult checkIntersects(Point const& point, Path const& path) {
     auto segs = detail::flattenPath(path);
     if (!segs) {
-        return detail::failCheck(
-            R"(
-check  = point-path-intersects
-error  = cannot flatten path
-reason = {}
-)",
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(point-path-intersects cannot flatten path)",
             segs.error().message());
     }
 
@@ -834,14 +614,8 @@ reason = {}
         }
     }
 
-    return detail::failCheck(
-        R"(
-check = point-path-intersects
-point = {}
-path  = {}
-)",
-        point,
-        path);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(point-path-intersects)", point, path);
 }
 
 GeometryCheckResult checkIntersects(Path const& path, Point const& point) {
@@ -851,12 +625,8 @@ GeometryCheckResult checkIntersects(Path const& path, Point const& point) {
 GeometryCheckResult checkIntersects(Rect const& rect, Path const& path) {
     auto segs = detail::flattenPath(path);
     if (!segs) {
-        return detail::failCheck(
-            R"(
-check  = rect-path-intersects
-error  = cannot flatten path
-reason = {}
-)",
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(rect-path-intersects cannot flatten path)",
             segs.error().message());
     }
 
@@ -866,14 +636,7 @@ reason = {}
         }
     }
 
-    return detail::failCheck(
-        R"(
-check = rect-path-intersects
-rect  = {}
-path  = {}
-)",
-        rect,
-        path);
+    return HSDT_GEOMETRY_FAIL_CHECK(R"(rect-path-intersects)", rect, path);
 }
 
 GeometryCheckResult checkIntersects(Path const& path, Rect const& rect) {
@@ -885,23 +648,15 @@ GeometryCheckResult checkIntersects(
     Path const& second) {
     auto a = detail::flattenPath(first);
     if (!a) {
-        return detail::failCheck(
-            R"(
-check  = path-path-intersects
-error  = cannot flatten first path
-reason = {}
-)",
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(path-path-intersects cannot flatten first path)",
             a.error().message());
     }
 
     auto b = detail::flattenPath(second);
     if (!b) {
-        return detail::failCheck(
-            R"(
-check  = path-path-intersects
-error  = cannot flatten second path
-reason = {}
-)",
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(path-path-intersects cannot flatten second path)",
             b.error().message());
     }
 
@@ -913,14 +668,8 @@ reason = {}
         }
     }
 
-    return detail::failCheck(
-        R"(
-check  = path-path-intersects
-first  = {}
-second = {}
-)",
-        first,
-        second);
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(path-path-intersects)", first, second);
 }
 
 } // namespace hstd::ext::geometry

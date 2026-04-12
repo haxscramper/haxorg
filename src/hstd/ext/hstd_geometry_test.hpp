@@ -16,6 +16,125 @@ struct GeometryError : hstd::CRTP_hexception<GeometryError> {};
 
 using GeometryCheckResult = boost::outcome_v2::result<void, GeometryError>;
 
+namespace detail {
+constexpr int FAIL_CHECK_LABEL_WIDTH = 30;
+
+struct FailVerbatimLine {
+    std::string line;
+};
+
+struct FailVerbatimKV {
+    std::string key;
+    std::string value;
+};
+
+inline void fail_check_append(
+    std::string&            result,
+    char const*             name,
+    FailVerbatimLine const& v) {
+    result += v.line;
+    result += "\n";
+}
+
+inline void fail_check_append(
+    std::string&          result,
+    char const*           name,
+    FailVerbatimKV const& v) {
+    result += hstd::fmt(
+        "{:<{}} = {}\n", v.key, FAIL_CHECK_LABEL_WIDTH, v.value);
+}
+
+template <typename T>
+void fail_check_append(
+    std::string& result,
+    char const*  name,
+    T const&     value) {
+    result += hstd::fmt(
+        "{:<{}} = {}\n", name, FAIL_CHECK_LABEL_WIDTH, value);
+}
+
+
+inline std::string fail_check_format(char const* error_name) {
+    return hstd::fmt(
+        "{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
+}
+
+template <typename... Args>
+std::string fail_check_format(
+    char const*                        error_name,
+    std::initializer_list<const char*> names,
+    Args const&... args) {
+    std::string result = ::hstd::ext::geometry::detail::fail_check_format(
+        error_name);
+    auto name_it = names.begin();
+    (detail::fail_check_append(result, *name_it++, args), ...);
+    return result;
+}
+
+#define __HSTD_GEOMETRY_FAIL_CHECK_NAME(r, data, i, elem)                 \
+    BOOST_PP_STRINGIZE(elem),
+
+#define __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS(error_name, ...)             \
+    boost::outcome_v2::failure(                                           \
+        GeometryError::init(                                              \
+            ::hstd::ext::geometry::detail::fail_check_format(             \
+                error_name,                                               \
+                {BOOST_PP_SEQ_FOR_EACH_I(                                 \
+                    __HSTD_GEOMETRY_FAIL_CHECK_NAME,                      \
+                    _,                                                    \
+                    BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))},              \
+                __VA_ARGS__)))
+
+#define __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS(error_name)                    \
+    boost::outcome_v2::failure(                                           \
+        GeometryError::init(                                              \
+            ::hstd::ext::geometry::detail::fail_check_format(             \
+                error_name)))
+
+#define __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                  \
+    _1,                                                                   \
+    _2,                                                                   \
+    _3,                                                                   \
+    _4,                                                                   \
+    _5,                                                                   \
+    _6,                                                                   \
+    _7,                                                                   \
+    _8,                                                                   \
+    _9,                                                                   \
+    _10,                                                                  \
+    _11,                                                                  \
+    _12,                                                                  \
+    _13,                                                                  \
+    _14,                                                                  \
+    _15,                                                                  \
+    _16,                                                                  \
+    N,                                                                    \
+    ...)                                                                  \
+    N
+
+#define HSDT_GEOMETRY_FAIL_CHECK(...)                                     \
+    __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                      \
+        __VA_ARGS__,                                                      \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
+        __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS)                               \
+    (__VA_ARGS__)
+
+} // namespace detail
+
 GeometryCheckResult checkIntersects(
     Point const& first,
     Point const& second);
@@ -175,47 +294,28 @@ GeometryCheckResult runBinaryBoundsCheck(
     Fn&&        fn) {
     auto fb = boundsOf(first);
     if (!fb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = {}
-error  = failed to compute first bounds
-reason = {}
-)",
-                    checkName,
-                    fb.error().message())));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(failed to compute first bounds)",
+            checkName,
+            fb.error().message());
     }
 
     auto sb = boundsOf(second);
     if (!sb) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = {}
-error  = failed to compute second bounds
-reason = {}
-)",
-                    checkName,
-                    sb.error().message())));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(failed to compute second bounds)",
+            checkName,
+            sb.error().message());
     }
 
     auto r = std::forward<Fn>(fn)(fb.value(), sb.value());
     if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = {}
-first  = {}
-second = {}
-reason = {}
-)",
-                    checkName,
-                    first,
-                    second,
-                    r.error().message())));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            "general-error",
+            checkName,
+            first,
+            second,
+            r.error().message());
     }
 
     return boost::outcome_v2::success();
@@ -386,31 +486,17 @@ GeometryCheckResult checkEquidistant(
     for (auto const& value : values) {
         auto b = detail::boundsOf(value);
         if (!b) {
-            return boost::outcome_v2::failure(
-                GeometryError::init(
-                    hstd::fmt(
-                        R"(
-check  = equidistant
-error  = failed to compute bounds
-reason = {}
-)",
-                        b.error().message())));
+            return HSDT_GEOMETRY_FAIL_CHECK(
+                R"(equidistant failed to compute bounds)",
+                b.error().message());
         }
         bounds.push_back(b.value());
     }
 
     auto r = detail::checkEquidistantBounds(bounds, tolerance);
     if (!r) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    R"(
-check  = equidistant
-values = {}
-reason = {}
-)",
-                    values,
-                    r.error().message())));
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(equidistant)", values, r.error().message());
     }
 
     return boost::outcome_v2::success();
