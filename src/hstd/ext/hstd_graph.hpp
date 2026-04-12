@@ -899,8 +899,7 @@ class ILayoutAttribute : public IAttribute {};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
-    /// \brief position + size relative to parent. Return size in universal
-    /// coordinates.
+    /// \brief position + size relative to parent.
     virtual Rect                        getBBox() const   = 0;
     virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
 };

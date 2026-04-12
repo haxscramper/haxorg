@@ -529,6 +529,7 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 }
 
 void gv::Layout::createLayout(GraphGroup const& graph) {
+    agseterr(AGERR);
     hstd::logic_assertion_check_not_nil(this);
     auto g    = const_cast<Agraph_t*>(graph.get());
     auto algo = strdup(layoutTypeToString(layout).c_str());

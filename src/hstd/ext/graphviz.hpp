@@ -84,12 +84,13 @@ enum class TextAlign
 
 enum class LayoutType
 {
-    Dot,   /// Hierarchical layout
-    Neato, /// Spring model layout
-    Fdp,   /// Force-directed layout
-    Sfdp,  /// Multiscale version of Fdp for large graphs
-    Twopi, /// Radial layout
-    Circo  /// Circular layout
+    Dot,       /// Hierarchical layout
+    Neato,     /// Spring model layout
+    Fdp,       /// Force-directed layout
+    Sfdp,      /// Multiscale version of Fdp for large graphs
+    Twopi,     /// Radial layout
+    Circo,     /// Circular layout
+    Patchwork, /// Patchwork, squarified treemap layout
 };
 
 BOOST_DESCRIBE_ENUM(LayoutType, Dot, Neato, Fdp, Sfdp, Twopi, Circo);

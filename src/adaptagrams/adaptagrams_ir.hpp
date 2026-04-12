@@ -1,27 +1,28 @@
 #pragma once
+
+
+#include <variant>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/ext/graphviz.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+
+#ifdef ORG_BUILD_WITH_ADAPTAGRAMS
+#    pragma warning(push, 0)
+#    include <libavoid/libavoid.h>
+#    include <libdialect/graphs.h>
+#    pragma warning(pop)
+#endif
+#pragma clang diagnostic ignored "-Wunknown-attributes"
+
 #if false
-
-#    include <variant>
-#    include <hstd/stdlib/Str.hpp>
-#    include <hstd/system/reflection.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <hstd/stdlib/Ptrs.hpp>
-#    include <hstd/stdlib/Map.hpp>
-#    include <hstd/ext/graphviz.hpp>
-#    include <hstd/stdlib/VariantFormatter.hpp>
-#    include <hstd/stdlib/VecFormatter.hpp>
-#    include <hstd/stdlib/PairFormatter.hpp>
-#    include <hstd/stdlib/OptFormatter.hpp>
-#    include <hstd/stdlib/MapFormatter.hpp>
-
-#    ifdef ORG_BUILD_WITH_ADAPTAGRAMS
-#        pragma warning(push, 0)
-#        include <libavoid/libavoid.h>
-#        include <libdialect/graphs.h>
-#        pragma warning(pop)
-#    endif
-#    pragma clang diagnostic ignored "-Wunknown-attributes"
-
 namespace hstd::ext {
 
 enum class [[refl]] GraphDimension
