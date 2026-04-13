@@ -1,3 +1,4 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/ext/hstd_geometry_test.hpp>
 #include <boost/geometry/geometries/segment.hpp>
 #include <algorithm>
@@ -259,102 +260,148 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     return Rect(minX, minY, maxX - minX, maxY - minY);
 }
 
-GeometryCheckResult checkPartiallyAboveBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxUnderPercent,
-    double      rtol,
-    double      atol) {
-    if (maxUnderPercent < 0.0 || 100.0 < maxUnderPercent) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(partially-above-bounds maxUnderPercent must be in [0, 100])",
-            maxUnderPercent);
-    }
 
-    double stationaryMinY = bg::get<bg::min_corner, 1>(stationary);
-    double relativeMinY   = bg::get<bg::min_corner, 1>(relative);
-    double relativeMaxY   = bg::get<bg::max_corner, 1>(relative);
-    double relHeight      = std::max(0.0, relativeMaxY - relativeMinY);
+namespace {
+DECL_DESCRIBED_ENUM_STANDALONE(
+    OverflowSide,
+    EdgeBeforeRelative,
+    EdgeAfterRelative);
 
-    double underLen = 0.0;
-    if (stationaryMinY <= relativeMinY) {
-        underLen = relHeight;
-    } else if (relativeMaxY <= stationaryMinY) {
-        underLen = 0.0;
-    } else {
-        underLen = relativeMaxY - stationaryMinY;
-    }
-
-    double underPercent = relHeight == 0.0
-                            ? (stationaryMinY <= relativeMinY ? 100.0
-                                                              : 0.0)
-                            : (underLen / relHeight) * 100.0;
-
-    if (underPercent <= maxUnderPercent
-        || isclose(underPercent, maxUnderPercent, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(partially-above-bounds)",
-        stationaryMinY,
-        relativeMinY,
-        relativeMaxY,
-        relHeight,
-        underLen,
-        underPercent,
-        maxUnderPercent,
-        stationary,
-        relative);
-}
-
-GeometryCheckResult checkPartiallyBelowBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxOverPercent,
-    double      rtol,
-    double      atol) {
+GeometryCheckResult checkPartiallyBoundsImpl(
+    char const*  checkName,
+    double       edge,
+    double       relMin,
+    double       relMax,
+    OverflowSide side,
+    double       maxOverPercent,
+    double       rtol,
+    double       atol,
+    Rect const&  stationary,
+    Rect const&  relative) {
     if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(partially-below-bounds maxOverPercent must be in [0, 100])",
-            maxOverPercent);
+            R"(percent overrun must be in [0, 100])", maxOverPercent);
     }
 
-    double stationaryMaxY = bg::get<bg::max_corner, 1>(stationary);
-    double relativeMinY   = bg::get<bg::min_corner, 1>(relative);
-    double relativeMaxY   = bg::get<bg::max_corner, 1>(relative);
-    double relHeight      = std::max(0.0, relativeMaxY - relativeMinY);
+    double relExtent = std::max(0.0, relMax - relMin);
 
     double overLen = 0.0;
-    if (relativeMaxY <= stationaryMaxY) {
-        overLen = 0.0;
-    } else if (stationaryMaxY <= relativeMinY) {
-        overLen = relHeight;
+    // preceding means coordinate is less than, after means the coordinate
+    // is bigger than.
+    if (side == OverflowSide::EdgeBeforeRelative) {
+        // Expected the relative object to be placed left/above of the
+        // stationary one, with the relative coordinates less or equal that
+        // of the stationary edge.
+        if (relMax <= edge) {
+            // The shape is fully preceding the edge
+            //      ┌─────┐ rel min
+            //      └─────┘ rel max
+            // edge ───────
+            overLen = 0.0;
+        } else if (edge <= relMin) {
+            // The shape is fully past the edge
+            // edge ───────
+            //      ┌─────┐ rel min
+            //      └─────┘ rel max
+            overLen = relExtent;
+        } else {
+            // The shape is bisected by the edge, expecting the
+            // the part before the edge is counted to overrun.
+            //                         X/Y
+            //      ┌─────┐ rel min    │
+            // edge ╞═════╪════════■  │
+            //      │     │        │   │
+            //      └─────┘ rel max■  ▼
+            overLen = relMax - edge;
+        }
     } else {
-        overLen = relativeMaxY - stationaryMaxY;
+        // Edge after relative, the object is expected to be placed
+        // below/right fo the stationary one, with the relative coordinates
+        // less or equal that of the stationary edge.
+        if (relMax <= edge) {
+            // object is fully preceding the edge, full overrun
+            //      ┌─────┐ rel min
+            //      └─────┘ rel max
+            // edge ───────
+            overLen = relExtent;
+        } else if (edge <= relMin) {
+            // object is fully past the edge, no overrun,
+            // edge ───────
+            //      ┌─────┐ rel min
+            //      └─────┘ rel max
+            overLen = 0.0;
+        } else {
+            //                         X/Y
+            //      ┌─────┐ rel min■  │
+            //      │     │        │   │
+            // edge ╞═════╪════════■  │
+            //      └─────┘ rel max    ▼
+            overLen = edge - relMin;
+        }
     }
 
-    double overPercent = relHeight == 0.0
-                           ? (stationaryMaxY <= relativeMinY ? 100.0 : 0.0)
-                           : (overLen / relHeight) * 100.0;
+    double overPercent = 0.0;
+    if (hstd::isclose(0.0, relExtent)) {
+        if (side == OverflowSide::EdgeBeforeRelative) {
+            if (relMin < edge && !hstd::isclose(relMax, edge)) {
+                overPercent = 0.0;
+            } else {
+                overPercent = 100.0;
+            }
+        } else {
+            if (edge < relMax && !hstd::isclose(relMax, edge)) {
+                overPercent = 100.0;
+            } else {
+                overPercent = 0.0;
+            }
+        }
+    } else {
+        overPercent = (overLen / relExtent) * 100.0;
+    }
+
+
+    auto fail = HSDT_GEOMETRY_FAIL_CHECK(
+        checkName,
+        side,
+        edge,
+        relMin,
+        relMax,
+        relExtent,
+        overLen,
+        overPercent,
+        maxOverPercent,
+        stationary,
+        relative);
 
     if (overPercent <= maxOverPercent
         || isclose(overPercent, maxOverPercent, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(partially-below-bounds)",
-        stationaryMaxY,
-        relativeMinY,
-        relativeMaxY,
-        relHeight,
-        overLen,
-        overPercent,
-        maxOverPercent,
+    return fail;
+}
+} // namespace
+
+GeometryCheckResult checkPartiallyAboveBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxUnderPercent,
+    double      rtol,
+    double      atol) {
+    return checkPartiallyBoundsImpl(
+        R"(partially-above-bounds)",
+        /*edge=*/bg::get<bg::min_corner, 1>(stationary),
+        /*relMin=*/bg::get<bg::min_corner, 1>(relative),
+        /*relMax=*/bg::get<bg::max_corner, 1>(relative),
+        // Y coordinate is less than the edge
+        OverflowSide::EdgeBeforeRelative,
+        maxUnderPercent,
+        rtol,
+        atol,
         stationary,
         relative);
 }
+
 
 GeometryCheckResult checkPartiallyLeftBounds(
     Rect const& stationary,
@@ -362,44 +409,37 @@ GeometryCheckResult checkPartiallyLeftBounds(
     double      maxOverPercent,
     double      rtol,
     double      atol) {
-    if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(partially-left-bounds maxOverPercent must be in [0, 100])",
-            maxOverPercent);
-    }
-
-    double stationaryMinX = bg::get<bg::min_corner, 0>(stationary);
-    double relativeMinX   = bg::get<bg::min_corner, 0>(relative);
-    double relativeMaxX   = bg::get<bg::max_corner, 0>(relative);
-    double relWidth       = std::max(0.0, relativeMaxX - relativeMinX);
-
-    double overLen = 0.0;
-    if (stationaryMinX <= relativeMinX) {
-        overLen = relWidth;
-    } else if (relativeMaxX <= stationaryMinX) {
-        overLen = 0.0;
-    } else {
-        overLen = stationaryMinX - relativeMinX;
-    }
-
-    double overPercent = relWidth == 0.0
-                           ? (relativeMaxX <= stationaryMinX ? 100.0 : 0.0)
-                           : (overLen / relWidth) * 100.0;
-
-    if (overPercent <= maxOverPercent
-        || isclose(overPercent, maxOverPercent, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
+    return checkPartiallyBoundsImpl(
         R"(partially-left-bounds)",
-        stationaryMinX,
-        relativeMinX,
-        relativeMaxX,
-        relWidth,
-        overLen,
-        overPercent,
+        /*edge=*/bg::get<bg::min_corner, 0>(stationary),
+        /*relMin=*/bg::get<bg::min_corner, 0>(relative),
+        /*relMax=*/bg::get<bg::max_corner, 0>(relative),
+        // X coordinate is less than the edge
+        OverflowSide::EdgeBeforeRelative,
         maxOverPercent,
+        rtol,
+        atol,
+        stationary,
+        relative);
+}
+
+
+GeometryCheckResult checkPartiallyBelowBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol,
+    double      atol) {
+    return checkPartiallyBoundsImpl(
+        R"(partially-below-bounds)",
+        /*edge=*/bg::get<bg::max_corner, 1>(stationary),
+        /*relMin=*/bg::get<bg::min_corner, 1>(relative),
+        /*relMax=*/bg::get<bg::max_corner, 1>(relative),
+        // Y coordinate is greater than the edge
+        OverflowSide::EdgeAfterRelative,
+        maxOverPercent,
+        rtol,
+        atol,
         stationary,
         relative);
 }
@@ -410,44 +450,16 @@ GeometryCheckResult checkPartiallyRightBounds(
     double      maxOverPercent,
     double      rtol,
     double      atol) {
-    if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(partially-right-bounds maxOverPercent must be in [0, 100])",
-            maxOverPercent);
-    }
-
-    double stationaryMaxX = bg::get<bg::max_corner, 0>(stationary);
-    double relativeMinX   = bg::get<bg::min_corner, 0>(relative);
-    double relativeMaxX   = bg::get<bg::max_corner, 0>(relative);
-    double relWidth       = std::max(0.0, relativeMaxX - relativeMinX);
-
-    double overLen = 0.0;
-    if (relativeMaxX <= stationaryMaxX) {
-        overLen = 0.0;
-    } else if (stationaryMaxX <= relativeMinX) {
-        overLen = relWidth;
-    } else {
-        overLen = relativeMaxX - stationaryMaxX;
-    }
-
-    double overPercent = relWidth == 0.0
-                           ? (stationaryMaxX <= relativeMinX ? 100.0 : 0.0)
-                           : (overLen / relWidth) * 100.0;
-
-    if (overPercent <= maxOverPercent
-        || isclose(overPercent, maxOverPercent, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
+    return checkPartiallyBoundsImpl(
         R"(partially-right-bounds)",
-        stationaryMaxX,
-        relativeMinX,
-        relativeMaxX,
-        relWidth,
-        overLen,
-        overPercent,
+        /*edge=*/bg::get<bg::max_corner, 0>(stationary),
+        /*relMin=*/bg::get<bg::min_corner, 0>(relative),
+        /*relMax=*/bg::get<bg::max_corner, 0>(relative),
+        // X coordinate is greater than the edge
+        OverflowSide::EdgeAfterRelative,
         maxOverPercent,
+        rtol,
+        atol,
         stationary,
         relative);
 }

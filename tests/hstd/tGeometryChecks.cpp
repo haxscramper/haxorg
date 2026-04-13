@@ -4,6 +4,27 @@
 namespace hg = hstd::ext::geometry;
 
 TEST(GeometryChecks, RelativeDirectionalChecksUseStationaryFirst) {
+    //             12,0─┐
+    //              │   │
+    //              │   │
+    //              │   │
+    //              └───┘
+    //            10,10────┐
+    //            │        │
+    // 0,12─┐     │        │    25,12┐
+    //  │   │     │        │     │   │
+    //  │   │     │        │     │   │
+    //  │   │     │  15,15─┐     │   │
+    //  └───┘     │    │   │     └───┘
+    //            │    │   │
+    //            │    │   │
+    //            └────└───┘
+    //             12,25┐
+    //              │   │
+    //              │   │
+    //              │   │
+    //              └───┘
+
     hg::Rect stationary(10, 10, 10, 10);
 
     hg::Rect relativeLeft(0, 12, 5, 5);
