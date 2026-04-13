@@ -5,11 +5,15 @@
 #include <hstd/ext/graphviz.hpp>
 #include <hstd/ext/adaptagrams.hpp>
 
+#include <libdialect/hola.h>
+#include <libdialect/opts.h>
+
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/ext/hstd_geometry_test.hpp>
 #include "../common.hpp"
 #include <libcola/output_svg.h>
+#include <utility>
 
 template <typename A, typename T>
 hstd::SPtr<A> as(hstd::SPtr<T> const& value) {
@@ -1134,19 +1138,19 @@ TEST_F(GraphUtils_Test, LibcolaRaw3) {
     new Avoid::ShapeConnectionPin{
         shapeRef4, ID_4_1, dMin, dMid, true, 0.0, Avoid::ConnDirLeft};
 
-    new Avoid::ConnRef{
+    auto conn1 = new Avoid::ConnRef{
         router,
         Avoid::ConnEnd{shapeRef2, ID_2_1},
         Avoid::ConnEnd{shapeRef3, ID_3_2},
     };
 
-    new Avoid::ConnRef{
+    auto conn2 = new Avoid::ConnRef{
         router,
         Avoid::ConnEnd{shapeRef1, ID_1_1},
         Avoid::ConnEnd{shapeRef3, ID_3_1},
     };
 
-    new Avoid::ConnRef{
+    auto conn3 = new Avoid::ConnRef{
         router,
         Avoid::ConnEnd{shapeRef3, ID_3_3},
         Avoid::ConnEnd{shapeRef4, ID_4_1},
@@ -1154,7 +1158,174 @@ TEST_F(GraphUtils_Test, LibcolaRaw3) {
 
 
     router->processTransaction();
-    router->outputInstanceToSVG("/tmp/LibcolaRaw3");
+
+    visual::VisGroup result;
+
+    adapt::add_path(result, conn1->displayRoute());
+    adapt::add_path(result, conn2->displayRoute());
+    adapt::add_path(result, conn3->displayRoute());
+    adapt::add_rect(result, shapeRef1->routingPolygon());
+    adapt::add_rect(result, shapeRef2->routingPolygon());
+    adapt::add_rect(result, shapeRef3->routingPolygon());
+    adapt::add_rect(result, shapeRef4->routingPolygon());
+
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        visual::toSvg({result}, /*debug=*/false).to_string());
+}
+
+namespace {
+void addPinsForShape(Avoid::ShapeRef* shape, int pinsPerSide) {
+    for (int i = 0; i < pinsPerSide; ++i) {
+        double t = static_cast<double>(i + 1)
+                 / static_cast<double>(pinsPerSide + 1);
+
+        new Avoid::ShapeConnectionPin(
+            shape, 1, t, 0.0, true, 0.0, Avoid::ConnDirUp);
+        new Avoid::ShapeConnectionPin(
+            shape, 1, 1.0, t, true, 0.0, Avoid::ConnDirRight);
+        new Avoid::ShapeConnectionPin(
+            shape, 1, t, 1.0, true, 0.0, Avoid::ConnDirDown);
+        new Avoid::ShapeConnectionPin(
+            shape, 1, 0.0, t, true, 0.0, Avoid::ConnDirLeft);
+    }
+}
+
+Avoid::Polygon rectToPolygon(vpsc::Rectangle const* rect) {
+    Avoid::Polygon poly(4);
+    poly.ps[0] = Avoid::Point(rect->getMinX(), rect->getMinY());
+    poly.ps[1] = Avoid::Point(rect->getMaxX(), rect->getMinY());
+    poly.ps[2] = Avoid::Point(rect->getMaxX(), rect->getMaxY());
+    poly.ps[3] = Avoid::Point(rect->getMinX(), rect->getMaxY());
+    return poly;
+}
+} // namespace
+
+TEST_F(GraphUtils_Test, BuildsAndRendersFinalizedGraphWithPins) {
+    using namespace cola;
+
+    std::vector<vpsc::Rectangle*> rectangles;
+    rectangles.push_back(new vpsc::Rectangle(0.0, 110.0, 0.0, 50.0));
+    rectangles.push_back(new vpsc::Rectangle(0.0, 70.0, 0.0, 140.0));
+    rectangles.push_back(new vpsc::Rectangle(0.0, 160.0, 0.0, 60.0));
+    rectangles.push_back(new vpsc::Rectangle(0.0, 90.0, 0.0, 100.0));
+    rectangles.push_back(new vpsc::Rectangle(0.0, 130.0, 0.0, 45.0));
+    rectangles.push_back(new vpsc::Rectangle(0.0, 75.0, 0.0, 120.0));
+
+    // Expand rectangles to force libcola to leave a gap between nodes
+    double layoutMargin = 15.0;
+    for (auto* rect : rectangles) {
+        rect->setXBorder(layoutMargin);
+        rect->setYBorder(layoutMargin);
+    }
+
+
+    std::vector<Edge> edges;
+    edges.emplace_back(0, 1);
+    edges.emplace_back(0, 2);
+    edges.emplace_back(0, 3);
+    edges.emplace_back(0, 4);
+    edges.emplace_back(0, 5);
+    edges.emplace_back(1, 5);
+    edges.emplace_back(2, 5);
+
+    ConstrainedFDLayout layout(rectangles, edges, 80.0);
+    layout.setAvoidNodeOverlaps(true);
+    layout.run();
+
+    // The rectangle borders must be reset after the initial layout to
+    // make SVG visualization work as expected.
+    for (auto* rect : rectangles) {
+        rect->setXBorder(0);
+        rect->setYBorder(0);
+    }
+
+    Avoid::Router router(Avoid::OrthogonalRouting);
+    router.setRoutingParameter(Avoid::segmentPenalty, 10.0);
+    router.setRoutingParameter(Avoid::crossingPenalty, 50.0);
+    router.setRoutingParameter(Avoid::anglePenalty, 1.0);
+    // FIXME: The shape buffer distance does not work here, the SVG
+    // visualization still shows edges that are perfectly flush against the
+    // rectangles.
+    router.setRoutingParameter(Avoid::shapeBufferDistance, 5.0);
+
+    std::vector<Avoid::ShapeRef*> shapes;
+    shapes.reserve(rectangles.size());
+
+    for (std::size_t i = 0; i < rectangles.size(); ++i) {
+        Avoid::Polygon poly  = rectToPolygon(rectangles[i]);
+        auto*          shape = new Avoid::ShapeRef(
+            &router, poly, static_cast<unsigned>(i));
+
+        if (i == 0) {
+            addPinsForShape(shape, 3);
+        } else {
+            addPinsForShape(shape, 2);
+        }
+
+        shapes.push_back(shape);
+    }
+
+    std::vector<Avoid::ConnRef*> conns;
+    conns.reserve(edges.size());
+
+    for (std::size_t i = 0; i < edges.size(); ++i) {
+        Edge const& edge = edges[i];
+
+        auto* conn = new Avoid::ConnRef(&router, static_cast<unsigned>(i));
+        conn->setSourceEndpoint(Avoid::ConnEnd(shapes[edge.first], 1));
+        conn->setDestEndpoint(Avoid::ConnEnd(shapes[edge.second], 1));
+        conns.push_back(conn);
+    }
+
+    router.processTransaction();
+    router.outputInstanceToSVG("/tmp/libcola_libavoid_layout");
+
+    for (auto* conn : conns) { router.deleteConnector(conn); }
+    for (auto* shape : shapes) { router.deleteShape(shape); }
+    for (auto* rect : rectangles) { delete rect; }
+}
+
+TEST_F(GraphUtils_Test, HolaLayoutRaw1) {
+    dialect::Graph g;
+
+    Vec<SPtr<dialect::Node>> nodes;
+
+    using IP = std::pair<int, int>;
+    for (auto const& [w, h] : hstd::Vec<IP>({
+             {110, 50},
+             {70, 140},
+             {160, 60},
+             {90, 100},
+             {130, 45},
+             {75, 120},
+         })) {
+        dialect::Node_SP node = g.addNode(w, h);
+        g.addNode(node);
+        nodes.push_back(node);
+    }
+
+    hstd::UnorderedMap<IP, dialect::Edge_SP> edges;
+
+    for (auto const& pair : hstd::Vec<IP>({
+             {0, 1},
+             {0, 2},
+             {0, 3},
+             {0, 4},
+             {0, 5},
+             {1, 5},
+             {2, 5},
+         })) {
+        dialect::Edge_SP edge = g.addEdge(
+            nodes.at(pair.first), nodes.at(pair.second));
+        edges[pair] = edge;
+    }
+
+    dialect::HolaOpts opts;
+    opts.routingScalar_crossingPenalty = 20;
+    dialect::doHOLA(g, opts);
+
+    hstd::writeFile(getDebugFile("hola_result.svg"), g.writeSvg());
 }
 
 #if false

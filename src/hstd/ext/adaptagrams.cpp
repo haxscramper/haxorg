@@ -13,6 +13,14 @@ geometry::Rect to_hstd(Avoid::Rectangle const& input) {
         bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
 }
 
+geometry::Rect to_hstd(vpsc::Rectangle const& input) {
+    return geometry::Rect(
+        input.getMinX(),
+        input.getMinY(),
+        input.getMaxX() - input.getMinX(),
+        input.getMaxY() - input.getMinY());
+}
+
 geometry::Rect to_hstd_rect(Avoid::Polygon const& input) {
     auto bbox = input.offsetBoundingBox(0);
     return geometry::Rect(

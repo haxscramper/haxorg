@@ -294,30 +294,6 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     return result;
 }
 
-GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
-    HolaResult res;
-    res.graph = std::make_shared<dialect::Graph>();
-
-    for (auto const& rect : rectangles) {
-        auto node = dialect::Node::allocate();
-        node->setDims(rect.width(), rect.height());
-        res.graph->addNode(node);
-        res.nodes.push_back(node);
-    }
-
-    for (auto const& pair : edges) {
-        auto edge = dialect::Edge::allocate(
-            res.nodes.at(pair.source), res.nodes.at(pair.target));
-        res.graph->addEdge(edge);
-        res.edges[pair] = edge;
-    }
-
-    dialect::HolaOpts opts;
-    opts.routingScalar_crossingPenalty = 20;
-    dialect::doHOLA(*res.graph, opts);
-    return res;
-};
-
 GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
     Result res;
     for (auto const& e : this->edges) {

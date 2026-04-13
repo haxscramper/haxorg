@@ -14,10 +14,12 @@
 namespace hstd::ext::graph::adapt {
 
 geometry::Point   to_hstd(Avoid::Point const& input);
+geometry::Rect    to_hstd(vpsc::Rectangle const& input);
 geometry::Rect    to_hstd(Avoid::Rectangle const& input);
 geometry::Rect    to_hstd_rect(Avoid::Polygon const& input);
 geometry::Polygon to_hstd(Avoid::Polygon const& input);
 geometry::Path    to_hstd_path(Avoid::Polygon const& input);
+geometry::Path    to_hstd_path(cola::Edge const& input);
 
 
 inline void add_checkpoint(
@@ -39,6 +41,11 @@ inline void add_path(visual::VisGroup& g, Avoid::Polygon const& shape) {
     g.elements.push_back(
         visual::VisElement{
             visual::VisElement::PathShape{to_hstd_path(shape)}});
+}
+
+inline void add_rect(visual::VisGroup& g, vpsc::Rectangle const& shape) {
+    g.elements.push_back(
+        visual::VisElement{visual::VisElement::RectShape{to_hstd(shape)}});
 }
 
 
