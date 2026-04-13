@@ -345,21 +345,6 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     hstd::Vec<visual::VisGroup> const& value);
 
-GeometryCheckResult checkLeftOfBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkRightOfBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkAboveBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
 GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& stationary,
     Rect const& relative,
@@ -382,11 +367,6 @@ GeometryCheckResult checkPartiallyRightBounds(
     Rect const& stationary,
     Rect const& relative,
     double      maxOverPercent,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkBelowBounds(
-    Rect const& stationary,
-    Rect const& relative,
     double      rtol = 1e-5,
     double      atol = 1e-8);
 GeometryCheckResult checkFullyCoversBounds(
@@ -479,13 +459,7 @@ GeometryCheckResult checkLeftOf(
     R const& relative,
     double   rtol,
     double   atol) {
-    return detail::runBinaryBoundsCheck(
-        "left-of",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkLeftOfBounds(a, b, rtol, atol);
-        });
+    return checkPartiallyLeft(stationary, relative, 0.0, rtol, atol);
 }
 
 template <typename L, typename R>
@@ -494,13 +468,7 @@ GeometryCheckResult checkRightOf(
     R const& relative,
     double   rtol,
     double   atol) {
-    return detail::runBinaryBoundsCheck(
-        "right-of",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkRightOfBounds(a, b, rtol, atol);
-        });
+    return checkPartiallyRight(stationary, relative, 0.0, rtol, atol);
 }
 
 template <typename L, typename R>
@@ -509,10 +477,7 @@ GeometryCheckResult checkAbove(
     R const& relative,
     double   rtol,
     double   atol) {
-    return detail::runBinaryBoundsCheck(
-        "above", stationary, relative, [&](Rect const& a, Rect const& b) {
-            return detail::checkAboveBounds(a, b, rtol, atol);
-        });
+    return checkPartiallyAbove(stationary, relative, 0.0, rtol, atol);
 }
 
 template <typename L, typename R>
@@ -589,10 +554,7 @@ GeometryCheckResult checkBelow(
     R const& relative,
     double   rtol,
     double   atol) {
-    return detail::runBinaryBoundsCheck(
-        "below", stationary, relative, [&](Rect const& a, Rect const& b) {
-            return detail::checkBelowBounds(a, b, rtol, atol);
-        });
+    return checkPartiallyBelow(stationary, relative, 0.0, rtol, atol);
 }
 
 template <typename L, typename R>

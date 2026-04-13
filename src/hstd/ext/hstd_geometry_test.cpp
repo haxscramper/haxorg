@@ -259,77 +259,6 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
     return Rect(minX, minY, maxX - minX, maxY - minY);
 }
 
-GeometryCheckResult checkLeftOfBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol,
-    double      atol) {
-    double stationaryLeft = bg::get<bg::min_corner, 0>(stationary);
-    double relativeRight  = bg::get<bg::max_corner, 0>(relative);
-
-    if (relativeRight <= stationaryLeft
-        || isclose(stationaryLeft, relativeRight, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(left-of-bounds)",
-        stationaryLeft,
-        relativeRight,
-        stationary,
-        relative);
-}
-
-GeometryCheckResult checkRightOfBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol,
-    double      atol) {
-    double stationaryRight = bg::get<bg::max_corner, 0>(stationary);
-    double relativeLeft    = bg::get<bg::min_corner, 0>(relative);
-
-    if (stationaryRight <= relativeLeft
-        || isclose(stationaryRight, relativeLeft, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(right-of-bounds)",
-        stationaryRight,
-        relativeLeft,
-        stationary,
-        relative);
-}
-
-GeometryCheckResult checkAboveBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol,
-    double      atol) {
-    double stationaryTop = bg::get<bg::min_corner, 1>(stationary);
-    double relativeBot   = bg::get<bg::max_corner, 1>(relative);
-
-    if (relativeBot <= stationaryTop
-        || isclose(stationaryTop, relativeBot, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return boost ::outcome_v2 ::failure(
-        GeometryError ::init(
-            ::hstd ::ext ::geometry ::detail ::fail_check_format(
-                R"(above-bounds)",
-                {
-                    "stationaryTop",
-                    "relativeBot",
-                    "stationary",
-                    "relative",
-                },
-                stationaryTop,
-                relativeBot,
-                stationary,
-                relative)));
-}
-
 GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& stationary,
     Rect const& relative,
@@ -518,27 +447,6 @@ GeometryCheckResult checkPartiallyRightBounds(
         overLen,
         overPercent,
         maxOverPercent,
-        stationary,
-        relative);
-}
-
-GeometryCheckResult checkBelowBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      rtol,
-    double      atol) {
-    double stationaryBottom = bg::get<bg::max_corner, 1>(stationary);
-    double relativeTop      = bg::get<bg::min_corner, 1>(relative);
-
-    if (stationaryBottom <= relativeTop
-        || isclose(stationaryBottom, relativeTop, rtol, atol)) {
-        return boost::outcome_v2::success();
-    }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(below-bounds)",
-        stationaryBottom,
-        relativeTop,
         stationary,
         relative);
 }
