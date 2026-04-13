@@ -770,9 +770,6 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
     Avoid::Router  router_it{Avoid::OrthogonalRouting};
     Avoid::Router* router = &router_it;
 
-    Avoid::ShapeRef* shapeRef0;
-    Avoid::ShapeRef* shapeRef1;
-    Avoid::ShapeRef* shapeRef2;
 
     auto pin_for_shape = [](Avoid::ShapeRef* shape, int pinClass) {
         new Avoid::ShapeConnectionPin(
@@ -785,37 +782,25 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
             /*visDirs=*/Avoid::ConnDirNone);
     };
 
-    { // Edge routing works with already positioned elements
-        {
-            auto polygon  = Avoid::Polygon(4);
-            polygon.ps[0] = Avoid::Point(-10.3237, -3.46733);
-            polygon.ps[1] = Avoid::Point(-5.32374, -3.46733);
-            polygon.ps[2] = Avoid::Point(-5.32374, -8.46733);
-            polygon.ps[3] = Avoid::Point(-10.3237, -8.46733);
+    auto add_rect =
+        [&](double x,
+            double y) -> std::pair<Avoid::ShapeRef*, Avoid::Rectangle> {
+        double w = 5;
+        double h = 5;
 
-            shapeRef1 = new Avoid::ShapeRef(router, polygon, 1);
-        }
+        auto polygon = Avoid::Rectangle(
+            Avoid::Point(x, y), Avoid::Point(x + w, y + h));
 
-        {
-            auto polygon  = Avoid::Polygon(4);
-            polygon.ps[0] = Avoid::Point(-56.6515, 15.3407);
-            polygon.ps[1] = Avoid::Point(-51.6515, 15.3407);
-            polygon.ps[2] = Avoid::Point(-51.6515, 10.3407);
-            polygon.ps[3] = Avoid::Point(-56.6515, 10.3407);
+        auto ref = new Avoid::ShapeRef(router, polygon, 1);
 
-            shapeRef0 = new Avoid::ShapeRef(router, polygon, 1);
-        }
+        return {ref, polygon};
+    };
 
-        {
-            auto polygon  = Avoid::Polygon(4);
-            polygon.ps[0] = Avoid::Point(-17.1994, 46.0577);
-            polygon.ps[1] = Avoid::Point(-12.1994, 46.0577);
-            polygon.ps[2] = Avoid::Point(-12.1994, 41.0577);
-            polygon.ps[3] = Avoid::Point(-17.1994, 41.0577);
+    // Edge routing works with already positioned elements
+    auto [shapeRef0, polygon0] = add_rect(-10, 10);
+    auto [shapeRef1, polygon1] = add_rect(-50, 15);
+    auto [shapeRef2, polygon2] = add_rect(-17, 46);
 
-            shapeRef2 = new Avoid::ShapeRef(router, polygon, 2);
-        }
-    }
 
     // each shape can have a number of pins. Pins connected by the same
     // edge must share the same class ID.
@@ -831,29 +816,40 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
         pin_for_shape(shapeRef2, 1);
     }
 
-    {
-        { // Edge 0, connecting first pin of shape 0 to the pin of shape 1
-            Avoid::ConnEnd source{shapeRef0, 2};
-            Avoid::ConnEnd target{shapeRef1, 2};
-            auto conn = new Avoid::ConnRef(router, source, target);
-            conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
-        }
-        {
-            Avoid::ConnEnd source{shapeRef1, 3};
-            Avoid::ConnEnd target{shapeRef2, 3};
-            auto conn = new Avoid::ConnRef(router, source, target);
-            conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
-        }
+    // Edge 0, connecting first pin of shape 0 to the pin of shape 1
+    auto conn01 = new Avoid::ConnRef(
+        router,
+        Avoid::ConnEnd{shapeRef0, 2},
+        Avoid::ConnEnd{shapeRef1, 2});
+    conn01->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
-        {
-            Avoid::ConnEnd source{shapeRef2, 1};
-            Avoid::ConnEnd target{shapeRef0, 1};
-            auto conn = new Avoid::ConnRef(router, source, target);
-            conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
-        }
-    }
+    auto conn12 = new Avoid::ConnRef(
+        router,
+        Avoid::ConnEnd{shapeRef1, 3},
+        Avoid::ConnEnd{shapeRef2, 3});
+    conn12->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
+
+    auto conn20 = new Avoid::ConnRef(
+        router,
+        Avoid::ConnEnd{shapeRef2, 1},
+        Avoid::ConnEnd{shapeRef0, 1});
+    conn20->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
     router->processTransaction();
+
+    visual::VisGroup result;
+    adapt::add_rect(result, polygon0);
+    adapt::add_rect(result, polygon1);
+    adapt::add_rect(result, polygon2);
+
+    adapt::add_path(result, conn01->displayRoute());
+    adapt::add_path(result, conn12->displayRoute());
+    adapt::add_path(result, conn20->displayRoute());
+
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        visual::toSvg({result}, /*debug=*/false).to_string());
+
     router->outputInstanceToSVG("/tmp/testLibcolaRaw2");
 }
 
