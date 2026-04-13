@@ -361,7 +361,7 @@ GeometryCheckResult checkPartiallyAboveBounds(
                             : (underLen / relHeight) * 100.0;
 
     if (underPercent <= maxUnderPercent
-        || isclose(maxUnderPercent, underPercent, rtol, atol)) {
+        || isclose(underPercent, maxUnderPercent, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 

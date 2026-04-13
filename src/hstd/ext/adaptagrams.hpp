@@ -23,10 +23,29 @@ inline geometry::Rect to_hstd(Avoid::Rectangle const& input) {
         bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
 }
 
+inline geometry::Rect to_hstd_rect(Avoid::Polygon const& input) {
+    auto bbox = input.offsetBoundingBox(0);
+    return geometry::Rect(
+        bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
+}
+
 inline geometry::Polygon to_hstd(Avoid::Polygon const& input) {
     geometry::Polygon result;
     for (int i = 0; i < input.size(); ++i) {
         result.push_back(to_hstd(input.at(i)));
+    }
+
+    return result;
+}
+
+inline geometry::Path to_hstd_path(Avoid::Polygon const& input) {
+    geometry::Path result;
+    for (int i = 0; i < input.size(); ++i) {
+        if (i == 0) {
+            result.moveTo(to_hstd(input.at(i)));
+        } else {
+            result.lineTo(to_hstd(input.at(i)));
+        }
     }
 
     return result;

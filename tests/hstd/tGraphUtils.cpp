@@ -704,7 +704,7 @@ TEST_F(GraphUtils_Test, LibcolaRaw1) {
             right_rect_x + inset, right_rect_y + connector_step * 2),
         Avoid::ConnDirLeft);
     connRef1->setDestEndpoint(dstPt1);
-    connRef1->setRoutingType((Avoid::ConnType)2);
+    connRef1->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
     // second edge
     Avoid::ConnRef* connRef2 = new Avoid::ConnRef(router, /*id=*/2);
@@ -717,7 +717,7 @@ TEST_F(GraphUtils_Test, LibcolaRaw1) {
             right_rect_x + inset, right_rect_y + connector_step * 3),
         Avoid::ConnDirLeft);
     connRef2->setDestEndpoint(dstPt2);
-    connRef2->setRoutingType((Avoid::ConnType)2);
+    connRef2->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
     // third edge
     Avoid::ConnRef* connRef3 = new Avoid::ConnRef(router, /*id=*/3);
@@ -730,11 +730,39 @@ TEST_F(GraphUtils_Test, LibcolaRaw1) {
             right_rect_x + inset, right_rect_y + connector_step * 4),
         Avoid::ConnDirLeft);
     connRef3->setDestEndpoint(dstPt3);
-    connRef3->setRoutingType((Avoid::ConnType)2);
+    connRef3->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
 
     router->processTransaction();
-    router->outputDiagramText("/tmp/orthordering-01");
-    router->outputInstanceToSVG("/tmp/orthordering-01");
+
+    auto path1 = adapt::to_hstd_path(connRef1->displayRoute());
+    auto path2 = adapt::to_hstd_path(connRef2->displayRoute());
+    auto path3 = adapt::to_hstd_path(connRef3->displayRoute());
+
+    using namespace visual;
+
+    VisGroup result;
+    for (auto const& group : hstd::as_vec(path1, path2, path3)) {
+        result.elements.push_back(
+            VisElement{VisElement::PathShape{group}});
+    }
+
+    auto rect_right = adapt::to_hstd_rect(poly4);
+    auto rect_left  = adapt::to_hstd_rect(poly5);
+
+    result.elements.push_back(
+        VisElement{VisElement::RectShape{rect_right}});
+    result.elements.push_back(
+        VisElement{VisElement::RectShape{rect_left}});
+
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        toSvg({result}, /*debug=*/false).to_string());
+
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(/*stationary=*/rect_right, /*relative=*/rect_left));
+
+    EXPECT_OUTCOME_OK(checkPartiallyAbove(
+        /*stationary=*/rect_right, /*relative=*/rect_left, 70));
 }
 
 
