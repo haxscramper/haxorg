@@ -271,22 +271,23 @@ GeometryCheckResult checkPartiallyAboveBounds(
             maxUnderPercent);
     }
 
-    double lineY       = bg::get<bg::min_corner, 1>(stationary);
-    double relativeTop = bg::get<bg::min_corner, 1>(relative);
-    double relativeBot = bg::get<bg::max_corner, 1>(relative);
-    double relHeight   = std::max(0.0, relativeBot - relativeTop);
+    double stationaryMinY = bg::get<bg::min_corner, 1>(stationary);
+    double relativeMinY   = bg::get<bg::min_corner, 1>(relative);
+    double relativeMaxY   = bg::get<bg::max_corner, 1>(relative);
+    double relHeight      = std::max(0.0, relativeMaxY - relativeMinY);
 
     double underLen = 0.0;
-    if (lineY <= relativeTop) {
+    if (stationaryMinY <= relativeMinY) {
         underLen = relHeight;
-    } else if (relativeBot <= lineY) {
+    } else if (relativeMaxY <= stationaryMinY) {
         underLen = 0.0;
     } else {
-        underLen = relativeBot - lineY;
+        underLen = relativeMaxY - stationaryMinY;
     }
 
     double underPercent = relHeight == 0.0
-                            ? (lineY <= relativeTop ? 100.0 : 0.0)
+                            ? (stationaryMinY <= relativeMinY ? 100.0
+                                                              : 0.0)
                             : (underLen / relHeight) * 100.0;
 
     if (underPercent <= maxUnderPercent
@@ -296,9 +297,9 @@ GeometryCheckResult checkPartiallyAboveBounds(
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(partially-above-bounds)",
-        lineY,
-        relativeTop,
-        relativeBot,
+        stationaryMinY,
+        relativeMinY,
+        relativeMaxY,
         relHeight,
         underLen,
         underPercent,
@@ -319,22 +320,22 @@ GeometryCheckResult checkPartiallyBelowBounds(
             maxOverPercent);
     }
 
-    double lineY       = bg::get<bg::max_corner, 1>(stationary);
-    double relativeTop = bg::get<bg::min_corner, 1>(relative);
-    double relativeBot = bg::get<bg::max_corner, 1>(relative);
-    double relHeight   = std::max(0.0, relativeBot - relativeTop);
+    double stationaryMaxY = bg::get<bg::max_corner, 1>(stationary);
+    double relativeMinY   = bg::get<bg::min_corner, 1>(relative);
+    double relativeMaxY   = bg::get<bg::max_corner, 1>(relative);
+    double relHeight      = std::max(0.0, relativeMaxY - relativeMinY);
 
     double overLen = 0.0;
-    if (relativeBot <= lineY) {
+    if (relativeMaxY <= stationaryMaxY) {
         overLen = 0.0;
-    } else if (lineY <= relativeTop) {
+    } else if (stationaryMaxY <= relativeMinY) {
         overLen = relHeight;
     } else {
-        overLen = relativeBot - lineY;
+        overLen = relativeMaxY - stationaryMaxY;
     }
 
     double overPercent = relHeight == 0.0
-                           ? (lineY <= relativeTop ? 100.0 : 0.0)
+                           ? (stationaryMaxY <= relativeMinY ? 100.0 : 0.0)
                            : (overLen / relHeight) * 100.0;
 
     if (overPercent <= maxOverPercent
@@ -344,9 +345,9 @@ GeometryCheckResult checkPartiallyBelowBounds(
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(partially-below-bounds)",
-        lineY,
-        relativeTop,
-        relativeBot,
+        stationaryMaxY,
+        relativeMinY,
+        relativeMaxY,
         relHeight,
         overLen,
         overPercent,
@@ -367,22 +368,22 @@ GeometryCheckResult checkPartiallyLeftBounds(
             maxOverPercent);
     }
 
-    double lineX         = bg::get<bg::min_corner, 0>(stationary);
-    double relativeLeft  = bg::get<bg::min_corner, 0>(relative);
-    double relativeRight = bg::get<bg::max_corner, 0>(relative);
-    double relWidth      = std::max(0.0, relativeRight - relativeLeft);
+    double stationaryMinX = bg::get<bg::min_corner, 0>(stationary);
+    double relativeMinX   = bg::get<bg::min_corner, 0>(relative);
+    double relativeMaxX   = bg::get<bg::max_corner, 0>(relative);
+    double relWidth       = std::max(0.0, relativeMaxX - relativeMinX);
 
     double overLen = 0.0;
-    if (lineX <= relativeLeft) {
-        overLen = 0.0;
-    } else if (relativeRight <= lineX) {
+    if (stationaryMinX <= relativeMinX) {
         overLen = relWidth;
+    } else if (relativeMaxX <= stationaryMinX) {
+        overLen = 0.0;
     } else {
-        overLen = lineX - relativeLeft;
+        overLen = stationaryMinX - relativeMinX;
     }
 
     double overPercent = relWidth == 0.0
-                           ? (relativeRight <= lineX ? 100.0 : 0.0)
+                           ? (relativeMaxX <= stationaryMinX ? 100.0 : 0.0)
                            : (overLen / relWidth) * 100.0;
 
     if (overPercent <= maxOverPercent
@@ -392,9 +393,9 @@ GeometryCheckResult checkPartiallyLeftBounds(
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(partially-left-bounds)",
-        lineX,
-        relativeLeft,
-        relativeRight,
+        stationaryMinX,
+        relativeMinX,
+        relativeMaxX,
         relWidth,
         overLen,
         overPercent,
@@ -415,22 +416,22 @@ GeometryCheckResult checkPartiallyRightBounds(
             maxOverPercent);
     }
 
-    double lineX         = bg::get<bg::max_corner, 0>(stationary);
-    double relativeLeft  = bg::get<bg::min_corner, 0>(relative);
-    double relativeRight = bg::get<bg::max_corner, 0>(relative);
-    double relWidth      = std::max(0.0, relativeRight - relativeLeft);
+    double stationaryMaxX = bg::get<bg::max_corner, 0>(stationary);
+    double relativeMinX   = bg::get<bg::min_corner, 0>(relative);
+    double relativeMaxX   = bg::get<bg::max_corner, 0>(relative);
+    double relWidth       = std::max(0.0, relativeMaxX - relativeMinX);
 
     double overLen = 0.0;
-    if (relativeRight <= lineX) {
+    if (relativeMaxX <= stationaryMaxX) {
         overLen = 0.0;
-    } else if (lineX <= relativeLeft) {
+    } else if (stationaryMaxX <= relativeMinX) {
         overLen = relWidth;
     } else {
-        overLen = relativeRight - lineX;
+        overLen = relativeMaxX - stationaryMaxX;
     }
 
     double overPercent = relWidth == 0.0
-                           ? (lineX <= relativeLeft ? 100.0 : 0.0)
+                           ? (stationaryMaxX <= relativeMinX ? 100.0 : 0.0)
                            : (overLen / relWidth) * 100.0;
 
     if (overPercent <= maxOverPercent
@@ -440,9 +441,9 @@ GeometryCheckResult checkPartiallyRightBounds(
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(partially-right-bounds)",
-        lineX,
-        relativeLeft,
-        relativeRight,
+        stationaryMaxX,
+        relativeMinX,
+        relativeMaxX,
         relWidth,
         overLen,
         overPercent,
@@ -456,15 +457,15 @@ GeometryCheckResult checkFullyCoversBounds(
     Rect const& nested,
     double      rtol,
     double      atol) {
-    double mainLeft   = bg::get<bg::min_corner, 0>(main);
-    double mainTop    = bg::get<bg::min_corner, 1>(main);
-    double mainRight  = bg::get<bg::max_corner, 0>(main);
-    double mainBottom = bg::get<bg::max_corner, 1>(main);
+    double mainMinX = bg::get<bg::min_corner, 0>(main);
+    double mainMinY = bg::get<bg::min_corner, 1>(main);
+    double mainMaxX = bg::get<bg::max_corner, 0>(main);
+    double mainMaxY = bg::get<bg::max_corner, 1>(main);
 
-    double nestedLeft   = bg::get<bg::min_corner, 0>(nested);
-    double nestedTop    = bg::get<bg::min_corner, 1>(nested);
-    double nestedRight  = bg::get<bg::max_corner, 0>(nested);
-    double nestedBottom = bg::get<bg::max_corner, 1>(nested);
+    double nestedMinX = bg::get<bg::min_corner, 0>(nested);
+    double nestedMinY = bg::get<bg::min_corner, 1>(nested);
+    double nestedMaxX = bg::get<bg::max_corner, 0>(nested);
+    double nestedMaxY = bg::get<bg::max_corner, 1>(nested);
 
 
     double interArea    = overlapArea(main, nested);
@@ -488,14 +489,14 @@ GeometryCheckResult checkFullyCoversBounds(
 
     return HSDT_GEOMETRY_FAIL_CHECK(
         R"(fully-covers-bounds)",
-        mainLeft,
-        mainTop,
-        mainRight,
-        mainBottom,
-        nestedLeft,
-        nestedTop,
-        nestedRight,
-        nestedBottom,
+        mainMinX,
+        mainMinY,
+        mainMaxX,
+        mainMaxY,
+        nestedMinX,
+        nestedMinY,
+        nestedMaxX,
+        nestedMaxY,
         interArea,
         mainArea,
         nestedArea,
