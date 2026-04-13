@@ -19,6 +19,16 @@ geometry::Rect    to_hstd_rect(Avoid::Polygon const& input);
 geometry::Polygon to_hstd(Avoid::Polygon const& input);
 geometry::Path    to_hstd_path(Avoid::Polygon const& input);
 
+
+inline void add_checkpoint(
+    visual::VisGroup&        g,
+    Avoid::Checkpoint const& ch) {
+    g.elements.push_back(
+        visual::VisElement{visual::VisElement::EllipseShape{
+            .geometry = geometry::Rect::FromCenterWH(
+                to_hstd(ch.point), 5, 5)}});
+}
+
 inline void add_rect(visual::VisGroup& g, Avoid::Polygon const& shape) {
     g.elements.push_back(
         visual::VisElement{

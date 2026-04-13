@@ -767,54 +767,82 @@ TEST_F(GraphUtils_Test, LibcolaRaw1) {
 
 
 TEST_F(GraphUtils_Test, LibcolaRaw2) {
+    //                             ┌────────────┐
+    //                             │            │
+    //                         ┌───┤            │
+    // ┌───────────────────┐   │   │            │
+    // │ ┌────────────┐    │   │   │            │
+    // │ │            │    └───┼───┤            │
+    // └─┤            │        │   └────────────┘
+    //   │            │        │
+    // ┌─┤            │        │
+    // │ │            │        │
+    // │ └────────────┘        │   ┌────────────┐
+    // │                       │   │            │
+    // └───────────────────────┼───┤            │
+    //                         │   │            │
+    //                         └───┤            │
+    //                             │            │
+    //                             └────────────┘
     Avoid::Router  router_it{Avoid::OrthogonalRouting};
     Avoid::Router* router = &router_it;
+    router->setRoutingParameter(Avoid::idealNudgingDistance, 4);
+    router->setRoutingOption(
+        Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
+    router->setRoutingOption(
+        Avoid::improveHyperedgeRoutesMovingJunctions, true);
+    router->setRoutingOption(
+        Avoid::penaliseOrthogonalSharedPathsAtConnEnds, true);
+    // buffer distance is mandatory for sane routing, otherwise most of the
+    // edges will run perfectly flush against the rectangles.
+    router->setRoutingParameter(Avoid::shapeBufferDistance, 10);
 
-
-    auto pin_for_shape = [](Avoid::ShapeRef* shape, int pinClass) {
-        new Avoid::ShapeConnectionPin(
-            shape,
-            pinClass,
-            Avoid::ATTACH_POS_CENTRE,
-            Avoid::ATTACH_POS_CENTRE,
-            /*proportional=*/true,
-            /*insideOffset=*/0,
-            /*visDirs=*/Avoid::ConnDirNone);
-    };
+    auto pin_for_shape =
+        // Y position is mandatory, if connection points overlap with each
+        // other the whole edge automatically collapses to the straight
+        // line between the start and end shape centers. Setting nudge
+        // distance does not affect it in any way.
+        [](Avoid::ShapeRef* shape, int pinClass, double yPos) {
+            new Avoid::ShapeConnectionPin(
+                shape,
+                pinClass,
+                Avoid::ATTACH_POS_LEFT,
+                yPos,
+                /*proportional=*/true,
+                /*insideOffset=*/0,
+                /*visDirs=*/Avoid::ConnDirLeft);
+        };
 
     auto add_rect =
         [&](double x,
             double y) -> std::pair<Avoid::ShapeRef*, Avoid::Rectangle> {
-        double w = 5;
-        double h = 5;
+        double w = 100;
+        double h = 100;
 
         auto polygon = Avoid::Rectangle(
             Avoid::Point(x, y), Avoid::Point(x + w, y + h));
 
-        auto ref = new Avoid::ShapeRef(router, polygon, 1);
+        auto ref = new Avoid::ShapeRef(router, polygon);
 
         return {ref, polygon};
     };
 
     // Edge routing works with already positioned elements
-    auto [shapeRef0, polygon0] = add_rect(-10, 10);
-    auto [shapeRef1, polygon1] = add_rect(-50, 15);
-    auto [shapeRef2, polygon2] = add_rect(-17, 46);
-
+    auto [shapeRef0, polygon0] = add_rect(-100, 100);
+    auto [shapeRef1, polygon1] = add_rect(-500, 150);
+    auto [shapeRef2, polygon2] = add_rect(-170, 460);
 
     // each shape can have a number of pins. Pins connected by the same
     // edge must share the same class ID.
-    {
-        // Shape 0 has two pins, connecting for edge 0 and edge 1.
-        pin_for_shape(shapeRef0, 1);
-        pin_for_shape(shapeRef0, 2);
+    // Shape 0 has two pins, connecting for edge 0 and edge 1.
+    pin_for_shape(shapeRef0, 1, 0.25);
+    pin_for_shape(shapeRef0, 2, 0.75);
 
-        pin_for_shape(shapeRef1, 2);
-        pin_for_shape(shapeRef1, 3);
+    pin_for_shape(shapeRef1, 2, 0.25);
+    pin_for_shape(shapeRef1, 3, 0.75);
 
-        pin_for_shape(shapeRef2, 3);
-        pin_for_shape(shapeRef2, 1);
-    }
+    pin_for_shape(shapeRef2, 3, 0.25);
+    pin_for_shape(shapeRef2, 1, 0.75);
 
     // Edge 0, connecting first pin of shape 0 to the pin of shape 1
     auto conn01 = new Avoid::ConnRef(
@@ -856,27 +884,41 @@ TEST_F(GraphUtils_Test, LibcolaRaw2) {
 TEST_F(GraphUtils_Test, LibavoidRaw1) {
     auto router = std::make_shared<Avoid::Router>(
         Avoid::PolyLineRouting | Avoid::OrthogonalRouting);
-    router->setRoutingParameter((Avoid::RoutingParameter)0, 50);
-    router->setRoutingParameter((Avoid::RoutingParameter)1, 0);
-    router->setRoutingParameter((Avoid::RoutingParameter)2, 0);
-    router->setRoutingParameter((Avoid::RoutingParameter)3, 4000);
-    router->setRoutingParameter((Avoid::RoutingParameter)4, 0);
-    router->setRoutingParameter((Avoid::RoutingParameter)5, 100);
-    router->setRoutingParameter((Avoid::RoutingParameter)6, 0);
-    router->setRoutingParameter((Avoid::RoutingParameter)7, 4);
-    router->setRoutingOption((Avoid::RoutingOption)0, true);
-    router->setRoutingOption((Avoid::RoutingOption)1, true);
-    router->setRoutingOption((Avoid::RoutingOption)2, false);
-    router->setRoutingOption((Avoid::RoutingOption)3, false);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::segmentPenalty, 50);
+    router->setRoutingParameter(Avoid::RoutingParameter::anglePenalty, 0);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::crossingPenalty, 0);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::clusterCrossingPenalty, 4000);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::fixedSharedPathPenalty, 0);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::portDirectionPenalty, 100);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::shapeBufferDistance, 0);
+    router->setRoutingParameter(
+        Avoid::RoutingParameter::idealNudgingDistance, 4);
+    router->setRoutingOption(
+        Avoid::RoutingOption::nudgeOrthogonalSegmentsConnectedToShapes,
+        true);
+    router->setRoutingOption(
+        Avoid::RoutingOption::improveHyperedgeRoutesMovingJunctions, true);
+    router->setRoutingOption(
+        Avoid::RoutingOption::penaliseOrthogonalSharedPathsAtConnEnds,
+        false);
+    router->setRoutingOption(
+        Avoid::RoutingOption::nudgeOrthogonalTouchingColinearSegments,
+        false);
 
-    double rectMaxX       = -264;
-    double rectMinX       = -296;
+    double rectMaxX       = -250;
+    double rectMinX       = -300;
     double rectConnectorX = rectMaxX - 1;
     double rectSize       = 20;
 
     std::vector<Avoid::Checkpoint> checkpoints{
         Avoid::Checkpoint{
-            Avoid::Point{-242, 782},
+            Avoid::Point{-250, 785},
             Avoid::ConnDirFlag::ConnDirAll,
             Avoid::ConnDirFlag::ConnDirAll,
         },
@@ -901,13 +943,25 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
     Avoid::ConnEnd dstPt(
         Avoid::Point(160, 240), Avoid::ConnDirFlag::ConnDirRight);
 
-    auto add_left_box = [&](double rectY, int connId, uint shapeRefId) {
+
+    auto add_rect = [&](double x, double y, double w, double h)
+        -> std::pair<Avoid::ShapeRef*, Avoid::Rectangle> {
+        auto polygon = Avoid::Rectangle(
+            Avoid::Point(x, y), Avoid::Point(x + w, y + h));
+
+        auto ref = new Avoid::ShapeRef(router.get(), polygon);
+
+        return {ref, polygon};
+    };
+
+    auto add_left_box = [&](double rectY, int connId, uint shapeRefId)
+        -> std::pair<Avoid::ConnRef*, Avoid::ShapeRef*> {
         Avoid::Polygon poly(4);
         poly.ps[0] = Avoid::Point{rectMaxX, rectY};
         poly.ps[1] = Avoid::Point{rectMaxX, rectY + rectSize};
         poly.ps[2] = Avoid::Point{rectMinX, rectY + rectSize};
         poly.ps[3] = Avoid::Point{rectMinX, rectY};
-        new Avoid::ShapeRef{router.get(), poly, shapeRefId};
+        auto shape = new Avoid::ShapeRef{router.get(), poly, shapeRefId};
         Avoid::ConnRef* conn = new Avoid::ConnRef(router.get(), connId);
         Avoid::ConnEnd  srcPt(
             Avoid::Point(rectConnectorX, rectY + rectSize / 2), 8);
@@ -915,49 +969,49 @@ TEST_F(GraphUtils_Test, LibavoidRaw1) {
         conn->setDestEndpoint(dstPt);
         conn->setRoutingType(Avoid::ConnType::ConnType_Orthogonal);
         conn->setRoutingCheckpoints(checkpoints);
+        return {conn, shape};
     };
 
-    int id = 0;
-    add_left_box(376, id + 1, id + 2);
+    int id                    = 0;
+    auto [conn1, left_shape1] = add_left_box(380, id + 1, id + 2);
     id += 2;
-    add_left_box(526, id + 1, id + 2);
+    auto [conn2, left_shape2] = add_left_box(530, id + 1, id + 2);
     id += 2;
-    add_left_box(601, id + 1, id + 2);
+    auto [conn3, left_shape3] = add_left_box(600, id + 1, id + 2);
     id += 2;
-    add_left_box(676, id + 1, id + 2);
+    auto [conn4, left_shape4] = add_left_box(670, id + 1, id + 2);
     id += 2;
-    add_left_box(900, id + 1, id + 2);
+    auto [conn5, left_shape5] = add_left_box(900, id + 1, id + 2);
 
-    {
-        Avoid::Polygon dest(4);
-        dest.ps[0] = Avoid::Point(180, 200);
-        dest.ps[1] = Avoid::Point(180, 280);
-        dest.ps[2] = Avoid::Point(120, 280);
-        dest.ps[3] = Avoid::Point(120, 200);
-        new Avoid::ShapeRef(router.get(), dest, 42);
-    }
-
-    {
-        Avoid::Polygon obstacle(4);
-        obstacle.ps[0] = Avoid::Point(-120, 690);
-        obstacle.ps[1] = Avoid::Point(-120, 830);
-        obstacle.ps[2] = Avoid::Point(-180, 830);
-        obstacle.ps[3] = Avoid::Point(-180, 690);
-        new Avoid::ShapeRef(router.get(), obstacle, 59);
-    }
-
-    {
-        Avoid::Polygon obstacle(4);
-        obstacle.ps[0] = Avoid::Point(-120, 100);
-        obstacle.ps[1] = Avoid::Point(-120, 250);
-        obstacle.ps[2] = Avoid::Point(-180, 250);
-        obstacle.ps[3] = Avoid::Point(-180, 100);
-        new Avoid::ShapeRef(router.get(), obstacle, 60);
-    }
-
+    auto [_1, dest]      = add_rect(120, 200, 60, 80);
+    auto [_2, obstacle1] = add_rect(-120, 450, 60, 220);
+    auto [_3, obstacle2] = add_rect(-120, 100, 60, 50);
 
     router->processTransaction();
-    router->outputInstanceToSVG("/tmp/nudgingSkipsCheckpoint02");
+
+    visual::VisGroup result;
+
+    adapt::add_rect(result, dest);
+    adapt::add_rect(result, obstacle1);
+    adapt::add_rect(result, obstacle2);
+    adapt::add_path(result, conn1->displayRoute());
+    adapt::add_path(result, conn2->displayRoute());
+    adapt::add_path(result, conn3->displayRoute());
+    adapt::add_path(result, conn4->displayRoute());
+    adapt::add_path(result, conn5->displayRoute());
+    adapt::add_rect(result, left_shape1->routingPolygon());
+    adapt::add_rect(result, left_shape2->routingPolygon());
+    adapt::add_rect(result, left_shape3->routingPolygon());
+    adapt::add_rect(result, left_shape4->routingPolygon());
+    adapt::add_rect(result, left_shape5->routingPolygon());
+    adapt::add_checkpoint(result, checkpoints.at(0));
+    adapt::add_checkpoint(result, checkpoints.at(1));
+    adapt::add_checkpoint(result, checkpoints.at(2));
+    adapt::add_checkpoint(result, checkpoints.at(3));
+
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        visual::toSvg({result}, /*debug=*/false).to_string());
 }
 
 TEST_F(GraphUtils_Test, LibcolaRaw3) {

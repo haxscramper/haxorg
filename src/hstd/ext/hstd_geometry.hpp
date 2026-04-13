@@ -295,6 +295,10 @@ struct Rect : bg::model::box<Point> {
     Rect(double x, double y, double w, double h)
         : box(Point(x, y), Point(x + w, y + h)) {}
 
+    static Rect FromCenterWH(Point const& center, double w, double h) {
+        return Rect(center.x() - w / 2, center.y() - h / 2, w, h);
+    }
+
     double x() const { return bg::get<bg::min_corner, 0>(*this); }
     double y() const { return bg::get<bg::min_corner, 1>(*this); }
     double width() const {
