@@ -378,6 +378,150 @@ GeometryCheckResult checkPartiallyAboveBounds(
         relative);
 }
 
+GeometryCheckResult checkPartiallyBelowBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol,
+    double      atol) {
+    if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(partially-below-bounds maxOverPercent must be in [0, 100])",
+            maxOverPercent);
+    }
+
+    double lineY       = bg::get<bg::max_corner, 1>(stationary);
+    double relativeTop = bg::get<bg::min_corner, 1>(relative);
+    double relativeBot = bg::get<bg::max_corner, 1>(relative);
+    double relHeight   = std::max(0.0, relativeBot - relativeTop);
+
+    double overLen = 0.0;
+    if (relativeBot <= lineY) {
+        overLen = 0.0;
+    } else if (lineY <= relativeTop) {
+        overLen = relHeight;
+    } else {
+        overLen = relativeBot - lineY;
+    }
+
+    double overPercent = relHeight == 0.0
+                           ? (lineY <= relativeTop ? 100.0 : 0.0)
+                           : (overLen / relHeight) * 100.0;
+
+    if (overPercent <= maxOverPercent
+        || isclose(overPercent, maxOverPercent, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
+
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(partially-below-bounds)",
+        lineY,
+        relativeTop,
+        relativeBot,
+        relHeight,
+        overLen,
+        overPercent,
+        maxOverPercent,
+        stationary,
+        relative);
+}
+
+GeometryCheckResult checkPartiallyLeftBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol,
+    double      atol) {
+    if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(partially-left-bounds maxOverPercent must be in [0, 100])",
+            maxOverPercent);
+    }
+
+    double lineX         = bg::get<bg::min_corner, 0>(stationary);
+    double relativeLeft  = bg::get<bg::min_corner, 0>(relative);
+    double relativeRight = bg::get<bg::max_corner, 0>(relative);
+    double relWidth      = std::max(0.0, relativeRight - relativeLeft);
+
+    double overLen = 0.0;
+    if (lineX <= relativeLeft) {
+        overLen = 0.0;
+    } else if (relativeRight <= lineX) {
+        overLen = relWidth;
+    } else {
+        overLen = lineX - relativeLeft;
+    }
+
+    double overPercent = relWidth == 0.0
+                           ? (relativeRight <= lineX ? 100.0 : 0.0)
+                           : (overLen / relWidth) * 100.0;
+
+    if (overPercent <= maxOverPercent
+        || isclose(overPercent, maxOverPercent, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
+
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(partially-left-bounds)",
+        lineX,
+        relativeLeft,
+        relativeRight,
+        relWidth,
+        overLen,
+        overPercent,
+        maxOverPercent,
+        stationary,
+        relative);
+}
+
+GeometryCheckResult checkPartiallyRightBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol,
+    double      atol) {
+    if (maxOverPercent < 0.0 || 100.0 < maxOverPercent) {
+        return HSDT_GEOMETRY_FAIL_CHECK(
+            R"(partially-right-bounds maxOverPercent must be in [0, 100])",
+            maxOverPercent);
+    }
+
+    double lineX         = bg::get<bg::max_corner, 0>(stationary);
+    double relativeLeft  = bg::get<bg::min_corner, 0>(relative);
+    double relativeRight = bg::get<bg::max_corner, 0>(relative);
+    double relWidth      = std::max(0.0, relativeRight - relativeLeft);
+
+    double overLen = 0.0;
+    if (relativeRight <= lineX) {
+        overLen = 0.0;
+    } else if (lineX <= relativeLeft) {
+        overLen = relWidth;
+    } else {
+        overLen = relativeRight - lineX;
+    }
+
+    double overPercent = relWidth == 0.0
+                           ? (lineX <= relativeLeft ? 100.0 : 0.0)
+                           : (overLen / relWidth) * 100.0;
+
+    if (overPercent <= maxOverPercent
+        || isclose(overPercent, maxOverPercent, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
+
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(partially-right-bounds)",
+        lineX,
+        relativeLeft,
+        relativeRight,
+        relWidth,
+        overLen,
+        overPercent,
+        maxOverPercent,
+        stationary,
+        relative);
+}
+
 GeometryCheckResult checkBelowBounds(
     Rect const& stationary,
     Rect const& relative,

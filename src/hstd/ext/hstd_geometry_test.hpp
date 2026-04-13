@@ -210,6 +210,39 @@ GeometryCheckResult checkPartiallyAbove(
     double   rtol = 1e-5,
     double   atol = 1e-8);
 
+/// \brief Checks whether relative is below stationary allowing limited
+/// overflow. The allowed portion above stationary is controlled by
+/// maxOverPercent.
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyBelow(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
+
+/// \brief Checks whether relative is left of stationary allowing limited
+/// overflow. The allowed portion to the right of stationary is controlled
+/// by maxOverPercent.
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyLeft(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
+
+/// \brief Checks whether relative is right of stationary allowing limited
+/// overflow. The allowed portion to the left of stationary is controlled
+/// by maxOverPercent.
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyRight(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
+
 /// \brief Checks whether relative is fully below stationary.
 template <typename L, typename R>
 GeometryCheckResult checkBelow(
@@ -331,6 +364,24 @@ GeometryCheckResult checkPartiallyAboveBounds(
     Rect const& stationary,
     Rect const& relative,
     double      maxUnderPercent,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
+GeometryCheckResult checkPartiallyBelowBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
+GeometryCheckResult checkPartiallyLeftBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
+    double      rtol = 1e-5,
+    double      atol = 1e-8);
+GeometryCheckResult checkPartiallyRightBounds(
+    Rect const& stationary,
+    Rect const& relative,
+    double      maxOverPercent,
     double      rtol = 1e-5,
     double      atol = 1e-8);
 GeometryCheckResult checkBelowBounds(
@@ -478,6 +529,57 @@ GeometryCheckResult checkPartiallyAbove(
         [&](Rect const& a, Rect const& b) {
             return detail::checkPartiallyAboveBounds(
                 a, b, maxUnderPercent, rtol, atol);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyBelow(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol,
+    double   atol) {
+    return detail::runBinaryBoundsCheck(
+        "partially-below",
+        stationary,
+        relative,
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyBelowBounds(
+                a, b, maxOverPercent, rtol, atol);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyLeft(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol,
+    double   atol) {
+    return detail::runBinaryBoundsCheck(
+        "partially-left",
+        stationary,
+        relative,
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyLeftBounds(
+                a, b, maxOverPercent, rtol, atol);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyRight(
+    L const& stationary,
+    R const& relative,
+    double   maxOverPercent,
+    double   rtol,
+    double   atol) {
+    return detail::runBinaryBoundsCheck(
+        "partially-right",
+        stationary,
+        relative,
+        [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyRightBounds(
+                a, b, maxOverPercent, rtol, atol);
         });
 }
 
