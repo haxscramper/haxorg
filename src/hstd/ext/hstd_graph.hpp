@@ -895,19 +895,24 @@ class IPortVisualAttribute : public IVisualAttribute {};
 
 /// \brief Base class for all attributes describing post-layout placement
 /// and shape information for the graph elements.
-class ILayoutAttribute : public IAttribute {};
+class ILayoutAttribute : public IAttribute {
+  public:
+    /// \brief Original type of the layout element, used for the \ref
+    /// VisGroup::original_type field in the \ref LayoutRun::getVisual
+    DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
+};
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief position + size relative to parent.
-    virtual Rect                        getBBox() const   = 0;
-    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
+    virtual Rect             getBBox() const   = 0;
+    virtual visual::VisGroup getVisual() const = 0;
 };
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
-    virtual Path                        getPath() const   = 0;
-    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
+    virtual Path             getPath() const   = 0;
+    virtual visual::VisGroup getVisual() const = 0;
 };
 
 class IVertexLayoutAttribute : public ILayoutAttribute {
@@ -915,8 +920,8 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
     /// \brief Vertex bounding box + position relative to the parent
     virtual Rect getBBox() const = 0;
     virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
-        const                                             = 0;
-    virtual hstd::Vec<visual::VisGroup> getVisual() const = 0;
+        const                                  = 0;
+    virtual visual::VisGroup getVisual() const = 0;
 };
 
 class IGroupLayoutAttribute : public ILayoutAttribute {
@@ -1078,10 +1083,11 @@ class LayoutRun : public OperationsTracer {
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;
-    hstd::Vec<visual::VisGroup> getVisual(EdgeID const& id) const {
+
+    visual::VisGroup getVisual(EdgeID const& id) const {
         return getLayout(id)->getVisual();
     }
-    hstd::Vec<visual::VisGroup> getVisual(VertexID const& id) const {
+    visual::VisGroup getVisual(VertexID const& id) const {
         return getLayout(id)->getVisual();
     }
     visual::VisGroup getVisual(GroupID const& id) const {

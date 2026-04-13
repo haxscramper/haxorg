@@ -1039,8 +1039,7 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 } // namespace
 
 
-hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
-    const {
+visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual() const {
     Rect bbox     = getGraphBBox(graph);
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
@@ -1176,16 +1175,14 @@ hstd::Vec<visual::VisGroup> gv::GraphVertexLayoutAttribute::getVisual()
         result.elements.push_back(labelElem);
     }
 
-    return {result};
+    return result;
 }
 
 
-hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
-    const {
+visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual() const {
     Rect             bbox = getGraphBBox(graph);
     Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
-
 
     // Edge path
     if (!path.empty()) {
@@ -1260,7 +1257,7 @@ hstd::Vec<visual::VisGroup> gv::GraphEdgeLayoutAttribute::getVisual()
             makeLabelElement(info->tail_label, bbox.height()));
     }
 
-    return {result};
+    return result;
 }
 
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {

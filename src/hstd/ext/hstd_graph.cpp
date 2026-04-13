@@ -848,17 +848,26 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual();
 
         for (auto const& sub : group->subGroups) {
-            result.subgroups.push_back(self(sub));
+            auto visual          = self(sub);
+            visual.original_id   = sub.getValue();
+            visual.original_type = (int)ILayoutAttribute::Kind::Group;
+            result.subgroups.push_back(visual);
         }
 
         for (auto const& it : group->getVertices()) {
-            auto const& attr = getLayout(it);
-            result.subgroups.append(attr->getVisual());
+            auto const& attr     = getLayout(it);
+            auto        visual   = attr->getVisual();
+            visual.original_id   = it.getValue();
+            visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
+            result.subgroups.push_back(visual);
         }
 
         for (auto const& it : group->getEdges()) {
-            auto const& attr = getLayout(it);
-            result.subgroups.append(attr->getVisual());
+            auto const& attr     = getLayout(it);
+            auto        visual   = attr->getVisual();
+            visual.original_id   = it.getValue();
+            visual.original_type = (int)ILayoutAttribute::Kind::Edge;
+            result.subgroups.push_back(visual);
         }
 
         return result;

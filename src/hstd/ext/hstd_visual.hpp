@@ -225,6 +225,12 @@ struct VisGroup {
     /// \brief Max point of the visual group in its inner coordinate system
     /// -- effectively a (width, height) for the group.
     hstd::Opt<Point> max_point;
+    /// \brief ID value of the original object this group was generated
+    /// for. Might not be set for nested/utility groups.
+    hstd::Opt<hstd::u64> original_id;
+    /// \brief Type of the original object, or some other enumeration used
+    /// to determine the interpretation of the `original_id`.
+    hstd::Opt<hstd::u64> original_type;
 
     template <typename T>
     hstd::Vec<T> getElements() const {

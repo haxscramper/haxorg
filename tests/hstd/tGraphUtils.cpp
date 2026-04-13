@@ -527,7 +527,7 @@ TEST_F(GraphUtils_Test, GraphvizDifferentLayoutClusters) {
             EXPECT_OUTCOME_OK(
                 checkFullyCovers(
                     group_visual.computeBoundsNoSelfOffset(),
-                    computeBounds(item_visual),
+                    item_visual.computeBounds(),
                     // precision loss around 1% for checking the
                     // boundaries.
                     /*rtol=*/1e-2),
@@ -547,9 +547,7 @@ item_visual:
                     run->getVertex(vert)->getRepr(),
                     run->getLayout(vert)->getRepr(),
                     group_visual.treeRepr().toString(),
-                    visual::VisGroup{.subgroups = item_visual}
-                        .treeRepr()
-                        .toString()));
+                    item_visual.treeRepr().toString()));
         }
     }
 }

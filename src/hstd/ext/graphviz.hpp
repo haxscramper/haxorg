@@ -953,7 +953,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         return {};
     }
 
-    hstd::Vec<visual::VisGroup> getVisual() const override;
+    visual::VisGroup getVisual() const override;
 };
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
@@ -973,7 +973,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     }
 
 
-    hstd::Vec<visual::VisGroup> getVisual() const override;
+    visual::VisGroup getVisual() const override;
 };
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
