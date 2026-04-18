@@ -325,12 +325,38 @@ struct Rect : bg::model::box<Point> {
             x() * other, y() * other, width() * other, height() * other);
     }
 
+    static Rect FromCornerPoints(
+        double _min_x,
+        double _max_x,
+        double _min_y,
+        double _max_y) {
+        return Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
+    }
 
-    void extend(Point const& point) {
+    /// \brief create rectangle from the maximum double numeric limits.
+    /// Useful for the `extend()` later, as a starting rectangle shape.
+    static Rect FromLimitBoundaries() {
+        return FromCornerPoints(
+            std::numeric_limits<double>::max(),
+            std::numeric_limits<double>::lowest(),
+            std::numeric_limits<double>::max(),
+            std::numeric_limits<double>::lowest());
+    }
+
+
+    inline void extend(Point const& point) {
         int _min_x = std::min(min_x(), point.x());
         int _max_x = std::max(max_x(), point.x());
         int _min_y = std::min(min_y(), point.y());
         int _max_y = std::max(max_y(), point.y());
+        *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
+    }
+
+    inline void extend(Rect const& other) {
+        int _min_x = std::min(min_x(), other.min_x());
+        int _max_x = std::max(max_x(), other.max_x());
+        int _min_y = std::min(min_y(), other.min_x());
+        int _max_y = std::max(max_y(), other.max_x());
         *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
     }
 };

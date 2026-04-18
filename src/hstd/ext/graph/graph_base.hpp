@@ -1004,7 +1004,7 @@ class IGroupLayoutAttribute : public ILayoutAttribute {
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
     virtual Rect getPointsBBox() const = 0;
-    virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
+    virtual hstd::Vec<hstd::SPtr<IPortLayoutAttribute>> getPorts()
         const                                  = 0;
     virtual visual::VisGroup getVisual() const = 0;
 };

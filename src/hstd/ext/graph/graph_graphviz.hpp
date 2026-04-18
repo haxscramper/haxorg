@@ -1014,7 +1014,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     }
 
 
-    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
+    hstd::Vec<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
         const override {
         return {};
     }

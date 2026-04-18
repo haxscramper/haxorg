@@ -93,6 +93,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     layout::IPlacementAlgorithm::Result result;
 
+    geometry::Rect bbox = Rect::FromLimitBoundaries();
+
     auto aux_layout =
         [&](this auto&&                       self,
             layout::GroupID const&            id,
@@ -103,11 +105,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             auto        prev_cast      = std::dynamic_pointer_cast<
                 ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
-            auto rect      = geometry::Rect(
-                vpsc_rect->getMinX(),
-                vpsc_rect->getMinY(),
-                vpsc_rect->getMaxX() - vpsc_rect->getMinX(),
-                vpsc_rect->getMaxY() - vpsc_rect->getMinY());
+            auto rect      = adapt::to_hstd(*vpsc_rect);
+            bbox.extend(rect);
 
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
@@ -131,10 +130,23 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
         } else {
             for (auto const& sub : group->subGroups) { self(sub, id); }
+
+            for (auto const& vert : group->getVertices()) {
+                if (ctx->hasRect(vert)) {
+                    result.vertices.insert_or_assign(
+                        vert,
+                        std::make_shared<ColaVertexLayoutAttribute>(
+                            adapt::to_hstd(*ctx->getRect(vert))));
+                }
+            }
         }
     };
 
-    aux(root_id, std::nullopt);
+    aux_layout(root_id, std::nullopt);
+
+    result.groups.insert_or_assign(
+        root_id,
+        std::make_shared<ColaGroupLayoutAttribute>(bbox, rootGroup));
 
 
     return result;

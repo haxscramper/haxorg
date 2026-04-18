@@ -272,6 +272,7 @@ class ColaGroup
                     rect.max_x(),
                     rect.min_y(),
                     rect.max_y()));
+            rectMap.add_unique(id, result);
             return result;
         }
 
@@ -280,6 +281,11 @@ class ColaGroup
         }
 
         hstd::SPtr<vpsc::Rectangle> getRect(VertexID const& id) const {
+            LOGIC_ASSERTION_CHECK_FMT(
+                rectMap.contains_left(id),
+                "rect map is missing ID {}",
+                id);
+
             return rectStore.at(rectMap.at_right(id));
         }
 
@@ -384,10 +390,42 @@ static_assert(
     GroupConcept<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute>,
     "Cola group and related types");
 
+class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
+  public:
+    geometry::Rect rect;
+    ColaVertexLayoutAttribute(geometry::Rect rect) : rect{rect} {}
+
+    Rect getBBox() const override { return rect; }
+
+    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
+        const override {
+        return {};
+    }
+
+    visual::VisGroup getVisual() const override {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{rect}});
+        return res;
+    }
+};
+
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
+    hstd::Vec<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
+        const override {
+        return {};
+    }
+
+    visual::VisGroup getVisual() const override {
+        return visual::VisGroup{};
+    }
+
     Rect                  rect;
     hstd::SPtr<ColaGroup> group;
+
+    ColaGroupLayoutAttribute(Rect rect, hstd::SPtr<ColaGroup> group)
+        : rect{rect}, group{group} {}
 
     virtual Rect getPointsBBox() const override { return rect; }
 };
