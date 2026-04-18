@@ -1,3 +1,42 @@
+/**
+
+\file hstd_graph.hpp
+\brief Provide base classes for the graph and visualization.
+
+High-level overview of the design:
+
+- All graph elements follow the DOD-like design, with the values accessible
+  both using ID and the pointers. The value itself is managed by the
+derived classes, this file mainly provides virtual methods to `get*` or
+`add*`.
+- The grap stores a single collection of vertices, but the edges are split
+  into different collections, with explicit distinction between "hierarchy"
+  edge collections (acyclic tree with a set of starting/parent nodes) and
+  general collection (adjacency list with no constraints).
+
+Terminology used
+
+- **semantic** or **structural** refer  to the classes dedicated to
+  managing the vertices, edges and ports and that are not concerned with
+  the visualization details.
+  - \ref hstd::ext::graph::IGraph
+  - \ref hstd::ext::graph::IVertex
+  - \ref hstd::ext::graph::IEdge
+  - \ref hstd::ext::graph::IPort this one might have dual use for visual
+    and for semantic.
+  - \ref hstd::ext::graph::IAttribute dual use for visual and semantic.
+    For visual it will use \ref hstd::ext::graph::layout::IVisualAttribute
+    and \ref hstd::ext::graph::layout::ILayoutAttribute
+- **visual** refer to the classes for the graph layout and visualization
+  - \ref hstd::ext::graph::layout::LayoutRun
+  - \ref hstd::ext::graph::layout::IConstraint
+  - \ref hstd::ext::graph::layout::IGroup
+  - \ref hstd::ext::graph::layout::IPlacementAlgorithm
+- **tracker** refer to classes derived from the \ref
+  hstd::ext::graph::IAttributeTracker
+
+*/
+
 #pragma once
 
 #include <hstd/stdlib/dod_base.hpp>
@@ -8,8 +47,11 @@
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include "hstd/stdlib/TraceBase.hpp"
-#include "hstd_geometry.hpp"
-#include "hstd_visual.hpp"
+#include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <hstd/ext/geometry/hstd_visual.hpp>
+#include <boost/bimap.hpp>
+#include <boost/bimap/unordered_multiset_of.hpp>
+#include <boost/bimap/unordered_set_of.hpp>
 
 namespace hstd {
 template <typename ID, typename T>
@@ -97,8 +139,8 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
 };
 } // namespace hstd
 
+/// \brief graph structure and visualization
 namespace hstd::ext::graph {
-
 
 struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
 
@@ -320,6 +362,10 @@ struct IEdge
 
     VertexID getSource() const { return source; }
     VertexID getTarget() const { return target; }
+    bool     hasSourcePort() const { return sourcePort.has_value(); }
+    bool     hasTargetPort() const { return targetPort.has_value(); }
+    PortID   getTargetPort() const { return targetPort.value(); }
+    PortID   getSourcePort() const { return targetPort.value(); }
 
     virtual std::size_t getHash() const override;
     virtual bool isEqual(IGraphObjectBase const* other) const override;
@@ -331,6 +377,11 @@ struct IEdge
     }
 };
 
+
+/// \brief Connection port or edge grouping port
+///
+/// \note For visualizatino purposes ports might be independently managed
+/// by the layout run. Semantic graph
 struct IPort : public IGraphObjectBase {
     using id_type = PortID;
     DESC_FIELDS(IPort, ());
@@ -615,6 +666,13 @@ class IGraph {
     /// \brief Full set of all vertices in the graph
     hstd::UnorderedSet<VertexID> vertexIDs;
 
+    using PortBimap = boost::bimap<
+        boost::bimaps::unordered_set_of<VertexID>,
+        boost::bimaps::unordered_multiset_of<PortID>>;
+
+    /// \brief Mapping one vertext to many of its ports.
+    PortBimap ports;
+
   public:
     struct Crossing {
         GraphHierarchyID    hierarchy;
@@ -622,6 +680,8 @@ class IGraph {
         DESC_FIELDS(Crossing, (hierarchy, crossings));
     };
 
+    /// \name IGraph tracker/provider operations
+    /// @{
     void addTracker(hstd::SPtr<IAttributeTracker> const& tracker);
     void delTracker(hstd::SPtr<IAttributeTracker> const& tracker);
     void addCollection(hstd::SPtr<IEdgeCollection> const& collection);
@@ -632,35 +692,12 @@ class IGraph {
     /// \brief Get list of all edge providers in the graph: vertex
     /// hierarchies and general edge collections.
     hstd::Vec<IEdgeProvider*> getEdgeProviders();
+    /// @}
 
+    /// \name Vertices
+    /// @{
     /// \brief Get vertex object associated with the edge ID.
     virtual IVertex const* getVertex(VertexID const& id) const = 0;
-
-    /// \brief Get the edge from the collection/hierarchy. Use the edge ID
-    /// mask to determine which collection the edge comes from.
-    virtual IEdge const* getEdge(EdgeID const& id) const;
-
-    /// \brief For id with given ID, compute the list of vertex
-    /// boundaries it crossed in each tracked hierarchy between the source
-    /// and the target.
-    hstd::Vec<Crossing> getHierarchyCrossings(EdgeID const& edge_id) const;
-
-    /// \brief Provide additional information about the vertex nesting
-    /// relation for a specific hierarchy.
-    ///
-    /// \return List of newly added edges in all hierarchies.
-    hstd::Vec<EdgeID> trackSubVertexRelation(
-        GraphHierarchyID const& hierarchy,
-        VertexID const&         parent,
-        VertexID const&         sub);
-
-    /// \brief Remove the vertex nesting information from a specific
-    /// hierarchy.
-    void untrackSubVertexRelation(
-        GraphHierarchyID const& hierarchy,
-        VertexID const&         parent,
-        VertexID const&         sub);
-
     /// \brief Track attributes and edge information in the graph
     ///
     /// Add the vertex to the graph collection. Will not
@@ -672,7 +709,6 @@ class IGraph {
     /// track: this method will not attempt to expand the set of vertices
     /// to include nested ones.
     void trackVertex(VertexID const& ids);
-
     /// \brief Remove vertex from the graph collection and recursively drop
     /// all the elements from the hierarchies.
     ///
@@ -692,7 +728,10 @@ class IGraph {
     /// vertices in the dependant deletion.
     hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> untrackVertex(
         VertexID const& id);
+    /// @}
 
+    /// \name Vertex hierarchies
+    /// @{
     /// \brief Get list of all vertices stored in the graph
     hstd::Vec<VertexID> getAllVertices() const;
     /// \brief Get root vertices for the specified hierarchy
@@ -707,7 +746,6 @@ class IGraph {
         GraphHierarchyID const& hierarchy,
         VertexID const&         id) const;
 
-
     /// \brief Return the highest level of nesting in the hierarchy.
     int getMaxNestingLevel(GraphHierarchyID const& hierarchy) const;
 
@@ -716,6 +754,39 @@ class IGraph {
     hstd::Vec<VertexID> getParentChain(
         GraphHierarchyID const& hierarchy,
         VertexID const&         id) const;
+
+    /// \brief For id with given ID, compute the list of vertex
+    /// boundaries it crossed in each tracked hierarchy between the source
+    /// and the target.
+    hstd::Vec<Crossing> getHierarchyCrossings(EdgeID const& edge_id) const;
+    /// @}
+
+    /// \name Edges
+    /// @{
+    /// \brief Get the edge from the collection/hierarchy. Use the edge ID
+    /// mask to determine which collection the edge comes from.
+    virtual IEdge const* getEdge(EdgeID const& id) const;
+    /// \brief Provide additional information about the vertex nesting
+    /// relation for a specific hierarchy.
+    ///
+    /// \return List of newly added edges in all hierarchies.
+    hstd::Vec<EdgeID> trackSubVertexRelation(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         parent,
+        VertexID const&         sub);
+    /// \brief Remove the vertex nesting information from a specific
+    /// hierarchy.
+    void untrackSubVertexRelation(
+        GraphHierarchyID const& hierarchy,
+        VertexID const&         parent,
+        VertexID const&         sub);
+    /// @}
+
+    /// \name Ports
+    /// @{
+    /// Get semantic port object managed by the graph
+    virtual IPort const* getPort(PortID const& id) const = 0;
+    /// @}
 
     struct SerialSchema {
         struct EdgeCategory {
@@ -858,6 +929,10 @@ struct TrivialGraph : public IGraph {
         edges->trackEdge(result);
         return result;
     }
+
+    const IPort* getPort(PortID const& id) const override {
+        throw std::runtime_error("");
+    }
 };
 
 
@@ -897,7 +972,7 @@ class IPortVisualAttribute : public IVisualAttribute {};
 /// and shape information for the graph elements.
 class ILayoutAttribute : public IAttribute {
   public:
-    /// \brief Original type of the layout element, used for the \ref
+    /// \brief Original type of the layout element, used for the \refP
     /// VisGroup::original_type field in the \ref LayoutRun::getVisual
     DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
 };
@@ -943,7 +1018,6 @@ class LayoutRun;
 class IPlacementAlgorithm {
   public:
     static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
-
 
     /// \brief Result of the placement algorithm execution
     struct Result {

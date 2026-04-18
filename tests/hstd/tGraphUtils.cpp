@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
 
-#include <hstd/ext/hstd_graph.hpp>
-#include <hstd/ext/graphviz.hpp>
-#include <hstd/ext/adaptagrams.hpp>
+#include <hstd/ext/graph/hstd_graph.hpp>
+#include <hstd/ext/graph/graphviz.hpp>
+#include <hstd/ext/graph/adaptagrams_common.hpp>
 
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
 
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/ext/hstd_geometry_test.hpp>
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include "../common.hpp"
 #include <libcola/output_svg.h>
 #include <utility>
@@ -119,6 +119,10 @@ struct TestGraph : public IGraph {
             TestEdge{source, target}, edges->getCategory());
         edges->trackEdge(result);
         return result;
+    }
+
+    const IPort* getPort(PortID const& id) const override {
+        throw std::runtime_error("");
     }
 };
 

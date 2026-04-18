@@ -7,7 +7,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/ext/graphviz.hpp>
+#include <hstd/ext/graph/graphviz.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/PairFormatter.hpp>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/ext/hstd_geometry.hpp>
-#include <hstd/ext/hstd_visual.hpp>
+#include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <hstd/ext/geometry/hstd_visual.hpp>
 #include <hstd/stdlib/Outcome.hpp>
 #include <boost/outcome/result.hpp>
 #include <hstd/stdlib/Exception.hpp>

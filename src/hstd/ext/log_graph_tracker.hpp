@@ -11,7 +11,7 @@
 #    include <string>
 #    include <unordered_map>
 #    include <stack>
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph/graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
 
 #    if ORG_BUILD_WITH_QT

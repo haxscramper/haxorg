@@ -1,4 +1,4 @@
-#include "adaptagrams.hpp"
+#include "adaptagrams_common.hpp"
 
 namespace hstd::ext::graph::adapt {
 

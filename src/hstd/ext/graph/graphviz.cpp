@@ -1,5 +1,5 @@
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph/graphviz.hpp>
 #    include <filesystem>
 #    include <format>
 #    include <hstd/ext/logger.hpp>

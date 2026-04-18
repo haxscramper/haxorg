@@ -1,5 +1,5 @@
-#include "hstd/stdlib/Debug.hpp"
-#include <hstd/ext/hstd_geometry_test.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include <boost/geometry/geometries/segment.hpp>
 #include <algorithm>
 #include <cmath>

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "hstd/stdlib/ColText.hpp"
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/ext/hstd_geometry.hpp>
+#include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Xml.hpp>
 
