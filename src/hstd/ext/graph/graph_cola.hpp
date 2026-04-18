@@ -3,6 +3,7 @@
 #include <hstd/ext/graph/graph_base.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
 #include <libdialect/hola.h>
+#include <hstd/ext/bimap_wrap.hpp>
 
 namespace hstd::ext::graph {
 
@@ -145,7 +146,9 @@ enum class [[refl]] GraphDimension
 
 BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET);
 
+
 class ColaVertexAttribute : public layout::IVertexVisualAttribute {
+  public:
     geometry::Rect rect;
     ColaVertexAttribute(geometry::Rect const& rect) : rect{rect} {}
 };
@@ -162,10 +165,20 @@ class ColaGroup
         ColaEdgeAttribute>;
 
     struct SharedCtx : public API::SharedCtxBase {
-        hstd::UnorderedMap<VertexID, int>      rectMap;
-        hstd::Vec<hstd::SPtr<vpsc::Rectangle>> rectStore;
-        vpsc::Rectangles                       rectangles;
+        hstd::ext::Unordered1to1Bimap<VertexID, int> rectMap;
+        hstd::Vec<hstd::SPtr<vpsc::Rectangle>>       rectStore;
         DESC_FIELDS(SharedCtx, (rectMap, rectStore));
+
+        int getVertexIdx(VertexID const& id) const {
+            return rectMap.at_right(id);
+        }
+
+        std::pair<int, int> getEdgeIdx(EdgeID const& id) const {
+            return {
+                getVertexIdx(run->graph->getEdge(id)->getSource()),
+                getVertexIdx(run->graph->getEdge(id)->getTarget()),
+            };
+        }
 
         int addVertex(VertexID const& id, geometry::Rect const& rect) {
             int result = rectStore.size();
@@ -175,16 +188,15 @@ class ColaGroup
                     rect.max_x(),
                     rect.min_y(),
                     rect.max_y()));
-            rectangles.push_back(rectStore.at(result).get());
             return result;
         }
 
         bool hasRect(VertexID const& id) const {
-            return rectMap.contains(id);
+            return rectMap.contains_left(id);
         }
 
         hstd::SPtr<vpsc::Rectangle> getRect(VertexID const& id) const {
-            return rectStore.at(rectMap.at(id));
+            return rectStore.at(rectMap.at_right(id));
         }
     };
 
@@ -203,7 +215,16 @@ class ColaGroup
         VertexID const&                                   id,
         hstd::SPtr<layout::IVertexVisualAttribute> const& attr) override {
         auto vatr = API::Group::addVertex(id, attr);
+        shared->addVertex(id, vatr->rect);
     }
+};
+
+class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
+  public:
+    Rect                  rect;
+    hstd::SPtr<ColaGroup> group;
+
+    virtual Rect getPointsBBox() const override { return rect; }
 };
 
 

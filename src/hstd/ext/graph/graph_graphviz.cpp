@@ -660,17 +660,18 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             gv_group->setAttr(id_sub_group, id.getValue());
 
             auto __scope = run->scopeLevel();
+            // iterate over sub-groups to find all layout switches
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
+            // iterate over edges/vertices to insert graphviz attributes to
+            // enable post-layout association.
             for (auto const& vertex : group->getVertices()) {
-                // run->message(hstd::fmt("vertex {}", vertex));
                 gv_group->nodeAttributes()[vertex]->setAttr(
                     id_attr, vertex.getValue());
             }
 
 
             for (auto const& edge : group->getEdges()) {
-                // run->message(hstd::fmt("edge {}", edge));
                 gv_group->edgeAttributes()[edge]->setAttr(
                     id_attr, edge.getValue());
             }
