@@ -3,6 +3,7 @@
 
 #include <hstd/ext/graph/graph_base.hpp>
 #include <hstd/ext/graph/graph_graphviz.hpp>
+#include <hstd/ext/graph/graph_cola.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
 
 #include <libdialect/hola.h>
@@ -152,6 +153,23 @@ class GraphUtils_Test : public ::testing::Test {
 
     hstd::SPtr<gv::EdgeAttribute> getGv(EdgeID const& id) {
         return graph->getEdge(id)->getUniqueAttribute<gv::EdgeAttribute>();
+    }
+
+    hstd::SPtr<cst::ColaGroup> getCola(layout::GroupID const& id) {
+        auto result = std::dynamic_pointer_cast<cst::ColaGroup>(
+            run->at(id));
+        LOGIC_ASSERTION_CHECK(result != nullptr, "");
+        return result;
+    }
+
+    hstd::SPtr<cst::ColaVertexAttribute> getCola(VertexID const& id) {
+        return graph->getVertex(id)
+            ->getUniqueAttribute<cst::ColaVertexAttribute>();
+    }
+
+    hstd::SPtr<cst::ColaEdgeAttribute> getCola(EdgeID const& id) {
+        return graph->getEdge(id)
+            ->getUniqueAttribute<cst::ColaEdgeAttribute>();
     }
 };
 
@@ -1330,6 +1348,39 @@ TEST_F(GraphUtils_Test, HolaLayoutRaw1) {
     dialect::doHOLA(g, opts);
 
     hstd::writeFile(getDebugFile("hola_result.svg"), g.writeSvg());
+}
+
+
+TEST_F(GraphUtils_Test, LibcolaIr1) {
+    VertexID v1 = graph->addVertex();
+    VertexID v2 = graph->addVertex();
+
+    EdgeID e12 = graph->addEdge(v1, v2);
+
+    auto                       root  = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+
+    group->addVertex(v1, Size(5, 5));
+    group->addVertex(v2, Size(6, 6));
+    group->addEdge(e12);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    ASSERT_TRUE(res.vertices.contains(v1));
+    ASSERT_TRUE(res.vertices.contains(v2));
+
+    EXPECT_NEAR(run->getLayout(v1)->getBBox().width(), 5, 0.005);
+    EXPECT_NEAR(run->getLayout(v1)->getBBox().height(), 5, 0.005);
+
+    EXPECT_NEAR(run->getLayout(v2)->getBBox().width(), 6, 0.005);
+    EXPECT_NEAR(run->getLayout(v2)->getBBox().height(), 6, 0.005);
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
 
 #if false

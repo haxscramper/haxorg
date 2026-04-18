@@ -324,6 +324,15 @@ struct Rect : bg::model::box<Point> {
         return Rect(
             x() * other, y() * other, width() * other, height() * other);
     }
+
+
+    void extend(Point const& point) {
+        int _min_x = std::min(min_x(), point.x());
+        int _max_x = std::max(max_x(), point.x());
+        int _min_y = std::min(min_y(), point.y());
+        int _max_y = std::max(max_y(), point.y());
+        *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
+    }
 };
 } // namespace hstd::ext::geometry
 

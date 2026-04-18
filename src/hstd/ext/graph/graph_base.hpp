@@ -1041,8 +1041,8 @@ class IPlacementAlgorithm {
 
 class IConstraint {
   public:
-    virtual void                addVertex(VertexID const& id);
-    virtual hstd::Vec<VertexID> getAllVertices() const;
+    virtual void                addVertex(VertexID const& id) = 0;
+    virtual hstd::Vec<VertexID> getAllVertices() const        = 0;
 };
 
 

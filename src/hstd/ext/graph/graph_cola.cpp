@@ -1,5 +1,6 @@
 #include "graph_cola.hpp"
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
 using namespace hstd::ext::graph;
 
@@ -139,6 +140,21 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     return result;
 }
 
+layout::GroupID cst::ColaGroup::newRootGraph(
+    hstd::SPtr<layout::LayoutRun> run) {
+    auto result = std::make_shared<ColaGroup>(
+        std::make_shared<SharedCtx>(API::SharedCtxBase{
+            .run = run,
+        }),
+        hstd::Str{"root"});
+
+    result->algorithm = std::make_shared<ColaLayoutAlgorithm>(run);
+    auto id           = run->addRootGroup(result);
+    result->groups().insert_or_assign(id, result);
+    return id;
+}
+
+
 hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> hstd::ext::graph::cst::
     SeparateConstraint::getCola() const {
     auto left_constraint  = left.getCola().at(0);
@@ -160,4 +176,116 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> hstd::ext::graph::cst::
         isExactSeparation);
 
     return {result, left_constraint, right_constraint};
+}
+
+
+hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::
+    FixedRelativeConstraint::getCola() const {
+    return {std::make_shared<cola::FixedRelativeConstraint>(
+        getAllRectanglesSorted(), getAllShapeIdsSorted(), fixedPosition)};
+}
+
+
+hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::AlignConstraint::
+    getCola() const {
+    auto result = std::make_shared<cola::AlignmentConstraint>(
+        toVpsc(dimension));
+
+    for (auto const& [vertexId, spec] : vertices) {
+        result->addShape(getShapeId(vertexId), spec.offset);
+        if (spec.fixPos) { result->fixPos(*spec.fixPos); }
+    }
+
+    return {result};
+}
+
+
+std::string hstd::ext::graph::cst::ColaConstraint::getRepr() const {
+    return std::string{"["}
+         + (own_view(getCola()) //
+            | rv::transform(
+                [](hstd::SPtr<cola::CompoundConstraint> const& it) {
+                    return it->toString();
+                })
+            | rv::intersperse(", ") //
+            | rv::join              //
+            | rs::to<std::string>())
+         + std::string{"]"};
+}
+
+std::vector<vpsc::Rectangle*> hstd::ext::graph::cst::ColaConstraint::
+    getRectangles() const {
+    return hstd::own_view(group->nodeAttributes().keys())
+         | rv::transform([&](VertexID const& id) {
+               return group->shared->getRect(id).get();
+           })
+         | rs::to<std::vector>();
+}
+
+std::vector<unsigned> cst::ColaConstraint::getShapeIds() const {
+    return hstd::own_view(group->nodeAttributes().keys())
+         | rv::transform([&](VertexID const& id) -> unsigned {
+               return group->shared->getVertexIdx(id);
+           })
+         | rs::to<std::vector>();
+}
+
+
+hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
+    MultiSeparateConstraint::getCola() const {
+    Vec<ConstraintPtr> result;
+    for (auto const& [idx, line] : enumerate(lines)) {
+        if (line.dimension != this->dimension) {
+            throw std::logic_error(
+                fmt("multi-aling line {} has dimension {} but the main "
+                    "multi-align has dimension {} -- align dimensions "
+                    "must match",
+                    idx,
+                    line.dimension,
+                    this->dimension));
+        }
+
+        result.push_back(line.getCola().at(0));
+    }
+
+    auto sep = std::make_shared<cola::MultiSeparationConstraint>(
+        toVpsc(dimension), separationDistance, isExactSeparation);
+
+    LOGIC_ASSERTION_CHECK(sep.get() != nullptr, "");
+
+    for (auto const& it : hstd::enumerator(alignPairs)) {
+        auto const& src = it.value().first;
+        auto const& dst = it.value().second;
+        if (!(src < result.size() && dst < result.size())) {
+            throw std::range_error(fmt(
+                "multi separate pair {} src/dst are out of range: dst:{}, "
+                "src:{} line-count:{}",
+                it.index(),
+                src,
+                dst,
+                result.size()));
+        }
+
+        sep->addAlignmentPair(
+            dynamic_cast<cola::AlignmentConstraint*>(result.at(src).get()),
+            dynamic_cast<cola::AlignmentConstraint*>(result.at(dst).get())
+            //
+        );
+    }
+
+    result.push_back(sep);
+
+    return result;
+}
+
+hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
+    PageBoundaryConstraint::getCola() const {
+    auto result = std::make_shared<cola::PageBoundaryConstraints>(
+        rect.min_x(), rect.max_x(), rect.min_y(), rect.max_y(), weight);
+
+    for (auto const& [idx, rect] : enumerate(getAllRectanglesSorted())) {
+        result->addShape(idx, rect->height() / 2, rect->width() / 2);
+    }
+
+    return {result};
 }
