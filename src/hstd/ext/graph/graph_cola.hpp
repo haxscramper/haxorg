@@ -239,6 +239,74 @@ class ColaVertexAttribute : public layout::IVertexVisualAttribute {
 
 class ColaEdgeAttribute : public layout::IEdgeVisualAttribute {};
 
+class ColaRectTracker {
+  public:
+    hstd::ext::Unordered1to1Bimap<VertexID, int> rectMap;
+    hstd::Vec<hstd::SPtr<vpsc::Rectangle>>       rectStore;
+    DESC_FIELDS(ColaRectTracker, (rectMap, rectStore));
+
+    int getVertexIdx(VertexID const& id) const {
+        return rectMap.at_right(id);
+    }
+
+    std::pair<int, int> getEdgeIdx(
+        EdgeID const&                 id,
+        hstd::SPtr<layout::LayoutRun> run) const {
+        return {
+            getVertexIdx(run->graph->getEdge(id)->getSource()),
+            getVertexIdx(run->graph->getEdge(id)->getTarget()),
+        };
+    }
+
+    int addVertex(VertexID const& id, geometry::Rect const& rect) {
+        int result = rectStore.size();
+        rectStore.push_back(
+            std::make_shared<vpsc::Rectangle>(
+                rect.min_x(), rect.max_x(), rect.min_y(), rect.max_y()));
+        rectMap.add_unique(id, result);
+        return result;
+    }
+
+    bool hasRect(VertexID const& id) const {
+        return rectMap.contains_left(id);
+    }
+
+    hstd::SPtr<vpsc::Rectangle> getRect(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            rectMap.contains_left(id), "rect map is missing ID {}", id);
+
+        return rectStore.at(rectMap.at_right(id));
+    }
+
+    /// \brief Get all rectangles for the problem in a consistent
+    /// sorting order.
+    ///
+    /// \warning This method will sort the vertices based on their IDs.
+    /// This function should onyl be called after all the vertex
+    /// elements are inserted **in the layout problem** the list of
+    /// vertex rectangles is shared globally across all cola groups on
+    /// the same layer.
+    std::vector<vpsc::Rectangle*> getAllRectanglesSorted() const {
+        std::vector<vpsc::Rectangle*> res;
+        for (auto const& id : hstd::sorted(rectMap.left_keys())) {
+            res.push_back(getRect(id).get());
+        }
+
+        return res;
+    }
+
+    /// \brief Get all shape IDs in the problem. Sorting order matches
+    /// \ref getAllRectanglesSorted
+    std::vector<unsigned> getAllShapeIdsSorted() const {
+        std::vector<unsigned> res;
+        for (auto const& id : hstd::sorted(rectMap.left_keys())) {
+            res.push_back(getVertexIdx(id));
+        }
+
+        return res;
+    }
+};
+
 class ColaGroup
     : public layout::IGroup
     , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute> {
@@ -248,76 +316,9 @@ class ColaGroup
         ColaVertexAttribute,
         ColaEdgeAttribute>;
 
-    struct SharedCtx : public API::SharedCtxBase {
-        hstd::ext::Unordered1to1Bimap<VertexID, int> rectMap;
-        hstd::Vec<hstd::SPtr<vpsc::Rectangle>>       rectStore;
-        DESC_FIELDS(SharedCtx, (rectMap, rectStore));
-
-        int getVertexIdx(VertexID const& id) const {
-            return rectMap.at_right(id);
-        }
-
-        std::pair<int, int> getEdgeIdx(EdgeID const& id) const {
-            return {
-                getVertexIdx(run->graph->getEdge(id)->getSource()),
-                getVertexIdx(run->graph->getEdge(id)->getTarget()),
-            };
-        }
-
-        int addVertex(VertexID const& id, geometry::Rect const& rect) {
-            int result = rectStore.size();
-            rectStore.push_back(
-                std::make_shared<vpsc::Rectangle>(
-                    rect.min_x(),
-                    rect.max_x(),
-                    rect.min_y(),
-                    rect.max_y()));
-            rectMap.add_unique(id, result);
-            return result;
-        }
-
-        bool hasRect(VertexID const& id) const {
-            return rectMap.contains_left(id);
-        }
-
-        hstd::SPtr<vpsc::Rectangle> getRect(VertexID const& id) const {
-            LOGIC_ASSERTION_CHECK_FMT(
-                rectMap.contains_left(id),
-                "rect map is missing ID {}",
-                id);
-
-            return rectStore.at(rectMap.at_right(id));
-        }
-
-        /// \brief Get all rectangles for the problem in a consistent
-        /// sorting order.
-        ///
-        /// \warning This method will sort the vertices based on their IDs.
-        /// This function should onyl be called after all the vertex
-        /// elements are inserted **in the layout problem** the list of
-        /// vertex rectangles is shared globally across all cola groups on
-        /// the same layer.
-        std::vector<vpsc::Rectangle*> getAllRectanglesSorted() const {
-            std::vector<vpsc::Rectangle*> res;
-            for (auto const& id : hstd::sorted(rectMap.left_keys())) {
-                res.push_back(getRect(id).get());
-            }
-
-            return res;
-        }
-
-        /// \brief Get all shape IDs in the problem. Sorting order matches
-        /// \ref getAllRectanglesSorted
-        std::vector<unsigned> getAllShapeIdsSorted() const {
-            std::vector<unsigned> res;
-            for (auto const& id : hstd::sorted(rectMap.left_keys())) {
-                res.push_back(getVertexIdx(id));
-            }
-
-            return res;
-        }
-    };
-
+    struct SharedCtx
+        : public API::SharedCtxBase
+        , public ColaRectTracker {};
 
     struct LocalCtx : public API::LocalCtxBase {};
 
@@ -550,7 +551,8 @@ class AvoidRouterAlgorithm {
   public:
     /// \brief put a fake buffer around each shape so the edges would not
     /// run perfectly flush against the nodes.
-    hstd::Opt<int> shapeBufferDistance = 1;
+    hstd::Opt<int>   shapeBufferDistance = 1;
+    ColaRectTracker* rects;
 };
 
 class ColaLayoutAlgorithm : public layout::IPlacementAlgorithm {

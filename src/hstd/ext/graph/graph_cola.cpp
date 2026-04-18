@@ -132,12 +132,10 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
             for (auto const& vert : group->getVertices()) {
-                if (ctx->hasRect(vert)) {
-                    result.vertices.insert_or_assign(
-                        vert,
-                        std::make_shared<ColaVertexLayoutAttribute>(
-                            adapt::to_hstd(*ctx->getRect(vert))));
-                }
+                result.vertices.insert_or_assign(
+                    vert,
+                    std::make_shared<ColaVertexLayoutAttribute>(
+                        adapt::to_hstd(*ctx->getRect(vert))));
             }
         }
     };

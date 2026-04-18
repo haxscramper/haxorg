@@ -152,6 +152,7 @@ using namespace hstd::ext::geometry;
 BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCollectionID);
 /// \brief 16-bit ID to identify the attribute tracker.
 BOOST_STRONG_TYPEDEF(hstd::u16, AttributeTrackerID);
+BOOST_STRONG_TYPEDEF(hstd::u16, PortCollectionID);
 /// \brief 16-bit ID to track the graph hierarchies. Used as a mask in the
 /// `EdgeID`.
 BOOST_STRONG_TYPEDEF(hstd::u16, GraphHierarchyID);
@@ -166,6 +167,17 @@ struct std::hash<hstd::ext::graph::EdgeCollectionID> {
         return result;
     }
 };
+
+template <>
+struct std::hash<hstd::ext::graph::PortCollectionID> {
+    std::size_t operator()(
+        hstd::ext::graph::PortCollectionID const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.t);
+        return result;
+    }
+};
+
 
 template <>
 struct std::hash<hstd::ext::graph::AttributeTrackerID> {
@@ -217,7 +229,7 @@ DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
 /// The concept of the node port is linked with the layout, but the the
 /// abstract graph interface it is also used to group different connections
 /// of edge to the vertices.
-DECL_ID_TYPE(IPort, PortID, hstd::u64);
+DECL_ID_TYPE_MASKED(IPort, PortID, hstd::u64, 16);
 
 class IGraph;
 
@@ -382,10 +394,27 @@ struct IEdge
 ///
 /// \note For visualizatino purposes ports might be independently managed
 /// by the layout run. Semantic graph
-struct IPort : public IGraphObjectBase {
+struct IPort
+    : public IGraphObjectBase
+    , public IAttributeObject {
     using id_type = PortID;
     DESC_FIELDS(IPort, ());
 };
+
+
+class IPortCollection {
+  public:
+    virtual ~IPortCollection() = default;
+
+    /// \brief Check if the collection has port
+    virtual bool             hasPort(PortID const& id) const = 0;
+    virtual PortCollectionID getCategory() const             = 0;
+    virtual IPort const*     getPort(PortID const& id) const = 0;
+
+    virtual void trackPort(PortID const& id);
+    virtual void untrackPort(PortID const& id);
+};
+
 
 } // namespace hstd::ext::graph
 
@@ -993,9 +1022,7 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
 class IVertexLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Vertex bounding box + position relative to the parent
-    virtual Rect getBBox() const = 0;
-    virtual hstd::SPtr<hstd::SPtr<IPortLayoutAttribute>> getPorts()
-        const                                  = 0;
+    virtual Rect             getBBox() const   = 0;
     virtual visual::VisGroup getVisual() const = 0;
 };
 
@@ -1003,10 +1030,8 @@ class IGroupLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
-    virtual Rect getPointsBBox() const = 0;
-    virtual hstd::Vec<hstd::SPtr<IPortLayoutAttribute>> getPorts()
-        const                                  = 0;
-    virtual visual::VisGroup getVisual() const = 0;
+    virtual Rect             getPointsBBox() const = 0;
+    virtual visual::VisGroup getVisual() const     = 0;
 };
 
 
