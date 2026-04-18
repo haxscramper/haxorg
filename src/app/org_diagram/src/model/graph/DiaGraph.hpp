@@ -1,7 +1,7 @@
 #pragma once
 
 #include <org_diagram/src/model/graph/IOrgGraph.hpp>
-#include <hstd/ext/hstd_graph.hpp>
+#include <hstd/ext/graph_base.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 
 struct DiaGraphVertex : public hstd::ext::graph::IVertex {

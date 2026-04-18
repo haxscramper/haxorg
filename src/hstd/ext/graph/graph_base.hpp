@@ -1,6 +1,6 @@
 /**
 
-\file hstd_graph.hpp
+\file graph_base.hpp
 \brief Provide base classes for the graph and visualization.
 
 High-level overview of the design:

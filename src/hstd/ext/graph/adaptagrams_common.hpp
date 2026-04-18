@@ -9,7 +9,7 @@
 
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
-#include <hstd/ext/graph/hstd_graph.hpp>
+#include <hstd/ext/graph/graph_base.hpp>
 
 namespace hstd::ext::graph::adapt {
 

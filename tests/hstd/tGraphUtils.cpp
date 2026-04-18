@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <adaptagrams/adaptagrams_ir.hpp>
 
-#include <hstd/ext/graph/hstd_graph.hpp>
-#include <hstd/ext/graph/graphviz.hpp>
+#include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/ext/graph/graph_graphviz.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
 
 #include <libdialect/hola.h>

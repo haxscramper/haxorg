@@ -9,7 +9,7 @@
 
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/ext/graph/graphviz.hpp>
+#    include <hstd/ext/graph/graph_graphviz.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaObject>

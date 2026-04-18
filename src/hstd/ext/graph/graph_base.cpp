@@ -1,4 +1,4 @@
-#include "hstd_graph.hpp"
+#include "graph_base.hpp"
 
 #include <hstd/stdlib/algorithms.hpp>
 #include <stack>
