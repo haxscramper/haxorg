@@ -361,8 +361,9 @@ void gv::GraphGroup::eachSubgraph(Func<void(GraphGroup)> cb) const {
     }
 }
 
-hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
-    VertexID const& id) {
+void gv::GraphGroup::addVertex(
+    VertexID const&                                   id,
+    hstd::SPtr<layout::IVertexVisualAttribute> const& attr) {
     LOGIC_ASSERTION_CHECK_FMT(
         !nodeAttributes().contains(id),
         "Canot add vertex ID {} to the graph group {}, it is already "
@@ -376,15 +377,15 @@ hstd::SPtr<layout::IVertexVisualAttribute> gv::GraphGroup::addVertex(
     run->message(
         hstd::fmt("add vertex {} ({})", id, vertex->getStableId()));
 
-    auto attribute = this->node(vertex->getStableId());
-    const_cast<IVertex*>(vertex)->addAttribute(attribute);
-    nodeAttributes().insert_or_assign(id, attribute);
+    const_cast<IVertex*>(vertex)->addAttribute(attr);
+    auto vattr = std::dynamic_pointer_cast<gv::NodeAttribute>(attr);
+    nodeAttributes().insert_or_assign(id, vattr);
     directVertices.insert(id);
-    return attribute;
 }
 
-hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
-    EdgeID const& id) {
+void gv::GraphGroup::addEdge(
+    EdgeID const&                                   id,
+    hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) {
 
     LOGIC_ASSERTION_CHECK_FMT(
         !edgeAttributes().contains(id),
@@ -409,13 +410,10 @@ hstd::SPtr<layout::IEdgeVisualAttribute> gv::GraphGroup::addEdge(
             e->getTarget(),
             getStableId()));
 
-    auto attr = edge(
-        *nodeAttributes().at(e->getSource()),
-        *nodeAttributes().at(e->getTarget()));
     e->addAttribute(attr);
-    edgeAttributes().insert_or_assign(id, attr);
+    auto vatr = std::dynamic_pointer_cast<gv::EdgeAttribute>(attr);
+    edgeAttributes().insert_or_assign(id, vatr);
     directEdges.insert(id);
-    return attr;
 }
 
 layout::GroupID gv::GraphGroup::addNewNativeSubgroup() {

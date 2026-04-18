@@ -878,24 +878,45 @@ class GraphGroup
         groups().erase(id);
     }
 
+    void addVertex(
+        VertexID const&                                   id,
+        hstd::SPtr<layout::IVertexVisualAttribute> const& attr) override;
+
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
-        VertexID const& id) override;
-    hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(
-        EdgeID const& id) override;
+        VertexID const& id) {
+        auto vertex    = run->getVertex(id);
+        auto attribute = this->node(vertex->getStableId());
+        addVertex(id, attribute);
+        return attribute;
+    }
+
+    void addEdge(
+        EdgeID const&                                   id,
+        hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) override;
+
+    hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(EdgeID const& id) {
+        auto e    = const_cast<IEdge*>(run->getEdge(id));
+        auto attr = edge(
+            *nodeAttributes().at(e->getSource()),
+            *nodeAttributes().at(e->getTarget()));
+        addEdge(id, attr);
+        return attr;
+    }
+
     layout::GroupID addNewNativeSubgroup() override;
 
     void addExistingSubgroup(layout::GroupID const& id) override;
 
-    virtual hstd::Vec<VertexID> getVertices() const override {
+    hstd::Vec<VertexID> getVertices() const override {
         return hstd::Vec<VertexID>{
             directVertices.begin(), directVertices.end()};
     }
 
-    virtual hstd::Vec<EdgeID> getEdges() const override {
+    hstd::Vec<EdgeID> getEdges() const override {
         return hstd::Vec<EdgeID>{directEdges.begin(), directEdges.end()};
     }
 
-    virtual std::string getStableId() const override {
+    std::string getStableId() const override {
         return hstd::fmt("graph-group-{}", name());
     }
 };

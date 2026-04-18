@@ -17,14 +17,7 @@
 #if false
 namespace hstd::ext {
 
-enum class [[refl]] GraphDimension
-{
-    XDIM  = 0,
-    YDIM  = 1,
-    UNSET = 2,
-};
 
-BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET)
 
 struct [[refl]] GraphPoint {
     [[refl]] double x;
@@ -84,174 +77,8 @@ struct [[refl]] GraphRect {
     void extend(GraphPoint const& point);
 };
 
-/// \brief IR wrapper for the cola layout constraints
-struct [[refl]] GraphNodeConstraint {
-#    ifdef ORG_BUILD_WITH_ADAPTAGRAMS
-    using Res = SPtr<cola::CompoundConstraint>;
-
-    struct [[refl]] Empty {
-        DESC_FIELDS(Empty, ());
-    };
-
-    /// \brief Listed nodes must be positioned on the same X/Y dimension in
-    /// the layout
-    struct [[refl]] Align {
-        struct [[refl]] Spec {
-            [[refl]] int         node; ///< Rectangle index
-            [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
-            [[refl]] double      offset = 0.0; ///< Offset from the axis
-            DESC_FIELDS(Spec, (node, fixPos, offset));
-        };
-
-        [[refl]] Vec<Spec>      nodes;
-        [[refl]] GraphDimension dimension; ///< Which axist to align on
-        DESC_FIELDS(Align, (nodes, dimension));
-
-        /// \brief Map to cola layout constraint object
-        Res                  toCola() const;
-        [[refl]] std::string toColaString() const {
-            return toCola()->toString();
-        }
-    };
-
-    struct [[refl]] Separate {
-        [[refl]] Align          left;
-        [[refl]] Align          right;
-        [[refl]] double         separationDistance = 1.0;
-        [[refl]] bool           isExactSeparation  = false;
-        [[refl]] GraphDimension dimension; ///< Which axis to partition
-                                           ///< nodes
-        DESC_FIELDS(
-            Separate,
-            (left,
-             right,
-             separationDistance,
-             isExactSeparation,
-             dimension));
-
-        Vec<Res>             toCola() const;
-        [[refl]] std::string toColaString() const;
-    };
-
-    struct [[refl]] MultiSeparate {
-        [[refl]] Vec<Align>          lines;
-        [[refl]] Vec<Pair<int, int>> alignPairs;
-        [[refl]] GraphDimension      dimension;
-        [[refl]] double              separationDistance;
-        [[refl]] bool                isExactSeparation;
-
-        DESC_FIELDS(
-            MultiSeparate,
-            (lines,
-             alignPairs,
-             dimension,
-             separationDistance,
-             isExactSeparation));
-
-        Vec<Res>             toCola() const;
-        [[refl]] std::string toColaString() const;
-    };
-
-    struct [[refl]] FixedRelative {
-        [[refl]] Vec<int> nodes;
-        [[refl]] bool     fixedPosition = false;
-        DESC_FIELDS(FixedRelative, (nodes, fixedPosition));
-        Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
-    };
-
-    struct [[refl]] PageBoundary {
-        [[refl]] GraphRect rect;
-        [[refl]] double    weight = 100.0;
-        [[refl]] Vec<int>  nodes;
-        DESC_FIELDS(PageBoundary, (rect, weight, nodes));
-
-        Res toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
-        [[refl]] std::string toColaString(
-            std::vector<vpsc::Rectangle*> const& allRects) const {
-            return toCola(allRects)->toString();
-        }
-    };
-
-    Vec<Res> toCola(std::vector<vpsc::Rectangle*> const& allRects) const;
-    std::string toColaString(
-        std::vector<vpsc::Rectangle*> const& allRects) const;
-
-    SUB_VARIANTS_REFL(
-        Kind,
-        Data,
-        data,
-        getKind,
-        Empty,
-        Align,
-        FixedRelative,
-        Separate,
-        MultiSeparate,
-        PageBoundary);
-
-    Data data;
-
-    GraphNodeConstraint() {}
-    GraphNodeConstraint(Data const& data) : data(data) {};
-
-    [[refl]] static GraphNodeConstraint InitEmpty(Empty const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-    [[refl]] static GraphNodeConstraint InitAlign(Align const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-    [[refl]] static GraphNodeConstraint InitSeparate(Separate const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-    [[refl]] static GraphNodeConstraint InitMultiSeparate(
-        MultiSeparate const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-    [[refl]] static GraphNodeConstraint InitFixedRelative(
-        FixedRelative const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-    [[refl]] static GraphNodeConstraint InitPageBoundary(
-        PageBoundary const& arg) {
-        return GraphNodeConstraint(arg);
-    }
-
-
-    DESC_FIELDS(GraphNodeConstraint, (data));
-#    endif
-};
-
-struct [[refl]] GraphEdge {
-    [[refl]] int source;
-    [[refl]] int target;
-    [[refl]] int bundle = 0;
-
-    bool operator==(GraphEdge const& other) const {
-        return source == other.source //
-            && target == other.target //
-            && bundle == other.bundle;
-    }
-
-    DESC_FIELDS(GraphEdge, (source, target, bundle));
-};
 
 } // namespace hstd::ext
-
-template <>
-struct std::hash<::hstd::ext::GraphEdge> {
-    std::size_t operator()(
-        ::hstd::ext::GraphEdge const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.source);
-        hstd::hax_hash_combine(result, it.target);
-        hstd::hax_hash_combine(result, it.bundle);
-        return result;
-    }
-};
 
 
 namespace hstd::ext {
@@ -305,8 +132,6 @@ struct [[refl]] GraphEdgeConstraint {
 /// Stores a minimum amount of information about the graph properties --
 /// list of edges, shapes of nodes, and some backend-specific parameters.
 struct [[refl]] GraphLayoutIR {
-
-
     struct [[refl]] Subgraph {
         Str graphName; ///< Graphviz graph name
 

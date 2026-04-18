@@ -1039,7 +1039,11 @@ class IPlacementAlgorithm {
     IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
-class IConstraint {};
+class IConstraint {
+  public:
+    virtual void                addVertex(VertexID const& id);
+    virtual hstd::Vec<VertexID> getAllVertices() const;
+};
 
 
 /// \brief Non-structural collection of vertices, edges, constraints and
@@ -1071,10 +1075,13 @@ class IGroup {
 
     /// \brief Add the new vertex to this group, and return
     /// backend-specific attributes.
-    virtual hstd::SPtr<IVertexVisualAttribute> addVertex(
-        VertexID const& id) = 0;
+    virtual void addVertex(
+        VertexID const&                           id,
+        hstd::SPtr<IVertexVisualAttribute> const& attr) = 0;
 
-    virtual hstd::SPtr<IEdgeVisualAttribute> addEdge(EdgeID const& id) = 0;
+    virtual void addEdge(
+        EdgeID const&                           id,
+        hstd::SPtr<IEdgeVisualAttribute> const& attr) = 0;
 
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new

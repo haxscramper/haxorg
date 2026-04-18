@@ -35,13 +35,6 @@ struct std::formatter<Avoid::Box> : std::formatter<std::string> {
 
 namespace {
 
-vpsc::Dim toVpsc(GraphDimension dim) {
-    switch (dim) {
-        case GraphDimension::XDIM: return vpsc::Dim::XDIM;
-        case GraphDimension::YDIM: return vpsc::Dim::YDIM;
-        case GraphDimension::UNSET: return vpsc::Dim::UNSET;
-    }
-}
 
 char const* original_subgraph_nodes_prop = "original_nodes";
 char const* original_subgraph_path_prop  = "original_path";
@@ -58,13 +51,7 @@ char const* target_index_prop            = "target_index";
 
 
 GraphNodeConstraint::Res GraphNodeConstraint::FixedRelative::toCola(
-    std::vector<vpsc::Rectangle*> const& allRects) const {
-    return std::make_shared<cola::FixedRelativeConstraint>(
-        allRects,
-        nodes //
-            | rv::transform([](int i) { return static_cast<unsigned>(i); })
-            | rs::to<std::vector>(),
-        fixedPosition);
+
 }
 
 bool GraphLayoutIR::Subgraph::isEmpty() const {
@@ -913,25 +900,7 @@ GraphNodeConstraint::Res GraphNodeConstraint::Align::toCola() const {
 
 Vec<GraphNodeConstraint::Res> GraphNodeConstraint::Separate::toCola()
     const {
-    auto left_constraint  = left.toCola();
-    auto right_constraint = right.toCola();
-    if (dimension != left.dimension || dimension != right.dimension) {
-        throw std::logic_error(fmt(
-            "separation constraint alignments must have the same "
-            "dimension. Separation has dimension {}, left: {}, right:{}",
-            this->dimension,
-            left.dimension,
-            right.dimension));
-    }
 
-    auto result = std::make_shared<cola::SeparationConstraint>(
-        toVpsc(dimension),
-        dynamic_cast<cola::AlignmentConstraint*>(left_constraint.get()),
-        dynamic_cast<cola::AlignmentConstraint*>(right_constraint.get()),
-        separationDistance,
-        isExactSeparation);
-
-    return {result, left_constraint, right_constraint};
 }
 
 namespace {
