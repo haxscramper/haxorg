@@ -15,8 +15,7 @@ IEdgeProvider::DependantDeletion IVertexHierarchy::untrackVertex(
     VertexID const& id) {
     DependantDeletion result;
     if (!vertexIDs.contains(id)) {
-        throw org_graph_error::init(
-            std::format(vertex_not_found_msg, "", id));
+        throw graph_error::init(std::format(vertex_not_found_msg, "", id));
     }
 
     std::function<void(VertexID const&)> collect =
@@ -220,11 +219,11 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     VertexID const&         parent,
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Sub ", sub));
     }
 
@@ -243,7 +242,7 @@ void IGraph::untrackSubVertexRelation(
 
 void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format("Vertex {} already registered", id));
     }
     vertexIDs.insert(id);
@@ -262,8 +261,7 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
 hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> hstd::
     ext::graph::IGraph::untrackVertex(VertexID const& id) {
     if (!vertexIDs.contains(id)) {
-        throw org_graph_error::init(
-            std::format(vertex_not_found_msg, "", id));
+        throw graph_error::init(std::format(vertex_not_found_msg, "", id));
     }
 
     hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion>
@@ -344,7 +342,7 @@ hstd::Vec<VertexID> IGraph::getParentChain(
 
 void IVertexHierarchy::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format("Vertex {} already registered in hierarchy", id));
     }
     vertexIDs.insert(id);
@@ -355,15 +353,15 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
     VertexID const& parent,
     VertexID const& sub) {
     if (!vertexIDs.contains(parent)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Sub ", sub));
     }
     if (parentMap.contains(sub)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format("Vertex {} already has a parent", sub));
     }
 
@@ -385,15 +383,15 @@ void IVertexHierarchy::untrackSubVertexRelation(
     VertexID const& parent,
     VertexID const& sub) {
     if (!vertexIDs.contains(parent)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format(vertex_not_found_msg, "Sub ", sub));
     }
     if (!parentMap.contains(sub) || parentMap.at(sub) != parent) {
-        throw org_graph_error::init(
+        throw graph_error::init(
             std::format("Vertex {} is not a child of {}", sub, parent));
     }
 

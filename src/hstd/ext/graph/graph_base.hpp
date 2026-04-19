@@ -52,6 +52,10 @@ Terminology used
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_multiset_of.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/composite_key.hpp>
+
+namespace bmi = boost::multi_index;
 
 namespace hstd {
 template <typename ID, typename T>
@@ -142,7 +146,22 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
 /// \brief graph structure and visualization
 namespace hstd::ext::graph {
 
-struct org_graph_error : public hstd::CRTP_hexception<org_graph_error> {};
+struct graph_error : public hstd::CRTP_hexception<graph_error> {};
+
+struct structure_error
+    : public hstd::CRTP_hexception<structure_error, graph_error> {};
+
+struct port_structure_error
+    : public hstd::CRTP_hexception<port_structure_error, structure_error> {
+};
+
+struct edge_structure_error
+    : public hstd::CRTP_hexception<edge_structure_error, structure_error> {
+};
+
+struct vertex_structure_error
+    : public hstd::
+          CRTP_hexception<vertex_structure_error, structure_error> {};
 
 using namespace hstd::ext::geometry;
 /// \brief 16-bit ID to track edge collection. Used as a mask in the
@@ -298,7 +317,7 @@ class IAttributeObject {
                 if (result == nullptr) {
                     result = std::dynamic_pointer_cast<T>(attr);
                 } else {
-                    throw org_graph_error::init(
+                    throw graph_error::init(
                         hstd::fmt(
                             "Graph object is expected to have exactly one "
                             "attribute of type {}, but found two.",
@@ -308,7 +327,7 @@ class IAttributeObject {
         }
 
         if (result == nullptr) {
-            throw org_graph_error::init(
+            throw graph_error::init(
                 hstd::fmt(
                     "Graph object is expected to have exactly one "
                     "attribute of type {}, but found none.",
@@ -403,16 +422,145 @@ struct IPort
 
 
 class IPortCollection {
+    struct PortEntry {
+        VertexID vertex;
+        EdgeID   edge;
+        bool     is_start;
+        PortID   port;
+    };
+
+    // Tags for each index
+    struct ByCompositeKey {};
+    struct ByPortID {};
+    struct ByVertexID {};
+    struct ByEdgeID {};
+
+    using PortContainer = bmi::multi_index_container<
+        PortEntry,
+        bmi::indexed_by<
+            // Unique: (vertex, edge, is_start) — the "left" side of the
+            // bimap
+            bmi::ordered_unique<
+                bmi::tag<ByCompositeKey>,
+                bmi::composite_key<
+                    PortEntry,
+                    bmi::member<PortEntry, VertexID, &PortEntry::vertex>,
+                    bmi::member<PortEntry, EdgeID, &PortEntry::edge>,
+                    bmi::member<PortEntry, bool, &PortEntry::is_start>>>,
+            // Unique: port — the "right" side of the bimap
+            bmi::ordered_unique<
+                bmi::tag<ByPortID>,
+                bmi::member<PortEntry, PortID, &PortEntry::port>>,
+            // Non-unique: vertex — range query for "ports of vertex"
+            bmi::ordered_non_unique<
+                bmi::tag<ByVertexID>,
+                bmi::member<PortEntry, VertexID, &PortEntry::vertex>>,
+            // Non-unique: edge — range query for "ports of edge"
+            bmi::ordered_non_unique<
+                bmi::tag<ByEdgeID>,
+                bmi::member<PortEntry, EdgeID, &PortEntry::edge>>>>;
+
+  protected:
+    PortContainer ports;
+
+
+    auto getPortIterator(PortID const& pid) const {
+        auto& idx = ports.get<ByPortID>();
+        auto  it  = idx.find(pid);
+        if (it == idx.end()) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "port {} is not registered in the collection", pid));
+        }
+        return it;
+    }
+
+    /// \brief Base method to add ports to the collection, derived classes
+    /// should provide the storage implementation that will generate port
+    /// ID, and provide a method that will require only
+    /// vertex+edge+is-start.
+    PortID addPort(
+        VertexID vertex,
+        EdgeID   edge,
+        bool     is_start,
+        PortID   pid) {
+        auto& idx = ports.get<ByCompositeKey>();
+        if (idx.find(std::make_tuple(vertex, edge, is_start))
+            != idx.end()) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "Port for vertex {} edge {} {} already exists",
+                    vertex,
+                    edge,
+                    is_start ? "start" : "end"));
+        }
+        ports.insert(PortEntry{vertex, edge, is_start, pid});
+        return pid;
+    }
+
+
   public:
     virtual ~IPortCollection() = default;
 
     /// \brief Check if the collection has port
-    virtual bool             hasPort(PortID const& id) const = 0;
-    virtual PortCollectionID getCategory() const             = 0;
-    virtual IPort const*     getPort(PortID const& id) const = 0;
+    virtual PortCollectionID getCategory() const = 0;
 
-    virtual void trackPort(PortID const& id);
-    virtual void untrackPort(PortID const& id);
+
+    EdgeID getEdgeForPort(PortID pid) const {
+        return getPortIterator(pid)->edge;
+    }
+
+    VertexID getVertexForPort(PortID pid) const {
+        return getPortIterator(pid)->vertex;
+    }
+
+    bool isSourcePort(PortID pid) const {
+        return getPortIterator(pid)->is_start;
+    }
+
+    hstd::Vec<PortID> getPortsForVertex(VertexID vid) const {
+        auto& idx         = ports.get<ByVertexID>();
+        auto [begin, end] = idx.equal_range(vid);
+        hstd::Vec<PortID> result;
+        for (; begin != end; ++begin) { result.push_back(begin->port); }
+        return result;
+    }
+
+    hstd::Pair<PortID, PortID> getPortsForEdge(EdgeID eid) const {
+        auto& idx                     = ports.get<ByEdgeID>();
+        auto [begin, end]             = idx.equal_range(eid);
+        std::pair<PortID, PortID> res = {PortID::Nil(), PortID::Nil()};
+        res.first                     = begin->port;
+        ++begin;
+        res.second = begin->port;
+        return res;
+    }
+
+    bool hasPortConnection(VertexID vid, EdgeID eid, bool is_start) const {
+        auto& idx = ports.get<ByCompositeKey>();
+        auto  it  = idx.find(std::make_tuple(vid, eid, is_start));
+        return it != idx.end();
+    }
+
+    PortID getPortForConnection(VertexID vid, EdgeID eid, bool is_start)
+        const {
+        auto& idx = ports.get<ByCompositeKey>();
+        auto  it  = idx.find(std::make_tuple(vid, eid, is_start));
+        if (it == idx.end()) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "No {} connection between vertex {} and edge {}",
+                    is_start ? "start" : "end",
+                    vid,
+                    eid));
+        }
+        return it->port;
+    }
+
+    void delPort(PortID pid) {
+        auto it = getPortIterator(pid);
+        ports.get<ByPortID>().erase(it);
+    }
 };
 
 
