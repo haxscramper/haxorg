@@ -420,8 +420,9 @@ class IPortCollection {
     struct PortEntry {
         VertexID vertex;
         EdgeID   edge;
-        bool     is_start;
-        PortID   port;
+        /// \brief To distinguish edge ports in case of self-loops.
+        bool   is_source;
+        PortID port;
     };
 
     // Tags for each index
@@ -441,7 +442,7 @@ class IPortCollection {
                     PortEntry,
                     bmi::member<PortEntry, VertexID, &PortEntry::vertex>,
                     bmi::member<PortEntry, EdgeID, &PortEntry::edge>,
-                    bmi::member<PortEntry, bool, &PortEntry::is_start>>>,
+                    bmi::member<PortEntry, bool, &PortEntry::is_source>>>,
             // Unique: port — the "right" side of the bimap
             bmi::ordered_unique<
                 bmi::tag<ByPortID>,
@@ -509,7 +510,7 @@ class IPortCollection {
     }
 
     bool isSourcePort(PortID pid) const {
-        return getPortIterator(pid)->is_start;
+        return getPortIterator(pid)->is_source;
     }
 
     hstd::Vec<PortID> getPortsForVertex(VertexID vid) const {
@@ -557,6 +558,14 @@ class IPortCollection {
                     eid));
         }
         return it->port;
+    }
+
+    PortID getSourcePort(VertexID vid, EdgeID eid) const {
+        return getPortForConnection(vid, eid, true);
+    }
+
+    PortID getTargetPort(VertexID vid, EdgeID eid) const {
+        return getPortForConnection(vid, eid, false);
     }
 
     void delPort(PortID pid) {

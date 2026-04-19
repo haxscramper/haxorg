@@ -582,7 +582,7 @@ struct std::formatter<hstd::ext::geometry::Path>
     auto format(hstd::ext::geometry::Path const& p, FormatContext& ctx)
         const {
         return hstd::fmt_ctx(
-            hstd::fmt("Path(commands={})", p.commands.size()), ctx);
+            hstd::fmt("Path(commands={})", p.commands), ctx);
     }
 };
 
@@ -595,41 +595,6 @@ struct std::formatter<hstd::ext::geometry::Point>
         const {
         return hstd::fmt_ctx(
             hstd::fmt("Point(x={}, y={})", p.x(), p.y()), ctx);
-    }
-};
-
-template <>
-struct std::formatter<hstd::ext::geometry::Path::Command>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(
-        hstd::ext::geometry::Path::Command const& cmd,
-        FormatContext&                            ctx) const {
-        using CommandType = hstd::ext::geometry::Path::CommandType;
-        switch (cmd.type) {
-            case CommandType::MoveTo:
-                return hstd::fmt_ctx(
-                    hstd::fmt("{}(to={})", cmd.type, cmd.p1), ctx);
-            case CommandType::LineTo:
-                return hstd::fmt_ctx(
-                    hstd::fmt("{}(to={})", cmd.type, cmd.p1), ctx);
-            case CommandType::QuadTo:
-                return hstd::fmt_ctx(
-                    hstd::fmt(
-                        "{}(control={}, to={})", cmd.type, cmd.p1, cmd.p2),
-                    ctx);
-            case CommandType::CubicTo:
-                return hstd::fmt_ctx(
-                    hstd::fmt(
-                        "{}(control1={}, control2={}, to={})",
-                        cmd.type,
-                        cmd.p1,
-                        cmd.p2,
-                        cmd.p3),
-                    ctx);
-            case CommandType::CloseSubpath:
-                return hstd::fmt_ctx(hstd::fmt("{}()", cmd.type), ctx);
-        }
     }
 };
 

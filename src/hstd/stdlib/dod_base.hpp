@@ -478,7 +478,7 @@ struct Store {
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
-            co_yield {Id::FromIndex(i), &content.at(i)};
+            co_yield {Id{Id::FromIndex(i)}, &content.at(i)};
         }
     }
 

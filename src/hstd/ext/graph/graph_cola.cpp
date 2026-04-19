@@ -1,6 +1,8 @@
 #include "graph_cola.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::ext::graph;
 
@@ -150,12 +152,6 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     router.intermediate_placement = &result;
     auto layoutPorts              = router.routeEdges();
 
-    for (auto const& [eid, conn_ref] : router.connections) {
-        result.edges.insert_or_assign(
-            eid,
-            std::make_shared<ColaEdgeLayoutAttribute>(
-                adapt::to_hstd_path(conn_ref->displayRoute())));
-    }
 
     result.groups.insert_or_assign(
         root_id,
@@ -317,6 +313,16 @@ hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
 using APL = hstd::ext::graph::cst::AvoidPortLayoutAttribute;
 
 namespace {
+
+Avoid::ConnDirFlags map_direction(APL::VisibilityDirection portDirection) {
+    switch (portDirection) {
+        case APL::VisibilityDirection::Top: return Avoid::ConnDirUp;
+        case APL::VisibilityDirection::Bottom: return Avoid::ConnDirDown;
+        case APL::VisibilityDirection::Left: return Avoid::ConnDirLeft;
+        case APL::VisibilityDirection::Right: return Avoid::ConnDirRight;
+    }
+}
+
 std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
     APL::VisibilityDirection portDirection,
     int                      portIdx,
@@ -434,7 +440,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         auto e_port_attr        = std::make_shared<APL>();
         e_port_attr->visibility = APL::VisibilityDirection::Right;
         e_port_attr->placement  = APL::Placement::Unspecified;
-        e_port->addAttribute(s_port_attr);
+        e_port->addAttribute(e_port_attr);
     }
 
     for (auto const& vert : group->getVertices()) {
@@ -470,6 +476,29 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
             Avoid::shapeBufferDistance, shapeBufferDistance.value());
     }
 
+    //                       [32       24       16       8
+    unsigned int EdgeMask = 0b01000000'00000000'00000000'00000000;
+    unsigned int VertMask = 0b10000000'00000000'00000000'00000000;
+    unsigned int PortMask = 0b11000000'00000000'00000000'00000000;
+    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int> id_map;
+
+    auto id_proxy = [&]<typename ID>(ID id) -> unsigned int {
+        hstd::u64 id_value = id.getValue();
+        if (!id_map.contains(id_value)) {
+            unsigned int res = id_map.size();
+            if constexpr (std::is_same_v<ID, EdgeID>) {
+                res |= EdgeMask;
+            } else if constexpr (std::is_same_v<ID, VertexID>) {
+                res |= VertMask;
+            } else if constexpr (std::is_same_v<ID, PortID>) {
+                res |= PortMask;
+            }
+
+            id_map.insert_or_assign(id_value, res);
+        }
+
+        return id_map.at(id_value);
+    };
 
     auto get_shape = [&](VertexID vid) -> Avoid::ShapeRef* {
         if (!shapes.contains(vid)) {
@@ -479,7 +508,9 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
             shapes.insert_or_assign(
                 vid,
-                new Avoid::ShapeRef(router.get(), poly, vid.getValue()));
+                new Avoid::ShapeRef(router.get(), poly, id_proxy(vid)));
+
+            run->message(hstd::fmt("for {} crated rect {}", vid, rect));
         }
 
         return shapes.at(vid);
@@ -496,33 +527,48 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         };
     };
 
+
     for (auto const& eid : group->getEdges()) {
-        run->message(hstd::fmt("for edge ID {}", eid));
+        auto eid_avoid = id_proxy(eid);
+        run->message(
+            hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
         auto __scope = run->scopeLevel();
 
         auto edge = run->graph->getEdge(eid);
 
-        auto s_attr = lp->getPort(edge->getSource())
-                          ->getUniqueAttribute<APL>();
-        auto t_attr = lp->getPort(edge->getTarget())
-                          ->getUniqueAttribute<APL>();
+        auto s_pid  = lp->getSourcePort(edge->getSource(), eid);
+        auto t_pid  = lp->getTargetPort(edge->getTarget(), eid);
+        auto s_attr = lp->getPort(s_pid)->getUniqueAttribute<APL>();
+        auto t_attr = lp->getPort(t_pid)->getUniqueAttribute<APL>();
 
         // connection references are owned abd deleted by the router, no
         // `delete` is necessary to match the `new`.
-        auto conn = new Avoid::ConnRef(router.get(), eid.getValue());
+        auto conn = new Avoid::ConnRef(router.get(), eid_avoid);
 
         connections.insert_or_assign(eid, conn);
 
-        // s_attr->pin = new Avoid::ShapeConnectionPin(
-        //     get_shape(edge->getSource()), );
+        s_attr->pin = new Avoid::ShapeConnectionPin(
+            get_shape(edge->getSource()),
+            eid_avoid,
+            s_attr->xOffset,
+            s_attr->yOffset,
+            /*proportional=*/true,
+            /*insideOffset=*/0,
+            /*visDirs=*/map_direction(s_attr->visibility));
+
+        t_attr->pin = new Avoid::ShapeConnectionPin(
+            get_shape(edge->getTarget()),
+            eid_avoid,
+            t_attr->xOffset,
+            t_attr->yOffset,
+            /*proportional=*/true,
+            /*insideOffset=*/0,
+            /*visDirs=*/map_direction(t_attr->visibility));
 
         s_attr->connection = Avoid::ConnEnd{
-            adapt::to_avoid(get_shape_point(
-                edge->getSource(), s_attr->xOffset, s_attr->yOffset))};
-
+            get_shape(edge->getSource()), eid_avoid};
         t_attr->connection = Avoid::ConnEnd{
-            adapt::to_avoid(get_shape_point(
-                edge->getTarget(), t_attr->xOffset, t_attr->yOffset))};
+            get_shape(edge->getTarget()), eid_avoid};
 
         conn->setSourceEndpoint(s_attr->connection);
         conn->setDestEndpoint(t_attr->connection);
@@ -532,10 +578,13 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     router->processTransaction();
 
     for (auto const& eid : group->getEdges()) {
+        run->message(hstd::fmt("rebuilding placement"));
         auto edge   = run->graph->getEdge(eid);
-        auto s_attr = lp->getPort(edge->getSource())
+        auto s_attr = lp->getPort(
+                            lp->getSourcePort(edge->getSource(), eid))
                           ->getUniqueAttribute<APL>();
-        auto t_attr = lp->getPort(edge->getTarget())
+        auto t_attr = lp->getPort(
+                            lp->getTargetPort(edge->getTarget(), eid))
                           ->getUniqueAttribute<APL>();
 
         auto s_point = get_shape_point(
@@ -549,6 +598,13 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         t_attr->xOffset   = t_point.x();
         t_attr->yOffset   = t_point.y();
         t_attr->placement = APL::Placement::Absolute;
+    }
+
+    for (auto const& [eid, conn_ref] : connections) {
+        auto path = adapt::to_hstd_path(conn_ref->displayRoute());
+        run->message(hstd::fmt("eid {} path {} path", eid, path));
+        intermediate_placement->edges.insert_or_assign(
+            eid, std::make_shared<ColaEdgeLayoutAttribute>(path));
     }
 
     return res;
