@@ -21,6 +21,15 @@ geometry::Polygon to_hstd(Avoid::Polygon const& input);
 geometry::Path    to_hstd_path(Avoid::Polygon const& input);
 geometry::Path    to_hstd_path(cola::Edge const& input);
 
+inline Avoid::Point to_avoid(geometry::Point const& point) {
+    return Avoid::Point{point.x(), point.y()};
+}
+
+inline Avoid::Rectangle to_avoid(geometry::Rect const& rect) {
+    return Avoid::Rectangle{
+        to_avoid(rect.min_corner()), to_avoid(rect.max_corner())};
+}
+
 
 inline void add_checkpoint(
     visual::VisGroup&        g,

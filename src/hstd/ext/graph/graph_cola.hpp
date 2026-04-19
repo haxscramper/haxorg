@@ -397,14 +397,13 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     ColaVertexLayoutAttribute(geometry::Rect rect) : rect{rect} {}
 
     Rect getBBox() const override { return rect; }
+};
 
-
-    visual::VisGroup getVisual() const override {
-        visual::VisGroup res;
-        res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{rect}});
-        return res;
-    }
+class ColaEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
+  public:
+    geometry::Path path;
+    ColaEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
+    Path getPath() const override { return path; }
 };
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
@@ -538,12 +537,100 @@ class PageBoundaryConstraint : public ColaConstraint {
         const override;
 };
 
+class AvoidPort : public IPort {
+  public:
+    std::size_t getHash() const override { return 0; }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return true;
+    }
+
+    std::string getRepr() const override { return ""; }
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+};
+
+class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
+  public:
+    DECL_DESCRIBED_ENUM(VisibilityDirection, Left, Right, Top, Bottom);
+    VisibilityDirection visibility;
+    hstd::Opt<double>   edgeOffset;
+};
+
+class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
+  public:
+    Rect getBBox() const override {
+        return Rect::FromCenterWH(Point(xOffset, yOffset), width, height);
+    }
+
+    visual::VisGroup getVisual() const override {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        return res;
+    }
+
+    DECL_DESCRIBED_ENUM(Placement, Unspecified, Proportional, Absolute);
+    using VisibilityDirection = AvoidPortVisualAttribute::
+        VisibilityDirection;
+    VisibilityDirection visibility;
+    Placement           placement;
+    double              xOffset;
+    double              yOffset;
+    double              width  = 1;
+    double              height = 1;
+
+    Avoid::ConnEnd connection;
+};
+
+
+class AvoidPortCollection : public IPortCollection {
+    hstd::UnorderedIncrementalStore<PortID, AvoidPort> portStore;
+
+  public:
+    PortCollectionID getCategory() const override {
+        return hstd::ext::graph::PortCollectionID(
+            hstd::hash_bits<15>(typeid(this).hash_code()));
+    }
+
+    const IPort* getPort(PortID pid) const override {
+        return &portStore.at(pid);
+    }
+
+    PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
+        auto id = portStore.add(AvoidPort{});
+        IPortCollection::addPort(vertex, edge, is_start, id);
+        return id;
+    }
+};
+
 class AvoidRouterAlgorithm {
   public:
     /// \brief put a fake buffer around each shape so the edges would not
     /// run perfectly flush against the nodes.
-    hstd::Opt<int>   shapeBufferDistance = 1;
-    ColaRectTracker* rects;
+    hstd::Opt<int>                       shapeBufferDistance = 1;
+    ColaRectTracker*                     rects;
+    layout::IGroup const*                group;
+    hstd::SPtr<layout::LayoutRun>        run;
+    layout::IPlacementAlgorithm::Result* intermediate_placement;
+
+    hstd::UnorderedMap<VertexID, Avoid::ShapeRef*> shapes;
+    hstd::UnorderedMap<EdgeID, Avoid::ConnRef*>    connections;
+    hstd::SPtr<Avoid::Router>                      router;
+
+    struct Result {
+        hstd::SPtr<AvoidPortCollection> layoutPorts;
+    };
+
+    Result routeEdges();
 };
 
 class ColaLayoutAlgorithm : public layout::IPlacementAlgorithm {

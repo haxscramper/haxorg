@@ -304,6 +304,9 @@ struct Rect : bg::model::box<Point> {
     double min_y() const { return bg::get<bg::min_corner, 1>(*this); }
     double max_y() const { return bg::get<bg::max_corner, 1>(*this); }
 
+    Point upper_left() const { return Point(min_x(), min_y()); }
+    Point lower_right() const { return Point(max_x(), max_y()); }
+
     double x() const { return bg::get<bg::min_corner, 0>(*this); }
     double y() const { return bg::get<bg::min_corner, 1>(*this); }
     double width() const {

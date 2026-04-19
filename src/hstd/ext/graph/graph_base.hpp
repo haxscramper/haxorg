@@ -114,6 +114,16 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
     using Base::keys;
     using Base::size;
 
+    T const& at(ID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(contains(id), "Id {} not stored", id);
+        return Base::at(id);
+    }
+
+    T& at(ID const& id) {
+        LOGIC_ASSERTION_CHECK_FMT(contains(id), "Id {} not stored", id);
+        return Base::at(id);
+    }
+
     ID getNextId(
         std::optional<typename ID::id_mask_type> mask = std::nullopt)
         const {
@@ -464,11 +474,7 @@ class IPortCollection {
     /// should provide the storage implementation that will generate port
     /// ID, and provide a method that will require only
     /// vertex+edge+is-start.
-    PortID addPort(
-        VertexID vertex,
-        EdgeID   edge,
-        bool     is_start,
-        PortID   pid) {
+    void addPort(VertexID vertex, EdgeID edge, bool is_start, PortID pid) {
         auto& idx = ports.get<ByCompositeKey>();
         if (idx.find(std::make_tuple(vertex, edge, is_start))
             != idx.end()) {
@@ -480,7 +486,6 @@ class IPortCollection {
                     is_start ? "start" : "end"));
         }
         ports.insert(PortEntry{vertex, edge, is_start, pid});
-        return pid;
     }
 
 
@@ -488,8 +493,12 @@ class IPortCollection {
     virtual ~IPortCollection() = default;
 
     /// \brief Check if the collection has port
-    virtual PortCollectionID getCategory() const = 0;
+    virtual PortCollectionID getCategory() const       = 0;
+    virtual IPort const*     getPort(PortID pid) const = 0;
 
+    IPort* getmPort(PortID pid) {
+        return const_cast<IPort*>(std::as_const(*this).getPort(pid));
+    }
 
     EdgeID getEdgeForPort(PortID pid) const {
         return getPortIterator(pid)->edge;
@@ -1133,21 +1142,36 @@ class ILayoutAttribute : public IAttribute {
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief position + size relative to parent.
-    virtual Rect             getBBox() const   = 0;
-    virtual visual::VisGroup getVisual() const = 0;
+    virtual Rect             getBBox() const = 0;
+    virtual visual::VisGroup getVisual() const {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        return res;
+    }
 };
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
-    virtual Path             getPath() const   = 0;
-    virtual visual::VisGroup getVisual() const = 0;
+    virtual Path             getPath() const = 0;
+    virtual visual::VisGroup getVisual() const {
+        visual::VisGroup result;
+        result.elements.push_back(
+            visual::VisElement{visual::VisElement::PathShape{getPath()}});
+        return result;
+    }
 };
 
 class IVertexLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Vertex bounding box + position relative to the parent
-    virtual Rect             getBBox() const   = 0;
-    virtual visual::VisGroup getVisual() const = 0;
+    virtual Rect             getBBox() const = 0;
+    virtual visual::VisGroup getVisual() const {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        return res;
+    }
 };
 
 class IGroupLayoutAttribute : public ILayoutAttribute {
@@ -1310,6 +1334,14 @@ class LayoutRun : public OperationsTracer {
             "No layout attribute specified for vertex ID {}",
             id);
         return result.vertices.at(id);
+    }
+
+    geometry::Rect getRelativeBBox(VertexID const& id) const {
+        return getLayout(id)->getBBox();
+    }
+
+    geometry::Rect getRelativeBBox(GroupID const& id) const {
+        return getLayout(id)->getPointsBBox();
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;
