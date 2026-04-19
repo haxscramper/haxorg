@@ -81,7 +81,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         hstd::own_view(rootGroup->edgeAttributes().keys())
             | rv::transform(
                 [&](EdgeID const& id) -> Pair<unsigned, unsigned> {
-                    return ctx->getEdgeIdx(id);
+                    return ctx->getEdgeIdx(id, ctx->run);
                 })
             | rs::to<std::vector>(),
         60);

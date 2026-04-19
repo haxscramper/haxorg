@@ -360,31 +360,20 @@ struct IEdge
     /// \brief In case of a multi-edge collection, bundle index allows to
     /// identify the specific edge among the several entries in the
     /// `(source, target)` pair.
-    int               bundleIndex = -1;
-    hstd::Opt<PortID> sourcePort  = std::nullopt;
-    hstd::Opt<PortID> targetPort  = std::nullopt;
-    DESC_FIELDS(
-        IEdge,
-        (source, target, bundleIndex, sourcePort, targetPort));
+    int bundleIndex = -1;
+    DESC_FIELDS(IEdge, (source, target, bundleIndex));
 
     IEdge(VertexID const& source, VertexID const& target)
         : source{source}, target{target} {}
 
     struct SerialSchema {
-        std::string            edgeId;
-        std::string            sourceId;
-        std::string            targetId;
-        int                    bundleIndex;
-        hstd::Opt<std::string> sourcePortId;
-        hstd::Opt<std::string> targetPortId;
+        std::string edgeId;
+        std::string sourceId;
+        std::string targetId;
+        int         bundleIndex;
         DESC_FIELDS(
             SerialSchema,
-            (edgeId,
-             sourceId,
-             targetId,
-             bundleIndex,
-             sourcePortId,
-             targetPortId));
+            (edgeId, sourceId, targetId, bundleIndex));
     };
 
     bool operator==(IEdge const& other) const {
@@ -393,10 +382,6 @@ struct IEdge
 
     VertexID getSource() const { return source; }
     VertexID getTarget() const { return target; }
-    bool     hasSourcePort() const { return sourcePort.has_value(); }
-    bool     hasTargetPort() const { return targetPort.has_value(); }
-    PortID   getTargetPort() const { return targetPort.value(); }
-    PortID   getSourcePort() const { return targetPort.value(); }
 
     virtual std::size_t getHash() const override;
     virtual bool isEqual(IGraphObjectBase const* other) const override;
@@ -540,6 +525,14 @@ class IPortCollection {
         auto& idx = ports.get<ByCompositeKey>();
         auto  it  = idx.find(std::make_tuple(vid, eid, is_start));
         return it != idx.end();
+    }
+
+    bool hasSourcePort(VertexID vid, EdgeID eid) const {
+        return hasPortConnection(vid, eid, true);
+    }
+
+    bool hasTargetPort(VertexID vid, EdgeID eid) const {
+        return hasPortConnection(vid, eid, false);
     }
 
     PortID getPortForConnection(VertexID vid, EdgeID eid, bool is_start)
@@ -843,13 +836,6 @@ class IGraph {
     /// \brief Full set of all vertices in the graph
     hstd::UnorderedSet<VertexID> vertexIDs;
 
-    using PortBimap = boost::bimap<
-        boost::bimaps::unordered_set_of<VertexID>,
-        boost::bimaps::unordered_multiset_of<PortID>>;
-
-    /// \brief Mapping one vertext to many of its ports.
-    PortBimap ports;
-
   public:
     struct Crossing {
         GraphHierarchyID    hierarchy;
@@ -957,12 +943,6 @@ class IGraph {
         GraphHierarchyID const& hierarchy,
         VertexID const&         parent,
         VertexID const&         sub);
-    /// @}
-
-    /// \name Ports
-    /// @{
-    /// Get semantic port object managed by the graph
-    virtual IPort const* getPort(PortID const& id) const = 0;
     /// @}
 
     struct SerialSchema {
@@ -1105,10 +1085,6 @@ struct TrivialGraph : public IGraph {
         auto result = edges->edgeStore.add(TrivialEdge{source, target});
         edges->trackEdge(result);
         return result;
-    }
-
-    const IPort* getPort(PortID const& id) const override {
-        throw std::runtime_error("");
     }
 };
 

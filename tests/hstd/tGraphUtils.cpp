@@ -121,10 +121,6 @@ struct TestGraph : public IGraph {
         edges->trackEdge(result);
         return result;
     }
-
-    const IPort* getPort(PortID const& id) const override {
-        throw std::runtime_error("");
-    }
 };
 
 

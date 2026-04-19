@@ -398,10 +398,6 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
     Rect getBBox() const override { return rect; }
 
-    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
-        const override {
-        return {};
-    }
 
     visual::VisGroup getVisual() const override {
         visual::VisGroup res;
@@ -413,11 +409,6 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    hstd::Vec<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
-        const override {
-        return {};
-    }
-
     visual::VisGroup getVisual() const override {
         return visual::VisGroup{};
     }

@@ -607,8 +607,6 @@ std::size_t IEdge::getHash() const {
     hstd::hax_hash_combine(result, source);
     hstd::hax_hash_combine(result, target);
     hstd::hax_hash_combine(result, bundleIndex);
-    hstd::hax_hash_combine(result, sourcePort);
-    hstd::hax_hash_combine(result, targetPort);
     return result;
 }
 
@@ -617,9 +615,7 @@ bool IEdge::isEqual(IGraphObjectBase const* other) const {
     return other->isInstance<IEdge>()         //
         && this->source == other_edge->source //
         && this->target == other_edge->target
-        && this->bundleIndex == other_edge->bundleIndex
-        && this->sourcePort == other_edge->sourcePort
-        && this->targetPort == other_edge->targetPort;
+        && this->bundleIndex == other_edge->bundleIndex;
 }
 
 json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
@@ -631,10 +627,6 @@ json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
         .targetId    = graph->getVertex(target)->getStableId(),
         .bundleIndex = bundleIndex,
     };
-
-    if (sourcePort) {
-        // res.sourcePortId = graph->get
-    }
 
     return hstd::to_json_eval(res);
 }

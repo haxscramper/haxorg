@@ -969,11 +969,6 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         return node.getPropertiesAsString();
     }
 
-    hstd::SPtr<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
-        const override {
-        return {};
-    }
-
     visual::VisGroup getVisual() const override;
 };
 
@@ -1011,12 +1006,6 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 
     std::string getRepr() const override {
         return group->getPropertiesAsString();
-    }
-
-
-    hstd::Vec<hstd::SPtr<layout::IPortLayoutAttribute>> getPorts()
-        const override {
-        return {};
     }
 
     visual::VisGroup getVisual() const override;
