@@ -588,7 +588,8 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
     double              width  = 1;
     double              height = 1;
 
-    Avoid::ConnEnd connection;
+    Avoid::ConnEnd             connection;
+    Avoid::ShapeConnectionPin* pin;
 };
 
 

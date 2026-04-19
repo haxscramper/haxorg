@@ -259,7 +259,7 @@ struct [[nodiscard]] Id {
             return getValue() == other.getValue();                        \
         }                                                                 \
                                                                           \
-        constexpr __name(__name##BaseId const& arg)                       \
+        constexpr explicit __name(__name##BaseId const& arg)              \
             : __name##BaseId(arg) {}                                      \
                                                                           \
         constexpr explicit __name(__type arg) : __name##BaseId(arg) {}    \
@@ -408,7 +408,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Add new item to the store and return newly created ID
@@ -430,7 +430,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Add new item to the store and return newly created ID
@@ -441,7 +441,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Last element stored in the store (by index)

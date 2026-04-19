@@ -131,7 +131,7 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
         auto id = mask.has_value()
                     ? ID::FromMaskedIdx(current_size, mask.value())
                     : ID::FromIndex(current_size);
-        return id;
+        return ID(id);
     }
 
     ID add(
@@ -1288,7 +1288,7 @@ class LayoutRun : public OperationsTracer {
         return graph->getVertex(id);
     }
 
-    IEdge const* getEdge(VertexID const& id) const {
+    IEdge const* getEdge(EdgeID const& id) const {
         hstd::logic_assertion_check_not_nil(graph);
         return graph->getEdge(id);
     }

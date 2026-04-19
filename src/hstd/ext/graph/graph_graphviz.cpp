@@ -746,7 +746,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto id = VertexID::FromValue(
+        auto id = EdgeID::FromValue(
             edge.getAttr<hstd::u64>(id_attr).value());
         // run->message(hstd::fmt("each-group iterate edge {}", id));
         result.edges.insert_or_assign(

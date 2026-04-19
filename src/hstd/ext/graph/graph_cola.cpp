@@ -497,6 +497,9 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     };
 
     for (auto const& eid : group->getEdges()) {
+        run->message(hstd::fmt("for edge ID {}", eid));
+        auto __scope = run->scopeLevel();
+
         auto edge = run->graph->getEdge(eid);
 
         auto s_attr = lp->getPort(edge->getSource())
@@ -509,6 +512,9 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         auto conn = new Avoid::ConnRef(router.get(), eid.getValue());
 
         connections.insert_or_assign(eid, conn);
+
+        // s_attr->pin = new Avoid::ShapeConnectionPin(
+        //     get_shape(edge->getSource()), );
 
         s_attr->connection = Avoid::ConnEnd{
             adapt::to_avoid(get_shape_point(

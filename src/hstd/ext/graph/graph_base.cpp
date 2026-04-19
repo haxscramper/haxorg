@@ -372,8 +372,10 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
     }
     nestedInMap.at(parent).insert(sub);
     rootVertices.erase(sub);
-    EdgeID result = EdgeID::FromMaskedIdx(
-        hstd::hash_bits<48>(parent.value, sub.value), getHierarchyId().t);
+    EdgeID result = EdgeID(
+        EdgeID::FromMaskedIdx(
+            hstd::hash_bits<48>(parent.value, sub.value),
+            getHierarchyId().t));
 
     edgeTracker.insert_or_assign({parent, sub}, result);
     return result;
