@@ -257,7 +257,7 @@ std::vector<vpsc::Rectangle*> hstd::ext::graph::cst::ColaConstraint::
          | rs::to<std::vector>();
 }
 
-std::vector<unsigned> cst::ColaConstraint::getShapeIds() const {
+std::vector<unsigned> cst::ColaConstraint::getRectangleIndices() const {
     return hstd::own_view(group->nodeAttributes().keys())
          | rv::transform([&](VertexID const& id) -> unsigned {
                return group->shared->getVertexIdx(id);
@@ -272,7 +272,8 @@ hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
     for (auto const& [idx, line] : enumerate(lines)) {
         if (line.dimension != this->dimension) {
             throw std::logic_error(
-                fmt("multi-aling line {} has dimension {} but the main "
+                hstd::fmt(
+                    "multi-aling line {} has dimension {} but the main "
                     "multi-align has dimension {} -- align dimensions "
                     "must match",
                     idx,
@@ -621,6 +622,211 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         intermediate_placement->edges.insert_or_assign(
             eid, std::make_shared<ColaEdgeLayoutAttribute>(path));
     }
+
+    return res;
+}
+
+
+struct ColaConstraintDebug {
+    struct Constraint {
+        struct Point {
+            hstd::ext::geometry::Point pos;
+            int                        rectOrigin;
+            DESC_FIELDS(Point, (pos, rectOrigin));
+        };
+
+        struct Offset {
+            hstd::ext::geometry::Point offset;
+            Point                      start;
+            bool                       isEmpty() const {
+                return int(offset.x()) == 0 && int(offset.y()) == 0;
+            }
+            DESC_FIELDS(Offset, (offset, start));
+        };
+
+        struct RectPosition {
+            hstd::ext::geometry::Point pos;
+            int                        rect;
+            DESC_FIELDS(RectPosition, (pos, rect));
+        };
+
+        struct Align {
+            Point                 start;
+            Point                 end;
+            hstd::Vec<Offset>     offsets;
+            std::vector<unsigned> rects;
+            DESC_FIELDS(Align, (start, end, offsets, rects));
+        };
+
+        struct Separate {
+            Align  left;
+            Align  right;
+            Offset offset;
+            DESC_FIELDS(Separate, (left, right, offset));
+        };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Align,
+            Separate,
+            RectPosition);
+        Data data;
+        DESC_FIELDS(Constraint, (data));
+    };
+
+    hstd::ColText toString() const {
+        hstd::ColStream os;
+        toString(os);
+        return os.getBuffer();
+    }
+
+    hstd::Vec<Constraint> constraints;
+    DESC_FIELDS(ColaConstraintDebug, (constraints));
+
+    void toString(hstd::ColStream& os) const {
+        using C            = Constraint;
+        auto write_2_point = [&](C::Point const& p1, C::Point const& p2) {
+            if (int(p1.pos.x()) == int(p2.pos.x())) {
+                os << hstd::fmt(
+                    "x:{} y:{}-{}", p1.pos.x(), p1.pos.y(), p2.pos.y());
+            } else if (int(p1.pos.y()) == int(p2.pos.y())) {
+                os << hstd::fmt(
+                    "x:{}-{} y:{}", p1.pos.x(), p2.pos.x(), p1.pos.y());
+            } else {
+                os << hstd::fmt(
+                    "x:{}-{} y:{}-{}",
+                    p1.pos.x(),
+                    p2.pos.x(),
+                    p1.pos.y(),
+                    p2.pos.y());
+            }
+
+            if (p1.rectOrigin != p2.rectOrigin) {
+                os << hstd::fmt(" <{}><{}>", p1.rectOrigin, p2.rectOrigin);
+            } else {
+                os << hstd::fmt(" <{}>", p1.rectOrigin);
+            }
+        };
+
+        auto write_offset = [&](C::Offset const& o) {
+            if (int(o.offset.x()) == 0) {
+                os << hstd::fmt("{}->+{}y", o.start, o.offset.y());
+            } else if (int(o.offset.y()) == 0) {
+                os << hstd::fmt("{}->+{}x", o.start, o.offset.x());
+            } else {
+                os << hstd::fmt("{}->+{}", o.start, o.offset);
+            }
+        };
+
+        auto write_align = [&](C::Align const& a, int depth) {
+            os.indent(depth * 2);
+            os << hstd::fmt("Align {} ", a.rects);
+            write_2_point(a.start, a.end);
+            auto existing_offsets //
+                = a.offsets
+                | hstd::rv::filter(
+                      hstd::get_method_filter(&C::Offset::isEmpty))
+                | hstd::rs::to<hstd::Vec>();
+
+            if (existing_offsets.size() == 1) {
+                os << " ";
+                write_offset(existing_offsets.front());
+            } else {
+                for (auto const& o : existing_offsets) {
+                    os << "\n";
+                    os.indent(2 * (depth + 1));
+                    write_offset(o);
+                }
+            }
+        };
+
+        for (auto const& c : constraints) {
+            if (c.isAlign()) {
+                write_align(c.getAlign(), 0);
+                os << "\n";
+            } else if (c.isSeparate()) {
+                auto const& s = c.getSeparate();
+                os << "Sep ";
+                write_offset(s.offset);
+                os << "\n";
+                write_align(s.left, 1);
+                os << "\n";
+                write_align(s.right, 1);
+                os << "\n";
+            }
+        }
+    }
+};
+
+
+hstd::ext::visual::VisGroup hstd::ext::graph::cst::
+    ColaGroupLayoutAttribute::getVisual() const {
+    using C = ColaConstraintDebug::Constraint;
+    visual::VisGroup res{};
+    auto             add_align_line = [&](cst::AlignConstraint const& a) {
+        bool           x = a.dimension == GraphDimension::XDIM;
+        Vec<C::Point>  centers;
+        Vec<C::Offset> offsets;
+        for (auto const& vert : a.getAllVertices()) {
+            auto const& spec    = a.vertices.at(vert);
+            int         rectIdx = group->shared->getVertexIdx(vert);
+            Rect rect = adapt::to_hstd(*group->shared->getRect(vert));
+            Point
+                offset = (x ? Point(spec.offset, 0) : Point(0, spec.offset));
+            centers.push_back(C::Point{rect.center() - offset, rectIdx});
+            offsets.push_back(
+                C::Offset{.offset = -offset, .start = rect.center()});
+        }
+
+        rs::sort(centers, [&](C::Point const& lhs, C::Point const& rhs) {
+            return x ? (lhs.pos.y() < rhs.pos.y())
+                     : (lhs.pos.x() < rhs.pos.x());
+        });
+
+        C::Point start = centers.at(0);
+        C::Point end   = centers.at(1_B);
+
+        return C::Align{
+            .start   = start,
+            .end     = end,
+            .offsets = offsets,
+            .rects   = a.getRectangleIndices(),
+        };
+    };
+
+    hstd::Vec<C> cst_list;
+    for (auto const& c : group->constraints) {
+        if (auto align = std::dynamic_pointer_cast<AlignConstraint>(c)) {
+            cst_list.push_back(C{add_align_line(*align)});
+        } else if (
+            auto s = std::dynamic_pointer_cast<SeparateConstraint>(c)) {
+            auto left  = add_align_line(s->left);
+            auto right = add_align_line(s->right);
+
+            Point offset = //
+                s->dimension == GraphDimension::XDIM
+                    ? Point(right.start.pos.x() - left.start.pos.x(), 0)
+                    : Point(0, right.start.pos.y() - left.start.pos.y());
+
+            C::Offset offsetSpec{
+                .offset = offset,
+                .start  = left.start,
+            };
+
+            C::Separate sep{
+                .left   = left,
+                .right  = right,
+                .offset = offsetSpec,
+            };
+
+            cst_list.push_back(C{sep});
+            break;
+        }
+    }
+
 
     return res;
 }

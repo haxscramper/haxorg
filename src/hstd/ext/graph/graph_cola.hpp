@@ -405,9 +405,7 @@ class ColaEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    visual::VisGroup getVisual() const override {
-        return visual::VisGroup{};
-    }
+    visual::VisGroup getVisual() const override;
 
     Rect                  rect;
     hstd::SPtr<ColaGroup> group;
@@ -433,7 +431,7 @@ class ColaConstraint : public layout::IConstraint {
     /// \brief Get rectangles associated with this specific constraint
     std::vector<vpsc::Rectangle*> getRectangles() const;
     /// \brief Get shape IDs associated with this specific constraint
-    std::vector<unsigned int> getShapeIds() const;
+    std::vector<unsigned int> getRectangleIndices() const;
 
     /// \copydoc ColaGroup::SharedCtx::getAllRectanglesSorted
     std::vector<vpsc::Rectangle*> getAllRectanglesSorted() const {

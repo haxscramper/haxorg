@@ -408,44 +408,6 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
         return get_center(layout.fixed.at(idx));
     };
 
-    auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
-        bool           x = a.dimension == GraphDimension::XDIM;
-        Vec<C::Point>  centers;
-        Vec<C::Offset> offsets;
-        for (auto const& rect : a.nodes) {
-            ImVec2 center = get_rect_center(rect.node);
-            ImVec2
-                offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
-            centers.push_back(C::Point{center - offset, {rect.node}});
-            offsets.push_back(
-                C::Offset{
-                    .offset = -offset,
-                    .start  = C::Point{center, {rect.node}},
-                });
-        }
-
-        std::sort(
-            centers.begin(),
-            centers.end(),
-            [&](C::Point const& lhs, C::Point const& rhs) {
-                return x ? (lhs.pos.y < rhs.pos.y)
-                         : (lhs.pos.x < rhs.pos.x);
-            });
-
-        C::Point start = centers.at(0);
-        C::Point end   = centers.at(1_B);
-
-        return C::Align{
-            .start   = start,
-            .end     = end,
-            .offsets = offsets,
-            .rects   = a.nodes
-                     | rv::transform(get_field_get(
-                         &GraphNodeConstraint::Align::Spec::node))
-                     | rs::to<Vec>(),
-        };
-    };
-
     for (auto const& [rect_idx, rect] : enumerate(layout.fixed)) {
         res.constraints.push_back(
             C{C::RectPosition{
@@ -454,42 +416,6 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
             }});
     }
 
-
-    for (auto const& c : ir.nodeConstraints) {
-        switch (c.getKind()) {
-            case GraphNodeConstraint::Kind::Align: {
-                res.constraints.push_back(C{add_align_line(c.getAlign())});
-                break;
-            }
-            case GraphNodeConstraint::Kind::Separate: {
-                auto const& s     = c.getSeparate();
-                auto        left  = add_align_line(s.left);
-                auto        right = add_align_line(s.right);
-
-                ImVec2 offset = //
-                    s.dimension == GraphDimension::XDIM
-                        ? ImVec2(right.start.pos.x - left.start.pos.x, 0)
-                        : ImVec2(0, right.start.pos.y - left.start.pos.y);
-
-
-                C::Offset offsetSpec{
-                    .offset = offset,
-                    .start  = left.start,
-                };
-
-                C::Separate sep{
-                    .left   = left,
-                    .right  = right,
-                    .offset = offsetSpec,
-                };
-
-                res.constraints.push_back(C{sep});
-                break;
-            }
-            default: {
-            }
-        }
-    }
 
     return res;
 }
@@ -778,72 +704,4 @@ Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
         }
     }
     return res;
-}
-
-void ColaConstraintDebug::toString(ColStream& os) const {
-    using C = Constraint;
-
-    auto write_2_point = [&](C::Point const& p1, C::Point const& p2) {
-        if (int(p1.pos.x) == int(p2.pos.x)) {
-            os << fmt("x:{} y:{}-{}", p1.pos.x, p1.pos.y, p2.pos.y);
-        } else if (int(p1.pos.y) == int(p2.pos.y)) {
-            os << fmt("x:{}-{} y:{}", p1.pos.x, p2.pos.x, p1.pos.y);
-        } else {
-            os << fmt(
-                "x:{}-{} y:{}-{}", p1.pos.x, p2.pos.x, p1.pos.y, p2.pos.y);
-        }
-
-        if (p1.rectOrigin != p2.rectOrigin) {
-            os << fmt(" <{}><{}>", p1.rectOrigin, p2.rectOrigin);
-        } else {
-            os << fmt(" <{}>", p1.rectOrigin);
-        }
-    };
-
-    auto write_offset = [&](C::Offset const& o) {
-        if (int(o.offset.x) == 0) {
-            os << fmt("{}->+{}y", o.start.pos, o.offset.y);
-        } else if (int(o.offset.y) == 0) {
-            os << fmt("{}->+{}x", o.start.pos, o.offset.x);
-        } else {
-            os << fmt("{}->+{}", o.start.pos, o.offset);
-        }
-    };
-
-    auto write_align = [&](C::Align const& a, int depth) {
-        os.indent(depth * 2);
-        os << fmt("Align {} ", a.rects);
-        write_2_point(a.start, a.end);
-        auto existing_offsets //
-            = a.offsets
-            | rv::filter(get_method_filter(&C::Offset::isEmpty))
-            | rs::to<Vec>();
-
-        if (existing_offsets.size() == 1) {
-            os << " ";
-            write_offset(existing_offsets.front());
-        } else {
-            for (auto const& o : existing_offsets) {
-                os << "\n";
-                os.indent(2 * (depth + 1));
-                write_offset(o);
-            }
-        }
-    };
-
-    for (auto const& c : constraints) {
-        if (c.isAlign()) {
-            write_align(c.getAlign(), 0);
-            os << "\n";
-        } else if (c.isSeparate()) {
-            auto const& s = c.getSeparate();
-            os << "Sep ";
-            write_offset(s.offset);
-            os << "\n";
-            write_align(s.left, 1);
-            os << "\n";
-            write_align(s.right, 1);
-            os << "\n";
-        }
-    }
 }
