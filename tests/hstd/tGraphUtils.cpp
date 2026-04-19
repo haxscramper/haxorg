@@ -1379,22 +1379,43 @@ TEST_F(GraphUtils_Test, LibcolaIr1) {
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
 
+TEST_F(GraphUtils_Test, LibcolaIr2) {
+    VertexID v1 = graph->addVertex();
+    VertexID v2 = graph->addVertex();
+    VertexID v3 = graph->addVertex();
+    VertexID v4 = graph->addVertex();
+
+
+    auto                       root  = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+
+    group->addVertex(v1, Size(50, 50));
+    group->addVertex(v2, Size(60, 60));
+    group->addVertex(v3, Size(70, 70));
+    group->addVertex(v4, Size(80, 80));
+
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useX()
+        ->addAlignVertex(v1)
+        ->addAlignVertex(v2);
+
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useY()
+        ->addAlignVertex(v1)
+        ->addAlignVertex(v4);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+}
+
 #if false
 
-GraphLayoutIR init_graph(
-    CVec<GraphEdge> edges,
-    GraphSize       size = GraphSize(5, 5)) {
-    int           max_node = 0;
-    GraphLayoutIR ir;
-    ir.edges = edges;
-    for (auto const& e : edges) {
-        max_node = std::max(max_node, std::max(e.source, e.target));
-    }
-
-    for (int i = 0; i <= max_node; ++i) { ir.rectangles.push_back(size); }
-
-    return ir;
-}
 
 using C = GraphNodeConstraint;
 

@@ -102,9 +102,11 @@ struct GroupBase : public CRTP_this_method<TDerivedGroup> {
         LOGIC_ASSERTION_CHECK_FMT(
             !nodeAttributes().contains(id),
             "Canot add vertex ID {} to the graph group {}, it is already "
-            "added to another group",
+            "added to {} group",
             id,
-            getStableId());
+            getStableId(),
+            get_local_ctx().directVertices.contains(id) ? "this"
+                                                        : "other");
 
         auto vatr = std::dynamic_pointer_cast<TVertexAttribute>(attr);
         LOGIC_ASSERTION_CHECK_FMT(
@@ -145,9 +147,10 @@ struct GroupBase : public CRTP_this_method<TDerivedGroup> {
         LOGIC_ASSERTION_CHECK_FMT(
             !edgeAttributes().contains(id),
             "Canot add edge ID {} to the graph group '{}', it is already "
-            "added to another group",
+            "added to {} group",
             id,
-            getStableId());
+            getStableId(),
+            get_local_ctx().directEdges.contains(id) ? "this" : "other");
 
         auto vatr = std::dynamic_pointer_cast<TEdgeAttribute>(attr);
 
@@ -288,10 +291,7 @@ class ColaRectTracker {
     /// the same layer.
     std::vector<vpsc::Rectangle*> getAllRectanglesSorted() const {
         std::vector<vpsc::Rectangle*> res;
-        for (auto const& id : hstd::sorted(rectMap.left_keys())) {
-            res.push_back(getRect(id).get());
-        }
-
+        for (auto const& rect : rectStore) { res.push_back(rect.get()); }
         return res;
     }
 
@@ -299,10 +299,7 @@ class ColaRectTracker {
     /// \ref getAllRectanglesSorted
     std::vector<unsigned> getAllShapeIdsSorted() const {
         std::vector<unsigned> res;
-        for (auto const& id : hstd::sorted(rectMap.left_keys())) {
-            res.push_back(getVertexIdx(id));
-        }
-
+        for (int i = 0; i < rectStore.size(); ++i) { res.push_back(i); }
         return res;
     }
 };
@@ -423,7 +420,6 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 
 
 class ColaConstraint : public layout::IConstraint {
-    hstd::Vec<VertexID>   vertices;
     hstd::SPtr<ColaGroup> group;
 
   public:
@@ -433,12 +429,6 @@ class ColaConstraint : public layout::IConstraint {
     virtual hstd::Vec<ConstraintPtr> getCola() const = 0;
 
     virtual std::string getRepr() const;
-
-    void addVertex(VertexID const& id) override { vertices.push_back(id); }
-
-    hstd::Vec<VertexID> getAllVertices() const override {
-        return vertices;
-    }
 
     /// \brief Get rectangles associated with this specific constraint
     std::vector<vpsc::Rectangle*> getRectangles() const;
@@ -463,6 +453,7 @@ class ColaConstraint : public layout::IConstraint {
 
 class AlignConstraint : public ColaConstraint {
   public:
+    using ColaConstraint::ColaConstraint;
     struct [[refl]] Spec {
         [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
         [[refl]] double      offset = 0.0; ///< Offset from the axis
@@ -471,8 +462,34 @@ class AlignConstraint : public ColaConstraint {
 
     hstd::UnorderedMap<VertexID, Spec> vertices;
 
+
     [[refl]] GraphDimension dimension; ///< Which axist to align on
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
+
+    void addVertex(VertexID const& id) override { addAlignVertex(id); }
+
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return vertices.keys();
+    }
+
+    AlignConstraint* addAlignVertex(
+        VertexID const&   id,
+        double            offset = 0,
+        hstd::Opt<double> fixPos = std::nullopt) {
+        vertices.insert_or_assign(
+            id, Spec{.fixPos = fixPos, .offset = offset});
+        return this;
+    }
+
+    AlignConstraint* useX() {
+        dimension = GraphDimension::XDIM;
+        return this;
+    }
+
+    AlignConstraint* useY() {
+        dimension = GraphDimension::YDIM;
+        return this;
+    }
 
 
     /// \note Align constraint returns vector with single elements, so the
@@ -484,6 +501,7 @@ class AlignConstraint : public ColaConstraint {
 
 class SeparateConstraint : public ColaConstraint {
   public:
+    using ColaConstraint::ColaConstraint;
     [[refl]] AlignConstraint left;
     [[refl]] AlignConstraint right;
     [[refl]] double          separationDistance = 1.0;
@@ -500,6 +518,7 @@ class SeparateConstraint : public ColaConstraint {
 
 class MultiSeparateConstraint : public ColaConstraint {
   public:
+    using ColaConstraint::ColaConstraint;
     [[refl]] hstd::Vec<AlignConstraint>      lines;
     [[refl]] hstd::Vec<hstd::Pair<int, int>> alignPairs;
     [[refl]] GraphDimension                  dimension;
@@ -520,6 +539,7 @@ class MultiSeparateConstraint : public ColaConstraint {
 
 class FixedRelativeConstraint : public ColaConstraint {
   public:
+    using ColaConstraint::ColaConstraint;
     [[refl]] bool fixedPosition = false;
     DESC_FIELDS(FixedRelativeConstraint, (fixedPosition));
 
@@ -529,6 +549,7 @@ class FixedRelativeConstraint : public ColaConstraint {
 
 class PageBoundaryConstraint : public ColaConstraint {
   public:
+    using ColaConstraint::ColaConstraint;
     [[refl]] geometry::Rect rect;
     [[refl]] double         weight = 100.0;
     DESC_FIELDS(PageBoundaryConstraint, (rect, weight));

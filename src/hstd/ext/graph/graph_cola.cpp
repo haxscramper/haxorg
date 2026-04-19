@@ -25,17 +25,10 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     auto ctx = rootGroup->shared;
 
 
-    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
-    std::vector<cola::CompoundConstraint*>          ccs;
-
     hstd::UnorderedMap<layout::GroupID, hstd::SPtr<vpsc::Rectangle>>
         sub_group_rectangles;
 
-    std::vector<vpsc::Rectangle*> vertices //
-        = hstd::own_view(rootGroup->nodeAttributes().keys())
-        | rv::transform(
-              [&](VertexID const& id) { return ctx->getRect(id).get(); })
-        | rs::to<std::vector>();
+    std::vector<vpsc::Rectangle*> vertices = ctx->getAllRectanglesSorted();
 
     auto aux = [&](this auto&&                       self,
                    layout::GroupID const&            id,
@@ -64,19 +57,9 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     aux(root_id, std::nullopt);
 
-    auto aux_constraints = [&](this auto&&            self,
-                               layout::GroupID const& id) -> void {
-        for (auto const& constraint : rootGroup->constraints) {
-            auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
-                constraint);
-            ccs_s.append(cola_cs->getCola());
-        }
-
-        auto group = run->getGroup(id);
-        for (auto const& sub : group->subGroups) { self(sub); }
-    };
-
-    aux_constraints(root_id);
+    for (auto const& [idx, rect] : enumerate(vertices)) {
+        run->message(hstd::fmt("rect {}: {}", idx, *rect));
+    }
 
     cola::ConstrainedFDLayout alg2(
         vertices,
@@ -88,10 +71,27 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             | rs::to<std::vector>(),
         60);
 
+    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
+    std::vector<cola::CompoundConstraint*>          ccs;
 
+    auto aux_constraints = [&](this auto&&            self,
+                               layout::GroupID const& id) -> void {
+        auto group = run->getGroup(id);
+        for (auto const& constraint : group->constraints) {
+            auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
+                constraint);
+            ccs_s.append(cola_cs->getCola());
+            ccs.push_back(ccs_s.back().get());
+            run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
+        }
+
+        for (auto const& sub : group->subGroups) { self(sub); }
+    };
+
+    aux_constraints(root_id);
     alg2.setConstraints(ccs);
+    alg2.setAvoidNodeOverlaps(true);
     alg2.run();
-
 
     layout::IPlacementAlgorithm::Result result;
 
@@ -134,10 +134,14 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             for (auto const& sub : group->subGroups) { self(sub, id); }
 
             for (auto const& vert : group->getVertices()) {
+                auto rect = ctx->getRect(vert);
+                run->message(
+                    hstd::fmt("vert {} placed at {}", vert, *rect));
+
                 result.vertices.insert_or_assign(
                     vert,
                     std::make_shared<ColaVertexLayoutAttribute>(
-                        adapt::to_hstd(*ctx->getRect(vert))));
+                        adapt::to_hstd(*rect)));
             }
         }
     };
@@ -221,16 +225,27 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::AlignConstraint::
 
 
 std::string hstd::ext::graph::cst::ColaConstraint::getRepr() const {
-    return std::string{"["}
-         + (own_view(getCola()) //
-            | rv::transform(
-                [](hstd::SPtr<cola::CompoundConstraint> const& it) {
-                    return it->toString();
-                })
-            | rv::intersperse(", ") //
-            | rv::join              //
-            | rs::to<std::string>())
-         + std::string{"]"};
+    std::string head;
+    head += hstd::fmt("{} vertices", getAllVertices().size());
+    for (auto const& vert : getAllVertices()) {
+        head += hstd::fmt(
+            "\nvert {} maps to idx {}",
+            vert,
+            group->shared->getVertexIdx(vert));
+    }
+
+    auto tail = std::string{"["}
+              + (own_view(getCola()) //
+                 | rv::transform(
+                     [](hstd::SPtr<cola::CompoundConstraint> const& it) {
+                         return it->toString();
+                     })
+                 | rv::intersperse(", ") //
+                 | rv::join              //
+                 | rs::to<std::string>())
+              + std::string{"]"};
+
+    return hstd::fmt("{}\n{}", head, tail);
 }
 
 std::vector<vpsc::Rectangle*> hstd::ext::graph::cst::ColaConstraint::

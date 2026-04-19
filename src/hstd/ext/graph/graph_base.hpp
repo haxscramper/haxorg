@@ -1248,6 +1248,13 @@ class IGroup {
         return result;
     }
 
+    template <typename T, typename... Args>
+    std::shared_ptr<T> addConstraint(Args&&... args) {
+        auto res = std::make_shared<T>(std::forward<Args>(args)...);
+        constraints.push_back(res);
+        return res;
+    }
+
     bool hasAlgorithm() const { return algorithm.has_value(); }
 
 
