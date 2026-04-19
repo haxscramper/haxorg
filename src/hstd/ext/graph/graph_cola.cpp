@@ -635,60 +635,10 @@ struct ColaConstraintDebug {
             DESC_FIELDS(Point, (pos, rectOrigin));
         };
 
-        struct Offset {
-            hstd::ext::geometry::Point offset;
-            Point                      start;
-            bool                       isEmpty() const {
-                return int(offset.x()) == 0 && int(offset.y()) == 0;
-            }
-            DESC_FIELDS(Offset, (offset, start));
-        };
-
-        struct RectPosition {
-            hstd::ext::geometry::Point pos;
-            int                        rect;
-            DESC_FIELDS(RectPosition, (pos, rect));
-        };
-
-        struct Align {
-            Point                 start;
-            Point                 end;
-            hstd::Vec<Offset>     offsets;
-            std::vector<unsigned> rects;
-            DESC_FIELDS(Align, (start, end, offsets, rects));
-        };
-
-        struct Separate {
-            Align  left;
-            Align  right;
-            Offset offset;
-            DESC_FIELDS(Separate, (left, right, offset));
-        };
-
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Align,
-            Separate,
-            RectPosition);
-        Data data;
-        DESC_FIELDS(Constraint, (data));
-    };
-
-    hstd::ColText toString() const {
-        hstd::ColStream os;
-        toString(os);
-        return os.getBuffer();
-    }
-
-    hstd::Vec<Constraint> constraints;
-    DESC_FIELDS(ColaConstraintDebug, (constraints));
-
-    void toString(hstd::ColStream& os) const {
-        using C            = Constraint;
-        auto write_2_point = [&](C::Point const& p1, C::Point const& p2) {
+        static void write_2_point(
+            hstd::ColStream& os,
+            Point const&     p1,
+            Point const&     p2) {
             if (int(p1.pos.x()) == int(p2.pos.x())) {
                 os << hstd::fmt(
                     "x:{} y:{}-{}", p1.pos.x(), p1.pos.y(), p2.pos.y());
@@ -711,62 +661,132 @@ struct ColaConstraintDebug {
             }
         };
 
-        auto write_offset = [&](C::Offset const& o) {
-            if (int(o.offset.x()) == 0) {
-                os << hstd::fmt("{}->+{}y", o.start, o.offset.y());
-            } else if (int(o.offset.y()) == 0) {
-                os << hstd::fmt("{}->+{}x", o.start, o.offset.x());
-            } else {
-                os << hstd::fmt("{}->+{}", o.start, o.offset);
+
+        struct Offset {
+            hstd::ext::geometry::Point offset;
+            Point                      start;
+            bool                       isEmpty() const {
+                return int(offset.x()) == 0 && int(offset.y()) == 0;
             }
-        };
+            DESC_FIELDS(Offset, (offset, start));
 
-        auto write_align = [&](C::Align const& a, int depth) {
-            os.indent(depth * 2);
-            os << hstd::fmt("Align {} ", a.rects);
-            write_2_point(a.start, a.end);
-            auto existing_offsets //
-                = a.offsets
-                | hstd::rv::filter(
-                      hstd::get_method_filter(&C::Offset::isEmpty))
-                | hstd::rs::to<hstd::Vec>();
-
-            if (existing_offsets.size() == 1) {
-                os << " ";
-                write_offset(existing_offsets.front());
-            } else {
-                for (auto const& o : existing_offsets) {
-                    os << "\n";
-                    os.indent(2 * (depth + 1));
-                    write_offset(o);
+            void toString(hstd::ColStream& os) const {
+                if (int(offset.x()) == 0) {
+                    os << hstd::fmt("{}->+{}y", start, offset.y());
+                } else if (int(offset.y()) == 0) {
+                    os << hstd::fmt("{}->+{}x", start, offset.x());
+                } else {
+                    os << hstd::fmt("{}->+{}", start, offset);
                 }
-            }
+            };
         };
 
-        for (auto const& c : constraints) {
-            if (c.isAlign()) {
-                write_align(c.getAlign(), 0);
-                os << "\n";
-            } else if (c.isSeparate()) {
-                auto const& s = c.getSeparate();
+        struct RectPosition {
+            hstd::ext::geometry::Point pos;
+            int                        rect;
+            DESC_FIELDS(RectPosition, (pos, rect));
+        };
+
+        struct Align {
+            Point                 start;
+            Point                 end;
+            hstd::Vec<Offset>     offsets;
+            std::vector<unsigned> rects;
+            DESC_FIELDS(Align, (start, end, offsets, rects));
+
+            hstd::ColText toString() const {
+                hstd::ColStream os;
+                toString(os, 0);
+                return os.getBuffer();
+            }
+
+            void toString(hstd::ColStream& os, int depth) const {
+                os.indent(depth * 2);
+                os << hstd::fmt("Align {} ", rects);
+                write_2_point(os, start, end);
+                auto existing_offsets //
+                    = offsets
+                    | hstd::rv::filter(
+                          hstd::get_method_filter(&Offset::isEmpty))
+                    | hstd::rs::to<hstd::Vec>();
+
+                if (existing_offsets.size() == 1) {
+                    os << " ";
+                    existing_offsets.front().toString(os);
+                } else {
+                    for (auto const& o : existing_offsets) {
+                        os << "\n";
+                        os.indent(2 * (depth + 1));
+                        o.toString(os);
+                    }
+                }
+            };
+        };
+
+        struct Separate {
+            Align  left;
+            Align  right;
+            Offset offset;
+            DESC_FIELDS(Separate, (left, right, offset));
+        };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Align,
+            Separate,
+            RectPosition);
+        Data data;
+        DESC_FIELDS(Constraint, (data));
+
+        void toString(hstd::ColStream& os) const {
+            using C = Constraint;
+            if (isAlign()) {
+                getAlign().toString(os, 0);
+            } else if (isSeparate()) {
+                auto const& s = getSeparate();
                 os << "Sep ";
-                write_offset(s.offset);
+                s.offset.toString(os);
                 os << "\n";
-                write_align(s.left, 1);
+                s.left.toString(os, 1);
                 os << "\n";
-                write_align(s.right, 1);
-                os << "\n";
+                s.right.toString(os, 1);
             }
         }
+
+        hstd::ColText toString() const {
+            hstd::ColStream os;
+            toString(os);
+            return os.getBuffer();
+        }
+    };
+
+    hstd::ColText toString() const {
+        hstd::ColStream os;
+        toString(os);
+        return os.getBuffer();
     }
+
+    void toString(hstd::ColStream& os) const {
+        for (auto const& c : constraints) {
+            os << "\n";
+            c.toString(os);
+        }
+    }
+
+    hstd::Vec<Constraint> constraints;
+    DESC_FIELDS(ColaConstraintDebug, (constraints));
 };
 
 
 hstd::ext::visual::VisGroup hstd::ext::graph::cst::
     ColaGroupLayoutAttribute::getVisual() const {
     using C = ColaConstraintDebug::Constraint;
-    visual::VisGroup res{};
-    auto             add_align_line = [&](cst::AlignConstraint const& a) {
+    using namespace visual;
+    VisGroup res{};
+    auto     add_align_line = [&](cst::AlignConstraint const& a) {
         bool           x = a.dimension == GraphDimension::XDIM;
         Vec<C::Point>  centers;
         Vec<C::Offset> offsets;
@@ -778,7 +798,10 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
                 offset = (x ? Point(spec.offset, 0) : Point(0, spec.offset));
             centers.push_back(C::Point{rect.center() - offset, rectIdx});
             offsets.push_back(
-                C::Offset{.offset = -offset, .start = rect.center()});
+                C::Offset{
+                    .offset = -offset,
+                    .start  = C::Point{rect.center()},
+                });
         }
 
         rs::sort(centers, [&](C::Point const& lhs, C::Point const& rhs) {
@@ -824,6 +847,29 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
 
             cst_list.push_back(C{sep});
             break;
+        }
+    }
+
+    auto c_pen = VisPen{.color = VisColor{.r = 255}};
+    for (auto const& c : cst_list) {
+        auto draw_align_line = [&](C::Align const& al) {
+            auto el = VisElement::FromLine(
+                al.start.pos, al.end.pos, c_pen);
+            el.comment.push_back(al.toString().toString(false));
+            res.elements.push_back(el);
+            res.elements.push_back(
+                VisElement::FromPoint(al.start.pos, 2, c_pen));
+            res.elements.push_back(
+                VisElement::FromPoint(al.end.pos, 2, c_pen));
+        };
+
+        switch (c.getKind()) {
+            case C::Kind::Align: {
+                draw_align_line(c.getAlign());
+                break;
+            }
+            default: {
+            }
         }
     }
 

@@ -195,6 +195,83 @@ struct VisElement {
         DESC_FIELDS(PointShape, (position, pen, brush, radius));
     };
 
+    static VisElement FromPoint(
+        Point const&    position,
+        double          radius = 2.5,
+        VisPen const&   pen    = VisPen{},
+        VisBrush const& brush  = VisBrush{}) {
+        return VisElement{PointShape{
+            .position = position,
+            .pen      = pen,
+            .brush    = brush,
+            .radius   = radius}};
+    }
+
+    static VisElement FromRect(
+        Rect const&       geometry,
+        VisPen const&     pen          = VisPen{},
+        VisBrush const&   brush        = VisBrush{},
+        hstd::Opt<double> cornerRadius = hstd::Opt<double>{}) {
+        return VisElement{RectShape{
+            .geometry     = geometry,
+            .pen          = pen,
+            .brush        = brush,
+            .cornerRadius = cornerRadius}};
+    }
+
+    static VisElement FromEllipse(
+        Rect const&     geometry,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{EllipseShape{
+            .geometry = geometry, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromLine(
+        Point const&  p1,
+        Point const&  p2,
+        VisPen const& pen = VisPen{}) {
+        return VisElement{LineShape{.p1 = p1, .p2 = p2, .pen = pen}};
+    }
+
+    static VisElement FromPath(
+        Path const&     path,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{
+            PathShape{.path = path, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromPolygon(
+        Polygon const&  points,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{
+            PolygonShape{.points = points, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromText(
+        hstd::Str const&    content,
+        Point const&        anchor,
+        VisFont const&      font,
+        VisTextAlign const& alignment,
+        hstd::Opt<Rect>     boundingBox = hstd::Opt<Rect>{},
+        VisColor const&     color       = VisColor::black()) {
+        return VisElement{TextShape{
+            .content     = content,
+            .anchor      = anchor,
+            .boundingBox = boundingBox,
+            .font        = font,
+            .alignment   = alignment,
+            .color       = color}};
+    }
+
+    static VisElement FromPixmap(
+        hstd::Str const& path,
+        Rect const&      geometry) {
+        return VisElement{PixmapShape{.path = path, .geometry = geometry}};
+    }
+
     SUB_VARIANTS(
         Kind,
         Data,
