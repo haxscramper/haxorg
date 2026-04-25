@@ -677,6 +677,40 @@ class FixedRelativeConstraint : public ColaConstraint {
         const override;
 };
 
+class LockPositionConstraint : public ColaConstraint {
+  public:
+    hstd::Vec<ConstraintPtr> getCola() const override {
+        // Lock constraints are arranged using pre-iteration lock instead
+        // of the compound constraints.
+        return {};
+    }
+
+    cola::Lock getLock() const {
+        return cola::Lock(
+            group->shared->getVertexIdx(vertex),
+            position.x(),
+            position.y());
+    }
+
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return {vertex};
+    }
+
+    using ColaConstraint::ColaConstraint;
+    [[refl]] geometry::Point position;
+    VertexID                 vertex = VertexID::Nil();
+
+    LockPositionConstraint* setVertex(VertexID const& id) {
+        vertex = id;
+        return this;
+    }
+
+    LockPositionConstraint* setPosition(geometry::Point const& id) {
+        position = id;
+        return this;
+    }
+};
+
 class PageBoundaryConstraint : public ColaConstraint {
   public:
     using ColaConstraint::ColaConstraint;

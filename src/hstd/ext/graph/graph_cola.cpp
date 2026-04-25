@@ -80,13 +80,13 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     }
 
 
-    cola::ConstrainedFDLayout alg2(
-        vertices, edges, commonIdealEdgeLength, edgeLenOverride);
-
     hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
     hstd::Vec<cola::CompoundConstraint*>            ccs;
     hstd::UnorderedMap<hstd::u64, hstd::Pair<layout::GroupID, int>>
         cc_index;
+
+    cola::Locks locks;
+
 
     auto aux_constraints = [&](this auto&&            self,
                                layout::GroupID const& id) -> void {
@@ -95,22 +95,39 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
              enumerate(group->constraints)) {
             auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
                 constraint);
-            hstd::logic_assertion_check_not_nil(cola_cs);
-            auto new_ccs = cola_cs->getCola();
-            ccs_s.append(new_ccs);
-            for (auto const& s : new_ccs) {
-                ccs.push_back(s.get());
-                cc_index.insert_or_assign(
-                    (hstd::u64)s.get(),
-                    hstd::Pair<layout::GroupID, int>{id, ir_idx});
+            if (auto lock_cs = std::dynamic_pointer_cast<
+                    cst::LockPositionConstraint>(cola_cs)) {
+                locks.push_back(lock_cs->getLock());
+            } else {
+                hstd::logic_assertion_check_not_nil(cola_cs);
+                auto new_ccs = cola_cs->getCola();
+                ccs_s.append(new_ccs);
+                for (auto const& s : new_ccs) {
+                    ccs.push_back(s.get());
+                    cc_index.insert_or_assign(
+                        (hstd::u64)s.get(),
+                        hstd::Pair<layout::GroupID, int>{id, ir_idx});
+                }
             }
+
             run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
         }
 
         for (auto const& sub : group->subGroups) { self(sub); }
     };
 
+
     aux_constraints(root_id);
+
+    cola::ConstrainedFDLayout alg2(
+        /*rs=*/vertices,
+        /*es=*/edges,
+        /*idealLength=*/commonIdealEdgeLength,
+        /*eLengths=*/edgeLenOverride,
+        /*doneTest=*/nullptr,
+        /*preIteration=*/locks.empty() ? nullptr
+                                       : new cola::PreIteration(locks));
+
     alg2.setConstraints(ccs);
     alg2.makeFeasible();
     alg2.setAvoidNodeOverlaps(true);
