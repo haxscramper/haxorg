@@ -1120,6 +1120,11 @@ struct TrivialGraph : public IGraph {
 ///   Adaptagrams
 namespace layout {
 
+struct layout_error : public hstd::CRTP_hexception<layout_error> {};
+
+struct constraint_error
+    : public hstd::CRTP_hexception<constraint_error, layout_error> {};
+
 /// \brief Base class for configuring individual edge objects for layout
 ///
 /// Each layout group type will have its own set of visual attributes

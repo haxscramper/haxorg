@@ -1079,7 +1079,15 @@ TEST_F(GraphUtils_Test, LibcolaRaw3) {
 
     cola::ConstrainedFDLayout alg2(rectangles, edges, width / 2);
     alg2.setConstraints(ccs);
+
+    cola::UnsatisfiableConstraintInfos unsatX;
+    cola::UnsatisfiableConstraintInfos unsatY;
+    alg2.setUnsatisfiableConstraintInfo(&unsatX, &unsatY);
+
     alg2.run();
+
+    EXPECT_TRUE(unsatX.empty());
+    EXPECT_TRUE(unsatY.empty());
 
     Avoid::Router* router = new Avoid::Router(Avoid::OrthogonalRouting);
     router->setRoutingPenalty((Avoid::PenaltyType)0, 50);
@@ -1385,7 +1393,6 @@ TEST_F(GraphUtils_Test, LibcolaIr2) {
     VertexID v3 = graph->addVertex();
     VertexID v4 = graph->addVertex();
 
-
     auto                       root  = cst::ColaGroup::newRootGraph(run);
     hstd::SPtr<cst::ColaGroup> group = getCola(root);
 
@@ -1486,6 +1493,37 @@ TEST_F(GraphUtils_Test, LibcolaIr3) {
 
     hstd::writeFile(
         getDebugFile("libcola_ir3.svg"),
+        hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
+            .to_string());
+}
+
+TEST_F(GraphUtils_Test, LibcolaIrMultiSeparate) {
+    hstd::Vec<VertexID> vs;
+    hstd::Vec<EdgeID>   es;
+
+    for (int i = 0; i < 12; ++i) { vs.push_back(graph->addVertex()); }
+
+    auto                       root  = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+    group->getAlgorithm<cst::ColaLayoutAlgorithm>()
+        ->router->shapeBufferDistance = 25;
+
+    for (VertexID v : vs) { group->addVertex(v, Size(75, 25)); }
+
+    group->addConstraint<cst::MultiSeparateConstraint>(group)
+        ->separateHorizontally()
+        ->addFullLane({vs.at(0), vs.at(1), vs.at(2)})
+        ->addFullLane({vs.at(3), vs.at(4), vs.at(5), vs.at(6), vs.at(7)})
+        ->addFullLane({vs.at(8), vs.at(9), vs.at(10), vs.at(11)})
+        ->setSeparationDistance(120);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+    EXPECT_EQ(res.vertices.size(), 12);
+
+    hstd::writeFile(
+        getDebugFile("libcola_ir_multi_separate.svg"),
         hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
             .to_string());
 }

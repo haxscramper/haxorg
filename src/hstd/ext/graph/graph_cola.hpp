@@ -418,6 +418,7 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 
 
 class ColaConstraint : public layout::IConstraint {
+  protected:
     hstd::SPtr<ColaGroup> group;
 
   public:
@@ -525,14 +526,14 @@ class SeparateConstraint : public ColaConstraint {
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
 
-    SeparateConstraint* separateVertically() {
+    SeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::XDIM;
         left.useX();
         right.useX();
         return this;
     }
 
-    SeparateConstraint* separateHorizontally() {
+    SeparateConstraint* separateVertically() {
         dimension = GraphDimension::YDIM;
         left.useY();
         right.useY();
@@ -572,12 +573,87 @@ class SeparateConstraint : public ColaConstraint {
 
 class MultiSeparateConstraint : public ColaConstraint {
   public:
+    hstd::Vec<VertexID> getAllVertices() const override {
+        hstd::Vec<VertexID> res;
+        for (auto const& align : lines) {
+            res.append(align.getAllVertices());
+        }
+        return res;
+    }
+
     using ColaConstraint::ColaConstraint;
     [[refl]] hstd::Vec<AlignConstraint>      lines;
     [[refl]] hstd::Vec<hstd::Pair<int, int>> alignPairs;
-    [[refl]] GraphDimension                  dimension;
-    [[refl]] double                          separationDistance;
-    [[refl]] bool                            isExactSeparation;
+    [[refl]] GraphDimension dimension = GraphDimension::XDIM;
+    [[refl]] double         separationDistance;
+    [[refl]] bool           isExactSeparation;
+
+
+    MultiSeparateConstraint* setSeparationDistance(double distance) {
+        this->separationDistance = distance;
+        return this;
+    }
+
+    MultiSeparateConstraint* setIsExactSeparation(double distance) {
+        this->isExactSeparation = distance;
+        return this;
+    }
+
+    MultiSeparateConstraint* addLane() {
+        auto align      = AlignConstraint{group};
+        align.dimension = dimension;
+        lines.push_back(align);
+        if (1 < lines.size()) {
+            alignPairs.push_back({lines.high() - 1, lines.high()});
+        }
+        return this;
+    }
+
+    MultiSeparateConstraint* addMultiLane(int count) {
+        for (int i = 0; i < count; ++i) { addLane(); }
+        return this;
+    }
+
+    MultiSeparateConstraint* dropAlignPairs() {
+        alignPairs.clear();
+        return this;
+    }
+
+    MultiSeparateConstraint* addAlignVertex(
+        VertexID const&   id,
+        int               lane,
+        double            offset = 0,
+        hstd::Opt<double> fixPos = std::nullopt) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            lines.has(lane),
+            "Cannot insert vertext to lane {}, call `addLane()` to match "
+            "the lane count",
+            lane);
+        lines.at(lane).addAlignVertex(id, offset, fixPos);
+        return this;
+    }
+
+    MultiSeparateConstraint* addFullLane(
+        hstd::Vec<VertexID> const& vertices) {
+        addLane();
+        for (auto const& vert : vertices) {
+            lines.back().addAlignVertex(vert);
+        }
+        return this;
+    }
+
+    MultiSeparateConstraint* separateHorizontally() {
+        dimension = GraphDimension::XDIM;
+        for (auto& lane : lines) { lane.useX(); }
+        return this;
+    }
+
+    MultiSeparateConstraint* separateVertically() {
+        dimension = GraphDimension::YDIM;
+        for (auto& lane : lines) { lane.useY(); }
+        return this;
+    }
+
 
     DESC_FIELDS(
         MultiSeparateConstraint,

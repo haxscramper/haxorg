@@ -84,17 +84,26 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         vertices, edges, commonIdealEdgeLength, edgeLenOverride);
 
     hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
-    std::vector<cola::CompoundConstraint*>          ccs;
+    hstd::Vec<cola::CompoundConstraint*>            ccs;
+    hstd::UnorderedMap<hstd::u64, hstd::Pair<layout::GroupID, int>>
+        cc_index;
 
     auto aux_constraints = [&](this auto&&            self,
                                layout::GroupID const& id) -> void {
         auto group = run->getGroup(id);
-        for (auto const& constraint : group->constraints) {
+        for (auto const& [ir_idx, constraint] :
+             enumerate(group->constraints)) {
             auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
                 constraint);
             hstd::logic_assertion_check_not_nil(cola_cs);
-            ccs_s.append(cola_cs->getCola());
-            ccs.push_back(ccs_s.back().get());
+            auto new_ccs = cola_cs->getCola();
+            ccs_s.append(new_ccs);
+            for (auto const& s : new_ccs) {
+                ccs.push_back(s.get());
+                cc_index.insert_or_assign(
+                    (hstd::u64)s.get(),
+                    hstd::Pair<layout::GroupID, int>{id, ir_idx});
+            }
             run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
         }
 
@@ -106,21 +115,35 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     alg2.makeFeasible();
     alg2.setAvoidNodeOverlaps(true);
 
-    cola::UnsatisfiableConstraintInfos*
-        unsatX = new cola::UnsatisfiableConstraintInfos();
-    cola::UnsatisfiableConstraintInfos*
-        unsatY = new cola::UnsatisfiableConstraintInfos();
-    alg2.setUnsatisfiableConstraintInfo(unsatX, unsatY);
+    cola::UnsatisfiableConstraintInfos unsatX;
+    cola::UnsatisfiableConstraintInfos unsatY;
+    alg2.setUnsatisfiableConstraintInfo(&unsatX, &unsatY);
 
     alg2.run();
 
-    for (auto info : *unsatX) {
-        std::cout << "X-dim unsatisfied: " << info->toString()
-                  << std::endl;
-    }
-    for (auto info : *unsatY) {
-        std::cout << "Y-dim unsatisfied: " << info->toString()
-                  << std::endl;
+    std::string unsatisfied_debug;
+    auto mark_unsatisified = [&](std::string const& dimension,
+                                 cola::UnsatisfiableConstraintInfo* info) {
+        auto [group_id, constraint_idx] = cc_index.at((hstd::u64)info->cc);
+        unsatisfied_debug += hstd::fmt(
+            "\nConstraint at index {} in group {} created cola constraint "
+            "{}, which could not be satisfied in {}-dim for vertices {}: "
+            "{}.",
+            constraint_idx,
+            run->getGroup(group_id)->getStableId(),
+            info->cc->toString(),
+            dimension,
+            run->getGroup(group_id)
+                ->constraints.at(constraint_idx)
+                ->getAllVertices(),
+            info->toString());
+    };
+
+    for (auto info : unsatX) { mark_unsatisified("X", info); }
+    for (auto info : unsatY) { mark_unsatisified("Y", info); }
+
+    if (!unsatisfied_debug.empty()) {
+        throw layout::layout_error::init(unsatisfied_debug);
     }
 
     layout::IPlacementAlgorithm::Result result;
@@ -301,7 +324,9 @@ hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
                     this->dimension));
         }
 
-        result.push_back(line.getCola().at(0));
+        auto align = line.getCola().at(0);
+        hstd::logic_assertion_check_not_nil(align);
+        result.push_back(align);
     }
 
     auto sep = std::make_shared<cola::MultiSeparationConstraint>(
@@ -322,11 +347,14 @@ hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
                 result.size()));
         }
 
-        sep->addAlignmentPair(
-            dynamic_cast<cola::AlignmentConstraint*>(result.at(src).get()),
-            dynamic_cast<cola::AlignmentConstraint*>(result.at(dst).get())
-            //
-        );
+        auto al1 = dynamic_cast<cola::AlignmentConstraint*>(
+            result.at(src).get());
+        auto al2 = dynamic_cast<cola::AlignmentConstraint*>(
+            result.at(dst).get());
+        hstd::logic_assertion_check_not_nil(al1);
+        hstd::logic_assertion_check_not_nil(al2);
+
+        sep->addAlignmentPair(al1, al2);
     }
 
     result.push_back(sep);
