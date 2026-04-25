@@ -525,14 +525,14 @@ class SeparateConstraint : public ColaConstraint {
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
 
-    SeparateConstraint* useX() {
+    SeparateConstraint* separateVertically() {
         dimension = GraphDimension::XDIM;
         left.useX();
         right.useX();
         return this;
     }
 
-    SeparateConstraint* useY() {
+    SeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::YDIM;
         left.useY();
         right.useY();
@@ -712,6 +712,8 @@ class AvoidRouterAlgorithm {
 class ColaLayoutAlgorithm : public layout::IPlacementAlgorithm {
   public:
     std::shared_ptr<AvoidRouterAlgorithm> router;
+    double                                commonIdealEdgeLength = 60;
+    hstd::UnorderedMap<EdgeID, double>    idealEdgeLength;
     Result runSingleLayout(layout::GroupID const& group) override;
 
     ColaLayoutAlgorithm(

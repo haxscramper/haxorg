@@ -427,7 +427,7 @@ struct SvgWriter {
             self_bounds.y(),
             self_bounds_no_offset.x(),
             self_bounds_no_offset.y());
-        g.push_back(XmlNode::comment(bbox_fmt));
+        // g.push_back(XmlNode::comment(bbox_fmt));
 
         if (!is_empty(group.extra)) {
             g.push_back(XmlNode::comment(hstd::fmt("// {}", group.extra)));

@@ -66,15 +66,22 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         run->message(hstd::fmt("rect {}: {}", idx, *rect));
     }
 
+    std::vector<cola::Edge> edges;
+    std::vector<double>     edgeLenOverride;
+    for (EdgeID const& id : rootGroup->edgeAttributes().keys()) {
+        edges.push_back(ctx->getEdgeIdx(id, ctx->run));
+        if (!idealEdgeLength.empty()) {
+            if (auto len = idealEdgeLength.get(id)) {
+                edgeLenOverride.push_back(len.value());
+            } else {
+                edgeLenOverride.push_back(commonIdealEdgeLength);
+            }
+        }
+    }
+
+
     cola::ConstrainedFDLayout alg2(
-        vertices,
-        hstd::own_view(rootGroup->edgeAttributes().keys())
-            | rv::transform(
-                [&](EdgeID const& id) -> Pair<unsigned, unsigned> {
-                    return ctx->getEdgeIdx(id, ctx->run);
-                })
-            | rs::to<std::vector>(),
-        60);
+        vertices, edges, commonIdealEdgeLength, edgeLenOverride);
 
     hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
     std::vector<cola::CompoundConstraint*>          ccs;
@@ -96,6 +103,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     aux_constraints(root_id);
     alg2.setConstraints(ccs);
+    alg2.makeFeasible();
     alg2.setAvoidNodeOverlaps(true);
 
     cola::UnsatisfiableConstraintInfos*
@@ -643,6 +651,9 @@ namespace {
 struct DebugPoint {
     hstd::ext::geometry::Point pos;
     int                        rectOrigin;
+
+    double x() const { return pos.x(); }
+    double y() const { return pos.y(); }
 };
 
 struct DebugOffset {
@@ -655,36 +666,32 @@ struct DebugOffset {
 };
 
 struct AlignDebugInfo {
-    DebugPoint                  start;
-    DebugPoint                  end;
     hstd::Vec<DebugOffset>      offsets;
+    hstd::Vec<DebugPoint>       centers;
     std::string                 repr;
     cst::AlignConstraint const* orig;
+
+    DebugPoint const& start() const { return centers.front(); }
+    DebugPoint const& end() const { return centers.back(); }
 };
 
 static std::string writeTwoPoint(
     DebugPoint const& p1,
     DebugPoint const& p2) {
     std::string out;
-    if (int(p1.pos.x()) == int(p2.pos.x())) {
+    if (int(p1.x()) == int(p2.x())) {
         out += hstd::fmt(
-            "x:{:.3f} y:{:.3f}-{:.3f}",
-            p1.pos.x(),
-            p1.pos.y(),
-            p2.pos.y());
-    } else if (int(p1.pos.y()) == int(p2.pos.y())) {
+            "x:{:.3f} y:{:.3f}-{:.3f}", p1.x(), p1.y(), p2.y());
+    } else if (int(p1.y()) == int(p2.y())) {
         out += hstd::fmt(
-            "x:{:.3f}-{:.3f} y:{:.3f}",
-            p1.pos.x(),
-            p2.pos.x(),
-            p1.pos.y());
+            "x:{:.3f}-{:.3f} y:{:.3f}", p1.x(), p2.x(), p1.y());
     } else {
         out += hstd::fmt(
             "x:{:.3f}-{:.3f} y:{:.3f}-{:.3f}",
-            p1.pos.x(),
-            p2.pos.x(),
-            p1.pos.y(),
-            p2.pos.y());
+            p1.x(),
+            p2.x(),
+            p1.y(),
+            p2.y());
     }
 
     if (p1.rectOrigin != p2.rectOrigin) {
@@ -709,7 +716,7 @@ static std::string writeOffset(DebugOffset const& o) {
 static std::string getAlignComment(AlignDebugInfo const& a) {
     std::string out;
     out += hstd::fmt("align {} ", a.orig->getAllVertices());
-    out += writeTwoPoint(a.start, a.end);
+    out += writeTwoPoint(a.start(), a.end());
 
     hstd::Vec<DebugOffset> non_empty;
     for (auto const& o : a.offsets) {
@@ -763,34 +770,33 @@ AlignDebugInfo buildAlign(
 
     hstd::rs::sort(
         centers, [&](DebugPoint const& lhs, DebugPoint const& rhs) {
-            return x ? (lhs.pos.y() < rhs.pos.y())
-                     : (lhs.pos.x() < rhs.pos.x());
+            return x ? (lhs.y() < rhs.y()) : (lhs.x() < rhs.x());
         });
 
     return AlignDebugInfo{
-        .start   = centers.front(),
-        .end     = centers.back(),
         .offsets = offsets,
+        .centers = centers,
         .repr    = a.getRepr(),
         .orig    = &a,
     };
 };
 
 
-auto red_pen   = VisPen{.color = VisColor{.r = 255}};
-auto green_pen = VisPen{.color = VisColor{.g = 255}};
+auto const red_pen          = VisPen{.color = VisColor{.r = 255}};
+auto const green_pen        = VisPen{.color = VisColor{.g = 255}};
+auto const medium_green_pen = VisPen{.color = VisColor{.g = 127}};
 
 VisGroup getAlignVisualGroup(AlignDebugInfo const& al, VisPen const& pen) {
     auto sub_align = VisGroup{};
     sub_align.comment.push_back(getAlignComment(al));
-    auto line = VisElement::FromLine(al.start.pos, al.end.pos, pen);
+    auto line = VisElement::FromLine(al.start().pos, al.end().pos, pen);
     sub_align.elements.push_back(std::move(line));
 
-    auto p1 = VisElement::FromPoint(al.start.pos, 2, pen);
-    sub_align.elements.push_back(std::move(p1));
+    for (auto const& c : al.centers) {
+        auto p = VisElement::FromPoint(c.pos, 2, pen);
+        sub_align.elements.push_back(std::move(p));
+    }
 
-    auto p2 = VisElement::FromPoint(al.end.pos, 2, pen);
-    sub_align.elements.push_back(std::move(p2));
     return sub_align;
 }
 
@@ -803,21 +809,21 @@ VisGroup getSeparateVisualGroup(
     VisGroup        sub_sep;
     geometry::Point sepOffset //
         = s->dimension == cst::GraphDimension::XDIM
-            ? geometry::Point(right.start.pos.x() - left.start.pos.x(), 0)
-            : geometry::Point(0, right.start.pos.y() - left.start.pos.y());
+            ? geometry::Point(right.start().x() - left.start().x(), 0)
+            : geometry::Point(0, right.start().y() - left.start().y());
 
     DebugOffset offsetSpec{
         .offset = sepOffset,
-        .start  = left.start,
+        .start  = left.start(),
     };
 
     sub_sep.subgroups.push_back(getAlignVisualGroup(left, green_pen));
     sub_sep.subgroups.push_back(getAlignVisualGroup(right, green_pen));
 
-    auto const left_x  = std::min(left.start.pos.x(), left.end.pos.x());
-    auto const right_x = std::min(right.start.pos.x(), right.end.pos.x());
-    auto const left_y  = std::min(left.start.pos.y(), left.end.pos.y());
-    auto const right_y = std::min(right.start.pos.y(), right.end.pos.y());
+    auto const left_x  = std::min(left.start().x(), left.end().x());
+    auto const right_x = std::min(right.start().x(), right.end().x());
+    auto const left_y  = std::min(left.start().y(), left.end().y());
+    auto const right_y = std::min(right.start().y(), right.end().y());
 
     auto const corner_x = std::min(left_x, right_x);
     auto const corner_y = std::min(left_y, right_y);
@@ -825,12 +831,12 @@ VisGroup getSeparateVisualGroup(
     auto horizontal_line = VisElement::FromLine(
         geometry::Point(corner_x, corner_y),
         geometry::Point(std::max(left_x, right_x), corner_y),
-        green_pen);
+        medium_green_pen);
 
     auto vertical_line = VisElement::FromLine(
         geometry::Point(corner_x, corner_y),
         geometry::Point(corner_x, std::max(left_y, right_y)),
-        green_pen);
+        medium_green_pen);
 
     if (s->dimension == cst::GraphDimension::XDIM) {
         vertical_line.getLineShape().pen.style = VisPen::LineStyle::Dash;
