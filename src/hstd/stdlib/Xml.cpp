@@ -48,7 +48,9 @@ void XmlNode::serialize_impl(std::ostream& os, int depth, int indent)
     std::string pad(depth * indent, ' ');
 
     if (type == Kind::Comment) {
-        os << pad << "<!--" << text << "-->\n";
+        os << pad << "<!--";
+        write_comment_escaped(os, text);
+        os << "-->\n";
         return;
     }
 
@@ -115,4 +117,27 @@ void XmlNode::write_attr_escaped(
             default: os << c; break;
         }
     }
+}
+
+void XmlNode::write_comment_escaped(
+    std::ostream&      os,
+    std::string const& input) {
+    bool last_was_dash = false;
+
+    for (char ch : input) {
+        if (ch == '-') {
+            if (last_was_dash) {
+                os << "&#45;";
+                last_was_dash = false;
+            } else {
+                os.put('-');
+                last_was_dash = true;
+            }
+        } else {
+            os.put(ch);
+            last_was_dash = false;
+        }
+    }
+
+    if (last_was_dash) { os << "&#45;"; }
 }

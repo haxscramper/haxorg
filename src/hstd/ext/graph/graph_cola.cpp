@@ -81,6 +81,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         for (auto const& constraint : group->constraints) {
             auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
                 constraint);
+            hstd::logic_assertion_check_not_nil(cola_cs);
             ccs_s.append(cola_cs->getCola());
             ccs.push_back(ccs_s.back().get());
             run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
@@ -92,7 +93,23 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     aux_constraints(root_id);
     alg2.setConstraints(ccs);
     alg2.setAvoidNodeOverlaps(true);
+
+    cola::UnsatisfiableConstraintInfos*
+        unsatX = new cola::UnsatisfiableConstraintInfos();
+    cola::UnsatisfiableConstraintInfos*
+        unsatY = new cola::UnsatisfiableConstraintInfos();
+    alg2.setUnsatisfiableConstraintInfo(unsatX, unsatY);
+
     alg2.run();
+
+    for (auto info : *unsatX) {
+        std::cout << "X-dim unsatisfied: " << info->toString()
+                  << std::endl;
+    }
+    for (auto info : *unsatY) {
+        std::cout << "Y-dim unsatisfied: " << info->toString()
+                  << std::endl;
+    }
 
     layout::IPlacementAlgorithm::Result result;
 
@@ -198,6 +215,9 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> hstd::ext::graph::cst::
         separationDistance,
         isExactSeparation);
 
+    hstd::logic_assertion_check_not_nil(result);
+    hstd::logic_assertion_check_not_nil(left_constraint);
+    hstd::logic_assertion_check_not_nil(right_constraint);
     return {result, left_constraint, right_constraint};
 }
 
@@ -233,15 +253,19 @@ std::string hstd::ext::graph::cst::ColaConstraint::getRepr() const {
             group->shared->getVertexIdx(vert));
     }
 
+    // auto vec = getCola();
+    // for (auto const& it : vec) { it->toString(); }
     auto tail = std::string{"["}
-              + (own_view(getCola()) //
-                 | rv::transform(
-                     [](hstd::SPtr<cola::CompoundConstraint> const& it) {
-                         return it->toString();
-                     })
-                 | rv::intersperse(", ") //
-                 | rv::join              //
-                 | rs::to<std::string>())
+              // + (vec //
+              //    | rv::transform(
+              //        [](hstd::SPtr<cola::CompoundConstraint> const& it)
+              //        {
+              //            hstd::logic_assertion_check_not_nil(it);
+              //            return it->toString();
+              //        })
+              //    | rv::intersperse(", ") //
+              //    | rv::join              //
+              //    | rs::to<std::string>())
               + std::string{"]"};
 
     return hstd::fmt("{}\n{}", head, tail);
@@ -723,10 +747,11 @@ struct ColaConstraintDebug {
         };
 
         struct Separate {
-            Align  left;
-            Align  right;
-            Offset offset;
-            DESC_FIELDS(Separate, (left, right, offset));
+            Align               left;
+            Align               right;
+            Offset              offset;
+            cst::GraphDimension dimension;
+            DESC_FIELDS(Separate, (left, right, offset, dimension));
         };
 
         SUB_VARIANTS(
@@ -839,9 +864,10 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
             };
 
             C::Separate sep{
-                .left   = left,
-                .right  = right,
-                .offset = offsetSpec,
+                .left      = left,
+                .right     = right,
+                .offset    = offsetSpec,
+                .dimension = s->dimension,
             };
 
             cst_list.push_back(C{sep});
@@ -849,9 +875,11 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
         }
     }
 
-    auto c_pen = VisPen{.color = VisColor{.r = 255}};
+    auto red_pen   = VisPen{.color = VisColor{.r = 255}};
+    auto green_pen = VisPen{.color = VisColor{.g = 255}};
     for (auto const& c : cst_list) {
-        auto draw_align_line = [&](C::Align const& al) {
+        auto draw_align_line = [&](C::Align const& al,
+                                   VisPen const&   c_pen) {
             auto el = VisElement::FromLine(
                 al.start.pos, al.end.pos, c_pen);
             el.comment.push_back(al.toString().toString(false));
@@ -864,7 +892,49 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
 
         switch (c.getKind()) {
             case C::Kind::Align: {
-                draw_align_line(c.getAlign());
+                draw_align_line(c.getAlign(), red_pen);
+                break;
+            }
+            case C::Kind::Separate: {
+                auto const& s = c.getSeparate();
+                draw_align_line(s.left, green_pen);
+                draw_align_line(s.right, green_pen);
+
+                double y_line = std::min<double>({
+                    s.left.start.pos.y(),
+                    s.left.end.pos.y(),
+                    s.right.start.pos.y(),
+                    s.right.end.pos.y(),
+                });
+
+                double x_line = std::min<double>({
+                    s.left.start.pos.x(),
+                    s.left.end.pos.x(),
+                    s.right.start.pos.x(),
+                    s.right.end.pos.x(),
+                });
+
+                auto horizontal_line = VisElement::FromLine(
+                    geometry::Point(s.left.start.pos.x(), y_line),
+                    geometry::Point(s.right.start.pos.x(), y_line),
+                    green_pen);
+
+                auto vertical_line = VisElement::FromLine(
+                    geometry::Point(x_line, s.left.start.pos.y()),
+                    geometry::Point(x_line, s.right.start.pos.y()),
+                    green_pen);
+
+                if (s.dimension == GraphDimension::XDIM) {
+                    vertical_line.getLineShape()
+                        .pen.style = VisPen::LineStyle::Dash;
+                    res.elements.push_back(horizontal_line);
+                    res.elements.push_back(vertical_line);
+                } else {
+                    horizontal_line.getLineShape()
+                        .pen.style = VisPen::LineStyle::Dash;
+                    res.elements.push_back(horizontal_line);
+                    res.elements.push_back(vertical_line);
+                }
                 break;
             }
             default: {

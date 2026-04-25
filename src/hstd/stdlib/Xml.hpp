@@ -36,6 +36,9 @@ class XmlNode {
 
     void serialize_impl(std::ostream& os, int depth, int indent) const;
 
+    static void write_comment_escaped(
+        std::ostream&      os,
+        std::string const& input);
     static void write_escaped(std::ostream& os, std::string const& text);
     static void write_attr_escaped(
         std::ostream&      os,

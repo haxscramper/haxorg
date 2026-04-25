@@ -1458,24 +1458,37 @@ TEST_F(GraphUtils_Test, LibcolaIr3) {
         ->addAlignVertex(vs.at(1))
         ->addAlignVertex(vs.at(2));
 
-    group->addConstraint<cst::AlignConstraint>(group)
-        ->useX()
-        ->addAlignVertex(vs.at(3))
-        ->addAlignVertex(vs.at(4))
-        ->addAlignVertex(vs.at(5))
-        ->addAlignVertex(vs.at(6))
-        ->addAlignVertex(vs.at(7));
+    // group->addConstraint<cst::AlignConstraint>(group)
+    //     ->useX()
+    //     ->addAlignVertex(vs.at(3))
+    //     ->addAlignVertex(vs.at(4))
+    //     ->addAlignVertex(vs.at(5))
+    //     ->addAlignVertex(vs.at(6))
+    //     ->addAlignVertex(vs.at(7));
 
-    group->addConstraint<cst::AlignConstraint>(group)
-        ->useX()
-        ->addAlignVertex(vs.at(8))
-        ->addAlignVertex(vs.at(9))
-        ->addAlignVertex(vs.at(10))
-        ->addAlignVertex(vs.at(11));
+    // group->addConstraint<cst::AlignConstraint>(group)
+    //     ->useX()
+    //     ->addAlignVertex(vs.at(8))
+    //     ->addAlignVertex(vs.at(9))
+    //     ->addAlignVertex(vs.at(10))
+    //     ->addAlignVertex(vs.at(11));
 
-    group->addConstraint<cst::SeparateConstraint>(group)
+    group
+        ->addConstraint<cst::SeparateConstraint>(group)
+        //
         ->addLeftVertex(vs.at(8))
-        ->addRightVertex(vs.at(3));
+        ->addLeftVertex(vs.at(9))
+        ->addLeftVertex(vs.at(10))
+        ->addLeftVertex(vs.at(11))
+        //
+        ->addRightVertex(vs.at(3))
+        ->addRightVertex(vs.at(4))
+        ->addRightVertex(vs.at(5))
+        ->addRightVertex(vs.at(6))
+        ->addRightVertex(vs.at(7))
+        //
+        ->useX()
+        ->setSeparationDistance(200);
 
     run->runFullLayout();
 

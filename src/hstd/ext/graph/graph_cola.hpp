@@ -464,8 +464,6 @@ class AlignConstraint : public ColaConstraint {
     [[refl]] GraphDimension dimension; ///< Which axist to align on
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
-    void addVertex(VertexID const& id) override { addAlignVertex(id); }
-
     hstd::Vec<VertexID> getAllVertices() const override {
         return vertices.keys();
     }
@@ -516,6 +514,31 @@ class SeparateConstraint : public ColaConstraint {
 
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
+
+    SeparateConstraint* useX() {
+        dimension = GraphDimension::XDIM;
+        left.useX();
+        right.useX();
+        return this;
+    }
+
+    SeparateConstraint* useY() {
+        dimension = GraphDimension::YDIM;
+        left.useY();
+        right.useY();
+        return this;
+    }
+
+
+    SeparateConstraint* setSeparationDistance(double distance) {
+        this->separationDistance = distance;
+        return this;
+    }
+
+    SeparateConstraint* setIsExactSeparation(double distance) {
+        this->isExactSeparation = distance;
+        return this;
+    }
 
     SeparateConstraint* addLeftVertex(
         VertexID const&   id,
