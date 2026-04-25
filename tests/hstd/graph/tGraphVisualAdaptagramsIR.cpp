@@ -34,7 +34,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr1) {
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
 
-TEST_F(GraphAdaptagramsIR_Test, LibcolaIr2) {
+TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
     VertexID v1 = graph->addVertex();
     VertexID v2 = graph->addVertex();
     VertexID v3 = graph->addVertex();
@@ -211,6 +211,71 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
 
     hstd::writeFile(
         getDebugFile("libcola_ir_multi_edge.svg"),
+        hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
+            .to_string());
+}
+
+TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
+    hstd::Vec<VertexID> vs;
+    hstd::Vec<EdgeID>   es;
+    for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
+
+    auto edge = [&](int source, int target) {
+        es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
+    };
+
+
+    edge(0, 2);  // 0
+    edge(2, 1);  // 1
+    edge(1, 8);  // 2
+    edge(8, 3);  // 3
+    edge(3, 4);  // 4
+    edge(4, 6);  // 5
+    edge(3, 6);  // 6
+    edge(8, 5);  // 7
+    edge(5, 9);  // 8
+    edge(9, 10); // 9
+    edge(10, 7); // 10
+    edge(7, 5);  // 11
+
+    auto                       root = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> root_group = getCola(root);
+    auto                       ctx        = root_group->shared;
+
+    EXPECT_EQ(ctx->groups.size(), 1);
+    EXPECT_EQ(root_group->subGroups.size(), 0);
+
+    layout::GroupID sub_group_id1 = root_group->addNewNativeSubgroup();
+    hstd::SPtr<cst::ColaGroup> sub_group1 = as<cst::ColaGroup>(
+        run->getGroup(sub_group_id1));
+
+    layout::GroupID sub_group_id2 = root_group->addNewNativeSubgroup();
+    hstd::SPtr<cst::ColaGroup> sub_group2 = as<cst::ColaGroup>(
+        run->getGroup(sub_group_id2));
+
+    // root nodes
+    root_group->addVertex(vs.at(0), Size(25, 25));
+    root_group->addVertex(vs.at(1), Size(25, 25));
+
+    // sub group 1
+    sub_group1->addVertex(vs.at(2), Size(25, 25));
+    sub_group1->addVertex(vs.at(3), Size(25, 25));
+    sub_group1->addVertex(vs.at(4), Size(25, 25));
+    sub_group1->addVertex(vs.at(5), Size(25, 25));
+
+    // sub group 2
+    sub_group2->addVertex(vs.at(6), Size(25, 25));
+    sub_group2->addVertex(vs.at(7), Size(25, 25));
+    sub_group2->addVertex(vs.at(8), Size(25, 25));
+    sub_group2->addVertex(vs.at(9), Size(25, 25));
+    sub_group2->addVertex(vs.at(10), Size(25, 25));
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    hstd::writeFile(
+        getDebugFile("libcola_sub_group.svg"),
         hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
             .to_string());
 }

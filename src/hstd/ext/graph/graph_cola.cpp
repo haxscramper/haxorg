@@ -25,9 +25,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     auto __scope = run->scopeLevel();
     hstd::logic_assertion_check_not_nil(router);
 
-    auto rootGroup = std::dynamic_pointer_cast<ColaGroup>(
-        run->getGroup(root_id));
-    auto ctx = rootGroup->shared;
+    auto rootGroup = run->getGroup<ColaGroup>(root_id);
+    auto ctx       = rootGroup->shared;
 
 
     hstd::UnorderedMap<layout::GroupID, hstd::SPtr<vpsc::Rectangle>>
@@ -40,8 +39,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                    hstd::Opt<layout::GroupID> const& parent) -> void {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
-            auto parentGroup = std::dynamic_pointer_cast<ColaGroup>(
-                run->getGroup(parent.value()));
+            auto parentGroup = run->getGroup<ColaGroup>(parent.value());
             run->message(
                 hstd::fmt(
                     "group '{}' has layout algorithm set",
@@ -61,10 +59,6 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     };
 
     aux(root_id, std::nullopt);
-
-    for (auto const& [idx, rect] : enumerate(vertices)) {
-        run->message(hstd::fmt("rect {}: {}", idx, *rect));
-    }
 
     std::vector<cola::Edge> edges;
     std::vector<double>     edgeLenOverride;
@@ -165,12 +159,10 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     layout::IPlacementAlgorithm::Result result;
 
-    geometry::Rect bbox = Rect::FromLimitBoundaries();
-
     auto aux_layout =
         [&](this auto&&                       self,
             layout::GroupID const&            id,
-            hstd::Opt<layout::GroupID> const& parent) -> void {
+            hstd::Opt<layout::GroupID> const& parent) -> geometry::Rect {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
@@ -178,7 +170,6 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
-            bbox.extend(rect);
 
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
@@ -200,23 +191,49 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                         rect, rootGroup));
             }
 
+            return rect;
         } else {
-            for (auto const& sub : group->subGroups) { self(sub, id); }
+            auto bbox = geometry::Rect::FromLimitBoundaries();
+            hstd::Vec<geometry::Rect> subgroup_bbox_list;
+            for (auto const& sub : group->subGroups) {
+                subgroup_bbox_list.push_back(self(sub, id));
+            }
 
             for (auto const& vert : group->getVertices()) {
                 auto rect = ctx->getRect(vert);
+                bbox.extend(adapt::to_hstd(*rect));
+            }
+
+            for (auto const& [group_id, group_bbox] : hstd::rs::zip_view(
+                     group->subGroups, subgroup_bbox_list)) {
+                result.groups.insert_or_assign(
+                    group_id,
+                    std::make_shared<ColaGroupLayoutAttribute>(
+                        group_bbox.relative_to(bbox),
+                        run->getGroup<cst::ColaGroup>(group_id)));
+            }
+
+            for (auto const& vert : group->getVertices()) {
+                auto rect     = adapt::to_hstd(*ctx->getRect(vert));
+                auto rel_rect = rect.relative_to(bbox);
+
                 run->message(
-                    hstd::fmt("vert {} placed at {}", vert, *rect));
+                    hstd::fmt(
+                        "vert {} placed at {}, relative {}",
+                        vert,
+                        rect,
+                        rel_rect));
 
                 result.vertices.insert_or_assign(
                     vert,
-                    std::make_shared<ColaVertexLayoutAttribute>(
-                        adapt::to_hstd(*rect)));
+                    std::make_shared<ColaVertexLayoutAttribute>(rel_rect));
             }
+
+            return bbox;
         }
     };
 
-    aux_layout(root_id, std::nullopt);
+    auto bbox = aux_layout(root_id, std::nullopt);
 
     router->run                    = run;
     router->rects                  = rootGroup->shared.get();

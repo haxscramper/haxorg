@@ -1307,18 +1307,21 @@ class LayoutRun : public OperationsTracer {
     /// \brief Full store for the layout results of all recursive runs.
     IPlacementAlgorithm::Result result;
 
-    IVertex const* getVertex(VertexID const& id) const {
+    template <typename T = IVertex>
+    T const* getVertex(VertexID const& id) const {
         hstd::logic_assertion_check_not_nil(graph);
-        return graph->getVertex(id);
+        return hstd::validated_dynamic_cast<T>(graph->getVertex(id));
     }
 
-    IEdge const* getEdge(EdgeID const& id) const {
+    template <typename T = IEdge>
+    T const* getEdge(EdgeID const& id) const {
         hstd::logic_assertion_check_not_nil(graph);
-        return graph->getEdge(id);
+        return hstd::validated_dynamic_cast<T>(graph->getEdge(id));
     }
 
-    hstd::SPtr<IGroup> const& getGroup(GroupID const& id) const {
-        return groups.at(id);
+    template <typename T = IGroup>
+    hstd::SPtr<T> getGroup(GroupID const& id) const {
+        return hstd::validated_dynamic_cast<T>(groups.at(id));
     }
 
     GroupID addGroup(hstd::SPtr<IGroup> const& group) {
@@ -1335,29 +1338,31 @@ class LayoutRun : public OperationsTracer {
         return groups.at(id);
     }
 
-    hstd::SPtr<IGroupLayoutAttribute> getLayout(GroupID const& id) const {
+    template <typename T = IGroupLayoutAttribute>
+    hstd::SPtr<T> getLayout(GroupID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.groups.contains(id),
             "No layout attribute specified for group ID {}",
             id);
-        return result.groups.at(id);
+        return hstd::validated_dynamic_cast<T>(result.groups.at(id));
     }
 
-    hstd::SPtr<IEdgeLayoutAttribute> getLayout(EdgeID const& id) const {
+    template <typename T = IEdgeLayoutAttribute>
+    hstd::SPtr<T> getLayout(EdgeID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.edges.contains(id),
             "No layout attribute specified for edge ID {}",
             id);
-        return result.edges.at(id);
+        return hstd::validated_dynamic_cast<T>(result.edges.at(id));
     }
 
-    hstd::SPtr<IVertexLayoutAttribute> getLayout(
-        VertexID const& id) const {
+    template <typename T = IVertexLayoutAttribute>
+    hstd::SPtr<T> getLayout(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.vertices.contains(id),
             "No layout attribute specified for vertex ID {}",
             id);
-        return result.vertices.at(id);
+        return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
 
     geometry::Rect getRelativeBBox(VertexID const& id) const {

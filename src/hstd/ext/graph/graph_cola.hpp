@@ -131,9 +131,7 @@ struct GroupBase : public CRTP_this_method<TDerivedGroup> {
         auto result = get_run()->addGroup(subgroup);
 
         groups().insert_or_assign(
-            result,
-            std::dynamic_pointer_cast<TDerivedGroup>(
-                get_run()->getGroup(result)));
+            result, get_run()->template getGroup<TDerivedGroup>(result));
 
         _this()->subGroups.insert(result);
 
