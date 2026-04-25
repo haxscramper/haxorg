@@ -499,6 +499,10 @@ class AlignConstraint : public ColaConstraint {
 
 class SeparateConstraint : public ColaConstraint {
   public:
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return left.getAllVertices() + right.getAllVertices();
+    }
+
     using ColaConstraint::ColaConstraint;
     [[refl]] AlignConstraint left;
     [[refl]] AlignConstraint right;
@@ -512,6 +516,25 @@ class SeparateConstraint : public ColaConstraint {
 
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
+
+    SeparateConstraint* addLeftVertex(
+        VertexID const&   id,
+        double            offset = 0,
+        hstd::Opt<double> fixPos = std::nullopt) {
+        left.addAlignVertex(id, offset, fixPos);
+        return this;
+    }
+
+    SeparateConstraint* addRightVertex(
+        VertexID const&   id,
+        double            offset = 0,
+        hstd::Opt<double> fixPos = std::nullopt) {
+        right.addAlignVertex(id, offset, fixPos);
+        return this;
+    }
+
+    SeparateConstraint(hstd::SPtr<ColaGroup> const& group)
+        : ColaConstraint{group}, left{group}, right{group} {}
 };
 
 class MultiSeparateConstraint : public ColaConstraint {
@@ -655,8 +678,19 @@ class AvoidRouterAlgorithm {
 
 class ColaLayoutAlgorithm : public layout::IPlacementAlgorithm {
   public:
-    using layout::IPlacementAlgorithm::IPlacementAlgorithm;
+    std::shared_ptr<AvoidRouterAlgorithm> router;
     Result runSingleLayout(layout::GroupID const& group) override;
+
+    ColaLayoutAlgorithm(
+        hstd::SPtr<layout::LayoutRun>         run,
+        std::shared_ptr<AvoidRouterAlgorithm> _router = nullptr)
+        : layout::IPlacementAlgorithm{run} {
+        if (_router == nullptr) {
+            router = std::make_shared<AvoidRouterAlgorithm>();
+        } else {
+            router = _router;
+        }
+    }
 };
 
 } // namespace hstd::ext::graph::cst

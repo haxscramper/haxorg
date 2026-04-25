@@ -1412,393 +1412,230 @@ TEST_F(GraphUtils_Test, LibcolaIr2) {
     hstd::writeFile(
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
-}
 
-#if false
+    EXPECT_OUTCOME_OK(
+        checkAlignedHorizontally(run->getVisual(v1), run->getVisual(v4)));
 
-
-using C = GraphNodeConstraint;
-
-TEST_F(GraphUtils_Test, LibcolaIr1) {
-    GraphLayoutIR ir;
-    ir.edges.push_back({0, 1});
-    ir.edges.push_back({1, 2});
-    ir.edges.push_back({2, 3});
-
-    ir.rectangles.push_back(GraphSize(5, 5));
-    ir.rectangles.push_back(GraphSize(5, 5));
-    ir.rectangles.push_back(GraphSize(5, 5));
-    ir.rectangles.push_back(GraphSize(5, 5));
-
-
-    ir.nodeConstraints.push_back(
-        C{C::Align{
-            .nodes
-            = {GraphNodeConstraint::Align::Spec{.node = 0},
-               GraphNodeConstraint::Align::Spec{.node = 1}},
-            .dimension = GraphDimension::XDIM,
-        }});
-
-    ir.nodeConstraints.push_back(
-        C{C::Align{
-            .nodes
-            = {GraphNodeConstraint::Align::Spec{.node = 1},
-               GraphNodeConstraint::Align::Spec{.node = 3}},
-            .dimension = GraphDimension::YDIM,
-        }});
-
-    auto lyt = ir.doColaLayout();
-    lyt.writeSvg("/tmp/testLibcolaIr1.svg");
-    lyt.convert();
-}
-
-TEST_F(GraphUtils_Test, LibcolaIr2) {
-    auto ir = init_graph(
-        {
-            {0, 1},
-            {1, 2},
-            {2, 0},
-            {3, 0},
-            {4, 0},
-            {2, 3},
-            {3, 4},
-            {4, 5},
-        },
-        GraphSize(60, 60));
-
-    ir.width  = 400;
-    ir.height = 400;
-
-    auto lyt = ir.doColaLayout();
-    lyt.writeSvg("/tmp/testLibcolaIr2.svg");
-    auto conv = lyt.convert();
-
-    lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr2_router");
-    lyt.router->outputDiagramText("/tmp/testLibcolaIr2_router");
-    EXPECT_TRUE(!conv.lines.at({0, 1}).paths.at(0).points.empty());
+    EXPECT_OUTCOME_OK(
+        checkAlignedVertically(run->getVisual(v1), run->getVisual(v2)));
 }
 
 TEST_F(GraphUtils_Test, LibcolaIr3) {
-    GraphLayoutIR ir;
+    hstd::Vec<VertexID> vs;
+    hstd::Vec<EdgeID>   es;
 
-    ir.edges = {
-        GraphEdge{.source = 0, .target = 3},
-        GraphEdge{.source = 1, .target = 4},
-        GraphEdge{.source = 1, .target = 5},
-        GraphEdge{.source = 1, .target = 6},
-        GraphEdge{.source = 2, .target = 7},
-        GraphEdge{.source = 3, .target = 8},
-        GraphEdge{.source = 4, .target = 8},
-        GraphEdge{.source = 4, .target = 9},
-        GraphEdge{.source = 5, .target = 9},
-        GraphEdge{.source = 6, .target = 9},
-        GraphEdge{.source = 6, .target = 10},
-        GraphEdge{.source = 7, .target = 9},
-        GraphEdge{.source = 7, .target = 11},
+    for (int i = 0; i < 12; ++i) { vs.push_back(graph->addVertex()); }
+
+    auto add_edge = [&](int source, int target) {
+        es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
 
-    auto& ec = ir.edgeConstraints;
-    using P  = GraphEdgeConstraint::Port;
-    // ec[GraphEdge{.source = }]
+    add_edge(0, 3);
+    add_edge(1, 4);
+    add_edge(1, 5);
+    add_edge(1, 6);
+    add_edge(2, 7);
+    add_edge(3, 8);
+    add_edge(4, 8);
+    add_edge(4, 9);
+    add_edge(5, 9);
+    add_edge(6, 9);
+    add_edge(6, 10);
+    add_edge(7, 9);
+    add_edge(7, 11);
 
-    ec[{.source = 7, .target = 9}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 6, .target = 10}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 6, .target = 9}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 4, .target = 9}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 1, .target = 6}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 3, .target = 8}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 1, .target = 5}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 7, .target = 11}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 4, .target = 8}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 2, .target = 7}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 1, .target = 4}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 5, .target = 9}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
-    ec[{.source = 0, .target = 3}] = GraphEdgeConstraint{
-        .sourcePort       = P::East,
-        .targetPort       = P::West,
-        .targetCheckpoint = 20,
-    };
+    auto                       root  = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+    group->getAlgorithm<cst::ColaLayoutAlgorithm>()
+        ->router->shapeBufferDistance = 5;
 
+    for (VertexID v : vs) { group->addVertex(v, Size(75, 25)); }
+    for (EdgeID e : es) { group->addEdge(e); }
 
-    using C   = GraphNodeConstraint;
-    auto ydim = GraphDimension::YDIM;
-    auto xdim = GraphDimension::XDIM;
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useX()
+        ->addAlignVertex(vs.at(0))
+        ->addAlignVertex(vs.at(1))
+        ->addAlignVertex(vs.at(2));
 
-    ir.nodeConstraints = {
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 0}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 1}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 1}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 2}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 3}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 4}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 4}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 5}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 5}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 6}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 6}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 7}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 8}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 9}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left              = C::
-                Align{.dimension = ydim, .nodes = {C::Align::Spec{.node = 9}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 10}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = ydim,
-            .isExactSeparation = true,
-            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 10}}},
-            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 11}}},
-            .separationDistance = 75.0}},
-        C{C::Separate{
-            .dimension         = xdim,
-            .isExactSeparation = true,
-            .left
-            = {.dimension = xdim,
-               .nodes
-               = {C::Align::Spec{.node = 0},
-                  C::Align::
-                      Spec{.node = 1},
-                  C::Align::
-                      Spec{.node = 2}}},
-            .right
-            = {.dimension = xdim,
-               .nodes
-               = {C::Align::Spec{.node = 3},
-                  C::Align::
-                      Spec{.node = 4},
-                  C::Align::
-                      Spec{.node = 5},
-                  C::Align::
-                      Spec{.node = 6},
-                  C::Align::
-                      Spec{.node = 7}}},
-            .separationDistance = 125.0}},
-        C{C::Separate{
-            .dimension         = xdim,
-            .isExactSeparation = true,
-            .left
-            = {.dimension = xdim,
-               .nodes
-               = {C::Align::Spec{.node = 3},
-                  C::Align::
-                      Spec{.node = 4},
-                  C::Align::
-                      Spec{.node = 5},
-                  C::Align::
-                      Spec{.node = 6},
-                  C::Align::
-                      Spec{.node = 7}}},
-            .right
-            = {.dimension = xdim,
-               .nodes
-               = {C::Align::Spec{.node = 8},
-                  C::Align::
-                      Spec{.node = 9},
-                  C::Align::
-                      Spec{.node = 10},
-                  C::Align::
-                      Spec{.node = 11}}},
-            .separationDistance = 125.0}}};
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useX()
+        ->addAlignVertex(vs.at(3))
+        ->addAlignVertex(vs.at(4))
+        ->addAlignVertex(vs.at(5))
+        ->addAlignVertex(vs.at(6))
+        ->addAlignVertex(vs.at(7));
 
-    ir.rectangles = {
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-        GraphSize{.h = 25.0, .w = 75.0},
-    };
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useX()
+        ->addAlignVertex(vs.at(8))
+        ->addAlignVertex(vs.at(9))
+        ->addAlignVertex(vs.at(10))
+        ->addAlignVertex(vs.at(11));
 
-    ir.height = 10000;
-    ir.width  = 10000;
+    group->addConstraint<cst::SeparateConstraint>(group)
+        ->addLeftVertex(vs.at(8))
+        ->addRightVertex(vs.at(3));
 
-    auto lyt = ir.doColaLayout();
-    lyt.writeSvg("/tmp/testLibcolaIr3.svg");
-    auto conv = lyt.convert();
+    run->runFullLayout();
 
-    lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr3_router");
-    lyt.router->outputDiagramText("/tmp/testLibcolaIr3_router");
+    auto const& res = run->result;
+    EXPECT_EQ(res.vertices.size(), 12);
+    EXPECT_EQ(res.edges.size(), 13);
+
+    for (EdgeID e : es) {
+        ASSERT_TRUE(res.edges.contains(e));
+        EXPECT_TRUE(!res.edges.at(e)->getPath().commands.empty());
+    }
+
+    hstd::writeFile(
+        getDebugFile("libcola_ir3.svg"),
+        hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
+            .to_string());
 }
 
 TEST_F(GraphUtils_Test, LibcolaIrMultiEdge) {
-    GraphLayoutIR ir;
+    VertexID v0 = graph->addVertex();
+    VertexID v1 = graph->addVertex();
 
-    ir.edges = {
-        GraphEdge{.source = 0, .target = 1, .bundle = 0},
-        GraphEdge{.source = 0, .target = 1, .bundle = 1},
-        GraphEdge{.source = 0, .target = 1, .bundle = 2},
-        GraphEdge{.source = 0, .target = 1, .bundle = 3},
-    };
+    hstd::Vec<EdgeID> es;
+    es.push_back(graph->addEdge(v0, v1));
+    es.push_back(graph->addEdge(v0, v1));
+    es.push_back(graph->addEdge(v0, v1));
+    es.push_back(graph->addEdge(v0, v1));
 
-    auto& ec    = ir.edgeConstraints;
-    using P     = GraphEdgeConstraint::Port;
-    float shift = 0.2f;
-    // ec[GraphEdge{.source = }]
+    auto                       root  = cst::ColaGroup::newRootGraph(run);
+    hstd::SPtr<cst::ColaGroup> group = getCola(root);
 
+    group->addVertex(v0, Size(25, 100));
+    group->addVertex(v1, Size(25, 100));
 
-    ec[GraphEdge{
-        .source = 0,
-        .target = 1,
-        .bundle = 0,
-    }] = GraphEdgeConstraint{
-        .sourcePort       = P::East,
-        .targetPort       = P::West,
-        .sourceOffset     = 0.1f + shift * 0,
-        .targetOffset     = 0.9f - shift * 0,
-        .sourceCheckpoint = 30,
-        .targetCheckpoint = 30,
-    };
+    group->addConstraint<cst::AlignConstraint>(group)
+        ->useY()
+        ->addAlignVertex(v0)
+        ->addAlignVertex(v1);
 
-    ec[GraphEdge{
-        .source = 0,
-        .target = 1,
-        .bundle = 1,
-    }] = GraphEdgeConstraint{
-        .sourcePort   = P::East,
-        .targetPort   = P::West,
-        .sourceOffset = 0.1f + shift * 1,
-        .targetOffset = 0.9f - shift * 1,
-    };
+    for (EdgeID e : es) { group->addEdge(e); }
 
-    ec[GraphEdge{
-        .source = 0,
-        .target = 1,
-        .bundle = 2,
-    }] = GraphEdgeConstraint{
-        .sourcePort   = P::East,
-        .targetPort   = P::West,
-        .sourceOffset = 0.1f + shift * 2,
-        .targetOffset = 0.9f - shift * 2,
-    };
+    run->runFullLayout();
 
-    ec[GraphEdge{
-        .source = 0,
-        .target = 1,
-        .bundle = 3,
-    }] = GraphEdgeConstraint{
-        .sourcePort   = P::East,
-        .targetPort   = P::West,
-        .sourceOffset = 0.1f + shift * 3,
-        .targetOffset = 0.9f - shift * 3,
-    };
+    auto const& res = run->result;
+    EXPECT_EQ(res.vertices.size(), 2);
+    EXPECT_EQ(res.edges.size(), 4);
 
+    for (EdgeID e : es) {
+        ASSERT_TRUE(res.edges.contains(e));
+        EXPECT_TRUE(!res.edges.at(e)->getPath().commands.empty());
+    }
 
-    using C   = GraphNodeConstraint;
-    auto ydim = GraphDimension::YDIM;
-    auto xdim = GraphDimension::XDIM;
-
-    ir.nodeConstraints = {
-        C{C::Separate{
-            .dimension         = xdim,
-            .isExactSeparation = true,
-            .left = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 0}}},
-            .right = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 1}}},
-            .separationDistance = 200.0}},
-    };
-
-    ir.rectangles = {
-        GraphSize{.h = 100.0, .w = 25.0},
-        GraphSize{.h = 100.0, .w = 25.0},
-    };
-
-    ir.height = 10000;
-    ir.width  = 10000;
-
-    auto lyt = ir.doColaLayout();
-    lyt.writeSvg("/tmp/LibcolaIrMultiEdge.svg");
-    auto conv = lyt.convert();
-
-    lyt.router->outputInstanceToSVG("/tmp/LibcolaIrMultiEdge_router");
-    lyt.router->outputDiagramText("/tmp/LibcolaIrMultiEdge_router");
+    hstd::writeFile(
+        getDebugFile("libcola_ir_multi_edge.svg"),
+        hstd::ext::visual::toSvg(run->getVisual(), /*debug=*/false)
+            .to_string());
 }
 
 TEST_F(GraphUtils_Test, tHolaIr1) {
-    auto ir = init_graph(
-        {
-            {0, 1},
-            {1, 2},
-            {2, 0},
-            {3, 0},
-            {4, 0},
-            {2, 3},
-            {3, 4},
-            {4, 5},
-        },
-        GraphSize(60, 60));
+    dialect::Graph g;
 
-    auto lyt = ir.doHolaLayout();
-    writeFile("/tmp/testHolaIr1.svg", lyt.graph->writeSvg());
-    auto conv = lyt.convert();
-    EXPECT_TRUE(!conv.lines.at({0, 1}).paths.at(0).points.empty());
+    hstd::Vec<dialect::Node_SP> nodes;
+    for (int i = 0; i < 6; ++i) {
+        auto node = g.addNode(60, 60);
+        g.addNode(node);
+        nodes.push_back(node);
+    }
+
+    auto add_edge = [&](int source, int target) {
+        g.addEdge(nodes.at(source), nodes.at(target));
+    };
+
+    add_edge(0, 1);
+    add_edge(1, 2);
+    add_edge(2, 0);
+    add_edge(3, 0);
+    add_edge(4, 0);
+    add_edge(2, 3);
+    add_edge(3, 4);
+    add_edge(4, 5);
+
+    dialect::HolaOpts opts;
+    opts.routingScalar_crossingPenalty = 20;
+    dialect::doHOLA(g, opts);
+
+    auto svg = g.writeSvg();
+    EXPECT_TRUE(!svg.empty());
+
+    hstd::writeFile(getDebugFile("hola_ir1.svg"), svg);
 }
 
 TEST_F(GraphUtils_Test, GraphvizIrClusters) {
-    auto lyt = ir.doGraphvizLayout(gvc);
-    lyt.writeSvg("/tmp/testGraphvizIrClusters.svg");
-    lyt.writeXDot("/tmp/testGraphvizIrClusters.xdot");
-    auto c = lyt.convert();
+    hstd::Vec<VertexID> vs;
+    for (int i = 0; i < 6; ++i) { vs.push_back(graph->addVertex()); }
 
-    EXPECT_EQ(c.subgraphPaths.size(), 3);
-    EXPECT_EQ(c.subgraphs.size(), 1);
-    EXPECT_EQ(c.subgraphs.at(0).subgraphs.size(), 2);
-    EXPECT_EQ(c.getSubgraph({0}).subgraphs.size(), 2);
-    EXPECT_EQ(c.getSubgraph({0, 0}).subgraphs.size(), 0);
-    EXPECT_EQ(c.getSubgraph({0, 1}).subgraphs.size(), 0);
-    EXPECT_EQ(c.subgraphPaths.at(0), Vec<int>{0});
-    EXPECT_EQ(c.subgraphPaths.at(1), (Vec<int>{0, 0}));
-    EXPECT_EQ(c.subgraphPaths.at(2), (Vec<int>{0, 1}));
-    // QEXPECT_TRUE(toQRect(c.getSubgraph({0}).bbox)
-    //                  .contains(toQRect(c.getSubgraph({0, 0}).bbox)));
-    // QEXPECT_TRUE(toQRect(c.getSubgraph({0}).bbox)
-    //                  .contains(toQRect(c.getSubgraph({0, 1}).bbox)));
+    auto e01 = graph->addEdge(vs.at(0), vs.at(1));
+    auto e12 = graph->addEdge(vs.at(1), vs.at(2));
+    auto e20 = graph->addEdge(vs.at(2), vs.at(0));
+
+    auto e34 = graph->addEdge(vs.at(3), vs.at(4));
+    auto e45 = graph->addEdge(vs.at(4), vs.at(5));
+    auto e53 = graph->addEdge(vs.at(5), vs.at(3));
+
+    auto                       root  = gv::GraphGroup::newRootGraph(run);
+    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+
+    auto sg1_id = group->addNewNativeSubgroup();
+    auto sg2_id = group->addNewNativeSubgroup();
+
+    auto sg1 = as<gv::GraphGroup>(run->getGroup(sg1_id));
+    auto sg2 = as<gv::GraphGroup>(run->getGroup(sg2_id));
+
+    auto shape = gv::NodeAttribute::Shape::rect;
+
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("A0");
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(1)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("A1");
+    as<gv::NodeAttribute>(sg1->addVertex(vs.at(2)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("A2");
+
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(3)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("B0");
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(4)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("B1");
+    as<gv::NodeAttribute>(sg2->addVertex(vs.at(5)))
+        ->setFixedPointWH(60, 40)
+        ->setShape(shape)
+        ->setLabel("B2");
+
+    as<gv::EdgeAttribute>(sg1->addEdge(e01));
+    as<gv::EdgeAttribute>(sg1->addEdge(e12));
+    as<gv::EdgeAttribute>(sg1->addEdge(e20));
+
+    as<gv::EdgeAttribute>(sg2->addEdge(e34));
+    as<gv::EdgeAttribute>(sg2->addEdge(e45));
+    as<gv::EdgeAttribute>(sg2->addEdge(e53));
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+    EXPECT_EQ(res.groups.size(), 3);
+    EXPECT_EQ(res.vertices.size(), 6);
+    EXPECT_EQ(res.edges.size(), 6);
+
+    auto visual = run->getVisual();
+    EXPECT_EQ(visual.size(), 1);
+    EXPECT_EQ(visual.at(0).subgroups.size(), 2);
+
+    hstd::writeFile(
+        getDebugFile("graphviz_ir_clusters.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
-#endif

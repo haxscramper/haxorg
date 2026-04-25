@@ -19,6 +19,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     ColaLayoutAlgorithm::runSingleLayout(layout::GroupID const& root_id) {
     run->message("running single layout for cst::ColaLayoutAlgorithm");
     auto __scope = run->scopeLevel();
+    hstd::logic_assertion_check_not_nil(router);
 
     auto rootGroup = std::dynamic_pointer_cast<ColaGroup>(
         run->getGroup(root_id));
@@ -148,13 +149,11 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     aux_layout(root_id, std::nullopt);
 
-    AvoidRouterAlgorithm router;
-
-    router.run                    = run;
-    router.rects                  = rootGroup->shared.get();
-    router.group                  = rootGroup.get();
-    router.intermediate_placement = &result;
-    auto layoutPorts              = router.routeEdges();
+    router->run                    = run;
+    router->rects                  = rootGroup->shared.get();
+    router->group                  = rootGroup.get();
+    router->intermediate_placement = &result;
+    auto layoutPorts               = router->routeEdges();
 
 
     result.groups.insert_or_assign(
