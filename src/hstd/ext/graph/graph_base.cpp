@@ -837,7 +837,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     auto aux = [&](this auto&& self,
                    GroupID     id) -> hstd::ext::visual::VisGroup {
         auto                        group  = getGroup(id);
-        hstd::ext::visual::VisGroup result = getLayout(id)->getVisual();
+        hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
 
         for (auto const& sub : group->subGroups) {
             auto visual          = self(sub);
@@ -848,7 +848,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
         for (auto const& it : group->getVertices()) {
             auto const& attr     = getLayout(it);
-            auto        visual   = attr->getVisual();
+            auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
             result.subgroups.push_back(visual);
@@ -856,7 +856,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
         for (auto const& it : group->getEdges()) {
             auto const& attr     = getLayout(it);
-            auto        visual   = attr->getVisual();
+            auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Edge;
             result.subgroups.push_back(visual);

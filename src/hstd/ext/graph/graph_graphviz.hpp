@@ -969,7 +969,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         return node.getPropertiesAsString();
     }
 
-    visual::VisGroup getVisual() const override;
+    visual::VisGroup getVisual(VertexID const& selfId) const override;
 };
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
@@ -989,7 +989,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     }
 
 
-    visual::VisGroup getVisual() const override;
+    visual::VisGroup getVisual(EdgeID const& selfId) const override;
 };
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
@@ -1008,7 +1008,8 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         return group->getPropertiesAsString();
     }
 
-    visual::VisGroup getVisual() const override;
+    visual::VisGroup getVisual(
+        layout::GroupID const& selfId) const override;
 };
 
 } // namespace hstd::ext::graph::gv

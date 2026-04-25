@@ -81,7 +81,7 @@ struct VisFont {
     DECL_DESCRIBED_ENUM(FontStyle, Normal, Italic, Oblique);
 
     hstd::Str family    = "Arial";
-    double    pixelSize = 12.0f;
+    double    pixelSize = 8.0f;
     Weight    weight    = Weight::Normal;
     FontStyle fontStyle = FontStyle::Normal;
 
@@ -253,8 +253,8 @@ struct VisElement {
     static VisElement FromText(
         hstd::Str const&    content,
         Point const&        anchor,
-        VisFont const&      font,
-        VisTextAlign const& alignment,
+        VisFont const&      font        = VisFont{},
+        VisTextAlign const& alignment   = VisTextAlign{},
         hstd::Opt<Rect>     boundingBox = hstd::Opt<Rect>{},
         VisColor const&     color       = VisColor::black()) {
         return VisElement{TextShape{

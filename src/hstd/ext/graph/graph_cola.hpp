@@ -405,7 +405,7 @@ class ColaEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    visual::VisGroup getVisual() const override;
+    visual::VisGroup getVisual(layout::GroupID const& id) const override;
 
     Rect                  rect;
     hstd::SPtr<ColaGroup> group;
@@ -460,9 +460,14 @@ class AlignConstraint : public ColaConstraint {
 
     hstd::UnorderedMap<VertexID, Spec> vertices;
 
+    std::string getRepr() const override {
+        return hstd::fmt("align [{}]", getAllVertices());
+    }
+
 
     [[refl]] GraphDimension dimension; ///< Which axist to align on
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
+
 
     hstd::Vec<VertexID> getAllVertices() const override {
         return vertices.keys();
@@ -511,6 +516,11 @@ class SeparateConstraint : public ColaConstraint {
     DESC_FIELDS(
         SeparateConstraint,
         (left, right, separationDistance, isExactSeparation, dimension));
+
+    std::string getRepr() const override {
+        return hstd::fmt(
+            "separate {} <> {}", left.getRepr(), right.getRepr());
+    }
 
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
@@ -636,7 +646,7 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
         return Rect::FromCenterWH(Point(xOffset, yOffset), width, height);
     }
 
-    visual::VisGroup getVisual() const override {
+    visual::VisGroup getVisual(PortID const& id) const override {
         visual::VisGroup res;
         res.elements.push_back(
             visual::VisElement{visual::VisElement::RectShape{getBBox()}});

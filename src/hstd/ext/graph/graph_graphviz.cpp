@@ -1038,7 +1038,8 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 } // namespace
 
 
-visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual() const {
+visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
+    VertexID const& selfId) const {
     Rect bbox     = getGraphBBox(graph);
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
@@ -1178,7 +1179,8 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual() const {
 }
 
 
-visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual() const {
+visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(
+    EdgeID const& selfId) const {
     Rect             bbox = getGraphBBox(graph);
     Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
@@ -1259,7 +1261,8 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual() const {
     return result;
 }
 
-visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual() const {
+visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
+    layout::GroupID const& selfId) const {
     visual::VisGroup result;
     result.offset = Point{graph.x(), graph.y()};
 

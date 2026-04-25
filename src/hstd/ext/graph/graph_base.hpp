@@ -1152,7 +1152,7 @@ class IPortLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief position + size relative to parent.
     virtual Rect             getBBox() const = 0;
-    virtual visual::VisGroup getVisual() const {
+    virtual visual::VisGroup getVisual(PortID const& selfId) const {
         visual::VisGroup res;
         res.elements.push_back(
             visual::VisElement{visual::VisElement::RectShape{getBBox()}});
@@ -1163,7 +1163,7 @@ class IPortLayoutAttribute : public ILayoutAttribute {
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
     virtual Path             getPath() const = 0;
-    virtual visual::VisGroup getVisual() const {
+    virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
         visual::VisGroup result;
         result.elements.push_back(
             visual::VisElement{visual::VisElement::PathShape{getPath()}});
@@ -1175,24 +1175,28 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Vertex bounding box + position relative to the parent
     virtual Rect             getBBox() const = 0;
-    virtual visual::VisGroup getVisual() const {
+    virtual visual::VisGroup getVisual(VertexID const& selfId) const {
         visual::VisGroup res;
         res.elements.push_back(
             visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        res.elements.push_back(
+            visual::VisElement::FromText(
+                hstd::fmt("{}", selfId), getBBox().upper_left()));
         return res;
     }
 };
+
+
+DECL_ID_TYPE(IGroup, GroupID, hstd::u64);
 
 class IGroupLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Bounding box of the group, size is absolute, position is
     /// relative to the parent group.
-    virtual Rect             getPointsBBox() const = 0;
-    virtual visual::VisGroup getVisual() const     = 0;
+    virtual Rect             getPointsBBox() const                  = 0;
+    virtual visual::VisGroup getVisual(GroupID const& selfId) const = 0;
 };
 
-
-DECL_ID_TYPE(IGroup, GroupID, hstd::u64);
 
 class IGroup;
 class LayoutRun;
@@ -1362,13 +1366,15 @@ class LayoutRun : public OperationsTracer {
     hstd::Vec<visual::VisGroup> getVisual() const;
 
     visual::VisGroup getVisual(EdgeID const& id) const {
-        return getLayout(id)->getVisual();
+        return getLayout(id)->getVisual(id);
     }
+
     visual::VisGroup getVisual(VertexID const& id) const {
-        return getLayout(id)->getVisual();
+        return getLayout(id)->getVisual(id);
     }
+
     visual::VisGroup getVisual(GroupID const& id) const {
-        return getLayout(id)->getVisual();
+        return getLayout(id)->getVisual(id);
     }
 };
 
