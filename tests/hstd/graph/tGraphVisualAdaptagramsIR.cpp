@@ -3,17 +3,18 @@
 struct GraphAdaptagramsIR_Test : public GraphUtils_Test {};
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaIr1) {
-    VertexID v1 = graph->addVertex();
-    VertexID v2 = graph->addVertex();
+    VertexID v1    = graph->addVertex();
+    VertexID v2    = graph->addVertex();
+    VertexID rg_id = graph->addVertex();
 
     EdgeID e12 = graph->addEdge(v1, v2);
 
-    auto                       root  = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
 
-    group->addVertex(v1, Size(5, 5));
-    group->addVertex(v2, Size(6, 6));
-    group->addEdge(e12);
+    root->addVertex(rg_id, v1, Size(5, 5));
+    root->addVertex(rg_id, v2, Size(6, 6));
+    root->addEdge(e12);
 
     run->runFullLayout();
 
@@ -21,6 +22,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr1) {
 
     ASSERT_TRUE(res.vertices.contains(v1));
     ASSERT_TRUE(res.vertices.contains(v2));
+    ASSERT_TRUE(res.vertices.contains(rg_id));
 
     EXPECT_NEAR(run->getLayout(v1)->getBBox().width(), 5, 0.005);
     EXPECT_NEAR(run->getLayout(v1)->getBBox().height(), 5, 0.005);
@@ -35,25 +37,28 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr1) {
 }
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
-    VertexID v1 = graph->addVertex();
-    VertexID v2 = graph->addVertex();
-    VertexID v3 = graph->addVertex();
-    VertexID v4 = graph->addVertex();
+    VertexID v1    = graph->addVertex();
+    VertexID v2    = graph->addVertex();
+    VertexID v3    = graph->addVertex();
+    VertexID v4    = graph->addVertex();
+    VertexID rg_id = graph->addVertex();
 
-    auto                       root  = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> group = getCola(root);
 
-    group->addVertex(v1, Size(50, 50));
-    group->addVertex(v2, Size(60, 60));
-    group->addVertex(v3, Size(70, 70));
-    group->addVertex(v4, Size(80, 80));
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    run->addRootGroup(rg_id, root);
+
+    root->addVertex(rg_id, v1, Size(50, 50));
+    root->addVertex(rg_id, v2, Size(60, 60));
+    root->addVertex(rg_id, v3, Size(70, 70));
+    root->addVertex(rg_id, v4, Size(80, 80));
+
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useX()
         ->addAlignVertex(v1)
         ->addAlignVertex(v2);
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useY()
         ->addAlignVertex(v1)
         ->addAlignVertex(v4);
@@ -84,6 +89,8 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
 
+    VertexID rg_id = graph->addVertex();
+
     add_edge(0, 3);
     add_edge(1, 4);
     add_edge(1, 5);
@@ -98,21 +105,21 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
     add_edge(7, 9);
     add_edge(7, 11);
 
-    auto                       root  = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> group = getCola(root);
-    group->getAlgorithm<cst::ColaLayoutAlgorithm>()
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
+    root->getAlgorithm<cst::ColaLayoutAlgorithm>()
         ->router->shapeBufferDistance = 25;
 
-    for (VertexID v : vs) { group->addVertex(v, Size(75, 25)); }
-    for (EdgeID e : es) { group->addEdge(e); }
+    for (VertexID v : vs) { root->addVertex(rg_id, v, Size(75, 25)); }
+    for (EdgeID e : es) { root->addEdge(e); }
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useX()
         ->addAlignVertex(vs.at(0))
         ->addAlignVertex(vs.at(1))
         ->addAlignVertex(vs.at(2));
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useX()
         ->addAlignVertex(vs.at(3))
         ->addAlignVertex(vs.at(4))
@@ -120,7 +127,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
         ->addAlignVertex(vs.at(6))
         ->addAlignVertex(vs.at(7));
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useX()
         ->addAlignVertex(vs.at(8))
         ->addAlignVertex(vs.at(9))
@@ -150,14 +157,16 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiSeparate) {
 
     for (int i = 0; i < 12; ++i) { vs.push_back(graph->addVertex()); }
 
-    auto                       root  = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> group = getCola(root);
-    group->getAlgorithm<cst::ColaLayoutAlgorithm>()
+    VertexID rg_id = graph->addVertex();
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
+    root->getAlgorithm<cst::ColaLayoutAlgorithm>()
         ->router->shapeBufferDistance = 25;
 
-    for (VertexID v : vs) { group->addVertex(v, Size(75, 25)); }
+    for (VertexID v : vs) { root->addVertex(rg_id, v, Size(75, 25)); }
 
-    group->addConstraint<cst::MultiSeparateConstraint>(group)
+    root->addConstraint<cst::MultiSeparateConstraint>(root)
         ->separateHorizontally()
         ->addFullLane({vs.at(0), vs.at(1), vs.at(2)})
         ->addFullLane({vs.at(3), vs.at(4), vs.at(5), vs.at(6), vs.at(7)})
@@ -176,8 +185,9 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiSeparate) {
 }
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
-    VertexID v0 = graph->addVertex();
-    VertexID v1 = graph->addVertex();
+    VertexID v0    = graph->addVertex();
+    VertexID v1    = graph->addVertex();
+    VertexID rg_id = graph->addVertex();
 
     hstd::Vec<EdgeID> es;
     es.push_back(graph->addEdge(v0, v1));
@@ -185,18 +195,18 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
     es.push_back(graph->addEdge(v0, v1));
     es.push_back(graph->addEdge(v0, v1));
 
-    auto                       root  = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> group = getCola(root);
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
 
-    group->addVertex(v0, Size(25, 100));
-    group->addVertex(v1, Size(25, 100));
+    root->addVertex(rg_id, v0, Size(25, 100));
+    root->addVertex(rg_id, v1, Size(25, 100));
 
-    group->addConstraint<cst::AlignConstraint>(group)
+    root->addConstraint<cst::AlignConstraint>(root)
         ->useY()
         ->addAlignVertex(v0)
         ->addAlignVertex(v1);
 
-    for (EdgeID e : es) { group->addEdge(e); }
+    for (EdgeID e : es) { root->addEdge(e); }
 
     run->runFullLayout();
 
@@ -223,7 +233,9 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
-
+    VertexID rg_id  = graph->addVertex();
+    VertexID sg_id1 = graph->addVertex();
+    VertexID sg_id2 = graph->addVertex();
 
     edge(0, 2);  // 0
     edge(2, 1);  // 1
@@ -238,37 +250,31 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     edge(10, 7); // 10
     edge(7, 5);  // 11
 
-    auto                       root = cst::ColaGroup::newRootGraph(run);
-    hstd::SPtr<cst::ColaGroup> root_group = getCola(root);
-    auto                       ctx        = root_group->shared;
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+    auto                       ctx  = root->shared;
 
-    EXPECT_EQ(ctx->groups.size(), 1);
-    EXPECT_EQ(root_group->subGroups.size(), 0);
+    hstd::SPtr<cst::ColaGroup> sg_1 = root->addNewNativeSubgroup(sg_id1);
+    std::ignore = run->addNestedGroup(rg_id, sg_id1, sg_1);
 
-    layout::GroupID sub_group_id1 = root_group->addNewNativeSubgroup();
-    hstd::SPtr<cst::ColaGroup> sub_group1 = as<cst::ColaGroup>(
-        run->getGroup(sub_group_id1));
-
-    layout::GroupID sub_group_id2 = root_group->addNewNativeSubgroup();
-    hstd::SPtr<cst::ColaGroup> sub_group2 = as<cst::ColaGroup>(
-        run->getGroup(sub_group_id2));
+    hstd::SPtr<cst::ColaGroup> sg_2 = root->addNewNativeSubgroup(sg_id2);
+    std::ignore = run->addNestedGroup(rg_id, sg_id2, sg_2);
 
     // root nodes
-    root_group->addVertex(vs.at(0), Size(25, 25));
-    root_group->addVertex(vs.at(1), Size(25, 25));
+    root->addVertex(rg_id, vs.at(0), Size(25, 25));
+    root->addVertex(rg_id, vs.at(1), Size(25, 25));
 
     // sub group 1
-    sub_group1->addVertex(vs.at(2), Size(25, 25));
-    sub_group1->addVertex(vs.at(3), Size(25, 25));
-    sub_group1->addVertex(vs.at(4), Size(25, 25));
-    sub_group1->addVertex(vs.at(5), Size(25, 25));
+    sg_1->addVertex(sg_id1, vs.at(2), Size(25, 25));
+    sg_1->addVertex(sg_id1, vs.at(3), Size(25, 25));
+    sg_1->addVertex(sg_id1, vs.at(4), Size(25, 25));
+    sg_1->addVertex(sg_id1, vs.at(5), Size(25, 25));
 
     // sub group 2
-    sub_group2->addVertex(vs.at(6), Size(25, 25));
-    sub_group2->addVertex(vs.at(7), Size(25, 25));
-    sub_group2->addVertex(vs.at(8), Size(25, 25));
-    sub_group2->addVertex(vs.at(9), Size(25, 25));
-    sub_group2->addVertex(vs.at(10), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(6), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(7), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(8), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(9), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(10), Size(25, 25));
 
     run->runFullLayout();
 

@@ -204,23 +204,26 @@ class ColaGroup
     LocalCtx              local;
 
     hstd::SPtr<ColaVertexAttribute> addVertex(
+        VertexID const&       parent,
         VertexID const&       id,
         geometry::Rect const& size) {
-        auto vattr = std::make_shared<ColaVertexAttribute>(size);
-        Base::addVertex(id, vattr);
+        auto vattr  = std::make_shared<ColaVertexAttribute>(size);
+        std::ignore = get_run()->addNestedVertex(parent, id, vattr);
         return vattr;
     }
 
     hstd::SPtr<ColaVertexAttribute> addVertex(
+        VertexID const&       parent,
         VertexID const&       id,
         geometry::Size const& size) {
         return addVertex(
-            id, geometry::Rect(0, 0, size.width(), size.height()));
+            parent, id, geometry::Rect(0, 0, size.width(), size.height()));
     }
+
 
     hstd::SPtr<ColaEdgeAttribute> addEdge(EdgeID const& id) {
         auto res = std::make_shared<ColaEdgeAttribute>();
-        Base::addEdge(id, res);
+        get_run()->addEdge(id, res);
         return res;
     }
 
@@ -228,10 +231,11 @@ class ColaGroup
         return API::Group::getStableId();
     }
 
-    void addNewNativeSubgroup(VertexID const& id) {
-        Base::addNewNativeSubgroup(
-            id,
-            std::make_shared<ColaGroup>(shared, hstd::fmt("cola_{}", id)));
+    hstd::SPtr<ColaGroup> addNewNativeSubgroup(VertexID const& id) {
+        auto res = std::make_shared<ColaGroup>(
+            shared, hstd::fmt("cola_{}", id));
+        Base::addNewNativeSubgroup(id, res);
+        return res;
     }
 
     static hstd::SPtr<cst::ColaGroup> newRootGraph(
@@ -595,6 +599,11 @@ class AvoidPort : public IPort {
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
     }
+
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
 };
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
@@ -659,6 +668,7 @@ class AvoidRouterAlgorithm {
     hstd::Opt<int>                       shapeBufferDistance = 1;
     ColaRectTracker*                     rects;
     layout::IGroupVisualAttribute const* group;
+    VertexID                             root_group = VertexID::Nil();
     hstd::SPtr<layout::LayoutRun>        run;
     layout::IPlacementAlgorithm::Result* intermediate_placement;
 

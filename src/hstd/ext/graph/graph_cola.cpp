@@ -35,26 +35,29 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     std::vector<vpsc::Rectangle*> vertices = ctx->getAllRectanglesSorted();
 
     auto aux = [&](this auto&&                self,
-                   VertexID const&            id,
-                   hstd::Opt<VertexID> const& parent) -> void {
-        auto group = run->getGroup(id);
-        if (group->hasAlgorithm() && id != root_id) {
-            auto parentGroup = run->getGroup<ColaGroup>(parent.value());
+                   VertexID const&            aux_group_id,
+                   hstd::Opt<VertexID> const& parent_group_id) -> void {
+        auto group = run->getGroup(aux_group_id);
+        if (group->hasAlgorithm() && aux_group_id != root_id) {
+            auto parentGroup = run->getGroup<ColaGroup>(
+                parent_group_id.value());
             run->message(
                 hstd::fmt(
                     "group '{}' has layout algorithm set",
                     group->getStableId()));
-            auto recursiveBBox = run->getLayout(id)->getPointsBBox();
+            auto recursiveBBox = run->getLayout(aux_group_id)->getBBox();
             auto rect          = std::make_shared<vpsc::Rectangle>(
                 recursiveBBox.min_x(),
                 recursiveBBox.max_x(),
                 recursiveBBox.min_y(),
                 recursiveBBox.max_y());
 
-            sub_group_rectangles.insert_or_assign(id, rect);
+            sub_group_rectangles.insert_or_assign(aux_group_id, rect);
             vertices.push_back(rect.get());
         } else {
-            for (auto const& sub : group->subGroups) { self(sub, id); }
+            for (auto const& sub : run->getSubGroups(aux_group_id)) {
+                self(sub, aux_group_id);
+            }
         }
     };
 
@@ -62,7 +65,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     std::vector<cola::Edge> edges;
     std::vector<double>     edgeLenOverride;
-    for (EdgeID const& id : rootGroup->edgeAttributes().keys()) {
+    for (EdgeID const& id : run->getDirectlyNestedEdges(root_id)) {
         edges.push_back(ctx->getEdgeIdx(id, ctx->run));
         if (!idealEdgeLength.empty()) {
             if (auto len = idealEdgeLength.get(id)) {
@@ -106,7 +109,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
         }
 
-        for (auto const& sub : group->subGroups) { self(sub); }
+        for (auto const& sub : run->getSubGroups(id)) { self(sub); }
     };
 
 
@@ -238,6 +241,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     router->rects                  = rootGroup->shared.get();
     router->group                  = rootGroup.get();
     router->intermediate_placement = &result;
+    router->root_group             = root_id;
     auto layoutPorts               = router->routeEdges();
 
 
@@ -324,7 +328,7 @@ std::string hstd::ext::graph::cst::ColaConstraint::getRepr() const {
 
 std::vector<vpsc::Rectangle*> hstd::ext::graph::cst::ColaConstraint::
     getRectangles() const {
-    return hstd::own_view(group->nodeAttributes().keys())
+    return hstd::own_view(getAllVertices())
          | rv::transform([&](VertexID const& id) {
                return group->shared->getRect(id).get();
            })
@@ -332,7 +336,7 @@ std::vector<vpsc::Rectangle*> hstd::ext::graph::cst::ColaConstraint::
 }
 
 std::vector<unsigned> cst::ColaConstraint::getRectangleIndices() const {
-    return hstd::own_view(group->nodeAttributes().keys())
+    return hstd::own_view(getAllVertices())
          | rv::transform([&](VertexID const& id) -> unsigned {
                return group->shared->getVertexIdx(id);
            })
@@ -516,7 +520,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     auto lp = res.layoutPorts;
 
-    for (auto const& eid : group->getEdges()) {
+    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
         auto edge = run->graph->getEdge(eid);
         hstd::logic_assertion_check_not_nil(edge);
         auto s_pid = lp->addPort(edge->getSource(), eid, true);
@@ -538,7 +542,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         e_port->addAttribute(e_port_attr);
     }
 
-    for (auto const& vert : group->getVertices()) {
+    for (auto const& vert : run->getVertices(root_group)) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
                    | rv::transform([&](PortID pid) -> IPort* {
                          return lp->getmPort(pid);
@@ -623,7 +627,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     };
 
 
-    for (auto const& eid : group->getEdges()) {
+    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
         auto eid_avoid = id_proxy(eid);
         run->message(
             hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
@@ -672,7 +676,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     router->processTransaction();
 
-    for (auto const& eid : group->getEdges()) {
+    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
         run->message(hstd::fmt("rebuilding placement"));
         auto edge   = run->graph->getEdge(eid);
         auto s_attr = lp->getPort(
