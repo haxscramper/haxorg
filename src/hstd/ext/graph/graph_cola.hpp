@@ -72,48 +72,6 @@ struct GroupBase : public CRTP_this_method<TDerivedGroup> {
             get_local_ctx().name);
     }
 
-    hstd::SPtr<TVertexAttribute> addVertex(
-        VertexID const&                                   id,
-        hstd::SPtr<layout::IVertexVisualAttribute> const& attr) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !nodeAttributes().contains(id),
-            "Canot add vertex ID {} to the graph group {}, it is already "
-            "added to {} group",
-            id,
-            getStableId(),
-            get_local_ctx().directVertices.contains(id) ? "this"
-                                                        : "other");
-
-        auto vatr = std::dynamic_pointer_cast<TVertexAttribute>(attr);
-        LOGIC_ASSERTION_CHECK_FMT(
-            vatr != nullptr,
-            "Graph groups expects attributes of type {}, but "
-            "attr has dynamic type of {}",
-            hstd::value_metadata<TVertexAttribute>::typeName(),
-            typeid(attr.get()).name());
-
-        hstd::logic_assertion_check_not_nil(get_run());
-        auto vertex = get_run()->getVertex(id);
-        hstd::logic_assertion_check_not_nil(vertex);
-
-        const_cast<IVertex*>(vertex)->addAttribute(attr);
-        nodeAttributes().insert_or_assign(id, vatr);
-        get_local_ctx().directVertices.insert(id);
-        return vatr;
-    }
-
-    VertexID addNewNativeSubgroup(
-        hstd::SPtr<TDerivedGroup> const& subgroup) {
-        auto result = get_run()->addGroup(subgroup);
-
-        groups().insert_or_assign(
-            result, get_run()->template getGroup<TDerivedGroup>(result));
-
-        _this()->subGroups.insert(result);
-
-        return result;
-    }
-
     hstd::SPtr<TEdgeAttribute> addEdge(
         EdgeID const&                                   id,
         hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) {

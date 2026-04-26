@@ -664,20 +664,15 @@ class EdgeAttribute
 class Layout;
 class GraphGroup
     : public GraphvizObjBase<GraphGroup>
-    , public layout::IGroup {
+    , public layout::IGroupVisualAttribute {
     void initDefaultSetters();
 
   public:
+    using Base = layout::IGroupVisualAttribute;
+
     static const int graphvizKind = AGRAPH;
 
-
-    struct GVContext : hstd::SharedPtrApi<GVContext> {
-        hstd::UnorderedMap<VertexID, hstd::SPtr<NodeAttribute>>
-            nodeAttributes;
-        hstd::UnorderedMap<EdgeID, hstd::SPtr<EdgeAttribute>>
-            edgeAttributes;
-        hstd::UnorderedMap<layout::GroupID, hstd::SPtr<GraphGroup>> groups;
-    };
+    struct GVContext : hstd::SharedPtrApi<GVContext> {};
 
     struct GroupContext {
         hstd::SPtr<layout::LayoutRun> run;
@@ -712,9 +707,9 @@ class GraphGroup
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
-    layout::GroupID newSubLayoutGraph();
+    VertexID newSubLayoutGraph();
 
-    static layout::GroupID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
+    static VertexID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -752,11 +747,6 @@ class GraphGroup
         NodeAttribute const& tail) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         return std::make_shared<EdgeAttribute>(graph, head, tail);
-    }
-
-    hstd::SPtr<EdgeAttribute> edge(Str const& head, Str const& tail) {
-        return edge(
-            NodeAttribute(graph, head), NodeAttribute(graph, tail));
     }
 
     /// \brief Direction of layout ranks
@@ -853,67 +843,32 @@ class GraphGroup
     Str            name() const { return agnameof(graph); }
     GVContext::Ptr context() { return ctx.context; }
 
-    auto& nodeAttributes() { return ctx.context->nodeAttributes; }
-    auto& edgeAttributes() { return ctx.context->edgeAttributes; }
-    auto& groups() { return ctx.context->groups; }
-
-
-    hstd::UnorderedSet<VertexID> directVertices;
-    hstd::UnorderedSet<EdgeID>   directEdges;
-
-    void delVertex(VertexID const& id) {
-        agdelnode(get(), nodeAttributes().at(id)->get());
-        nodeAttributes().erase(id);
-        directVertices.erase(id);
-    }
-
-    void delEdge(EdgeID const& id) {
-        agdeledge(get(), edgeAttributes().at(id)->get());
-        edgeAttributes().erase(id);
-        directEdges.erase(id);
-    }
-
-    void delSubgraph(layout::GroupID const& id) {
-        agdelsubg(get(), groups().at(id)->get());
-        groups().erase(id);
-    }
-
-    void addVertex(
-        VertexID const&                                   id,
-        hstd::SPtr<layout::IVertexVisualAttribute> const& attr) override;
-
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
         VertexID const& id) {
         auto vertex    = run->getVertex(id);
         auto attribute = this->node(vertex->getStableId());
-        addVertex(id, attribute);
+        Base::addVertex(id, attribute);
         return attribute;
     }
 
-    void addEdge(
-        EdgeID const&                                   id,
-        hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) override;
 
     hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(EdgeID const& id) {
         auto e    = const_cast<IEdge*>(run->getEdge(id));
         auto attr = edge(
-            *nodeAttributes().at(e->getSource()),
-            *nodeAttributes().at(e->getTarget()));
-        addEdge(id, attr);
+            *ctx.run->getVertexVisualAttribute<NodeAttribute>(
+                e->getSource()),
+            *ctx.run->getVertexVisualAttribute<NodeAttribute>(
+                e->getTarget()));
+        Base::addEdge(id, attr);
         return attr;
     }
 
-    layout::GroupID addNewNativeSubgroup() override;
+    void addNewNativeSubgroup(
+        VertexID const&                          id,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) override;
 
-    void addExistingSubgroup(layout::GroupID const& id) override;
-
-    hstd::Vec<VertexID> getVertices() const override {
-        return hstd::Vec<VertexID>{
-            directVertices.begin(), directVertices.end()};
-    }
-
-    hstd::Vec<EdgeID> getEdges() const override {
-        return hstd::Vec<EdgeID>{directEdges.begin(), directEdges.end()};
+    void addNewNativeSubgroup(VertexID const& id) {
+        addNewNativeSubgroup(id, newSubgraph(hstd::fmt("GV_{}", id)));
     }
 
     std::string getStableId() const override {
@@ -950,7 +905,7 @@ class Layout : public layout::IPlacementAlgorithm {
 
     SPtr<GVC_t> gvc;
 
-    Result runSingleLayout(layout::GroupID const& group) override;
+    Result runSingleLayout(VertexID const& group) override;
 };
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
@@ -1002,14 +957,13 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    virtual Rect getPointsBBox() const override;
+    virtual Rect getBBox() const override;
 
     std::string getRepr() const override {
         return group->getPropertiesAsString();
     }
 
-    visual::VisGroup getVisual(
-        layout::GroupID const& selfId) const override;
+    visual::VisGroup getVisual(VertexID const& selfId) const override;
 };
 
 } // namespace hstd::ext::graph::gv

@@ -360,19 +360,21 @@ class IAttributeObject {
         return result;
     }
 
-    template <typename T>
+    template <typename T = IAttribute>
         requires std::derived_from<T, IAttribute>
     void addUniqueAttribute(hstd::SPtr<T> const& attr) {
-        auto existing = getOptionalAttribute<T>();
-        if (existing.has_value()) {
-            throw graph_error::init(
-                "Graph object is required to have only one attribute of "
-                "type {}, but the code is attempting to add a new "
-                "instance.",
-                hstd::value_metadata<T>::typeName());
-        } else {
-            addAttribute(attr);
+        for (auto const& existing : getAttributes()) {
+            if (typeid(attr.get()) == typeid(existing.get())) {
+                throw graph_error::init(
+                    hstd::fmt(
+                        "Graph object is required to have only one "
+                        "attribute of type {}, but the code is attempting "
+                        "to add a new instance.",
+                        typeid(attr.get()).name()));
+            }
         }
+
+        addAttribute(attr);
     }
 };
 
@@ -941,6 +943,9 @@ class IGraph {
     /// @{
     /// \brief Get vertex object associated with the edge ID.
     virtual IVertex const* getVertex(VertexID const& id) const = 0;
+    virtual IVertex*       getMVertex(VertexID const& id) const {
+        return const_cast<IVertex*>(getVertex(id));
+    }
     /// \brief Track attributes and edge information in the graph
     ///
     /// Add the vertex to the graph collection. Will not
@@ -1008,6 +1013,9 @@ class IGraph {
     /// \brief Get the edge from the collection/hierarchy. Use the edge ID
     /// mask to determine which collection the edge comes from.
     virtual IEdge const* getEdge(EdgeID const& id) const;
+    virtual IEdge*       getMEdge(EdgeID const& id) {
+        return const_cast<IEdge*>(getMEdge(id));
+    }
     /// \brief Provide additional information about the vertex nesting
     /// relation for a specific hierarchy.
     ///
@@ -1249,6 +1257,8 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
     }
 };
 
+class IGroupLayoutAttribute : public IVertexLayoutAttribute {};
+
 
 class IGroupVisualAttribute;
 class LayoutRun;
@@ -1290,6 +1300,8 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     hstd::Vec<hstd::SPtr<IConstraint>> constraints;
     hstd::SPtr<LayoutRun>              run;
 
+    hstd::SPtr<IGraph> getGraph() const;
+
     template <typename T = IPlacementAlgorithm>
     hstd::SPtr<T> getAlgorithm() const {
         auto result = std::dynamic_pointer_cast<T>(algorithm.value());
@@ -1312,19 +1324,23 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     /// backend-specific attributes.
     virtual void addVertex(
         VertexID const&                           id,
-        hstd::SPtr<IVertexVisualAttribute> const& attr) = 0;
+        hstd::SPtr<IVertexVisualAttribute> const& attr);
 
     virtual void addEdge(
         EdgeID const&                           id,
-        hstd::SPtr<IEdgeVisualAttribute> const& attr) = 0;
+        hstd::SPtr<IEdgeVisualAttribute> const& attr);
 
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
     /// group object in the overall layout run map.
-    virtual VertexID addNewNativeSubgroup() = 0;
+    ///
+    /// To create an instance of the group with layout algoritm set, the
+    /// derived classes should define a static factory function
+    /// `addNewRootGroup()` returning visual group attribute object.
+    virtual void addNewNativeSubgroup(
+        VertexID const&                          id,
+        hstd::SPtr<IGroupVisualAttribute> const& attr);
 
-    /// \brief Add a layout groupt that already exists in the layout run.
-    virtual void addExistingSubgroup(VertexID const&) = 0;
 
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
@@ -1351,6 +1367,12 @@ class LayoutRun : public OperationsTracer {
         return hstd::validated_dynamic_cast<T>(graph->getVertex(id));
     }
 
+    template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
+    T* getMVertex(VertexID const& id) {
+        return hstd::validated_dynamic_cast<T>(graph->getMVertex(id));
+    }
+
     template <typename T = IEdge>
         requires std::derived_from<T, IEdge>
     T const* getEdge(EdgeID const& id) const {
@@ -1358,9 +1380,27 @@ class LayoutRun : public OperationsTracer {
         return hstd::validated_dynamic_cast<T>(graph->getEdge(id));
     }
 
+    template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
+    T* getMEdge(EdgeID const& id) {
+        return hstd::validated_dynamic_cast<T>(graph->getMEdge(id));
+    }
+
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     hstd::SPtr<T> getGroup(VertexID const& id) const {
+        return graph->getVertex(id)->getUniqueAttribute<T>();
+    }
+
+    template <typename T = IEdgeVisualAttribute>
+        requires std::derived_from<T, IEdgeVisualAttribute>
+    hstd::SPtr<T> getEdgeVisualAttribute(EdgeID const& id) const {
+        return graph->getEdge(id)->getUniqueAttribute<T>();
+    }
+
+    template <typename T = IVertexVisualAttribute>
+        requires std::derived_from<T, IVertexVisualAttribute>
+    hstd::SPtr<T> getVertexVisualAttribute(VertexID const& id) const {
         return graph->getVertex(id)->getUniqueAttribute<T>();
     }
 
@@ -1402,7 +1442,22 @@ class LayoutRun : public OperationsTracer {
         return edges->getFullyIncludedEdges(getAllNested(id));
     }
 
-    void addRootGroup(VertexID const& id) { groups->trackVertex(id); }
+    void addRootGroup(
+        VertexID const&                          id,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+        groups->trackVertex(id);
+        graph->getMVertex(id)->addUniqueAttribute(attr);
+    }
+
+    EdgeID addNestedGroup(
+        VertexID const&                          parent,
+        VertexID const&                          nested,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+        groups->trackVertex(nested);
+        auto res = groups->trackSubVertexRelation(parent, nested);
+        graph->getMVertex(nested)->addUniqueAttribute(attr);
+        return res;
+    }
 
     IVertex const* at(VertexID const& id) const {
         return graph->getVertex(id);
