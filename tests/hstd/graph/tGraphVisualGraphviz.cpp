@@ -13,18 +13,18 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     auto e23 = graph->addEdge(v2, v3);
     auto e31 = graph->addEdge(v3, v1);
 
-    auto root_id = graph->addVertex();
+    auto rg_id = graph->addVertex();
 
     // creates a graphviz root graph
     auto root = gv::GraphGroup::newRootGraph(run);
-    run->addRootGroup(root_id, root);
+    run->addRootGroup(rg_id, root);
 
     // add vertext, the graph group will internally create a visual
     // attribute and graphviz node object
-    root->addVertex(root_id, v1);
-    root->addVertex(root_id, v2);
-    root->addVertex(root_id, v3);
-    root->addVertex(root_id, v4);
+    root->addVertex(rg_id, v1);
+    root->addVertex(rg_id, v2);
+    root->addVertex(rg_id, v3);
+    root->addVertex(rg_id, v4);
 
     // configure visual parameters for graphviz nodes. The methods are
     // specific to the graphviz layout nodes, and use cgraph API
@@ -96,14 +96,13 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
     for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
-    auto     root_id       = graph->addVertex();
-    VertexID sub_group_id1 = graph->addVertex();
-    VertexID sub_group_id2 = graph->addVertex();
+    auto     rg_id  = graph->addVertex();
+    VertexID sg_id1 = graph->addVertex();
+    VertexID sg_id2 = graph->addVertex();
 
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
-
 
     edge(0, 2);  // 0
     edge(2, 1);  // 1
@@ -119,99 +118,81 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     edge(7, 5);  // 11
 
 
-    auto group = gv::GraphGroup::newRootGraph(run);
-    run->addRootGroup(root_id, group);
-    auto ctx = group->context();
+    auto root = gv::GraphGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
+    auto ctx = root->context();
 
     EXPECT_EQ(run->getRootGroups().size(), 1);
-    EXPECT_EQ(run->getSubGroups(root_id).size(), 0);
+    EXPECT_EQ(run->getSubGroups(rg_id).size(), 0);
 
-    VertexID sub_group_id1                = group->addNewNativeSubgroup();
-    hstd::SPtr<gv::GraphGroup> sub_group1 = as<gv::GraphGroup>(
-        run->getGroup(sub_group_id1));
-
-    VertexID sub_group_id2                = group->addNewNativeSubgroup();
-    hstd::SPtr<gv::GraphGroup> sub_group2 = as<gv::GraphGroup>(
-        run->getGroup(sub_group_id2));
+    auto sg_1 = root->addNewNativeSubgroup(sg_id1);
+    auto sg_2 = root->addNewNativeSubgroup(sg_id2);
 
     auto shape = gv::NodeAttribute::Shape::rect;
 
+    EXPECT_EQ(run->getSubGroups(rg_id).size(), 2);
 
-    EXPECT_EQ(group->subGroups.size(), 2);
-    EXPECT_EQ(ctx->groups.size(), 3);
-    EXPECT_EQ(ctx->nodeAttributes.size(), 0);
-    EXPECT_EQ(ctx->edgeAttributes.size(), 0);
-
-    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(3)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(3)))
         ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-3");
-    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(4)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(4)))
         ->setFixedPointWH(180, 120)
         ->setShape(shape)
         ->setLabel("VERT-4");
-    as<gv::NodeAttribute>(sub_group1->addVertex(vs.at(6)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(6)))
         ->setFixedPointWH(240, 60)
         ->setShape(shape)
         ->setLabel("VERT-6");
 
-    EXPECT_EQ(ctx->nodeAttributes.size(), 3);
-    EXPECT_EQ(group->directVertices.size(), 0);
-    EXPECT_EQ(group->directEdges.size(), 0);
-    EXPECT_EQ(sub_group1->directEdges.size(), 0);
-    EXPECT_EQ(sub_group1->directVertices.size(), 3);
+    EXPECT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 0);
+    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id1).size(), 0);
+    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
 
-    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(5)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(5)))
         ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-5");
-    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(9)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(9)))
         ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-9");
-    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(7)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(7)))
         ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-7");
-    as<gv::NodeAttribute>(sub_group2->addVertex(vs.at(10)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(10)))
         ->setFixedPointWH(120, 60)
         ->setShape(shape)
         ->setLabel("VERT-10");
 
-    EXPECT_EQ(group->directVertices.size(), 0);
-    EXPECT_EQ(group->directEdges.size(), 0);
-    EXPECT_EQ(sub_group2->directEdges.size(), 0);
-    EXPECT_EQ(sub_group2->directVertices.size(), 4);
 
-    EXPECT_EQ(group->getVertices().size(), 0);
-    EXPECT_EQ(sub_group1->getVertices().size(), 3);
-    EXPECT_EQ(sub_group2->getVertices().size(), 4);
+    EXPECT_EQ(run->getVertices(rg_id).size(), 0);
+    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
+    EXPECT_EQ(run->getVertices(sg_id2).size(), 4);
 
-    EXPECT_EQ(ctx->nodeAttributes.size(), 7);
+    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(4)));
+    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(5)));
 
-    as<gv::EdgeAttribute>(sub_group1->addEdge(es.at(4)));
-    as<gv::EdgeAttribute>(sub_group1->addEdge(es.at(5)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(8)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(9)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(10)));
 
-    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(8)));
-    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(9)));
-    as<gv::EdgeAttribute>(sub_group2->addEdge(es.at(10)));
+    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id1).size(), 2);
+    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id2).size(), 3);
 
-    EXPECT_EQ(sub_group1->directEdges.size(), 2);
-    EXPECT_EQ(sub_group2->directEdges.size(), 3);
+    root->render(getDebugFile("result.png"));
 
-    group->render(getDebugFile("result.png"));
-
-    EXPECT_EQ(group->getVertices().size(), 0);
-    EXPECT_EQ(sub_group1->getVertices().size(), 3);
-    EXPECT_EQ(sub_group2->getVertices().size(), 4);
+    EXPECT_EQ(run->getVertices(rg_id).size(), 0);
+    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
+    EXPECT_EQ(run->getVertices(sg_id2).size(), 4);
 
     run->runFullLayout();
 
     auto const& res = run->result;
 
-    EXPECT_EQ(res.vertices.size(), 7);
+    EXPECT_EQ(res.vertices.size(), 10);
     EXPECT_EQ(res.edges.size(), 5);
-    EXPECT_EQ(res.groups.size(), 3);
 
     auto visual = run->getVisual();
     hstd::writeFile(
@@ -228,7 +209,6 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
 
-
     edge(0, 1); // 0
     edge(1, 2); // 1
     edge(2, 0); // 2
@@ -236,37 +216,37 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     edge(4, 5); // 4
     edge(5, 3); // 5
 
-    auto                       root  = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> group = getGv(root);
-    auto                       ctx   = group->context();
+    auto     rg_id  = graph->addVertex();
+    VertexID sg_id1 = graph->addVertex();
+    VertexID sg_id2 = graph->addVertex();
 
-    VertexID                   sg1_id = group->newSubLayoutGraph();
-    hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
-        run->getGroup(sg1_id));
+    auto root = gv::GraphGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
+    auto ctx = root->context();
+
+    auto sg1 = root->addNewNativeSubgroup(sg_id1);
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
 
-    VertexID                   sg2_id = group->newSubLayoutGraph();
-    hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
-        run->getGroup(sg2_id));
+    auto sg2 = root->addNewNativeSubgroup(sg_id2);
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
+    as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(0)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-0");
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(1)))
+    as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(1)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-1");
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(2)))
+    as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(2)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-2");
 
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(3)))
+    as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(3)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-3");
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(4)))
+    as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(4)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-4");
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(5)))
+    as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(5)))
         ->setFixedPointWH(60, 60)
         ->setLabel("VERT-5");
 
@@ -284,11 +264,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     auto const& res = run->result;
 
-    EXPECT_EQ(res.vertices.size(), 6);
+    EXPECT_EQ(res.vertices.size(), 9);
     EXPECT_EQ(res.edges.size(), 6);
-    EXPECT_EQ(res.groups.size(), 3);
-
-    HSLOG_TRACE("{}", res.groups.keys());
 
     auto visual = run->getVisual();
 
@@ -347,8 +324,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     using VE = hstd::ext::visual::VisElement;
 
-    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg1_id),
-                                  /*relative=*/run->getVisual(sg2_id)));
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg_id1),
+                                  /*relative=*/run->getVisual(sg_id1)));
 
     EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
                                   /*relative=*/run->getVisual(vs.at(0))));
@@ -379,9 +356,9 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     // re-checking the same element placement, but now via the visual
     // attribute API access
-    for (VertexID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
+    for (VertexID const& gid : hstd::as_vec(sg_id1, sg_id2)) {
         auto const& group = run->getGroup(gid);
-        for (VertexID vert : group->getVertices()) {
+        for (VertexID vert : run->getVertices(gid)) {
             auto const& group_visual = run->getVisual(gid);
             auto const& item_visual  = run->getVisual(vert);
             EXPECT_OUTCOME_OK(
@@ -424,56 +401,56 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizIrClusters) {
     auto e45 = graph->addEdge(vs.at(4), vs.at(5));
     auto e53 = graph->addEdge(vs.at(5), vs.at(3));
 
-    auto                       root  = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+    auto     rg_id  = graph->addVertex();
+    VertexID sg_id1 = graph->addVertex();
+    VertexID sg_id2 = graph->addVertex();
 
-    auto sg1_id = group->addNewNativeSubgroup();
-    auto sg2_id = group->addNewNativeSubgroup();
+    auto root = gv::GraphGroup::newRootGraph(run);
+    run->addRootGroup(rg_id, root);
 
-    auto sg1 = as<gv::GraphGroup>(run->getGroup(sg1_id));
-    auto sg2 = as<gv::GraphGroup>(run->getGroup(sg2_id));
+    auto sg_1 = root->addNewNativeSubgroup(sg_id1);
+    auto sg_2 = root->addNewNativeSubgroup(sg_id2);
 
     auto shape = gv::NodeAttribute::Shape::rect;
 
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(0)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(0)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("A0");
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(1)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(1)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("A1");
-    as<gv::NodeAttribute>(sg1->addVertex(vs.at(2)))
+    as<gv::NodeAttribute>(sg_1->addVertex(sg_id1, vs.at(2)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("A2");
 
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(3)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(3)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("B0");
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(4)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(4)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("B1");
-    as<gv::NodeAttribute>(sg2->addVertex(vs.at(5)))
+    as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(5)))
         ->setFixedPointWH(60, 40)
         ->setShape(shape)
         ->setLabel("B2");
 
-    as<gv::EdgeAttribute>(sg1->addEdge(e01));
-    as<gv::EdgeAttribute>(sg1->addEdge(e12));
-    as<gv::EdgeAttribute>(sg1->addEdge(e20));
+    as<gv::EdgeAttribute>(sg_1->addEdge(e01));
+    as<gv::EdgeAttribute>(sg_1->addEdge(e12));
+    as<gv::EdgeAttribute>(sg_1->addEdge(e20));
 
-    as<gv::EdgeAttribute>(sg2->addEdge(e34));
-    as<gv::EdgeAttribute>(sg2->addEdge(e45));
-    as<gv::EdgeAttribute>(sg2->addEdge(e53));
+    as<gv::EdgeAttribute>(sg_2->addEdge(e34));
+    as<gv::EdgeAttribute>(sg_2->addEdge(e45));
+    as<gv::EdgeAttribute>(sg_2->addEdge(e53));
 
     run->runFullLayout();
 
     auto const& res = run->result;
-    EXPECT_EQ(res.groups.size(), 3);
-    EXPECT_EQ(res.vertices.size(), 6);
+    EXPECT_EQ(res.vertices.size(), 9);
     EXPECT_EQ(res.edges.size(), 6);
 
     auto visual = run->getVisual();

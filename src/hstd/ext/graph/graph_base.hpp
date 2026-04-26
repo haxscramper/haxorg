@@ -406,6 +406,48 @@ struct IVertex
         hstd::ext::graph::VertexID const& id) const = 0;
 };
 
+struct TrivialVertex : public IVertex {
+    VertexID selfId;
+    TrivialVertex(VertexID selfId) : selfId{selfId} {}
+
+    std::size_t getHash() const override {
+        std::size_t result;
+        hstd::hax_hash_combine(result, selfId);
+        return result;
+    }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return this->selfId
+            == dynamic_cast<TrivialVertex const*>(other)->selfId;
+    }
+
+    std::string getRepr() const override {
+        return hstd::fmt("IVertex({})", selfId);
+    }
+
+    json getSerialNonRecursive(IGraph const* graph, VertexID const& id)
+        const override {
+        return json{};
+    }
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+
+  public:
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
+};
+
+
 struct IEdge
     : public IGraphObjectBase
     , public IAttributeObject {
@@ -449,6 +491,26 @@ struct IEdge
     }
 };
 
+
+struct TrivialEdge : public IEdge {
+    using IEdge::IEdge;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+
+  public:
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
+};
 
 /// \brief Connection port or edge grouping port
 ///
@@ -765,6 +827,23 @@ class IEdgeCollection : public IEdgeProvider {
     virtual void untrackEdge(EdgeID const& id);
 };
 
+
+struct TrivialEdgeCollection : public IEdgeCollection {
+  public:
+    hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
+
+    EdgeCollectionID getCategory() const override {
+        return getCollectionIdImpl(this);
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return &edgeStore.at(id);
+    }
+
+    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
+};
+
+
 /// \brief Hierarchical arrangement of vertices that forms a forest
 /// structure, with one or more root nodes and a collection of subnodes.
 ///
@@ -907,6 +986,14 @@ class IVertexHierarchy : public IEdgeProvider {
     hstd::Vec<VertexID> getHierarchyCrossings(
         VertexID const& source,
         VertexID const& target) const;
+};
+
+struct TrivialHierarchy : public IVertexHierarchy {
+  public:
+    EdgeCollectionID getCategory() const override;
+    const IEdge*     getEdge(EdgeID const& id) const override;
+    EdgeIDSet        addAllOutgoing(VertexID const& id) override;
+    GraphHierarchyID getHierarchyId() const override;
 };
 
 
@@ -1100,83 +1187,6 @@ class IGraph {
 };
 
 
-struct TrivialVertex : public IVertex {
-    VertexID selfId;
-    TrivialVertex(VertexID selfId) : selfId{selfId} {}
-
-    std::size_t getHash() const override {
-        std::size_t result;
-        hstd::hax_hash_combine(result, selfId);
-        return result;
-    }
-
-    bool isEqual(IGraphObjectBase const* other) const override {
-        return this->selfId
-            == dynamic_cast<TrivialVertex const*>(other)->selfId;
-    }
-
-    std::string getRepr() const override {
-        return hstd::fmt("IVertex({})", selfId);
-    }
-
-    json getSerialNonRecursive(IGraph const* graph, VertexID const& id)
-        const override {
-        return json{};
-    }
-
-    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
-
-    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
-        attrs.push_back(attr);
-    }
-
-  public:
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
-        this->attrs = attrs;
-    }
-};
-
-
-struct TrivialEdge : public IEdge {
-    using IEdge::IEdge;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
-
-    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
-        attrs.push_back(attr);
-    }
-
-  public:
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
-        this->attrs = attrs;
-    }
-};
-
-struct TrivialEdgeCollection : public IEdgeCollection {
-  public:
-    hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
-
-    EdgeCollectionID getCategory() const override {
-        return getCollectionIdImpl(this);
-    }
-
-    const IEdge* getEdge(EdgeID const& id) const override {
-        return &edgeStore.at(id);
-    }
-
-    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
-};
-
 struct TrivialGraph : public IGraph {
     hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
     hstd::SPtr<TrivialEdgeCollection>                        edges;
@@ -1363,107 +1373,11 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
-class LayoutHierarchy : public IVertexHierarchy {
-  public:
-    GraphHierarchyID getHierarchyId() const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(
-            false, "Method `getHierarchyId` is not implemented.");
-    }
-
-    EdgeCollectionID getCategory() const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getCategory` is not implemented.");
-    }
-
-    const IEdge* getEdge(EdgeID const& id) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getEdge` is not implemented.");
-    }
-
-    EdgeIDSet addAllOutgoing(VertexID const& id) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(
-            false, "Method `addAllOutgoing` is not implemented.");
-    }
-
-    EdgeIDSet getEdges() const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getEdges` is not implemented.");
-    }
-
-    void trackVertex(VertexID const& vert) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `trackVertex` is not implemented.");
-    }
-
-    DependantDeletion untrackVertex(VertexID const& vert) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `untrackVertex` is not implemented.");
-    }
-
-    EdgeIDSet getOutgoing(VertexID const& vert) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getOutgoing` is not implemented.");
-    }
-
-    EdgeIDSet getIncoming(VertexID const& vert) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getIncoming` is not implemented.");
-    }
-};
-
-class LayoutEdges : public IEdgeCollection {
-
-
-  public:
-    EdgeCollectionID getCategory() const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getCategory` is not implemented.");
-    }
-
-    const IEdge* getEdge(EdgeID const& id) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getEdge` is not implemented.");
-    }
-
-    EdgeIDSet addAllOutgoing(VertexID const& id) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(
-            false, "Method `addAllOutgoing` is not implemented.");
-    }
-
-    EdgeIDSet getEdges() const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getEdges` is not implemented.");
-    }
-
-    void trackVertex(VertexID const& vert) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `trackVertex` is not implemented.");
-    }
-
-    DependantDeletion untrackVertex(VertexID const& vert) override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `untrackVertex` is not implemented.");
-    }
-
-    EdgeIDSet getOutgoing(VertexID const& vert) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getOutgoing` is not implemented.");
-    }
-
-    EdgeIDSet getIncoming(VertexID const& vert) const override {
-        // TODO: Implement this pure virtual method.
-        static_assert(false, "Method `getIncoming` is not implemented.");
-    }
-};
-
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::SPtr<IGraph>          graph;
-    hstd::SPtr<LayoutHierarchy> groups;
-    hstd::SPtr<LayoutEdges>     edges;
+    hstd::SPtr<IGraph>                graph;
+    hstd::SPtr<TrivialHierarchy>      groups;
+    hstd::SPtr<TrivialEdgeCollection> edges;
 
     LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {
         hstd::logic_assertion_check_not_nil(graph);

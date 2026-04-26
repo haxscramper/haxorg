@@ -172,7 +172,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
-                result.groups.insert_or_assign(
+                result.vertices.insert_or_assign(
                     id,
                     std::make_shared<ColaGroupLayoutAttribute>(
                         rect, prev_cast->group));
@@ -184,7 +184,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                     hstd::fmt(
                         "previous attribute was {}",
                         typeid(prev_cast.get()).name()));
-                result.groups.insert_or_assign(
+                result.vertices.insert_or_assign(
                     id,
                     std::make_shared<ColaGroupLayoutAttribute>(
                         rect, rootGroup));
@@ -194,25 +194,25 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         } else {
             auto bbox = geometry::Rect::FromLimitBoundaries();
             hstd::Vec<geometry::Rect> subgroup_bbox_list;
-            for (auto const& sub : group->subGroups) {
+            for (auto const& sub : run->getSubGroups(id)) {
                 subgroup_bbox_list.push_back(self(sub, id));
             }
 
-            for (auto const& vert : group->getVertices()) {
+            for (auto const& vert : run->getVertices(id)) {
                 auto rect = ctx->getRect(vert);
                 bbox.extend(adapt::to_hstd(*rect));
             }
 
             for (auto const& [group_id, group_bbox] : hstd::rs::zip_view(
-                     group->subGroups, subgroup_bbox_list)) {
-                result.groups.insert_or_assign(
+                     run->getSubGroups(id), subgroup_bbox_list)) {
+                result.vertices.insert_or_assign(
                     group_id,
                     std::make_shared<ColaGroupLayoutAttribute>(
                         group_bbox.relative_to(bbox),
                         run->getGroup<cst::ColaGroup>(group_id)));
             }
 
-            for (auto const& vert : group->getVertices()) {
+            for (auto const& vert : run->getVertices(id)) {
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
                 auto rel_rect = rect.relative_to(bbox);
 
@@ -241,7 +241,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     auto layoutPorts               = router->routeEdges();
 
 
-    result.groups.insert_or_assign(
+    result.vertices.insert_or_assign(
         root_id,
         std::make_shared<ColaGroupLayoutAttribute>(bbox, rootGroup));
 

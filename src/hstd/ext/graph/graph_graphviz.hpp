@@ -840,7 +840,7 @@ class GraphGroup
     Str            name() const { return agnameof(graph); }
     GVContext::Ptr context() { return ctx.context; }
 
-    hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
+    hstd::SPtr<NodeAttribute> addVertex(
         VertexID const& parent,
         VertexID const& id) {
         auto vertex       = run->getVertex(id);
@@ -850,7 +850,7 @@ class GraphGroup
     }
 
 
-    hstd::SPtr<layout::IEdgeVisualAttribute> addEdge(EdgeID const& id) {
+    hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id) {
         auto e    = const_cast<IEdge*>(run->getEdge(id));
         auto attr = edge(
             *ctx.run->getVertexVisualAttribute<NodeAttribute>(
@@ -869,8 +869,10 @@ class GraphGroup
         VertexID const&                          id,
         hstd::SPtr<IGroupVisualAttribute> const& attr) override;
 
-    void addNewNativeSubgroup(VertexID const& id) {
-        addNewNativeSubgroup(id, newSubgraph(hstd::fmt("GV_{}", id)));
+    hstd::SPtr<GraphGroup> addNewNativeSubgroup(VertexID const& id) {
+        auto res = newSubgraph(hstd::fmt("GV_{}", id));
+        addNewNativeSubgroup(id, res);
+        return res;
     }
 
     std::string getStableId() const override {
