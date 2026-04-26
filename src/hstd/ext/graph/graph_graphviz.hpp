@@ -865,13 +865,11 @@ class GraphGroup
     static hstd::SPtr<GraphGroup> newRootGraph(
         hstd::SPtr<layout::LayoutRun> run);
 
-    void addNewNativeSubgroup(
-        VertexID const&                          id,
-        hstd::SPtr<IGroupVisualAttribute> const& attr) override;
-
-    hstd::SPtr<GraphGroup> addNewNativeSubgroup(VertexID const& id) {
-        auto res = newSubgraph(hstd::fmt("GV_{}", id));
-        addNewNativeSubgroup(id, res);
+    hstd::SPtr<GraphGroup> addNewNativeSubgroup(
+        VertexID const& parent,
+        VertexID const& id) {
+        auto res    = newSubgraph(hstd::fmt("GV_{}", id));
+        std::ignore = run->addNestedGroup(parent, id, res);
         return res;
     }
 
@@ -961,7 +959,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    virtual Rect getBBox() const override;
+    virtual Rect getBBox() const override { return graph; }
 
     std::string getRepr() const override {
         return group->getPropertiesAsString();

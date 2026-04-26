@@ -125,8 +125,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     EXPECT_EQ(run->getRootGroups().size(), 1);
     EXPECT_EQ(run->getSubGroups(rg_id).size(), 0);
 
-    auto sg_1 = root->addNewNativeSubgroup(sg_id1);
-    auto sg_2 = root->addNewNativeSubgroup(sg_id2);
+    auto sg_1 = root->addNewNativeSubgroup(rg_id, sg_id1);
+    auto sg_2 = root->addNewNativeSubgroup(rg_id, sg_id2);
 
     auto shape = gv::NodeAttribute::Shape::rect;
 
@@ -224,10 +224,10 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     run->addRootGroup(rg_id, root);
     auto ctx = root->context();
 
-    auto sg1 = root->addNewNativeSubgroup(sg_id1);
+    auto sg1 = root->addNewNativeSubgroup(rg_id, sg_id1);
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
 
-    auto sg2 = root->addNewNativeSubgroup(sg_id2);
+    auto sg2 = root->addNewNativeSubgroup(rg_id, sg_id2);
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
     as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(0)))
@@ -408,8 +408,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizIrClusters) {
     auto root = gv::GraphGroup::newRootGraph(run);
     run->addRootGroup(rg_id, root);
 
-    auto sg_1 = root->addNewNativeSubgroup(sg_id1);
-    auto sg_2 = root->addNewNativeSubgroup(sg_id2);
+    auto sg_1 = root->addNewNativeSubgroup(rg_id, sg_id1);
+    auto sg_2 = root->addNewNativeSubgroup(rg_id, sg_id2);
 
     auto shape = gv::NodeAttribute::Shape::rect;
 

@@ -231,10 +231,12 @@ class ColaGroup
         return API::Group::getStableId();
     }
 
-    hstd::SPtr<ColaGroup> addNewNativeSubgroup(VertexID const& id) {
+    hstd::SPtr<ColaGroup> addNewNativeSubgroup(
+        VertexID const& parent,
+        VertexID const& id) {
         auto res = std::make_shared<ColaGroup>(
             shared, hstd::fmt("cola_{}", id));
-        Base::addNewNativeSubgroup(id, res);
+        std::ignore = run->addNestedGroup(parent, id, res);
         return res;
     }
 

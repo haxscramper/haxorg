@@ -989,11 +989,22 @@ class IVertexHierarchy : public IEdgeProvider {
 };
 
 struct TrivialHierarchy : public IVertexHierarchy {
+    hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
+
   public:
-    EdgeCollectionID getCategory() const override;
-    const IEdge*     getEdge(EdgeID const& id) const override;
-    EdgeIDSet        addAllOutgoing(VertexID const& id) override;
-    GraphHierarchyID getHierarchyId() const override;
+    EdgeCollectionID getCategory() const override {
+        return EdgeCollectionID(getHierarchyId());
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return &edgeStore.at(id);
+    }
+
+    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
+
+    GraphHierarchyID getHierarchyId() const override {
+        return getHierarchyIdImpl(this);
+    }
 };
 
 
@@ -1117,7 +1128,7 @@ class IGraph {
     /// mask to determine which collection the edge comes from.
     virtual IEdge const* getEdge(EdgeID const& id) const;
     virtual IEdge*       getMEdge(EdgeID const& id) {
-        return const_cast<IEdge*>(getMEdge(id));
+        return const_cast<IEdge*>(getEdge(id));
     }
     /// \brief Provide additional information about the vertex nesting
     /// relation for a specific hierarchy.
@@ -1358,18 +1369,6 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
     virtual std::string getStableId() const = 0;
 
-    /// \brief Create a new group object without own layout algorithm and
-    /// add it as a sub-group for the current one. It will insert a new
-    /// group object in the overall layout run map.
-    ///
-    /// To create an instance of the group with layout algoritm set, the
-    /// derived classes should define a static factory function
-    /// `addNewRootGroup()` returning visual group attribute object.
-    virtual void addNewNativeSubgroup(
-        VertexID const&                          id,
-        hstd::SPtr<IGroupVisualAttribute> const& attr);
-
-
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
@@ -1379,8 +1378,19 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<TrivialHierarchy>      groups;
     hstd::SPtr<TrivialEdgeCollection> edges;
 
-    LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {
+    LayoutRun(
+        hstd::SPtr<IGraph>                graph,
+        hstd::SPtr<TrivialHierarchy>      groups = nullptr,
+        hstd::SPtr<TrivialEdgeCollection> edges  = nullptr)
+        : graph{graph}, groups{groups}, edges{edges} {
         hstd::logic_assertion_check_not_nil(graph);
+        if (this->groups == nullptr) {
+            this->groups = std::make_shared<TrivialHierarchy>();
+        }
+
+        if (this->edges == nullptr) {
+            this->edges = std::make_shared<TrivialEdgeCollection>();
+        }
     }
 
     void runFullLayout();
@@ -1503,9 +1513,19 @@ class LayoutRun : public OperationsTracer {
         VertexID const&                          parent,
         VertexID const&                          nested,
         hstd::SPtr<IGroupVisualAttribute> const& attr) {
+
+        LOGIC_ASSERTION_CHECK(
+            !getGraph()
+                 ->getVertex(nested)
+                 ->getOptionalAttribute<IVertexVisualAttribute>()
+                 .has_value(),
+            "Cannot assign group visual attribute to a vertex that "
+            "already has vertex visual attribute.");
+
         groups->trackVertex(nested);
         auto res = groups->trackSubVertexRelation(parent, nested);
         graph->getMVertex(nested)->addUniqueAttribute(attr);
+
         return res;
     }
 
@@ -1527,20 +1547,8 @@ class LayoutRun : public OperationsTracer {
             "the addNewNativeSubgroup method");
 
         getGraph()->getMVertex(nested)->addUniqueAttribute(attr);
+        groups->trackVertex(nested);
         return groups->trackSubVertexRelation(parent, nested);
-    }
-
-    void addNewNativeSubgroup(
-        VertexID const&                          id,
-        hstd::SPtr<IGroupVisualAttribute> const& attr) {
-        LOGIC_ASSERTION_CHECK(
-            !getGraph()
-                 ->getVertex(id)
-                 ->getOptionalAttribute<IVertexVisualAttribute>()
-                 .has_value(),
-            "Cannot assign group visual attribute to a vertex that "
-            "already has vertex visual attribute.");
-        getGraph()->getMVertex(id)->addUniqueAttribute(attr);
     }
 
 

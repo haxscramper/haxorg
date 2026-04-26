@@ -253,11 +253,10 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
     auto                       ctx  = root->shared;
 
-    hstd::SPtr<cst::ColaGroup> sg_1 = root->addNewNativeSubgroup(sg_id1);
-    std::ignore = run->addNestedGroup(rg_id, sg_id1, sg_1);
-
-    hstd::SPtr<cst::ColaGroup> sg_2 = root->addNewNativeSubgroup(sg_id2);
-    std::ignore = run->addNestedGroup(rg_id, sg_id2, sg_2);
+    hstd::SPtr<cst::ColaGroup> sg_1 = root->addNewNativeSubgroup(
+        rg_id, sg_id1);
+    hstd::SPtr<cst::ColaGroup> sg_2 = root->addNewNativeSubgroup(
+        rg_id, sg_id2);
 
     // root nodes
     root->addVertex(rg_id, vs.at(0), Size(25, 25));
