@@ -260,6 +260,10 @@ DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
 /// of edge to the vertices.
 DECL_ID_TYPE_MASKED(IPort, PortID, hstd::u64, 16);
 
+using VertexIDSet = hstd::UnorderedSet<VertexID>;
+using EdgeIDSet   = hstd::UnorderedSet<EdgeID>;
+using PortIDSet   = hstd::UnorderedSet<PortID>;
+
 class IGraph;
 
 /// \brief Base class for all attributes associated with vertices. The
@@ -294,7 +298,8 @@ class IAttributeObject {
 
     /// \brief Get first instance of the attribute with dynamic type `T`.
     template <typename T>
-    hstd::SPtr<T> getOptionalAttribute() const {
+        requires std::derived_from<T, IAttribute>
+    hstd::Opt<hstd::SPtr<T>> getOptionalAttribute() const {
         for (auto const& attr : getAttributes()) {
             if (attr->isInstance<T>()) {
                 return std::dynamic_pointer_cast<T>(attr);
@@ -304,8 +309,15 @@ class IAttributeObject {
         return std::nullopt;
     }
 
+    template <typename T>
+        requires std::derived_from<T, IAttribute>
+    bool hasOptionalAttribute() const {
+        return getOptionalAttribute<T>().has_value();
+    }
+
     /// \brief Get all attributes with dynamic type T
     template <typename T>
+        requires std::derived_from<T, IAttribute>
     hstd::Vec<hstd::SPtr<T>> getAllAttributes() const {
         hstd::Vec<hstd::SPtr<T>> result;
         for (auto const& attr : getAttributes()) {
@@ -320,6 +332,7 @@ class IAttributeObject {
     /// \brief Get one attribute with dynamic type T, the attribute is
     /// expected to be unique.
     template <typename T>
+        requires std::derived_from<T, IAttribute>
     hstd::SPtr<T> getUniqueAttribute() const {
         hstd::SPtr<T> result;
         for (auto const& attr : getAttributes()) {
@@ -677,6 +690,38 @@ class IEdgeCollection : public IEdgeProvider {
     hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const override;
     void              trackVertex(VertexID const& vert) override;
     DependantDeletion untrackVertex(VertexID const& vert) override;
+
+    /// \brief Get list of edges in a specific sub-set of the stored
+    /// vertices. Both source and target must be in the subset.
+    hstd::UnorderedSet<EdgeID> getFullyIncludedEdges(
+        hstd::UnorderedSet<VertexID> const& subset) const {
+        hstd::UnorderedSet<EdgeID> res;
+        for (auto const& id : getEdges()) {
+            IEdge const* edge = getEdge(id);
+            if (subset.contains(edge->source)
+                && subset.contains(edge->target)) {
+                res.incl(id);
+            }
+        }
+
+        return res;
+    }
+
+    /// \brief Get list of edges that are at least partially included in
+    /// the subset: at least source or target must be in the subset.
+    hstd::UnorderedSet<EdgeID> getPartiallyIncludedEdges(
+        hstd::UnorderedSet<VertexID> const& subset) const {
+        hstd::UnorderedSet<EdgeID> res;
+        for (auto const& id : getEdges()) {
+            IEdge const* edge = getEdge(id);
+            if (subset.contains(edge->source)
+                || subset.contains(edge->target)) {
+                res.incl(id);
+            }
+        }
+
+        return res;
+    }
 
     /// \brief Track the new edge in the collection. Associated
     /// `IEdge`-derived object should already be accessible through the
@@ -1143,7 +1188,6 @@ class IVertexVisualAttribute : public IVisualAttribute {};
 class IEdgeVisualAttribute : public IVisualAttribute {};
 class IPortVisualAttribute : public IVisualAttribute {};
 
-
 /// \brief Base class for all attributes describing post-layout placement
 /// and shape information for the graph elements.
 class ILayoutAttribute : public IAttribute {
@@ -1192,28 +1236,14 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
 };
 
 
-DECL_ID_TYPE(IGroup, GroupID, hstd::u64);
-
-class IGroupLayoutAttribute : public ILayoutAttribute {
-  public:
-    /// \brief Bounding box of the group, size is absolute, position is
-    /// relative to the parent group.
-    virtual Rect             getPointsBBox() const                  = 0;
-    virtual visual::VisGroup getVisual(GroupID const& selfId) const = 0;
-};
-
-
-class IGroup;
+class IGroupVisualAttribute;
 class LayoutRun;
 
 class IPlacementAlgorithm {
   public:
     static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
-
     /// \brief Result of the placement algorithm execution
     struct Result {
-        hstd::UnorderedMap<GroupID, hstd::SPtr<IGroupLayoutAttribute>>
-            groups;
         hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>> edges;
         hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
             vertices;
@@ -1225,7 +1255,7 @@ class IPlacementAlgorithm {
     /// contains sub-groups with different layout algorithms, their
     /// placement should already be present in the \ref
     /// LayoutRun::result.
-    virtual Result runSingleLayout(layout::GroupID const& group) = 0;
+    virtual Result runSingleLayout(VertexID const& group) = 0;
 
     IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
@@ -1236,14 +1266,11 @@ class IConstraint {
 };
 
 
-/// \brief Non-structural collection of vertices, edges, constraints and
-/// sub-groups.
-class IGroup {
+class IGroupVisualAttribute : public IVertexVisualAttribute {
   protected:
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
 
   public:
-    hstd::UnorderedSet<GroupID> subGroups;
     /// \brief Optional instance of the layout algorithm to be executed on
     /// the current group.
     hstd::Vec<hstd::SPtr<IConstraint>> constraints;
@@ -1265,10 +1292,7 @@ class IGroup {
 
     bool hasAlgorithm() const { return algorithm.has_value(); }
 
-
-    virtual std::string         getStableId() const = 0;
-    virtual hstd::Vec<VertexID> getVertices() const = 0;
-    virtual hstd::Vec<EdgeID>   getEdges() const    = 0;
+    virtual std::string getStableId() const = 0;
 
     /// \brief Add the new vertex to this group, and return
     /// backend-specific attributes.
@@ -1283,20 +1307,24 @@ class IGroup {
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
     /// group object in the overall layout run map.
-    virtual GroupID addNewNativeSubgroup() = 0;
+    virtual VertexID addNewNativeSubgroup() = 0;
 
     /// \brief Add a layout groupt that already exists in the layout run.
-    virtual void addExistingSubgroup(GroupID const&) = 0;
+    virtual void addExistingSubgroup(VertexID const&) = 0;
 
-    IGroup(hstd::SPtr<LayoutRun> run) : run{run} {}
+    IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
+
+
+/// \brief Non-structural collection of vertices, edges, constraints and
+/// sub-groups.
+class IGroup {};
 
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::UnorderedIncrementalStore<GroupID, hstd::SPtr<IGroup>> groups;
-
-    hstd::SPtr<IGraph> graph;
-    hstd::Vec<GroupID> rootGroups;
+    hstd::SPtr<IGraph>           graph;
+    hstd::SPtr<IVertexHierarchy> groups;
+    hstd::SPtr<IEdgeCollection>  edges;
 
     LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {
         hstd::logic_assertion_check_not_nil(graph);
@@ -1308,46 +1336,70 @@ class LayoutRun : public OperationsTracer {
     IPlacementAlgorithm::Result result;
 
     template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
     T const* getVertex(VertexID const& id) const {
         hstd::logic_assertion_check_not_nil(graph);
         return hstd::validated_dynamic_cast<T>(graph->getVertex(id));
     }
 
     template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
     T const* getEdge(EdgeID const& id) const {
         hstd::logic_assertion_check_not_nil(graph);
         return hstd::validated_dynamic_cast<T>(graph->getEdge(id));
     }
 
-    template <typename T = IGroup>
-    hstd::SPtr<T> getGroup(GroupID const& id) const {
-        return hstd::validated_dynamic_cast<T>(groups.at(id));
+    template <typename T = IGroupVisualAttribute>
+        requires std::derived_from<T, IGroupVisualAttribute>
+    hstd::SPtr<T> getGroup(VertexID const& id) const {
+        return graph->getVertex(id)->getUniqueAttribute<T>();
     }
 
-    GroupID addGroup(hstd::SPtr<IGroup> const& group) {
-        return groups.add(group);
+    template <typename T = IGroupVisualAttribute>
+        requires std::derived_from<T, IGroupVisualAttribute>
+    bool isGroupVertex(VertexID const& id) const {
+        return graph->getVertex(id)->hasOptionalAttribute<T>();
     }
 
-    GroupID addRootGroup(hstd::SPtr<IGroup> const& group) {
-        auto result = groups.add(group);
-        rootGroups.push_back(result);
-        return result;
+    hstd::Vec<VertexID> getVertices(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id),
+            "Cannot get nested vertices from non-group");
+        hstd::Vec<VertexID> res;
+        for (auto const& sub : groups->getSubVertices(id)) {
+            if (!isGroupVertex(sub)) { res.push_back(sub); }
+        }
+        return res;
     }
 
-    hstd::SPtr<IGroup> at(GroupID const& id) const {
-        return groups.at(id);
+    hstd::Vec<VertexID> getSubGroups(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested groups from non-group");
+        hstd::Vec<VertexID> res;
+        for (auto const& sub : groups->getSubVertices(id)) {
+            if (isGroupVertex(sub)) { res.push_back(sub); }
+        }
+        return res;
     }
 
-    template <typename T = IGroupLayoutAttribute>
-    hstd::SPtr<T> getLayout(GroupID const& id) const {
-        LOGIC_ASSERTION_CHECK_FMT(
-            result.groups.contains(id),
-            "No layout attribute specified for group ID {}",
-            id);
-        return hstd::validated_dynamic_cast<T>(result.groups.at(id));
+    hstd::Vec<VertexID> getAllNested(VertexID const& id) const {
+        return groups->getSubVertices(id);
+    }
+
+    hstd::UnorderedSet<EdgeID> getDirectlyNestedEdges(
+        VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+    }
+
+    void addRootGroup(VertexID const& id) { groups->trackVertex(id); }
+
+    IVertex const* at(VertexID const& id) const {
+        return graph->getVertex(id);
     }
 
     template <typename T = IEdgeLayoutAttribute>
+        requires std::derived_from<T, IEdgeLayoutAttribute>
     hstd::SPtr<T> getLayout(EdgeID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.edges.contains(id),
@@ -1357,6 +1409,7 @@ class LayoutRun : public OperationsTracer {
     }
 
     template <typename T = IVertexLayoutAttribute>
+        requires std::derived_from<T, IVertexLayoutAttribute>
     hstd::SPtr<T> getLayout(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.vertices.contains(id),
@@ -1369,10 +1422,6 @@ class LayoutRun : public OperationsTracer {
         return getLayout(id)->getBBox();
     }
 
-    geometry::Rect getRelativeBBox(GroupID const& id) const {
-        return getLayout(id)->getPointsBBox();
-    }
-
     hstd::Vec<visual::VisGroup> getVisual() const;
 
     visual::VisGroup getVisual(EdgeID const& id) const {
@@ -1380,10 +1429,6 @@ class LayoutRun : public OperationsTracer {
     }
 
     visual::VisGroup getVisual(VertexID const& id) const {
-        return getLayout(id)->getVisual(id);
-    }
-
-    visual::VisGroup getVisual(GroupID const& id) const {
         return getLayout(id)->getVisual(id);
     }
 };

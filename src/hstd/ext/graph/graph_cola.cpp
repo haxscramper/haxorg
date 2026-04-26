@@ -809,7 +809,7 @@ AlignDebugInfo buildAlign(
     for (auto const& vert : a.getAllVertices()) {
         auto const& spec    = a.vertices.at(vert);
         int         rectIdx = group->shared->getVertexIdx(vert);
-        Rect        rect = adapt::to_hstd(*group->shared->getRect(vert));
+        Rect        rect    = group->run->getRelativeBBox(vert);
 
         geometry::Point axisOffset = x ? geometry::Point(spec.offset, 0)
                                        : geometry::Point(0, spec.offset);

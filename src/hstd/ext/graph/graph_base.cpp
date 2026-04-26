@@ -779,20 +779,21 @@ hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
 void layout::LayoutRun::runFullLayout() {
     message(
         hstd::fmt(
-            "run full layout for the graph with root IDs {}", rootGroups));
+            "run full layout for the graph with root IDs {}",
+            groups->getRootVertices()));
 
-    auto aux = [&](this auto&& self, GroupID const& id) -> void {
+    auto aux = [&](this auto&& self, VertexID const& id) -> void {
         message(hstd::fmt("running layout for group ID {}", id));
         auto __scope = scopeLevel();
         auto group   = getGroup(id);
-        for (auto const& sub : hstd::sorted(group->subGroups.items())) {
+        for (auto const& sub : hstd::sorted(getSubGroups(id))) {
             self(sub);
         }
 
-        for (auto const& sub : hstd::sorted(group->subGroups.items())) {
+        for (auto const& sub : hstd::sorted(getSubGroups(id))) {
             if (getGroup(sub)->hasAlgorithm()) {
                 LOGIC_ASSERTION_CHECK_FMT(
-                    result.groups.contains(sub),
+                    result.vertices.contains(sub),
                     "Sub-group '{}' has algorithm specified, but "
                     "recursive walk for layout did not assign the "
                     "bounding box to it. The `runSingleLayout` for a "
@@ -805,7 +806,7 @@ void layout::LayoutRun::runFullLayout() {
             auto sub_res = group->getAlgorithm()->runSingleLayout(id);
 
             LOGIC_ASSERTION_CHECK_FMT(
-                sub_res.groups.contains(id),
+                sub_res.vertices.contains(id),
                 "Running layout for {} ('{}') should set the bounding box "
                 "for this group.",
                 id,
@@ -814,10 +815,6 @@ void layout::LayoutRun::runFullLayout() {
             // Use of `insert_or_assign` here is deliberate -- running
             // layout on the current group might overwrite the positioning
             // of the nested nodes or edges if necessary.
-            for (auto const& [id, attr] : sub_res.groups) {
-                result.groups.insert_or_assign(id, attr);
-            }
-
             for (auto const& [id, attr] : sub_res.vertices) {
                 result.vertices.insert_or_assign(id, attr);
             }
@@ -828,18 +825,18 @@ void layout::LayoutRun::runFullLayout() {
         }
     };
 
-    for (auto const& root : rootGroups) { aux(root); }
+    for (auto const& root : groups->getRootVertices()) { aux(root); }
 }
 
 hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     const {
     hstd::Vec<hstd::ext::visual::VisGroup> res;
     auto aux = [&](this auto&& self,
-                   GroupID     id) -> hstd::ext::visual::VisGroup {
+                   VertexID    id) -> hstd::ext::visual::VisGroup {
         auto                        group  = getGroup(id);
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
 
-        for (auto const& sub : group->subGroups) {
+        for (auto const& sub : getSubGroups(id)) {
             auto visual          = self(sub);
             visual.original_id   = sub.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Group;
@@ -865,7 +862,9 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         return result;
     };
 
-    for (auto const& rg : rootGroups) { res.push_back(aux(rg)); }
+    for (auto const& rg : groups->getRootVertices()) {
+        res.push_back(aux(rg));
+    }
 
     return res;
 }
