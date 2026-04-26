@@ -3,7 +3,7 @@
 #if !ORG_BUILD_EMCC
 
 #    include <boost/graph/graphml.hpp>
-#    include <boost/graph/graphviz.hpp>
+#    include <boost/graph/graph_graphviz.hpp>
 
 boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
     MapGraph const& g) {

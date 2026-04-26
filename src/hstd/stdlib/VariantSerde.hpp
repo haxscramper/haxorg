@@ -2,6 +2,8 @@
 
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 namespace hstd {
 
@@ -25,6 +27,22 @@ struct JsonSerde<V> {
                 value = JsonSerde<T>::from_json(j["value"]);
             },
             result);
+    }
+};
+
+
+template <typename V>
+    requires DescribedRecord<V> && IsSubVariantType<V>
+struct JsonSerde<V> : JsonSerdeDescribedRecordBase<V> {
+    // Only override the variant type `kind` serialization, the field
+    // `.data` is exported as a variant with its own `.index` field, so
+    // loading is not changed.
+    static json to_json(V const& it) {
+        auto result = JsonSerdeDescribedRecordBase<V>::to_json(it);
+        result[V::sub_variant_get_enum_name()] = JsonSerde<
+            typename V::variant_enum_type>::
+            to_json(it.sub_variant_get_kind());
+        return result;
     }
 };
 

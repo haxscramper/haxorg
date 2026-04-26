@@ -1489,3 +1489,65 @@ void hstd::validate_utf8(std::string const& str) {
         }
     }
 }
+
+std::string hstd::format_integer_bits(
+    uint64_t value,
+    char     fmt,
+    int      pad_to) {
+    std::string raw;
+    switch (fmt) {
+        case 'b': {
+            if (value == 0) {
+                raw = "0";
+            } else {
+                uint64_t v = value;
+                while (v) {
+                    raw = (char)('0' + (v & 1)) + raw;
+                    v >>= 1;
+                }
+            }
+            break;
+        }
+        case 'o': {
+            std::ostringstream os;
+            os << std::oct << value;
+            raw = os.str();
+            break;
+        }
+        case 'x': {
+            std::ostringstream os;
+            os << std::hex << value;
+            raw = os.str();
+            break;
+        }
+        default: {
+            raw = std::to_string(value);
+            if (pad_to > 0 && (int)raw.size() < pad_to) {
+                raw = std::string(pad_to - raw.size(), '0') + raw;
+            }
+            return raw;
+        }
+    }
+
+    if (pad_to > 0 && (int)raw.size() < pad_to) {
+        raw = std::string(pad_to - raw.size(), '0') + raw;
+    }
+
+    // Insert ' every 4 digits from the right
+    std::string grouped;
+    int         count = 0;
+    for (int i = (int)raw.size() - 1; 0 <= i; --i) {
+        if (count > 0 && count % 4 == 0) { grouped = '\'' + grouped; }
+        grouped = raw[i] + grouped;
+        ++count;
+    }
+
+    std::string prefix;
+    switch (fmt) {
+        case 'b': prefix = "0b"; break;
+        case 'o': prefix = "0o"; break;
+        case 'x': prefix = "0x"; break;
+        default: break;
+    }
+    return prefix + grouped;
+}

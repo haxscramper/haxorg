@@ -322,6 +322,8 @@ struct ColStream : public ColText {
 
     ColStyle    active;
     ColStream&  indent(int level);
+    ColStream&  newline(int repeat = 1);
+    ColStream&  space(int repeat = 1);
     ColStyle    end() const { return ColStyle{}; }
     StreamState snap() { return StreamState(*this); }
     void        flush();
@@ -340,12 +342,6 @@ inline StreamState::StreamState(ColStream& stream) : stream(stream) {
 }
 
 inline StreamState::~StreamState() { stream.active = start; }
-
-
-inline ColStream& ColStream::indent(int level) {
-    write(ColText(ColStyle{}, repeat(" ", level)));
-    return *this;
-}
 
 
 // clang-format off

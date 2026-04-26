@@ -55,3 +55,7 @@ run_haxorg_builder_codegen_and_tests: build_haxorg run_haxorg_reflection_snapsho
 run_haxorg_builder_and_tests: build_haxorg run_haxorg_only_source_generation run_py_tests
 
 run_pytest_and_coverage_docs: run_py_tests run_coverage_merge run_custom_docs_gen
+
+run_doxygen_docs_build:
+  {{workflow_run}} --task docs_doxygen \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json

@@ -143,67 +143,6 @@ struct std::hash<LaneNodePos> {
 // strongly typed integer.
 DECL_ID_TYPE(___BlockNode, BlockNodeId, std::size_t);
 
-struct ColaConstraintDebug {
-    struct Constraint {
-        struct Point {
-            ImVec2         pos;
-            hstd::Vec<int> rectOrigin;
-            DESC_FIELDS(Point, (pos, rectOrigin));
-        };
-
-        struct Offset {
-            ImVec2 offset;
-            Point  start;
-            bool   isEmpty() const {
-                return int(offset.x) == 0 && int(offset.y) == 0;
-            }
-            DESC_FIELDS(Offset, (offset, start));
-        };
-
-        struct RectPosition {
-            ImVec2 pos;
-            int    rect;
-            DESC_FIELDS(RectPosition, (pos, rect));
-        };
-
-        struct Align {
-            Point             start;
-            Point             end;
-            hstd::Vec<Offset> offsets;
-            hstd::Vec<int>    rects;
-            DESC_FIELDS(Align, (start, end, offsets, rects));
-        };
-
-        struct Separate {
-            Align  left;
-            Align  right;
-            Offset offset;
-            DESC_FIELDS(Separate, (left, right, offset));
-        };
-
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Align,
-            Separate,
-            RectPosition);
-        Data data;
-        DESC_FIELDS(Constraint, (data));
-    };
-
-    void          toString(hstd::ColStream& os) const;
-    hstd::ColText toString() const {
-        hstd::ColStream os;
-        toString(os);
-        return os.getBuffer();
-    }
-
-    hstd::Vec<Constraint> constraints;
-    DESC_FIELDS(ColaConstraintDebug, (constraints));
-};
-
 
 struct LaneBlockGraph;
 struct LaneBlockLayout {

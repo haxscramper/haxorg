@@ -190,6 +190,10 @@ def main() -> int:
         if not ln.strip():
             continue
 
+        # ignore comment lines
+        if ln.startswith("#"):
+            continue
+
         if BODY_LINE_MAX < len(ln):
             log.error(f"error: body line {idx} too long ({len(ln)} > {BODY_LINE_MAX})")
             log.error(f"line: {ln}")

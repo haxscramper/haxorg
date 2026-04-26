@@ -7,7 +7,7 @@
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph_graphviz.hpp>
 #endif
 
 namespace org::graph {

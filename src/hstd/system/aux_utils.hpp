@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "macros.hpp"
+#include <cmath>
 
 namespace hstd {
 
@@ -87,6 +88,14 @@ bool is_pointer_valid(T const* ptr, T const* start, std::size_t size) {
 template <typename T>
 std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
+}
+
+inline bool isclose(
+    double a,
+    double b,
+    double rtol = 1e-5,
+    double atol = 1e-8) {
+    return std::abs(a - b) <= atol + rtol * std::abs(b);
 }
 
 } // namespace hstd

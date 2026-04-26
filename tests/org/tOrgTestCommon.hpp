@@ -22,7 +22,7 @@
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/imm/ImmOrgGraphBoost.hpp>
 #include <boost/graph/graphml.hpp>
-#include <boost/graph/graphviz.hpp>
+#include <boost/graph/graph_graphviz.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 

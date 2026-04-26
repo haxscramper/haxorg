@@ -1,0 +1,353 @@
+#pragma once
+
+#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Xml.hpp>
+
+namespace hstd::ext::visual {
+
+using namespace hstd::ext::geometry;
+
+struct VisColor {
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 255;
+
+    DESC_FIELDS(VisColor, (r, g, b, a));
+
+    static VisColor fromRgb(uint8_t r, uint8_t g, uint8_t b) {
+        return VisColor{r, g, b, 255};
+    }
+
+    static VisColor fromRgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        return VisColor{r, g, b, a};
+    }
+
+    static VisColor black() { return VisColor{0, 0, 0, 255}; }
+    static VisColor white() { return VisColor{255, 255, 255, 255}; }
+    static VisColor transparent() { return VisColor{0, 0, 0, 0}; }
+    static VisColor red() { return VisColor{255, 0, 0, 255}; }
+    static VisColor green() { return VisColor{0, 255, 0, 255}; }
+    static VisColor blue() { return VisColor{0, 0, 255, 255}; }
+};
+
+struct VisPen {
+    DECL_DESCRIBED_ENUM(LineStyle, Solid, Dash, Dot, DashDot, None);
+
+    VisColor  color = VisColor::black();
+    double    width = 1.0f;
+    LineStyle style = LineStyle::Solid;
+
+    DESC_FIELDS(VisPen, (color, width, style));
+
+    static VisPen noPen() { return VisPen{.style = LineStyle::None}; }
+};
+
+struct VisBrush {
+    DECL_DESCRIBED_ENUM(
+        BrushStyle,
+        Solid,
+        None,
+        Horizontal,
+        Vertical,
+        Cross,
+        DiagonalForward,
+        DiagonalBackward,
+        DiagonalCross);
+
+    VisColor   color = VisColor::white();
+    BrushStyle style = BrushStyle::None;
+
+    DESC_FIELDS(VisBrush, (color, style));
+
+    static VisBrush noBrush() {
+        return VisBrush{.style = BrushStyle::None};
+    }
+
+    static VisBrush solid(VisColor const& c) {
+        return VisBrush{.color = c, .style = BrushStyle::Solid};
+    }
+};
+
+struct VisFont {
+    DECL_DESCRIBED_ENUM(Weight, Thin, Light, Normal, Bold, Black);
+    DECL_DESCRIBED_ENUM(FontStyle, Normal, Italic, Oblique);
+
+    hstd::Str family    = "Arial";
+    double    pixelSize = 8.0f;
+    Weight    weight    = Weight::Normal;
+    FontStyle fontStyle = FontStyle::Normal;
+
+    DESC_FIELDS(VisFont, (family, pixelSize, weight, fontStyle));
+};
+
+struct VisTextAlign {
+    DECL_DESCRIBED_ENUM(HAlign, Left, Center, Right);
+
+    DECL_DESCRIBED_ENUM(VAlign, Top, Center, Bottom);
+
+    HAlign horizontal = HAlign::Left;
+    VAlign vertical   = VAlign::Top;
+
+    DESC_FIELDS(VisTextAlign, (horizontal, vertical));
+};
+
+struct VisElement {
+    struct RectShape {
+        Rect              geometry;
+        VisPen            pen;
+        VisBrush          brush;
+        hstd::Opt<double> cornerRadius;
+
+        DESC_FIELDS(RectShape, (geometry, pen, brush, cornerRadius));
+    };
+
+    struct EllipseShape {
+        Rect     geometry;
+        VisPen   pen;
+        VisBrush brush;
+
+        DESC_FIELDS(EllipseShape, (geometry, pen, brush));
+
+        static EllipseShape fromCenter(
+            Point const& center,
+            double       rx,
+            double       ry,
+            VisPen       pen   = VisPen{},
+            VisBrush     brush = VisBrush{}) {
+            return EllipseShape{
+                .geometry = Rect(
+                    center.x() - rx,
+                    center.y() - ry,
+                    2.0f * rx,
+                    2.0f * ry),
+                .pen   = pen,
+                .brush = brush,
+            };
+        }
+
+        static EllipseShape circle(
+            Point const& center,
+            double       radius,
+            VisPen       pen   = VisPen{},
+            VisBrush     brush = VisBrush{}) {
+            return fromCenter(center, radius, radius, pen, brush);
+        }
+    };
+
+    struct LineShape {
+        Point  p1;
+        Point  p2;
+        VisPen pen;
+
+        DESC_FIELDS(LineShape, (p1, p2, pen));
+    };
+
+    struct PathShape {
+        Path     path;
+        VisPen   pen;
+        VisBrush brush;
+
+        DESC_FIELDS(PathShape, (path, pen, brush));
+    };
+
+    struct PolygonShape {
+        Polygon  points;
+        VisPen   pen;
+        VisBrush brush;
+
+        DESC_FIELDS(PolygonShape, (points, pen, brush));
+    };
+
+    struct TextShape {
+        hstd::Str       content;
+        Point           anchor;
+        hstd::Opt<Rect> boundingBox;
+        VisFont         font;
+        VisTextAlign    alignment;
+        VisColor        color = VisColor::black();
+
+        DESC_FIELDS(
+            TextShape,
+            (content, anchor, boundingBox, font, alignment, color));
+    };
+
+    struct PixmapShape {
+        hstd::Str path;
+        Rect      geometry;
+
+        DESC_FIELDS(PixmapShape, (path, geometry));
+    };
+
+    struct PointShape {
+        Point    position;
+        VisPen   pen;
+        VisBrush brush;
+        double   radius = 2.0f;
+
+        DESC_FIELDS(PointShape, (position, pen, brush, radius));
+    };
+
+    static VisElement FromPoint(
+        Point const&    position,
+        double          radius = 2.5,
+        VisPen const&   pen    = VisPen{},
+        VisBrush const& brush  = VisBrush{}) {
+        return VisElement{PointShape{
+            .position = position,
+            .pen      = pen,
+            .brush    = brush,
+            .radius   = radius}};
+    }
+
+    static VisElement FromRect(
+        Rect const&       geometry,
+        VisPen const&     pen          = VisPen{},
+        VisBrush const&   brush        = VisBrush{},
+        hstd::Opt<double> cornerRadius = hstd::Opt<double>{}) {
+        return VisElement{RectShape{
+            .geometry     = geometry,
+            .pen          = pen,
+            .brush        = brush,
+            .cornerRadius = cornerRadius}};
+    }
+
+    static VisElement FromEllipse(
+        Rect const&     geometry,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{EllipseShape{
+            .geometry = geometry, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromLine(
+        Point const&  p1,
+        Point const&  p2,
+        VisPen const& pen = VisPen{}) {
+        return VisElement{LineShape{.p1 = p1, .p2 = p2, .pen = pen}};
+    }
+
+    static VisElement FromPath(
+        Path const&     path,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{
+            PathShape{.path = path, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromPolygon(
+        Polygon const&  points,
+        VisPen const&   pen   = VisPen{},
+        VisBrush const& brush = VisBrush{}) {
+        return VisElement{
+            PolygonShape{.points = points, .pen = pen, .brush = brush}};
+    }
+
+    static VisElement FromText(
+        hstd::Str const&    content,
+        Point const&        anchor,
+        VisFont const&      font        = VisFont{},
+        VisTextAlign const& alignment   = VisTextAlign{},
+        hstd::Opt<Rect>     boundingBox = hstd::Opt<Rect>{},
+        VisColor const&     color       = VisColor::black()) {
+        return VisElement{TextShape{
+            .content     = content,
+            .anchor      = anchor,
+            .boundingBox = boundingBox,
+            .font        = font,
+            .alignment   = alignment,
+            .color       = color}};
+    }
+
+    static VisElement FromPixmap(
+        hstd::Str const& path,
+        Rect const&      geometry) {
+        return VisElement{PixmapShape{.path = path, .geometry = geometry}};
+    }
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        RectShape,
+        EllipseShape,
+        LineShape,
+        PathShape,
+        PolygonShape,
+        TextShape,
+        PixmapShape,
+        PointShape);
+
+    Data                 data;
+    json                 extra;
+    hstd::Vec<hstd::Str> comment;
+
+    DESC_FIELDS(VisElement, (data, extra, comment));
+};
+
+struct VisGroup {
+    Point                 offset = Point{0.0f, 0.0f};
+    hstd::Vec<VisElement> elements;
+    hstd::Vec<VisGroup>   subgroups;
+    json                  extra;
+    hstd::Vec<hstd::Str>  comment;
+    /// \brief Max point of the visual group in its inner coordinate system
+    /// -- effectively a (width, height) for the group.
+    hstd::Opt<Point> max_point;
+    /// \brief ID value of the original object this group was generated
+    /// for. Might not be set for nested/utility groups.
+    hstd::Opt<hstd::u64> original_id;
+    /// \brief Type of the original object, or some other enumeration used
+    /// to determine the interpretation of the `original_id`.
+    hstd::Opt<hstd::u64> original_type;
+
+    template <typename T>
+    hstd::Vec<T> getElements() const {
+        hstd::Vec<T> result;
+        for (auto const& it : elements) {
+            std::visit(
+                [&]<typename It>(It const& it) {
+                    if constexpr (std::is_same_v<It, T>) {
+                        result.push_back(it);
+                    }
+                },
+                it.data);
+        }
+
+        for (auto const& sub : subgroups) {
+            result.append(sub.getElements<T>());
+        }
+
+        return result;
+    }
+
+    Rect computeBounds(double ox, double oy) const {
+        auto res = computeBoundsNoSelfOffset();
+        return Rect(res.x() + ox, res.y() + oy, res.width(), res.height());
+    }
+
+    Rect computeBounds() const {
+        return computeBounds(offset.x(), offset.y());
+    }
+
+    Rect computeBoundsNoSelfOffset() const;
+
+    hstd::ColText treeRepr() const;
+
+    DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
+};
+
+/// Convert a VisGroup hierarchy to an SVG string.
+XmlNode toSvg(hstd::Vec<VisGroup> const& group, bool debug = false);
+
+Rect computeBounds(hstd::Vec<VisGroup> const& groups);
+
+} // namespace hstd::ext::visual

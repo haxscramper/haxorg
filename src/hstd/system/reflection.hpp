@@ -17,6 +17,33 @@
 
 namespace hstd {
 
+template <std::size_t MeaningfulBits, typename... Args>
+uint64_t hash_bits(const Args&... args) {
+    static_assert(
+        MeaningfulBits <= 64, "MeaningfulBits must be in [0, 64]");
+
+    auto mix64 = [](uint64_t x) -> uint64_t {
+        x += 0x9e3779b97f4a7c15ULL;
+        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+        return x ^ (x >> 31);
+    };
+
+    uint64_t state = 0x243f6a8885a308d3ULL;
+
+    ((state = mix64(
+          state
+          ^ static_cast<uint64_t>(std::hash<std::decay_t<Args>>{}(args)))),
+     ...);
+
+    if constexpr (MeaningfulBits == 0) {
+        return 0ULL;
+    } else if constexpr (MeaningfulBits == 64) {
+        return state;
+    } else {
+        return state & ((1ULL << MeaningfulBits) - 1ULL);
+    }
+}
 
 template <typename T>
 inline void hax_hash_combine(std::size_t& seed, T const& v) {

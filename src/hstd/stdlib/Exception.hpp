@@ -74,4 +74,27 @@ void logic_assertion_check_not_nil(
             msg, line, function, file);
     }
 }
+
+template <typename T, typename Other>
+T* validated_dynamic_cast(Other* other) {
+    auto res = dynamic_cast<T*>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
+template <typename T, typename Other>
+T const* validated_dynamic_cast(Other const* other) {
+    auto res = dynamic_cast<T const*>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
+template <typename T, typename Other>
+std::shared_ptr<T> validated_dynamic_cast(
+    std::shared_ptr<Other> const& other) {
+    auto res = std::dynamic_pointer_cast<T>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
 } // namespace hstd

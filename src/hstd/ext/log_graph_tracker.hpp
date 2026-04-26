@@ -11,7 +11,7 @@
 #    include <string>
 #    include <unordered_map>
 #    include <stack>
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
 
 #    if ORG_BUILD_WITH_QT
@@ -475,7 +475,8 @@ struct graphviz_processor : public log_graph_processor {
     void track_connect(connect_info const& info) override {}
 #        endif
 
-    hstd::ext::Graphviz::Graph get_graphviz();
+    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> get_graphviz(
+        hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run);
 
   private:
     std::stack<std::string>                    call_stack{};
