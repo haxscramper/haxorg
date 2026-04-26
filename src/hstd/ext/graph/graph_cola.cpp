@@ -20,7 +20,7 @@ vpsc::Dim toVpsc(cst::GraphDimension dim) {
 
 
 layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
-    ColaLayoutAlgorithm::runSingleLayout(layout::GroupID const& root_id) {
+    ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
     run->message("running single layout for cst::ColaLayoutAlgorithm");
     auto __scope = run->scopeLevel();
     hstd::logic_assertion_check_not_nil(router);
@@ -29,14 +29,14 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     auto ctx       = rootGroup->shared;
 
 
-    hstd::UnorderedMap<layout::GroupID, hstd::SPtr<vpsc::Rectangle>>
+    hstd::UnorderedMap<VertexID, hstd::SPtr<vpsc::Rectangle>>
         sub_group_rectangles;
 
     std::vector<vpsc::Rectangle*> vertices = ctx->getAllRectanglesSorted();
 
-    auto aux = [&](this auto&&                       self,
-                   layout::GroupID const&            id,
-                   hstd::Opt<layout::GroupID> const& parent) -> void {
+    auto aux = [&](this auto&&                self,
+                   VertexID const&            id,
+                   hstd::Opt<VertexID> const& parent) -> void {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto parentGroup = run->getGroup<ColaGroup>(parent.value());
@@ -74,16 +74,15 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     }
 
 
-    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
-    hstd::Vec<cola::CompoundConstraint*>            ccs;
-    hstd::UnorderedMap<hstd::u64, hstd::Pair<layout::GroupID, int>>
-        cc_index;
+    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>>          ccs_s;
+    hstd::Vec<cola::CompoundConstraint*>                     ccs;
+    hstd::UnorderedMap<hstd::u64, hstd::Pair<VertexID, int>> cc_index;
 
     cola::Locks locks;
 
 
-    auto aux_constraints = [&](this auto&&            self,
-                               layout::GroupID const& id) -> void {
+    auto aux_constraints = [&](this auto&&     self,
+                               VertexID const& id) -> void {
         auto group = run->getGroup(id);
         for (auto const& [ir_idx, constraint] :
              enumerate(group->constraints)) {
@@ -100,7 +99,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                     ccs.push_back(s.get());
                     cc_index.insert_or_assign(
                         (hstd::u64)s.get(),
-                        hstd::Pair<layout::GroupID, int>{id, ir_idx});
+                        hstd::Pair<VertexID, int>{id, ir_idx});
                 }
             }
 
@@ -160,9 +159,9 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     layout::IPlacementAlgorithm::Result result;
 
     auto aux_layout =
-        [&](this auto&&                       self,
-            layout::GroupID const&            id,
-            hstd::Opt<layout::GroupID> const& parent) -> geometry::Rect {
+        [&](this auto&&                self,
+            VertexID const&            id,
+            hstd::Opt<VertexID> const& parent) -> geometry::Rect {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
@@ -249,8 +248,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     return result;
 }
 
-layout::GroupID cst::ColaGroup::newRootGraph(
-    hstd::SPtr<layout::LayoutRun> run) {
+VertexID cst::ColaGroup::newRootGraph(hstd::SPtr<layout::LayoutRun> run) {
     auto result = std::make_shared<ColaGroup>(
         std::make_shared<SharedCtx>(API::SharedCtxBase{
             .run = run,
@@ -918,7 +916,7 @@ VisGroup getSeparateVisualGroup(
 
 
 hstd::ext::visual::VisGroup hstd::ext::graph::cst::
-    ColaGroupLayoutAttribute::getVisual(layout::GroupID const& id) const {
+    ColaGroupLayoutAttribute::getVisual(VertexID const& id) const {
     using namespace visual;
     VisGroup res{};
 

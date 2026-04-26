@@ -286,18 +286,18 @@ hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> hstd::
     return result;
 }
 
-hstd::Vec<VertexID> IGraph::getAllVertices() const {
-    hstd::Vec<VertexID> result;
-    for (const auto& id : vertexIDs) { result.push_back(id); }
+VertexIDSet IGraph::getAllVertices() const {
+    VertexIDSet result;
+    for (const auto& id : vertexIDs) { result.incl(id); }
     return result;
 }
 
-hstd::Vec<VertexID> IGraph::getRootVertices(
+VertexIDSet IGraph::getRootVertices(
     GraphHierarchyID const& hierarchy) const {
     return hierarchies.at(hierarchy)->getRootVertices();
 }
 
-hstd::Vec<VertexID> IGraph::getSubVertices(
+VertexIDSet IGraph::getSubVertices(
     GraphHierarchyID const& hierarchy,
     VertexID const&         id) const {
     return hierarchies.at(hierarchy)->getSubVertices(id);
@@ -405,24 +405,23 @@ void IVertexHierarchy::untrackSubVertexRelation(
     rootVertices.insert(sub);
 }
 
-hstd::Vec<VertexID> IVertexHierarchy::getAllVertices() const {
-    hstd::Vec<VertexID> result;
-    for (auto const& id : vertexIDs) { result.push_back(id); }
+VertexIDSet IVertexHierarchy::getAllVertices() const {
+    VertexIDSet result;
+    for (auto const& id : vertexIDs) { result.incl(id); }
     return result;
 }
 
-hstd::Vec<VertexID> IVertexHierarchy::getRootVertices() const {
-    hstd::Vec<VertexID> result;
-    for (auto const& id : rootVertices) { result.push_back(id); }
+VertexIDSet IVertexHierarchy::getRootVertices() const {
+    VertexIDSet result;
+    for (auto const& id : rootVertices) { result.incl(id); }
     return result;
 }
 
-hstd::Vec<VertexID> IVertexHierarchy::getSubVertices(
-    VertexID const& id) const {
-    hstd::Vec<VertexID> result;
+VertexIDSet IVertexHierarchy::getSubVertices(VertexID const& id) const {
+    VertexIDSet result;
     if (nestedInMap.contains(id)) {
         for (auto const& sub_id : nestedInMap.at(id)) {
-            result.push_back(sub_id);
+            result.incl(sub_id);
         }
     }
     return result;
@@ -468,25 +467,21 @@ hstd::Vec<VertexID> IVertexHierarchy::getParentChain(
     return result;
 }
 
-hstd::Vec<EdgeID> IVertexHierarchy::getEdges() const {
-    hstd::Vec<EdgeID> result;
-    for (auto const& [it, value] : edgeTracker) {
-        result.push_back(value);
-    }
+EdgeIDSet IVertexHierarchy::getEdges() const {
+    EdgeIDSet result;
+    for (auto const& [it, value] : edgeTracker) { result.incl(value); }
     return result;
 }
 
-hstd::Vec<EdgeID> IVertexHierarchy::getOutgoing(
-    VertexID const& vert) const {
-    hstd::Vec<EdgeID> result;
+EdgeIDSet IVertexHierarchy::getOutgoing(VertexID const& vert) const {
+    EdgeIDSet result;
     for (auto const& sub_vertex : getSubVertices(vert)) {
-        result.push_back(edgeTracker.at({vert, sub_vertex}));
+        result.incl(edgeTracker.at({vert, sub_vertex}));
     }
     return result;
 }
 
-hstd::Vec<EdgeID> IVertexHierarchy::getIncoming(
-    VertexID const& vert) const {
+EdgeIDSet IVertexHierarchy::getIncoming(VertexID const& vert) const {
     if (auto parent = getParentVertex(vert)) {
         return {edgeTracker.at({parent.value(), vert})};
     } else {
@@ -562,7 +557,7 @@ json IGraph::getGraphSerial() const {
         serial_hierarchy.maxNestingLevel = hierarchy->getMaxNestingLevel();
 
         for (auto const& vertex :
-             hstd::sorted(hierarchy->getRootVertices())) {
+             hstd::sorted(hierarchy->getRootVertices().items())) {
             serial_hierarchy.rootVertexIDs.push_back(
                 getVertex(vertex)->getStableId());
         }
@@ -634,26 +629,24 @@ json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
 }
 
 
-hstd::Vec<EdgeID> IEdgeCollection::getOutgoing(
-    VertexID const& vert) const {
-    hstd::Vec<EdgeID> result;
+EdgeIDSet IEdgeCollection::getOutgoing(VertexID const& vert) const {
+    EdgeIDSet result;
     if (incidence.contains(vert)) {
         for (const auto& [target, edges] : incidence.at(vert)) {
-            for (const auto& edge : edges) { result.push_back(edge); }
+            for (const auto& edge : edges) { result.incl(edge); }
         }
     }
     return result;
 }
 
-hstd::Vec<EdgeID> IEdgeCollection::getIncoming(
-    VertexID const& vert) const {
-    hstd::Vec<EdgeID> result;
+EdgeIDSet IEdgeCollection::getIncoming(VertexID const& vert) const {
+    EdgeIDSet result;
     if (incoming_from.contains(vert)) {
         for (const auto& source : incoming_from.at(vert)) {
             if (incidence.contains(source)
                 && incidence.at(source).contains(vert)) {
                 for (const auto& edge : incidence.at(source).at(vert)) {
-                    result.push_back(edge);
+                    result.incl(edge);
                 }
             }
         }
@@ -673,13 +666,11 @@ void IEdgeCollection::trackVertex(VertexID const& vert) {
 
 IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
     VertexID const& vert) {
-    hstd::Vec<EdgeID> edgesToRemove;
+    EdgeIDSet edgesToRemove;
 
     if (incidence.contains(vert)) {
         for (const auto& [target, edges] : incidence.at(vert)) {
-            for (const auto& edge : edges) {
-                edgesToRemove.push_back(edge);
-            }
+            for (const auto& edge : edges) { edgesToRemove.incl(edge); }
         }
     }
 
@@ -688,7 +679,7 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
             if (incidence.contains(source)
                 && incidence.at(source).contains(vert)) {
                 for (const auto& edge : incidence.at(source).at(vert)) {
-                    edgesToRemove.push_back(edge);
+                    edgesToRemove.incl(edge);
                 }
             }
         }
@@ -766,11 +757,11 @@ bool IEdgeProvider::hierarchyUsesMask(GraphHierarchyID const& id) {
     return (id.t & HierarchyCategoryMaskBit) != 0;
 }
 
-hstd::Vec<EdgeID> IEdgeCollection::getEdges() const {
-    hstd::Vec<EdgeID> result;
+EdgeIDSet IEdgeCollection::getEdges() const {
+    EdgeIDSet result;
     for (const auto& [source, targets] : incidence) {
         for (const auto& [target, edges] : targets) {
-            for (const auto& edge : edges) { result.push_back(edge); }
+            for (const auto& edge : edges) { result.incl(edge); }
         }
     }
     return result;
@@ -786,11 +777,11 @@ void layout::LayoutRun::runFullLayout() {
         message(hstd::fmt("running layout for group ID {}", id));
         auto __scope = scopeLevel();
         auto group   = getGroup(id);
-        for (auto const& sub : hstd::sorted(getSubGroups(id))) {
+        for (auto const& sub : hstd::sorted(getSubGroups(id).items())) {
             self(sub);
         }
 
-        for (auto const& sub : hstd::sorted(getSubGroups(id))) {
+        for (auto const& sub : hstd::sorted(getSubGroups(id).items())) {
             if (getGroup(sub)->hasAlgorithm()) {
                 LOGIC_ASSERTION_CHECK_FMT(
                     result.vertices.contains(sub),
@@ -836,14 +827,14 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         auto                        group  = getGroup(id);
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
 
-        for (auto const& sub : getSubGroups(id)) {
+        for (auto const& sub : hstd::sorted(getSubGroups(id).items())) {
             auto visual          = self(sub);
             visual.original_id   = sub.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Group;
             result.subgroups.push_back(visual);
         }
 
-        for (auto const& it : group->getVertices()) {
+        for (auto const& it : hstd::sorted(getVertices(id).items())) {
             auto const& attr     = getLayout(it);
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
@@ -851,7 +842,8 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             result.subgroups.push_back(visual);
         }
 
-        for (auto const& it : group->getEdges()) {
+        for (auto const& it :
+             hstd::sorted(getDirectlyNestedEdges(id).items())) {
             auto const& attr     = getLayout(it);
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();

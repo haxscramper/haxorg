@@ -359,6 +359,21 @@ class IAttributeObject {
 
         return result;
     }
+
+    template <typename T>
+        requires std::derived_from<T, IAttribute>
+    void addUniqueAttribute(hstd::SPtr<T> const& attr) {
+        auto existing = getOptionalAttribute<T>();
+        if (existing.has_value()) {
+            throw graph_error::init(
+                "Graph object is required to have only one attribute of "
+                "type {}, but the code is attempting to add a new "
+                "instance.",
+                hstd::value_metadata<T>::typeName());
+        } else {
+            addAttribute(attr);
+        }
+    }
 };
 
 
@@ -618,21 +633,21 @@ class IEdgeProvider {
     /// \note The class derived from the edge collection or vertex
     /// hierarchy should make use  `trackEdge` or `trackSubVertexRelation`
     /// to populate the edge collection tracker tables.
-    virtual hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) = 0;
+    virtual EdgeIDSet addAllOutgoing(VertexID const& id) = 0;
 
     /// \brief Return stable identifier for this edge collection.
     virtual std::string getStableID() const;
 
     /// \brief Get the full list of edges stored in the collection
-    virtual hstd::Vec<EdgeID> getEdges() const = 0;
+    virtual EdgeIDSet getEdges() const = 0;
 
     /// \brief Add the vertex to the edge collection without any of the
     /// incoming/outgoing edges.
     virtual void trackVertex(VertexID const& vert) = 0;
 
     struct DependantDeletion {
-        hstd::Vec<VertexID> vertices;
-        hstd::Vec<EdgeID>   edges;
+        VertexIDSet vertices;
+        EdgeIDSet   edges;
     };
 
     /// \brief Remove the vertex from the collection including any outgoing
@@ -641,10 +656,10 @@ class IEdgeProvider {
 
 
     /// \brief Get list of all outgoing edges for the target vertex
-    virtual hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const = 0;
+    virtual EdgeIDSet getOutgoing(VertexID const& vert) const = 0;
 
     /// \brief Get list of all incoming edges for the target vertex
-    virtual hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const = 0;
+    virtual EdgeIDSet getIncoming(VertexID const& vert) const = 0;
 
     // static API for masking the edge IDs.
 
@@ -685,9 +700,9 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
-    hstd::Vec<EdgeID> getEdges() const override;
-    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const override;
-    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const override;
+    EdgeIDSet         getEdges() const override;
+    EdgeIDSet         getOutgoing(VertexID const& vert) const override;
+    EdgeIDSet         getIncoming(VertexID const& vert) const override;
     void              trackVertex(VertexID const& vert) override;
     DependantDeletion untrackVertex(VertexID const& vert) override;
 
@@ -791,7 +806,9 @@ class IVertexHierarchy : public IEdgeProvider {
     ///
     /// The vertex can only be nested under one parent and
     /// present in the graph once. Both parent and sub must be existing
-    /// vertices.
+    /// vertices. This method will create a new edge ID based on the parent
+    /// and sub-vertex IDs.
+    ///
     ///
     /// \warning After the vertex has been registered in the main graph
     /// this method needs to be called to record additional structural
@@ -818,13 +835,13 @@ class IVertexHierarchy : public IEdgeProvider {
         VertexID const& sub);
 
     /// \brief Return all vertices tracked by this hierarchy.
-    hstd::Vec<VertexID> getAllVertices() const;
+    VertexIDSet getAllVertices() const;
 
     /// \brief Return all root vertices tracked by this hierarchy.
-    hstd::Vec<VertexID> getRootVertices() const;
+    VertexIDSet getRootVertices() const;
 
     /// \brief Return direct sub-vertices for `id`.
-    hstd::Vec<VertexID> getSubVertices(VertexID const& id) const;
+    VertexIDSet getSubVertices(VertexID const& id) const;
 
     /// \brief Return parent vertex for `id` if present.
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
@@ -833,9 +850,9 @@ class IVertexHierarchy : public IEdgeProvider {
     /// to the root.
     hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
 
-    hstd::Vec<EdgeID> getEdges() const override;
-    hstd::Vec<EdgeID> getOutgoing(VertexID const& vert) const override;
-    hstd::Vec<EdgeID> getIncoming(VertexID const& vert) const override;
+    EdgeIDSet getEdges() const override;
+    EdgeIDSet getOutgoing(VertexID const& vert) const override;
+    EdgeIDSet getIncoming(VertexID const& vert) const override;
 
     /// \brief Return the highest level of nesting in the hierarchy.
     int getMaxNestingLevel() const;
@@ -959,12 +976,11 @@ class IGraph {
     /// \name Vertex hierarchies
     /// @{
     /// \brief Get list of all vertices stored in the graph
-    hstd::Vec<VertexID> getAllVertices() const;
+    VertexIDSet getAllVertices() const;
     /// \brief Get root vertices for the specified hierarchy
-    hstd::Vec<VertexID> getRootVertices(
-        GraphHierarchyID const& hierarchy) const;
+    VertexIDSet getRootVertices(GraphHierarchyID const& hierarchy) const;
     /// \brief Get sub vertices for the specified hierarchy
-    hstd::Vec<VertexID> getSubVertices(
+    VertexIDSet getSubVertices(
         GraphHierarchyID const& hierarchy,
         VertexID const&         id) const;
     /// \brief Get parent vertices for the specified hierarchy
@@ -1122,9 +1138,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         return &edgeStore.at(id);
     }
 
-    hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) override {
-        return {};
-    }
+    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
 };
 
 struct TrivialGraph : public IGraph {
@@ -1315,11 +1329,6 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
-
-/// \brief Non-structural collection of vertices, edges, constraints and
-/// sub-groups.
-class IGroup {};
-
 class LayoutRun : public OperationsTracer {
   public:
     hstd::SPtr<IGraph>           graph;
@@ -1361,28 +1370,28 @@ class LayoutRun : public OperationsTracer {
         return graph->getVertex(id)->hasOptionalAttribute<T>();
     }
 
-    hstd::Vec<VertexID> getVertices(VertexID const& id) const {
+    VertexIDSet getVertices(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id),
             "Cannot get nested vertices from non-group");
-        hstd::Vec<VertexID> res;
+        VertexIDSet res;
         for (auto const& sub : groups->getSubVertices(id)) {
-            if (!isGroupVertex(sub)) { res.push_back(sub); }
+            if (!isGroupVertex(sub)) { res.incl(sub); }
         }
         return res;
     }
 
-    hstd::Vec<VertexID> getSubGroups(VertexID const& id) const {
+    VertexIDSet getSubGroups(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id), "Cannot get nested groups from non-group");
-        hstd::Vec<VertexID> res;
+        VertexIDSet res;
         for (auto const& sub : groups->getSubVertices(id)) {
-            if (isGroupVertex(sub)) { res.push_back(sub); }
+            if (isGroupVertex(sub)) { res.incl(sub); }
         }
         return res;
     }
 
-    hstd::Vec<VertexID> getAllNested(VertexID const& id) const {
+    VertexIDSet getAllNested(VertexID const& id) const {
         return groups->getSubVertices(id);
     }
 
@@ -1390,6 +1399,7 @@ class LayoutRun : public OperationsTracer {
         VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getFullyIncludedEdges(getAllNested(id));
     }
 
     void addRootGroup(VertexID const& id) { groups->trackVertex(id); }
