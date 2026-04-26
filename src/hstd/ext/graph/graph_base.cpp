@@ -20,7 +20,7 @@ IEdgeProvider::DependantDeletion IVertexHierarchy::untrackVertex(
 
     std::function<void(VertexID const&)> collect =
         [&](VertexID const& current) {
-            result.vertices.push_back(current);
+            result.vertices.incl(current);
             if (nestedInMap.contains(current)) {
                 for (auto const& sub : nestedInMap.at(current)) {
                     collect(sub);
@@ -863,40 +863,4 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
     getGraph() const {
     return run->graph;
-}
-
-void hstd::ext::graph::layout::IGroupVisualAttribute::addVertex(
-    VertexID const&                           id,
-    hstd::SPtr<IVertexVisualAttribute> const& attr) {
-    LOGIC_ASSERTION_CHECK(
-        run->isGroupVertex(id),
-        "Cannot assign non-group visual attribute to the vertex already "
-        "annotated with the group visual attribute.");
-
-    LOGIC_ASSERTION_CHECK(
-        std::dynamic_pointer_cast<IGroupVisualAttribute>(attr) == nullptr,
-        "Cannot use group visual attribute in the vertex. Classes derived "
-        "from the IGroupVisualAttribute should be managed by the "
-        "addNewNativeSubgroup method");
-
-    getGraph()->getMVertex(id)->addUniqueAttribute(attr);
-}
-
-void layout::IGroupVisualAttribute::addEdge(
-    EdgeID const&                           id,
-    hstd::SPtr<IEdgeVisualAttribute> const& attr) {
-    getGraph()->getMEdge(id)->addUniqueAttribute(attr);
-}
-
-void layout::IGroupVisualAttribute::addNewNativeSubgroup(
-    VertexID const&                          id,
-    hstd::SPtr<IGroupVisualAttribute> const& attr) {
-    LOGIC_ASSERTION_CHECK(
-        !getGraph()
-             ->getVertex(id)
-             ->getOptionalAttribute<IVertexVisualAttribute>()
-             .has_value(),
-        "Cannot assign group visual attribute to a vertex that already "
-        "has vertex visual attribute.");
-    getGraph()->getMVertex(id)->addUniqueAttribute(attr);
 }

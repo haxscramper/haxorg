@@ -295,6 +295,8 @@ class IAttributeObject {
   public:
     virtual hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const = 0;
     virtual void addAttribute(hstd::SPtr<IAttribute> const& attr)   = 0;
+    virtual void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) = 0;
 
     /// \brief Get first instance of the attribute with dynamic type `T`.
     template <typename T>
@@ -375,6 +377,20 @@ class IAttributeObject {
         }
 
         addAttribute(attr);
+    }
+
+    template <typename T = IAttribute>
+        requires std::derived_from<T, IAttribute>
+    void addOrResetUniqueAttribute(hstd::SPtr<T> const& attr) {
+        hstd::Vec<hstd::SPtr<IAttribute>> new_list;
+        for (auto const& existing : getAttributes()) {
+            if (typeid(attr.get()) == typeid(existing.get())) {
+                new_list.push_back(attr);
+            } else {
+                new_list.push_back(existing);
+            }
+        }
+        setAttributes(new_list);
     }
 };
 
@@ -1117,6 +1133,12 @@ struct TrivialVertex : public IVertex {
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
     }
+
+  public:
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
 };
 
 
@@ -1131,6 +1153,12 @@ struct TrivialEdge : public IEdge {
 
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
+    }
+
+  public:
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
     }
 };
 
@@ -1320,16 +1348,6 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
     virtual std::string getStableId() const = 0;
 
-    /// \brief Add the new vertex to this group, and return
-    /// backend-specific attributes.
-    virtual void addVertex(
-        VertexID const&                           id,
-        hstd::SPtr<IVertexVisualAttribute> const& attr);
-
-    virtual void addEdge(
-        EdgeID const&                           id,
-        hstd::SPtr<IEdgeVisualAttribute> const& attr);
-
     /// \brief Create a new group object without own layout algorithm and
     /// add it as a sub-group for the current one. It will insert a new
     /// group object in the overall layout run map.
@@ -1345,11 +1363,107 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
+class LayoutHierarchy : public IVertexHierarchy {
+  public:
+    GraphHierarchyID getHierarchyId() const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(
+            false, "Method `getHierarchyId` is not implemented.");
+    }
+
+    EdgeCollectionID getCategory() const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getCategory` is not implemented.");
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getEdge` is not implemented.");
+    }
+
+    EdgeIDSet addAllOutgoing(VertexID const& id) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(
+            false, "Method `addAllOutgoing` is not implemented.");
+    }
+
+    EdgeIDSet getEdges() const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getEdges` is not implemented.");
+    }
+
+    void trackVertex(VertexID const& vert) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `trackVertex` is not implemented.");
+    }
+
+    DependantDeletion untrackVertex(VertexID const& vert) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `untrackVertex` is not implemented.");
+    }
+
+    EdgeIDSet getOutgoing(VertexID const& vert) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getOutgoing` is not implemented.");
+    }
+
+    EdgeIDSet getIncoming(VertexID const& vert) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getIncoming` is not implemented.");
+    }
+};
+
+class LayoutEdges : public IEdgeCollection {
+
+
+  public:
+    EdgeCollectionID getCategory() const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getCategory` is not implemented.");
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getEdge` is not implemented.");
+    }
+
+    EdgeIDSet addAllOutgoing(VertexID const& id) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(
+            false, "Method `addAllOutgoing` is not implemented.");
+    }
+
+    EdgeIDSet getEdges() const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getEdges` is not implemented.");
+    }
+
+    void trackVertex(VertexID const& vert) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `trackVertex` is not implemented.");
+    }
+
+    DependantDeletion untrackVertex(VertexID const& vert) override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `untrackVertex` is not implemented.");
+    }
+
+    EdgeIDSet getOutgoing(VertexID const& vert) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getOutgoing` is not implemented.");
+    }
+
+    EdgeIDSet getIncoming(VertexID const& vert) const override {
+        // TODO: Implement this pure virtual method.
+        static_assert(false, "Method `getIncoming` is not implemented.");
+    }
+};
+
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::SPtr<IGraph>           graph;
-    hstd::SPtr<IVertexHierarchy> groups;
-    hstd::SPtr<IEdgeCollection>  edges;
+    hstd::SPtr<IGraph>          graph;
+    hstd::SPtr<LayoutHierarchy> groups;
+    hstd::SPtr<LayoutEdges>     edges;
 
     LayoutRun(hstd::SPtr<IGraph> graph) : graph{graph} {
         hstd::logic_assertion_check_not_nil(graph);
@@ -1404,6 +1518,20 @@ class LayoutRun : public OperationsTracer {
         return graph->getVertex(id)->getUniqueAttribute<T>();
     }
 
+    template <typename T = IAttribute>
+        requires std::derived_from<T, IAttribute>
+    void setAttribute(EdgeID const& id, hstd::SPtr<T> const& attr) const {
+        graph->getEdge(id)->addOrResetUniqueAttribute<T>(id, attr);
+    }
+
+    template <typename T = IAttribute>
+        requires std::derived_from<T, IAttribute>
+    void setAttribute(VertexID const& id, hstd::SPtr<T> const& attr)
+        const {
+        graph->getVertex(id)->addOrResetUniqueAttribute<T>(id, attr);
+    }
+
+
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     bool isGroupVertex(VertexID const& id) const {
@@ -1417,6 +1545,14 @@ class LayoutRun : public OperationsTracer {
         VertexIDSet res;
         for (auto const& sub : groups->getSubVertices(id)) {
             if (!isGroupVertex(sub)) { res.incl(sub); }
+        }
+        return res;
+    }
+
+    VertexIDSet getRootGroups() const {
+        VertexIDSet res;
+        for (auto const& sub : groups->getRootVertices()) {
+            if (isGroupVertex(sub)) { res.incl(sub); }
         }
         return res;
     }
@@ -1458,6 +1594,51 @@ class LayoutRun : public OperationsTracer {
         graph->getMVertex(nested)->addUniqueAttribute(attr);
         return res;
     }
+
+    EdgeID addNestedVertex(
+        VertexID const&                           parent,
+        VertexID const&                           nested,
+        hstd::SPtr<IVertexVisualAttribute> const& attr) {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(parent),
+            "Cannot assign non-group visual attribute to the vertex "
+            "already "
+            "annotated with the group visual attribute.");
+
+        LOGIC_ASSERTION_CHECK(
+            std::dynamic_pointer_cast<IGroupVisualAttribute>(attr)
+                == nullptr,
+            "Cannot use group visual attribute in the vertex. Classes "
+            "derived from the IVertexVisualAttribute should be managed by "
+            "the addNewNativeSubgroup method");
+
+        getGraph()->getMVertex(nested)->addUniqueAttribute(attr);
+        return groups->trackSubVertexRelation(parent, nested);
+    }
+
+    void addNewNativeSubgroup(
+        VertexID const&                          id,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+        LOGIC_ASSERTION_CHECK(
+            !getGraph()
+                 ->getVertex(id)
+                 ->getOptionalAttribute<IVertexVisualAttribute>()
+                 .has_value(),
+            "Cannot assign group visual attribute to a vertex that "
+            "already has vertex visual attribute.");
+        getGraph()->getMVertex(id)->addUniqueAttribute(attr);
+    }
+
+
+    void addEdge(
+        EdgeID const&                           id,
+        hstd::SPtr<IEdgeVisualAttribute> const& attr) {
+        getGraph()->getMEdge(id)->addUniqueAttribute(attr);
+        edges->trackEdge(id);
+    }
+
+    hstd::SPtr<IGraph> getGraph() const { return graph; }
+
 
     IVertex const* at(VertexID const& id) const {
         return graph->getVertex(id);

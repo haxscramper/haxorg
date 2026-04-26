@@ -13,16 +13,18 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     auto e23 = graph->addEdge(v2, v3);
     auto e31 = graph->addEdge(v3, v1);
 
+    auto root_id = graph->addVertex();
+
     // creates a graphviz root graph
-    auto                       root  = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> group = getGv(root);
+    auto root = gv::GraphGroup::newRootGraph(run);
+    run->addRootGroup(root_id, root);
 
     // add vertext, the graph group will internally create a visual
     // attribute and graphviz node object
-    group->addVertex(v1);
-    group->addVertex(v2);
-    group->addVertex(v3);
-    group->addVertex(v4);
+    root->addVertex(root_id, v1);
+    root->addVertex(root_id, v2);
+    root->addVertex(root_id, v3);
+    root->addVertex(root_id, v4);
 
     // configure visual parameters for graphviz nodes. The methods are
     // specific to the graphviz layout nodes, and use cgraph API
@@ -35,14 +37,14 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
 
     // Add edges to the graphviz graph. This links already existing
     // semantic vertices to the visual representation in the layout.
-    group->addEdge(e12);
-    group->addEdge(e23);
-    group->addEdge(e31);
+    root->addEdge(e12);
+    root->addEdge(e23);
+    root->addEdge(e31);
 
     // For the graphviz backend, adding vertices and edges is enough to
     // gnerate a PNG file with cgraph API. It does not populate the layout
     // attributes for the overall algorithm, but can be used for debugging.
-    group->render("/tmp/result.png");
+    root->render("/tmp/result.png");
 
     // Running for layout will populate all maps and fields of the layout
     // run with placement information.
@@ -94,6 +96,9 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
     for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
+    auto     root_id       = graph->addVertex();
+    VertexID sub_group_id1 = graph->addVertex();
+    VertexID sub_group_id2 = graph->addVertex();
 
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
@@ -113,18 +118,19 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     edge(10, 7); // 10
     edge(7, 5);  // 11
 
-    auto                       root  = gv::GraphGroup::newRootGraph(run);
-    hstd::SPtr<gv::GraphGroup> group = getGv(root);
-    auto                       ctx   = group->context();
 
-    EXPECT_EQ(ctx->groups.size(), 1);
-    EXPECT_EQ(group->subGroups.size(), 0);
+    auto group = gv::GraphGroup::newRootGraph(run);
+    run->addRootGroup(root_id, group);
+    auto ctx = group->context();
 
-    layout::GroupID sub_group_id1         = group->addNewNativeSubgroup();
+    EXPECT_EQ(run->getRootGroups().size(), 1);
+    EXPECT_EQ(run->getSubGroups(root_id).size(), 0);
+
+    VertexID sub_group_id1                = group->addNewNativeSubgroup();
     hstd::SPtr<gv::GraphGroup> sub_group1 = as<gv::GraphGroup>(
         run->getGroup(sub_group_id1));
 
-    layout::GroupID sub_group_id2         = group->addNewNativeSubgroup();
+    VertexID sub_group_id2                = group->addNewNativeSubgroup();
     hstd::SPtr<gv::GraphGroup> sub_group2 = as<gv::GraphGroup>(
         run->getGroup(sub_group_id2));
 
@@ -234,12 +240,12 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     hstd::SPtr<gv::GraphGroup> group = getGv(root);
     auto                       ctx   = group->context();
 
-    layout::GroupID            sg1_id = group->newSubLayoutGraph();
+    VertexID                   sg1_id = group->newSubLayoutGraph();
     hstd::SPtr<gv::GraphGroup> sg1    = as<gv::GraphGroup>(
         run->getGroup(sg1_id));
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
 
-    layout::GroupID            sg2_id = group->newSubLayoutGraph();
+    VertexID                   sg2_id = group->newSubLayoutGraph();
     hstd::SPtr<gv::GraphGroup> sg2    = as<gv::GraphGroup>(
         run->getGroup(sg2_id));
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
@@ -373,7 +379,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     // re-checking the same element placement, but now via the visual
     // attribute API access
-    for (layout::GroupID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
+    for (VertexID const& gid : hstd::as_vec(sg1_id, sg2_id)) {
         auto const& group = run->getGroup(gid);
         for (VertexID vert : group->getVertices()) {
             auto const& group_visual = run->getVisual(gid);

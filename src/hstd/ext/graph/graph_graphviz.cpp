@@ -591,14 +591,12 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             // iterate over edges/vertices to insert graphviz attributes to
             // enable post-layout association.
             for (auto const& vertex : run->getVertices(id)) {
-                rootGroup->ctx.run->getMVertex(vertex)
-                    ->getUniqueAttribute<NodeAttribute>()
+                run->getVertexVisualAttribute<NodeAttribute>(vertex)
                     ->setAttr(id_attr, vertex.getValue());
             }
 
-
-            for (auto const& edge : group->getEdges()) {
-                gv_group->edgeAttributes()[edge]->setAttr(
+            for (auto const& edge : run->getDirectlyNestedEdges(id)) {
+                run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }
         }
@@ -640,7 +638,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 GraphGroupLayoutAttribute>(prev_attribute);
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
-                result.groups.insert_or_assign(
+                run->getGroup<GraphGroup>(id);
+                result.vertices.insert_or_assign(
                     id,
                     std::make_shared<GraphGroupLayoutAttribute>(
                         rect, prev_cast->group));
@@ -649,7 +648,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                     hstd::fmt(
                         "previous attribute was {}",
                         typeid(prev_cast.get()).name()));
-                result.groups.insert_or_assign(
+                result.vertices.insert_or_assign(
                     id,
                     std::make_shared<GraphGroupLayoutAttribute>(
                         rect, rootGroup));
@@ -688,7 +687,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             group.getPropertiesAsString());
         auto id = VertexID::FromValue(id_attr.value());
         run->message(hstd::fmt("each-group iterate group {}", id));
-        result.groups.insert_or_assign(
+        result.vertices.insert_or_assign(
             id,
             std::make_shared<GraphGroupLayoutAttribute>(
                 getGraphBBox(group), std::make_shared<GraphGroup>(group)));
@@ -700,7 +699,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     // postiioned at 0,0. When the group layout is done as an opaque nested
     // node, then the attribute is reset with a bounding box positioned on
     // the final coordinates.
-    result.groups.insert_or_assign(
+    result.vertices.insert_or_assign(
         root_id,
         std::make_shared<GraphGroupLayoutAttribute>(
             getGraphBBox(*rootGroup), rootGroup));
@@ -752,9 +751,6 @@ Path gv::GraphEdgeLayoutAttribute::getPath() const {
 }
 
 
-Rect gv::GraphGroupLayoutAttribute::getPointsBBox() const { return graph; }
-
-
 std::string gv::EdgeAttribute::getPropertiesAsString() const {
     std::stringstream ss;
     Agsym_t*          sym;
@@ -791,28 +787,9 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
     return result;
 }
 
-VertexID gv::GraphGroup::newSubLayoutGraph() {
-    auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
-    if (!gvc) {
-        throw std::runtime_error("Failed to create Graphviz context");
-    }
 
-    auto result = std::make_shared<GraphGroup>(
-        GroupContext{
-            .run     = run,
-            .context = GVContext::shared(),
-            .gvc     = gvc,
-        },
-        hstd::Str{hstd::fmt("sub-layout-{}", run->groups.getNextId())});
-
-    result->algorithm = std::make_shared<gv::Layout>(gvc, run);
-    auto id           = run->addGroup(result);
-    result->groups().insert_or_assign(id, result);
-    addExistingSubgroup(id);
-    return id;
-}
-
-VertexID gv::GraphGroup::newRootGraph(hstd::SPtr<layout::LayoutRun> run) {
+hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(
+    hstd::SPtr<layout::LayoutRun> run) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
     if (!gvc) {
         throw std::runtime_error("Failed to create Graphviz context");
@@ -827,9 +804,8 @@ VertexID gv::GraphGroup::newRootGraph(hstd::SPtr<layout::LayoutRun> run) {
         hstd::Str{"root"});
 
     result->algorithm = std::make_shared<gv::Layout>(gvc, run);
-    auto id           = run->addRootGroup(result);
-    result->groups().insert_or_assign(id, result);
-    return id;
+
+    return result;
 }
 
 std::string gv::NodeAttribute::getPropertiesAsString() const {

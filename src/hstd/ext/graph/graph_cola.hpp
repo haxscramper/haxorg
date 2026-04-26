@@ -71,63 +71,6 @@ struct GroupBase : public CRTP_this_method<TDerivedGroup> {
             hstd::value_metadata<TDerivedGroup>::typeName(),
             get_local_ctx().name);
     }
-
-    hstd::SPtr<TEdgeAttribute> addEdge(
-        EdgeID const&                                   id,
-        hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) {
-
-        LOGIC_ASSERTION_CHECK_FMT(
-            !edgeAttributes().contains(id),
-            "Canot add edge ID {} to the graph group '{}', it is already "
-            "added to {} group",
-            id,
-            getStableId(),
-            get_local_ctx().directEdges.contains(id) ? "this" : "other");
-
-        auto vatr = std::dynamic_pointer_cast<TEdgeAttribute>(attr);
-
-        LOGIC_ASSERTION_CHECK_FMT(
-            vatr != nullptr,
-            "Graph groups expects attributes of type {}, but "
-            "attr has dynamic type of {}",
-            hstd::value_metadata<TEdgeAttribute>::typeName(),
-            typeid(attr.get()).name());
-
-        auto e = const_cast<IEdge*>(_this()->shared->run->getEdge(id));
-
-        LOGIC_ASSERTION_CHECK_FMT(
-            nodeAttributes().contains(e->getSource()),
-            "{}",
-            e->getSource());
-
-        LOGIC_ASSERTION_CHECK_FMT(
-            nodeAttributes().contains(e->getTarget()),
-            "{}",
-            e->getTarget());
-
-        _this()->shared->run->message(
-            hstd::fmt(
-                "add edge {} ({} -> {}) to group '{}'",
-                id,
-                e->getSource(),
-                e->getTarget(),
-                getStableId()));
-
-        e->addAttribute(attr);
-
-        edgeAttributes().insert_or_assign(id, vatr);
-        _this()->local.directEdges.insert(id);
-        return vatr;
-    }
-
-    void addExistingSubgroup(VertexID const& id) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !_this()->subGroups.contains(id),
-            "Group already contains subgroup with ID {}",
-            id);
-
-        _this()->subGroups.insert(id);
-    }
 };
 
 template <
@@ -240,7 +183,8 @@ class ColaGroup
     : public layout::IGroupVisualAttribute
     , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute> {
   public:
-    using API = APIBundle<
+    using Base = layout::IGroupVisualAttribute;
+    using API  = APIBundle<
         ColaGroup,
         ColaVertexAttribute,
         ColaEdgeAttribute>;
@@ -259,22 +203,11 @@ class ColaGroup
     hstd::SPtr<SharedCtx> shared;
     LocalCtx              local;
 
-    void addExistingSubgroup(VertexID const& id) override {
-        API::Group::addExistingSubgroup(id);
-    }
-
-    void addVertex(
-        VertexID const&                                   id,
-        hstd::SPtr<layout::IVertexVisualAttribute> const& attr) override {
-        auto vatr = API::Group::addVertex(id, attr);
-        shared->addVertex(id, vatr->rect);
-    }
-
     hstd::SPtr<ColaVertexAttribute> addVertex(
         VertexID const&       id,
         geometry::Rect const& size) {
         auto vattr = std::make_shared<ColaVertexAttribute>(size);
-        addVertex(id, vattr);
+        Base::addVertex(id, vattr);
         return vattr;
     }
 
@@ -287,7 +220,7 @@ class ColaGroup
 
     hstd::SPtr<ColaEdgeAttribute> addEdge(EdgeID const& id) {
         auto res = std::make_shared<ColaEdgeAttribute>();
-        addEdge(id, res);
+        Base::addEdge(id, res);
         return res;
     }
 
@@ -295,19 +228,14 @@ class ColaGroup
         return API::Group::getStableId();
     }
 
-    void addEdge(
-        EdgeID const&                                   id,
-        hstd::SPtr<layout::IEdgeVisualAttribute> const& attr) override {
-        API::Group::addEdge(id, attr);
+    void addNewNativeSubgroup(VertexID const& id) {
+        Base::addNewNativeSubgroup(
+            id,
+            std::make_shared<ColaGroup>(shared, hstd::fmt("cola_{}", id)));
     }
 
-    VertexID addNewNativeSubgroup() override {
-        return API::Group::addNewNativeSubgroup(
-            std::make_shared<ColaGroup>(
-                shared, hstd::fmt("cola_{}", run->groups.getNextId())));
-    }
-
-    static VertexID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
+    static hstd::SPtr<cst::ColaGroup> newRootGraph(
+        hstd::SPtr<layout::LayoutRun> run);
 };
 
 static_assert(
@@ -339,7 +267,7 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     ColaGroupLayoutAttribute(Rect rect, hstd::SPtr<ColaGroup> group)
         : rect{rect}, group{group} {}
 
-    virtual Rect getPointsBBox() const override { return rect; }
+    virtual Rect getBBox() const override { return rect; }
 };
 
 
@@ -730,7 +658,7 @@ class AvoidRouterAlgorithm {
     /// run perfectly flush against the nodes.
     hstd::Opt<int>                       shapeBufferDistance = 1;
     ColaRectTracker*                     rects;
-    layout::IGroup const*                group;
+    layout::IGroupVisualAttribute const* group;
     hstd::SPtr<layout::LayoutRun>        run;
     layout::IPlacementAlgorithm::Result* intermediate_placement;
 

@@ -64,6 +64,11 @@ struct TestVertex : public IVertex {
     std::string getStableId() const override {
         return hstd::fmt("test-vertex-{}", selfId);
     }
+
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
 };
 
 
@@ -79,6 +84,12 @@ struct TestEdge : public IEdge {
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
     }
+
+
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
 };
 
 struct TestEdgeCollection : public IEdgeCollection {
@@ -93,9 +104,7 @@ struct TestEdgeCollection : public IEdgeCollection {
         return &edgeStore.at(id);
     }
 
-    hstd::Vec<EdgeID> addAllOutgoing(VertexID const& id) override {
-        return {};
-    }
+    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
 };
 
 struct TestGraph : public IGraph {
@@ -136,11 +145,8 @@ class GraphUtils_Test : public ::testing::Test {
     hstd::SPtr<TestGraph>         graph;
     hstd::SPtr<layout::LayoutRun> run;
 
-    hstd::SPtr<gv::GraphGroup> getGv(layout::GroupID const& id) {
-        auto result = std::dynamic_pointer_cast<gv::GraphGroup>(
-            run->at(id));
-        LOGIC_ASSERTION_CHECK(result != nullptr, "");
-        return result;
+    hstd::SPtr<gv::GraphGroup> getGvGroup(VertexID const& id) {
+        return run->getGroup<gv::GraphGroup>(id);
     }
 
     hstd::SPtr<gv::NodeAttribute> getGv(VertexID const& id) {
@@ -152,11 +158,8 @@ class GraphUtils_Test : public ::testing::Test {
         return graph->getEdge(id)->getUniqueAttribute<gv::EdgeAttribute>();
     }
 
-    hstd::SPtr<cst::ColaGroup> getCola(layout::GroupID const& id) {
-        auto result = std::dynamic_pointer_cast<cst::ColaGroup>(
-            run->at(id));
-        LOGIC_ASSERTION_CHECK(result != nullptr, "");
-        return result;
+    hstd::SPtr<cst::ColaGroup> getColaGroup(VertexID const& id) {
+        return run->getGroup<cst::ColaGroup>(id);
     }
 
     hstd::SPtr<cst::ColaVertexAttribute> getCola(VertexID const& id) {

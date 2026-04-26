@@ -248,7 +248,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     return result;
 }
 
-VertexID cst::ColaGroup::newRootGraph(hstd::SPtr<layout::LayoutRun> run) {
+hstd::SPtr<cst::ColaGroup> cst::ColaGroup::newRootGraph(
+    hstd::SPtr<layout::LayoutRun> run) {
     auto result = std::make_shared<ColaGroup>(
         std::make_shared<SharedCtx>(API::SharedCtxBase{
             .run = run,
@@ -256,9 +257,7 @@ VertexID cst::ColaGroup::newRootGraph(hstd::SPtr<layout::LayoutRun> run) {
         hstd::Str{"root"});
 
     result->algorithm = std::make_shared<ColaLayoutAlgorithm>(run);
-    auto id           = run->addRootGroup(result);
-    result->groups().insert_or_assign(id, result);
-    return id;
+    return result;
 }
 
 

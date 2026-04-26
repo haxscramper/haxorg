@@ -707,9 +707,6 @@ class GraphGroup
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
     }
 
-    VertexID newSubLayoutGraph();
-
-    static VertexID newRootGraph(hstd::SPtr<layout::LayoutRun> run);
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -844,10 +841,11 @@ class GraphGroup
     GVContext::Ptr context() { return ctx.context; }
 
     hstd::SPtr<layout::IVertexVisualAttribute> addVertex(
+        VertexID const& parent,
         VertexID const& id) {
-        auto vertex    = run->getVertex(id);
-        auto attribute = this->node(vertex->getStableId());
-        Base::addVertex(id, attribute);
+        auto vertex       = run->getVertex(id);
+        auto attribute    = this->node(vertex->getStableId());
+        auto nesting_edge = run->addNestedVertex(parent, id, attribute);
         return attribute;
     }
 
@@ -859,9 +857,13 @@ class GraphGroup
                 e->getSource()),
             *ctx.run->getVertexVisualAttribute<NodeAttribute>(
                 e->getTarget()));
-        Base::addEdge(id, attr);
+        run->addEdge(id, attr);
         return attr;
     }
+
+
+    static hstd::SPtr<GraphGroup> newRootGraph(
+        hstd::SPtr<layout::LayoutRun> run);
 
     void addNewNativeSubgroup(
         VertexID const&                          id,
