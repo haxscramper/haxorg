@@ -136,11 +136,18 @@ void IGraph::delTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
 }
 
 void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
-    LOGIC_ASSERTION_CHECK_FMT(
-        !collections.contains(collection->getCategory()),
-        "Collection with category ID {} already exists in the graph "
-        "tracker",
-        collection->getCategory().t);
+    if (auto coll = collections.get(collection->getCategory());
+        coll.has_value()) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !coll.has_value(),
+            "Collection with category ID {} already exists in the graph "
+            "tracker. Existing collection stable ID is {}, attempting to "
+            "add stable ID {}",
+            collection->getCategory().t,
+            coll.value()->getStableID(),
+            collection->getStableID());
+    }
+
 
     for (auto const& coll : collections) {
         LOGIC_ASSERTION_CHECK_FMT(
@@ -181,6 +188,16 @@ void IGraph::addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
 
 void IGraph::delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
     hierarchies.erase(hierarchy->getHierarchyId());
+}
+
+bool hstd::ext::graph::IGraph::hasCollection(
+    hstd::SPtr<IEdgeCollection> const& collection) {
+    return collections.contains(collection->getCategory());
+}
+
+bool hstd::ext::graph::IGraph::hasHierarchy(
+    hstd::SPtr<IVertexHierarchy> const& hierarchy) {
+    return hierarchies.contains(hierarchy->getHierarchyId());
 }
 
 hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() {
@@ -248,14 +265,6 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     vertexIDs.insert(id);
 
     for (auto& track : trackers) { track.second->trackVertex(id); }
-
-    for (auto& collection : getEdgeProviders()) {
-        collection->trackVertex(id);
-    }
-
-    for (auto& collection : getEdgeProviders()) {
-        collection->addAllOutgoing(id);
-    }
 }
 
 hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> hstd::
@@ -371,7 +380,7 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
             parent, hstd::UnorderedSet<VertexID>{});
     }
     nestedInMap.at(parent).insert(sub);
-    rootVertices.erase(sub);
+    if (rootVertices.contains(sub)) { rootVertices.erase(sub); }
     EdgeID result = EdgeID(
         EdgeID::FromMaskedIdx(
             hstd::hash_bits<48>(parent.value, sub.value),
@@ -693,9 +702,13 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
 }
 
 void IEdgeCollection::trackEdge(EdgeID const& id) {
-    IEdge const* edge   = getEdge(id);
-    VertexID     source = edge->getSource();
-    VertexID     target = edge->getTarget();
+    IEdge const* edge = getEdge(id);
+    LOGIC_ASSERTION_CHECK_FMT(
+        edge != nullptr,
+        "Edge collection must contain an edge object before its "
+        "associated ID is tracked");
+    VertexID source = edge->getSource();
+    VertexID target = edge->getTarget();
 
     if (!incidence.contains(source)) {
         incidence.insert_or_assign(

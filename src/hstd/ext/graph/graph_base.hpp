@@ -707,14 +707,6 @@ class IEdgeProvider {
     /// \brief Get already constructed edge object from the store.
     virtual IEdge const* getEdge(EdgeID const& id) const = 0;
 
-    /// \brief Add all edges outgoing from the `id`. The vertex itself
-    /// should already be registered with `trackVertex`.
-    ///
-    /// \note The class derived from the edge collection or vertex
-    /// hierarchy should make use  `trackEdge` or `trackSubVertexRelation`
-    /// to populate the edge collection tracker tables.
-    virtual EdgeIDSet addAllOutgoing(VertexID const& id) = 0;
-
     /// \brief Return stable identifier for this edge collection.
     virtual std::string getStableID() const;
 
@@ -740,6 +732,7 @@ class IEdgeProvider {
 
     /// \brief Get list of all incoming edges for the target vertex
     virtual EdgeIDSet getIncoming(VertexID const& vert) const = 0;
+    virtual bool      hasEdge(EdgeID const& id) const         = 0;
 
     // static API for masking the edge IDs.
 
@@ -832,15 +825,24 @@ struct TrivialEdgeCollection : public IEdgeCollection {
   public:
     hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
 
-    EdgeCollectionID getCategory() const override {
-        return getCollectionIdImpl(this);
+    EdgeCollectionID collection_id = EdgeCollectionID{};
+
+    bool hasEdge(EdgeID const& id) const override {
+        return edgeStore.contains(id);
     }
+
+    EdgeID addEdge(VertexID const& src, VertexID const& dst) {
+        return edgeStore.add(TrivialEdge{src, dst}, getCategory());
+    }
+
+    TrivialEdgeCollection(EdgeCollectionID const& id)
+        : collection_id{id} {}
+
+    EdgeCollectionID getCategory() const override { return collection_id; }
 
     const IEdge* getEdge(EdgeID const& id) const override {
         return &edgeStore.at(id);
     }
-
-    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
 };
 
 
@@ -906,11 +908,14 @@ class IVertexHierarchy : public IEdgeProvider {
     /// vertices. This method will create a new edge ID based on the parent
     /// and sub-vertex IDs.
     ///
-    ///
     /// \warning After the vertex has been registered in the main graph
     /// this method needs to be called to record additional structural
     /// information about the sub-vertices.
-    EdgeID trackSubVertexRelation(
+    ///
+    /// \note The function has a default implementation, but the
+    /// derived hierarchy classes may override the sub-vertex tracking or
+    /// write a code around it to actually create an edge object.
+    virtual EdgeID trackSubVertexRelation(
         VertexID const& parent,
         VertexID const& sub);
 
@@ -989,7 +994,7 @@ class IVertexHierarchy : public IEdgeProvider {
 };
 
 struct TrivialHierarchy : public IVertexHierarchy {
-    hstd::UnorderedIncrementalStore<EdgeID, TrivialEdge> edgeStore;
+    hstd::UnorderedMap<EdgeID, TrivialEdge> edgeStore;
 
   public:
     EdgeCollectionID getCategory() const override {
@@ -1000,10 +1005,20 @@ struct TrivialHierarchy : public IVertexHierarchy {
         return &edgeStore.at(id);
     }
 
-    EdgeIDSet addAllOutgoing(VertexID const& id) override { return {}; }
+    bool hasEdge(EdgeID const& id) const override {
+        return edgeStore.contains(id);
+    }
 
     GraphHierarchyID getHierarchyId() const override {
         return getHierarchyIdImpl(this);
+    }
+
+    EdgeID trackSubVertexRelation(
+        VertexID const& parent,
+        VertexID const& sub) override {
+        auto id = IVertexHierarchy::trackSubVertexRelation(parent, sub);
+        edgeStore.insert_or_assign(id, TrivialEdge{parent, sub});
+        return id;
     }
 };
 
@@ -1047,6 +1062,9 @@ class IGraph {
     void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
     void addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
     void delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
+
+    bool hasCollection(hstd::SPtr<IEdgeCollection> const& collection);
+    bool hasHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
 
     /// \brief Get list of all edge providers in the graph: vertex
     /// hierarchies and general edge collections.
@@ -1202,7 +1220,11 @@ struct TrivialGraph : public IGraph {
     hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
     hstd::SPtr<TrivialEdgeCollection>                        edges;
 
-    TrivialGraph() : edges{std::make_shared<TrivialEdgeCollection>()} {}
+    TrivialGraph()
+        : edges{std::make_shared<TrivialEdgeCollection>(
+              EdgeCollectionID{1})} {
+        addCollection(edges);
+    }
 
     VertexID addVertex() {
         auto result = vertexStore.add(
@@ -1381,7 +1403,8 @@ class LayoutRun : public OperationsTracer {
     LayoutRun(
         hstd::SPtr<IGraph>                graph,
         hstd::SPtr<TrivialHierarchy>      groups = nullptr,
-        hstd::SPtr<TrivialEdgeCollection> edges  = nullptr)
+        hstd::SPtr<TrivialEdgeCollection> edges  = nullptr,
+        EdgeCollectionID edge_collection_id      = EdgeCollectionID{9999})
         : graph{graph}, groups{groups}, edges{edges} {
         hstd::logic_assertion_check_not_nil(graph);
         if (this->groups == nullptr) {
@@ -1389,7 +1412,16 @@ class LayoutRun : public OperationsTracer {
         }
 
         if (this->edges == nullptr) {
-            this->edges = std::make_shared<TrivialEdgeCollection>();
+            this->edges = std::make_shared<TrivialEdgeCollection>(
+                edge_collection_id);
+        }
+
+        if (!graph->hasCollection(this->edges)) {
+            graph->addCollection(this->edges);
+        }
+
+        if (!graph->hasHierarchy(this->groups)) {
+            graph->addHierarchy(this->groups);
         }
     }
 
