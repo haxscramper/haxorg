@@ -469,6 +469,8 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     // fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb :
     // "(null)");
 
+    hstd::logic_assertion_check_not_nil(gvc.get());
+    hstd::logic_assertion_check_not_nil(g);
     int res = gvLayout(gvc.get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
     // Layout does not position the labels, need to call rendering pass.
@@ -542,7 +544,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     hstd::logic_assertion_check_not_nil(run);
     run->message("running single layout for gv::Layout Algorithm");
     auto __scope   = run->scopeLevel();
-    auto rootGroup = std::dynamic_pointer_cast<GraphGroup>(
+    auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(
         run->getGroup(root_id));
 
     char const* id_attr      = "_gv_layout_id";
@@ -553,7 +555,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                    hstd::Opt<VertexID> const& parent) -> void {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
-            auto parentGroup = std::dynamic_pointer_cast<GraphGroup>(
+            auto parentGroup = hstd::validated_dynamic_cast<GraphGroup>(
                 run->getGroup(parent.value()));
             run->message(
                 hstd::fmt(
@@ -569,7 +571,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 recursiveBBox.width() / scaling,
                 recursiveBBox.height() / scaling);
         } else {
-            auto gv_group = std::dynamic_pointer_cast<GraphGroup>(group);
+            auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(
+                group);
             LOGIC_ASSERTION_CHECK(
                 gv_group != nullptr,
                 "Nested subgroup without layout algorithm must be an "
@@ -590,14 +593,17 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
             // iterate over edges/vertices to insert graphviz attributes to
             // enable post-layout association.
-            for (auto const& vertex : run->getVertices(id)) {
+            for (auto const& vertex : run->getDirectVertices(id)) {
+                run->message(hstd::fmt("vertex {}", vertex));
                 run->getVertexVisualAttribute<NodeAttribute>(vertex)
                     ->setAttr(id_attr, vertex.getValue());
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                HSLOG_DEBUG(
-                    "edge {}", run->getGraph()->getDebugEdgeFormat(edge));
+                run->message(
+                    hstd::fmt(
+                        "edge {}",
+                        run->getGraph()->getDebugEdgeFormat(edge)));
                 run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }
@@ -636,7 +642,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto const& prev_attribute = run->getLayout(id);
 
             run->message("replacing existing group attribute");
-            auto prev_cast = std::dynamic_pointer_cast<
+            auto prev_cast = hstd::validated_dynamic_cast<
                 GraphGroupLayoutAttribute>(prev_attribute);
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
@@ -664,7 +670,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 "No ID attr property for node {}",
                 node.getPropertiesAsString());
             auto id = VertexID::FromValue(id_value.value());
-            // run->message(hstd::fmt("each-group iterate vertex {}", id));
+            run->message(hstd::fmt("each-group iterate vertex {}", id));
             result.vertices.insert_or_assign(
                 id,
                 std::make_shared<GraphVertexLayoutAttribute>(
@@ -675,7 +681,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
         auto id = EdgeID::FromValue(
             edge.getAttr<hstd::u64>(id_attr).value());
-        // run->message(hstd::fmt("each-group iterate edge {}", id));
+        run->message(hstd::fmt("each-group iterate edge {}", id));
         result.edges.insert_or_assign(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));

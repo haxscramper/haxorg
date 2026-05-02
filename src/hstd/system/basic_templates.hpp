@@ -52,6 +52,13 @@ inline std::string demangle(char const* name) { return name; }
 
 namespace hstd {
 
+template <typename T, typename = void>
+struct is_complete : std::false_type {};
+
+template <typename T>
+struct is_complete<T, std::void_t<decltype(sizeof(T))>>
+    : std::true_type {};
+
 
 /// \brief get next value
 template <typename T>
@@ -98,7 +105,11 @@ template <typename T>
 struct value_metadata_default_type_name {
     static std::string typeName() {
 #if defined(__GXX_RTTI) || defined(_CPPRTTI)
-        return ::hstd::demangle(typeid(T).name());
+        if constexpr (is_complete<T>::value) {
+            return ::hstd::demangle(typeid(T).name());
+        } else {
+            return std::string{::hstd::get_type_name_fallback<T>()};
+        }
 #else
         return std::string{::hstd::get_type_name_fallback<T>()};
 #endif

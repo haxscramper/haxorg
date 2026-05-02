@@ -421,7 +421,7 @@ struct TrivialVertex : public IVertex {
         if (stableIdOverride) {
             return stableIdOverride.value();
         } else {
-            return IVertex::getStableId();
+            return hstd::fmt("IVertex-{}", selfId);
         }
     }
 
@@ -1594,7 +1594,7 @@ class LayoutRun : public OperationsTracer {
         return graph->getVertex(id)->hasOptionalAttribute<T>();
     }
 
-    VertexIDSet getVertices(VertexID const& id) const {
+    VertexIDSet getDirectVertices(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id),
             "Cannot get nested vertices from non-group");
@@ -1630,10 +1630,6 @@ class LayoutRun : public OperationsTracer {
             if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
         }
         return noSwitch;
-    }
-
-    VertexIDSet getDirectVertices(VertexID const& id) const {
-        return groups->getSubVertices(id);
     }
 
     EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {

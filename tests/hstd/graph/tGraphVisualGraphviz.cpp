@@ -9,6 +9,10 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     auto v3 = graph->addVertex();
     auto v4 = graph->addVertex();
 
+    ASSERT_NE(v1, v2);
+    ASSERT_NE(v2, v3);
+    ASSERT_NE(v3, v4);
+
     auto e12 = graph->addEdge(v1, v2);
     auto e23 = graph->addEdge(v2, v3);
     auto e31 = graph->addEdge(v3, v1);
@@ -26,6 +30,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     root->addVertex(rg_id, v3);
     root->addVertex(rg_id, v4);
 
+    ASSERT_EQ(run->getDirectVertices(rg_id).size(), 4);
+
     // configure visual parameters for graphviz nodes. The methods are
     // specific to the graphviz layout nodes, and use cgraph API
     // internally.
@@ -41,6 +47,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     root->addEdge(e23);
     root->addEdge(e31);
 
+    ASSERT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 3);
+
     // For the graphviz backend, adding vertices and edges is enough to
     // gnerate a PNG file with cgraph API. It does not populate the layout
     // attributes for the overall algorithm, but can be used for debugging.
@@ -51,7 +59,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     ASSERT_TRUE(run != nullptr);
     run->runFullLayout();
 
-    EXPECT_EQ(run->result.vertices.size(), 4);
+    // 4 vertices + 1 root group
+    EXPECT_EQ(run->result.vertices.size(), 5);
 
     auto const& res = run->result;
 
@@ -151,7 +160,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 
     EXPECT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 0);
     EXPECT_EQ(run->getDirectlyNestedEdges(sg_id1).size(), 0);
-    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
+    EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);
 
     as<gv::NodeAttribute>(sg_2->addVertex(sg_id2, vs.at(5)))
         ->setFixedPointWH(120, 60)
@@ -171,9 +180,9 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
         ->setLabel("VERT-10");
 
 
-    EXPECT_EQ(run->getVertices(rg_id).size(), 0);
-    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
-    EXPECT_EQ(run->getVertices(sg_id2).size(), 4);
+    EXPECT_EQ(run->getDirectVertices(rg_id).size(), 0);
+    EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);
+    EXPECT_EQ(run->getDirectVertices(sg_id2).size(), 4);
 
     as<gv::EdgeAttribute>(sg_1->addEdge(es.at(4)));
     as<gv::EdgeAttribute>(sg_1->addEdge(es.at(5)));
@@ -187,9 +196,9 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 
     root->render(getDebugFile("result.png"));
 
-    EXPECT_EQ(run->getVertices(rg_id).size(), 0);
-    EXPECT_EQ(run->getVertices(sg_id1).size(), 3);
-    EXPECT_EQ(run->getVertices(sg_id2).size(), 4);
+    EXPECT_EQ(run->getDirectVertices(rg_id).size(), 0);
+    EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);
+    EXPECT_EQ(run->getDirectVertices(sg_id2).size(), 4);
 
     run->runFullLayout();
 
@@ -228,10 +237,12 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     run->addRootGroup(rg_id, root);
     auto ctx = root->context();
 
-    auto sg1 = root->addNewNativeSubgroup(rg_id, sg_id1);
+    auto sg1 = root->addNewNativeSubgroup(
+        rg_id, sg_id1, /*with_algorithm=*/true);
     sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
 
-    auto sg2 = root->addNewNativeSubgroup(rg_id, sg_id2);
+    auto sg2 = root->addNewNativeSubgroup(
+        rg_id, sg_id2, /*with_algorithm=*/true);
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
     as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(0)))
@@ -362,7 +373,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     // attribute API access
     for (VertexID const& gid : hstd::as_vec(sg_id1, sg_id2)) {
         auto const& group = run->getGroup(gid);
-        for (VertexID vert : run->getVertices(gid)) {
+        for (VertexID vert : run->getDirectVertices(gid)) {
             auto const& group_visual = run->getVisual(gid);
             auto const& item_visual  = run->getVisual(vert);
             EXPECT_OUTCOME_OK(

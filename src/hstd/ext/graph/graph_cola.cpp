@@ -199,7 +199,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 subgroup_bbox_list.push_back(self(sub, id));
             }
 
-            for (auto const& vert : run->getVertices(id)) {
+            for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect = ctx->getRect(vert);
                 bbox.extend(adapt::to_hstd(*rect));
             }
@@ -213,7 +213,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                         run->getGroup<cst::ColaGroup>(group_id)));
             }
 
-            for (auto const& vert : run->getVertices(id)) {
+            for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
                 auto rel_rect = rect.relative_to(bbox);
 
@@ -544,7 +544,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     }
     __ports.end();
 
-    for (auto const& vert : run->getVertices(root_group)) {
+    for (auto const& vert : run->getDirectVertices(root_group)) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
                    | rv::transform([&](PortID pid) -> IPort* {
                          return lp->getmPort(pid);

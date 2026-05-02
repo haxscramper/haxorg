@@ -702,9 +702,19 @@ class GraphGroup
     };
 
 
-    hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
-        return std::make_shared<GraphGroup>(
+    hstd::SPtr<GraphGroup> newSubgraph(
+        Str const& name,
+        bool       with_algorithm = false) {
+        auto res = std::make_shared<GraphGroup>(
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
+
+        if (with_algorithm) {
+            res->algorithm = hstd::validated_dynamic_cast<
+                layout::IPlacementAlgorithm>(
+                std::make_shared<gv::Layout>(ctx.gvc, run));
+        }
+
+        return res;
     }
 
 
@@ -735,7 +745,19 @@ class GraphGroup
 
     hstd::SPtr<NodeAttribute> node(Str const& name) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
+        auto existing_node = agnode(
+            graph, const_cast<char*>(name.c_str()), 0);
+        if (existing_node != nullptr) {
+            throw hstd::ext::graph::layout::layout_error::init(
+                hstd::fmt(
+                    "Node with name {} already exists in the graph",
+                    name));
+        }
+
         auto tmp = std::make_shared<NodeAttribute>(graph, name);
+
+
+        run->message(hstd::fmt("add GV node for {}", name));
         return tmp;
     }
 
@@ -866,8 +888,9 @@ class GraphGroup
 
     hstd::SPtr<GraphGroup> addNewNativeSubgroup(
         VertexID const& parent,
-        VertexID const& id) {
-        auto res    = newSubgraph(hstd::fmt("GV_{}", id));
+        VertexID const& id,
+        bool            with_algorithm = false) {
+        auto res    = newSubgraph(hstd::fmt("GV_{}", id), with_algorithm);
         std::ignore = run->addNestedGroup(parent, id, res);
         return res;
     }

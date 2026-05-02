@@ -865,7 +865,8 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             result.subgroups.push_back(visual);
         }
 
-        for (auto const& it : hstd::sorted(getVertices(id).items())) {
+        for (auto const& it :
+             hstd::sorted(getDirectVertices(id).items())) {
             auto const& attr     = getLayout(it);
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
