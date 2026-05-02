@@ -76,13 +76,11 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         }
     }
 
-
     hstd::Vec<hstd::SPtr<cola::CompoundConstraint>>          ccs_s;
     hstd::Vec<cola::CompoundConstraint*>                     ccs;
     hstd::UnorderedMap<hstd::u64, hstd::Pair<VertexID, int>> cc_index;
 
     cola::Locks locks;
-
 
     auto aux_constraints = [&](this auto&&     self,
                                VertexID const& id) -> void {
@@ -510,6 +508,7 @@ std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
 
 hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     AvoidRouterAlgorithm::routeEdges() {
+    auto __scope = run->scopeLevelMsg("route edges");
     hstd::logic_assertion_check_not_nil(rects);
     hstd::logic_assertion_check_not_nil(run);
     hstd::logic_assertion_check_not_nil(group);
@@ -520,7 +519,11 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     auto lp = res.layoutPorts;
 
-    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
+    auto __ports  = run->scopeLevelHandleMsg("add ports");
+    auto edge_set = run->getLayoutLayerNestedEdges(root_group);
+
+
+    for (auto const& eid : edge_set) {
         auto edge = run->graph->getEdge(eid);
         hstd::logic_assertion_check_not_nil(edge);
         auto s_pid = lp->addPort(edge->getSource(), eid, true);
@@ -541,6 +544,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         e_port_attr->placement  = APL::Placement::Unspecified;
         e_port->addAttribute(e_port_attr);
     }
+    __ports.end();
 
     for (auto const& vert : run->getVertices(root_group)) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
@@ -627,7 +631,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     };
 
 
-    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
+    for (auto const& eid : edge_set) {
         auto eid_avoid = id_proxy(eid);
         run->message(
             hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
@@ -676,7 +680,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     router->processTransaction();
 
-    for (auto const& eid : run->getDirectlyNestedEdges(root_group)) {
+    for (auto const& eid : edge_set) {
         run->message(hstd::fmt("rebuilding placement"));
         auto edge   = run->graph->getEdge(eid);
         auto s_attr = lp->getPort(

@@ -5,6 +5,7 @@
 #include <libdialect/hola.h>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/ext/logger.hpp>
 
 namespace hstd::ext::graph {
 
@@ -141,6 +142,8 @@ class ColaRectTracker {
         rectStore.push_back(
             std::make_shared<vpsc::Rectangle>(
                 rect.min_x(), rect.max_x(), rect.min_y(), rect.max_y()));
+
+        HSLOG_DEBUG("Adding vertex {} rect {}", id, rect);
         rectMap.add_unique(id, result);
         return result;
     }
@@ -209,6 +212,7 @@ class ColaGroup
         geometry::Rect const& size) {
         auto vattr  = std::make_shared<ColaVertexAttribute>(size);
         std::ignore = get_run()->addNestedVertex(parent, id, vattr);
+        shared->addVertex(id, size);
         return vattr;
     }
 

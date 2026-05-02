@@ -406,8 +406,18 @@ struct IVertex
 };
 
 struct TrivialVertex : public IVertex {
-    VertexID selfId;
+    VertexID             selfId;
+    hstd::Opt<hstd::Str> stableIdOverride;
+
     TrivialVertex(VertexID selfId) : selfId{selfId} {}
+
+    std::string getStableId() const override {
+        if (stableIdOverride) {
+            return stableIdOverride.value();
+        } else {
+            return IVertex::getStableId();
+        }
+    }
 
     std::size_t getHash() const override {
         std::size_t result;
@@ -831,7 +841,9 @@ struct TrivialEdgeCollection : public IEdgeCollection {
     }
 
     EdgeID addEdge(VertexID const& src, VertexID const& dst) {
-        return edgeStore.add(TrivialEdge{src, dst}, getCategory());
+        auto res = edgeStore.add(TrivialEdge{src, dst}, getCategory());
+        trackEdge(res);
+        return res;
     }
 
     TrivialEdgeCollection(EdgeCollectionID const& id)
@@ -1077,6 +1089,19 @@ class IGraph {
     virtual IVertex*       getMVertex(VertexID const& id) const {
         return const_cast<IVertex*>(getVertex(id));
     }
+
+    template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
+    T const* getCastVertex(VertexID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getVertex(id));
+    }
+
+    template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
+    T* getCastMVertex(VertexID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getMVertex(id));
+    }
+
     /// \brief Track attributes and edge information in the graph
     ///
     /// Add the vertex to the graph collection. Will not
@@ -1212,6 +1237,20 @@ class IGraph {
     };
 
     virtual json getGraphSerial() const;
+
+    std::string getDebugVertexFormat(VertexID const& vert) const {
+        return hstd::fmt(
+            "vertex {} ({})", vert, getVertex(vert)->getStableId());
+    }
+
+    std::string getDebugEdgeFormat(EdgeID const& edge) const {
+        return hstd::fmt(
+            "edge {} ({}) from {} to {}",
+            edge,
+            getEdge(edge)->getStableId(),
+            getDebugVertexFormat(getEdge(edge)->getSource()),
+            getDebugVertexFormat(getEdge(edge)->getTarget()));
+    }
 };
 
 
@@ -1237,9 +1276,7 @@ struct TrivialGraph : public IGraph {
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        auto result = edges->edgeStore.add(TrivialEdge{source, target});
-        edges->trackEdge(result);
-        return result;
+        return edges->addEdge(source, target);
     }
 };
 
@@ -1507,15 +1544,42 @@ class LayoutRun : public OperationsTracer {
         return res;
     }
 
-    VertexIDSet getAllNested(VertexID const& id) const {
+    /// \brief Get all nested groups that don't switch layout
+    VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const {
+        VertexIDSet noSwitch;
+        for (auto const& sub : getSubGroups(id)) {
+            if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
+        }
+        return noSwitch;
+    }
+
+    VertexIDSet getDirectVertices(VertexID const& id) const {
         return groups->getSubVertices(id);
     }
 
-    hstd::UnorderedSet<EdgeID> getDirectlyNestedEdges(
-        VertexID const& id) const {
+    EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id), "Cannot get nested edges from non-group");
-        return edges->getFullyIncludedEdges(getAllNested(id));
+        return edges->getFullyIncludedEdges(getDirectVertices(id));
+    }
+
+    /// \brief Return all the edges nested in the target group and its
+    /// sub-groups, excluding the edges that are at least partially
+    /// crossing the algorithm switch boundary
+    EdgeIDSet getLayoutLayerNestedEdges(VertexID const& id) const {
+        VertexIDSet noSwitch;
+        auto aux = [&](this auto&& self, VertexID const& id) -> void {
+            for (auto const& sub : getSubGroupsNoLayoutSwitch(id)) {
+                noSwitch.incl(sub);
+                self(sub);
+            }
+
+            noSwitch.incl(getDirectVertices(id));
+        };
+
+        aux(id);
+
+        return edges->getFullyIncludedEdges(noSwitch);
     }
 
     void addRootGroup(
@@ -1587,8 +1651,9 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<T> getLayout(EdgeID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.edges.contains(id),
-            "No layout attribute specified for edge ID {}",
-            id);
+            "No layout attribute specified for edge {}",
+            graph->getDebugEdgeFormat(id));
+
         return hstd::validated_dynamic_cast<T>(result.edges.at(id));
     }
 
@@ -1598,7 +1663,8 @@ class LayoutRun : public OperationsTracer {
         LOGIC_ASSERTION_CHECK_FMT(
             result.vertices.contains(id),
             "No layout attribute specified for vertex ID {}",
-            id);
+            graph->getDebugVertexFormat(id));
+
         return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
 

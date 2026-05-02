@@ -9,6 +9,8 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr1) {
 
     EdgeID e12 = graph->addEdge(v1, v2);
 
+    ASSERT_NE(graph->getEdge(e12), nullptr);
+
     hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
     run->addRootGroup(rg_id, root);
 
@@ -137,7 +139,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
     run->runFullLayout();
 
     auto const& res = run->result;
-    EXPECT_EQ(res.vertices.size(), 12);
+    EXPECT_EQ(res.vertices.size(), 13);
     EXPECT_EQ(res.edges.size(), 13);
 
     for (EdgeID e : es) {
@@ -176,7 +178,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiSeparate) {
     run->runFullLayout();
 
     auto const& res = run->result;
-    EXPECT_EQ(res.vertices.size(), 12);
+    EXPECT_EQ(res.vertices.size(), 13);
 
     hstd::writeFile(
         getDebugFile("libcola_ir_multi_separate.svg"),
@@ -211,7 +213,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
     run->runFullLayout();
 
     auto const& res = run->result;
-    EXPECT_EQ(res.vertices.size(), 2);
+    EXPECT_EQ(res.vertices.size(), 3);
     EXPECT_EQ(res.edges.size(), 4);
 
     for (EdgeID e : es) {
@@ -228,14 +230,26 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
 TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
-    for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
+    for (int i = 0; i < 11; ++i) {
+        auto id = graph->addVertex();
+        graph->getCastMVertex<TrivialVertex>(id)
+            ->stableIdOverride = hstd::fmt("id_{}", i);
+        vs.push_back(id);
+    }
 
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
-    VertexID rg_id  = graph->addVertex();
-    VertexID sg_id1 = graph->addVertex();
-    VertexID sg_id2 = graph->addVertex();
+
+    VertexID rg_id = graph->addVertex();
+    graph->getCastMVertex<TrivialVertex>(rg_id)
+        ->stableIdOverride = "rg_id";
+    VertexID sg_id1        = graph->addVertex();
+    graph->getCastMVertex<TrivialVertex>(rg_id)
+        ->stableIdOverride = "sg_id1";
+    VertexID sg_id2        = graph->addVertex();
+    graph->getCastMVertex<TrivialVertex>(rg_id)
+        ->stableIdOverride = "sg_id2";
 
     edge(0, 2);  // 0
     edge(2, 1);  // 1
@@ -252,6 +266,8 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
 
     hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
     auto                       ctx  = root->shared;
+
+    run->addRootGroup(rg_id, root);
 
     hstd::SPtr<cst::ColaGroup> sg_1 = root->addNewNativeSubgroup(
         rg_id, sg_id1);

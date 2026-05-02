@@ -53,11 +53,25 @@ class Unordered1to1Bimap {
     }
 
     L const& at_left(R const& rightKey) const {
-        return bimap.right.at(rightKey);
+        if (contains_right(rightKey)) {
+            return bimap.right.at(rightKey);
+        } else {
+            throw hstd::key_error::init(
+                hstd::fmt(
+                    "right bimap key does not exist {}",
+                    hstd::fmt1_maybe(rightKey)));
+        }
     }
 
     R const& at_right(L const& leftKey) const {
-        return bimap.left.at(leftKey);
+        if (contains_left(leftKey)) {
+            return bimap.left.at(leftKey);
+        } else {
+            throw hstd::key_error::init(
+                hstd::fmt(
+                    "left bimap key does not exist {}",
+                    hstd::fmt1_maybe(leftKey)));
+        }
     }
 
     void add_unique(L const& left, R const& right) {

@@ -47,6 +47,23 @@ struct [[refl]] OperationsTracer {
          traceStructured,
          traceColored));
 
+    struct ScopeHandle {
+        OperationsTracer* tracer;
+        void              start();
+        void              end();
+        ~ScopeHandle() {
+            if (tracer != nullptr) { end(); }
+        }
+    };
+
+
+    ScopeHandle scopeLevelHandle() const;
+    ScopeHandle scopeLevelHandleMsg(
+        std::string const& value,
+        char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
+        char const*        file     = __builtin_FILE()) const;
+
     finally_std scopeLevel() const;
     finally_std scopeTrace(bool state);
     finally_std scopeLevelMsg(
