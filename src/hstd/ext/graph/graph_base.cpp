@@ -3,6 +3,8 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <stack>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::ext::graph;
 
@@ -319,22 +321,34 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 }
 
 const IEdge* IGraph::getEdge(EdgeID const& id) const {
+    auto format_collection = hstd::rv::transform(
+                                 [](auto const& pair) -> std::string {
+                                     return pair.second->getStableID();
+                                 })
+                           | hstd::rs::to<hstd::Vec>();
     if (IEdgeProvider::isHierarchyEdge(id)) {
         auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
         LOGIC_ASSERTION_CHECK_FMT(
             hierarchies.contains(id1),
-            "Graph does not contain hierarchy with ID {} for edge ID {}",
+            "Graph does not contain hierarchy with ID {} for edge ID {}. "
+            "Have collections {}, stable IDs {}",
             id1.t,
-            id.format());
+            id.format(),
+            hierarchies.keys(),
+            hstd::own_view(hierarchies) | format_collection);
+
         return hierarchies.at(id1)->getEdge(id);
     } else {
         auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
         LOGIC_ASSERTION_CHECK_FMT(
             collections.contains(id2),
             "Graph does not contain edge collection with ID {} for edge "
-            "ID {}",
+            "ID {}. Have collections {}, stable IDs {}",
             id2.t,
-            id.format());
+            id.format(),
+            collections.keys(),
+            hstd::own_view(collections) | format_collection);
+
         return collections.at(id2)->getEdge(id);
     }
 }

@@ -86,9 +86,9 @@ struct owning_range : rs::view_facade<owning_range<T>> {
         cursor() = default;
         explicit cursor(owning_range* rng) : rng_(rng) {}
 
-        void        next() { rng_->next(); }
-        value_type& read() const noexcept { return rng_->cached(); }
-        bool        equal(rs::default_sentinel_t) const {
+        void              next() { rng_->next(); }
+        value_type const& read() const noexcept { return rng_->cached(); }
+        bool              equal(rs::default_sentinel_t) const {
             return rng_->data->iter == rng_->data->gen_.end();
         }
     };
@@ -102,7 +102,7 @@ struct owning_range : rs::view_facade<owning_range<T>> {
     explicit owning_range(T&& gen)
         : data(std::make_shared<Data>(std::move(gen))) {}
 
-    value_type& cached() noexcept { return *data->iter; }
+    value_type const& cached() noexcept { return *data->iter; }
 };
 
 template <typename T>

@@ -155,6 +155,17 @@ struct std_unordered_sequence_formatter : std::formatter<std::string> {
     }
 };
 
+template <typename T>
+struct std_strong_typedef_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(T const& p, FormatContext& ctx) const {
+        hstd::fmt_ctx(hstd::value_metadata<T>::typeName(), ctx);
+        hstd::fmt_ctx("(", ctx);
+        hstd::fmt_ctx(p.t, ctx);
+        return hstd::fmt_ctx(")", ctx);
+    }
+};
+
 } // namespace hstd
 
 template <>

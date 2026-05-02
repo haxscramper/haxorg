@@ -188,45 +188,44 @@ BOOST_STRONG_TYPEDEF(hstd::u16, GraphHierarchyID);
 } // namespace hstd::ext::graph
 
 template <>
-struct std::hash<hstd::ext::graph::EdgeCollectionID> {
-    std::size_t operator()(
-        hstd::ext::graph::EdgeCollectionID const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.t);
-        return result;
-    }
-};
+struct std::formatter<hstd::ext::graph::EdgeCollectionID>
+    : public hstd::std_strong_typedef_formatter<
+          hstd::ext::graph::EdgeCollectionID> {};
 
 template <>
-struct std::hash<hstd::ext::graph::PortCollectionID> {
-    std::size_t operator()(
-        hstd::ext::graph::PortCollectionID const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.t);
-        return result;
-    }
-};
-
+struct std::formatter<hstd::ext::graph::PortCollectionID>
+    : public hstd::std_strong_typedef_formatter<
+          hstd::ext::graph::PortCollectionID> {};
 
 template <>
-struct std::hash<hstd::ext::graph::AttributeTrackerID> {
-    std::size_t operator()(
-        hstd::ext::graph::AttributeTrackerID const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.t);
-        return result;
-    }
-};
+struct std::formatter<hstd::ext::graph::AttributeTrackerID>
+    : public hstd::std_strong_typedef_formatter<
+          hstd::ext::graph::AttributeTrackerID> {};
 
 template <>
-struct std::hash<hstd::ext::graph::GraphHierarchyID> {
-    std::size_t operator()(
-        hstd::ext::graph::GraphHierarchyID const& it) const noexcept {
-        std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.t);
-        return result;
-    }
-};
+struct std::formatter<hstd::ext::graph::GraphHierarchyID>
+    : public hstd::std_strong_typedef_formatter<
+          hstd::ext::graph::GraphHierarchyID> {};
+
+template <>
+struct std::hash<hstd::ext::graph::EdgeCollectionID>
+    : public hstd::strong_typedef_hash<
+          hstd::ext::graph::EdgeCollectionID> {};
+
+template <>
+struct std::hash<hstd::ext::graph::PortCollectionID>
+    : public hstd::strong_typedef_hash<
+          hstd::ext::graph::PortCollectionID> {};
+
+template <>
+struct std::hash<hstd::ext::graph::AttributeTrackerID>
+    : public hstd::strong_typedef_hash<
+          hstd::ext::graph::AttributeTrackerID> {};
+
+template <>
+struct std::hash<hstd::ext::graph::GraphHierarchyID>
+    : public hstd::strong_typedef_hash<
+          hstd::ext::graph::GraphHierarchyID> {};
 
 namespace hstd::ext::graph {
 
@@ -1396,33 +1395,18 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::SPtr<IGraph>                graph;
-    hstd::SPtr<TrivialHierarchy>      groups;
-    hstd::SPtr<TrivialEdgeCollection> edges;
+    hstd::SPtr<IGraph>           graph;
+    hstd::SPtr<IVertexHierarchy> groups;
+    hstd::SPtr<IEdgeCollection>  edges;
 
     LayoutRun(
-        hstd::SPtr<IGraph>                graph,
-        hstd::SPtr<TrivialHierarchy>      groups = nullptr,
-        hstd::SPtr<TrivialEdgeCollection> edges  = nullptr,
-        EdgeCollectionID edge_collection_id      = EdgeCollectionID{9999})
+        hstd::SPtr<IGraph>           graph,
+        hstd::SPtr<IVertexHierarchy> groups,
+        hstd::SPtr<IEdgeCollection>  edges)
         : graph{graph}, groups{groups}, edges{edges} {
         hstd::logic_assertion_check_not_nil(graph);
-        if (this->groups == nullptr) {
-            this->groups = std::make_shared<TrivialHierarchy>();
-        }
-
-        if (this->edges == nullptr) {
-            this->edges = std::make_shared<TrivialEdgeCollection>(
-                edge_collection_id);
-        }
-
-        if (!graph->hasCollection(this->edges)) {
-            graph->addCollection(this->edges);
-        }
-
-        if (!graph->hasHierarchy(this->groups)) {
-            graph->addHierarchy(this->groups);
-        }
+        hstd::logic_assertion_check_not_nil(groups);
+        hstd::logic_assertion_check_not_nil(edges);
     }
 
     void runFullLayout();

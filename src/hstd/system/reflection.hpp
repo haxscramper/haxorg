@@ -51,6 +51,14 @@ inline void hax_hash_combine(std::size_t& seed, T const& v) {
     seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
+template <typename T>
+struct strong_typedef_hash {
+    std::size_t operator()(T const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.t);
+        return result;
+    }
+};
 
 template <typename T>
 struct value_metadata<std::vector<T>> {
