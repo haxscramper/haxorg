@@ -132,8 +132,8 @@ class ColaRectTracker {
         EdgeID const&                 id,
         hstd::SPtr<layout::LayoutRun> run) const {
         return {
-            getVertexIdx(run->graph->getEdge(id)->getSource()),
-            getVertexIdx(run->graph->getEdge(id)->getTarget()),
+            getVertexIdx(run->graph->getSource(id)),
+            getVertexIdx(run->graph->getTarget(id)),
         };
     }
 

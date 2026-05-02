@@ -524,10 +524,8 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
 
     for (auto const& eid : edge_set) {
-        auto edge = run->graph->getEdge(eid);
-        hstd::logic_assertion_check_not_nil(edge);
-        auto s_pid = lp->addPort(edge->getSource(), eid, true);
-        auto e_pid = lp->addPort(edge->getTarget(), eid, false);
+        auto s_pid = lp->addPort(run->graph->getSource(eid), eid, true);
+        auto e_pid = lp->addPort(run->graph->getTarget(eid), eid, false);
         run->message(hstd::fmt("added ports {} {}", s_pid, e_pid));
         auto s_port = lp->getmPort(s_pid);
         auto e_port = lp->getmPort(e_pid);
@@ -637,10 +635,11 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
             hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
         auto __scope = run->scopeLevel();
 
-        auto edge = run->graph->getEdge(eid);
+        auto source = run->getGraph()->getSource(eid);
+        auto target = run->getGraph()->getTarget(eid);
 
-        auto s_pid  = lp->getSourcePort(edge->getSource(), eid);
-        auto t_pid  = lp->getTargetPort(edge->getTarget(), eid);
+        auto s_pid  = lp->getSourcePort(source, eid);
+        auto t_pid  = lp->getTargetPort(target, eid);
         auto s_attr = lp->getPort(s_pid)->getUniqueAttribute<APL>();
         auto t_attr = lp->getPort(t_pid)->getUniqueAttribute<APL>();
 
@@ -651,7 +650,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         connections.insert_or_assign(eid, conn);
 
         s_attr->pin = new Avoid::ShapeConnectionPin(
-            get_shape(edge->getSource()),
+            get_shape(source),
             eid_avoid,
             s_attr->xOffset,
             s_attr->yOffset,
@@ -660,7 +659,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
             /*visDirs=*/map_direction(s_attr->visibility));
 
         t_attr->pin = new Avoid::ShapeConnectionPin(
-            get_shape(edge->getTarget()),
+            get_shape(target),
             eid_avoid,
             t_attr->xOffset,
             t_attr->yOffset,
@@ -668,10 +667,8 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
             /*insideOffset=*/0,
             /*visDirs=*/map_direction(t_attr->visibility));
 
-        s_attr->connection = Avoid::ConnEnd{
-            get_shape(edge->getSource()), eid_avoid};
-        t_attr->connection = Avoid::ConnEnd{
-            get_shape(edge->getTarget()), eid_avoid};
+        s_attr->connection = Avoid::ConnEnd{get_shape(source), eid_avoid};
+        t_attr->connection = Avoid::ConnEnd{get_shape(target), eid_avoid};
 
         conn->setSourceEndpoint(s_attr->connection);
         conn->setDestEndpoint(t_attr->connection);
@@ -682,18 +679,18 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     for (auto const& eid : edge_set) {
         run->message(hstd::fmt("rebuilding placement"));
-        auto edge   = run->graph->getEdge(eid);
-        auto s_attr = lp->getPort(
-                            lp->getSourcePort(edge->getSource(), eid))
+        auto source = run->getGraph()->getSource(eid);
+        auto target = run->getGraph()->getTarget(eid);
+
+        auto s_attr = lp->getPort(lp->getSourcePort(source, eid))
                           ->getUniqueAttribute<APL>();
-        auto t_attr = lp->getPort(
-                            lp->getTargetPort(edge->getTarget(), eid))
+        auto t_attr = lp->getPort(lp->getTargetPort(target, eid))
                           ->getUniqueAttribute<APL>();
 
         auto s_point = get_shape_point(
-            edge->getSource(), s_attr->xOffset, s_attr->yOffset);
+            source, s_attr->xOffset, s_attr->yOffset);
         auto t_point = get_shape_point(
-            edge->getTarget(), t_attr->xOffset, t_attr->yOffset);
+            target, t_attr->xOffset, t_attr->yOffset);
 
         s_attr->xOffset   = s_point.x();
         s_attr->yOffset   = s_point.y();

@@ -217,10 +217,9 @@ hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
     EdgeID const& edge_id) const {
     hstd::Vec<Crossing> result;
 
-    auto edge = getEdge(edge_id);
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
         auto crossings = hierarchy->getHierarchyCrossings(
-            edge->getSource(), edge->getTarget());
+            getSource(edge_id), getTarget(edge_id));
         if (!crossings.empty()) {
             result.push_back(
                 Crossing{
@@ -320,37 +319,51 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
     return hierarchies.at(hierarchy)->getParentVertex(id);
 }
 
-const IEdge* IGraph::getEdge(EdgeID const& id) const {
-    auto format_collection = hstd::rv::transform(
-                                 [](auto const& pair) -> std::string {
-                                     return pair.second->getStableID();
-                                 })
-                           | hstd::rs::to<hstd::Vec>();
-    if (IEdgeProvider::isHierarchyEdge(id)) {
-        auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
-        LOGIC_ASSERTION_CHECK_FMT(
-            hierarchies.contains(id1),
-            "Graph does not contain hierarchy with ID {} for edge ID {}. "
-            "Have collections {}, stable IDs {}",
-            id1.t,
-            id.format(),
-            hierarchies.keys(),
-            hstd::own_view(hierarchies) | format_collection);
+namespace {
+auto format_collection = hstd::rv::transform(
+                             [](auto const& pair) -> std::string {
+                                 return pair.second->getStableID();
+                             })
+                       | hstd::rs::to<hstd::Vec>();
+} // namespace
 
-        return hierarchies.at(id1)->getEdge(id);
-    } else {
-        auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
-        LOGIC_ASSERTION_CHECK_FMT(
-            collections.contains(id2),
-            "Graph does not contain edge collection with ID {} for edge "
-            "ID {}. Have collections {}, stable IDs {}",
-            id2.t,
-            id.format(),
-            collections.keys(),
-            hstd::own_view(collections) | format_collection);
+hstd::ext::graph::GraphHierarchyID hstd::ext::graph::IGraph::
+    getHierarchyID(EdgeID const& id) const {
+    auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
+    LOGIC_ASSERTION_CHECK_FMT(
+        hierarchies.contains(id1),
+        "Graph does not contain hierarchy with ID {} for edge ID {}. "
+        "Have collections {}, stable IDs {}",
+        id1.t,
+        id.format(),
+        hierarchies.keys(),
+        hstd::own_view(hierarchies) | format_collection);
+    return id1;
+}
 
-        return collections.at(id2)->getEdge(id);
-    }
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
+    getCollectionID(EdgeID const& id) const {
+    auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
+    LOGIC_ASSERTION_CHECK_FMT(
+        collections.contains(id2),
+        "Graph does not contain edge collection with ID {} for edge "
+        "ID {}. Have collections {}, stable IDs {}",
+        id2.t,
+        id.format(),
+        collections.keys(),
+        hstd::own_view(collections) | format_collection);
+    return id2;
+}
+
+
+hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getSource(
+    EdgeID const& id) const {
+    return getEdgeProvider(id)->getSource(id);
+}
+
+hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getTarget(
+    EdgeID const& id) const {
+    return getEdgeProvider(id)->getTarget(id);
 }
 
 int IGraph::getMaxNestingLevel(GraphHierarchyID const& hierarchy) const {
@@ -400,7 +413,7 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
             hstd::hash_bits<48>(parent.value, sub.value),
             getHierarchyId().t));
 
-    edgeTracker.insert_or_assign({parent, sub}, result);
+    edgeTracker.add_unique({parent, sub}, result);
     return result;
 }
 
@@ -492,21 +505,23 @@ hstd::Vec<VertexID> IVertexHierarchy::getParentChain(
 
 EdgeIDSet IVertexHierarchy::getEdges() const {
     EdgeIDSet result;
-    for (auto const& [it, value] : edgeTracker) { result.incl(value); }
+    for (auto const& [it, value] : edgeTracker.get_map()) {
+        result.incl(value);
+    }
     return result;
 }
 
 EdgeIDSet IVertexHierarchy::getOutgoing(VertexID const& vert) const {
     EdgeIDSet result;
     for (auto const& sub_vertex : getSubVertices(vert)) {
-        result.incl(edgeTracker.at({vert, sub_vertex}));
+        result.incl(edgeTracker.at_right({vert, sub_vertex}));
     }
     return result;
 }
 
 EdgeIDSet IVertexHierarchy::getIncoming(VertexID const& vert) const {
     if (auto parent = getParentVertex(vert)) {
-        return {edgeTracker.at({parent.value(), vert})};
+        return {edgeTracker.at_right({parent.value(), vert})};
     } else {
         return {};
     }
@@ -624,28 +639,19 @@ std::string IGraphObjectBase::getStableId() const {
 
 std::size_t IEdge::getHash() const {
     std::size_t result = 0;
-    hstd::hax_hash_combine(result, source);
-    hstd::hax_hash_combine(result, target);
-    hstd::hax_hash_combine(result, bundleIndex);
     return result;
 }
 
 bool IEdge::isEqual(IGraphObjectBase const* other) const {
     auto other_edge = dynamic_cast<IEdge const*>(other);
-    return other->isInstance<IEdge>()         //
-        && this->source == other_edge->source //
-        && this->target == other_edge->target
-        && this->bundleIndex == other_edge->bundleIndex;
+    return other->isInstance<IEdge>();
 }
 
 json IEdge::getSerialNonRecursive(IGraph const* graph, EdgeID const& id)
     const {
 
     SerialSchema res{
-        .edgeId      = getStableId(),
-        .sourceId    = graph->getVertex(source)->getStableId(),
-        .targetId    = graph->getVertex(target)->getStableId(),
-        .bundleIndex = bundleIndex,
+        .edgeId = getStableId(),
     };
 
     return hstd::to_json_eval(res);
@@ -715,15 +721,11 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
     return DependantDeletion{.vertices = {vert}, .edges = edgesToRemove};
 }
 
-void IEdgeCollection::trackEdge(EdgeID const& id) {
-    IEdge const* edge = getEdge(id);
-    LOGIC_ASSERTION_CHECK_FMT(
-        edge != nullptr,
-        "Edge collection must contain an edge object before its "
-        "associated ID is tracked");
-    VertexID source = edge->getSource();
-    VertexID target = edge->getTarget();
 
+void hstd::ext::graph::IEdgeCollection::trackEdge(
+    EdgeID const&   id,
+    VertexID const& source,
+    VertexID const& target) {
     if (!incidence.contains(source)) {
         incidence.insert_or_assign(
             source, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>{});
@@ -737,12 +739,14 @@ void IEdgeCollection::trackEdge(EdgeID const& id) {
         incoming_from.insert_or_assign(target, hstd::Vec<VertexID>{});
     }
     incoming_from.at(target).push_back(source);
+    source_target.insert_or_assign(
+        id, hstd::Pair<VertexID, VertexID>{source, target});
 }
 
+
 void IEdgeCollection::untrackEdge(EdgeID const& id) {
-    IEdge const* edge   = getEdge(id);
-    VertexID     source = edge->getSource();
-    VertexID     target = edge->getTarget();
+    VertexID source = getSource(id);
+    VertexID target = getTarget(id);
 
     if (incidence.contains(source)
         && incidence.at(source).contains(target)) {

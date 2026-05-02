@@ -36,10 +36,8 @@ struct TestGraph : public TrivialGraph {};
 class GraphUtils_Test : public ::testing::Test {
   protected:
     void SetUp() override {
-        hierarchy = std::make_shared<TrivialHierarchy>();
-        graph     = std::make_shared<TestGraph>();
-        run       = std::make_shared<layout::LayoutRun>(
-            graph, hierarchy, graph->edges);
+        graph = std::make_shared<TestGraph>();
+        run   = std::make_shared<layout::LayoutRun>(graph);
         run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 

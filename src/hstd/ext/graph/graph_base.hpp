@@ -468,33 +468,16 @@ struct IEdge
     , public IAttributeObject {
     using id_type = EdgeID;
 
-    VertexID source;
-    VertexID target;
-    /// \brief In case of a multi-edge collection, bundle index allows to
-    /// identify the specific edge among the several entries in the
-    /// `(source, target)` pair.
-    int bundleIndex = -1;
-    DESC_FIELDS(IEdge, (source, target, bundleIndex));
-
-    IEdge(VertexID const& source, VertexID const& target)
-        : source{source}, target{target} {}
+    DESC_FIELDS(IEdge, ());
 
     struct SerialSchema {
         std::string edgeId;
-        std::string sourceId;
-        std::string targetId;
-        int         bundleIndex;
-        DESC_FIELDS(
-            SerialSchema,
-            (edgeId, sourceId, targetId, bundleIndex));
+        DESC_FIELDS(SerialSchema, (edgeId));
     };
 
     bool operator==(IEdge const& other) const {
         return this->isEqual(&other);
     }
-
-    VertexID getSource() const { return source; }
-    VertexID getTarget() const { return target; }
 
     virtual std::size_t getHash() const override;
     virtual bool isEqual(IGraphObjectBase const* other) const override;
@@ -720,7 +703,9 @@ class IEdgeProvider {
     virtual EdgeCollectionID getCategory() const = 0;
 
     /// \brief Get already constructed edge object from the store.
-    virtual IEdge const* getEdge(EdgeID const& id) const = 0;
+    virtual IEdge const* getEdge(EdgeID const& id) const   = 0;
+    virtual VertexID     getSource(EdgeID const& id) const = 0;
+    virtual VertexID     getTarget(EdgeID const& id) const = 0;
 
     /// \brief Return stable identifier for this edge collection.
     virtual std::string getStableID() const;
@@ -773,6 +758,8 @@ class IEdgeCollection : public IEdgeProvider {
         incidence;
 
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
+    hstd::UnorderedMap<EdgeID, hstd::Pair<VertexID, VertexID>>
+        source_target;
 
   protected:
     /// \brief Default implementation of the hierarchy ID constructoir.
@@ -794,15 +781,22 @@ class IEdgeCollection : public IEdgeProvider {
     void              trackVertex(VertexID const& vert) override;
     DependantDeletion untrackVertex(VertexID const& vert) override;
 
+    VertexID getSource(EdgeID const& id) const override {
+        return source_target.at(id).first;
+    }
+
+    VertexID getTarget(EdgeID const& id) const override {
+        return source_target.at(id).second;
+    }
+
     /// \brief Get list of edges in a specific sub-set of the stored
     /// vertices. Both source and target must be in the subset.
     hstd::UnorderedSet<EdgeID> getFullyIncludedEdges(
         hstd::UnorderedSet<VertexID> const& subset) const {
         hstd::UnorderedSet<EdgeID> res;
         for (auto const& id : getEdges()) {
-            IEdge const* edge = getEdge(id);
-            if (subset.contains(edge->source)
-                && subset.contains(edge->target)) {
+            if (subset.contains(getSource(id))
+                && subset.contains(getTarget(id))) {
                 res.incl(id);
             }
         }
@@ -816,9 +810,8 @@ class IEdgeCollection : public IEdgeProvider {
         hstd::UnorderedSet<VertexID> const& subset) const {
         hstd::UnorderedSet<EdgeID> res;
         for (auto const& id : getEdges()) {
-            IEdge const* edge = getEdge(id);
-            if (subset.contains(edge->source)
-                || subset.contains(edge->target)) {
+            if (subset.contains(getSource(id))
+                || subset.contains(getTarget(id))) {
                 res.incl(id);
             }
         }
@@ -826,10 +819,10 @@ class IEdgeCollection : public IEdgeProvider {
         return res;
     }
 
-    /// \brief Track the new edge in the collection. Associated
-    /// `IEdge`-derived object should already be accessible through the
-    /// `getEdge()` virtual method override.
-    virtual void trackEdge(EdgeID const& id);
+    virtual void trackEdge(
+        EdgeID const&   id,
+        VertexID const& source,
+        VertexID const& target);
     /// \brief Remove the edge from the collection. This method is called
     /// by the `untrackVertex`.
     virtual void untrackEdge(EdgeID const& id);
@@ -846,9 +839,9 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         return edgeStore.contains(id);
     }
 
-    EdgeID addEdge(VertexID const& src, VertexID const& dst) {
-        auto res = edgeStore.add(TrivialEdge{src, dst}, getCategory());
-        trackEdge(res);
+    EdgeID addEdge(VertexID const& source, VertexID const& target) {
+        auto res = edgeStore.add(TrivialEdge{}, getCategory());
+        trackEdge(res, source, target);
         return res;
     }
 
@@ -859,6 +852,25 @@ struct TrivialEdgeCollection : public IEdgeCollection {
 
     const IEdge* getEdge(EdgeID const& id) const override {
         return &edgeStore.at(id);
+    }
+};
+
+struct IdOnlyEdgeCollection : public IEdgeCollection {
+  public:
+    hstd::UnorderedSet<EdgeID> edgeStore;
+
+    EdgeCollectionID collection_id = EdgeCollectionID{};
+
+    bool hasEdge(EdgeID const& id) const override {
+        return edgeStore.contains(id);
+    }
+
+    IdOnlyEdgeCollection(EdgeCollectionID const& id) : collection_id{id} {}
+
+    EdgeCollectionID getCategory() const override { return collection_id; }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return nullptr;
     }
 };
 
@@ -886,7 +898,8 @@ class IVertexHierarchy : public IEdgeProvider {
 
     /// \brief Track `(parent, sub-vertex) -> edge ID`. Edges are added and
     /// removed automatically based on the hierarchy.
-    hstd::UnorderedMap<hstd::Pair<VertexID, VertexID>, EdgeID> edgeTracker;
+    hstd::ext::Unordered1to1Bimap<hstd::Pair<VertexID, VertexID>, EdgeID>
+        edgeTracker;
 
     /// \brief Default implementation of the hierarchy ID constructoir.
     ///
@@ -935,6 +948,14 @@ class IVertexHierarchy : public IEdgeProvider {
     virtual EdgeID trackSubVertexRelation(
         VertexID const& parent,
         VertexID const& sub);
+
+    VertexID getSource(EdgeID const& edge) const override {
+        return edgeTracker.at_left(edge).first;
+    }
+
+    VertexID getTarget(EdgeID const& edge) const override {
+        return edgeTracker.at_left(edge).first;
+    }
 
     /// \brief Remove the vertex nesting information. As `sub` can only be
     /// nested under one vertex -- `parent`, this makes both `sub` and
@@ -1034,8 +1055,29 @@ struct TrivialHierarchy : public IVertexHierarchy {
         VertexID const& parent,
         VertexID const& sub) override {
         auto id = IVertexHierarchy::trackSubVertexRelation(parent, sub);
-        edgeStore.insert_or_assign(id, TrivialEdge{parent, sub});
+        edgeStore.insert_or_assign(id, TrivialEdge{});
         return id;
+    }
+};
+
+struct IdOnlyHierarchy : public IVertexHierarchy {
+    hstd::UnorderedSet<EdgeID> edgeStore;
+
+  public:
+    EdgeCollectionID getCategory() const override {
+        return EdgeCollectionID(getHierarchyId());
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return nullptr;
+    }
+
+    bool hasEdge(EdgeID const& id) const override {
+        return edgeStore.contains(id);
+    }
+
+    GraphHierarchyID getHierarchyId() const override {
+        return getHierarchyIdImpl(this);
     }
 };
 
@@ -1174,10 +1216,35 @@ class IGraph {
     /// @{
     /// \brief Get the edge from the collection/hierarchy. Use the edge ID
     /// mask to determine which collection the edge comes from.
-    virtual IEdge const* getEdge(EdgeID const& id) const;
-    virtual IEdge*       getMEdge(EdgeID const& id) {
+    virtual IEdge const* getEdge(EdgeID const& id) const {
+        return getEdgeProvider(id)->getEdge(id);
+    }
+
+    virtual IEdge* getMEdge(EdgeID const& id) {
         return const_cast<IEdge*>(getEdge(id));
     }
+
+    GraphHierarchyID getHierarchyID(EdgeID const& id) const;
+    EdgeCollectionID getCollectionID(EdgeID const& id) const;
+
+    hstd::SPtr<IVertexHierarchy> getHierarchy(EdgeID const& id) const {
+        return hierarchies.at(getHierarchyID(id));
+    }
+
+    hstd::SPtr<IEdgeCollection> getEdgeCollection(EdgeID const& id) const {
+        return collections.at(getCollectionID(id));
+    }
+
+    hstd::SPtr<IEdgeProvider> getEdgeProvider(EdgeID const& id) const {
+        if (IEdgeProvider::isHierarchyEdge(id)) {
+            return getHierarchy(id);
+        } else {
+            return getEdgeCollection(id);
+        }
+    }
+
+    virtual VertexID getSource(EdgeID const& id) const;
+    virtual VertexID getTarget(EdgeID const& id) const;
     /// \brief Provide additional information about the vertex nesting
     /// relation for a specific hierarchy.
     ///
@@ -1253,9 +1320,9 @@ class IGraph {
         return hstd::fmt(
             "edge {} ({}) from {} to {}",
             edge,
-            getEdge(edge)->getStableId(),
-            getDebugVertexFormat(getEdge(edge)->getSource()),
-            getDebugVertexFormat(getEdge(edge)->getTarget()));
+            getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
+            getDebugVertexFormat(getSource(edge)),
+            getDebugVertexFormat(getSource(edge)));
     }
 };
 
@@ -1438,15 +1505,18 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::SPtr<IGraph>           graph;
-    hstd::SPtr<IVertexHierarchy> groups;
-    hstd::SPtr<IEdgeCollection>  edges;
+    hstd::SPtr<IGraph>               graph;
+    hstd::SPtr<IdOnlyHierarchy>      groups;
+    hstd::SPtr<IdOnlyEdgeCollection> edges;
 
     LayoutRun(
-        hstd::SPtr<IGraph>           graph,
-        hstd::SPtr<IVertexHierarchy> groups,
-        hstd::SPtr<IEdgeCollection>  edges)
-        : graph{graph}, groups{groups}, edges{edges} {
+        hstd::SPtr<IGraph> graph,
+        EdgeCollectionID   edges_id = EdgeCollectionID{9999})
+        : graph{graph}
+        , groups{std::make_shared<IdOnlyHierarchy>()}
+        , edges{std::make_shared<IdOnlyEdgeCollection>(edges_id)} {
+        graph->addCollection(edges);
+        graph->addHierarchy(groups);
         hstd::logic_assertion_check_not_nil(graph);
         hstd::logic_assertion_check_not_nil(groups);
         hstd::logic_assertion_check_not_nil(edges);
@@ -1644,8 +1714,9 @@ class LayoutRun : public OperationsTracer {
     void addEdge(
         EdgeID const&                           id,
         hstd::SPtr<IEdgeVisualAttribute> const& attr) {
-        getGraph()->getMEdge(id)->addUniqueAttribute(attr);
-        edges->trackEdge(id);
+        auto edge = getGraph()->getMEdge(id);
+        edge->addUniqueAttribute(attr);
+        edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
     }
 
     hstd::SPtr<IGraph> getGraph() const { return graph; }

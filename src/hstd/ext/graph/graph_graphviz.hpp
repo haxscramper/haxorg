@@ -851,12 +851,11 @@ class GraphGroup
 
 
     hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id) {
-        auto e    = const_cast<IEdge*>(run->getEdge(id));
         auto attr = edge(
             *ctx.run->getVertexVisualAttribute<NodeAttribute>(
-                e->getSource()),
+                run->getGraph()->getSource(id)),
             *ctx.run->getVertexVisualAttribute<NodeAttribute>(
-                e->getTarget()));
+                run->getGraph()->getTarget(id)));
         run->addEdge(id, attr);
         return attr;
     }
