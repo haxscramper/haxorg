@@ -255,7 +255,23 @@ struct SvgWriter {
             rect.set_attr("ry", hstd::fmt("{}", *r.cornerRadius));
         }
 
-        return std::move(rect);
+        if (debug) {
+            XmlNode result{"g"};
+            result.push_back(rect);
+            result.push_back(buildDebugMarker(
+                r.geometry.min_corner(),
+                {hstd::fmt(
+                    "({:.2f},{:.2f}+{},{})",
+                    r.geometry.x(),
+                    r.geometry.y(),
+                    r.geometry.width(),
+                    r.geometry.height())},
+                DebugConf{.font_size = 2}));
+
+            return result;
+        } else {
+            return std::move(rect);
+        }
     }
 
     XmlNode writeShape(VisElement::EllipseShape const& e) {

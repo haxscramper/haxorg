@@ -255,9 +255,22 @@ static_assert(
 class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
     geometry::Rect rect;
-    ColaVertexLayoutAttribute(geometry::Rect rect) : rect{rect} {}
+    std::string    text;
+    ColaVertexLayoutAttribute(geometry::Rect rect, std::string text = "")
+        : rect{rect}, text{text} {}
 
     Rect getBBox() const override { return rect; }
+
+    visual::VisGroup getVisual(VertexID const& selfId) const override {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        res.elements.push_back(
+            visual::VisElement::FromText(
+                text.empty() ? hstd::fmt("{}", selfId) : text,
+                getBBox().upper_left()));
+        return res;
+    }
 };
 
 class ColaEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
@@ -317,22 +330,24 @@ class ColaConstraint : public layout::IConstraint {
 class AlignConstraint : public ColaConstraint {
   public:
     using ColaConstraint::ColaConstraint;
+
+    DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
+
     struct [[refl]] Spec {
         [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
+        [[refl]] AxisAlign   align  = AxisAlign::Center;
         [[refl]] double      offset = 0.0; ///< Offset from the axis
-        DESC_FIELDS(Spec, (fixPos, offset));
+        DESC_FIELDS(Spec, (fixPos, align, offset));
     };
 
     hstd::UnorderedMap<VertexID, Spec> vertices;
+    [[refl]] GraphDimension dimension; ///< Which axist to align on
+    DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
     std::string getRepr() const override {
         return hstd::fmt(
             "align {} rects {}", getAllVertices(), getRectangleIndices());
     }
-
-
-    [[refl]] GraphDimension dimension; ///< Which axist to align on
-    DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
 
     hstd::Vec<VertexID> getAllVertices() const override {
@@ -348,12 +363,12 @@ class AlignConstraint : public ColaConstraint {
         return this;
     }
 
-    AlignConstraint* useX() {
+    AlignConstraint* useVerticalAxis() {
         dimension = GraphDimension::XDIM;
         return this;
     }
 
-    AlignConstraint* useY() {
+    AlignConstraint* useHorizontalAxis() {
         dimension = GraphDimension::YDIM;
         return this;
     }
@@ -393,15 +408,15 @@ class SeparateConstraint : public ColaConstraint {
 
     SeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::XDIM;
-        left.useX();
-        right.useX();
+        left.useVerticalAxis();
+        right.useVerticalAxis();
         return this;
     }
 
     SeparateConstraint* separateVertically() {
         dimension = GraphDimension::YDIM;
-        left.useY();
-        right.useY();
+        left.useHorizontalAxis();
+        right.useHorizontalAxis();
         return this;
     }
 
@@ -509,13 +524,13 @@ class MultiSeparateConstraint : public ColaConstraint {
 
     MultiSeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::XDIM;
-        for (auto& lane : lines) { lane.useX(); }
+        for (auto& lane : lines) { lane.useVerticalAxis(); }
         return this;
     }
 
     MultiSeparateConstraint* separateVertically() {
         dimension = GraphDimension::YDIM;
-        for (auto& lane : lines) { lane.useY(); }
+        for (auto& lane : lines) { lane.useHorizontalAxis(); }
         return this;
     }
 

@@ -56,12 +56,12 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
     root->addVertex(rg_id, v4, Size(80, 80));
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useX()
+        ->useVerticalAxis()
         ->addAlignVertex(v1)
         ->addAlignVertex(v2);
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useY()
+        ->useHorizontalAxis()
         ->addAlignVertex(v1)
         ->addAlignVertex(v4);
 
@@ -80,6 +80,83 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
     EXPECT_OUTCOME_OK(
         checkAlignedVertically(run->getVisual(v1), run->getVisual(v2)));
 }
+
+class GraphAdaptagramsIR_BoolParamTest
+    : public GraphAdaptagramsIR_Test
+    , public testing::WithParamInterface<bool> {};
+
+TEST_P(GraphAdaptagramsIR_BoolParamTest, LibcolaAlign_Offset) {
+    VertexID v1    = addVertex("v1");
+    VertexID v2    = addVertex("v2");
+    VertexID v3    = addVertex("v3");
+    VertexID rg_id = addVertex("rg");
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+
+    run->addRootGroup(rg_id, root);
+
+    root->addVertex(rg_id, v1, Size(50, 50));
+    root->addVertex(rg_id, v2, Size(60, 60));
+    root->addVertex(rg_id, v3, Size(70, 70));
+
+    bool const is_vertical = GetParam();
+
+    auto c = root->addConstraint<cst::AlignConstraint>(root);
+
+    if (is_vertical) {
+        c->useVerticalAxis();
+    } else {
+        c->useHorizontalAxis();
+    }
+
+    c //
+        ->addAlignVertex(v1, 0)
+        ->addAlignVertex(v2, 50)
+        ->addAlignVertex(v3, 100);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/true).to_string());
+
+    auto offset = is_vertical ? geometry::Point{50, 0}
+                              : geometry::Point{0, 50};
+
+    if (is_vertical) {
+        EXPECT_OUTCOME_OK(checkAlignedVertically(
+            run->getVisual(v1).computeBounds().center(),
+            run->getVisual(v2).computeBounds().center() - offset));
+
+        EXPECT_OUTCOME_OK(checkAlignedVertically(
+            run->getVisual(v2).computeBounds().center(),
+            run->getVisual(v3).computeBounds().center() - offset));
+
+        EXPECT_OUTCOME_OK(checkAlignedVertically(
+            run->getVisual(v1).computeBounds().center(),
+            run->getVisual(v3).computeBounds().center() - offset * 2));
+    } else {
+        EXPECT_OUTCOME_OK(checkAlignedHorizontally(
+            run->getVisual(v1).computeBounds().center(),
+            run->getVisual(v2).computeBounds().center() - offset));
+
+        EXPECT_OUTCOME_OK(checkAlignedHorizontally(
+            run->getVisual(v2).computeBounds().center(),
+            run->getVisual(v3).computeBounds().center() - offset));
+
+        EXPECT_OUTCOME_OK(checkAlignedHorizontally(
+            run->getVisual(v1).computeBounds().center(),
+            run->getVisual(v3).computeBounds().center() - offset * 2));
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    BoolCases,
+    GraphAdaptagramsIR_BoolParamTest,
+    testing::Values(false, true));
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
     hstd::Vec<VertexID> vs;
@@ -116,13 +193,13 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
     for (EdgeID e : es) { root->addEdge(e); }
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useX()
+        ->useVerticalAxis()
         ->addAlignVertex(vs.at(0))
         ->addAlignVertex(vs.at(1))
         ->addAlignVertex(vs.at(2));
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useX()
+        ->useVerticalAxis()
         ->addAlignVertex(vs.at(3))
         ->addAlignVertex(vs.at(4))
         ->addAlignVertex(vs.at(5))
@@ -130,7 +207,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
         ->addAlignVertex(vs.at(7));
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useX()
+        ->useVerticalAxis()
         ->addAlignVertex(vs.at(8))
         ->addAlignVertex(vs.at(9))
         ->addAlignVertex(vs.at(10))
@@ -204,7 +281,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
     root->addVertex(rg_id, v1, Size(25, 100));
 
     root->addConstraint<cst::AlignConstraint>(root)
-        ->useY()
+        ->useHorizontalAxis()
         ->addAlignVertex(v0)
         ->addAlignVertex(v1);
 
@@ -268,22 +345,54 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     hstd::SPtr<cst::ColaGroup> sg_2 = root->addNewNativeSubgroup(
         rg_id, sg_id2);
 
+    int const size = 50;
+
     // root nodes
-    root->addVertex(rg_id, vs.at(0), Size(25, 25));
-    root->addVertex(rg_id, vs.at(1), Size(25, 25));
+    root->addVertex(rg_id, vs.at(0), Size(size, size));
+    root->addVertex(rg_id, vs.at(1), Size(size, size));
+
+    sg_1->addConstraint<cst::SeparateConstraint>(sg_1)
+        ->separateHorizontally()
+        ->setSeparationDistance(size * 3)
+        ->addLeftVertex(vs.at(2))
+        ->addRightVertex(vs.at(6));
 
     // sub group 1
-    sg_1->addVertex(sg_id1, vs.at(2), Size(25, 25));
-    sg_1->addVertex(sg_id1, vs.at(3), Size(25, 25));
-    sg_1->addVertex(sg_id1, vs.at(4), Size(25, 25));
-    sg_1->addVertex(sg_id1, vs.at(5), Size(25, 25));
+    sg_1->addVertex(sg_id1, vs.at(2), Size(size, size));
+    sg_1->addVertex(sg_id1, vs.at(3), Size(size, size));
+    sg_1->addVertex(sg_id1, vs.at(4), Size(size, size));
+    sg_1->addVertex(sg_id1, vs.at(5), Size(size, size));
+
+    sg_1->addConstraint<cst::SeparateConstraint>(sg_1)
+        ->separateHorizontally()
+        ->addLeftVertex(vs.at(2))
+        ->addLeftVertex(vs.at(4))
+        ->addRightVertex(vs.at(3))
+        ->addRightVertex(vs.at(5));
 
     // sub group 2
-    sg_2->addVertex(sg_id2, vs.at(6), Size(25, 25));
-    sg_2->addVertex(sg_id2, vs.at(7), Size(25, 25));
-    sg_2->addVertex(sg_id2, vs.at(8), Size(25, 25));
-    sg_2->addVertex(sg_id2, vs.at(9), Size(25, 25));
-    sg_2->addVertex(sg_id2, vs.at(10), Size(25, 25));
+    sg_2->addVertex(sg_id2, vs.at(6), Size(size, size));
+    sg_2->addVertex(sg_id2, vs.at(7), Size(size, size));
+    sg_2->addVertex(sg_id2, vs.at(8), Size(size, size));
+    sg_2->addVertex(sg_id2, vs.at(9), Size(size, size));
+    sg_2->addVertex(sg_id2, vs.at(10), Size(size, size));
+
+    // sg_2->addConstraint<cst::AlignConstraint>(sg_2)
+    //     ->useHorizontalAxis()
+    //     ->addAlignVertex(vs.at(6), 0)
+    //     ->addAlignVertex(vs.at(7), size)
+    //     ->addAlignVertex(vs.at(8), size * 2)
+    //     ->addAlignVertex(vs.at(9), size * 3)
+    //     ->addAlignVertex(vs.at(10), size * 4);
+
+    sg_2->addConstraint<cst::MultiSeparateConstraint>(sg_2)
+        ->separateHorizontally()
+        ->setSeparationDistance(size)
+        ->addFullLane({vs.at(6)})
+        ->addFullLane({vs.at(7)})
+        ->addFullLane({vs.at(8)})
+        ->addFullLane({vs.at(9)})
+        ->addFullLane({vs.at(10)});
 
     run->runFullLayout();
 

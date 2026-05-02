@@ -183,12 +183,41 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     validate_unsatisfied();
 
 
-    layout::IPlacementAlgorithm::Result result;
+    layout::IPlacementAlgorithm::Result          result;
+    hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
 
-    auto aux_layout =
-        [&](this auto&&                self,
-            VertexID const&            id,
-            hstd::Opt<VertexID> const& parent) -> geometry::Rect {
+    auto aux_absolute_bboxes = [&](this auto&&     self,
+                                   VertexID const& id) -> void {
+        auto group = run->getGroup(id);
+        if (group->hasAlgorithm() && id != root_id) {
+            auto const& prev_attribute = run->getLayout(id);
+            auto        prev_cast      = std::dynamic_pointer_cast<
+                ColaGroupLayoutAttribute>(prev_attribute);
+            auto vpsc_rect = sub_group_rectangles.at(id);
+            auto rect      = adapt::to_hstd(*vpsc_rect);
+            bbox_map.insert_or_assign(id, rect);
+
+        } else {
+            auto bbox = geometry::Rect::FromLimitBoundaries();
+            for (auto const& group_id : run->getSubGroups(id)) {
+                self(group_id);
+                bbox.extend(bbox_map.at(group_id));
+            }
+
+            for (auto const& vert : run->getDirectVertices(id)) {
+                auto rect = ctx->getRect(vert);
+                bbox.extend(adapt::to_hstd(*rect));
+            }
+
+            bbox_map.insert_or_assign(id, bbox);
+        }
+    };
+
+    aux_absolute_bboxes(root_id);
+
+    auto aux_layout = [&](this auto&&            self,
+                          VertexID const&        id,
+                          geometry::Point const& rel_offset) -> void {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
@@ -216,32 +245,21 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                     std::make_shared<ColaGroupLayoutAttribute>(
                         rect, rootGroup));
             }
-
-            return rect;
         } else {
-            auto bbox = geometry::Rect::FromLimitBoundaries();
-            hstd::Vec<geometry::Rect> subgroup_bbox_list;
-            for (auto const& sub : run->getSubGroups(id)) {
-                subgroup_bbox_list.push_back(self(sub, id));
-            }
-
-            for (auto const& vert : run->getDirectVertices(id)) {
-                auto rect = ctx->getRect(vert);
-                bbox.extend(adapt::to_hstd(*rect));
-            }
-
-            for (auto const& [group_id, group_bbox] : hstd::rs::zip_view(
-                     run->getSubGroups(id), subgroup_bbox_list)) {
+            for (auto const& group_id : run->getSubGroups(id)) {
+                auto this_bbox = bbox_map.at(group_id).relative_to(
+                    rel_offset);
+                self(group_id, this_bbox.upper_left() + rel_offset);
                 result.vertices.insert_or_assign(
                     group_id,
                     std::make_shared<ColaGroupLayoutAttribute>(
-                        group_bbox.relative_to(bbox),
+                        this_bbox,
                         run->getGroup<cst::ColaGroup>(group_id)));
             }
 
             for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
-                auto rel_rect = rect.relative_to(bbox);
+                auto rel_rect = rect.relative_to(rel_offset);
 
                 run->message(
                     hstd::fmt(
@@ -252,14 +270,14 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
                 result.vertices.insert_or_assign(
                     vert,
-                    std::make_shared<ColaVertexLayoutAttribute>(rect));
+                    std::make_shared<ColaVertexLayoutAttribute>(
+                        rect,
+                        run->getGraph()->getVertex(vert)->getStableId()));
             }
-
-            return bbox;
         }
     };
 
-    auto bbox = aux_layout(root_id, std::nullopt);
+    aux_layout(root_id, geometry::Point{});
 
     router->run                    = run;
     router->rects                  = rootGroup->shared.get();
@@ -271,7 +289,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     result.vertices.insert_or_assign(
         root_id,
-        std::make_shared<ColaGroupLayoutAttribute>(bbox, rootGroup));
+        std::make_shared<ColaGroupLayoutAttribute>(
+            bbox_map.at(root_id), rootGroup));
 
     return result;
 }
@@ -322,30 +341,77 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::
         getAllRectanglesSorted(), getAllShapeIdsSorted(), fixedPosition)};
 }
 
-
 hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::AlignConstraint::
     getCola() const {
     auto result = std::make_shared<cola::AlignmentConstraint>(
         toVpsc(dimension));
 
-    group->run->message(
-        hstd::fmt(
-            "create align constraint dim={}",
-            dimension == cst::GraphDimension::XDIM ? "X" : "Y"));
+    auto getAxisOffset = [&](VertexID    vertexId,
+                             Spec const& spec) -> double {
+        auto const& rect = *group->shared->getRect(vertexId);
+
+        switch (spec.align) {
+            case AxisAlign::Center: {
+                return spec.offset;
+            }
+
+            case AxisAlign::Left: {
+                if (dimension != GraphDimension::XDIM) {
+                    throw layout::layout_error::init(
+                        hstd::fmt(
+                            "AlignConstraint axis mismatch: vertex {} "
+                            "uses Left for {} constraint",
+                            vertexId,
+                            dimension));
+                }
+                return spec.offset - rect.width() / 2.0;
+            }
+
+            case AxisAlign::Right: {
+                if (dimension != GraphDimension::XDIM) {
+                    throw layout::layout_error::init(
+                        hstd::fmt(
+                            "AlignConstraint axis mismatch: vertex {} "
+                            "uses Right for {} constraint",
+                            vertexId,
+                            dimension));
+                }
+                return spec.offset + rect.width() / 2.0;
+            }
+
+            case AxisAlign::Top: {
+                if (dimension != GraphDimension::YDIM) {
+                    throw layout::layout_error::init(
+                        hstd::fmt(
+                            "AlignConstraint axis mismatch: vertex {} "
+                            "uses Top for {} constraint",
+                            vertexId,
+                            dimension));
+                }
+                return spec.offset - rect.height() / 2.0;
+            }
+
+            case AxisAlign::Bottom: {
+                if (dimension != GraphDimension::YDIM) {
+                    throw layout::layout_error::init(
+                        hstd::fmt(
+                            "AlignConstraint axis mismatch: vertex {} "
+                            "uses Bottom for {} constraint",
+                            vertexId,
+                            dimension));
+                }
+                return spec.offset + rect.height() / 2.0;
+            }
+        }
+
+        std::unreachable();
+    };
 
     for (auto const& [vertexId, spec] : vertices) {
-        group->run->message(
-            hstd::fmt(
-                "{} rect {} {} offset {}",
-                getShapeId(vertexId),
-                adapt::to_hstd(*group->shared->getRect(vertexId)),
-                spec,
-                spec.offset));
-
-        result->addShape(getShapeId(vertexId), spec.offset);
+        result->addShape(
+            getShapeId(vertexId), getAxisOffset(vertexId, spec));
         if (spec.fixPos) { result->fixPos(*spec.fixPos); }
     }
-
 
     return {result};
 }
@@ -889,6 +955,8 @@ AlignDebugInfo buildAlign(
 auto const red_pen          = VisPen{.color = VisColor{.r = 255}};
 auto const green_pen        = VisPen{.color = VisColor{.g = 255}};
 auto const medium_green_pen = VisPen{.color = VisColor{.g = 127}};
+auto const purple_pen       = VisPen{
+    .color = VisColor{.r = 128, .g = 0, .b = 128}};
 
 VisGroup getAlignVisualGroup(AlignDebugInfo const& al, VisPen const& pen) {
     auto sub_align = VisGroup{};
@@ -899,6 +967,14 @@ VisGroup getAlignVisualGroup(AlignDebugInfo const& al, VisPen const& pen) {
     for (auto const& c : al.centers) {
         auto p = VisElement::FromPoint(c.pos, 2, pen);
         sub_align.elements.push_back(std::move(p));
+    }
+
+    for (auto const& c : al.offsets) {
+        if (c.offset != c.start.pos) {
+            sub_align.elements.push_back(
+                VisElement::FromLine(
+                    c.start.pos, c.start.pos + c.offset, purple_pen));
+        }
     }
 
     return sub_align;

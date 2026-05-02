@@ -2,29 +2,32 @@
 
 namespace {
 hstd::fs::path getDebugPath(hstd::Str const& suffix) {
-    auto dir = std::filesystem::temp_directory_path()
-             / hstd::fs::path{hstd::fmt(
-                 "haxorg_tests/{}",
-                 ::testing::UnitTest::GetInstance()
-                     ->current_test_info()
-                     ->test_suite_name())};
+    auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
 
-    auto           testname = ::testing::UnitTest::GetInstance()
-                                  ->current_test_info()
-                                  ->name();
-    hstd::fs::path outPath;
+    hstd::Str testId = info->name();
+
+    if (auto const* valueParam = info->value_param();
+        valueParam != nullptr) {
+        testId += hstd::fmt("/value-{}", valueParam);
+    }
+
+    if (auto const* typeParam = info->type_param(); typeParam != nullptr) {
+        testId += hstd::fmt("/type-{}", typeParam);
+    }
+
+    auto dir = std::filesystem::temp_directory_path()
+             / hstd::fs::path{
+                 hstd::fmt("haxorg_tests/{}", info->test_suite_name())};
 
     if (suffix.empty()) {
-        hstd::Str result = hstd::fmt("{}/{}", dir.native(), testname);
-        outPath          = result.toBase();
+        return hstd::fs::path{hstd::fmt("{}/{}", dir.native(), testId)};
     } else {
-        hstd::Str result = hstd::fmt(
-            "{}/{}/{}", dir.native(), testname, suffix);
-        outPath = result.toBase();
+        return hstd::fs::path{
+            hstd::fmt("{}/{}/{}", dir.native(), testId, suffix)};
     }
-    return outPath;
 }
 } // namespace
+
 
 hstd::fs::path getDebugFile(hstd::Str const& suffix, bool cleanParent) {
     auto file = getDebugPath(suffix);

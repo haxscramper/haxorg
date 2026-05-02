@@ -503,6 +503,20 @@ hstd::Vec<VertexID> IVertexHierarchy::getParentChain(
     return result;
 }
 
+hstd::Vec<VertexID> hstd::ext::graph::IVertexHierarchy::
+    getParentChainUntil(VertexID const& start, VertexID const& finish)
+        const {
+    hstd::Vec<VertexID> result;
+    auto                current = start;
+    for (; auto parent = getParentVertex(current);
+         parent.has_value() && parent != finish) {
+        result.push_back(parent.value());
+        current = parent.value();
+    }
+    return result;
+}
+
+
 EdgeIDSet IVertexHierarchy::getEdges() const {
     EdgeIDSet result;
     for (auto const& [it, value] : edgeTracker.get_map()) {

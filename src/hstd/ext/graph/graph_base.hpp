@@ -489,7 +489,6 @@ struct IEdge
     }
 };
 
-
 struct TrivialEdge : public IEdge {
     using IEdge::IEdge;
 
@@ -989,6 +988,11 @@ class IVertexHierarchy : public IEdgeProvider {
     /// \brief Return full parent chain for `id`, from immediate parent up
     /// to the root.
     hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
+    /// \brief Get parent chain from the start to finish node, excluding
+    /// these two nodes.
+    hstd::Vec<VertexID> getParentChainUntil(
+        VertexID const& start,
+        VertexID const& finish) const;
 
     EdgeIDSet getEdges() const override;
     EdgeIDSet getOutgoing(VertexID const& vert) const override;
@@ -1743,6 +1747,15 @@ class LayoutRun : public OperationsTracer {
 
         return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
+
+    hstd::Opt<VertexID> getParent(VertexID const& id) const {
+        return groups->getParentVertex(id);
+    }
+
+    hstd::Vec<VertexID> getParentChain(VertexID const& id) const {
+        return groups->getParentChain(id);
+    }
+
 
     geometry::Rect getRelativeBBox(VertexID const& id) const {
         return getLayout(id)->getBBox();
