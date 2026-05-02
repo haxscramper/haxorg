@@ -43,6 +43,13 @@ class GraphUtils_Test : public ::testing::Test {
         run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 
+    VertexID addVertex(hstd::Str const& id_override) {
+        auto res = graph->addVertex();
+        graph->getCastMVertex<TrivialVertex>(res)
+            ->stableIdOverride = id_override;
+        return res;
+    }
+
     hstd::SPtr<TestGraph>         graph;
     hstd::SPtr<layout::LayoutRun> run;
     hstd::SPtr<TrivialHierarchy>  hierarchy;

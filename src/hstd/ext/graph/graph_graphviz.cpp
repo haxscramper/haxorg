@@ -596,6 +596,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
+                HSLOG_DEBUG(
+                    "edge {}", run->getGraph()->getDebugEdgeFormat(edge));
                 run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }

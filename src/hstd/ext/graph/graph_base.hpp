@@ -334,7 +334,8 @@ class IAttributeObject {
     /// expected to be unique.
     template <typename T>
         requires std::derived_from<T, IAttribute>
-    hstd::SPtr<T> getUniqueAttribute() const {
+    hstd::SPtr<T> getUniqueAttribute(
+        std::string const& err_ctx = "") const {
         hstd::SPtr<T> result;
         for (auto const& attr : getAttributes()) {
             if (attr->isInstance<T>()) {
@@ -344,8 +345,9 @@ class IAttributeObject {
                     throw graph_error::init(
                         hstd::fmt(
                             "Graph object is expected to have exactly one "
-                            "attribute of type {}, but found two.",
-                            hstd::value_metadata<T>::typeName()));
+                            "attribute of type {}, but found two. {}",
+                            hstd::value_metadata<T>::typeName(),
+                            err_ctx));
                 }
             }
         }
@@ -354,8 +356,9 @@ class IAttributeObject {
             throw graph_error::init(
                 hstd::fmt(
                     "Graph object is expected to have exactly one "
-                    "attribute of type {}, but found none.",
-                    hstd::value_metadata<T>::typeName()));
+                    "attribute of type {}, but found none. {}",
+                    hstd::value_metadata<T>::typeName(),
+                    err_ctx));
         }
 
         return result;
@@ -363,15 +366,18 @@ class IAttributeObject {
 
     template <typename T = IAttribute>
         requires std::derived_from<T, IAttribute>
-    void addUniqueAttribute(hstd::SPtr<T> const& attr) {
+    void addUniqueAttribute(
+        hstd::SPtr<T> const& attr,
+        std::string const&   err_ctx = "") {
         for (auto const& existing : getAttributes()) {
             if (typeid(attr.get()) == typeid(existing.get())) {
                 throw graph_error::init(
                     hstd::fmt(
                         "Graph object is required to have only one "
                         "attribute of type {}, but the code is attempting "
-                        "to add a new instance.",
-                        typeid(attr.get()).name()));
+                        "to add a new instance. {}",
+                        typeid(attr.get()).name(),
+                        err_ctx));
             }
         }
 
@@ -1480,19 +1486,22 @@ class LayoutRun : public OperationsTracer {
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     hstd::SPtr<T> getGroup(VertexID const& id) const {
-        return graph->getVertex(id)->getUniqueAttribute<T>();
+        return graph->getVertex(id)->getUniqueAttribute<T>(
+            graph->getDebugVertexFormat(id));
     }
 
     template <typename T = IEdgeVisualAttribute>
         requires std::derived_from<T, IEdgeVisualAttribute>
     hstd::SPtr<T> getEdgeVisualAttribute(EdgeID const& id) const {
-        return graph->getEdge(id)->getUniqueAttribute<T>();
+        return graph->getEdge(id)->getUniqueAttribute<T>(
+            graph->getDebugEdgeFormat(id));
     }
 
     template <typename T = IVertexVisualAttribute>
         requires std::derived_from<T, IVertexVisualAttribute>
     hstd::SPtr<T> getVertexVisualAttribute(VertexID const& id) const {
-        return graph->getVertex(id)->getUniqueAttribute<T>();
+        return graph->getVertex(id)->getUniqueAttribute<T>(
+            graph->getDebugVertexFormat(id));
     }
 
     template <typename T = IAttribute>

@@ -241,15 +241,9 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
     };
 
-    VertexID rg_id = graph->addVertex();
-    graph->getCastMVertex<TrivialVertex>(rg_id)
-        ->stableIdOverride = "rg_id";
-    VertexID sg_id1        = graph->addVertex();
-    graph->getCastMVertex<TrivialVertex>(rg_id)
-        ->stableIdOverride = "sg_id1";
-    VertexID sg_id2        = graph->addVertex();
-    graph->getCastMVertex<TrivialVertex>(rg_id)
-        ->stableIdOverride = "sg_id2";
+    VertexID rg_id  = addVertex("rg_id");
+    VertexID sg_id1 = addVertex("sg_id1");
+    VertexID sg_id2 = addVertex("sg_id2");
 
     edge(0, 2);  // 0
     edge(2, 1);  // 1

@@ -95,10 +95,14 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
 TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
-    for (int i = 0; i < 11; ++i) { vs.push_back(graph->addVertex()); }
-    auto     rg_id  = graph->addVertex();
-    VertexID sg_id1 = graph->addVertex();
-    VertexID sg_id2 = graph->addVertex();
+
+    for (int i = 0; i < 11; ++i) {
+        vs.push_back(addVertex(hstd::fmt("id_{}", i)));
+    }
+
+    auto     rg_id  = addVertex("rg_id");
+    VertexID sg_id1 = addVertex("sg_id1");
+    VertexID sg_id2 = addVertex("sg_id2");
 
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
