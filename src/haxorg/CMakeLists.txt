@@ -51,9 +51,8 @@ if(${ORG_BUILD_WITH_MSGPACK})
 endif()
 
 if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
-  find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
-  find_library(GRAPHVIZ_GVC_LIBRARY gvc)
-  target_link_libraries(haxorg PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
+  find_package(graphviz REQUIRED)
+  target_link_libraries(haxorg PUBLIC graphviz::cgraph graphviz::gvc)
 endif()
 
 if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})

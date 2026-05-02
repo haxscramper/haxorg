@@ -471,6 +471,8 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
 
     hstd::logic_assertion_check_not_nil(gvc.get());
     hstd::logic_assertion_check_not_nil(g);
+    assert(gvc.get() != nullptr);
+    assert(g != nullptr);
     int res = gvLayout(gvc.get(), g, algo);
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
     // Layout does not position the labels, need to call rendering pass.
@@ -615,6 +617,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
         aux(root_id, std::nullopt);
     }
 
+    hstd::logic_assertion_check_not_nil(rootGroup);
     rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup);
 
     layout::IPlacementAlgorithm::Result result;

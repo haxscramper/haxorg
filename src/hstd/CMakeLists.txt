@@ -33,9 +33,8 @@ if(NOT ${ORG_BUILD_EMCC})
   target_link_libraries(hstd PUBLIC Boost::log cpptrace::cpptrace)
 
   if(${ORG_BUILD_WITH_CGRAPH})
-    find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
-    find_library(GRAPHVIZ_GVC_LIBRARY gvc)
-    target_link_libraries(hstd PUBLIC ${GRAPHVIZ_CGRAPH_LIBRARY} ${GRAPHVIZ_GVC_LIBRARY})
+    find_package(graphviz REQUIRED)
+    target_link_libraries(hstd PUBLIC graphviz::cgraph graphviz::gvc)
   endif()
 endif()
 
