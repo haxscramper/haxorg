@@ -702,17 +702,9 @@ class GraphGroup
     };
 
 
-    hstd::SPtr<GraphGroup> newSubgraph(
-        Str const& name,
-        bool       with_algorithm = false) {
+    hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
         auto res = std::make_shared<GraphGroup>(
             ctx, agsubg(graph, strdup("cluster_" + name), 1));
-
-        if (with_algorithm) {
-            res->algorithm = hstd::validated_dynamic_cast<
-                layout::IPlacementAlgorithm>(
-                std::make_shared<gv::Layout>(ctx.gvc, run));
-        }
 
         return res;
     }
@@ -755,8 +747,6 @@ class GraphGroup
         }
 
         auto tmp = std::make_shared<NodeAttribute>(graph, name);
-
-
         run->message(hstd::fmt("add GV node for {}", name));
         return tmp;
     }
@@ -890,7 +880,12 @@ class GraphGroup
         VertexID const& parent,
         VertexID const& id,
         bool            with_algorithm = false) {
-        auto res    = newSubgraph(hstd::fmt("GV_{}", id), with_algorithm);
+        hstd::SPtr<GraphGroup> res;
+        if (with_algorithm) {
+            res = newRootGraph(run);
+        } else {
+            res = newSubgraph(hstd::fmt("GV_{}", id));
+        }
         std::ignore = run->addNestedGroup(parent, id, res);
         return res;
     }

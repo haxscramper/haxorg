@@ -216,7 +216,9 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
-    for (int i = 0; i < 6; ++i) { vs.push_back(graph->addVertex()); }
+    for (int i = 0; i < 6; ++i) {
+        vs.push_back(addVertex(hstd::fmt("id_{}", i)));
+    }
 
     auto edge = [&](int source, int target) {
         es.push_back(graph->addEdge(vs.at(source), vs.at(target)));
@@ -229,41 +231,41 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     edge(4, 5); // 4
     edge(5, 3); // 5
 
-    auto     rg_id  = graph->addVertex();
-    VertexID sg_id1 = graph->addVertex();
-    VertexID sg_id2 = graph->addVertex();
+    auto     rg_id  = addVertex("rg_id");
+    VertexID sg_id1 = addVertex("sg_id1");
+    VertexID sg_id2 = addVertex("sg_id2");
 
     auto root = gv::GraphGroup::newRootGraph(run);
     run->addRootGroup(rg_id, root);
     auto ctx = root->context();
 
-    auto sg1 = root->addNewNativeSubgroup(
-        rg_id, sg_id1, /*with_algorithm=*/true);
-    sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
-
     auto sg2 = root->addNewNativeSubgroup(
         rg_id, sg_id2, /*with_algorithm=*/true);
     sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
 
+    auto sg1 = root->addNewNativeSubgroup(
+        rg_id, sg_id1, /*with_algorithm=*/true);
+    sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+
     as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(0)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-0");
+        ->setLabel(graph->getVertex(vs.at(0))->getStableId());
     as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(1)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-1");
+        ->setLabel(graph->getVertex(vs.at(1))->getStableId());
     as<gv::NodeAttribute>(sg1->addVertex(sg_id1, vs.at(2)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-2");
+        ->setLabel(graph->getVertex(vs.at(2))->getStableId());
 
     as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(3)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-3");
+        ->setLabel(graph->getVertex(vs.at(3))->getStableId());
     as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(4)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-4");
+        ->setLabel(graph->getVertex(vs.at(4))->getStableId());
     as<gv::NodeAttribute>(sg2->addVertex(sg_id2, vs.at(5)))
         ->setFixedPointWH(60, 60)
-        ->setLabel("VERT-5");
+        ->setLabel(graph->getVertex(vs.at(5))->getStableId());
 
 
     as<gv::EdgeAttribute>(sg1->addEdge(es.at(0)));
@@ -339,7 +341,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     using VE = hstd::ext::visual::VisElement;
 
-    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg_id1),
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg_id2),
                                   /*relative=*/run->getVisual(sg_id1)));
 
     EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),

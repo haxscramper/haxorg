@@ -257,6 +257,8 @@ gv::EdgeAttribute::EdgeAttribute(
     NodeAttribute const& tail)
     : graph(graph) {
     LOGIC_ASSERTION_CHECK(graph != nullptr, "");
+    hstd::logic_assertion_check_not_nil(head.get());
+    hstd::logic_assertion_check_not_nil(tail.get());
     Agedge_t* edge = agedge(
         graph,
         const_cast<Agnode_t*>(head.get()),

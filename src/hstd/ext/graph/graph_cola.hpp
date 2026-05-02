@@ -326,7 +326,8 @@ class AlignConstraint : public ColaConstraint {
     hstd::UnorderedMap<VertexID, Spec> vertices;
 
     std::string getRepr() const override {
-        return hstd::fmt("align [{}]", getAllVertices());
+        return hstd::fmt(
+            "align {} rects {}", getAllVertices(), getRectangleIndices());
     }
 
 

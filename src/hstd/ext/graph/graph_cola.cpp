@@ -32,7 +32,8 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     hstd::UnorderedMap<VertexID, hstd::SPtr<vpsc::Rectangle>>
         sub_group_rectangles;
 
-    std::vector<vpsc::Rectangle*> vertices = ctx->getAllRectanglesSorted();
+    std::vector<vpsc::Rectangle*>
+        layout_rects = ctx->getAllRectanglesSorted();
 
     auto aux = [&](this auto&&                self,
                    VertexID const&            aux_group_id,
@@ -53,7 +54,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 recursiveBBox.max_y());
 
             sub_group_rectangles.insert_or_assign(aux_group_id, rect);
-            vertices.push_back(rect.get());
+            layout_rects.push_back(rect.get());
         } else {
             for (auto const& sub : run->getSubGroups(aux_group_id)) {
                 self(sub, aux_group_id);
@@ -95,6 +96,10 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             } else {
                 hstd::logic_assertion_check_not_nil(cola_cs);
                 auto new_ccs = cola_cs->getCola();
+
+                if (auto cola_al = std::dynamic_pointer_cast<
+                        cst::AlignConstraint>(cola_cs)) {}
+
                 ccs_s.append(new_ccs);
                 for (auto const& s : new_ccs) {
                     ccs.push_back(s.get());
@@ -114,7 +119,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     aux_constraints(root_id);
 
     cola::ConstrainedFDLayout alg2(
-        /*rs=*/vertices,
+        /*rs=*/layout_rects,
         /*es=*/edges,
         /*idealLength=*/commonIdealEdgeLength,
         /*eLengths=*/edgeLenOverride,
@@ -122,40 +127,61 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         /*preIteration=*/locks.empty() ? nullptr
                                        : new cola::PreIteration(locks));
 
-    alg2.setConstraints(ccs);
-    alg2.makeFeasible();
-    alg2.setAvoidNodeOverlaps(true);
+    run->message(
+        hstd::fmt(
+            "collected {} constraints, {} edges, {} rects, {} locks for "
+            "layout run",
+            ccs.size(),
+            edges.size(),
+            layout_rects.size(),
+            locks.size()));
+
+    for (auto const& r : layout_rects) {
+        run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
+    }
+
 
     cola::UnsatisfiableConstraintInfos unsatX;
     cola::UnsatisfiableConstraintInfos unsatY;
     alg2.setUnsatisfiableConstraintInfo(&unsatX, &unsatY);
 
-    alg2.run();
+    auto validate_unsatisfied = [&]() {
+        std::string unsatisfied_debug;
+        auto        mark_unsatisified =
+            [&](std::string const&                 dimension,
+                cola::UnsatisfiableConstraintInfo* info) {
+                auto [group_id, constraint_idx] = cc_index.at(
+                    (hstd::u64)info->cc);
+                unsatisfied_debug += hstd::fmt(
+                    "\nConstraint at index {} in group {} created cola "
+                    "constraint {}, which could not be satisfied in "
+                    "{}-dim for vertices {}: {}.",
+                    constraint_idx,
+                    run->getGroup(group_id)->getStableId(),
+                    info->cc->toString(),
+                    dimension,
+                    run->getGroup(group_id)
+                        ->constraints.at(constraint_idx)
+                        ->getAllVertices(),
+                    info->toString());
+            };
 
-    std::string unsatisfied_debug;
-    auto mark_unsatisified = [&](std::string const& dimension,
-                                 cola::UnsatisfiableConstraintInfo* info) {
-        auto [group_id, constraint_idx] = cc_index.at((hstd::u64)info->cc);
-        unsatisfied_debug += hstd::fmt(
-            "\nConstraint at index {} in group {} created cola constraint "
-            "{}, which could not be satisfied in {}-dim for vertices {}: "
-            "{}.",
-            constraint_idx,
-            run->getGroup(group_id)->getStableId(),
-            info->cc->toString(),
-            dimension,
-            run->getGroup(group_id)
-                ->constraints.at(constraint_idx)
-                ->getAllVertices(),
-            info->toString());
+        for (auto info : unsatX) { mark_unsatisified("X", info); }
+        for (auto info : unsatY) { mark_unsatisified("Y", info); }
+
+        if (!unsatisfied_debug.empty()) {
+            throw layout::layout_error::init(unsatisfied_debug);
+        }
     };
 
-    for (auto info : unsatX) { mark_unsatisified("X", info); }
-    for (auto info : unsatY) { mark_unsatisified("Y", info); }
 
-    if (!unsatisfied_debug.empty()) {
-        throw layout::layout_error::init(unsatisfied_debug);
-    }
+    alg2.setConstraints(ccs);
+    alg2.setAvoidNodeOverlaps(true);
+    alg2.makeFeasible();
+    validate_unsatisfied();
+    alg2.run();
+    validate_unsatisfied();
+
 
     layout::IPlacementAlgorithm::Result result;
 
@@ -219,14 +245,14 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
                 run->message(
                     hstd::fmt(
-                        "vert {} placed at {}, relative {}",
+                        "vert {} placed at {}, relative {} ",
                         vert,
                         rect,
                         rel_rect));
 
                 result.vertices.insert_or_assign(
                     vert,
-                    std::make_shared<ColaVertexLayoutAttribute>(rel_rect));
+                    std::make_shared<ColaVertexLayoutAttribute>(rect));
             }
 
             return bbox;
@@ -302,10 +328,24 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::AlignConstraint::
     auto result = std::make_shared<cola::AlignmentConstraint>(
         toVpsc(dimension));
 
+    group->run->message(
+        hstd::fmt(
+            "create align constraint dim={}",
+            dimension == cst::GraphDimension::XDIM ? "X" : "Y"));
+
     for (auto const& [vertexId, spec] : vertices) {
+        group->run->message(
+            hstd::fmt(
+                "{} rect {} {} offset {}",
+                getShapeId(vertexId),
+                adapt::to_hstd(*group->shared->getRect(vertexId)),
+                spec,
+                spec.offset));
+
         result->addShape(getShapeId(vertexId), spec.offset);
         if (spec.fixPos) { result->fixPos(*spec.fixPos); }
     }
+
 
     return {result};
 }
