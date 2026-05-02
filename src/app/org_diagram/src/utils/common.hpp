@@ -36,6 +36,7 @@ inline std::uint16_t hash_to_uint16(std::size_t value) {
         value >> (sizeof(std::size_t) * 8 - 16));
 }
 
+
 template <typename T>
 struct WPtr_safe : std::weak_ptr<T> {
     std::shared_ptr<T> lock() const { return hstd::safe_wptr_lock(this); }

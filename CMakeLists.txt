@@ -305,9 +305,14 @@ set(JSON_BuildTests
     OFF
     CACHE INTERNAL "")
 
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=1)
+else()
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=0)
+endif()
+
 add_subdirectory(src/hstd)
 if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
   add_subdirectory(src/adaptagrams)
 endif()
 

@@ -63,6 +63,13 @@ struct JsonSerde<int> {
 };
 
 template <>
+struct JsonSerde<uint8_t> {
+    static json    to_json(uint8_t const& it) { return json(it); }
+    static uint8_t from_json(json const& j) { return j.get<uint8_t>(); }
+};
+
+
+template <>
 struct JsonSerde<double> {
     static json   to_json(double const& it) { return json(it); }
     static double from_json(json const& j) { return j.get<double>(); }

@@ -8,28 +8,35 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 
-hstd::Vec<org::graph::EdgeID> DiaHierarchyEdgeCollection::addAllOutgoing(
-    org::graph::VertexID const& vert) {
-    hstd::Vec<org::graph::EdgeID> res;
+hstd::Vec<hstd::ext::graph::EdgeID> DiaHierarchyEdgeCollection::
+    addAllOutgoing(hstd::ext::graph::VertexID const& vert) {
+    hstd::Vec<hstd::ext::graph::EdgeID> res;
     for (auto const& sub :
          DiaAdapter{graph->getVertex(vert).uniq, tree_context}.sub(true)) {
-        auto res_id = store.add(
-            DiaHierarchyEdge{vert, graph->getID(sub.uniq())},
-            getCategory().t);
-        trackEdge(res_id);
-        res.push_back(res_id);
+        auto added_edge = trackSubVertexRelation(
+            vert, graph->getID(sub.uniq()));
+
+        store.add_with_id(
+            DiaHierarchyEdge{vert, graph->getID(sub.uniq())}, added_edge);
+
+        res.push_back(added_edge);
     }
     HSLOG_TRACE("get outgoing {}", res);
     return res;
 }
 
-org::graph::VertexID DiaGraph::addVertex(DiaUniqId const& id) {
+hstd::ext::graph::GraphHierarchyID DiaHierarchyEdgeCollection::
+    getHierarchyId() const {
+    return getHierarchyIdImpl(this);
+}
+
+hstd::ext::graph::VertexID DiaGraph::addVertex(DiaUniqId const& id) {
     auto result = vertices.add(DiaGraphVertex{id});
     registerVertex(result);
     return result;
 }
 
-org::graph::VertexID DiaGraph::delVertex(DiaUniqId const& id) {
+hstd::ext::graph::VertexID DiaGraph::delVertex(DiaUniqId const& id) {
     auto result = vertices.del(DiaGraphVertex(id));
     unregisterVertex(result);
     return result;
@@ -114,8 +121,8 @@ SplitTitle getSplitTitle(
 } // namespace
 
 json DiaGraphVertex::getSerialNonRecursive(
-    org::graph::IGraph const*   graph_,
-    org::graph::VertexID const& id) const {
+    hstd::ext::graph::IGraph const*   graph_,
+    hstd::ext::graph::VertexID const& id) const {
     DiaGraph const* graph = dynamic_cast<DiaGraph const*>(graph_);
     auto            ad    = graph->getAdapter(id);
 
@@ -127,7 +134,11 @@ json DiaGraphVertex::getSerialNonRecursive(
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree) {
 
-        res.extra.nestingLevel = graph->getParentChain(id).size();
+        res.extra.nestingLevel = //
+            graph
+                ->getParentChain(
+                    graph->subtree_hierarchy->getHierarchyId(), id)
+                .size();
 
         if (ad.getKind() == DiaNodeKind::Item) {
             auto geometry = ad->as<DiaNodeItem>()->getGeometry();
@@ -197,7 +208,8 @@ json DiaGraphVertex::getSerialNonRecursive(
     return hstd::to_json_eval(res);
 }
 
-void DiaSubtreeIdTracker::trackVertex(org::graph::VertexID const& vertex) {
+void DiaSubtreeIdTracker::trackVertex(
+    hstd::ext::graph::VertexID const& vertex) {
     auto ad = graph->getAdapter(vertex);
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree && subtree.value()->treeId->has_value()) {
@@ -210,7 +222,7 @@ void DiaSubtreeIdTracker::trackVertex(org::graph::VertexID const& vertex) {
 }
 
 void DiaSubtreeIdTracker::untrackVertex(
-    org::graph::VertexID const& vertex) {
+    hstd::ext::graph::VertexID const& vertex) {
     auto ad = graph->getAdapter(vertex);
     if (auto subtree = ad.getImmAdapter().asOpt<org::imm::ImmSubtree>();
         subtree && subtree.value()->treeId->has_value()) {
@@ -219,10 +231,10 @@ void DiaSubtreeIdTracker::untrackVertex(
     }
 }
 
-hstd::Vec<org::graph::VertexID> DiaSubtreeIdTracker::getVertices(
-    org::graph::IProperty const& prop) {
+hstd::Vec<hstd::ext::graph::VertexID> DiaSubtreeIdTracker::getVertices(
+    hstd::ext::graph::IAttribute const& prop) {
     auto id_prop = dynamic_cast<DiaSubtreeIdProperty const*>(&prop);
-    hstd::Vec<org::graph::VertexID> res;
+    hstd::Vec<hstd::ext::graph::VertexID> res;
     HSLOG_TRACE("Getting vertices for property ID: {}", id_prop->getId());
     if (id_prop != nullptr && map.contains(id_prop->getId())) {
         res.push_back(map.at(id_prop->getId()));
@@ -241,14 +253,14 @@ bool isAttachedList(org::imm::ImmAdapter const& n) {
 }
 } // namespace
 
-hstd::Vec<org::graph::EdgeID> DiaDescriptionListEdgeCollection::
-    addAllOutgoing(org::graph::VertexID const& vert) {
+hstd::Vec<hstd::ext::graph::EdgeID> DiaDescriptionListEdgeCollection::
+    addAllOutgoing(hstd::ext::graph::VertexID const& vert) {
     auto ad  = graph->getAdapter(vert);
     auto imm = ad.getImmAdapter();
     if (!imm.is(OrgSemKind::Subtree)) { return {}; }
 
-    hstd::Vec<org::graph::EdgeID> res;
-    auto                          tree = imm.as<org::imm::ImmSubtree>();
+    hstd::Vec<hstd::ext::graph::EdgeID> res;
+    auto tree = imm.as<org::imm::ImmSubtree>();
 
     for (auto const& sub : tree.sub(true)) {
         if (!isAttachedList(sub)) { continue; }
@@ -349,9 +361,10 @@ bool DiaGraphVertex::isEqual(IGraphObjectBase const* other) const {
 std::string DiaGraphVertex::getRepr() const { return hstd::fmt1(uniq); }
 
 json DiaDescriptionListEdge::getSerialNonRecursive(
-    org::graph::IGraph const* graph,
-    org::graph::EdgeID const& id) const {
-    json result = org::graph::IEdge::getSerialNonRecursive(graph, id);
+    hstd::ext::graph::IGraph const* graph,
+    hstd::ext::graph::EdgeID const& id) const {
+    json result = hstd::ext::graph::IEdge::getSerialNonRecursive(
+        graph, id);
     result["extra_type"] = hstd::value_metadata<SerialSchema>::typeName();
     auto& extra          = result["extra"];
     if (edgeBrief) {

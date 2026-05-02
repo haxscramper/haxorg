@@ -10,7 +10,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph_graphviz.hpp>
 #endif
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>

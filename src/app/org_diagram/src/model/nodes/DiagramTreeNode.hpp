@@ -4,7 +4,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <QObject>
 #include <haxorg/imm/ImmOrg.hpp>
-#include <hstd/ext/graphviz.hpp>
+#include <hstd/ext/graph_graphviz.hpp>
 #include <org_diagram/src/utils/geometry.hpp>
 
 #define _cat "model.diagram"s

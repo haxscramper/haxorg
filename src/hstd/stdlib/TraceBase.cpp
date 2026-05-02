@@ -148,6 +148,7 @@ void OperationsTracer::stacktraceMessage() const {
 #endif
 }
 
+
 finally_std OperationsTracer::scopeLevel() const {
     ++(const_cast<OperationsTracer*>(this)->activeLevel);
     return finally_std{
@@ -175,4 +176,32 @@ void OperationsMsg::use_stacktrace_as_msg() {
 #if !ORG_BUILD_EMCC
     this->msg = cpptrace::generate_trace().to_string(false);
 #endif
+}
+
+void hstd::OperationsTracer::ScopeHandle::start() {
+    ++tracer->activeLevel;
+}
+
+void hstd::OperationsTracer::ScopeHandle::end() {
+    --tracer->activeLevel;
+    tracer = nullptr;
+}
+
+hstd::OperationsTracer::ScopeHandle hstd::OperationsTracer::
+    scopeLevelHandle() const {
+    ScopeHandle res{const_cast<OperationsTracer*>(this)};
+    res.start();
+    return res;
+}
+
+hstd::OperationsTracer::ScopeHandle hstd::OperationsTracer::
+    scopeLevelHandleMsg(
+        std::string const& value,
+        char const*        function,
+        int                line,
+        char const*        file) const {
+    ScopeHandle res{const_cast<OperationsTracer*>(this)};
+    res.start();
+    message(value, function, line, file);
+    return res;
 }

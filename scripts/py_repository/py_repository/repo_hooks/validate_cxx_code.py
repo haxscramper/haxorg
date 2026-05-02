@@ -8,7 +8,13 @@ import tree_sitter_cpp as tscpp
 
 CPP_LANGUAGE = Language(tscpp.language())
 
-DEBUG_FUNCTIONS = {"_dbg", "HSLOG_DEBUG"}
+DEBUG_FUNCTIONS = {
+    "_dbg",
+    "HSLOG_DEBUG",
+    "HSLOG_DEBUG_FMT_LINE",
+    "HSLOG_DEBUG_FMT1",
+    "HSLOG_DEBUG_FMT_STACK",
+}
 
 
 def find_debug_calls(source_code: bytes, filename: str) -> list[tuple[int, int, str]]:
@@ -25,7 +31,7 @@ def find_debug_calls(source_code: bytes, filename: str) -> list[tuple[int, int, 
             # First child is the function being called
             func_node = node.child_by_field_name("function")
             if func_node:
-                func_name = source_code[func_node.start_byte:func_node.end_byte].decode()
+                func_name = source_code[func_node.start_byte:func_node.end_byte].decode
                 if func_name in DEBUG_FUNCTIONS:
                     end_line_idx = node.end_point[0]
                     line_content = lines[end_line_idx] if end_line_idx < len(

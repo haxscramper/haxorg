@@ -55,6 +55,8 @@ std::string escape_literal(std::string const& in);
 std::string escape_literal(std::string_view const& in);
 void        validate_utf8(std::string const& str);
 
+std::string format_integer_bits(uint64_t value, char fmt, int pad_to = 0);
+
 
 void replace_all(
     std::string&       str,

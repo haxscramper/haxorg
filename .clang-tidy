@@ -1,8 +1,14 @@
 ---
-Checks:          '-clang-analyzer-core.CallAndMessage'
+Checks:          '-clang-analyzer-core.CallAndMessage,bugprone-argument-comment'
 WarningsAsErrors: true
 HeaderFilterRegex: ''
 FormatStyle:     google
 CheckOptions:
   - key:             cert-dcl16-c.NewSuffixes
     value:           'L;LL;LU;LLU'
+  # Enables enforcement for boolean and integer literals
+  - key:             bugprone-argument-comment.IgnoreSingleArgument
+    value:           'true'
+  # Ensures the comment exactly matches the parameter name
+  - key:             bugprone-argument-comment.StrictMode
+    value:           'true'

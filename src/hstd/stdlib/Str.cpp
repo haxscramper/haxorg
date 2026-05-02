@@ -98,17 +98,14 @@ Vec<Str> hstd::Str::split(Str const& delimiter) const {
 }
 
 float Str::toFloat() const { return std::stof(*this); }
-
 float Str::toDouble() const { return std::stod(*this); }
-
-int Str::toInt() const { return std::stoi(*this); }
+int   Str::toInt() const { return std::stoi(*this); }
+i64   Str::toI64() const { return std::stoll(*this); }
+u64   Str::toU64() const { return std::stoull(*this); }
 
 void Str::append(Str const& str) { std::string::append(str.toBase()); }
-
-int Str::size() const { return static_cast<int>(std::string::size()); }
-
+int  Str::size() const { return static_cast<int>(std::string::size()); }
 bool Str::contains(char ch) const { return find(ch) != std::string::npos; }
-
 bool Str::contains(Str const& ch) const {
     return find(ch) != std::string::npos;
 }

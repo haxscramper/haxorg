@@ -1,16 +1,17 @@
-#include <adaptagrams/adaptagrams_ir.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Debug.hpp>
+#if false
+#    include <adaptagrams/adaptagrams_ir.hpp>
+#    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd/stdlib/Enumerate.hpp>
+#    include <hstd/stdlib/Set.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/Debug.hpp>
 
-#include <libcola/output_svg.h>
-#include <libtopology/orthogonal_topology.h>
-#include <libavoid/libavoid.h>
-#include <libdialect/hola.h>
-#include <libdialect/opts.h>
-#include <hstd/stdlib/JsonSerde.hpp>
+#    include <libcola/output_svg.h>
+#    include <libtopology/orthogonal_topology.h>
+#    include <libavoid/libavoid.h>
+#    include <libdialect/hola.h>
+#    include <libdialect/opts.h>
+#    include <hstd/stdlib/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;
@@ -34,13 +35,6 @@ struct std::formatter<Avoid::Box> : std::formatter<std::string> {
 
 namespace {
 
-vpsc::Dim toVpsc(GraphDimension dim) {
-    switch (dim) {
-        case GraphDimension::XDIM: return vpsc::Dim::XDIM;
-        case GraphDimension::YDIM: return vpsc::Dim::YDIM;
-        case GraphDimension::UNSET: return vpsc::Dim::UNSET;
-    }
-}
 
 char const* original_subgraph_nodes_prop = "original_nodes";
 char const* original_subgraph_path_prop  = "original_path";
@@ -48,158 +42,16 @@ char const* original_subgraph_index      = "original_index";
 char const* source_index_prop            = "source_index";
 char const* target_index_prop            = "target_index";
 
-/// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
-/// (y down). `height` is the vertical size of the main graph bounding box.
-GraphPoint toGvPoint(pointf p, int height) {
-    return GraphPoint(p.x, height - p.y);
-}
 
-/// \brief Get bounding gox for the nested subtraph
-GraphRect getSubgraphBBox(
-    Graphviz::Graph const& g,
-    GraphRect const&       bbox) {
-    boxf      rect = g.info()->bb;
-    GraphRect res{};
-    LOGIC_ASSERTION_CHECK(0 <= bbox.height, "");
-    auto ll    = toGvPoint(rect.LL, bbox.height);
-    auto ur    = toGvPoint(rect.UR, bbox.height);
-    res.left   = ll.x;
-    res.top    = ur.y;
-    res.width  = ur.x - ll.x;
-    res.height = ll.y - ur.y;
-    LOGIC_ASSERTION_CHECK(0 <= res.height, "");
-    return res;
-}
 
-GraphRect getGraphBBox(Graphviz::Graph const& g) {
-    boxf rect = g.info()->bb;
 
-    // +----[UR]
-    // |       |
-    // [LL]----+
 
-    auto res = GraphRect(0, 0, rect.UR.x, rect.UR.y);
-    return res;
-}
 
-std::string getEdgePropertiesAsString(
-    Graphviz::Graph const& graph,
-    Graphviz::Edge const&  edge) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGEDGE, NULL); sym;
-         sym = agnxtattr(graph.graph, AGEDGE, sym)) {
-        value = agxget(edge.edge_, sym);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-    return result;
-}
-
-std::string getGraphPropertiesAsString(Graphviz::Graph const& graph) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGRAPH, NULL); sym;
-         sym = agnxtattr(graph.graph, AGRAPH, sym)) {
-        value = agget(graph.graph, sym->name);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-    return result;
-}
-
-std::string getNodePropertiesAsString(
-    Graphviz::Graph const& graph,
-    Graphviz::Node const&  node) {
-    std::stringstream ss;
-    Agsym_t*          sym;
-    char*             value;
-
-    for (sym = agnxtattr(graph.graph, AGNODE, NULL); sym;
-         sym = agnxtattr(graph.graph, AGNODE, sym)) {
-        value = agxget(node.node, sym);
-        if (value) { ss << sym->name << " = " << value << ", "; }
-    }
-
-    std::string result = ss.str();
-    if (!result.empty()) {
-        result.pop_back();
-        result.pop_back();
-    }
-
-    return result;
-}
-
-GraphRect getNodeRectangle(
-    Graphviz::Graph const& g,
-    Graphviz::Node const&  node,
-    int                    scaling,
-    GraphRect const&       bbox) {
-    double width  = node.info()->width * scaling;
-    double height = node.info()->height * scaling;
-    double x      = node.info()->coord.x;
-    double y      = bbox.height - node.info()->coord.y;
-    int    x1     = std::round(x - width / 2);
-    int    y1     = std::round(y - height / 2);
-    auto   result = GraphRect(
-        std::round(x1),
-        std::round(y1),
-        std::round(width),
-        std::round(height));
-
-    return result;
-}
-
-GraphPath getEdgeSpline(
-    Graphviz::Edge const& edge,
-    int                   scaling,
-    GraphRect const&      bbox) {
-    GraphPath path;
-    splines*  spl = edge.info()->spl;
-    path.bezier   = true;
-    int height    = bbox.height;
-    if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
-        bezier bez = spl->list[0];
-        if (bez.sflag) {
-            path.startPoint = toGvPoint(bez.sp, height);
-            path.point(toGvPoint(bez.list[0], height));
-        } else {
-            path.point(toGvPoint(bez.list[0], height));
-        }
-
-        for (int i = 1; i < bez.size; i += 3) {
-            path.point(toGvPoint(bez.list[i], height));
-            path.point(toGvPoint(bez.list[i + 1], height));
-            path.point(toGvPoint(bez.list[i + 2], height));
-        }
-
-        if (bez.eflag) { path.endPoint = toGvPoint(bez.ep, height); }
-    }
-    return path;
-}
 } // namespace
 
 
 GraphNodeConstraint::Res GraphNodeConstraint::FixedRelative::toCola(
-    std::vector<vpsc::Rectangle*> const& allRects) const {
-    return std::make_shared<cola::FixedRelativeConstraint>(
-        allRects,
-        nodes //
-            | rv::transform([](int i) { return static_cast<unsigned>(i); })
-            | rs::to<std::vector>(),
-        fixedPosition);
+
 }
 
 bool GraphLayoutIR::Subgraph::isEmpty() const {
@@ -429,30 +281,6 @@ GraphLayoutIR::GraphvizResult GraphLayoutIR::doGraphvizLayout(
     return result;
 }
 
-GraphLayoutIR::HolaResult GraphLayoutIR::doHolaLayout() {
-    HolaResult res;
-    res.graph = std::make_shared<dialect::Graph>();
-
-    for (auto const& rect : rectangles) {
-        auto node = dialect::Node::allocate();
-        node->setDims(rect.width(), rect.height());
-        res.graph->addNode(node);
-        res.nodes.push_back(node);
-    }
-
-    for (auto const& pair : edges) {
-        auto edge = dialect::Edge::allocate(
-            res.nodes.at(pair.source), res.nodes.at(pair.target));
-        res.graph->addEdge(edge);
-        res.edges[pair] = edge;
-    }
-
-    dialect::HolaOpts opts;
-    opts.routingScalar_crossingPenalty = 20;
-    dialect::doHOLA(*res.graph, opts);
-    return res;
-};
-
 GraphLayoutIR::Result GraphLayoutIR::HolaResult::convert() {
     Result res;
     for (auto const& e : this->edges) {
@@ -631,99 +459,7 @@ auto getPortDirections(GraphLayoutIR* ir, GraphEdge const& edge)
     };
 }
 
-std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
-    GraphEdgeConstraint::Port portDirection,
-    int                       portIdx,
-    int                       portListSize,
-    Opt<double>               relative) {
-    // Overlapping shape connection pins cause router to
-    // arrange the edges incorrectly. Only one of the connected
-    // edges ends up being routed, everything else is drawn as
-    // a straight line. I could not find a configuration option
-    // to addres this, so instead I'm explicitly spreading out
-    // the connector offsets. Specific value of 0.02 was chosen
-    // to make ports appear "close" together, but ultimately it
-    // does not matter if it is something like 0.000001.
-    float portNudge //
-        = 0.02 * (portIdx - static_cast<float>(portListSize / 2));
 
-    float xOffset = Avoid::ATTACH_POS_CENTRE;
-    float yOffset = Avoid::ATTACH_POS_CENTRE;
-
-    Avoid::ConnDirFlags connDir = Avoid::ConnDirNone;
-
-    switch (portDirection) {
-        case GraphEdgeConstraint::Port::North: {
-            yOffset = Avoid::ATTACH_POS_TOP;
-            if (relative) {
-                xOffset = relative.value();
-            } else {
-                xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-            }
-            connDir = Avoid::ConnDirUp;
-            break;
-        }
-
-        case GraphEdgeConstraint::Port::South: {
-            yOffset = Avoid::ATTACH_POS_BOTTOM;
-            if (relative) {
-                xOffset = relative.value();
-            } else {
-                xOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-            }
-            connDir = Avoid::ConnDirDown;
-            break;
-        }
-
-        case GraphEdgeConstraint::Port::West: {
-            if (relative) {
-                yOffset = relative.value();
-            } else {
-                yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-            }
-            xOffset = Avoid::ATTACH_POS_LEFT;
-            connDir = Avoid::ConnDirLeft;
-            break;
-        }
-
-        case GraphEdgeConstraint::Port::East: {
-            if (relative) {
-                yOffset = relative.value();
-            } else {
-                yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-            }
-            xOffset = Avoid::ATTACH_POS_RIGHT;
-            connDir = Avoid::ConnDirRight;
-            break;
-        }
-
-        case GraphEdgeConstraint::Port::Center: {
-            yOffset = Avoid::ATTACH_POS_CENTRE + portNudge;
-            xOffset = Avoid::ATTACH_POS_CENTRE;
-            connDir = Avoid::ConnDirNone;
-            break;
-        }
-
-        case GraphEdgeConstraint::Port::Default: {
-            break;
-        }
-    }
-
-    if (!(0 <= xOffset && xOffset <= 1)
-        || !(0 <= yOffset && yOffset <= 1)) {
-        throw logic_assertion_error::init(
-            fmt("xOffset:{} yOffset:{}, port-idx:{}, "
-                "port-list-size:{} port-nudge:{} mult:{}",
-                xOffset,
-                yOffset,
-                portIdx,
-                portListSize / 2,
-                portNudge,
-                portIdx - (portListSize / 2)));
-    }
-
-    return {xOffset, yOffset, connDir};
-}
 
 UnorderedMap<int, ShapePorts> init_shape_ports(
     GraphLayoutIR*               ir,
@@ -944,40 +680,7 @@ GraphLayoutIR::Result GraphLayoutIR::GraphvizResult::convert() {
     res.bbox = getGraphBBox(graph);
     LOGIC_ASSERTION_CHECK(res.bbox.size() != GraphSize(0, 0), "");
 
-    // 'each node' iterates over all nodes at once, including ones places
-    // in a subgraph
-    graph.eachNode([&](Graphviz::Node const& node) {
-        // 'edge label' nodes do not correspond to any specific rectangle
-        // and are instead pushed out to edge properties.
-        if (auto prop = node.getAttr<bool>("is_edge_label");
-            prop.has_value() && *prop) {
-            auto key = GraphEdge{
-                .source = node.getAttr<int>(source_index_prop).value(),
-                .target = node.getAttr<int>(target_index_prop).value(),
-            };
 
-            res.lines[key].labelRect = getNodeRectangle(
-                graph, node, graphviz_size_scaling, res.bbox);
-
-        } else {
-            // assign to a specific index to match original rectangle.
-            res.fixed
-                .resize_at(node.getAttr<int>("index").value()) = getNodeRectangle(
-                graph, node, graphviz_size_scaling, res.bbox);
-        }
-    });
-
-    graph.eachEdge([&](Graphviz::Edge const& edge) {
-        auto key = GraphEdge{
-            .source = edge.getAttr<int>(source_index_prop).value(),
-            .target = edge.getAttr<int>(target_index_prop).value(),
-        };
-
-        // Push back instead of assignment to collect all pieces of
-        // multi-element edges with label nodes.
-        res.lines[key].paths.push_back(
-            getEdgeSpline(edge, graphviz_size_scaling, res.bbox));
-    });
 
     auto set_graph = [&](this auto&&            self,
                          Result::Subgraph&      out_parent,
@@ -1091,170 +794,5 @@ GraphLayoutIR::Result GraphLayoutIR::ColaResult::convert() {
     return res;
 }
 
-GraphNodeConstraint::Res GraphNodeConstraint::Align::toCola() const {
-    auto result = std::make_shared<cola::AlignmentConstraint>(
-        toVpsc(dimension));
 
-    for (auto const& spec : nodes) {
-        result->addShape(spec.node, spec.offset);
-        if (spec.fixPos) { result->fixPos(*spec.fixPos); }
-    }
-
-    return result;
-}
-
-Vec<GraphNodeConstraint::Res> GraphNodeConstraint::Separate::toCola()
-    const {
-    auto left_constraint  = left.toCola();
-    auto right_constraint = right.toCola();
-    if (dimension != left.dimension || dimension != right.dimension) {
-        throw std::logic_error(fmt(
-            "separation constraint alignments must have the same "
-            "dimension. Separation has dimension {}, left: {}, right:{}",
-            this->dimension,
-            left.dimension,
-            right.dimension));
-    }
-
-    auto result = std::make_shared<cola::SeparationConstraint>(
-        toVpsc(dimension),
-        dynamic_cast<cola::AlignmentConstraint*>(left_constraint.get()),
-        dynamic_cast<cola::AlignmentConstraint*>(right_constraint.get()),
-        separationDistance,
-        isExactSeparation);
-
-    return {result, left_constraint, right_constraint};
-}
-
-namespace {
-std::string joinCola(Vec<GraphNodeConstraint::Res> const& args) {
-    return std::string{"["}
-         + (args //
-            | rv::transform([](GraphNodeConstraint::Res const& it) {
-                  return it->toString();
-              })
-            | rv::intersperse(", ") //
-            | rv::join              //
-            | rs::to<std::string>())
-         + std::string{"]"};
-}
-} // namespace
-
-std::string GraphLayoutIR::doColaStrFormat() {
-    ColaResult                          ir;
-    Vec<SPtr<cola::CompoundConstraint>> constraints = ir.setupConstraints(
-        rectangles, this->nodeConstraints);
-    return joinCola(constraints);
-}
-
-std::string GraphNodeConstraint::Separate::toColaString() const {
-    return joinCola(toCola());
-}
-
-std::string GraphNodeConstraint::MultiSeparate::toColaString() const {
-    return joinCola(toCola());
-}
-
-std::string GraphNodeConstraint::toColaString(
-    std::vector<vpsc::Rectangle*> const& allRects) const {
-    return joinCola(toCola(allRects));
-}
-
-
-Vec<GraphNodeConstraint::Res> GraphNodeConstraint::MultiSeparate::toCola()
-    const {
-    Vec<Res> result;
-    for (auto const& [idx, line] : enumerate(lines)) {
-        if (line.dimension != this->dimension) {
-            throw std::logic_error(
-                fmt("multi-aling line {} has dimension {} but the main "
-                    "multi-align has dimension {} -- align dimensions "
-                    "must match",
-                    idx,
-                    line.dimension,
-                    this->dimension));
-        }
-
-        result.push_back(line.toCola());
-    }
-
-    auto sep = std::make_shared<cola::MultiSeparationConstraint>(
-        toVpsc(dimension), separationDistance, isExactSeparation);
-
-    LOGIC_ASSERTION_CHECK(sep.get() != nullptr, "");
-
-    for (auto const& it : enumerator(alignPairs)) {
-        auto const& src = it.value().first;
-        auto const& dst = it.value().second;
-        if (!(src < result.size() && dst < result.size())) {
-            throw std::range_error(fmt(
-                "multi separate pair {} src/dst are out of range: dst:{}, "
-                "src:{} line-count:{}",
-                it.index(),
-                src,
-                dst,
-                result.size()));
-        }
-
-        sep->addAlignmentPair(
-            dynamic_cast<cola::AlignmentConstraint*>(result.at(src).get()),
-            dynamic_cast<cola::AlignmentConstraint*>(result.at(dst).get())
-            //
-        );
-    }
-
-    result.push_back(sep);
-
-    return result;
-}
-
-
-Vec<GraphNodeConstraint::Res> GraphNodeConstraint::toCola(
-    std::vector<vpsc::Rectangle*> const& allRects) const {
-    return std::visit(
-        overloaded{
-            [&](FixedRelative const& fixed) -> Vec<Res> {
-                return {fixed.toCola(allRects)};
-            },
-            [&](Align const& align) -> Vec<Res> {
-                return {align.toCola()};
-            },
-            [&](MultiSeparate const& sep) -> Vec<Res> {
-                return sep.toCola();
-            },
-            [&](PageBoundary const& sep) -> Vec<Res> {
-                return {sep.toCola(allRects)};
-            },
-            [&](Separate const& sep) -> Vec<Res> { return sep.toCola(); },
-            [&](Empty const& sep) -> Vec<Res> { return {}; },
-        },
-        data);
-}
-
-
-GraphNodeConstraint::Res GraphNodeConstraint::PageBoundary::toCola(
-    std::vector<vpsc::Rectangle*> const& allRects) const {
-    auto result = std::make_shared<cola::PageBoundaryConstraints>(
-        rect.left,
-        rect.left + rect.width,
-        rect.top,
-        rect.top + rect.height,
-        weight);
-
-    for (auto const& [idx, rect] : enumerate(allRects)) {
-        result->addShape(idx, rect->height() / 2, rect->width() / 2);
-    }
-
-    return result;
-}
-
-void GraphRect::extend(GraphPoint const& point) {
-    int min_x = std::min(left, point.x);
-    int max_x = std::max(left + width, point.x);
-    int min_y = std::min(top, point.y);
-    int max_y = std::max(top + height, point.y);
-    left      = min_x;
-    top       = min_y;
-    height    = max_y - min_y;
-    width     = max_x - min_x;
-}
+#endif

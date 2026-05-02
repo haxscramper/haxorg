@@ -1,9 +1,10 @@
 #pragma once
 
 #include <org_diagram/src/model/graph/IOrgGraph.hpp>
+#include <hstd/ext/graph_base.hpp>
 #include <org_diagram/src/model/nodes/DiagramTreeNode.hpp>
 
-struct DiaGraphVertex : public org::graph::IVertex {
+struct DiaGraphVertex : public hstd::ext::graph::IVertex {
     DiaUniqId uniq;
 
     DiaGraphVertex(DiaUniqId const& id) : uniq{id} {}
@@ -73,8 +74,8 @@ struct DiaGraphVertex : public org::graph::IVertex {
     virtual bool isEqual(IGraphObjectBase const* other) const override;
     virtual std::string getRepr() const override;
     virtual json        getSerialNonRecursive(
-        org::graph::IGraph const*   graph,
-        org::graph::VertexID const& id) const override;
+        hstd::ext::graph::IGraph const*   graph,
+        hstd::ext::graph::VertexID const& id) const override;
 };
 
 template <>
@@ -86,44 +87,48 @@ struct std::hash<DiaGraphVertex> {
     }
 };
 
-
-class DiaGraph : public org::graph::IGraph {
-    hstd::UnorderedStore<org::graph::VertexID, DiaGraphVertex> vertices;
+class DiaHierarchyEdgeCollection;
+class DiaGraph : public hstd::ext::graph::IGraph {
+    hstd::UnorderedInternStore<hstd::ext::graph::VertexID, DiaGraphVertex>
+        vertices;
 
   public:
-    DiaContext::Ptr tree_context;
+    DiaContext::Ptr                        tree_context;
+    hstd::SPtr<DiaHierarchyEdgeCollection> subtree_hierarchy;
     DiaGraph(DiaContext::Ptr tree_context) : tree_context{tree_context} {};
 
-    org::graph::VertexID getID(DiaGraphVertex const& vert) const {
+    hstd::ext::graph::VertexID getID(DiaGraphVertex const& vert) const {
         return vertices.at(vert);
     }
 
     DiaGraphVertex const& getVertex(
-        org::graph::VertexID const& vert) const override {
+        hstd::ext::graph::VertexID const& vert) const override {
         return vertices.at(vert);
     }
 
-    DiaAdapter getAdapter(org::graph::VertexID const& id) const {
+    DiaAdapter getAdapter(hstd::ext::graph::VertexID const& id) const {
         return DiaAdapter{getVertex(id).uniq, tree_context};
     }
 
-    org::graph::VertexID getID(DiaUniqId const& id) const {
+    hstd::ext::graph::VertexID getID(DiaUniqId const& id) const {
         return getID(DiaGraphVertex{id});
     }
 
-    org::graph::VertexID addVertex(DiaUniqId const& id);
+    hstd::ext::graph::VertexID addVertex(DiaUniqId const& id);
 
-    org::graph::VertexID delVertex(DiaUniqId const& id);
+    hstd::ext::graph::VertexID delVertex(DiaUniqId const& id);
 };
 
-class DiaHierarchyEdge : public org::graph::IEdge {
+class DiaHierarchyEdge : public hstd::ext::graph::IEdge {
     using IEdge::IEdge;
 };
 
-class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
+class DiaHierarchyEdgeCollection
+    : public hstd::ext::graph::IVertexHierarchy {
     DiaContext::Ptr      tree_context;
     hstd::SPtr<DiaGraph> graph;
-    hstd::UnorderedStore<org::graph::EdgeID, DiaHierarchyEdge> store;
+    hstd::UnorderedInternStore<hstd::ext::graph::EdgeID, DiaHierarchyEdge>
+        store;
 
   public:
     DiaHierarchyEdgeCollection(
@@ -131,8 +136,9 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
         hstd::SPtr<DiaGraph> graph)
         : tree_context{tree_context}, graph{graph} {}
 
-    virtual org::graph::EdgeCategoryID getCategory() const override {
-        return org::graph::EdgeCategoryID(
+    virtual hstd::ext::graph::EdgeCollectionID getCategory()
+        const override {
+        return hstd::ext::graph::EdgeCollectionID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
@@ -141,17 +147,19 @@ class DiaHierarchyEdgeCollection : public org::graph::IEdgeCollection {
             DiaHierarchyEdgeCollection>::typeName();
     }
 
-    virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
-        org::graph::VertexID const& vert) override;
+    virtual hstd::Vec<hstd::ext::graph::EdgeID> addAllOutgoing(
+        hstd::ext::graph::VertexID const& vert) override;
 
 
-    virtual const org::graph::IEdge& getEdge(
-        org::graph::EdgeID const& id) const override {
+    virtual const hstd::ext::graph::IEdge& getEdge(
+        hstd::ext::graph::EdgeID const& id) const override {
         return store.at(id);
     }
+
+    hstd::ext::graph::GraphHierarchyID getHierarchyId() const override;
 };
 
-class DiaSubtreeIdProperty : public org::graph::IProperty {
+class DiaSubtreeIdProperty : public hstd::ext::graph::IAttribute {
     std::string id;
 
   public:
@@ -163,7 +171,7 @@ class DiaSubtreeIdProperty : public org::graph::IProperty {
         return std::hash<std::string>{}(id);
     }
 
-    virtual bool isEqual(IProperty const* other) const override {
+    virtual bool isEqual(IAttribute const* other) const override {
         return other->isInstance<DiaSubtreeIdProperty>()
             && dynamic_cast<DiaSubtreeIdProperty const*>(other)->id == id;
     }
@@ -173,28 +181,30 @@ class DiaSubtreeIdProperty : public org::graph::IProperty {
     }
 };
 
-class DiaSubtreeIdTracker : public org::graph::IPropertyTracker {
-    hstd::SPtr<DiaGraph>                                  graph;
-    hstd::UnorderedMap<std::string, org::graph::VertexID> map;
+class DiaSubtreeIdTracker : public hstd::ext::graph::IAttributeTracker {
+    hstd::SPtr<DiaGraph>                                        graph;
+    hstd::UnorderedMap<std::string, hstd::ext::graph::VertexID> map;
 
   public:
     DiaSubtreeIdTracker(hstd::SPtr<DiaGraph> const& graph)
         : graph{graph} {}
 
-    virtual org::graph::PropertyTrackerID getTrackerID() const override {
-        return org::graph::PropertyTrackerID(
+    virtual hstd::ext::graph::AttributeTrackerID getTrackerID()
+        const override {
+        return hstd::ext::graph::AttributeTrackerID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
 
-    virtual void trackVertex(org::graph::VertexID const& vertex) override;
+    virtual void trackVertex(
+        hstd::ext::graph::VertexID const& vertex) override;
     virtual void untrackVertex(
-        org::graph::VertexID const& vertex) override;
-    virtual hstd::Vec<org::graph::VertexID> getVertices(
-        org::graph::IProperty const& prop) override;
+        hstd::ext::graph::VertexID const& vertex) override;
+    virtual hstd::Vec<hstd::ext::graph::VertexID> getVertices(
+        hstd::ext::graph::IAttribute const& prop) override;
 };
 
-class DiaDescriptionListEdge : public org::graph::IEdge {
+class DiaDescriptionListEdge : public hstd::ext::graph::IEdge {
     using IEdge::IEdge;
 
   public:
@@ -202,7 +212,7 @@ class DiaDescriptionListEdge : public org::graph::IEdge {
     hstd::Opt<org::imm::ImmAdapter>              edgeBrief;
     hstd::Vec<org::imm::ImmAdapter>              edgeDetailed;
 
-    struct SerialSchema : public org::graph::IEdge::SerialSchema {
+    struct SerialSchema : public hstd::ext::graph::IEdge::SerialSchema {
         struct Extra {
             hstd::Opt<std::string> edgeBrief;
             hstd::Opt<std::string> edgeDetailed;
@@ -218,23 +228,26 @@ class DiaDescriptionListEdge : public org::graph::IEdge {
 
         BOOST_DESCRIBE_CLASS(
             SerialSchema,
-            (org::graph::IEdge::SerialSchema),
+            (hstd::ext::graph::IEdge::SerialSchema),
             (),
             (),
             ());
     };
 
     virtual json getSerialNonRecursive(
-        org::graph::IGraph const* graph,
-        org::graph::EdgeID const& id) const override;
+        hstd::ext::graph::IGraph const* graph,
+        hstd::ext::graph::EdgeID const& id) const override;
 };
 
 class DiaDescriptionListEdgeCollection
-    : public org::graph::IEdgeCollection {
+    : public hstd::ext::graph::IEdgeCollection {
     hstd::SPtr<DiaGraph>            graph;
     hstd::SPtr<DiaSubtreeIdTracker> tracker;
 
-    hstd::UnorderedStore<org::graph::EdgeID, DiaDescriptionListEdge> store;
+    hstd::UnorderedInternStore<
+        hstd::ext::graph::EdgeID,
+        DiaDescriptionListEdge>
+        store;
 
   public:
     DiaDescriptionListEdgeCollection(
@@ -242,11 +255,12 @@ class DiaDescriptionListEdgeCollection
         hstd::SPtr<DiaSubtreeIdTracker> const& tracker)
         : graph{graph}, tracker{tracker} {}
 
-    virtual hstd::Vec<org::graph::EdgeID> addAllOutgoing(
-        org::graph::VertexID const& vert) override;
+    virtual hstd::Vec<hstd::ext::graph::EdgeID> addAllOutgoing(
+        hstd::ext::graph::VertexID const& vert) override;
 
-    virtual org::graph::EdgeCategoryID getCategory() const override {
-        return org::graph::EdgeCategoryID(
+    virtual hstd::ext::graph::EdgeCollectionID getCategory()
+        const override {
+        return hstd::ext::graph::EdgeCollectionID(
             hstd::hash_to_uint16(typeid(this).hash_code()));
     }
 
@@ -255,8 +269,12 @@ class DiaDescriptionListEdgeCollection
             DiaDescriptionListEdgeCollection>::typeName();
     }
 
-    virtual const org::graph::IEdge& getEdge(
-        org::graph::EdgeID const& id) const override {
+    virtual const hstd::ext::graph::IEdge& getEdge(
+        hstd::ext::graph::EdgeID const& id) const override {
         return store.at(id);
+    }
+
+    hstd::ext::graph::EdgeCollectionID getCollectionId() const override {
+        return getCollectionIdImpl(this);
     }
 };

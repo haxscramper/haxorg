@@ -182,7 +182,20 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
         ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
-sink_ptr            init_file_sink(hstd::Str const& log_file_name);
+sink_ptr init_file_sink(hstd::Str const& log_file_name);
+
+inline sink_ptr init_file_sink(std::string const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name});
+}
+
+inline sink_ptr init_file_sink(fs::path const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name.native()});
+}
+
+inline sink_ptr init_file_sink(char const* const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name});
+}
+
 void                push_sink(sink_ptr const& sink);
 hstd::Opt<sink_ptr> get_last_sink();
 hstd::Vec<sink_ptr> get_sink_list();

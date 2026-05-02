@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hstd/stdlib/strutils.hpp>
 #include <string>
 
 #include <hstd/system/all.hpp>
@@ -7,7 +8,6 @@
 #include <hstd/system/string_base.hpp>
 #include <hstd/stdlib/Exception.hpp>
 
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
 
@@ -60,11 +60,11 @@ struct [[nodiscard]] Id {
     using id_base_type = IdType;
     using id_mask_type = MaskType;
     /// Create new ID value from the stored ID index.
-    explicit Id(IdType in) : value(in + 1) {}
+    explicit constexpr Id(IdType in) : value(in + 1) {}
 
     /// Create new ID object from value, without preemptively incrementing
     /// it
-    static auto FromValue(IdType in) -> Id {
+    static constexpr auto FromValue(IdType in) -> Id {
         Id res{IdType{}};
         res.value = in;
         return res;
@@ -88,7 +88,7 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Get number of bits in the mask
-    consteval int getMaskSize() const { return mask_size; }
+    constexpr int getMaskSize() const { return mask_size; }
     /// \brief Get unmasked *value* (do not confuse with index)
     inline IdType getUnmasked() const {
         if (mask_size == 0) {
@@ -150,7 +150,7 @@ struct [[nodiscard]] Id {
     ///
     /// \note This function allows setting ID to state with zero value,
     /// making it 'nil'
-    void setValue(IdType arg) noexcept { value = arg; }
+    constexpr void setValue(IdType arg) noexcept { value = arg; }
     /// Get index of the ID, for accessing the store. Returned value is
     /// computated while accounting for masked bits so it can be different
     /// from the `getValue()`
@@ -195,25 +195,37 @@ struct [[nodiscard]] Id {
         return getValue() != other.getValue();
     }
 
-    /// \brief Write strig representation of the ID into output stream
-    std::string format(std::string name = "Id", bool withMask = true)
-        const {
-        std::string result;
-        if (name.size() != 0) { result += name + "("; }
+    struct FormatConfig {
+        std::string name         = "Id";
+        bool        withMask     = true;
+        char        mask_format  = 'b';
+        int         mask_pad_to  = 0;
+        char        index_format = ' ';
+        int         index_pad_to = 0;
+    };
 
-        if (withMask) {
+    /// \brief Write strig representation of the ID into output stream
+    std::string format(FormatConfig const& conf = FormatConfig{}) const {
+        std::string result;
+        if (conf.name.size() != 0) { result += conf.name + "("; }
+
+        if (conf.withMask) {
             if (0 < mask_size) {
-                result += std::to_string(getMask()) + ":";
+                result += //
+                    hstd::format_integer_bits(
+                        getMask(), conf.mask_format, conf.mask_pad_to)
+                    + ":";
             }
         }
 
         if (isNil()) {
             result += "<nil>";
         } else {
-            result += std::to_string(getIndex());
+            result += hstd::format_integer_bits(
+                getIndex(), conf.index_format, conf.index_pad_to);
         }
 
-        if (name.size() != 0) { result += ")"; }
+        if (conf.name.size() != 0) { result += ")"; }
 
         return result;
     }
@@ -235,9 +247,9 @@ struct [[nodiscard]] Id {
         BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());       \
         using value_type = __value;                                       \
                                                                           \
-        static auto Nil() -> __name { return FromValue(0); };             \
+        static constexpr auto Nil() -> __name { return FromValue(0); };   \
                                                                           \
-        static auto FromValue(__type arg) -> __name {                     \
+        static constexpr auto FromValue(__type arg) -> __name {           \
             __name res{__type{}};                                         \
             res.setValue(arg);                                            \
             return res;                                                   \
@@ -247,9 +259,10 @@ struct [[nodiscard]] Id {
             return getValue() == other.getValue();                        \
         }                                                                 \
                                                                           \
-        __name(__name##BaseId const& arg) : __name##BaseId(arg) {}        \
+        constexpr explicit __name(__name##BaseId const& arg)              \
+            : __name##BaseId(arg) {}                                      \
                                                                           \
-        explicit __name(__type arg) : __name##BaseId(arg) {}              \
+        constexpr explicit __name(__type arg) : __name##BaseId(arg) {}    \
     };
 
 #define EMPTY()
@@ -395,7 +408,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Add new item to the store and return newly created ID
@@ -417,7 +430,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Add new item to the store and return newly created ID
@@ -428,7 +441,7 @@ struct Store {
         LOGIC_ASSERTION_CHECK(
             !result.isNil(),
             "Implementation error, added ID cannot be nil");
-        return result;
+        return Id(result);
     }
 
     /// \brief Last element stored in the store (by index)
@@ -465,7 +478,7 @@ struct Store {
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
-            co_yield {Id::FromIndex(i), &content.at(i)};
+            co_yield {Id{Id::FromIndex(i)}, &content.at(i)};
         }
     }
 
@@ -657,7 +670,19 @@ struct hash<Id> {
         return it.getValue();
     }
 };
+
+
 }; // namespace std
+
+
+template <typename Id>
+    requires hstd::dod::IsIdType<Id> && hstd::DescribedRecord<Id>
+struct std::formatter<Id> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(Id const& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(p.format(), ctx);
+    }
+};
 
 
 namespace hstd::dod {

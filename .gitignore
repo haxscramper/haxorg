@@ -550,3 +550,4 @@ CMakeUserPresets.json
 !scripts/build
 -b
 .qtcreator
+.haxscramper-code-index.sqlite

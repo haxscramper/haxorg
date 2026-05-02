@@ -1,7 +1,7 @@
 #include "repo_graph.hpp"
 
 #include <boost/graph/graphml.hpp>
-#include <boost/graph/graphviz.hpp>
+#include <boost/graph/graph_graphviz.hpp>
 #include <absl/log/log.h>
 #include <hstd/stdlib/Formatter.hpp>
 

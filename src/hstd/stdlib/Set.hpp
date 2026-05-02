@@ -3,6 +3,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
 #include <unordered_set>
+#include <hstd/stdlib/Vec.hpp>
 
 namespace hstd {
 
@@ -39,6 +40,8 @@ struct UnorderedSet
     void excl(UnorderedSet<T> const& value) {
         for (const auto& it : value) { this->erase(it); }
     }
+
+    hstd::Vec<T> items() const { return hstd::Vec<T>{begin(), end()}; }
 };
 
 
