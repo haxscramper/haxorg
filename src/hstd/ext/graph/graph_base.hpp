@@ -262,6 +262,9 @@ DECL_ID_TYPE_MASKED(IPort, PortID, hstd::u64, 16);
 using VertexIDSet = hstd::UnorderedSet<VertexID>;
 using EdgeIDSet   = hstd::UnorderedSet<EdgeID>;
 using PortIDSet   = hstd::UnorderedSet<PortID>;
+using VertexIDVec = hstd::Vec<VertexID>;
+using EdgeIDVec   = hstd::Vec<EdgeID>;
+using PortIDVec   = hstd::Vec<PortID>;
 
 class IGraph;
 
@@ -1315,19 +1318,14 @@ class IGraph {
 
     virtual json getGraphSerial() const;
 
-    std::string getDebugVertexFormat(VertexID const& vert) const {
-        return hstd::fmt(
-            "vertex {} ({})", vert, getVertex(vert)->getStableId());
-    }
+    std::string getDebugVertexFormat(VertexIDSet const& vert) const;
+    std::string getDebugVertexFormat(VertexIDVec const& vert) const;
+    std::string getDebugEdgeFormat(EdgeIDSet const& vert) const;
+    std::string getDebugEdgeFormat(EdgeIDVec const& vert) const;
 
-    std::string getDebugEdgeFormat(EdgeID const& edge) const {
-        return hstd::fmt(
-            "edge {} ({}) from {} to {}",
-            edge,
-            getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
-            getDebugVertexFormat(getSource(edge)),
-            getDebugVertexFormat(getSource(edge)));
-    }
+    std::string getDebugVertexFormat(VertexID const& vert) const;
+
+    std::string getDebugEdgeFormat(EdgeID const& edge) const;
 };
 
 

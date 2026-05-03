@@ -224,10 +224,10 @@ TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlign) {
 TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlignLarge) {
     VertexID rg_id = addVertex("rg");
 
-    hstd::Vec<hstd::Vec<VertexID>> vert;
+    hstd::Vec<VertexIDVec> vert;
 
     for (int align_row = 0; align_row < 6; ++align_row) {
-        hstd::Vec<VertexID> row;
+        VertexIDVec row;
         for (int align_col = 0; align_col < 6; ++align_col) {
             row.push_back(
                 addVertex(hstd::fmt("v_{}_{}", align_row, align_col)));
@@ -344,14 +344,115 @@ TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlignLarge) {
     }
 }
 
+
 INSTANTIATE_TEST_SUITE_P(
     BoolCases,
     GraphAdaptagramsIR_BoolParamTest,
     testing::Values(false, true));
 
+TEST_F(GraphAdaptagramsIR_Test, MultiSeparationConstraint) {
+    VertexID rg_id = addVertex("rg");
+
+    hstd::Vec<VertexIDVec> grid;
+    int                    size = 6;
+
+    for (int align_row = 0; align_row < size; ++align_row) {
+        VertexIDVec row;
+        for (int align_col = 0; align_col < size; ++align_col) {
+            row.push_back(
+                addVertex(hstd::fmt("v_{}_{}", align_row, align_col)));
+        }
+        grid.push_back(row);
+    }
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+
+    run->addRootGroup(rg_id, root);
+    for (auto const& row : grid) {
+        for (auto const& col : row) {
+            root->addVertex(rg_id, col, Size(50, 50));
+        }
+    }
+
+    int  sep_distance = 90;
+    auto sep1 = root->addConstraint<cst::MultiSeparateConstraint>(root)
+                    ->setSeparationDistance(sep_distance)
+                    ->separateVertically()
+                    ->setIsExactSeparation(true);
+
+    auto sep2 = root->addConstraint<cst::MultiSeparateConstraint>(root)
+                    ->setSeparationDistance(sep_distance)
+                    ->separateHorizontally()
+                    ->setIsExactSeparation(true);
+
+    hstd::Vec<VertexIDVec>
+        grid_T = hstd::rv::iota(0, size)
+               | hstd::rv::transform([&](int col) -> VertexIDVec {
+                     return grid
+                          | hstd::rv::transform(
+                                [&](VertexIDVec const& v) -> VertexID {
+                                    return v.at(col);
+                                })
+                          | hstd::rs::to<hstd::Vec>();
+                 })
+               | hstd::rs::to<hstd::Vec>();
+
+
+    for (auto const& row : grid) { sep1->addFullLane(row); }
+    for (auto const& col : grid_T) { sep2->addFullLane(col); }
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/true).to_string());
+
+    auto get_c = [&](VertexID const& id) -> geometry::Point {
+        return run->getVisual(id).computeBounds().center();
+    };
+
+    //   ┌───┐┌───┐┌───┐┌───┐┌───┐
+    // ┌─┼───┼┼───┼┼───┼┼───┼┼───│
+    // │ └───┘└───┘└───┘└───┘└───┘
+    // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+    // ├─┼───┼┼───┼┼───┼┼───┼┼───│
+    // │ └───┘└───┘└───┘└───┘└───┘
+    // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+    // ├─┼───┼┼───┼┼───┼┼───┼┼───│
+    // │ └───┘└───┘└───┘└───┘└───┘
+    // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+    // └─┼───┼┼───┼┼───┼┼───┼┼───│
+    //   └───┘└───┘└───┘└───┘└───┘
+    for (auto const& row : grid) {
+        for (auto const& col : row | hstd::rv::sliding(2)) {
+            EXPECT_OUTCOME_OK(
+                checkAlignedHorizontally(get_c(col[0]), get_c(col[1])),
+                hstd::fmt(
+                    "Failed to align {} and {}",
+                    run->getGraph()->getDebugVertexFormat(col[0]),
+                    run->getGraph()->getDebugVertexFormat(col[1])));
+        }
+    }
+
+    for (auto const& col : grid_T) {
+        for (auto const& row : col | hstd::rv::sliding(2)) {
+            EXPECT_OUTCOME_OK(
+                checkAlignedVertically(get_c(col[0]), get_c(col[1])),
+                hstd::fmt(
+                    "Failed to align {} and {}",
+                    run->getGraph()->getDebugVertexFormat(col[0]),
+                    run->getGraph()->getDebugVertexFormat(col[1])));
+        }
+    }
+}
+
+
 TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
-    hstd::Vec<VertexID> vs;
-    hstd::Vec<EdgeID>   es;
+    VertexIDVec       vs;
+    hstd::Vec<EdgeID> es;
 
     for (int i = 0; i < 12; ++i) { vs.push_back(graph->addVertex()); }
 
@@ -422,8 +523,8 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIr3) {
 }
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiSeparate) {
-    hstd::Vec<VertexID> vs;
-    hstd::Vec<EdgeID>   es;
+    VertexIDVec       vs;
+    hstd::Vec<EdgeID> es;
 
     for (int i = 0; i < 12; ++i) { vs.push_back(graph->addVertex()); }
 
@@ -496,8 +597,8 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaIrMultiEdge) {
 }
 
 TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
-    hstd::Vec<VertexID> vs;
-    hstd::Vec<EdgeID>   es;
+    VertexIDVec       vs;
+    hstd::Vec<EdgeID> es;
     for (int i = 0; i < 11; ++i) {
         auto id = graph->addVertex();
         graph->getCastMVertex<TrivialVertex>(id)

@@ -647,6 +647,62 @@ json IGraph::getGraphSerial() const {
     return hstd::to_json_eval(res);
 }
 
+std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+    VertexIDSet const& vert) const {
+    return hstd::fmt1(
+        hstd::own_view(hstd::sorted(vert.items()))
+        | hstd::rv::transform([&](VertexID const& id) -> std::string {
+              return getDebugVertexFormat(id);
+          })
+        | hstd::rs::to<hstd::Vec>());
+}
+
+std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+    VertexIDVec const& vert) const {
+    return hstd::fmt1(
+        vert | hstd::rv::transform([&](VertexID const& id) -> std::string {
+            return getDebugVertexFormat(id);
+        })
+        | hstd::rs::to<hstd::Vec>());
+}
+
+std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
+    EdgeIDSet const& vert) const {
+    return hstd::fmt1(
+        hstd::own_view(hstd::sorted(vert.items()))
+        | hstd::rv::transform([&](EdgeID const& id) -> std::string {
+              return getDebugEdgeFormat(id);
+          })
+        | hstd::rs::to<hstd::Vec>());
+}
+
+std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
+    EdgeIDVec const& vert) const {
+    return hstd::fmt1(
+        vert | hstd::rv::transform([&](EdgeID const& id) -> std::string {
+            return getDebugEdgeFormat(id);
+        })
+        | hstd::rs::to<hstd::Vec>());
+}
+
+
+std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+    VertexID const& vert) const {
+    return hstd::fmt(
+        "vertex {} ({})", vert, getVertex(vert)->getStableId());
+}
+
+std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
+    EdgeID const& edge) const {
+    return hstd::fmt(
+        "edge {} ({}) from {} to {}",
+        edge,
+        getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
+        getDebugVertexFormat(getSource(edge)),
+        getDebugVertexFormat(getSource(edge)));
+}
+
+
 std::string IGraphObjectBase::getStableId() const {
     return std::format("IGraphObjectBase-{}", getHash());
 }

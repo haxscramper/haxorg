@@ -472,9 +472,16 @@ std::vector<unsigned> cst::ColaConstraint::getRectangleIndices() const {
 hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
     MultiSeparateConstraint::getCola() const {
     Vec<ConstraintPtr> result;
+
+    if (lines.size() < 2) {
+        throw hstd::ext::graph::layout::layout_error::init(
+            "Multi-separate constraint expects at least two lanes for "
+            "alignment");
+    }
+
     for (auto const& [idx, line] : enumerate(lines)) {
         if (line.dimension != this->dimension) {
-            throw std::logic_error(
+            throw hstd::ext::graph::layout::layout_error::init(
                 hstd::fmt(
                     "multi-aling line {} has dimension {} but the main "
                     "multi-align has dimension {} -- align dimensions "
