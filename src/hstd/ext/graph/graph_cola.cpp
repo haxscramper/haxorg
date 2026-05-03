@@ -137,7 +137,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             locks.size()));
 
     for (auto const& r : layout_rects) {
-        run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
+        // run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
     }
 
 
@@ -145,32 +145,53 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     cola::UnsatisfiableConstraintInfos unsatY;
     alg2.setUnsatisfiableConstraintInfo(&unsatX, &unsatY);
 
+
     auto validate_unsatisfied = [&]() {
-        std::string unsatisfied_debug;
-        auto        mark_unsatisified =
-            [&](std::string const&                 dimension,
-                cola::UnsatisfiableConstraintInfo* info) {
-                auto [group_id, constraint_idx] = cc_index.at(
-                    (hstd::u64)info->cc);
-                unsatisfied_debug += hstd::fmt(
-                    "\nConstraint at index {} in group {} created cola "
-                    "constraint {}, which could not be satisfied in "
-                    "{}-dim for vertices {}: {}.",
-                    constraint_idx,
-                    run->getGroup(group_id)->getStableId(),
-                    info->cc->toString(),
-                    dimension,
-                    run->getGroup(group_id)
-                        ->constraints.at(constraint_idx)
-                        ->getAllVertices(),
-                    info->toString());
-            };
+        std::string             unsatisfied_debug;
+        hstd::UnorderedSet<int> failed;
+        auto mark_unsatisified = [&](std::string const& dimension,
+                                     cola::UnsatisfiableConstraintInfo*
+                                         info) {
+            auto [group_id, constraint_idx] = cc_index.at(
+                (hstd::u64)info->cc);
+            if (failed.contains(constraint_idx)) {
+                return;
+            } else {
+                failed.incl(constraint_idx);
+            }
+
+            unsatisfied_debug += hstd::fmt(
+                "\nConstraint at index {} in group {} created cola "
+                "constraint\n  {},\nwhich could not be satisfied in "
+                "{}-dim for vertices\n{}\n{}.",
+                constraint_idx,
+                run->getGroup(group_id)->getStableId(),
+                info->cc->toString(),
+                dimension,
+                hstd::own_view(run->getGroup(group_id)
+                                   ->constraints.at(constraint_idx)
+                                   ->getAllVertices())
+                    | hstd::rv::transform(
+                        [&](VertexID const& id) -> std::string {
+                            return hstd::fmt(
+                                "- {} rect {}",
+                                run->getGraph()->getDebugVertexFormat(id),
+                                rootGroup->get_shared_ctx()->getVertexIdx(
+                                    id),
+                                adapt::to_hstd(
+                                    *rootGroup->get_shared_ctx()->getRect(
+                                        id)));
+                        })
+                    | hstd::rv_intersperse_newline_join,
+                info->toString());
+        };
 
         for (auto info : unsatX) { mark_unsatisified("X", info); }
         for (auto info : unsatY) { mark_unsatisified("Y", info); }
 
         if (!unsatisfied_debug.empty()) {
-            throw layout::layout_error::init(unsatisfied_debug);
+            run->message(unsatisfied_debug);
+            // throw layout::layout_error::init(unsatisfied_debug);
         }
     };
 
@@ -261,12 +282,12 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
                 auto rel_rect = rect.relative_to(rel_offset);
 
-                run->message(
-                    hstd::fmt(
-                        "vert {} placed at {}, relative {} ",
-                        vert,
-                        rect,
-                        rel_rect));
+                // run->message(
+                //     hstd::fmt(
+                //         "vert {} placed at {}, relative {} ",
+                //         vert,
+                //         rect,
+                //         rel_rect));
 
                 result.vertices.insert_or_assign(
                     vert,

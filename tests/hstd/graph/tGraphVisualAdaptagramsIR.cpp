@@ -1,4 +1,5 @@
 #include "../t_graph_tests_common.hpp"
+#include <hstd/stdlib/Ranges.hpp>
 
 struct GraphAdaptagramsIR_Test : public GraphUtils_Test {};
 
@@ -217,6 +218,129 @@ TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlign) {
         EXPECT_OUTCOME_OK(checkAlignedVertically(v3_center, v4_center));
         EXPECT_NEAR(v1_center.x() + 90, v4_center.x(), 0.005) << debug;
         EXPECT_NEAR(v2_center.x() + 90, v3_center.x(), 0.005) << debug;
+    }
+}
+
+TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlignLarge) {
+    VertexID rg_id = addVertex("rg");
+
+    hstd::Vec<hstd::Vec<VertexID>> vert;
+
+    for (int align_row = 0; align_row < 6; ++align_row) {
+        hstd::Vec<VertexID> row;
+        for (int align_col = 0; align_col < 6; ++align_col) {
+            row.push_back(
+                addVertex(hstd::fmt("v_{}_{}", align_row, align_col)));
+        }
+        vert.push_back(row);
+    }
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+
+    run->addRootGroup(rg_id, root);
+    for (auto const& row : vert) {
+        for (auto const& col : row) {
+            root->addVertex(rg_id, col, Size(50, 50));
+        }
+    }
+
+    bool const is_vertical = GetParam();
+
+    hstd::Vec<cst::SeparateConstraint*> separations;
+
+    int sep_distance = 90;
+    for (auto const& [row_idx, row] : enumerate(vert)) {
+        auto c = root->addConstraint<cst::SeparateConstraint>(root)
+                     ->setSeparationDistance(90)
+                     ->setIsExactSeparation(true);
+
+        if (is_vertical) {
+            c->separateVertically();
+        } else {
+            c->separateHorizontally();
+        }
+
+        if (row_idx == 0) {
+            c->addLeftVertex(row);
+            c->addRightVertex(vert.at(row_idx + 1));
+        } else {
+            c->addLeftVertex(vert.at(row_idx - 1).at(0));
+            c->addRightVertex(row);
+        }
+
+        separations.push_back(c);
+    }
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/true).to_string());
+
+    auto get_c = [&](VertexID const& id) -> geometry::Point {
+        return run->getVisual(id).computeBounds().center();
+    };
+
+    if (is_vertical) {
+        //   ┌───┐┌───┐┌───┐┌───┐┌───┐
+        // ┌─┼───┼┼───┼┼───┼┼───┼┼───│
+        // │ └───┘└───┘└───┘└───┘└───┘
+        // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+        // ├─┼───┼┼───┼┼───┼┼───┼┼───│
+        // │ └───┘└───┘└───┘└───┘└───┘
+        // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+        // ├─┼───┼┼───┼┼───┼┼───┼┼───│
+        // │ └───┘└───┘└───┘└───┘└───┘
+        // │ ┌───┐┌───┐┌───┐┌───┐┌───┐
+        // └─┼───┼┼───┼┼───┼┼───┼┼───│
+        //   └───┘└───┘└───┘└───┘└───┘
+        for (auto const& row : vert) {
+            for (auto const& col : row | hstd::rv::sliding(2)) {
+                EXPECT_OUTCOME_OK(checkAlignedHorizontally(
+                    get_c(col[0]), get_c(col[1])));
+            }
+        }
+
+        for (auto const& row : vert | hstd::rv::sliding(2)) {
+            for (auto const& col : hstd::rv::zip(row[0], row[1])) {
+                EXPECT_NEAR(
+                    get_c(col.first).y() + 90,
+                    get_c(col.second).y(),
+                    0.005);
+            }
+        }
+    } else {
+        //   ┌────┬────┬────┬────┐
+        // ┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐
+        // │ │ ││ │ ││ │ ││ │ ││ │ │
+        // └─┼─┘└─┼─┘└─┼─┘└─┼─┘└─┼─┘
+        // ┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐
+        // │ │ ││ │ ││ │ ││ │ ││ │ │
+        // └─┼─┘└─┼─┘└─┼─┘└─┼─┘└─┼─┘
+        // ┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐
+        // │ │ ││ │ ││ │ ││ │ ││ │ │
+        // └─┼─┘└─┼─┘└─┼─┘└─┼─┘└─┼─┘
+        // ┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐┌─┼─┐
+        // │ │ ││ │ ││ │ ││ │ ││ │ │
+        // └───┘└───┘└───┘└───┘└───┘
+        for (auto const& row : vert) {
+            for (auto const& col : row | hstd::rv::sliding(2)) {
+                EXPECT_OUTCOME_OK(
+                    checkAlignedVertically(get_c(col[0]), get_c(col[1])));
+            }
+        }
+
+        for (auto const& row : vert | hstd::rv::sliding(2)) {
+            for (auto const& col : hstd::rv::zip(row[0], row[1])) {
+                EXPECT_NEAR(
+                    get_c(col.first).x() + 90,
+                    get_c(col.second).x(),
+                    0.005);
+            }
+        }
     }
 }
 

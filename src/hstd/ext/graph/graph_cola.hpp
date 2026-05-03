@@ -474,6 +474,16 @@ class SeparateConstraint : public ColaConstraint {
         return this;
     }
 
+    SeparateConstraint* addLeftVertex(hstd::Vec<VertexID> const& id) {
+        for (auto const& i : id) { addLeftVertex(i); }
+        return this;
+    }
+
+    SeparateConstraint* addRightVertex(hstd::Vec<VertexID> const& id) {
+        for (auto const& i : id) { addRightVertex(i); }
+        return this;
+    }
+
     /// \brief Add vertex to the second alignment lane.
     SeparateConstraint* addRightVertex(
         VertexID const& id,
