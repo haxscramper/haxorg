@@ -1439,7 +1439,13 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
     }
 };
 
-class IGroupLayoutAttribute : public IVertexLayoutAttribute {};
+class IGroupLayoutAttribute : public IVertexLayoutAttribute {
+  public:
+    /// \brief Change the bounding box of the group layout. Used by the
+    /// layout algorithm to move the bounding box when the parent group
+    /// re-arranges the placement.
+    virtual void setBBox(geometry::Rect const& bbox) = 0;
+};
 
 
 class IGroupVisualAttribute;

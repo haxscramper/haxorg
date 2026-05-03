@@ -93,8 +93,7 @@ struct single_layout_run_state {
     hstd::UnorderedMap<VertexID, hstd::SPtr<vpsc::Rectangle>>
         sub_group_rectangles;
 
-    std::vector<vpsc::Rectangle*>
-        layout_rects = ctx->getAllRectanglesSorted();
+    std::vector<vpsc::Rectangle*> layout_rects;
     hstd::SPtr<layout::LayoutRun> run;
     VertexID                      root_id;
 
@@ -160,6 +159,10 @@ struct single_layout_run_state {
     void recursively_collect_constraints(
         VertexID const&               id,
         unsatisifed_validation_state& validation_state) {
+        auto __scope = run->scopeLevelMsg(
+            hstd::fmt(
+                "recursively collect on {}",
+                run->getGraph()->getDebugVertexFormat(id)));
         auto group = run->getGroup(id);
         for (auto const& [ir_idx, constraint] :
              enumerate(group->constraints)) {
@@ -222,6 +225,10 @@ struct single_layout_run_state {
 
     hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
     void collect_absolute_bounding_box_positions(VertexID const& id) {
+        auto __scope = run->scopeLevelMsg(
+            hstd::fmt(
+                "absolute bounding box on {}",
+                run->getGraph()->getDebugVertexFormat(id)));
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
@@ -252,33 +259,22 @@ struct single_layout_run_state {
     void collect_nodes_and_sub_groups_relative_positions(
         VertexID const&        id,
         geometry::Point const& rel_offset) {
+        auto __scope = run->scopeLevelMsg(
+            hstd::fmt(
+                "relative position on {}",
+                run->getGraph()->getDebugVertexFormat(id)));
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
-            auto const& prev_attribute = run->getLayout(id);
-            auto        prev_cast      = std::dynamic_pointer_cast<
+            auto const& prev_attribute = run->getLayout<
+                layout::IGroupLayoutAttribute>(id);
+            auto prev_cast = std::dynamic_pointer_cast<
                 cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
+            auto rel_rect  = rect.relative_to(rel_offset);
+            prev_attribute->setBBox(rel_rect);
 
-            if (prev_cast) {
-                run->message("previous attribute was a cola layout");
-                result.vertices.insert_or_assign(
-                    id,
-                    std::make_shared<cst::ColaGroupLayoutAttribute>(
-                        rect, prev_cast->group));
-            } else {
-                // FIXME: Is the `rootGroup` appropriate here, or I need to
-                // get the parent group based on the `parent` field if it
-                // is present.
-                run->message(
-                    hstd::fmt(
-                        "previous attribute was {}",
-                        typeid(prev_attribute.get()).name()));
-                result.vertices.insert_or_assign(
-                    id,
-                    std::make_shared<cst::ColaGroupLayoutAttribute>(
-                        rect, rootGroup));
-            }
+            run->message(hstd::fmt("moving bounding box to {}", rel_rect));
         } else {
             for (auto const& group_id : run->getSubGroups(id)) {
                 auto this_bbox = bbox_map.at(group_id).relative_to(
@@ -309,9 +305,10 @@ struct single_layout_run_state {
     }
 
     void execute_edge_placement(cst::ColaLayoutAlgorithm* algo) {
-        algo->router->run                    = run;
-        algo->router->rects                  = rootGroup->shared.get();
-        algo->router->group                  = rootGroup.get();
+        auto __scope        = run->scopeLevelMsg(__PRETTY_FUNCTION__);
+        algo->router->run   = run;
+        algo->router->rects = rootGroup->shared.get();
+        algo->router->group = rootGroup.get();
         algo->router->intermediate_placement = &result;
         algo->router->root_group             = root_id;
         auto layoutPorts                     = algo->router->routeEdges();
@@ -323,8 +320,8 @@ struct single_layout_run_state {
 
 layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
-    run->message("running single layout for cst::ColaLayoutAlgorithm");
-    auto __scope = run->scopeLevel();
+    auto __scope = run->scopeLevelMsg(
+        "running single layout for cst::ColaLayoutAlgorithm");
     hstd::logic_assertion_check_not_nil(router);
 
     single_layout_run_state run_state(root_id, run);
@@ -378,7 +375,6 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     alg2.run();
     validation_state.validate_unsatisfied();
 
-    hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
     run_state.collect_absolute_bounding_box_positions(root_id);
     run_state.collect_nodes_and_sub_groups_relative_positions(
         root_id, geometry::Point{});
@@ -388,7 +384,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     run_state.result.vertices.insert_or_assign(
         root_id,
         std::make_shared<ColaGroupLayoutAttribute>(
-            bbox_map.at(root_id), run_state.rootGroup));
+            run_state.bbox_map.at(root_id), run_state.rootGroup));
 
     return run_state.result;
 }

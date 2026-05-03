@@ -299,6 +299,7 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         : rect{rect}, group{group} {}
 
     virtual Rect getBBox() const override { return rect; }
+    void setBBox(geometry::Rect const& _rect) override { rect = _rect; }
 };
 
 

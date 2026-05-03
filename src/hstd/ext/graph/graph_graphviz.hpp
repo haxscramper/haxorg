@@ -982,7 +982,8 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    virtual Rect getBBox() const override { return graph; }
+    Rect getBBox() const override { return graph; }
+    void setBBox(geometry::Rect const& rect) override { graph = rect; }
 
     std::string getRepr() const override {
         return group->getPropertiesAsString();
