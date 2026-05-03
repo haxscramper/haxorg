@@ -110,9 +110,9 @@ TEST_P(GraphAdaptagramsIR_BoolParamTest, LibcolaAlign_Offset) {
     }
 
     c //
-        ->addAlignVertex(v1, 0)
-        ->addAlignVertex(v2, 50)
-        ->addAlignVertex(v3, 100);
+        ->addAlignVertex(v1, cst::AlignConstraint::AxisAlign::Center, 0)
+        ->addAlignVertex(v2, cst::AlignConstraint::AxisAlign::Center, 50)
+        ->addAlignVertex(v3, cst::AlignConstraint::AxisAlign::Center, 100);
 
     run->runFullLayout();
 
@@ -150,6 +150,73 @@ TEST_P(GraphAdaptagramsIR_BoolParamTest, LibcolaAlign_Offset) {
         EXPECT_OUTCOME_OK(checkAlignedHorizontally(
             run->getVisual(v1).computeBounds().center(),
             run->getVisual(v3).computeBounds().center() - offset * 2));
+    }
+}
+
+TEST_P(GraphAdaptagramsIR_BoolParamTest, SeparationConstraintAlign) {
+    VertexID v1    = addVertex("v1");
+    VertexID v2    = addVertex("v2");
+    VertexID v3    = addVertex("v3");
+    VertexID v4    = addVertex("v4");
+    VertexID rg_id = addVertex("rg");
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+
+    run->addRootGroup(rg_id, root);
+
+    root->addVertex(rg_id, v1, Size(50, 50));
+    root->addVertex(rg_id, v2, Size(60, 60));
+    root->addVertex(rg_id, v3, Size(70, 70));
+    root->addVertex(rg_id, v4, Size(50, 50));
+
+    bool const is_vertical = GetParam();
+
+    auto c = root->addConstraint<cst::SeparateConstraint>(root);
+
+    if (is_vertical) {
+        c->separateVertically();
+    } else {
+        c->separateHorizontally();
+    }
+
+    c->setSeparationDistance(90)
+        ->setIsExactSeparation(true)
+        ->addLeftVertex(v1)
+        ->addLeftVertex(v2)
+        ->addRightVertex(v3)
+        ->addRightVertex(v4);
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/true).to_string());
+
+    auto v1_center = run->getVisual(v1).computeBounds().center();
+    auto v2_center = run->getVisual(v2).computeBounds().center();
+    auto v3_center = run->getVisual(v3).computeBounds().center();
+    auto v4_center = run->getVisual(v4).computeBounds().center();
+
+    auto debug = hstd::fmt(
+        "v1:{} v2:{} v3:{} v4:{}",
+        v1_center,
+        v2_center,
+        v3_center,
+        v4_center);
+
+    if (is_vertical) {
+        EXPECT_OUTCOME_OK(checkAlignedHorizontally(v1_center, v2_center));
+        EXPECT_OUTCOME_OK(checkAlignedHorizontally(v3_center, v4_center));
+        EXPECT_NEAR(v1_center.y() + 90, v4_center.y(), 0.005) << debug;
+        EXPECT_NEAR(v2_center.y() + 90, v3_center.y(), 0.005) << debug;
+    } else {
+        EXPECT_OUTCOME_OK(checkAlignedVertically(v1_center, v2_center));
+        EXPECT_OUTCOME_OK(checkAlignedVertically(v3_center, v4_center));
+        EXPECT_NEAR(v1_center.x() + 90, v4_center.x(), 0.005) << debug;
+        EXPECT_NEAR(v2_center.x() + 90, v3_center.x(), 0.005) << debug;
     }
 }
 

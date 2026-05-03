@@ -473,19 +473,8 @@ hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> hstd::ext::graph::cst::
 
     LOGIC_ASSERTION_CHECK(sep.get() != nullptr, "");
 
-    for (auto const& it : hstd::enumerator(alignPairs)) {
-        auto const& src = it.value().first;
-        auto const& dst = it.value().second;
-        if (!(src < result.size() && dst < result.size())) {
-            throw std::range_error(fmt(
-                "multi separate pair {} src/dst are out of range: dst:{}, "
-                "src:{} line-count:{}",
-                it.index(),
-                src,
-                dst,
-                result.size()));
-        }
-
+    for (auto const& [src, dst] : rv::zip(
+             rv::iota(0, lines.size() - 1), rv::iota(1, lines.size()))) {
         auto al1 = dynamic_cast<cola::AlignmentConstraint*>(
             result.at(src).get());
         auto al2 = dynamic_cast<cola::AlignmentConstraint*>(

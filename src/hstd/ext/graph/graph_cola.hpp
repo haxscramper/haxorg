@@ -327,21 +327,36 @@ class ColaConstraint : public layout::IConstraint {
 };
 
 
+/// \brief Place the shapes along the horizontal or vertical line with
+/// some offset.
 class AlignConstraint : public ColaConstraint {
   public:
     using ColaConstraint::ColaConstraint;
 
+    /// \brief How to align each individual shape to the line. Center will
+    /// put the shape centerpoint on the line, others will stick the shape
+    /// edges. Top/bottom is compatible with the horizontal align,
+    /// left/right is with the vertical, and the center is compatible with
+    /// all.
     DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
 
+    /// \brief How each individual shape is going to be added to the list
     struct [[refl]] Spec {
-        [[refl]] Opt<double> fixPos = std::nullopt; ///< ??? wtf
-        [[refl]] AxisAlign   align  = AxisAlign::Center;
-        [[refl]] double      offset = 0.0; ///< Offset from the axis
+        /// \brief Set the expected X/Y-value of the alignment line (not a
+        /// hard requirement, but the line will tend to gravitate towards
+        /// it).
+        [[refl]] Opt<double> fixPos = std::nullopt;
+        /// \brief Which anchor to use for alignment of the shapes
+        [[refl]] AxisAlign align = AxisAlign::Center;
+        /// Offset from the axis on the line orthogonal to the axis.
+        [[refl]] double offset = 0.0;
         DESC_FIELDS(Spec, (fixPos, align, offset));
     };
 
+    /// \brief List of vertices to place in the constraint
     hstd::UnorderedMap<VertexID, Spec> vertices;
-    [[refl]] GraphDimension dimension; ///< Which axist to align on
+    /// Which axist to align on
+    [[refl]] GraphDimension dimension;
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
     std::string getRepr() const override {
@@ -349,25 +364,32 @@ class AlignConstraint : public ColaConstraint {
             "align {} rects {}", getAllVertices(), getRectangleIndices());
     }
 
-
     hstd::Vec<VertexID> getAllVertices() const override {
         return vertices.keys();
     }
 
     AlignConstraint* addAlignVertex(
         VertexID const&   id,
+        AxisAlign         align  = AxisAlign::Center,
         double            offset = 0,
         hstd::Opt<double> fixPos = std::nullopt) {
         vertices.insert_or_assign(
-            id, Spec{.fixPos = fixPos, .offset = offset});
+            id,
+            Spec{
+                .fixPos = fixPos,
+                .align  = align,
+                .offset = offset,
+            });
         return this;
     }
 
+    /// \brief Align all shapes vertically
     AlignConstraint* useVerticalAxis() {
         dimension = GraphDimension::XDIM;
         return this;
     }
 
+    /// \brief Align all shapes horizontally
     AlignConstraint* useHorizontalAxis() {
         dimension = GraphDimension::YDIM;
         return this;
@@ -381,6 +403,10 @@ class AlignConstraint : public ColaConstraint {
         const override;
 };
 
+/// \brief Separate constraint creates to lanes of shapes (with one or more
+/// shape per lane) and then arranges so the lanes would have a fixed
+/// distance between them. Each lane is managed by the align constraint, so
+/// it is possible to offset the individual shapes relative to the lane.
 class SeparateConstraint : public ColaConstraint {
   public:
     hstd::Vec<VertexID> getAllVertices() const override {
@@ -388,12 +414,14 @@ class SeparateConstraint : public ColaConstraint {
     }
 
     using ColaConstraint::ColaConstraint;
+    /// \brief The first lane to align
     [[refl]] AlignConstraint left;
+    /// \brief Second lane to align
     [[refl]] AlignConstraint right;
     [[refl]] double          separationDistance = 1.0;
     [[refl]] bool            isExactSeparation  = false;
-    [[refl]] GraphDimension  dimension; ///< Which axis to partition
-                                        ///< nodes
+    /// Which axis to partition nodes
+    [[refl]] GraphDimension dimension;
     DESC_FIELDS(
         SeparateConstraint,
         (left, right, separationDistance, isExactSeparation, dimension));
@@ -406,6 +434,8 @@ class SeparateConstraint : public ColaConstraint {
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
 
+    /// \brief The lanes are placed vertically, with the separation
+    /// distance configuring the X-offset between the lanes.
     SeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::XDIM;
         left.useVerticalAxis();
@@ -413,6 +443,8 @@ class SeparateConstraint : public ColaConstraint {
         return this;
     }
 
+    /// \brief The lanes are placed horizontally, with the separation
+    /// distance configuring the Y-offset between the lanes.
     SeparateConstraint* separateVertically() {
         dimension = GraphDimension::YDIM;
         left.useHorizontalAxis();
@@ -426,24 +458,30 @@ class SeparateConstraint : public ColaConstraint {
         return this;
     }
 
-    SeparateConstraint* setIsExactSeparation(double distance) {
-        this->isExactSeparation = distance;
+    SeparateConstraint* setIsExactSeparation(bool exact) {
+        this->isExactSeparation = exact;
         return this;
     }
 
+    /// \brief Add vertex to the first alignment lane.
     SeparateConstraint* addLeftVertex(
-        VertexID const&   id,
+        VertexID const& id,
+        AlignConstraint::AxisAlign
+                          align  = AlignConstraint::AxisAlign::Center,
         double            offset = 0,
         hstd::Opt<double> fixPos = std::nullopt) {
-        left.addAlignVertex(id, offset, fixPos);
+        left.addAlignVertex(id, align, offset, fixPos);
         return this;
     }
 
+    /// \brief Add vertex to the second alignment lane.
     SeparateConstraint* addRightVertex(
-        VertexID const&   id,
+        VertexID const& id,
+        AlignConstraint::AxisAlign
+                          align  = AlignConstraint::AxisAlign::Center,
         double            offset = 0,
         hstd::Opt<double> fixPos = std::nullopt) {
-        right.addAlignVertex(id, offset, fixPos);
+        right.addAlignVertex(id, align, offset, fixPos);
         return this;
     }
 
@@ -451,6 +489,8 @@ class SeparateConstraint : public ColaConstraint {
         : ColaConstraint{group}, left{group}, right{group} {}
 };
 
+/// \brief Create multiple lanes of aligned widgets, with each line offset
+/// by a fixed margin.
 class MultiSeparateConstraint : public ColaConstraint {
   public:
     hstd::Vec<VertexID> getAllVertices() const override {
@@ -462,11 +502,10 @@ class MultiSeparateConstraint : public ColaConstraint {
     }
 
     using ColaConstraint::ColaConstraint;
-    [[refl]] hstd::Vec<AlignConstraint>      lines;
-    [[refl]] hstd::Vec<hstd::Pair<int, int>> alignPairs;
-    [[refl]] GraphDimension dimension = GraphDimension::XDIM;
-    [[refl]] double         separationDistance;
-    [[refl]] bool           isExactSeparation;
+    [[refl]] hstd::Vec<AlignConstraint> lines;
+    [[refl]] GraphDimension             dimension = GraphDimension::XDIM;
+    [[refl]] double                     separationDistance;
+    [[refl]] bool                       isExactSeparation;
 
 
     MultiSeparateConstraint* setSeparationDistance(double distance) {
@@ -479,29 +518,29 @@ class MultiSeparateConstraint : public ColaConstraint {
         return this;
     }
 
+    /// \brief Add single lane
     MultiSeparateConstraint* addLane() {
         auto align      = AlignConstraint{group};
         align.dimension = dimension;
         lines.push_back(align);
-        if (1 < lines.size()) {
-            alignPairs.push_back({lines.high() - 1, lines.high()});
-        }
         return this;
     }
 
+    int getLaneCount() const { return lines.size(); }
+
+    /// \brief Add multiple lanes
     MultiSeparateConstraint* addMultiLane(int count) {
         for (int i = 0; i < count; ++i) { addLane(); }
         return this;
     }
 
-    MultiSeparateConstraint* dropAlignPairs() {
-        alignPairs.clear();
-        return this;
-    }
-
+    /// \brief Add a vertex to the *existing* lane, with specified offset
+    /// parameters.
     MultiSeparateConstraint* addAlignVertex(
-        VertexID const&   id,
-        int               lane,
+        VertexID const& id,
+        int             lane,
+        AlignConstraint::AxisAlign
+                          align  = AlignConstraint::AxisAlign::Center,
         double            offset = 0,
         hstd::Opt<double> fixPos = std::nullopt) {
         LOGIC_ASSERTION_CHECK_FMT(
@@ -509,10 +548,11 @@ class MultiSeparateConstraint : public ColaConstraint {
             "Cannot insert vertext to lane {}, call `addLane()` to match "
             "the lane count",
             lane);
-        lines.at(lane).addAlignVertex(id, offset, fixPos);
+        lines.at(lane).addAlignVertex(id, align, offset, fixPos);
         return this;
     }
 
+    /// \brief Add a fully new lane with the fixed set of vertices.
     MultiSeparateConstraint* addFullLane(
         hstd::Vec<VertexID> const& vertices) {
         addLane();
@@ -537,11 +577,7 @@ class MultiSeparateConstraint : public ColaConstraint {
 
     DESC_FIELDS(
         MultiSeparateConstraint,
-        (lines,
-         alignPairs,
-         dimension,
-         separationDistance,
-         isExactSeparation));
+        (lines, dimension, separationDistance, isExactSeparation));
 
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
