@@ -82,6 +82,39 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
         checkAlignedVertically(run->getVisual(v1), run->getVisual(v2)));
 }
 
+TEST_F(GraphAdaptagramsIR_Test, LibcolaFixedRelativePosition) {
+    VertexID v1    = graph->addVertex();
+    VertexID v2    = graph->addVertex();
+    VertexID v3    = graph->addVertex();
+    VertexID v4    = graph->addVertex();
+    VertexID rg_id = graph->addVertex();
+
+    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
+
+    run->addRootGroup(rg_id, root);
+
+    root->addVertex(rg_id, v1, Size(50, 50));
+    root->addVertex(rg_id, v2, Size(60, 60));
+    root->addVertex(rg_id, v3, Size(70, 70));
+    root->addVertex(rg_id, v4, Size(80, 80));
+
+    root->addConstraint<cst::FixedRelativeConstraint>(root)
+        ->addVertex(v1, {0, 0})
+        ->addVertex(v2, {300, 300})
+        ->addVertex(v3, {-300, -300})
+        ->addVertex(v4, {-300, 300});
+
+    run->runFullLayout();
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+}
+
+
 class GraphAdaptagramsIR_BoolParamTest
     : public GraphAdaptagramsIR_Test
     , public testing::WithParamInterface<bool> {};

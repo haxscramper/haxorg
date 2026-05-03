@@ -98,7 +98,34 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 auto new_ccs = cola_cs->getCola();
 
                 if (auto cola_al = std::dynamic_pointer_cast<
-                        cst::AlignConstraint>(cola_cs)) {}
+                        cst::FixedRelativeConstraint>(cola_cs)) {
+                    run->message("found fixed relative");
+                    VertexIDVec vert        = cola_al->getAllVertices();
+                    auto        base_vertex = layout_rects.at(
+                        rootGroup->get_shared_ctx()->getVertexIdx(
+                            vert.at(0)));
+                    for (VertexID const& rel_vertex :
+                         vert.at(slice(1, 1_B))) {
+                        auto rel_rect = layout_rects.at(
+                            rootGroup->get_shared_ctx()->getVertexIdx(
+                                rel_vertex));
+                        double dx = rel_rect->getMinX()
+                                  - base_vertex->getMinX()
+                                  + cola_al->shapes.at(rel_vertex).x();
+                        double dy = rel_rect->getMinY()
+                                  - base_vertex->getMinY()
+                                  + cola_al->shapes.at(rel_vertex).y();
+
+                        run->message(
+                            hstd::fmt(
+                                "moving rect for {} by {} {}",
+                                rel_vertex,
+                                dx,
+                                dy));
+
+                        rel_rect->offset(dx, dy);
+                    }
+                }
 
                 ccs_s.append(new_ccs);
                 for (auto const& s : new_ccs) {
@@ -152,42 +179,52 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         auto mark_unsatisified = [&](std::string const& dimension,
                                      cola::UnsatisfiableConstraintInfo*
                                          info) {
-            auto [group_id, constraint_idx] = cc_index.at(
-                (hstd::u64)info->cc);
-            if (failed.contains(constraint_idx)) {
-                return;
-            } else {
-                failed.incl(constraint_idx);
-            }
+            if (cc_index.contains((hstd::u64)info->cc)) {
 
-            unsatisfied_debug += hstd::fmt(
-                "\nConstraint at index {} in group {} created cola "
-                "constraint\n  {},\nwhich could not be satisfied in "
-                "{}-dim for vertices\n{}\n{}.",
-                constraint_idx,
-                run->getGroup(group_id)->getStableId(),
-                info->cc->toString(),
-                dimension,
-                hstd::own_view(run->getGroup(group_id)
-                                   ->constraints.at(constraint_idx)
-                                   ->getAllVertices())
-                    | hstd::rv::transform(
-                        [&](VertexID const& id) -> std::string {
-                            return hstd::fmt(
-                                "- {} rect {}",
-                                run->getGraph()->getDebugVertexFormat(id),
-                                rootGroup->get_shared_ctx()->getVertexIdx(
-                                    id),
-                                adapt::to_hstd(
-                                    *rootGroup->get_shared_ctx()->getRect(
-                                        id)));
-                        })
-                    | hstd::rv_intersperse_newline_join,
-                info->toString());
+                auto [group_id, constraint_idx] = cc_index.at(
+                    (hstd::u64)info->cc);
+                if (failed.contains(constraint_idx)) {
+                    return;
+                } else {
+                    failed.incl(constraint_idx);
+                }
+
+                unsatisfied_debug += hstd::fmt(
+                    "\nConstraint at index {} in group {} created cola "
+                    "constraint\n  {},\nwhich could not be satisfied in "
+                    "{}-dim for vertices\n{}\n{}.",
+                    constraint_idx,
+                    run->getGroup(group_id)->getStableId(),
+                    info->cc->toString(),
+                    dimension,
+                    hstd::own_view(run->getGroup(group_id)
+                                       ->constraints.at(constraint_idx)
+                                       ->getAllVertices())
+                        | hstd::rv::transform(
+                            [&](VertexID const& id) -> std::string {
+                                return hstd::fmt(
+                                    "- {} rect {}",
+                                    run->getGraph()->getDebugVertexFormat(
+                                        id),
+                                    rootGroup->get_shared_ctx()
+                                        ->getVertexIdx(id),
+                                    adapt::to_hstd(
+                                        *rootGroup->get_shared_ctx()
+                                             ->getRect(id)));
+                            })
+                        | hstd::rv_intersperse_newline_join,
+                    info->toString());
+            } else {
+                unsatisfied_debug += hstd::fmt("\n{}", info->toString());
+            }
         };
 
-        for (auto info : unsatX) { mark_unsatisified("X", info); }
-        for (auto info : unsatY) { mark_unsatisified("Y", info); }
+        for (auto info : unsatX) {
+            if (info != nullptr) { mark_unsatisified("X", info); }
+        }
+        for (auto info : unsatY) {
+            if (info != nullptr) { mark_unsatisified("Y", info); }
+        }
 
         if (!unsatisfied_debug.empty()) {
             run->message(unsatisfied_debug);
@@ -196,10 +233,14 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     };
 
 
+    run->message("set constraints");
     alg2.setConstraints(ccs);
+    run->message("avoid overlaps");
     alg2.setAvoidNodeOverlaps(true);
+    run->message("make feasible");
     alg2.makeFeasible();
     validate_unsatisfied();
+    run->message("run main");
     alg2.run();
     validate_unsatisfied();
 
@@ -358,8 +399,14 @@ hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> hstd::ext::graph::cst::
 
 hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::
     FixedRelativeConstraint::getCola() const {
+    if (shapes.size() < 2) {
+        throw hstd::ext::graph::layout::layout_error::init(
+            "Fixed relative constraint must have at least 2 shapes "
+            "specified");
+    }
+
     return {std::make_shared<cola::FixedRelativeConstraint>(
-        getAllRectanglesSorted(), getAllShapeIdsSorted(), fixedPosition)};
+        getAllRectanglesSorted(), getRectangleIndices(), fixedPosition)};
 }
 
 hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> cst::AlignConstraint::

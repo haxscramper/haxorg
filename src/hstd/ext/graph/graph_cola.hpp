@@ -182,9 +182,16 @@ class ColaRectTracker {
     }
 };
 
+class FixedRelativeConstraint;
+class LockPositionConstraint;
+class MultiSeparateConstraint;
+class SeparateConstraint;
+class AlignConstraint;
+
 class ColaGroup
     : public layout::IGroupVisualAttribute
-    , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute> {
+    , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute>
+    , public std::enable_shared_from_this<ColaGroup> {
   public:
     using Base = layout::IGroupVisualAttribute;
     using API  = APIBundle<
@@ -364,9 +371,7 @@ class AlignConstraint : public ColaConstraint {
             "align {} rects {}", getAllVertices(), getRectangleIndices());
     }
 
-    hstd::Vec<VertexID> getAllVertices() const override {
-        return vertices.keys();
-    }
+    VertexIDVec getAllVertices() const override { return vertices.keys(); }
 
     AlignConstraint* addAlignVertex(
         VertexID const&   id,
@@ -409,7 +414,7 @@ class AlignConstraint : public ColaConstraint {
 /// it is possible to offset the individual shapes relative to the lane.
 class SeparateConstraint : public ColaConstraint {
   public:
-    hstd::Vec<VertexID> getAllVertices() const override {
+    VertexIDVec getAllVertices() const override {
         return left.getAllVertices() + right.getAllVertices();
     }
 
@@ -474,12 +479,12 @@ class SeparateConstraint : public ColaConstraint {
         return this;
     }
 
-    SeparateConstraint* addLeftVertex(hstd::Vec<VertexID> const& id) {
+    SeparateConstraint* addLeftVertex(VertexIDVec const& id) {
         for (auto const& i : id) { addLeftVertex(i); }
         return this;
     }
 
-    SeparateConstraint* addRightVertex(hstd::Vec<VertexID> const& id) {
+    SeparateConstraint* addRightVertex(VertexIDVec const& id) {
         for (auto const& i : id) { addRightVertex(i); }
         return this;
     }
@@ -503,8 +508,8 @@ class SeparateConstraint : public ColaConstraint {
 /// by a fixed margin.
 class MultiSeparateConstraint : public ColaConstraint {
   public:
-    hstd::Vec<VertexID> getAllVertices() const override {
-        hstd::Vec<VertexID> res;
+    VertexIDVec getAllVertices() const override {
+        VertexIDVec res;
         for (auto const& align : lines) {
             res.append(align.getAllVertices());
         }
@@ -563,8 +568,7 @@ class MultiSeparateConstraint : public ColaConstraint {
     }
 
     /// \brief Add a fully new lane with the fixed set of vertices.
-    MultiSeparateConstraint* addFullLane(
-        hstd::Vec<VertexID> const& vertices) {
+    MultiSeparateConstraint* addFullLane(VertexIDVec const& vertices) {
         addLane();
         for (auto const& vert : vertices) {
             lines.back().addAlignVertex(vert);
@@ -597,10 +601,25 @@ class FixedRelativeConstraint : public ColaConstraint {
   public:
     using ColaConstraint::ColaConstraint;
     [[refl]] bool fixedPosition = false;
-    DESC_FIELDS(FixedRelativeConstraint, (fixedPosition));
+    [[refl]] hstd::UnorderedMap<VertexID, geometry::Point> shapes;
+    DESC_FIELDS(FixedRelativeConstraint, (fixedPosition, shapes));
+
+    FixedRelativeConstraint(hstd::SPtr<ColaGroup> const& group)
+        : ColaConstraint{group} {}
 
     hstd::Vec<hstd::SPtr<::cola::CompoundConstraint>> getCola()
         const override;
+
+    FixedRelativeConstraint* addVertex(
+        VertexID const&        id,
+        geometry::Point const& p) {
+        shapes.insert_or_assign(id, p);
+        return this;
+    }
+
+    VertexIDVec getAllVertices() const override {
+        return hstd::sorted(shapes.keys());
+    }
 };
 
 class LockPositionConstraint : public ColaConstraint {
@@ -618,9 +637,7 @@ class LockPositionConstraint : public ColaConstraint {
             position.y());
     }
 
-    hstd::Vec<VertexID> getAllVertices() const override {
-        return {vertex};
-    }
+    VertexIDVec getAllVertices() const override { return {vertex}; }
 
     using ColaConstraint::ColaConstraint;
     [[refl]] geometry::Point position;
