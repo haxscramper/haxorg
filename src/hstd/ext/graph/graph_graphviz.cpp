@@ -598,7 +598,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             // iterate over edges/vertices to insert graphviz attributes to
             // enable post-layout association.
             for (auto const& vertex : run->getDirectVertices(id)) {
-                run->message(hstd::fmt("vertex {}", vertex));
+                // run->message(hstd::fmt("vertex {}", vertex));
                 run->getVertexVisualAttribute<NodeAttribute>(vertex)
                     ->setAttr(id_attr, vertex.getValue());
             }
@@ -675,7 +675,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 "No ID attr property for node {}",
                 node.getPropertiesAsString());
             auto id = VertexID::FromValue(id_value.value());
-            run->message(hstd::fmt("each-group iterate vertex {}", id));
+            // run->message(hstd::fmt("each-group iterate vertex {}", id));
             result.vertices.insert_or_assign(
                 id,
                 std::make_shared<GraphVertexLayoutAttribute>(
@@ -802,7 +802,8 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
 
 
 hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(
-    hstd::SPtr<layout::LayoutRun> run) {
+    hstd::SPtr<layout::LayoutRun> run,
+    hstd::Str const&              name) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
     if (!gvc) {
         throw std::runtime_error("Failed to create Graphviz context");
@@ -814,7 +815,7 @@ hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(
             .context = GVContext::shared(),
             .gvc     = gvc,
         },
-        hstd::Str{"root"});
+        name);
 
     result->algorithm = std::make_shared<gv::Layout>(gvc, run);
 
@@ -1225,6 +1226,10 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
         hstd::fmt("graphviz group visual '{}'", group->name()));
     rectElem.data = rect;
     result.elements.push_back(rectElem);
+
+    result.elements.push_back(
+        visual::VisElement::FromText(
+            hstd::fmt("GROUP:{}", group->name()), geometry::Point(0, 0)));
 
     // Subgraph label
     if (group) {

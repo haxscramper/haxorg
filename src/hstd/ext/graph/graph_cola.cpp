@@ -18,162 +18,15 @@ vpsc::Dim toVpsc(cst::GraphDimension dim) {
     }
 }
 
-
-layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
-    ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
-    run->message("running single layout for cst::ColaLayoutAlgorithm");
-    auto __scope = run->scopeLevel();
-    hstd::logic_assertion_check_not_nil(router);
-
-    auto rootGroup = run->getGroup<ColaGroup>(root_id);
-    auto ctx       = rootGroup->shared;
-
-
-    hstd::UnorderedMap<VertexID, hstd::SPtr<vpsc::Rectangle>>
-        sub_group_rectangles;
-
-    std::vector<vpsc::Rectangle*>
-        layout_rects = ctx->getAllRectanglesSorted();
-
-    auto aux = [&](this auto&&                self,
-                   VertexID const&            aux_group_id,
-                   hstd::Opt<VertexID> const& parent_group_id) -> void {
-        auto group = run->getGroup(aux_group_id);
-        if (group->hasAlgorithm() && aux_group_id != root_id) {
-            auto parentGroup = run->getGroup<ColaGroup>(
-                parent_group_id.value());
-            run->message(
-                hstd::fmt(
-                    "group '{}' has layout algorithm set",
-                    group->getStableId()));
-            auto recursiveBBox = run->getLayout(aux_group_id)->getBBox();
-            auto rect          = std::make_shared<vpsc::Rectangle>(
-                recursiveBBox.min_x(),
-                recursiveBBox.max_x(),
-                recursiveBBox.min_y(),
-                recursiveBBox.max_y());
-
-            sub_group_rectangles.insert_or_assign(aux_group_id, rect);
-            layout_rects.push_back(rect.get());
-        } else {
-            for (auto const& sub : run->getSubGroups(aux_group_id)) {
-                self(sub, aux_group_id);
-            }
-        }
-    };
-
-    aux(root_id, std::nullopt);
-
-    std::vector<cola::Edge> edges;
-    std::vector<double>     edgeLenOverride;
-    for (EdgeID const& id : run->getDirectlyNestedEdges(root_id)) {
-        edges.push_back(ctx->getEdgeIdx(id, ctx->run));
-        if (!idealEdgeLength.empty()) {
-            if (auto len = idealEdgeLength.get(id)) {
-                edgeLenOverride.push_back(len.value());
-            } else {
-                edgeLenOverride.push_back(commonIdealEdgeLength);
-            }
-        }
-    }
-
-    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>>          ccs_s;
-    hstd::Vec<cola::CompoundConstraint*>                     ccs;
+namespace {
+struct unsatisifed_validation_state {
+    cola::UnsatisfiableConstraintInfos                       unsatX;
+    cola::UnsatisfiableConstraintInfos                       unsatY;
     hstd::UnorderedMap<hstd::u64, hstd::Pair<VertexID, int>> cc_index;
+    hstd::SPtr<layout::LayoutRun>                            run;
+    hstd::SPtr<cst::ColaGroup>                               rootGroup;
 
-    cola::Locks locks;
-
-    auto aux_constraints = [&](this auto&&     self,
-                               VertexID const& id) -> void {
-        auto group = run->getGroup(id);
-        for (auto const& [ir_idx, constraint] :
-             enumerate(group->constraints)) {
-            auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
-                constraint);
-            if (auto lock_cs = std::dynamic_pointer_cast<
-                    cst::LockPositionConstraint>(cola_cs)) {
-                locks.push_back(lock_cs->getLock());
-            } else {
-                hstd::logic_assertion_check_not_nil(cola_cs);
-                auto new_ccs = cola_cs->getCola();
-
-                if (auto cola_al = std::dynamic_pointer_cast<
-                        cst::FixedRelativeConstraint>(cola_cs)) {
-                    run->message("found fixed relative");
-                    VertexIDVec vert        = cola_al->getAllVertices();
-                    auto        base_vertex = layout_rects.at(
-                        rootGroup->get_shared_ctx()->getVertexIdx(
-                            vert.at(0)));
-                    for (VertexID const& rel_vertex :
-                         vert.at(slice(1, 1_B))) {
-                        auto rel_rect = layout_rects.at(
-                            rootGroup->get_shared_ctx()->getVertexIdx(
-                                rel_vertex));
-                        double dx = rel_rect->getMinX()
-                                  - base_vertex->getMinX()
-                                  + cola_al->shapes.at(rel_vertex).x();
-                        double dy = rel_rect->getMinY()
-                                  - base_vertex->getMinY()
-                                  + cola_al->shapes.at(rel_vertex).y();
-
-                        run->message(
-                            hstd::fmt(
-                                "moving rect for {} by {} {}",
-                                rel_vertex,
-                                dx,
-                                dy));
-
-                        rel_rect->offset(dx, dy);
-                    }
-                }
-
-                ccs_s.append(new_ccs);
-                for (auto const& s : new_ccs) {
-                    ccs.push_back(s.get());
-                    cc_index.insert_or_assign(
-                        (hstd::u64)s.get(),
-                        hstd::Pair<VertexID, int>{id, ir_idx});
-                }
-            }
-
-            run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
-        }
-
-        for (auto const& sub : run->getSubGroups(id)) { self(sub); }
-    };
-
-
-    aux_constraints(root_id);
-
-    cola::ConstrainedFDLayout alg2(
-        /*rs=*/layout_rects,
-        /*es=*/edges,
-        /*idealLength=*/commonIdealEdgeLength,
-        /*eLengths=*/edgeLenOverride,
-        /*doneTest=*/nullptr,
-        /*preIteration=*/locks.empty() ? nullptr
-                                       : new cola::PreIteration(locks));
-
-    run->message(
-        hstd::fmt(
-            "collected {} constraints, {} edges, {} rects, {} locks for "
-            "layout run",
-            ccs.size(),
-            edges.size(),
-            layout_rects.size(),
-            locks.size()));
-
-    for (auto const& r : layout_rects) {
-        // run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
-    }
-
-
-    cola::UnsatisfiableConstraintInfos unsatX;
-    cola::UnsatisfiableConstraintInfos unsatY;
-    alg2.setUnsatisfiableConstraintInfo(&unsatX, &unsatY);
-
-
-    auto validate_unsatisfied = [&]() {
+    void validate_unsatisfied() {
         std::string             unsatisfied_debug;
         hstd::UnorderedSet<int> failed;
         auto mark_unsatisified = [&](std::string const& dimension,
@@ -231,30 +84,149 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             // throw layout::layout_error::init(unsatisfied_debug);
         }
     };
+};
+
+struct single_layout_run_state {
+    hstd::SPtr<cst::ColaGroup>            rootGroup;
+    hstd::SPtr<cst::ColaGroup::SharedCtx> ctx;
+
+    hstd::UnorderedMap<VertexID, hstd::SPtr<vpsc::Rectangle>>
+        sub_group_rectangles;
+
+    std::vector<vpsc::Rectangle*>
+        layout_rects = ctx->getAllRectanglesSorted();
+    hstd::SPtr<layout::LayoutRun> run;
+    VertexID                      root_id;
+
+    single_layout_run_state(
+        VertexID const&               root_id,
+        hstd::SPtr<layout::LayoutRun> run)
+        : run{run}, root_id{root_id} {
+        rootGroup    = run->getGroup<cst::ColaGroup>(root_id);
+        ctx          = rootGroup->shared;
+        layout_rects = ctx->getAllRectanglesSorted();
+    }
+
+    void extend_layout_rectangles_with_sub_groups(
+        VertexID const&            aux_group_id,
+        hstd::Opt<VertexID> const& parent_group_id) {
+        auto group = run->getGroup(aux_group_id);
+        if (group->hasAlgorithm() && aux_group_id != root_id) {
+            auto parentGroup = run->getGroup<cst::ColaGroup>(
+                parent_group_id.value());
+            run->message(
+                hstd::fmt(
+                    "group '{}' has layout algorithm set",
+                    group->getStableId()));
+            auto recursiveBBox = run->getLayout(aux_group_id)->getBBox();
+            auto rect          = std::make_shared<vpsc::Rectangle>(
+                recursiveBBox.min_x(),
+                recursiveBBox.max_x(),
+                recursiveBBox.min_y(),
+                recursiveBBox.max_y());
+
+            sub_group_rectangles.insert_or_assign(aux_group_id, rect);
+            layout_rects.push_back(rect.get());
+        } else {
+            for (auto const& sub : run->getSubGroups(aux_group_id)) {
+                extend_layout_rectangles_with_sub_groups(
+                    sub, aux_group_id);
+            }
+        }
+    }
 
 
-    run->message("set constraints");
-    alg2.setConstraints(ccs);
-    run->message("avoid overlaps");
-    alg2.setAvoidNodeOverlaps(true);
-    run->message("make feasible");
-    alg2.makeFeasible();
-    validate_unsatisfied();
-    run->message("run main");
-    alg2.run();
-    validate_unsatisfied();
+    std::vector<cola::Edge> edges;
+    std::vector<double>     edgeLenOverride;
+    void                    collect_edge_len_override_parameters(
+        cst::ColaLayoutAlgorithm const* algo) {
+        for (EdgeID const& id : run->getDirectlyNestedEdges(root_id)) {
+            edges.push_back(ctx->getEdgeIdx(id, ctx->run));
+            if (!algo->idealEdgeLength.empty()) {
+                if (auto len = algo->idealEdgeLength.get(id)) {
+                    edgeLenOverride.push_back(len.value());
+                } else {
+                    edgeLenOverride.push_back(algo->commonIdealEdgeLength);
+                }
+            }
+        }
+    }
 
 
-    layout::IPlacementAlgorithm::Result          result;
+    hstd::Vec<hstd::SPtr<cola::CompoundConstraint>> ccs_s;
+    hstd::Vec<cola::CompoundConstraint*>            ccs;
+    cola::Locks                                     locks;
+
+    void recursively_collect_constraints(
+        VertexID const&               id,
+        unsatisifed_validation_state& validation_state) {
+        auto group = run->getGroup(id);
+        for (auto const& [ir_idx, constraint] :
+             enumerate(group->constraints)) {
+            auto cola_cs = std::dynamic_pointer_cast<cst::ColaConstraint>(
+                constraint);
+            if (auto lock_cs = std::dynamic_pointer_cast<
+                    cst::LockPositionConstraint>(cola_cs)) {
+                locks.push_back(lock_cs->getLock());
+            } else {
+                hstd::logic_assertion_check_not_nil(cola_cs);
+                auto new_ccs = cola_cs->getCola();
+
+                if (auto cola_al = std::dynamic_pointer_cast<
+                        cst::FixedRelativeConstraint>(cola_cs)) {
+                    run->message("found fixed relative");
+                    VertexIDVec vert        = cola_al->getAllVertices();
+                    auto        base_vertex = layout_rects.at(
+                        rootGroup->get_shared_ctx()->getVertexIdx(
+                            vert.at(0)));
+                    for (VertexID const& rel_vertex :
+                         vert.at(slice(1, 1_B))) {
+                        auto rel_rect = layout_rects.at(
+                            rootGroup->get_shared_ctx()->getVertexIdx(
+                                rel_vertex));
+                        double dx = rel_rect->getMinX()
+                                  - base_vertex->getMinX()
+                                  + cola_al->shapes.at(rel_vertex).x();
+                        double dy = rel_rect->getMinY()
+                                  - base_vertex->getMinY()
+                                  + cola_al->shapes.at(rel_vertex).y();
+
+                        run->message(
+                            hstd::fmt(
+                                "moving rect for {} by {} {}",
+                                rel_vertex,
+                                dx,
+                                dy));
+
+                        rel_rect->offset(dx, dy);
+                    }
+                }
+
+                ccs_s.append(new_ccs);
+                for (auto const& s : new_ccs) {
+                    ccs.push_back(s.get());
+                    validation_state.cc_index.insert_or_assign(
+                        (hstd::u64)s.get(),
+                        hstd::Pair<VertexID, int>{id, ir_idx});
+                }
+            }
+
+            run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
+        }
+
+        for (auto const& sub : run->getSubGroups(id)) {
+            recursively_collect_constraints(sub, validation_state);
+        }
+    }
+
+
     hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
-
-    auto aux_absolute_bboxes = [&](this auto&&     self,
-                                   VertexID const& id) -> void {
+    void collect_absolute_bounding_box_positions(VertexID const& id) {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
             auto        prev_cast      = std::dynamic_pointer_cast<
-                ColaGroupLayoutAttribute>(prev_attribute);
+                cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
             bbox_map.insert_or_assign(id, rect);
@@ -262,7 +234,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
         } else {
             auto bbox = geometry::Rect::FromLimitBoundaries();
             for (auto const& group_id : run->getSubGroups(id)) {
-                self(group_id);
+                collect_absolute_bounding_box_positions(group_id);
                 bbox.extend(bbox_map.at(group_id));
             }
 
@@ -273,26 +245,26 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
             bbox_map.insert_or_assign(id, bbox);
         }
-    };
+    }
 
-    aux_absolute_bboxes(root_id);
 
-    auto aux_layout = [&](this auto&&            self,
-                          VertexID const&        id,
-                          geometry::Point const& rel_offset) -> void {
+    layout::IPlacementAlgorithm::Result result;
+    void collect_nodes_and_sub_groups_relative_positions(
+        VertexID const&        id,
+        geometry::Point const& rel_offset) {
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
             auto        prev_cast      = std::dynamic_pointer_cast<
-                ColaGroupLayoutAttribute>(prev_attribute);
+                cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
 
-            if (prev_attribute) {
-                run->message("previous attribute was a graphviz layout");
+            if (prev_cast) {
+                run->message("previous attribute was a cola layout");
                 result.vertices.insert_or_assign(
                     id,
-                    std::make_shared<ColaGroupLayoutAttribute>(
+                    std::make_shared<cst::ColaGroupLayoutAttribute>(
                         rect, prev_cast->group));
             } else {
                 // FIXME: Is the `rootGroup` appropriate here, or I need to
@@ -301,69 +273,134 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
                 run->message(
                     hstd::fmt(
                         "previous attribute was {}",
-                        typeid(prev_cast.get()).name()));
+                        typeid(prev_attribute.get()).name()));
                 result.vertices.insert_or_assign(
                     id,
-                    std::make_shared<ColaGroupLayoutAttribute>(
+                    std::make_shared<cst::ColaGroupLayoutAttribute>(
                         rect, rootGroup));
             }
         } else {
             for (auto const& group_id : run->getSubGroups(id)) {
                 auto this_bbox = bbox_map.at(group_id).relative_to(
                     rel_offset);
-                self(group_id, this_bbox.upper_left() + rel_offset);
-                result.vertices.insert_or_assign(
-                    group_id,
-                    std::make_shared<ColaGroupLayoutAttribute>(
-                        this_bbox,
-                        run->getGroup<cst::ColaGroup>(group_id)));
+                collect_nodes_and_sub_groups_relative_positions(
+                    group_id, this_bbox.upper_left() + rel_offset);
+                if (!run->getGroup<layout::IGroupVisualAttribute>(group_id)
+                         ->hasAlgorithm()) {
+                    result.vertices.insert_or_assign(
+                        group_id,
+                        std::make_shared<cst::ColaGroupLayoutAttribute>(
+                            this_bbox,
+                            run->getGroup<cst::ColaGroup>(group_id)));
+                }
             }
 
             for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
                 auto rel_rect = rect.relative_to(rel_offset);
 
-                // run->message(
-                //     hstd::fmt(
-                //         "vert {} placed at {}, relative {} ",
-                //         vert,
-                //         rect,
-                //         rel_rect));
-
                 result.vertices.insert_or_assign(
                     vert,
-                    std::make_shared<ColaVertexLayoutAttribute>(
+                    std::make_shared<cst::ColaVertexLayoutAttribute>(
                         rect,
                         run->getGraph()->getVertex(vert)->getStableId()));
             }
         }
-    };
+    }
 
-    aux_layout(root_id, geometry::Point{});
+    void execute_edge_placement(cst::ColaLayoutAlgorithm* algo) {
+        algo->router->run                    = run;
+        algo->router->rects                  = rootGroup->shared.get();
+        algo->router->group                  = rootGroup.get();
+        algo->router->intermediate_placement = &result;
+        algo->router->root_group             = root_id;
+        auto layoutPorts                     = algo->router->routeEdges();
+    }
+};
 
-    router->run                    = run;
-    router->rects                  = rootGroup->shared.get();
-    router->group                  = rootGroup.get();
-    router->intermediate_placement = &result;
-    router->root_group             = root_id;
-    auto layoutPorts               = router->routeEdges();
+
+} // namespace
+
+layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
+    ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
+    run->message("running single layout for cst::ColaLayoutAlgorithm");
+    auto __scope = run->scopeLevel();
+    hstd::logic_assertion_check_not_nil(router);
+
+    single_layout_run_state run_state(root_id, run);
+
+    run_state.extend_layout_rectangles_with_sub_groups(
+        root_id, std::nullopt);
+
+    run_state.collect_edge_len_override_parameters(this);
+
+    unsatisifed_validation_state validation_state;
+    validation_state.run       = run;
+    validation_state.rootGroup = run_state.rootGroup;
 
 
-    result.vertices.insert_or_assign(
+    run_state.recursively_collect_constraints(root_id, validation_state);
+
+    cola::ConstrainedFDLayout alg2(
+        /*rs=*/run_state.layout_rects,
+        /*es=*/run_state.edges,
+        /*idealLength=*/commonIdealEdgeLength,
+        /*eLengths=*/run_state.edgeLenOverride,
+        /*doneTest=*/nullptr,
+        /*preIteration=*/run_state.locks.empty()
+            ? nullptr
+            : new cola::PreIteration(run_state.locks));
+
+    run->message(
+        hstd::fmt(
+            "collected {} constraints, {} edges, {} rects, {} locks for "
+            "layout run",
+            run_state.ccs.size(),
+            run_state.edges.size(),
+            run_state.layout_rects.size(),
+            run_state.locks.size()));
+
+    for (auto const& r : run_state.layout_rects) {
+        // run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
+    }
+
+    alg2.setUnsatisfiableConstraintInfo(
+        &validation_state.unsatX, &validation_state.unsatY);
+
+    run->message("set constraints");
+    alg2.setConstraints(run_state.ccs);
+    run->message("avoid overlaps");
+    alg2.setAvoidNodeOverlaps(true);
+    run->message("make feasible");
+    alg2.makeFeasible();
+    validation_state.validate_unsatisfied();
+    run->message("run main");
+    alg2.run();
+    validation_state.validate_unsatisfied();
+
+    hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
+    run_state.collect_absolute_bounding_box_positions(root_id);
+    run_state.collect_nodes_and_sub_groups_relative_positions(
+        root_id, geometry::Point{});
+
+    run_state.execute_edge_placement(this);
+
+    run_state.result.vertices.insert_or_assign(
         root_id,
         std::make_shared<ColaGroupLayoutAttribute>(
-            bbox_map.at(root_id), rootGroup));
+            bbox_map.at(root_id), run_state.rootGroup));
 
-    return result;
+    return run_state.result;
 }
 
 hstd::SPtr<cst::ColaGroup> cst::ColaGroup::newRootGraph(
-    hstd::SPtr<layout::LayoutRun> run) {
+    hstd::SPtr<layout::LayoutRun> run,
+    Str const&                    name) {
     auto result = std::make_shared<ColaGroup>(
         std::make_shared<SharedCtx>(API::SharedCtxBase{
             .run = run,
         }),
-        hstd::Str{"root"});
+        name);
 
     result->algorithm = std::make_shared<ColaLayoutAlgorithm>(run);
     return result;

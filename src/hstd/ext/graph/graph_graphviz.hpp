@@ -599,6 +599,11 @@ class NodeAttribute
         return setFixedInchesWH(w / scaling, h / scaling);
     }
 
+    NodeAttribute* setFixedPointWH(geometry::Size const& size) {
+        return setFixedInchesWH(
+            size.width() / scaling, size.height() / scaling);
+    }
+
   public:
     Agnode_t* node;
     Agraph_t* graph;
@@ -874,7 +879,8 @@ class GraphGroup
 
 
     static hstd::SPtr<GraphGroup> newRootGraph(
-        hstd::SPtr<layout::LayoutRun> run);
+        hstd::SPtr<layout::LayoutRun> run,
+        hstd::Str const&              name = "");
 
     hstd::SPtr<GraphGroup> addNewNativeSubgroup(
         VertexID const& parent,

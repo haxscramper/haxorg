@@ -252,7 +252,8 @@ class ColaGroup
     }
 
     static hstd::SPtr<cst::ColaGroup> newRootGraph(
-        hstd::SPtr<layout::LayoutRun> run);
+        hstd::SPtr<layout::LayoutRun> run,
+        const Str&                    name = "root");
 };
 
 static_assert(

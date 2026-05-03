@@ -82,39 +82,6 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaAlign) {
         checkAlignedVertically(run->getVisual(v1), run->getVisual(v2)));
 }
 
-TEST_F(GraphAdaptagramsIR_Test, LibcolaFixedRelativePosition) {
-    VertexID v1    = graph->addVertex();
-    VertexID v2    = graph->addVertex();
-    VertexID v3    = graph->addVertex();
-    VertexID v4    = graph->addVertex();
-    VertexID rg_id = graph->addVertex();
-
-    hstd::SPtr<cst::ColaGroup> root = cst::ColaGroup::newRootGraph(run);
-
-    run->addRootGroup(rg_id, root);
-
-    root->addVertex(rg_id, v1, Size(50, 50));
-    root->addVertex(rg_id, v2, Size(60, 60));
-    root->addVertex(rg_id, v3, Size(70, 70));
-    root->addVertex(rg_id, v4, Size(80, 80));
-
-    root->addConstraint<cst::FixedRelativeConstraint>(root)
-        ->addVertex(v1, {0, 0})
-        ->addVertex(v2, {300, 300})
-        ->addVertex(v3, {-300, -300})
-        ->addVertex(v4, {-300, 300});
-
-    run->runFullLayout();
-
-    auto const& res = run->result;
-
-    auto visual = run->getVisual();
-    hstd::writeFile(
-        getDebugFile("result.svg"),
-        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
-}
-
-
 class GraphAdaptagramsIR_BoolParamTest
     : public GraphAdaptagramsIR_Test
     , public testing::WithParamInterface<bool> {};
@@ -702,13 +669,18 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     sg_2->addVertex(sg_id2, vs.at(9), Size(size, size));
     sg_2->addVertex(sg_id2, vs.at(10), Size(size, size));
 
-    // sg_2->addConstraint<cst::AlignConstraint>(sg_2)
-    //     ->useHorizontalAxis()
-    //     ->addAlignVertex(vs.at(6), 0)
-    //     ->addAlignVertex(vs.at(7), size)
-    //     ->addAlignVertex(vs.at(8), size * 2)
-    //     ->addAlignVertex(vs.at(9), size * 3)
-    //     ->addAlignVertex(vs.at(10), size * 4);
+    sg_2->addConstraint<cst::AlignConstraint>(sg_2)
+        ->useHorizontalAxis()
+        ->addAlignVertex(
+            vs.at(6), cst::AlignConstraint::AxisAlign::Center, 0)
+        ->addAlignVertex(
+            vs.at(7), cst::AlignConstraint::AxisAlign::Center, size)
+        ->addAlignVertex(
+            vs.at(8), cst::AlignConstraint::AxisAlign::Center, size * 2)
+        ->addAlignVertex(
+            vs.at(9), cst::AlignConstraint::AxisAlign::Center, size * 3)
+        ->addAlignVertex(
+            vs.at(10), cst::AlignConstraint::AxisAlign::Center, size * 4);
 
     sg_2->addConstraint<cst::MultiSeparateConstraint>(sg_2)
         ->separateHorizontally()
