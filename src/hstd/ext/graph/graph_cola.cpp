@@ -290,21 +290,22 @@ struct single_layout_run_state {
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout<
                 layout::IGroupLayoutAttribute>(id);
-            auto prev_cast = std::dynamic_pointer_cast<
-                cst::ColaGroupLayoutAttribute>(prev_attribute);
-            auto vpsc_rect = sub_group_rectangles.at(id);
-            auto rect      = adapt::to_hstd(*vpsc_rect);
 
-            // rel_offset is already the target parent-relative UL for this
-            // child. Rebase absolute rect to that UL.
-            auto rel_rect = rect.move(rel_offset - rect.upper_left());
+            // Content bbox of this group from its own layout run
+            // (non-inflated).
+            auto content_bbox = prev_attribute->getBBox();
+
+            // Place content bbox at the computed parent-relative offset.
+            auto rel_rect = content_bbox.move(
+                rel_offset - content_bbox.upper_left());
 
             prev_attribute->setBBox(rel_rect);
 
             run->message(
-                hstd::fmt("absolute position at {}", rect), _fname);
+                hstd::fmt("content bbox {}", content_bbox), _fname);
             run->message(
-                hstd::fmt("moving bounding box to {}", rel_rect), _fname);
+                hstd::fmt("moving content bbox to {}", rel_rect), _fname);
+
             result.vertices.insert_or_assign(id, prev_attribute);
         } else {
             auto parent_bbox = bbox_map.at(id);
@@ -1198,6 +1199,7 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
     ColaGroupLayoutAttribute::getVisual(VertexID const& id) const {
     using namespace visual;
     VisGroup res{};
+    res.offset = this->rect.upper_left();
 
     {
         visual::VisElement::RectShape rect;
