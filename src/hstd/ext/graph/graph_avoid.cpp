@@ -105,7 +105,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     auto __scope = run->scopeLevelMsg("route edges");
     hstd::logic_assertion_check_not_nil(rects);
     hstd::logic_assertion_check_not_nil(run);
-    hstd::logic_assertion_check_not_nil(group);
+    // hstd::logic_assertion_check_not_nil(group);
     hstd::logic_assertion_check_not_nil(intermediate_placement);
 
     Result res;
@@ -113,8 +113,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
 
     auto lp = res.layoutPorts;
 
-    auto __ports  = run->scopeLevelHandleMsg("add ports");
-    auto edge_set = run->getLayoutLayerNestedEdges(root_group);
+    auto __ports = run->scopeLevelHandleMsg("add ports");
 
 
     for (auto const& eid : edge_set) {
@@ -138,7 +137,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     }
     __ports.end();
 
-    for (auto const& vert : run->getDirectVertices(root_group)) {
+    for (auto const& vert : vertex_set) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
                    | rv::transform([&](PortID pid) -> IPort* {
                          return lp->getmPort(pid);

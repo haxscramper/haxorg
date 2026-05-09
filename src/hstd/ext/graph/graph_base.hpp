@@ -1518,6 +1518,14 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
+class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {};
+class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
+  public:
+    geometry::Path path;
+    UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
+    Path getPath() const override { return path; }
+};
+
 class LayoutRun : public OperationsTracer {
   public:
     hstd::SPtr<IGraph>               graph;
@@ -1541,6 +1549,24 @@ class LayoutRun : public OperationsTracer {
 
     /// \brief Full store for the layout results of all recursive runs.
     IPlacementAlgorithm::Result result;
+
+    hstd::SPtr<UnboundEdgeVisualAttribute> addUnboundEdge(
+        EdgeID const& id) {
+        auto attr = std::make_shared<UnboundEdgeVisualAttribute>();
+        addEdge(id, attr);
+        return attr;
+    }
+
+    EdgeIDSet getAllUnboundEdges() const {
+        EdgeIDSet res;
+        for (auto const& edge : edges->getEdges()) {
+            if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(
+                    getEdgeVisualAttribute(edge))) {
+                res.incl(edge);
+            }
+        }
+        return res;
+    }
 
     template <typename T = IVertex>
         requires std::derived_from<T, IVertex>
@@ -1775,9 +1801,16 @@ class LayoutRun : public OperationsTracer {
         return groups->getParentChain(id);
     }
 
-
     geometry::Rect getRelativeBBox(VertexID const& id) const {
         return getLayout(id)->getBBox();
+    }
+
+    geometry::Rect getAbsoluteBBox(VertexID const& id) const {
+        auto start = getRelativeBBox(id);
+        for (auto const& parent : getParentChain(id)) {
+            start.move(getRelativeBBox(parent).upper_left());
+        }
+        return start;
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;

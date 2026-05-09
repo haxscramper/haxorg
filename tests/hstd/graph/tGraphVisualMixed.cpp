@@ -199,6 +199,18 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto ex10 = graph->addEdge(g7, l7);
     auto ex11 = graph->addEdge(g6, l5);
 
+    run->addUnboundEdge(ex1);
+    run->addUnboundEdge(ex2);
+    run->addUnboundEdge(ex3);
+    run->addUnboundEdge(ex4);
+    run->addUnboundEdge(ex5);
+    run->addUnboundEdge(ex6);
+    run->addUnboundEdge(ex7);
+    run->addUnboundEdge(ex8);
+    run->addUnboundEdge(ex9);
+    run->addUnboundEdge(ex10);
+    run->addUnboundEdge(ex11);
+
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
 

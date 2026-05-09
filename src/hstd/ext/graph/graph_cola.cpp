@@ -368,13 +368,14 @@ struct single_layout_run_state {
     }
 
     void execute_edge_placement(cst::ColaLayoutAlgorithm* algo) {
-        auto __scope        = run->scopeLevelMsg(__PRETTY_FUNCTION__);
-        algo->router->run   = run;
-        algo->router->rects = rootGroup->shared.get();
-        algo->router->group = rootGroup.get();
-        algo->router->intermediate_placement = &result;
-        algo->router->root_group             = root_id;
-        auto layoutPorts                     = algo->router->routeEdges();
+        auto __scope = run->scopeLevelMsg(__PRETTY_FUNCTION__);
+        auto r       = algo->router;
+        r->run       = run.get();
+        r->rects     = rootGroup->shared.get();
+        r->intermediate_placement = &result;
+        r->edge_set      = run->getLayoutLayerNestedEdges(root_id);
+        r->vertex_set    = run->getDirectVertices(root_id);
+        auto layoutPorts = r->routeEdges();
     }
 };
 

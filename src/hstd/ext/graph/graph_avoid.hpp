@@ -98,6 +98,12 @@ class AvoidPortCollection : public IPortCollection {
 };
 
 class AvoidRouterAlgorithm {
+    // TODO: support additional list of obstacle rectangles for layout.
+
+    // TODO: checkpoint creation for edges, using absolute manual placement
+    // and by creating intersection points along some edges (like
+    // orthogonal line from the bottom of some rectangle and the line's
+    // intersection with the surrounding subgroup).
   public:
     /// \brief put a fake buffer around each shape so the edges would not
     /// run perfectly flush against the nodes.
@@ -105,10 +111,13 @@ class AvoidRouterAlgorithm {
     /// \brief Shared list of rectangles for avoidance. Rectangles are
     /// placed on the flat canvas and are not moved or altered during edge
     /// routing.
-    VpscRectTracker*                     rects;
-    layout::IGroupVisualAttribute const* group;
-    VertexID                             root_group = VertexID::Nil();
-    hstd::SPtr<layout::LayoutRun>        run;
+    VpscRectTracker* rects;
+    // layout::IGroupVisualAttribute const* group;
+    /// \brief List of edges for layout
+    EdgeIDSet edge_set;
+    /// \brief Set of vertices to take into account as obstacles for layout
+    VertexIDSet        vertex_set;
+    layout::LayoutRun* run;
     /// \brief Output value for edge routing: write write the value out to
     /// this.
     layout::IPlacementAlgorithm::Result* intermediate_placement;
