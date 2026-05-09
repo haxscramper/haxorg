@@ -252,14 +252,15 @@ struct single_layout_run_state {
             run->message(
                 hstd::fmt("{} rect is {}", run->getDebug(id), rect),
                 _fname);
-            if (auto pad = group->getOuterPadding()) {
-                rect = rect.withInnerPadding(pad.value());
-                run->message(
-                    hstd::fmt(
-                        "has padding {} added inner {}",
-                        pad.value(),
-                        rect));
-            }
+            // if (auto pad = group->getOuterPadding()) {
+            //     rect = rect.withInnerPadding(pad.value());
+            //     run->message(
+            //         hstd::fmt(
+            //             "has padding {} added inner {}",
+            //             pad.value(),
+            //             rect));
+            // }
+
             bbox_map.insert_or_assign(id, rect);
 
         } else {

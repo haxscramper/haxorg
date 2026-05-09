@@ -5,7 +5,7 @@ struct GraphMixed_Test : public GraphUtils_Test {};
 
 double            size = 20;
 Size              rect{size, size};
-geometry::Padding pad{5};
+geometry::Padding pad{12};
 
 TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto cola_root_id  = addVertex("cola_root");
@@ -99,6 +99,17 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     cola_sub1->addEdge(e_g6_g7);
     cola_sub1->addEdge(e_g7_g8);
 
+    // cola_sub1->addConstraint<cst::SeparateConstraint>(cola_sub1)
+    //     ->separateVertically()
+    //     ->setSeparationDistance(40)
+    //     ->addLeftVertex(g1)
+    //     ->addLeftVertex(g2)
+    //     ->addLeftVertex(g3)
+    //     ->addLeftVertex(g4)
+    //     ->addRightVertex(g5)
+    //     ->addRightVertex(g6)
+    //     ->addRightVertex(g7)
+    //     ->addRightVertex(g8);
 
     // circo layout sub-group
     hstd::SPtr<gv::GraphGroup> circo_sub2 = gv::GraphGroup::newRootGraph(
@@ -175,6 +186,18 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub2->addEdge(e_d3_d4);
 
     run->runFullLayout();
+
+    auto ex1  = graph->addEdge(circo_sub2_id, dot_sub2_id);
+    auto ex2  = graph->addEdge(c3, d1);
+    auto ex3  = graph->addEdge(c7, g1);
+    auto ex4  = graph->addEdge(c6, g2);
+    auto ex5  = graph->addEdge(c2, g3);
+    auto ex6  = graph->addEdge(dot_sub2_id, cola_sub1_id);
+    auto ex7  = graph->addEdge(dot_sub2_id, dot_sub1_id);
+    auto ex8  = graph->addEdge(d3, l2);
+    auto ex9  = graph->addEdge(g8, l6);
+    auto ex10 = graph->addEdge(g7, l7);
+    auto ex11 = graph->addEdge(g6, l5);
 
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
