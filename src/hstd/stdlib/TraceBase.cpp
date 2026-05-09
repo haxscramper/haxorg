@@ -13,6 +13,35 @@ using namespace hstd;
 
 SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
 
+hstd::Opt<fs::path> OperationsTracer::getTraceFileDir() const {
+    if (traceFile) {
+        return traceFile->parent_path();
+    } else {
+        return std::nullopt;
+    }
+}
+
+void OperationsTracer::writeAdjacentToTraceFile(
+    Str const&  suffix,
+    Str const&  text,
+    bool        with_message,
+    char const* function,
+    int         line,
+    char const* file) const {
+    auto outdir = getTraceFileDir();
+    LOGIC_ASSERTION_CHECK(outdir.has_value(), "must be writing to file");
+    auto result = outdir.value() / suffix.toBase();
+    createDirectory(result.parent_path(), true, true);
+    writeFile(result, text);
+    if (with_message) {
+        message(
+            hstd::fmt("wrote debug file to {}", result),
+            function,
+            line,
+            file);
+    }
+}
+
 void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
     TraceState   = true;
     traceToFile  = true;
@@ -25,6 +54,7 @@ void OperationsTracer::setTraceFile(
     LOGIC_ASSERTION_CHECK(
         outfile.native().size() != 0,
         "Expected non-empty filename for the output");
+    traceFile   = outfile;
     TraceState  = true;
     traceToFile = true;
     createDirectory(outfile.parent_path(), true, true);

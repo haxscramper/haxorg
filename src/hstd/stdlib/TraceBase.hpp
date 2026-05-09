@@ -36,6 +36,7 @@ struct [[refl]] OperationsTracer {
     [[refl]] bool traceColored    = true;
     [[refl]] int  activeLevel     = 0;
 
+    hstd::Opt<fs::path>  traceFile;
     [[refl]] std::string traceBuffer;
 
     DESC_FIELDS(
@@ -78,7 +79,18 @@ struct [[refl]] OperationsTracer {
     SPtr<std::ostream> stream;
 
     SPtr<std::ostream> getTraceFile();
-    void               setTraceFile(SPtr<std::ostream> stream);
+
+    hstd::Opt<fs::path> getTraceFileDir() const;
+    void                writeAdjacentToTraceFile(
+        hstd::Str const& suffix,
+        hstd::Str const& text,
+        bool             with_message = true,
+        char const*      function     = __builtin_FUNCTION(),
+        int              line         = __builtin_LINE(),
+        char const*      file         = __builtin_FILE()) const;
+
+
+    void      setTraceFile(SPtr<std::ostream> stream);
     void      setTraceFile(fs::path const& outfile, bool overwrite = true);
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;

@@ -431,10 +431,35 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     alg2.run();
     validation_state.validate_unsatisfied();
 
+    {
+        VisGroup res;
+        auto     __scope = run->scopeLevelMsg("rectangle placement");
+        for (auto const& id : run->getDirectVertices(root_id).items()) {
+            res.add(
+                VisGroup::FromRectAndText(
+                    adapt::to_hstd(run_state.ctx->getRect(id)),
+                    hstd::fmt("VERTEX {}", id)));
+        }
+
+        for (auto const& [id, rect] : run_state.sub_group_rectangles) {
+            res.add(
+                VisGroup::FromRectAndText(
+                    adapt::to_hstd(rect), hstd::fmt("GROUP {}", id)));
+        }
+
+        run->writeAdjacentToTraceFile(
+            hstd::fmt(
+                "single_layout_of_{}.svg",
+                run->getGraph()->getVertex(root_id)->getStableId()),
+            ext::visual::toSvg({res}).to_string());
+    }
+
     run_state.collect_absolute_bounding_box_positions(root_id);
-    run->message("collected bounding box");
-    for (auto const& [key, value] : run_state.bbox_map) {
-        run->message(hstd::fmt("  {} -> {}", key, value));
+    {
+        auto __scope = run->scopeLevelMsg("collected bounding box");
+        for (auto const& [key, value] : run_state.bbox_map) {
+            run->message(hstd::fmt("{} -> {}", key, value));
+        }
     }
 
     run_state.collect_nodes_and_sub_groups_relative_positions(

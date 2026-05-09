@@ -325,6 +325,28 @@ struct VisGroup {
     /// to determine the interpretation of the `original_id`.
     hstd::Opt<hstd::u64> original_type;
 
+    void add(VisElement const& el) { elements.push_back(el); }
+    void add(VisGroup const& g) { subgroups.push_back(g); }
+
+    VisGroup& moveTo(geometry::Point const& of) {
+        this->offset = of;
+        return *this;
+    }
+
+    static VisGroup FromRectAndText(
+        geometry::Rect const& rect,
+        hstd::Str const&      text) {
+        VisGroup res;
+        res.offset = rect.upper_left();
+        res.elements.push_back(
+            VisElement::FromRect(
+                geometry::Rect{0, 0, rect.width(), rect.height()}));
+        res.elements.push_back(
+            VisElement::FromText(
+                text, geometry::Point{0, 0}, VisFont{.pixelSize = 6}));
+        return res;
+    }
+
 
     template <typename T>
     hstd::Vec<T> getElements() const {

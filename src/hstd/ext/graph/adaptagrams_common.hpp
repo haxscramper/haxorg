@@ -13,8 +13,14 @@
 
 namespace hstd::ext::graph::adapt {
 
-geometry::Point   to_hstd(Avoid::Point const& input);
-geometry::Rect    to_hstd(vpsc::Rectangle const& input);
+geometry::Point       to_hstd(Avoid::Point const& input);
+geometry::Rect        to_hstd(vpsc::Rectangle const& input);
+inline geometry::Rect to_hstd(vpsc::Rectangle const* input) {
+    return to_hstd(*input);
+}
+inline geometry::Rect to_hstd(hstd::SPtr<vpsc::Rectangle> const& input) {
+    return to_hstd(*input);
+}
 geometry::Rect    to_hstd(Avoid::Rectangle const& input);
 geometry::Rect    to_hstd_rect(Avoid::Polygon const& input);
 geometry::Polygon to_hstd(Avoid::Polygon const& input);

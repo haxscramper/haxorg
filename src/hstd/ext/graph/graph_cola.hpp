@@ -159,6 +159,15 @@ class ColaRectTracker {
         return rectStore.at(rectMap.at_right(id));
     }
 
+    VertexIDVec getAllVertexIDsSorted() const {
+        VertexIDVec res;
+        for (auto const& [rect, _] : enumerate(rectStore)) {
+            res.push_back(rectMap.at_left(rect));
+        }
+        return res;
+    }
+
+
     /// \brief Get all rectangles for the problem in a consistent
     /// sorting order.
     ///
