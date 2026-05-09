@@ -25,6 +25,23 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     std::ignore = run->addNestedGroup(cola_root_id, dot_sub1_id, dot_sub1);
 
+    auto l1 = addVertex("l1");
+    auto l2 = addVertex("l2");
+    auto l3 = addVertex("l3");
+    auto l4 = addVertex("l4");
+    auto l5 = addVertex("l5");
+    auto l6 = addVertex("l6");
+    auto l7 = addVertex("l7");
+
+    auto e_l1_l2 = graph->addEdge(l1, l2);
+    auto e_l2_l3 = graph->addEdge(l2, l3);
+    auto e_l3_l4 = graph->addEdge(l3, l4);
+    auto e_l4_l5 = graph->addEdge(l4, l5);
+    auto e_l5_l6 = graph->addEdge(l5, l6);
+    auto e_l6_l7 = graph->addEdge(l6, l7);
+
+    dot_sub1->setOuterPadding(geometry::Padding{5});
+
     // intermediate cola layout
     hstd::SPtr<cst::ColaGroup> cola_sub1 = cst::ColaGroup::newRootGraph(
         run, "cola_sub1");
@@ -37,6 +54,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
         run, "circo_sub2");
 
     circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    circo_sub2->setOuterPadding(geometry::Padding{5});
 
     std::ignore = run->addNestedGroup(
         cola_root_id, circo_sub2_id, circo_sub2);
@@ -80,6 +98,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     // innermost dot group layout sub-group
     hstd::SPtr<gv::GraphGroup> dot_sub2 = gv::GraphGroup::newRootGraph(
         run, "dot_sub2");
+
+    dot_sub2->setOuterPadding(geometry::Padding{5});
 
     std::ignore = run->addNestedGroup(cola_root_id, dot_sub2_id, dot_sub2);
 

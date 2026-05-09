@@ -113,16 +113,26 @@ struct single_layout_run_state {
         if (group->hasAlgorithm() && aux_group_id != root_id) {
             auto parentGroup = run->getGroup<cst::ColaGroup>(
                 parent_group_id.value());
-            run->message(
-                hstd::fmt(
-                    "group '{}' has layout algorithm set",
-                    group->getStableId()));
+
             auto recursiveBBox = run->getLayout(aux_group_id)->getBBox();
-            auto rect          = std::make_shared<vpsc::Rectangle>(
+
+            if (auto pad = group->getOuterPadding()) {
+                recursiveBBox = recursiveBBox.withOuterPadding(
+                    pad.value());
+            }
+
+            auto rect = std::make_shared<vpsc::Rectangle>(
                 recursiveBBox.min_x(),
                 recursiveBBox.max_x(),
                 recursiveBBox.min_y(),
                 recursiveBBox.max_y());
+
+            run->message(
+                hstd::fmt(
+                    "group '{}' has layout algorithm set with bounding "
+                    "box {}",
+                    group->getStableId(),
+                    recursiveBBox));
 
             sub_group_rectangles.insert_or_assign(aux_group_id, rect);
             layout_rects.push_back(rect.get());
@@ -272,9 +282,11 @@ struct single_layout_run_state {
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
             auto rel_rect  = rect.relative_to(rel_offset);
-            prev_attribute->setBBox(rel_rect);
+            prev_attribute->setBBox(rect);
 
+            run->message(hstd::fmt("absolute position at {}", rect));
             run->message(hstd::fmt("moving bounding box to {}", rel_rect));
+            result.vertices.insert_or_assign(id, prev_attribute);
         } else {
             for (auto const& group_id : run->getSubGroups(id)) {
                 auto this_bbox = bbox_map.at(group_id).relative_to(
@@ -321,7 +333,9 @@ struct single_layout_run_state {
 layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
     auto __scope = run->scopeLevelMsg(
-        "running single layout for cst::ColaLayoutAlgorithm");
+        hstd::fmt(
+            "running single layout for cst::ColaLayoutAlgorithm {}",
+            run->getGraph()->getDebugVertexFormat(root_id)));
     hstd::logic_assertion_check_not_nil(router);
 
     single_layout_run_state run_state(root_id, run);
@@ -358,7 +372,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             run_state.locks.size()));
 
     for (auto const& r : run_state.layout_rects) {
-        // run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
+        run->message(hstd::fmt("r {}", adapt::to_hstd(*r)));
     }
 
     alg2.setUnsatisfiableConstraintInfo(

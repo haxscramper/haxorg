@@ -675,6 +675,15 @@ class GraphGroup
   public:
     using Base = layout::IGroupVisualAttribute;
 
+    hstd::Opt<geometry::Padding> outerPadding;
+    void setOuterPadding(geometry::Padding const& pad) override {
+        outerPadding = pad;
+    }
+
+    hstd::Opt<geometry::Padding> getOuterPadding() const override {
+        return outerPadding;
+    }
+
     static const int graphvizKind = AGRAPH;
 
     struct GVContext : hstd::SharedPtrApi<GVContext> {};

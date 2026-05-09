@@ -546,8 +546,10 @@ void gv::Layout::renderToFile(
 layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     VertexID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
-    run->message("running single layout for gv::Layout Algorithm");
-    auto __scope   = run->scopeLevel();
+    auto __scope = run->scopeLevelMsg(
+        hstd::fmt(
+            "running single layout for gv::Layout {}",
+            run->getGraph()->getDebugVertexFormat(root_id)));
     auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(
         run->getGroup(root_id));
 

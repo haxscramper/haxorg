@@ -1482,11 +1482,16 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
   protected:
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
 
+
   public:
     /// \brief Optional instance of the layout algorithm to be executed on
     /// the current group.
     hstd::Vec<hstd::SPtr<IConstraint>> constraints;
     hstd::SPtr<LayoutRun>              run;
+
+
+    virtual void setOuterPadding(geometry::Padding const& pad)   = 0;
+    virtual hstd::Opt<geometry::Padding> getOuterPadding() const = 0;
 
     hstd::SPtr<IGraph> getGraph() const;
 

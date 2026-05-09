@@ -14,6 +14,27 @@
 
 
 namespace hstd::ext::geometry {
+
+struct Padding {
+    double top    = 0;
+    double bottom = 0;
+    double left   = 0;
+    double right  = 0;
+
+    Padding(double top, double bottom, double left, double right)
+        : top{top}, bottom{bottom}, left{left}, right{right} {}
+
+    Padding(double uniform)
+        : top{uniform}, bottom{uniform}, left{uniform}, right{uniform} {}
+
+    Padding() {}
+
+    double getTop() const { return top; }
+    double getBottom() const { return bottom; }
+    double getLeft() const { return left; }
+    double getRight() const { return right; }
+};
+
 namespace bg = boost::geometry;
 
 struct Point : public bg::model::d2::point_xy<double> {
@@ -297,6 +318,22 @@ struct Rect : bg::model::box<Point> {
     Rect() : box(Point(0, 0), Point(0, 0)) {}
     Rect(double x, double y, double w, double h)
         : box(Point(x, y), Point(x + w, y + h)) {}
+
+    Rect withOuterPadding(Padding const& pad) const {
+        return Rect{
+            x() - pad.getLeft(),
+            y() - pad.getTop(),
+            width() + pad.getLeft() + pad.getRight(),
+            height() + pad.getTop() + pad.getBottom()};
+    }
+
+    Rect withInnerPadding(Padding const& pad) const {
+        return Rect{
+            x() + pad.getLeft(),
+            y() + pad.getTop(),
+            width() - pad.getLeft() - pad.getRight(),
+            height() - pad.getTop() - pad.getBottom()};
+    }
 
     static Rect FromCenterWH(Point const& center, double w, double h) {
         return Rect(center.x() - w / 2, center.y() - h / 2, w, h);

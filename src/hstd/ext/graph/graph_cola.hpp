@@ -193,6 +193,16 @@ class ColaGroup
     , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute>
     , public std::enable_shared_from_this<ColaGroup> {
   public:
+    hstd::Opt<geometry::Padding> outerPadding;
+
+    void setOuterPadding(geometry::Padding const& pad) override {
+        outerPadding = pad;
+    }
+
+    hstd::Opt<geometry::Padding> getOuterPadding() const override {
+        return outerPadding;
+    }
+
     using Base = layout::IGroupVisualAttribute;
     using API  = APIBundle<
         ColaGroup,
