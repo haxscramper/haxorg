@@ -15,6 +15,7 @@
 #include "../common.hpp"
 #include <libcola/output_svg.h>
 #include <utility>
+#include <hstd/stdlib/MapSerde.hpp>
 
 template <typename A, typename T>
 hstd::SPtr<A> as(hstd::SPtr<T> const& value) {

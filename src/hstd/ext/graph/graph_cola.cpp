@@ -1071,7 +1071,7 @@ auto const purple_pen       = VisPen{
 
 VisGroup getAlignVisualGroup(AlignDebugInfo const& al, VisPen const& pen) {
     auto sub_align = VisGroup{};
-    sub_align.comment.push_back(getAlignComment(al));
+    sub_align.custom.addComment(getAlignComment(al));
     auto line = VisElement::FromLine(al.start().pos, al.end().pos, pen);
     sub_align.elements.push_back(std::move(line));
 
@@ -1137,12 +1137,10 @@ VisGroup getSeparateVisualGroup(
 
     sub_sep.elements.push_back(std::move(horizontal_line));
     sub_sep.elements.push_back(std::move(vertical_line));
-    sub_sep.comment.push_back(s->getRepr());
+    sub_sep.custom.addComment(s->getRepr());
 
     return sub_sep;
 }
-
-
 } // namespace
 
 
@@ -1150,6 +1148,33 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
     ColaGroupLayoutAttribute::getVisual(VertexID const& id) const {
     using namespace visual;
     VisGroup res{};
+
+    {
+        visual::VisElement::RectShape rect;
+        rect.geometry = Rect(
+            0, 0, this->rect.width(), this->rect.height());
+        rect.pen = visual::VisPen{
+            .color = visual::VisColor{128, 128, 128, 255},
+            .width = 1.0f,
+            .style = visual::VisPen::LineStyle::Dash,
+        };
+        rect.pen.style = visual::VisPen::LineStyle::Dash;
+
+        visual::VisElement rectElem;
+        rectElem.custom.addComment(
+            hstd::fmt("graphviz group visual '{}'", group->local.name));
+        rectElem.data = rect;
+        res.elements.push_back(rectElem);
+    }
+
+
+    res.elements.push_back(
+        visual::VisElement::FromText(
+            hstd::fmt("GROUP:{}", group->local.name),
+            geometry::Point(0, 0)));
+
+    res.custom.setAttr(
+        "inkscape:label", hstd::fmt("COLA GROUP:{}", group->local.name));
 
     for (auto const& c : group->constraints) {
         if (auto align = std::dynamic_pointer_cast<AlignConstraint>(c)) {

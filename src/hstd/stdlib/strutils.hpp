@@ -49,6 +49,9 @@ int      rune_length(std::string const& str);
 std::vector<std::string> rune_chunks(std::string const& str);
 bool iequals(std::string const& a, std::string const& b);
 
+std::string format_number(double value);
+
+
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);

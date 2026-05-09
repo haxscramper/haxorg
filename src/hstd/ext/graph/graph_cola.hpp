@@ -287,6 +287,8 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
             visual::VisElement::FromText(
                 text.empty() ? hstd::fmt("{}", selfId) : text,
                 getBBox().upper_left()));
+        res.custom.setAttr(
+            "inkscape:label", hstd::fmt("COLA VERTEX:{}", selfId));
         return res;
     }
 };

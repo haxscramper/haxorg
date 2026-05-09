@@ -33,12 +33,27 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto l6 = addVertex("l6");
     auto l7 = addVertex("l7");
 
+    dot_sub1->addVertex(dot_sub1_id, l1)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l2)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l3)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l4)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l5)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l6)->setFixedPointWH(rect);
+    dot_sub1->addVertex(dot_sub1_id, l7)->setFixedPointWH(rect);
+
     auto e_l1_l2 = graph->addEdge(l1, l2);
     auto e_l2_l3 = graph->addEdge(l2, l3);
     auto e_l3_l4 = graph->addEdge(l3, l4);
     auto e_l4_l5 = graph->addEdge(l4, l5);
     auto e_l5_l6 = graph->addEdge(l5, l6);
     auto e_l6_l7 = graph->addEdge(l6, l7);
+
+    dot_sub1->addEdge(e_l1_l2);
+    dot_sub1->addEdge(e_l2_l3);
+    dot_sub1->addEdge(e_l3_l4);
+    dot_sub1->addEdge(e_l4_l5);
+    dot_sub1->addEdge(e_l5_l6);
+    dot_sub1->addEdge(e_l6_l7);
 
     dot_sub1->setOuterPadding(geometry::Padding{5});
 
@@ -49,6 +64,41 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     std::ignore = run->addNestedGroup(
         cola_root_id, cola_sub1_id, cola_sub1);
 
+    auto g1 = addVertex("g1");
+    auto g2 = addVertex("g2");
+    auto g3 = addVertex("g3");
+    auto g4 = addVertex("g4");
+    auto g5 = addVertex("g5");
+    auto g6 = addVertex("g6");
+    auto g7 = addVertex("g7");
+    auto g8 = addVertex("g8");
+
+    cola_sub1->addVertex(cola_sub1_id, g1, rect);
+    cola_sub1->addVertex(cola_sub1_id, g2, rect);
+    cola_sub1->addVertex(cola_sub1_id, g3, rect);
+    cola_sub1->addVertex(cola_sub1_id, g4, rect);
+    cola_sub1->addVertex(cola_sub1_id, g5, rect);
+    cola_sub1->addVertex(cola_sub1_id, g6, rect);
+    cola_sub1->addVertex(cola_sub1_id, g7, rect);
+    cola_sub1->addVertex(cola_sub1_id, g8, rect);
+
+    auto e_g1_g5 = graph->addEdge(g1, g5);
+    auto e_g2_g6 = graph->addEdge(g2, g6);
+    auto e_g3_g7 = graph->addEdge(g3, g7);
+    auto e_g4_g8 = graph->addEdge(g4, g8);
+    auto e_g5_g6 = graph->addEdge(g5, g6);
+    auto e_g6_g7 = graph->addEdge(g6, g7);
+    auto e_g7_g8 = graph->addEdge(g7, g8);
+
+    cola_sub1->addEdge(e_g1_g5);
+    cola_sub1->addEdge(e_g2_g6);
+    cola_sub1->addEdge(e_g3_g7);
+    cola_sub1->addEdge(e_g4_g8);
+    cola_sub1->addEdge(e_g5_g6);
+    cola_sub1->addEdge(e_g6_g7);
+    cola_sub1->addEdge(e_g7_g8);
+
+
     // circo layout sub-group
     hstd::SPtr<gv::GraphGroup> circo_sub2 = gv::GraphGroup::newRootGraph(
         run, "circo_sub2");
@@ -57,7 +107,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->setOuterPadding(geometry::Padding{5});
 
     std::ignore = run->addNestedGroup(
-        cola_root_id, circo_sub2_id, circo_sub2);
+        cola_sub1_id, circo_sub2_id, circo_sub2);
 
     auto c1 = addVertex("c1");
     auto c2 = addVertex("c2");
@@ -68,15 +118,6 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto c7 = addVertex("c7");
     auto c8 = addVertex("c8");
 
-    auto e_c1_c2 = graph->addEdge(c1, c2);
-    auto e_c2_c3 = graph->addEdge(c2, c3);
-    auto e_c3_c4 = graph->addEdge(c3, c4);
-    auto e_c4_c5 = graph->addEdge(c4, c5);
-    auto e_c5_c6 = graph->addEdge(c5, c6);
-    auto e_c6_c7 = graph->addEdge(c6, c7);
-    auto e_c7_c8 = graph->addEdge(c7, c8);
-    auto e_c8_c1 = graph->addEdge(c8, c1);
-
     circo_sub2->addVertex(circo_sub2_id, c1)->setFixedPointWH(rect);
     circo_sub2->addVertex(circo_sub2_id, c2)->setFixedPointWH(rect);
     circo_sub2->addVertex(circo_sub2_id, c3)->setFixedPointWH(rect);
@@ -85,6 +126,15 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->addVertex(circo_sub2_id, c6)->setFixedPointWH(rect);
     circo_sub2->addVertex(circo_sub2_id, c7)->setFixedPointWH(rect);
     circo_sub2->addVertex(circo_sub2_id, c8)->setFixedPointWH(rect);
+
+    auto e_c1_c2 = graph->addEdge(c1, c2);
+    auto e_c2_c3 = graph->addEdge(c2, c3);
+    auto e_c3_c4 = graph->addEdge(c3, c4);
+    auto e_c4_c5 = graph->addEdge(c4, c5);
+    auto e_c5_c6 = graph->addEdge(c5, c6);
+    auto e_c6_c7 = graph->addEdge(c6, c7);
+    auto e_c7_c8 = graph->addEdge(c7, c8);
+    auto e_c8_c1 = graph->addEdge(c8, c1);
 
     circo_sub2->addEdge(e_c1_c2);
     circo_sub2->addEdge(e_c2_c3);
@@ -101,23 +151,22 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     dot_sub2->setOuterPadding(geometry::Padding{5});
 
-    std::ignore = run->addNestedGroup(cola_root_id, dot_sub2_id, dot_sub2);
+    std::ignore = run->addNestedGroup(cola_sub1_id, dot_sub2_id, dot_sub2);
 
     auto d1 = addVertex("d1");
     auto d2 = addVertex("d2");
     auto d3 = addVertex("d3");
     auto d4 = addVertex("d4");
 
-    auto e_d1_d2 = graph->addEdge(d1, d2);
-    auto e_d1_d3 = graph->addEdge(d1, d3);
-
-    auto e_d2_d4 = graph->addEdge(d2, d4);
-    auto e_d3_d4 = graph->addEdge(d3, d4);
-
     dot_sub2->addVertex(dot_sub2_id, d1)->setFixedPointWH(rect);
     dot_sub2->addVertex(dot_sub2_id, d2)->setFixedPointWH(rect);
     dot_sub2->addVertex(dot_sub2_id, d3)->setFixedPointWH(rect);
     dot_sub2->addVertex(dot_sub2_id, d4)->setFixedPointWH(rect);
+
+    auto e_d1_d2 = graph->addEdge(d1, d2);
+    auto e_d1_d3 = graph->addEdge(d1, d3);
+    auto e_d2_d4 = graph->addEdge(d2, d4);
+    auto e_d3_d4 = graph->addEdge(d3, d4);
 
     dot_sub2->addEdge(e_d1_d2);
     dot_sub2->addEdge(e_d1_d3);
@@ -125,6 +174,9 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub2->addEdge(e_d3_d4);
 
     run->runFullLayout();
+
+    hstd::writeFile(
+        getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
 

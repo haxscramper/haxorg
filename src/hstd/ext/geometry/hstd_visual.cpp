@@ -1,10 +1,11 @@
-#include "hstd/ext/logger.hpp"
+#include "hstd/stdlib/Ranges.hpp"
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "hstd_visual.hpp"
 #include <fmt/format.h>
 #include <hstd/stdlib/Xml.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 namespace hstd::ext::visual {
 
@@ -399,13 +400,42 @@ struct SvgWriter {
         return std::move(circle);
     }
 
+    void addCustom(XmlNode& res, VisCustom const& custom) {
+        for (auto const& key : hstd::sorted(custom.attrs.keys())) {
+            res.set_attr(key, custom.attrs.at(key));
+        }
+
+        for (auto const& comment : custom.comment) {
+            res.push_back(XmlNode::comment(comment));
+        }
+
+        if (!is_empty(custom.extra)) {
+            res.push_back(
+                XmlNode::comment(hstd::fmt("// {}", custom.extra)));
+        }
+
+        if (custom.title) {
+            XmlNode title("title");
+            title.set_text(custom.title.value());
+            res.push_back(title);
+        }
+
+        if (!custom.desc.empty()) {
+            XmlNode dt("desc");
+            dt.set_text(custom.desc | hstd::rv_intersperse_newline_join);
+            res.push_back(dt);
+        }
+    }
+
 
     XmlNode writeElement(
         VisElement const&     elem,
         hstd::Vec<int> const& path) {
         XmlNode result = std::visit(
             [&](auto const& shape) -> XmlNode {
-                return writeShape(shape);
+                auto res = writeShape(shape);
+                addCustom(res, elem.custom);
+                return res;
             },
             elem.data);
 
@@ -426,10 +456,9 @@ struct SvgWriter {
             hstd::fmt(
                 "translate({},{})", group.offset.x(), group.offset.y()));
 
+        addCustom(g, group.custom);
+
         for (auto const& elem : group.elements) {
-            for (auto const& comment : elem.comment) {
-                g.push_back(XmlNode::comment(comment));
-            }
             g.push_back(writeElement(elem, path));
         }
 
@@ -445,15 +474,8 @@ struct SvgWriter {
             self_bounds_no_offset.y());
         // g.push_back(XmlNode::comment(bbox_fmt));
 
-        if (!is_empty(group.extra)) {
-            g.push_back(XmlNode::comment(hstd::fmt("// {}", group.extra)));
-        }
-
         for (int i = 0; i < group.subgroups.size(); ++i) {
             auto const& sg = group.subgroups[i];
-            for (auto const& comment : sg.comment) {
-                g.push_back(XmlNode::comment(comment));
-            }
             g.push_back(writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}));
         }
 
@@ -468,14 +490,15 @@ struct SvgWriter {
                         group.offset.y(),
                         mp.x(),
                         mp.y(),
-                        is_empty(group.extra)
+                        is_empty(group.custom.extra)
                             ? ""
-                            : hstd::fmt(" extra={}", group.extra.dump())),
+                            : hstd::fmt(
+                                  " extra={}", group.custom.extra.dump())),
                     hstd::fmt("path={}", hstd::join("/", path)),
                     bbox_fmt,
                 },
                 DebugConf{
-                    .extra             = group.extra,
+                    .extra             = group.custom.extra,
                     .font_size         = 2,
                     .color             = "red",
                     .bbox              = Rect(0, 0, mp.x(), mp.y()),
@@ -596,16 +619,31 @@ ColText VisGroup::treeRepr() const {
         os.indent(level * 2);
         os << hstd::fmt(
             "group [{}] {}", hstd::join("/", path), group.offset);
-        if (!is_empty(group.extra)) {
+
+        if (!is_empty(group.custom.extra)) {
             os.newline();
             os.indent((level + 1) * 2);
-            os << hstd::fmt("// {}", group.extra);
+            os << hstd::fmt("// {}", group.custom.extra);
         }
-        for (auto const& comment : group.comment) {
+
+        if (group.custom.title) {
+            os.newline();
+            os.indent((level + 1) * 2);
+            os << hstd::fmt("// title {}", group.custom.title.value());
+        }
+
+        for (auto const& comment : group.custom.comment) {
             os.newline();
             os.indent((level + 1) * 2);
             os << hstd::fmt("# {}", comment);
         }
+
+        for (auto const& desc : group.custom.desc) {
+            os.newline();
+            os.indent((level + 1) * 2);
+            os << hstd::fmt("# desc: {}", desc);
+        }
+
         for (auto const& [idx, elem] : hstd::enumerate(group.elements)) {
             os.newline();
             os.indent((level + 1) * 2);
@@ -663,6 +701,8 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     XmlNode svg("svg");
     svg.set_attr("xmlns", "http://www.w3.org/2000/svg");
     svg.set_attr("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    svg.set_attr(
+        "xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
     svg.set_attr("style", "background-color: white");
     svg.set_attr(
         "viewBox", hstd::fmt("{} {} {} {}", viewX, viewY, viewW, viewH));

@@ -941,6 +941,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
+            visual.custom.title  = graph->getDebugVertexFormat(it);
             result.subgroups.push_back(visual);
         }
 
@@ -950,6 +951,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Edge;
+            visual.custom.title  = graph->getDebugEdgeFormat(it);
             result.subgroups.push_back(visual);
         }
 
@@ -962,6 +964,68 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
     return res;
 }
+
+void hstd::ext::graph::layout::LayoutRun::treeRepr(
+    hstd::ColStream&    os,
+    TreeReprConf const& conf) const {
+    auto      g = getGraph();
+    EdgeIDSet visited_edges;
+
+    auto aux_edge = [&](EdgeID const& id, int depth) {
+        auto visual = getEdgeVisualAttribute(id);
+        os.indent(depth * 2);
+        os << hstd::fmt("EDGE {}", g->getDebugEdgeFormat(id));
+    };
+
+    auto aux =
+        [&](this auto&& self, VertexID const& id, int depth) -> void {
+        if (isGroupVertex(id)) {
+            auto visual = getGroup(id);
+            os.indent(depth * 2);
+            os << hstd::fmt("GROUP {}", g->getDebugVertexFormat(id));
+            if (visual->hasAlgorithm()) { os << " algo"; }
+
+            if (hasLayout(id)) {
+                auto layout = getLayout<IGroupLayoutAttribute>(id);
+                os << hstd::fmt(" layout {}", layout->getBBox());
+            }
+
+            for (auto const& sub :
+                 hstd::sorted(getDirectVertices(id).items())) {
+                os.newline();
+                self(sub, depth + 1);
+            }
+
+            for (auto const& sub :
+                 hstd::sorted(getDirectlyNestedEdges(id).items())) {
+                os.newline();
+                aux_edge(sub, depth + 1);
+                visited_edges.incl(sub);
+            }
+
+            for (auto const& sub :
+                 hstd::sorted(getSubGroups(id).items())) {
+                os.newline();
+                self(sub, depth + 1);
+            }
+
+        } else {
+            auto visual = getVertexVisualAttribute(id);
+            os.indent(depth * 2);
+            os << hstd::fmt("VERTEX {}", g->getDebugVertexFormat(id));
+
+            if (hasLayout(id)) {
+                auto layout = getLayout<IVertexLayoutAttribute>(id);
+                os << hstd::fmt(" layout {}", layout->getBBox());
+            }
+        }
+    };
+
+    for (auto const& g : hstd::sorted(groups->getRootVertices().items())) {
+        aux(g, 0);
+    }
+}
+
 hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
     getGraph() const {
     return run->graph;

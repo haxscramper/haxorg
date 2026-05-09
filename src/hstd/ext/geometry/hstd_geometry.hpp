@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hstd/stdlib/strutils.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/linestring.hpp>
@@ -650,7 +651,11 @@ struct std::formatter<hstd::ext::geometry::Point>
     auto format(hstd::ext::geometry::Point const& p, FormatContext& ctx)
         const {
         return hstd::fmt_ctx(
-            hstd::fmt("Point(x={}, y={})", p.x(), p.y()), ctx);
+            hstd::fmt(
+                "Point({}, {})",
+                hstd::format_number(p.x()),
+                hstd::format_number(p.y())),
+            ctx);
     }
 };
 
@@ -675,7 +680,10 @@ struct std::formatter<hstd::ext::geometry::Rect>
         const {
         return hstd::fmt_ctx(
             hstd::fmt(
-                "Box(min={}, max={})", b.min_corner(), b.max_corner()),
+                "Rect({}, {}, {})",
+                b.min_corner(),
+                hstd::format_number(b.width()),
+                hstd::format_number(b.height())),
             ctx);
     }
 };

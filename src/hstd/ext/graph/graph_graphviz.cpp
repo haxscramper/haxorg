@@ -546,10 +546,11 @@ void gv::Layout::renderToFile(
 layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     VertexID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
+    auto g       = run->getGraph();
     auto __scope = run->scopeLevelMsg(
         hstd::fmt(
             "running single layout for gv::Layout {}",
-            run->getGraph()->getDebugVertexFormat(root_id)));
+            g->getDebugVertexFormat(root_id)));
     auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(
         run->getGroup(root_id));
 
@@ -606,10 +607,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                run->message(
-                    hstd::fmt(
-                        "edge {}",
-                        run->getGraph()->getDebugEdgeFormat(edge)));
+                run->message(hstd::fmt("{}", g->getDebugEdgeFormat(edge)));
                 run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }
@@ -676,6 +674,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
                 id_value.has_value(),
                 "No ID attr property for node {}",
                 node.getPropertiesAsString());
+
             auto id = VertexID::FromValue(id_value.value());
             // run->message(hstd::fmt("each-group iterate vertex {}", id));
             result.vertices.insert_or_assign(
@@ -688,7 +687,12 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
         auto id = EdgeID::FromValue(
             edge.getAttr<hstd::u64>(id_attr).value());
-        run->message(hstd::fmt("each-group iterate edge {}", id));
+        run->message(
+            hstd::fmt(
+                "each-group iterate edge {}",
+                id,
+                g->getDebugEdgeFormat(id)));
+
         result.edges.insert_or_assign(
             id,
             std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
@@ -961,10 +965,13 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
     visual::VisGroup result;
-    result.offset = Point{nodeRect.x(), nodeRect.y()};
-    result.extra  = json::object();
-    result.extra["graphviz"]["vertex_name"] = node.name();
+    result.offset       = Point{nodeRect.x(), nodeRect.y()};
+    result.custom.extra = json::object();
+    result.custom.extra["graphviz"]["vertex_name"] = node.name();
     result.max_point = Point{nodeRect.width(), nodeRect.height()};
+
+    result.custom.setAttr(
+        "inkscape:label", hstd::fmt("GV VERTEX:{}", selfId));
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1102,6 +1109,9 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(
     Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
 
+    result.custom.setAttr(
+        "inkscape:label", hstd::fmt("GV EDGE:{}", selfId));
+
     // Edge path
     if (!path.empty()) {
         visual::VisElement::PathShape pathShape;
@@ -1183,8 +1193,8 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
     visual::VisGroup result;
     result.offset = Point{graph.x(), graph.y()};
 
-    result.extra                           = json::object();
-    result.extra["graphviz"]["group_name"] = group->name();
+    result.custom.extra                           = json::object();
+    result.custom.extra["graphviz"]["group_name"] = group->name();
     result.max_point = getGraphBBox(*group).max_corner();
 
     // Boundary rectangle
@@ -1196,6 +1206,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
         .style = visual::VisPen::LineStyle::Dash,
     };
     rect.brush = visual::VisBrush::noBrush();
+
 
     // Read style attributes from the group if available
     if (group) {
@@ -1224,7 +1235,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
     }
 
     visual::VisElement rectElem;
-    rectElem.comment.push_back(
+    rectElem.custom.addComment(
         hstd::fmt("graphviz group visual '{}'", group->name()));
     rectElem.data = rect;
     result.elements.push_back(rectElem);
@@ -1232,6 +1243,10 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
     result.elements.push_back(
         visual::VisElement::FromText(
             hstd::fmt("GROUP:{}", group->name()), geometry::Point(0, 0)));
+
+    result.custom.setAttr(
+        "inkscape:label", hstd::fmt("GV GROUP:{}", group->name()));
+    result.custom.addDesc(hstd::fmt("bbox:{}", getBBox()));
 
     // Subgraph label
     if (group) {

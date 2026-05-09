@@ -99,6 +99,24 @@ struct VisTextAlign {
     DESC_FIELDS(VisTextAlign, (horizontal, vertical));
 };
 
+struct VisCustom {
+    json                                     extra;
+    hstd::Vec<hstd::Str>                     comment;
+    hstd::Opt<hstd::Str>                     title;
+    hstd::Vec<hstd::Str>                     desc;
+    hstd::UnorderedMap<hstd::Str, hstd::Str> attrs;
+
+    void addComment(hstd::Str const& c) { this->comment.push_back(c); }
+    void addDesc(hstd::Str const& c) { this->desc.push_back(c); }
+
+    void setAttr(hstd::Str const& key, hstd::Str const& value) {
+        attrs.insert_or_assign(key, value);
+    }
+
+
+    DESC_FIELDS(VisCustom, (extra, comment, attrs, title, desc));
+};
+
 struct VisElement {
     struct RectShape {
         Rect              geometry;
@@ -286,19 +304,17 @@ struct VisElement {
         PixmapShape,
         PointShape);
 
-    Data                 data;
-    json                 extra;
-    hstd::Vec<hstd::Str> comment;
+    Data      data;
+    VisCustom custom;
 
-    DESC_FIELDS(VisElement, (data, extra, comment));
+    DESC_FIELDS(VisElement, (data));
 };
 
 struct VisGroup {
     Point                 offset = Point{0.0f, 0.0f};
     hstd::Vec<VisElement> elements;
     hstd::Vec<VisGroup>   subgroups;
-    json                  extra;
-    hstd::Vec<hstd::Str>  comment;
+    VisCustom             custom;
     /// \brief Max point of the visual group in its inner coordinate system
     /// -- effectively a (width, height) for the group.
     hstd::Opt<Point> max_point;
@@ -308,6 +324,7 @@ struct VisGroup {
     /// \brief Type of the original object, or some other enumeration used
     /// to determine the interpretation of the `original_id`.
     hstd::Opt<hstd::u64> original_type;
+
 
     template <typename T>
     hstd::Vec<T> getElements() const {
@@ -342,7 +359,7 @@ struct VisGroup {
 
     hstd::ColText treeRepr() const;
 
-    DESC_FIELDS(VisGroup, (offset, elements, subgroups, extra, comment));
+    DESC_FIELDS(VisGroup, (offset, elements, subgroups, custom));
 };
 
 /// Convert a VisGroup hierarchy to an SVG string.

@@ -1420,6 +1420,8 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
         visual::VisGroup result;
         result.elements.push_back(
             visual::VisElement{visual::VisElement::PathShape{getPath()}});
+        result.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE EDGE:{}", selfId));
         return result;
     }
 };
@@ -1435,6 +1437,8 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
         res.elements.push_back(
             visual::VisElement::FromText(
                 hstd::fmt("{}", selfId), getBBox().upper_left()));
+        res.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE VERTEX:{}", selfId));
         return res;
     }
 };
@@ -1757,6 +1761,14 @@ class LayoutRun : public OperationsTracer {
         return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
 
+    bool hasLayout(VertexID const& id) const {
+        return result.vertices.contains(id);
+    }
+
+    bool hasLayout(EdgeID const& id) const {
+        return result.edges.contains(id);
+    }
+
     hstd::Opt<VertexID> getParent(VertexID const& id) const {
         return groups->getParentVertex(id);
     }
@@ -1779,6 +1791,18 @@ class LayoutRun : public OperationsTracer {
     visual::VisGroup getVisual(VertexID const& id) const {
         return getLayout(id)->getVisual(id);
     }
+
+    struct TreeReprConf {};
+
+    void treeRepr(hstd::ColStream& os, TreeReprConf const& conf) const;
+
+    hstd::ColText treeRepr(TreeReprConf const& conf) {
+        hstd::ColStream os;
+        treeRepr(os, conf);
+        return os.getBuffer();
+    }
+
+    hstd::ColText treeRepr() { return treeRepr(TreeReprConf{}); }
 };
 
 

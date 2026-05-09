@@ -1363,6 +1363,36 @@ bool hstd::iequals(std::string const& a, std::string const& b) {
     }
 }
 
+std::string hstd::format_number(double value) {
+    if (value == 0.0) { return "0"; }
+
+    double abs_value = std::abs(value);
+    double int_part  = 0.0;
+    double frac_part = std::modf(abs_value, &int_part);
+
+    if (frac_part == 0.0) { return std::format("{}", value); }
+
+    if (int_part != 0.0) {
+        double      scaled = std::trunc(value * 1000.0) / 1000.0;
+        std::string s      = std::format("{:.3f}", scaled);
+
+        while (!s.empty() && s.back() == '0') { s.pop_back(); }
+        if (!s.empty() && s.back() == '.') { s.pop_back(); }
+
+        return s;
+    }
+
+    int exponent  = static_cast<int>(std::floor(std::log10(abs_value)));
+    int decimals  = -exponent + 2;
+    std::string s = std::format("{:.{}f}", value, decimals);
+
+    while (!s.empty() && s.back() == '0') { s.pop_back(); }
+    if (!s.empty() && s.back() == '.') { s.pop_back(); }
+
+    return s;
+}
+
+
 std::string hstd::escape_literal(std::string_view const& in) {
     std::string res;
     res.reserve(in.size() + 2);
