@@ -130,9 +130,10 @@ struct single_layout_run_state {
             run->message(
                 hstd::fmt(
                     "group '{}' has layout algorithm set with bounding "
-                    "box {}",
+                    "box {} (base bbox {})",
                     group->getStableId(),
-                    recursiveBBox));
+                    recursiveBBox,
+                    run->getLayout(aux_group_id)->getBBox()));
 
             sub_group_rectangles.insert_or_assign(aux_group_id, rect);
             layout_rects.push_back(rect.get());
@@ -169,10 +170,12 @@ struct single_layout_run_state {
     void recursively_collect_constraints(
         VertexID const&               id,
         unsatisifed_validation_state& validation_state) {
-        auto __scope = run->scopeLevelMsg(
+        char const* _fname  = "constraints";
+        auto        __scope = run->scopeLevelMsg(
             hstd::fmt(
                 "recursively collect on {}",
-                run->getGraph()->getDebugVertexFormat(id)));
+                run->getGraph()->getDebugVertexFormat(id)),
+            _fname);
         auto group = run->getGroup(id);
         for (auto const& [ir_idx, constraint] :
              enumerate(group->constraints)) {
@@ -209,7 +212,8 @@ struct single_layout_run_state {
                                 "moving rect for {} by {} {}",
                                 rel_vertex,
                                 dx,
-                                dy));
+                                dy),
+                            _fname);
 
                         rel_rect->offset(dx, dy);
                     }
@@ -224,7 +228,8 @@ struct single_layout_run_state {
                 }
             }
 
-            run->message(hstd::fmt("constraint {}", cola_cs->getRepr()));
+            run->message(
+                hstd::fmt("constraint {}", cola_cs->getRepr()), _fname);
         }
 
         for (auto const& sub : run->getSubGroups(id)) {
@@ -235,10 +240,13 @@ struct single_layout_run_state {
 
     hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
     void collect_absolute_bounding_box_positions(VertexID const& id) {
-        auto __scope = run->scopeLevelMsg(
+        char const* _fname  = "absolute-bbox";
+        auto        __scope = run->scopeLevelMsg(
             hstd::fmt(
                 "absolute bounding box on {}",
-                run->getGraph()->getDebugVertexFormat(id)));
+                run->getGraph()->getDebugVertexFormat(id)),
+            _fname);
+
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout(id);
@@ -246,6 +254,7 @@ struct single_layout_run_state {
                 cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
+            run->message(hstd::fmt("{} rect is {}", id, rect), _fname);
             bbox_map.insert_or_assign(id, rect);
 
         } else {
@@ -269,10 +278,14 @@ struct single_layout_run_state {
     void collect_nodes_and_sub_groups_relative_positions(
         VertexID const&        id,
         geometry::Point const& rel_offset) {
-        auto __scope = run->scopeLevelMsg(
+        char const* _fname  = "relative-pos";
+        auto        __scope = run->scopeLevelMsg(
             hstd::fmt(
-                "relative position on {}",
-                run->getGraph()->getDebugVertexFormat(id)));
+                "relative position on {} offset {}",
+                run->getGraph()->getDebugVertexFormat(id),
+                rel_offset),
+            _fname);
+
         auto group = run->getGroup(id);
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout<
@@ -281,18 +294,46 @@ struct single_layout_run_state {
                 cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
-            auto rel_rect  = rect.relative_to(rel_offset);
-            prev_attribute->setBBox(rect);
 
-            run->message(hstd::fmt("absolute position at {}", rect));
-            run->message(hstd::fmt("moving bounding box to {}", rel_rect));
+            // rel_offset is already the target parent-relative UL for this
+            // child. Rebase absolute rect to that UL.
+            auto rel_rect = rect.move(rel_offset - rect.upper_left());
+
+            prev_attribute->setBBox(rel_rect);
+
+            run->message(
+                hstd::fmt("absolute position at {}", rect), _fname);
+            run->message(
+                hstd::fmt("moving bounding box to {}", rel_rect), _fname);
             result.vertices.insert_or_assign(id, prev_attribute);
         } else {
+            auto parent_bbox = bbox_map.at(id);
+            auto __scope     = run->scopeLevelMsg(
+                hstd::fmt("parent bbox {}", parent_bbox), _fname);
+
             for (auto const& group_id : run->getSubGroups(id)) {
-                auto this_bbox = bbox_map.at(group_id).relative_to(
-                    rel_offset);
+                auto this_bbox      = bbox_map.at(group_id);
+                auto sub_rel_offset = this_bbox.upper_left()
+                                    - parent_bbox.upper_left();
+                if (auto padding = run->getGroup(group_id)
+                                       ->getOuterPadding()) {
+                    run->message(
+                        hstd::fmt(
+                            "sub-group has outer padding {}", padding),
+                        _fname);
+
+                    sub_rel_offset += geometry::Point(
+                        padding->getLeft(), padding->getTop());
+                }
+
+                run->message(
+                    hstd::fmt(
+                        "this bbox {} rel offset {}",
+                        this_bbox,
+                        sub_rel_offset),
+                    _fname);
                 collect_nodes_and_sub_groups_relative_positions(
-                    group_id, this_bbox.upper_left() + rel_offset);
+                    group_id, sub_rel_offset);
                 if (!run->getGroup<layout::IGroupVisualAttribute>(group_id)
                          ->hasAlgorithm()) {
                     result.vertices.insert_or_assign(
@@ -305,7 +346,7 @@ struct single_layout_run_state {
 
             for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect     = adapt::to_hstd(*ctx->getRect(vert));
-                auto rel_rect = rect.relative_to(rel_offset);
+                auto rel_rect = rect.move(rel_offset);
 
                 result.vertices.insert_or_assign(
                     vert,
@@ -390,15 +431,24 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     validation_state.validate_unsatisfied();
 
     run_state.collect_absolute_bounding_box_positions(root_id);
+    run->message("collected bounding box");
+    for (auto const& [key, value] : run_state.bbox_map) {
+        run->message(hstd::fmt("  {} -> {}", key, value));
+    }
+
     run_state.collect_nodes_and_sub_groups_relative_positions(
         root_id, geometry::Point{});
 
     run_state.execute_edge_placement(this);
 
+    auto root_bbox = run_state.bbox_map.at(root_id);
+    auto root_rel  = root_bbox.move(
+        geometry::Point{} - root_bbox.upper_left());
+
     run_state.result.vertices.insert_or_assign(
         root_id,
         std::make_shared<ColaGroupLayoutAttribute>(
-            run_state.bbox_map.at(root_id), run_state.rootGroup));
+            root_rel, run_state.rootGroup));
 
     return run_state.result;
 }

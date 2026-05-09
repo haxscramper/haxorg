@@ -3,10 +3,11 @@
 
 struct GraphMixed_Test : public GraphUtils_Test {};
 
-TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
-    double size = 20;
-    Size   rect{size, size};
+double            size = 20;
+Size              rect{size, size};
+geometry::Padding pad{5};
 
+TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto cola_root_id  = addVertex("cola_root");
     auto cola_sub1_id  = addVertex("cola_sub1");
     auto dot_sub1_id   = addVertex("dot_sub1");
@@ -55,7 +56,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub1->addEdge(e_l5_l6);
     dot_sub1->addEdge(e_l6_l7);
 
-    dot_sub1->setOuterPadding(geometry::Padding{5});
+    dot_sub1->setOuterPadding(pad);
 
     // intermediate cola layout
     hstd::SPtr<cst::ColaGroup> cola_sub1 = cst::ColaGroup::newRootGraph(
@@ -172,6 +173,55 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub2->addEdge(e_d1_d3);
     dot_sub2->addEdge(e_d2_d4);
     dot_sub2->addEdge(e_d3_d4);
+
+    run->runFullLayout();
+
+    hstd::writeFile(
+        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+}
+
+TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
+    auto r1_id   = addVertex("r1_id");
+    auto r2_id   = addVertex("r2_id");
+    auto r3_id   = addVertex("r3_id");
+    auto r4_id   = addVertex("r4_id");
+    auto r5_id   = addVertex("r5_id");
+    auto node_id = addVertex("node");
+
+    hstd::SPtr<cst::ColaGroup> r1 = cst::ColaGroup::newRootGraph(
+        run, "r1");
+    r1->setOuterPadding(pad);
+
+    hstd::SPtr<cst::ColaGroup> r2 = cst::ColaGroup::newRootGraph(
+        run, "r2");
+    r2->setOuterPadding(pad);
+
+    hstd::SPtr<cst::ColaGroup> r3 = cst::ColaGroup::newRootGraph(
+        run, "r3");
+    r3->setOuterPadding(pad);
+
+    hstd::SPtr<cst::ColaGroup> r4 = cst::ColaGroup::newRootGraph(
+        run, "r4");
+    r4->setOuterPadding(pad);
+
+    hstd::SPtr<cst::ColaGroup> r5 = cst::ColaGroup::newRootGraph(
+        run, "r5");
+    r5->setOuterPadding(pad);
+
+    run->addRootGroup(r1_id, r1);
+    std::ignore = run->addNestedGroup(r1_id, r2_id, r2);
+    std::ignore = run->addNestedGroup(r2_id, r3_id, r3);
+    std::ignore = run->addNestedGroup(r3_id, r4_id, r4);
+    std::ignore = run->addNestedGroup(r4_id, r5_id, r5);
+
+    r5->addVertex(r5_id, node_id, rect);
 
     run->runFullLayout();
 

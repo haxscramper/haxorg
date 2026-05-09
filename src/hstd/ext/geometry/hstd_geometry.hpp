@@ -34,6 +34,8 @@ struct Padding {
     double getBottom() const { return bottom; }
     double getLeft() const { return left; }
     double getRight() const { return right; }
+
+    DESC_FIELDS(Padding, (top, bottom, left, right));
 };
 
 namespace bg = boost::geometry;
@@ -113,9 +115,6 @@ struct Point : public bg::model::d2::point_xy<double> {
     friend bool operator!=(Point const& a, Point const& b) {
         return !(a == b);
     }
-
-    /// \brief vector `other -> this`
-    Point relative_to(Point const& other) const { return *this - other; }
 };
 
 
@@ -340,6 +339,10 @@ struct Rect : bg::model::box<Point> {
         return Rect(center.x() - w / 2, center.y() - h / 2, w, h);
     }
 
+    static Rect FromUpperLeftWH(Point const& ul, double w, double h) {
+        return Rect(ul.x(), ul.y(), w, h);
+    }
+
     double min_x() const { return bg::get<bg::min_corner, 0>(*this); }
     double max_x() const { return bg::get<bg::max_corner, 0>(*this); }
     double min_y() const { return bg::get<bg::min_corner, 1>(*this); }
@@ -353,17 +356,11 @@ struct Rect : bg::model::box<Point> {
     Point lower_right() const { return Point(max_x(), max_y()); }
     Point center() const { return Point{center_x(), center_y()}; }
 
-    Rect relative_to(Point const& other) const {
-        return Rect::FromCenterWH(
-            this->upper_left().relative_to(other), width(), height());
+    Rect move(Point const& other) const {
+        return Rect::FromUpperLeftWH(
+            this->upper_left() + other, width(), height());
     }
 
-    Rect relative_to(Rect const& other) const {
-        return Rect::FromCenterWH(
-            this->upper_left().relative_to(other.upper_left()),
-            width(),
-            height());
-    }
 
     double width() const {
         return bg::get<bg::max_corner, 0>(*this)
