@@ -412,8 +412,8 @@ struct Rect : bg::model::box<Point> {
     inline void extend(Rect const& other) {
         int _min_x = std::min(min_x(), other.min_x());
         int _max_x = std::max(max_x(), other.max_x());
-        int _min_y = std::min(min_y(), other.min_x());
-        int _max_y = std::max(max_y(), other.max_x());
+        int _min_y = std::min(min_y(), other.min_y());
+        int _max_y = std::max(max_y(), other.max_y());
         *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
     }
 };

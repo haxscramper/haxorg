@@ -1322,9 +1322,7 @@ class IGraph {
     std::string getDebugVertexFormat(VertexIDVec const& vert) const;
     std::string getDebugEdgeFormat(EdgeIDSet const& vert) const;
     std::string getDebugEdgeFormat(EdgeIDVec const& vert) const;
-
     std::string getDebugVertexFormat(VertexID const& vert) const;
-
     std::string getDebugEdgeFormat(EdgeID const& edge) const;
 };
 
@@ -1803,6 +1801,25 @@ class LayoutRun : public OperationsTracer {
     }
 
     hstd::ColText treeRepr() { return treeRepr(TreeReprConf{}); }
+
+    std::string getDebug(VertexIDSet const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(VertexIDVec const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(EdgeIDSet const& vert) const {
+        return getGraph()->getDebugEdgeFormat(vert);
+    }
+    std::string getDebug(EdgeIDVec const& vert) const {
+        return getGraph()->getDebugEdgeFormat(vert);
+    }
+    std::string getDebug(VertexID const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(EdgeID const& edge) const {
+        return getGraph()->getDebugEdgeFormat(edge);
+    }
 };
 
 

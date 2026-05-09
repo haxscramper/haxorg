@@ -100,11 +100,13 @@ struct VisTextAlign {
 };
 
 struct VisCustom {
+    DECL_DESCRIBED_ENUM(DebugMode, CommonDebug, ForceDebug, IgnoreDebug);
     json                                     extra;
     hstd::Vec<hstd::Str>                     comment;
     hstd::Opt<hstd::Str>                     title;
     hstd::Vec<hstd::Str>                     desc;
     hstd::UnorderedMap<hstd::Str, hstd::Str> attrs;
+    DebugMode debugMode = DebugMode::CommonDebug;
 
     void addComment(hstd::Str const& c) { this->comment.push_back(c); }
     void addDesc(hstd::Str const& c) { this->desc.push_back(c); }
@@ -113,8 +115,18 @@ struct VisCustom {
         attrs.insert_or_assign(key, value);
     }
 
+    bool isDebugEnabled(bool debug) const {
+        switch (debugMode) {
+            case DebugMode::CommonDebug: return debug;
+            case DebugMode::ForceDebug: return true;
+            case DebugMode::IgnoreDebug: return false;
+        }
+    }
 
-    DESC_FIELDS(VisCustom, (extra, comment, attrs, title, desc));
+
+    DESC_FIELDS(
+        VisCustom,
+        (extra, comment, attrs, title, desc, debugMode));
 };
 
 struct VisElement {
@@ -328,6 +340,7 @@ struct VisGroup {
     void add(VisElement const& el) { elements.push_back(el); }
     void add(VisGroup const& g) { subgroups.push_back(g); }
 
+
     VisGroup& moveTo(geometry::Point const& of) {
         this->offset = of;
         return *this;
@@ -337,10 +350,11 @@ struct VisGroup {
         geometry::Rect const& rect,
         hstd::Str const&      text) {
         VisGroup res;
-        res.offset = rect.upper_left();
-        res.elements.push_back(
-            VisElement::FromRect(
-                geometry::Rect{0, 0, rect.width(), rect.height()}));
+        res.offset  = rect.upper_left();
+        auto v_rect = VisElement::FromRect(
+            geometry::Rect{0, 0, rect.width(), rect.height()});
+        v_rect.custom.debugMode = VisCustom::DebugMode::IgnoreDebug;
+        res.elements.push_back(v_rect);
         res.elements.push_back(
             VisElement::FromText(
                 text, geometry::Point{0, 0}, VisFont{.pixelSize = 6}));

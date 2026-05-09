@@ -57,8 +57,7 @@ struct unsatisifed_validation_state {
                             [&](VertexID const& id) -> std::string {
                                 return hstd::fmt(
                                     "- {} rect {}",
-                                    run->getGraph()->getDebugVertexFormat(
-                                        id),
+                                    run->getDebug(id),
                                     rootGroup->get_shared_ctx()
                                         ->getVertexIdx(id),
                                     adapt::to_hstd(
@@ -172,9 +171,7 @@ struct single_layout_run_state {
         unsatisifed_validation_state& validation_state) {
         char const* _fname  = "constraints";
         auto        __scope = run->scopeLevelMsg(
-            hstd::fmt(
-                "recursively collect on {}",
-                run->getGraph()->getDebugVertexFormat(id)),
+            hstd::fmt("recursively collect on {}", run->getDebug(id)),
             _fname);
         auto group = run->getGroup(id);
         for (auto const& [ir_idx, constraint] :
@@ -242,9 +239,7 @@ struct single_layout_run_state {
     void collect_absolute_bounding_box_positions(VertexID const& id) {
         char const* _fname  = "absolute-bbox";
         auto        __scope = run->scopeLevelMsg(
-            hstd::fmt(
-                "absolute bounding box on {}",
-                run->getGraph()->getDebugVertexFormat(id)),
+            hstd::fmt("absolute bounding box on {}", run->getDebug(id)),
             _fname);
 
         auto group = run->getGroup(id);
@@ -254,21 +249,40 @@ struct single_layout_run_state {
                 cst::ColaGroupLayoutAttribute>(prev_attribute);
             auto vpsc_rect = sub_group_rectangles.at(id);
             auto rect      = adapt::to_hstd(*vpsc_rect);
-            run->message(hstd::fmt("{} rect is {}", id, rect), _fname);
+            run->message(
+                hstd::fmt("{} rect is {}", run->getDebug(id), rect),
+                _fname);
+            if (auto pad = group->getOuterPadding()) {
+                rect = rect.withInnerPadding(pad.value());
+                run->message(
+                    hstd::fmt(
+                        "has padding {} added inner {}",
+                        pad.value(),
+                        rect));
+            }
             bbox_map.insert_or_assign(id, rect);
 
         } else {
             auto bbox = geometry::Rect::FromLimitBoundaries();
             for (auto const& group_id : run->getSubGroups(id)) {
                 collect_absolute_bounding_box_positions(group_id);
+                run->message(
+                    hstd::fmt(
+                        "{} extend with {}", id, bbox_map.at(group_id)),
+                    _fname);
                 bbox.extend(bbox_map.at(group_id));
             }
 
             for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect = ctx->getRect(vert);
                 bbox.extend(adapt::to_hstd(*rect));
+                run->message(
+                    hstd::fmt(
+                        "{} extend with {}", id, adapt::to_hstd(*rect)),
+                    _fname);
             }
 
+            run->message(hstd::fmt("final {}", bbox), _fname);
             bbox_map.insert_or_assign(id, bbox);
         }
     }
@@ -282,7 +296,7 @@ struct single_layout_run_state {
         auto        __scope = run->scopeLevelMsg(
             hstd::fmt(
                 "relative position on {} offset {}",
-                run->getGraph()->getDebugVertexFormat(id),
+                run->getDebug(id),
                 rel_offset),
             _fname);
 
@@ -290,64 +304,58 @@ struct single_layout_run_state {
         if (group->hasAlgorithm() && id != root_id) {
             auto const& prev_attribute = run->getLayout<
                 layout::IGroupLayoutAttribute>(id);
+            auto prev_cast = std::dynamic_pointer_cast<
+                cst::ColaGroupLayoutAttribute>(prev_attribute);
+            auto vpsc_rect = sub_group_rectangles.at(id);
+            auto rect      = adapt::to_hstd(*vpsc_rect);
+            if (auto pad = group->getOuterPadding()) {
+                rect = rect.withInnerPadding(pad.value());
+            }
 
-            // Content bbox of this group from its own layout run
-            // (non-inflated).
-            auto content_bbox = prev_attribute->getBBox();
-
-            // Place content bbox at the computed parent-relative offset.
-            auto rel_rect = content_bbox.move(
-                rel_offset - content_bbox.upper_left());
-
-            prev_attribute->setBBox(rel_rect);
-
-            run->message(
-                hstd::fmt("content bbox {}", content_bbox), _fname);
-            run->message(
-                hstd::fmt("moving content bbox to {}", rel_rect), _fname);
+            rect = rect.move(rel_offset);
+            prev_attribute->setBBox(rect);
+            run->message(hstd::fmt("content bbox {}", rect), _fname);
 
             result.vertices.insert_or_assign(id, prev_attribute);
         } else {
-            auto parent_bbox = bbox_map.at(id);
-            auto __scope     = run->scopeLevelMsg(
-                hstd::fmt("parent bbox {}", parent_bbox), _fname);
+            auto group_bbox = bbox_map.at(id);
+            auto __scope    = run->scopeLevelMsg(
+                hstd::fmt("parent bbox {}", group_bbox), _fname);
 
-            for (auto const& group_id : run->getSubGroups(id)) {
-                auto this_bbox      = bbox_map.at(group_id);
-                auto sub_rel_offset = this_bbox.upper_left()
-                                    - parent_bbox.upper_left();
-                if (auto padding = run->getGroup(group_id)
-                                       ->getOuterPadding()) {
-                    run->message(
-                        hstd::fmt(
-                            "sub-group has outer padding {}", padding),
-                        _fname);
+            auto const& offset_to_zero_coords = -group_bbox.upper_left();
 
-                    sub_rel_offset += geometry::Point(
-                        padding->getLeft(), padding->getTop());
-                }
-
+            for (auto const& subgroup_id : run->getSubGroups(id)) {
+                auto sub_rel_offset = offset_to_zero_coords;
+                auto subgroup_bbox  = bbox_map.at(subgroup_id);
                 run->message(
                     hstd::fmt(
                         "this bbox {} rel offset {}",
-                        this_bbox,
+                        subgroup_bbox,
                         sub_rel_offset),
                     _fname);
-                collect_nodes_and_sub_groups_relative_positions(
-                    group_id, sub_rel_offset);
-                if (!run->getGroup<layout::IGroupVisualAttribute>(group_id)
-                         ->hasAlgorithm()) {
+
+                subgroup_bbox = subgroup_bbox.move(sub_rel_offset);
+
+                run->message(
+                    hstd::fmt("after move {}", subgroup_bbox), _fname);
+
+                if (run->getGroup<layout::IGroupVisualAttribute>(
+                           subgroup_id)
+                        ->hasAlgorithm()) {
+                    collect_nodes_and_sub_groups_relative_positions(
+                        subgroup_id, sub_rel_offset);
+                } else {
                     result.vertices.insert_or_assign(
-                        group_id,
+                        subgroup_id,
                         std::make_shared<cst::ColaGroupLayoutAttribute>(
-                            this_bbox,
-                            run->getGroup<cst::ColaGroup>(group_id)));
+                            subgroup_bbox,
+                            run->getGroup<cst::ColaGroup>(subgroup_id)));
                 }
             }
 
             for (auto const& vert : run->getDirectVertices(id)) {
-                auto rect     = adapt::to_hstd(*ctx->getRect(vert));
-                auto rel_rect = rect.move(rel_offset);
+                auto rect = adapt::to_hstd(*ctx->getRect(vert))
+                                .move(offset_to_zero_coords);
 
                 result.vertices.insert_or_assign(
                     vert,
@@ -377,7 +385,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     auto __scope = run->scopeLevelMsg(
         hstd::fmt(
             "running single layout for cst::ColaLayoutAlgorithm {}",
-            run->getGraph()->getDebugVertexFormat(root_id)));
+            run->getDebug(root_id)));
     hstd::logic_assertion_check_not_nil(router);
 
     single_layout_run_state run_state(root_id, run);
@@ -451,7 +459,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
             hstd::fmt(
                 "single_layout_of_{}.svg",
                 run->getGraph()->getVertex(root_id)->getStableId()),
-            ext::visual::toSvg({res}).to_string());
+            ext::visual::toSvg({res}, true).to_string());
     }
 
     run_state.collect_absolute_bounding_box_positions(root_id);

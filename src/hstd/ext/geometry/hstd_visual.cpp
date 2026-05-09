@@ -239,8 +239,7 @@ XmlNode buildDebugMarker(
 
 
 struct SvgWriter {
-    bool    debug;
-    XmlNode writeShape(VisElement::RectShape const& r) {
+    XmlNode writeShape(VisElement::RectShape const& r, bool debug) {
         double x = r.geometry.x();
         double y = r.geometry.y();
 
@@ -275,7 +274,7 @@ struct SvgWriter {
         }
     }
 
-    XmlNode writeShape(VisElement::EllipseShape const& e) {
+    XmlNode writeShape(VisElement::EllipseShape const& e, bool debug) {
         double cx = e.geometry.x() + e.geometry.width() / 2.0f;
         double cy = e.geometry.y() + e.geometry.height() / 2.0f;
         double rx = e.geometry.width() / 2.0f;
@@ -292,7 +291,7 @@ struct SvgWriter {
         return std::move(ellipse);
     }
 
-    XmlNode writeShape(VisElement::LineShape const& l) {
+    XmlNode writeShape(VisElement::LineShape const& l, bool debug) {
         double x1 = l.p1.x();
         double y1 = l.p1.y();
         double x2 = l.p2.x();
@@ -308,7 +307,7 @@ struct SvgWriter {
         return std::move(line);
     }
 
-    XmlNode writeShape(VisElement::PathShape const& p) {
+    XmlNode writeShape(VisElement::PathShape const& p, bool debug) {
         XmlNode path("path");
         path.set_attr("d", pathToSvgD(p.path));
         applyPenAttrs(path, p.pen);
@@ -316,7 +315,7 @@ struct SvgWriter {
         return std::move(path);
     }
 
-    XmlNode writeShape(VisElement::PolygonShape const& poly) {
+    XmlNode writeShape(VisElement::PolygonShape const& poly, bool debug) {
         std::string points;
         for (auto const& pt : poly.points) {
             points += hstd::fmt("{},{} ", pt.x(), pt.y());
@@ -330,7 +329,7 @@ struct SvgWriter {
         return std::move(polygon);
     }
 
-    XmlNode writeShape(VisElement::TextShape const& t) {
+    XmlNode writeShape(VisElement::TextShape const& t, bool debug) {
         double x = t.anchor.x();
         double y = t.anchor.y();
 
@@ -354,7 +353,7 @@ struct SvgWriter {
             VisElement::RectShape dr;
             dr.geometry = t.boundingBox.value();
             // dr.pen .
-            result.push_back(writeShape(dr));
+            result.push_back(writeShape(dr, debug));
             result.push_back(buildDebugMarker(
                 dr.geometry.min_corner(),
                 {hstd::fmt(
@@ -372,7 +371,7 @@ struct SvgWriter {
         }
     }
 
-    XmlNode writeShape(VisElement::PixmapShape const& px) {
+    XmlNode writeShape(VisElement::PixmapShape const& px, bool debug) {
         double x = px.geometry.x();
         double y = px.geometry.y();
 
@@ -386,7 +385,7 @@ struct SvgWriter {
         return std::move(image);
     }
 
-    XmlNode writeShape(VisElement::PointShape const& pt) {
+    XmlNode writeShape(VisElement::PointShape const& pt, bool debug) {
         double cx = pt.position.x();
         double cy = pt.position.y();
 
@@ -430,10 +429,12 @@ struct SvgWriter {
 
     XmlNode writeElement(
         VisElement const&     elem,
-        hstd::Vec<int> const& path) {
+        hstd::Vec<int> const& path,
+        bool                  debug) {
         XmlNode result = std::visit(
             [&](auto const& shape) -> XmlNode {
-                auto res = writeShape(shape);
+                auto res = writeShape(
+                    shape, elem.custom.isDebugEnabled(debug));
                 addCustom(res, elem.custom);
                 return res;
             },
@@ -446,7 +447,8 @@ struct SvgWriter {
         VisGroup const&       group,
         double                ox,
         double                oy,
-        hstd::Vec<int> const& path) {
+        hstd::Vec<int> const& path,
+        bool                  debug) {
         double gx = ox + group.offset.x();
         double gy = oy + group.offset.y();
 
@@ -459,7 +461,7 @@ struct SvgWriter {
         addCustom(g, group.custom);
 
         for (auto const& elem : group.elements) {
-            g.push_back(writeElement(elem, path));
+            g.push_back(writeElement(elem, path, debug));
         }
 
         auto const& self_bounds = group.computeBounds();
@@ -476,34 +478,61 @@ struct SvgWriter {
 
         for (int i = 0; i < group.subgroups.size(); ++i) {
             auto const& sg = group.subgroups[i];
-            g.push_back(writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}));
+            g.push_back(
+                writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}, debug));
         }
 
-        if (debug && group.max_point) {
-            auto const& mp = group.max_point.value();
-            g.push_back(buildDebugMarker(
-                {mp.x() / 2.0, mp.y() / 2.0},
-                {
-                    hstd::fmt(
-                        "({:.2f},{:.2f} + {:.2f},{:.2f}) {}",
-                        group.offset.x(),
-                        group.offset.y(),
-                        mp.x(),
-                        mp.y(),
-                        is_empty(group.custom.extra)
-                            ? ""
-                            : hstd::fmt(
-                                  " extra={}", group.custom.extra.dump())),
-                    hstd::fmt("path={}", hstd::join("/", path)),
-                    bbox_fmt,
-                },
-                DebugConf{
-                    .extra             = group.custom.extra,
-                    .font_size         = 2,
-                    .color             = "red",
-                    .bbox              = Rect(0, 0, mp.x(), mp.y()),
-                    .bbox_stroke_width = 0.5,
-                }));
+        if (group.custom.isDebugEnabled(debug)) {
+            if (group.max_point) {
+                auto const& mp = group.max_point.value();
+                g.push_back(buildDebugMarker(
+                    {mp.x() / 2.0, mp.y() / 2.0},
+                    {
+                        hstd::fmt(
+                            "({:.2f},{:.2f} + {:.2f},{:.2f}) {}",
+                            group.offset.x(),
+                            group.offset.y(),
+                            mp.x(),
+                            mp.y(),
+                            is_empty(group.custom.extra)
+                                ? ""
+                                : hstd::fmt(
+                                      " extra={}",
+                                      group.custom.extra.dump())),
+                        hstd::fmt("path={}", hstd::join("/", path)),
+                        bbox_fmt,
+                    },
+                    DebugConf{
+                        .extra             = group.custom.extra,
+                        .font_size         = 2,
+                        .color             = "red",
+                        .bbox              = Rect(0, 0, mp.x(), mp.y()),
+                        .bbox_stroke_width = 0.5,
+                    }));
+            } else {
+                auto op = group.offset;
+                g.push_back(buildDebugMarker(
+                    {0, 0},
+                    {
+                        hstd::fmt(
+                            "({:.2f},{:.2f}) {}",
+                            op.x(),
+                            op.y(),
+                            is_empty(group.custom.extra)
+                                ? ""
+                                : hstd::fmt(
+                                      " extra={}",
+                                      group.custom.extra.dump())),
+                        hstd::fmt("path={}", hstd::join("/", path)),
+                        bbox_fmt,
+                    },
+                    DebugConf{
+                        .extra             = group.custom.extra,
+                        .font_size         = 2,
+                        .color             = "cyan",
+                        .bbox_stroke_width = 0.5,
+                    }));
+            }
         }
 
         return g;
@@ -688,11 +717,10 @@ Rect computeBounds(hstd::Vec<VisGroup> const& groups) {
 
 XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     SvgWriter writer;
-    writer.debug = debug;
 
     Rect bounds = computeBounds(groups);
 
-    double margin = 4.0f;
+    double margin = 40.0f;
     double viewX  = bounds.x() - margin;
     double viewY  = bounds.y() - margin;
     double viewW  = bounds.width() + 2.0f * margin;
@@ -710,7 +738,8 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     svg.set_attr("height", hstd::fmt("{}", viewH));
 
     for (int i = 0; i < groups.size(); ++i) {
-        svg.push_back(writer.writeGroup(groups[i], 0.0f, 0.0f, {i}));
+        svg.push_back(
+            writer.writeGroup(groups[i], 0.0f, 0.0f, {i}, debug));
     }
 
     return svg;
