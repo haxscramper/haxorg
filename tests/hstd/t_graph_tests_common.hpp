@@ -49,6 +49,16 @@ class GraphUtils_Test : public ::testing::Test {
         return res;
     }
 
+    EdgeID addEdge(
+        VertexID const&  source,
+        VertexID const&  target,
+        hstd::Str const& id_override) {
+        auto res = graph->addEdge(source, target);
+        graph->getCastMEdge<TrivialEdge>(res)
+            ->stableIdOverride = id_override;
+        return res;
+    }
+
     hstd::SPtr<TestGraph>         graph;
     hstd::SPtr<layout::LayoutRun> run;
     hstd::SPtr<TrivialHierarchy>  hierarchy;

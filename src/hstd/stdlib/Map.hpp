@@ -72,6 +72,14 @@ struct [[refl(R"({
     using Base::operator[];
 
     [[refl]] Vec<K> keys() const { return API::keys(); }
+
+    V const& at_check(K const& key) const {
+        if (contains(key)) {
+            return Base::at(key);
+        } else {
+            throw hstd::range_error::init("key not present");
+        }
+    }
 };
 
 

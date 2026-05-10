@@ -185,19 +185,17 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub2->addEdge(e_d2_d4);
     dot_sub2->addEdge(e_d3_d4);
 
-    run->runFullLayout();
-
-    auto ex1  = graph->addEdge(circo_sub2_id, dot_sub2_id);
-    auto ex2  = graph->addEdge(c3, d1);
-    auto ex3  = graph->addEdge(c7, g1);
-    auto ex4  = graph->addEdge(c6, g2);
-    auto ex5  = graph->addEdge(c2, g3);
-    auto ex6  = graph->addEdge(dot_sub2_id, cola_sub1_id);
-    auto ex7  = graph->addEdge(dot_sub2_id, dot_sub1_id);
-    auto ex8  = graph->addEdge(d3, l2);
-    auto ex9  = graph->addEdge(g8, l6);
-    auto ex10 = graph->addEdge(g7, l7);
-    auto ex11 = graph->addEdge(g6, l5);
+    auto ex1  = addEdge(circo_sub2_id, dot_sub2_id, "ex1");
+    auto ex2  = addEdge(c3, d1, "ex2");
+    auto ex3  = addEdge(c7, g1, "ex3");
+    auto ex4  = addEdge(c6, g2, "ex4");
+    auto ex5  = addEdge(c2, g3, "ex5");
+    auto ex6  = addEdge(dot_sub2_id, cola_sub1_id, "ex6");
+    auto ex7  = addEdge(dot_sub2_id, dot_sub1_id, "ex7");
+    auto ex8  = addEdge(d3, l2, "ex8");
+    auto ex9  = addEdge(g8, l6, "ex9");
+    auto ex10 = addEdge(g7, l7, "ex10");
+    auto ex11 = addEdge(g6, l5, "ex11");
 
     run->addUnboundEdge(ex1);
     run->addUnboundEdge(ex2);
@@ -210,6 +208,9 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     run->addUnboundEdge(ex9);
     run->addUnboundEdge(ex10);
     run->addUnboundEdge(ex11);
+
+    run->runFullLayout();
+
 
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));

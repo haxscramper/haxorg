@@ -415,12 +415,12 @@ struct IVertex
 };
 
 struct TrivialVertex : public IVertex {
-    VertexID             selfId;
-    hstd::Opt<hstd::Str> stableIdOverride;
+    VertexID selfId;
 
     TrivialVertex(VertexID selfId) : selfId{selfId} {}
 
-    std::string getStableId() const override {
+    hstd::Opt<hstd::Str> stableIdOverride;
+    std::string          getStableId() const override {
         if (stableIdOverride) {
             return stableIdOverride.value();
         } else {
@@ -496,13 +496,21 @@ struct TrivialEdge : public IEdge {
     using IEdge::IEdge;
 
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-
     hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
         return attrs;
     }
 
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
+    }
+
+    hstd::Opt<hstd::Str> stableIdOverride;
+    std::string          getStableId() const override {
+        if (stableIdOverride) {
+            return stableIdOverride.value();
+        } else {
+            return IEdge::getStableId();
+        }
     }
 
   public:
@@ -796,6 +804,10 @@ class IEdgeCollection : public IEdgeProvider {
     hstd::UnorderedSet<EdgeID> getFullyIncludedEdges(
         hstd::UnorderedSet<VertexID> const& subset) const {
         hstd::UnorderedSet<EdgeID> res;
+        // TODO: This function can be optimized: instead of iterating over
+        // the list of all edges, and then filtering out ones that don't
+        // match the requirements, it can walk over the incidence matrix
+        // directly.
         for (auto const& id : getEdges()) {
             if (subset.contains(getSource(id))
                 && subset.contains(getTarget(id))) {
@@ -1227,8 +1239,20 @@ class IGraph {
         return getEdgeProvider(id)->getEdge(id);
     }
 
-    virtual IEdge* getMEdge(EdgeID const& id) {
+    virtual IEdge* getMEdge(EdgeID const& id) const {
         return const_cast<IEdge*>(getEdge(id));
+    }
+
+    template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
+    T const* getCastEdge(EdgeID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getEdge(id));
+    }
+
+    template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
+    T* getCastMEdge(EdgeID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getMEdge(id));
     }
 
     GraphHierarchyID getHierarchyID(EdgeID const& id) const;
@@ -1528,16 +1552,16 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
 
 class LayoutRun : public OperationsTracer {
   public:
-    hstd::SPtr<IGraph>               graph;
-    hstd::SPtr<IdOnlyHierarchy>      groups;
-    hstd::SPtr<IdOnlyEdgeCollection> edges;
+    hstd::SPtr<IGraph>                graph;
+    hstd::SPtr<IdOnlyHierarchy>       groups;
+    hstd::SPtr<TrivialEdgeCollection> edges;
 
     LayoutRun(
         hstd::SPtr<IGraph> graph,
         EdgeCollectionID   edges_id = EdgeCollectionID{9999})
         : graph{graph}
         , groups{std::make_shared<IdOnlyHierarchy>()}
-        , edges{std::make_shared<IdOnlyEdgeCollection>(edges_id)} {
+        , edges{std::make_shared<TrivialEdgeCollection>(edges_id)} {
         graph->addCollection(edges);
         graph->addHierarchy(groups);
         hstd::logic_assertion_check_not_nil(graph);
@@ -1559,10 +1583,17 @@ class LayoutRun : public OperationsTracer {
 
     EdgeIDSet getAllUnboundEdges() const {
         EdgeIDSet res;
-        for (auto const& edge : edges->getEdges()) {
+        auto      el = edges->getEdges();
+        for (auto const& edge : el) {
+            auto vattr = getEdgeVisualAttribute(edge);
             if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(
-                    getEdgeVisualAttribute(edge))) {
+                    vattr)) {
                 res.incl(edge);
+            } else {
+                message(
+                    hstd::fmt(
+                        "{} does not have unbound visual attr",
+                        getDebug(edge)));
             }
         }
         return res;
