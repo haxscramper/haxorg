@@ -172,9 +172,13 @@ elk::GraphElkLayoutData elk::ElkLayoutAlgorithm::Manager::layoutDiagram(
 
 namespace {
 
-struct IdCollection {
+struct State {
+    hstd::SPtr<layout::LayoutRun>                      run;
     hstd::ext::Unordered1to1Bimap<hstd::Str, VertexID> v_id_map;
     hstd::ext::Unordered1to1Bimap<hstd::Str, EdgeID>   e_id_map;
+
+    EdgeIDSet leftover_edges;
+    EdgeIDSet processed_edges;
 
     VertexID get_vertex_id(hstd::Str const& id) const {
         return v_id_map.at_right(id);
@@ -186,7 +190,7 @@ struct IdCollection {
 
     hstd::Str get_id(VertexID const& id) {
         if (!v_id_map.contains_right(id)) {
-            auto id_text = hstd::fmt("n-{}", id);
+            auto id_text = run->getGraph()->getVertex(id)->getStableId();
             v_id_map.add_unique(id_text, id);
         }
         return v_id_map.at_left(id);
@@ -194,34 +198,35 @@ struct IdCollection {
 
     hstd::Str get_id(EdgeID const& id) {
         if (!e_id_map.contains_right(id)) {
-            auto id_text = hstd::fmt("e-{}", id);
+            auto id_text = run->getGraph()->getEdge(id)->getStableId();
             e_id_map.add_unique(id_text, id);
         }
         return e_id_map.at_left(id);
     }
 };
 
-elk::EdgeElkLayoutData gen_node_structure(
+elk::EdgeElkLayoutData gen_edge_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
     EdgeID const&                        edge,
-    IdCollection&                        id_map) {
+    State&                               id_map) {
     auto res    = *run->getEdgeVisualAttribute<elk::EdgeVisual>(edge);
     res.id      = id_map.get_id(edge);
     res.sources = {id_map.get_id(run->getGraph()->getSource(edge))};
     res.targets = {id_map.get_id(run->getGraph()->getTarget(edge))};
+    id_map.processed_edges.incl(edge);
     // run->message(hstd::value_metadata<hstd::Opt<hstd::Str>>::isEmpty(res.));
     return res;
 }
 
 elk::NodeElkLayoutData gen_node_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
-    IdCollection&                        id_map,
+    State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent);
 
 elk::NodeElkLayoutData gen_subgroup_node_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
-    IdCollection&                        id_map,
+    State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
     auto group    = run->getGroup(id);
@@ -236,22 +241,47 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
     auto __scope = run->scopeLevel();
     for (auto const& sub : run->getSubGroups(id)) {
         res.children.push_back(gen_node_structure(run, id_map, sub, id));
+
+        EdgeIDSet to_drop;
+        for (auto const& edge : id_map.leftover_edges) {
+            hstd::logic_assertion_check_not_nil(run);
+            hstd::logic_assertion_check_not_nil(run->groups);
+            hstd::logic_assertion_check_not_nil(run->getGraph());
+            IEdgeProvider::isHierarchyEdge(edge);
+            auto common_parent = run->groups->getCommonAncestor({
+                run->getGraph()->getSource(edge),
+                run->getGraph()->getTarget(edge),
+            });
+
+            if (common_parent.has_value() && common_parent.value() == id) {
+                res.edges.push_back(gen_edge_structure(run, edge, id_map));
+                to_drop.incl(edge);
+            }
+        }
+        id_map.leftover_edges.excl(to_drop);
     }
 
     for (auto const& node : run->getDirectVertices(id)) {
         res.children.push_back(gen_node_structure(run, id_map, node, id));
     }
 
-    for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-        res.edges.push_back(gen_node_structure(run, edge, id_map));
+    auto direct_edges   = run->getDirectlyNestedEdges(id)
+                        - id_map.processed_edges;
+    auto indirect_edges = run->getPartiallyNestedEdges(id)
+                        - id_map.processed_edges;
+
+    for (auto const& edge : direct_edges) {
+        res.edges.push_back(gen_edge_structure(run, edge, id_map));
     }
+
+    id_map.leftover_edges.incl(indirect_edges - direct_edges);
 
     return res;
 }
 
 elk::NodeElkLayoutData gen_node_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
-    IdCollection&                        id_map,
+    State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
     if (run->isGroupVertex(id)) {
@@ -290,7 +320,8 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     full_graph.height = this->height;
     full_graph.opts   = this->opts;
 
-    IdCollection id_map;
+    State id_map;
+    id_map.run = run;
 
     {
         run->message("collecting nodes for the graphviz layout");
@@ -358,4 +389,29 @@ hstd::SPtr<elk::GroupVisual> hstd::ext::graph::elk::GroupVisual::
         run, std::make_shared<ElkLayoutAlgorithm::Manager>());
 
     return result;
+}
+
+hstd::ext::visual::VisGroup hstd::ext::graph::elk::GroupLayout::getVisual(
+    VertexID const& id) const {
+    visual::VisGroup res;
+
+    res.offset = geometry::Point{x.value(), y.value()};
+
+    res.custom.setAttr("inkscape:label", hstd::fmt("ELK GROUP:{}", id));
+
+    {
+        visual::VisElement::RectShape rect;
+        rect.geometry = Rect(0, 0, width.value(), height.value());
+        rect.pen      = visual::VisPen{
+            .color = visual::VisColor{128, 128, 128, 255},
+            .width = 1.0f,
+            .style = visual::VisPen::LineStyle::Dash,
+        };
+
+        visual::VisElement rectElem;
+        rectElem.data = rect;
+        res.elements.push_back(rectElem);
+    }
+
+    return res;
 }

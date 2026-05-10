@@ -59,3 +59,7 @@ run_pytest_and_coverage_docs: run_py_tests run_coverage_merge run_custom_docs_ge
 run_doxygen_docs_build:
   {{workflow_run}} --task docs_doxygen \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
+run_codechecker:
+  {{workflow_run}} --task docs_doxygen \
+    run_codechecker_analysis

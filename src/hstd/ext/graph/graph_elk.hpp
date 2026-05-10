@@ -449,6 +449,9 @@ class GroupLayout
     }
 
     Rect getBBox() const override { return bbox; }
+
+
+    visual::VisGroup getVisual(VertexID const& id) const override;
 };
 
 

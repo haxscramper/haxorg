@@ -1000,6 +1000,9 @@ class IVertexHierarchy : public IEdgeProvider {
     /// \brief Return parent vertex for `id` if present.
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
 
+    std::optional<VertexID> getCommonAncestor(
+        VertexIDSet const& ids) const;
+
     /// \brief Return full parent chain for `id`, from immediate parent up
     /// to the root.
     hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
@@ -1705,6 +1708,12 @@ class LayoutRun : public OperationsTracer {
         return edges->getFullyIncludedEdges(getDirectVertices(id));
     }
 
+    EdgeIDSet getPartiallyNestedEdges(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getPartiallyIncludedEdges(getDirectVertices(id));
+    }
+
     /// \brief Return all the edges nested in the target group and its
     /// sub-groups, excluding the edges that are at least partially
     /// crossing the algorithm switch boundary
@@ -1782,7 +1791,10 @@ class LayoutRun : public OperationsTracer {
         edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
     }
 
-    hstd::SPtr<IGraph> getGraph() const { return graph; }
+    hstd::SPtr<IGraph> getGraph() const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return graph;
+    }
 
 
     IVertex const* at(VertexID const& id) const {

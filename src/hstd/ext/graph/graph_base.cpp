@@ -468,6 +468,35 @@ hstd::Opt<VertexID> IVertexHierarchy::getParentVertex(
     if (parentMap.contains(id)) { return parentMap.at(id); }
     return hstd::Opt<VertexID>{};
 }
+std::optional<VertexID> hstd::ext::graph::IVertexHierarchy::
+    getCommonAncestor(VertexIDSet const& ids) const {
+    if (ids.empty()) { return std::nullopt; }
+
+    auto                it     = ids.begin();
+    hstd::Vec<VertexID> common = getParentChain(*it);
+    common.push_back(*it);
+    ++it;
+
+    for (; it != ids.end(); ++it) {
+        hstd::Vec<VertexID> chain = getParentChain(*it);
+        chain.push_back(*it);
+
+        VertexIDSet         currentSet(chain.begin(), chain.end());
+        hstd::Vec<VertexID> nextCommon;
+        nextCommon.reserve(common.size());
+
+        for (VertexID const& ancestor : common) {
+            if (currentSet.contains(ancestor)) {
+                nextCommon.push_back(ancestor);
+            }
+        }
+
+        common = std::move(nextCommon);
+        if (common.empty()) { return std::nullopt; }
+    }
+
+    return common.front();
+}
 
 
 int IVertexHierarchy::getMaxNestingLevel() const {

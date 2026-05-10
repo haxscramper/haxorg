@@ -950,7 +950,6 @@ hstd::ext::visual::VisGroup hstd::ext::graph::cst::
             .width = 1.0f,
             .style = visual::VisPen::LineStyle::Dash,
         };
-        rect.pen.style = visual::VisPen::LineStyle::Dash;
 
         visual::VisElement rectElem;
         rectElem.custom.addComment(
