@@ -69,8 +69,8 @@ add_custom_target(elk_jar ALL DEPENDS ${JAR_OUTPUT_PATH})
 add_library(jni_elk_lib STATIC src/elk_jni_wrapper.cpp include/elk_jni_wrapper.hpp)
 set_target_flags(jni_elk_lib)
 
-target_include_directories(jni_elk_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
-                                              ${JNI_INCLUDE_DIRS})
+target_include_directories(
+  jni_elk_lib PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>" ${JNI_INCLUDE_DIRS})
 
 target_compile_definitions(
   jni_elk_lib PUBLIC JNI_ELK_LIB_JAR_PATH="${CMAKE_CURRENT_BINARY_DIR}/lib/elk-wrapper.jar")

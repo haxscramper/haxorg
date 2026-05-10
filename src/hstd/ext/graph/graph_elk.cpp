@@ -1,8 +1,15 @@
-#include "ElkJsonSerial.hpp"
+#include "graph_elk.hpp"
 
 #include <unordered_set>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
-void dia::layout::elk::validate(Graph const& graph) {
+
+using namespace hstd;
+using namespace hstd::ext;
+using namespace hstd::ext::graph;
+
+void elk::validate(elk::Graph const& graph) {
     std::unordered_set<hstd::Str> node_ids;
     std::unordered_set<hstd::Str> port_ids;
     std::unordered_set<hstd::Str> edge_ids;
@@ -141,4 +148,24 @@ void dia::layout::elk::validate(Graph const& graph) {
         };
 
     for (const auto& node : graph.children) { validate_node_edges(node); }
+}
+
+
+std::string elk::ElkLayoutManager::layoutDiagram(
+    std::string const& graphJson) {
+    LOGIC_ASSERTION_CHECK(
+        elkEngine->isInitialized(),
+        "Initialization failed earlier, cannot execute layout");
+
+    return elkEngine->performLayout(graphJson);
+}
+
+elk::Graph elk::ElkLayoutManager::layoutDiagram(elk::Graph const& graph) {
+    json serial = hstd::to_json_eval(graph);
+    HSLOG_TRACE("{}", serial.dump(2));
+    elk::validate(graph);
+    std::string tmp    = serial.dump();
+    auto        layout = layoutDiagram(tmp);
+    HSLOG_TRACE("{}", layout);
+    return hstd::from_json_eval<elk::Graph>(json::parse(layout));
 }

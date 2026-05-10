@@ -276,21 +276,30 @@ void connect_edge_pins(
     }
 }
 
-void write_layout_state(cst::AvoidRouterAlgorithm* algo) {
+void write_layout_state(
+    cst::AvoidRouterAlgorithm*               algo,
+    cst::AvoidRouterAlgorithm::Result const& layout_res,
+    hstd::Str const&                         suffix = "") {
     visual::VisGroup res;
     auto __scope = algo->run->scopeLevelMsg("rectangle placement");
     for (auto const& [id, rect] : algo->rects) {
         res.add(
             visual::VisGroup::FromRectAndText(
-                rect, hstd::fmt("VERTEX {}", id)));
+                rect,
+                algo->run->getGraph()->getVertex(id)->getStableId()));
+    }
+
+    for (auto const& [id, edge] : layout_res.edges) {
+        res.add(edge->getVisual(id));
     }
 
     static int write_state = 0;
     algo->run->writeAdjacentToTraceFile(
         hstd::fmt(
-            "edge_routing_{}_{}.svg",
+            "edge_routing_{}_{}{}.svg",
             algo->routing_run_name,
-            ++write_state),
+            ++write_state,
+            suffix),
         ext::visual::toSvg({res}, true).to_string());
 }
 
@@ -308,7 +317,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     auto lp = res.layoutPorts;
 
     add_ports(run, edge_set, vertex_set, lp);
-    write_layout_state(this);
+    write_layout_state(this, res);
 
     router = std::make_shared<Avoid::Router>(Avoid::OrthogonalRouting);
     if (shapeBufferDistance) {
@@ -350,6 +359,8 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
         res.edges.insert_or_assign(
             eid, std::make_shared<AvoidEdgeLayoutAttribute>(path));
     }
+
+    write_layout_state(this, res, "_with_edges");
 
     return res;
 }

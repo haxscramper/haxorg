@@ -32,6 +32,9 @@ target_link_libraries(hstd PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3
 if(NOT ${ORG_BUILD_EMCC})
   target_link_libraries(hstd PUBLIC Boost::log cpptrace::cpptrace)
 
+  add_subdirectory("${BASE}/src/hstd/ext/graph/jni_elk")
+  target_link_libraries(hstd PUBLIC jni_elk_lib)
+
   if(${ORG_BUILD_WITH_CGRAPH})
     find_package(graphviz REQUIRED)
     target_link_libraries(hstd PUBLIC graphviz::cgraph graphviz::gvc)

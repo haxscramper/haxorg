@@ -6,9 +6,6 @@ qt_add_library(org_diagram_lib STATIC ${LIB_SOURCES})
 glob_add_sources2(TARGET org_diagram_lib LS_REGEX "${ORG_DIAGRAM_ROOT}/src/.*" SEARCH_BASE
                   "${BASE}")
 
-add_subdirectory(jni_elk)
-target_link_libraries(org_diagram_lib PUBLIC jni_elk_lib)
-
 set_target_properties(
   org_diagram_lib
   PROPERTIES AUTOMOC ON

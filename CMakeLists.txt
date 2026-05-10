@@ -349,7 +349,7 @@ endif()
 
 # Build the list of "CMake package" targets (no pyhaxorg here)
 if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
+  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams jni_elk_lib)
 else()
   set(ORG_INSTALL_TARGET_LIST haxorg hstd)
 endif()

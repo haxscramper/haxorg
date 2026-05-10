@@ -290,6 +290,37 @@ struct JsonSerde<std::shared_ptr<T>> {
     }
 };
 
+template <DescribedRecord T, bool WithNullFields>
+struct JsonSerdeDescribedRecordBaseEx {
+    static json to_json(T const& obj) {
+        json result = json::object();
+
+        hstd::for_each_field_value_with_bases(
+            obj, [&]<typename F>(char const* name, F const& value) {
+                if (WithNullFields
+                    || !hstd::value_metadata<F>::isNil(value)) {
+                    result[name] = JsonSerde<
+                        std::remove_cvref_t<F>>::to_json(value);
+                }
+            });
+
+        return result;
+    }
+
+    static T from_json(json const& j) {
+        T result = SerdeDefaultProvider<T>::get();
+        for_each_field_with_bases<T>([&](auto const& field) {
+            if (j.contains(field.name)) {
+                result.*field.pointer = JsonSerde<
+                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
+                    from_json(j[field.name]);
+            }
+        });
+
+        return result;
+    }
+};
+
 template <DescribedRecord T>
 struct JsonSerdeDescribedRecordBase {
     static json to_json(T const& obj) {
@@ -320,7 +351,6 @@ struct JsonSerdeDescribedRecordBase {
 
 template <DescribedRecord T>
 struct JsonSerde<T> : JsonSerdeDescribedRecordBase<T> {};
-
 
 template <DescribedEnum E>
 struct JsonSerde<E> {

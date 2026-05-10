@@ -1,5 +1,8 @@
 #pragma once
 
+#include "elk_jni_wrapper.hpp"
+#include <memory>
+#include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Str.hpp>
@@ -7,45 +10,10 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/ext/graph/graph_base.hpp>
 
 
-namespace hstd {
-template <DescribedRecord T, bool WithNullFields>
-struct JsonSerdeDescribedRecordBaseEx {
-    static json to_json(T const& obj) {
-        json result = json::object();
-
-        hstd::for_each_field_value_with_bases(
-            obj, [&]<typename F>(char const* name, F const& value) {
-                if (WithNullFields
-                    || !hstd::value_metadata<F>::isNil(value)) {
-                    result[name] = JsonSerde<
-                        std::remove_cvref_t<F>>::to_json(value);
-                }
-            });
-
-        return result;
-    }
-
-    static T from_json(json const& j) {
-        T result = SerdeDefaultProvider<T>::get();
-        for_each_field_with_bases<T>([&](auto const& field) {
-            if (j.contains(field.name)) {
-                result.*field.pointer = JsonSerde<
-                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
-                    from_json(j[field.name]);
-            }
-        });
-
-        return result;
-    }
-};
-} // namespace hstd
-
-namespace dia::layout::elk {
-
-
-using json = nlohmann::json;
+namespace hstd::ext::graph::elk {
 
 class PortProperties {
   public:
@@ -254,14 +222,14 @@ class Graph {
 
 void validate(Graph const& graph);
 
-} // namespace dia::layout::elk
+} // namespace hstd::ext::graph::elk
 
 
 #define SPECIALIZE_WO_NULL_FIELDS(__name)                                 \
     template <>                                                           \
-    struct hstd::JsonSerde<dia::layout::elk::__name>                      \
+    struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                 \
         : hstd::JsonSerdeDescribedRecordBaseEx<                           \
-              dia::layout::elk::__name,                                   \
+              hstd::ext::graph::elk::__name,                              \
               false> {};
 
 SPECIALIZE_WO_NULL_FIELDS(Graph);
@@ -272,3 +240,31 @@ SPECIALIZE_WO_NULL_FIELDS(Port);
 SPECIALIZE_WO_NULL_FIELDS(EdgeSection);
 SPECIALIZE_WO_NULL_FIELDS(Edge);
 SPECIALIZE_WO_NULL_FIELDS(Node);
+
+
+namespace hstd::ext::graph::elk {
+
+class ElkLayoutManager {
+  private:
+    std::unique_ptr<elk_jni::ElkLayoutEngine> elkEngine;
+    std::string                               classPath;
+
+  public:
+    ElkLayoutManager(std::string const& classPath = JNI_ELK_LIB_JAR_PATH)
+        : elkEngine(std::make_unique<elk_jni::ElkLayoutEngine>())
+        , classPath{classPath} {
+        LOGIC_ASSERTION_CHECK(
+            elkEngine->initialize(classPath),
+            "Failed to initialize ELK layout engine");
+    }
+
+    ~ElkLayoutManager() {
+        if (elkEngine) { // elkEngine->shutdown();
+        }
+    }
+
+    std::string layoutDiagram(std::string const& graphJson);
+    elk::Graph  layoutDiagram(elk::Graph const& graph);
+};
+
+} // namespace hstd::ext::graph::elk
