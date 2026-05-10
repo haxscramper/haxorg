@@ -1589,11 +1589,6 @@ class LayoutRun : public OperationsTracer {
             if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(
                     vattr)) {
                 res.incl(edge);
-            } else {
-                message(
-                    hstd::fmt(
-                        "{} does not have unbound visual attr",
-                        getDebug(edge)));
             }
         }
         return res;
@@ -1838,10 +1833,27 @@ class LayoutRun : public OperationsTracer {
 
     geometry::Rect getAbsoluteBBox(VertexID const& id) const {
         auto start = getRelativeBBox(id);
+
+        geometry::Point offset{0, 0};
         for (auto const& parent : getParentChain(id)) {
-            start.move(getRelativeBBox(parent).upper_left());
+            // message(
+            //     hstd::fmt(
+            //         "parent {} bbox {} final offset {}",
+            //         getDebug(parent),
+            //         getRelativeBBox(parent).upper_left(),
+            //         offset));
+
+            offset += getRelativeBBox(parent).upper_left();
         }
-        return start;
+
+        message(
+            hstd::fmt(
+                "absolute offset for {} start is {} move is {}",
+                getDebug(id),
+                start,
+                offset));
+
+        return start.move(offset);
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;

@@ -1,5 +1,7 @@
 #include "graph_avoid.hpp"
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <hstd/ext/geometry/hstd_visual.hpp>
 
 using APL = hstd::ext::graph::cst::AvoidPortLayoutAttribute;
 using namespace hstd::ext::graph;
@@ -181,7 +183,7 @@ auto get_id_proxy(
         id_map.insert_or_assign(id_value, res);
     }
 
-    return id_map.at_check(id_value);
+    return id_map.at(id_value);
 };
 
 
@@ -191,8 +193,7 @@ auto get_shape(
     hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map)
     -> Avoid::ShapeRef* {
     if (!algo->shapes.contains(vid)) {
-        auto rect = algo->intermediate_placement->vertices.at_check(vid)
-                        ->getBBox();
+        auto             rect = algo->rects.at(vid);
         Avoid::Rectangle poly = adapt::to_avoid(rect);
 
         algo->shapes.insert_or_assign(
@@ -203,7 +204,7 @@ auto get_shape(
         algo->run->message(hstd::fmt("for {} crated rect {}", vid, rect));
     }
 
-    return algo->shapes.at_check(vid);
+    return algo->shapes.at(vid);
 };
 
 auto get_shape_point(
@@ -275,16 +276,31 @@ void connect_edge_pins(
     }
 }
 
+void write_layout_state(cst::AvoidRouterAlgorithm* algo) {
+    visual::VisGroup res;
+    auto __scope = algo->run->scopeLevelMsg("rectangle placement");
+    for (auto const& [id, rect] : algo->rects) {
+        res.add(
+            visual::VisGroup::FromRectAndText(
+                rect, hstd::fmt("VERTEX {}", id)));
+    }
+
+    static int write_state = 0;
+    algo->run->writeAdjacentToTraceFile(
+        hstd::fmt(
+            "edge_routing_{}_{}.svg",
+            algo->routing_run_name,
+            ++write_state),
+        ext::visual::toSvg({res}, true).to_string());
+}
+
 } // namespace
 
 
 hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     AvoidRouterAlgorithm::routeEdges() {
     auto __scope = run->scopeLevelMsg("route edges");
-    hstd::logic_assertion_check_not_nil(rects);
     hstd::logic_assertion_check_not_nil(run);
-    // hstd::logic_assertion_check_not_nil(group);
-    hstd::logic_assertion_check_not_nil(intermediate_placement);
 
     Result res;
     res.layoutPorts = std::make_shared<AvoidPortCollection>();
@@ -292,6 +308,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     auto lp = res.layoutPorts;
 
     add_ports(run, edge_set, vertex_set, lp);
+    write_layout_state(this);
 
     router = std::make_shared<Avoid::Router>(Avoid::OrthogonalRouting);
     if (shapeBufferDistance) {
@@ -306,7 +323,6 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     router->processTransaction();
 
     for (auto const& eid : edge_set) {
-        run->message(hstd::fmt("rebuilding placement"));
         auto source = run->getGraph()->getSource(eid);
         auto target = run->getGraph()->getTarget(eid);
 
@@ -331,7 +347,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     for (auto const& [eid, conn_ref] : connections) {
         auto path = adapt::to_hstd_path(conn_ref->displayRoute());
         run->message(hstd::fmt("eid {} path {} path", eid, path));
-        intermediate_placement->edges.insert_or_assign(
+        res.edges.insert_or_assign(
             eid, std::make_shared<AvoidEdgeLayoutAttribute>(path));
     }
 

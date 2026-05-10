@@ -371,11 +371,19 @@ struct single_layout_run_state {
         auto __scope = run->scopeLevelMsg(__PRETTY_FUNCTION__);
         auto r       = algo->router;
         r->run       = run.get();
-        r->rects     = rootGroup->shared.get();
-        r->intermediate_placement = &result;
-        r->edge_set      = run->getLayoutLayerNestedEdges(root_id);
-        r->vertex_set    = run->getDirectVertices(root_id);
-        auto layoutPorts = r->routeEdges();
+        // r->rects     = rootGroup->shared.get();
+        // r->intermediate_placement = &result;
+
+        for (auto const& [vertex, attr] : result.vertices) {
+            r->rects.insert_or_assign(vertex, attr->getBBox());
+        }
+
+        r->edge_set   = run->getLayoutLayerNestedEdges(root_id);
+        r->vertex_set = run->getDirectVertices(root_id);
+        auto res      = r->routeEdges();
+        for (auto const& [edge, attr] : res.edges) {
+            result.edges.insert_or_assign(edge, attr);
+        }
     }
 };
 

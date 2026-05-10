@@ -1383,7 +1383,7 @@ std::string hstd::format_number(double value) {
     }
 
     int exponent  = static_cast<int>(std::floor(std::log10(abs_value)));
-    int decimals  = -exponent + 2;
+    int decimals  = std::clamp(-exponent + 2, 0, 9);
     std::string s = std::format("{:.{}f}", value, decimals);
 
     while (!s.empty() && s.back() == '0') { s.pop_back(); }

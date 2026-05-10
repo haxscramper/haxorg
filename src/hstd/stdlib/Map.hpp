@@ -66,18 +66,30 @@ struct [[refl(R"({
     using API::contains;
     using API::get;
     using API::keys;
+    using Base::at;
     using Base::Base;
     using Base::begin;
     using Base::end;
+    using Base::find;
     using Base::operator[];
 
     [[refl]] Vec<K> keys() const { return API::keys(); }
 
-    V const& at_check(K const& key) const {
-        if (contains(key)) {
-            return Base::at(key);
-        } else {
+    V& at(K const& key) {
+        auto it = find(key);
+        if (it == end()) {
             throw hstd::range_error::init("key not present");
+        } else {
+            return it->second;
+        }
+    }
+
+    V const& at(K const& key) const {
+        auto it = find(key);
+        if (it == end()) {
+            throw hstd::range_error::init("key not present");
+        } else {
+            return it->second;
         }
     }
 };

@@ -699,7 +699,7 @@ std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
         edge,
         getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
         getDebugVertexFormat(getSource(edge)),
-        getDebugVertexFormat(getSource(edge)));
+        getDebugVertexFormat(getTarget(edge)));
 }
 
 
@@ -909,6 +909,17 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     for (auto const& rg : groups->getRootVertices()) {
         res.push_back(aux(rg));
     }
+
+    hstd::ext::visual::VisGroup unbound_edge_overlay;
+    for (auto const& it : this->getAllUnboundEdges()) {
+        auto const& attr     = getLayout(it);
+        auto        visual   = attr->getVisual(it);
+        visual.original_id   = it.getValue();
+        visual.original_type = (int)ILayoutAttribute::Kind::Edge;
+        visual.custom.title  = graph->getDebugEdgeFormat(it);
+        unbound_edge_overlay.subgroups.push_back(visual);
+    }
+    res.push_back(unbound_edge_overlay);
 
     return res;
 }

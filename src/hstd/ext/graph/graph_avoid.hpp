@@ -111,16 +111,12 @@ class AvoidRouterAlgorithm {
     /// \brief Shared list of rectangles for avoidance. Rectangles are
     /// placed on the flat canvas and are not moved or altered during edge
     /// routing.
-    VpscRectTracker* rects;
-    // layout::IGroupVisualAttribute const* group;
     /// \brief List of edges for layout
     EdgeIDSet edge_set;
     /// \brief Set of vertices to take into account as obstacles for layout
-    VertexIDSet        vertex_set;
-    layout::LayoutRun* run;
-    /// \brief Output value for edge routing: write write the value out to
-    /// this.
-    layout::IPlacementAlgorithm::Result* intermediate_placement;
+    VertexIDSet                                  vertex_set;
+    layout::LayoutRun*                           run;
+    hstd::UnorderedMap<VertexID, geometry::Rect> rects;
 
     /// \brief Store the list of shapes created during the edge routing
     /// process, the shapes are managed by the avoid router object
@@ -130,8 +126,13 @@ class AvoidRouterAlgorithm {
     hstd::UnorderedMap<EdgeID, Avoid::ConnRef*> connections;
     hstd::SPtr<Avoid::Router>                   router;
 
+    hstd::Str routing_run_name;
+
     struct Result {
         hstd::SPtr<AvoidPortCollection> layoutPorts;
+        hstd::
+            UnorderedMap<EdgeID, hstd::SPtr<layout::IEdgeLayoutAttribute>>
+                edges;
     };
 
     Result routeEdges();

@@ -42,12 +42,12 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub1->addVertex(dot_sub1_id, l6)->setFixedPointWH(rect);
     dot_sub1->addVertex(dot_sub1_id, l7)->setFixedPointWH(rect);
 
-    auto e_l1_l2 = graph->addEdge(l1, l2);
-    auto e_l2_l3 = graph->addEdge(l2, l3);
-    auto e_l3_l4 = graph->addEdge(l3, l4);
-    auto e_l4_l5 = graph->addEdge(l4, l5);
-    auto e_l5_l6 = graph->addEdge(l5, l6);
-    auto e_l6_l7 = graph->addEdge(l6, l7);
+    auto e_l1_l2 = addEdge(l1, l2, "e_l1_l2");
+    auto e_l2_l3 = addEdge(l2, l3, "e_l2_l3");
+    auto e_l3_l4 = addEdge(l3, l4, "e_l3_l4");
+    auto e_l4_l5 = addEdge(l4, l5, "e_l4_l5");
+    auto e_l5_l6 = addEdge(l5, l6, "e_l5_l6");
+    auto e_l6_l7 = addEdge(l6, l7, "e_l6_l7");
 
     dot_sub1->addEdge(e_l1_l2);
     dot_sub1->addEdge(e_l2_l3);
@@ -83,13 +83,13 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     cola_sub1->addVertex(cola_sub1_id, g7, rect);
     cola_sub1->addVertex(cola_sub1_id, g8, rect);
 
-    auto e_g1_g5 = graph->addEdge(g1, g5);
-    auto e_g2_g6 = graph->addEdge(g2, g6);
-    auto e_g3_g7 = graph->addEdge(g3, g7);
-    auto e_g4_g8 = graph->addEdge(g4, g8);
-    auto e_g5_g6 = graph->addEdge(g5, g6);
-    auto e_g6_g7 = graph->addEdge(g6, g7);
-    auto e_g7_g8 = graph->addEdge(g7, g8);
+    auto e_g1_g5 = addEdge(g1, g5, "e_g1_g5");
+    auto e_g2_g6 = addEdge(g2, g6, "e_g2_g6");
+    auto e_g3_g7 = addEdge(g3, g7, "e_g3_g7");
+    auto e_g4_g8 = addEdge(g4, g8, "e_g4_g8");
+    auto e_g5_g6 = addEdge(g5, g6, "e_g5_g6");
+    auto e_g6_g7 = addEdge(g6, g7, "e_g6_g7");
+    auto e_g7_g8 = addEdge(g7, g8, "e_g7_g8");
 
     cola_sub1->addEdge(e_g1_g5);
     cola_sub1->addEdge(e_g2_g6);
@@ -139,14 +139,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->addVertex(circo_sub2_id, c7)->setFixedPointWH(rect);
     circo_sub2->addVertex(circo_sub2_id, c8)->setFixedPointWH(rect);
 
-    auto e_c1_c2 = graph->addEdge(c1, c2);
-    auto e_c2_c3 = graph->addEdge(c2, c3);
-    auto e_c3_c4 = graph->addEdge(c3, c4);
-    auto e_c4_c5 = graph->addEdge(c4, c5);
-    auto e_c5_c6 = graph->addEdge(c5, c6);
-    auto e_c6_c7 = graph->addEdge(c6, c7);
-    auto e_c7_c8 = graph->addEdge(c7, c8);
-    auto e_c8_c1 = graph->addEdge(c8, c1);
+    auto e_c1_c2 = addEdge(c1, c2, "e_c1_c2");
+    auto e_c2_c3 = addEdge(c2, c3, "e_c2_c3");
+    auto e_c3_c4 = addEdge(c3, c4, "e_c3_c4");
+    auto e_c4_c5 = addEdge(c4, c5, "e_c4_c5");
+    auto e_c5_c6 = addEdge(c5, c6, "e_c5_c6");
+    auto e_c6_c7 = addEdge(c6, c7, "e_c6_c7");
+    auto e_c7_c8 = addEdge(c7, c8, "e_c7_c8");
+    auto e_c8_c1 = addEdge(c8, c1, "e_c8_c1");
 
     circo_sub2->addEdge(e_c1_c2);
     circo_sub2->addEdge(e_c2_c3);
@@ -175,10 +175,10 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub2->addVertex(dot_sub2_id, d3)->setFixedPointWH(rect);
     dot_sub2->addVertex(dot_sub2_id, d4)->setFixedPointWH(rect);
 
-    auto e_d1_d2 = graph->addEdge(d1, d2);
-    auto e_d1_d3 = graph->addEdge(d1, d3);
-    auto e_d2_d4 = graph->addEdge(d2, d4);
-    auto e_d3_d4 = graph->addEdge(d3, d4);
+    auto e_d1_d2 = addEdge(d1, d2, "e_d1_d2");
+    auto e_d1_d3 = addEdge(d1, d3, "e_d1_d3");
+    auto e_d2_d4 = addEdge(d2, d4, "e_d2_d4");
+    auto e_d3_d4 = addEdge(d3, d4, "e_d3_d4");
 
     dot_sub2->addEdge(e_d1_d2);
     dot_sub2->addEdge(e_d1_d3);

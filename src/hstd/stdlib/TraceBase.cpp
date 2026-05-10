@@ -28,17 +28,20 @@ void OperationsTracer::writeAdjacentToTraceFile(
     char const* function,
     int         line,
     char const* file) const {
-    auto outdir = getTraceFileDir();
-    LOGIC_ASSERTION_CHECK(outdir.has_value(), "must be writing to file");
-    auto result = outdir.value() / suffix.toBase();
-    createDirectory(result.parent_path(), true, true);
-    writeFile(result, text);
-    if (with_message) {
-        message(
-            hstd::fmt("wrote debug file to {}", result),
-            function,
-            line,
-            file);
+    if (TraceState) {
+        auto outdir = getTraceFileDir();
+        LOGIC_ASSERTION_CHECK(
+            outdir.has_value(), "must be writing to file");
+        auto result = outdir.value() / suffix.toBase();
+        createDirectory(result.parent_path(), true, true);
+        writeFile(result, text);
+        if (with_message) {
+            message(
+                hstd::fmt("wrote debug file to {}", result),
+                function,
+                line,
+                file);
+        }
     }
 }
 

@@ -3,6 +3,7 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/ext/graph/graph_avoid.hpp>
 #include <hstd/ext/graph/graph_vpsc.hpp>
+#include <hstd/ext/geometry/hstd_geometry.hpp>
 
 using namespace hstd::ext::graph;
 
@@ -62,26 +63,79 @@ void layout_run_full_layout(layout::LayoutRun* run) {
     for (auto const& root : run->groups->getRootVertices()) { aux(root); }
 }
 
+void run_placement_with_subset(
+    layout::LayoutRun* run,
+    EdgeIDSet const&   edge_set,
+    VertexIDSet const& vertex_set,
+    hstd::Str          placement_run_name) {
+    // cst::VpscRectTracker                tracker;
+    cst::AvoidRouterAlgorithm router;
+    router.routing_run_name = placement_run_name;
+    layout::IPlacementAlgorithm::Result placement;
+    // router.rects = &tracker;
+    // router.intermediate_placement = &placement;
+    router.run        = run;
+    router.edge_set   = edge_set;
+    router.vertex_set = vertex_set;
+
+    auto g = run->getGraph();
+    for (auto const& e : edge_set) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            vertex_set.contains(g->getSource(e)),
+            "Edge {} source is not in the vertex set",
+            g->getDebugEdgeFormat(e));
+        LOGIC_ASSERTION_CHECK_FMT(
+            vertex_set.contains(g->getTarget(e)),
+            "Edge {} target is not in the vertex set",
+            g->getDebugEdgeFormat(e));
+    }
+
+    for (auto const& vert : vertex_set) {
+        router.rects.insert_or_assign(vert, run->getAbsoluteBBox(vert));
+    }
+
+    auto res = router.routeEdges();
+
+    for (auto const& [edge, attr] : res.edges) {
+        run->result.edges.insert_or_assign(edge, attr);
+    }
+}
+
 void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
     auto __scope = run->scopeLevelMsg(
         "unbound edge placement", "unbound-edge");
-    cst::VpscRectTracker                tracker;
-    cst::AvoidRouterAlgorithm           router;
-    layout::IPlacementAlgorithm::Result placement;
-    router.rects                  = &tracker;
-    router.intermediate_placement = &placement;
-    router.run                    = run;
+    EdgeIDSet   vertex_vertex_edges;
+    EdgeIDSet   group_vertex_edges;
+    VertexIDSet vertex_set;
+    VertexIDSet group_set;
 
     for (auto const& vert : run->graph->getAllVertices()) {
-        tracker.addVertex(vert, run->getAbsoluteBBox(vert));
-        router.vertex_set.incl(vert);
+        if (run->isGroupVertex(vert)) {
+            group_set.incl(vert);
+        } else {
+            vertex_set.incl(vert);
+        }
     }
+
+    run->message(hstd::fmt("vertex_set:\n{}", run->getDebug(vertex_set)));
 
     for (auto const& edge : run->getAllUnboundEdges()) {
-        router.edge_set.incl(edge);
+        if (vertex_set.contains(run->edges->getSource(edge))
+            && vertex_set.contains(run->edges->getTarget(edge))) {
+            vertex_vertex_edges.incl(edge);
+        } else {
+            group_vertex_edges.incl(edge);
+        }
     }
 
-    router.routeEdges();
+    run_placement_with_subset(
+        run, vertex_vertex_edges, vertex_set, "vertex_only_routing");
+
+    run_placement_with_subset(
+        run,
+        group_vertex_edges,
+        group_set + vertex_set,
+        "vertex_and_group_routing");
 }
 
 } // namespace
