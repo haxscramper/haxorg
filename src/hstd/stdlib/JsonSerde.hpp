@@ -300,14 +300,14 @@ struct JsonSerdeDescribedRecordBaseEx {
 
         hstd::for_each_field_value_with_bases(
             obj, [&]<typename F>(char const* name, F const& value) {
-                if (!hstd::value_metadata<F>::isNil(value)
-                    || !hstd::value_metadata<F>::isEmpty(value)
-                    || (hstd::value_metadata<F>::isNil(value)
+                using cvf = std::remove_cvref_t<F>;
+                if (!hstd::value_metadata<cvf>::isNil(value)
+                    || !hstd::value_metadata<cvf>::isEmpty(value)
+                    || (hstd::value_metadata<cvf>::isNil(value)
                         && WithNullFields)
-                    || (hstd::value_metadata<F>::isEmpty(value)
+                    || (hstd::value_metadata<cvf>::isEmpty(value)
                         && WithEmptyFields)) {
-                    result[name] = JsonSerde<
-                        std::remove_cvref_t<F>>::to_json(value);
+                    result[name] = JsonSerde<cvf>::to_json(value);
                 }
             });
 

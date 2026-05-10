@@ -11,6 +11,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 
 namespace hstd::ext::graph::elk {
@@ -46,13 +47,6 @@ class NodeProperties {
         ());
 };
 
-class Point {
-  public:
-    double x;
-    double y;
-
-    BOOST_DESCRIBE_CLASS(Point, (), (x, y), (), ());
-};
 
 class Options {
   public:
@@ -182,52 +176,52 @@ private:
 
 class Label {
   public:
-    hstd::Opt<hstd::Str>        id;
-    hstd::Opt<double>           x;
-    hstd::Opt<double>           y;
-    hstd::Opt<double>           width;
-    hstd::Opt<double>           height;
-    hstd::Opt<hstd::Str>        text;
-    hstd::Opt<hstd::Vec<Label>> labels;
-    Options                     opts;
+    hstd::Opt<hstd::Str> id;
+    hstd::Opt<double>    x;
+    hstd::Opt<double>    y;
+    hstd::Opt<double>    width;
+    hstd::Opt<double>    height;
+    hstd::Opt<hstd::Str> text;
+    hstd::Vec<Label>     labels;
+    Options              layoutOptions;
 
     BOOST_DESCRIBE_CLASS(
         Label,
         (),
-        (id, x, y, width, height, text, labels, opts),
+        (id, x, y, width, height, text, labels, layoutOptions),
         (),
         ());
 };
 
 class Port {
   public:
-    hstd::Str                   id;
-    hstd::Opt<double>           x;
-    hstd::Opt<double>           y;
-    hstd::Opt<double>           width;
-    hstd::Opt<double>           height;
-    hstd::Opt<hstd::Vec<Label>> labels;
-    hstd::Opt<PortProperties>   properties;
-    Options                     opts;
+    hstd::Str                 id;
+    hstd::Opt<double>         x;
+    hstd::Opt<double>         y;
+    hstd::Opt<double>         width;
+    hstd::Opt<double>         height;
+    hstd::Vec<Label>          labels;
+    hstd::Opt<PortProperties> properties;
+    Options                   layoutOptions;
 
     BOOST_DESCRIBE_CLASS(
         Port,
         (),
-        (id, x, y, width, height, labels, properties, opts),
+        (id, x, y, width, height, labels, properties, layoutOptions),
         (),
         ());
 };
 
 class EdgeSection {
   public:
-    hstd::Opt<hstd::Str>            id;
-    Point                           startPoint;
-    Point                           endPoint;
-    hstd::Opt<hstd::Vec<Point>>     bendPoints;
-    hstd::Opt<hstd::Str>            incomingShape;
-    hstd::Opt<hstd::Str>            outgoingShape;
-    hstd::Opt<hstd::Vec<hstd::Str>> incomingSections;
-    hstd::Opt<hstd::Vec<hstd::Str>> outgoingSections;
+    hstd::Opt<hstd::Str> id;
+    Point                startPoint;
+    Point                endPoint;
+    hstd::Vec<Point>     bendPoints;
+    hstd::Opt<hstd::Str> incomingShape;
+    hstd::Opt<hstd::Str> outgoingShape;
+    hstd::Vec<hstd::Str> incomingSections;
+    hstd::Vec<hstd::Str> outgoingSections;
 
     BOOST_DESCRIBE_CLASS(
         EdgeSection,
@@ -246,20 +240,19 @@ class EdgeSection {
 
 class EdgeElkLayoutData {
   public:
-    hstd::Str                         id;
-    hstd::Opt<hstd::Str>              source;
-    hstd::Opt<hstd::Str>              sourcePort;
-    hstd::Opt<hstd::Str>              target;
-    hstd::Opt<hstd::Str>              targetPort;
-    hstd::Opt<hstd::Vec<hstd::Str>>   sources;
-    hstd::Opt<hstd::Vec<hstd::Str>>   targets;
-    hstd::Opt<Point>                  sourcePoint;
-    hstd::Opt<Point>                  targetPoint;
-    hstd::Opt<hstd::Vec<Point>>       bendPoints;
-    hstd::Opt<hstd::Vec<EdgeSection>> sections;
-    hstd::Opt<hstd::Vec<Label>>       labels;
-    hstd::Opt<hstd::Vec<Point>>       junctionPoints;
-    Options                           opts;
+    hstd::Str              id;
+    hstd::Opt<hstd::Str>   source;
+    hstd::Opt<hstd::Str>   sourcePort;
+    hstd::Opt<hstd::Str>   target;
+    hstd::Opt<hstd::Str>   targetPort;
+    hstd::Vec<hstd::Str>   sources;
+    hstd::Vec<hstd::Str>   targets;
+    hstd::Vec<EdgeSection> sections;
+    hstd::Vec<Label>       labels;
+    hstd::Vec<Point>       junctionPoints;
+    Options                layoutOptions;
+
+    void validate() {}
 
     BOOST_DESCRIBE_CLASS(
         EdgeElkLayoutData,
@@ -271,13 +264,10 @@ class EdgeElkLayoutData {
          targetPort,
          sources,
          targets,
-         sourcePoint,
-         targetPoint,
-         bendPoints,
          sections,
          labels,
          junctionPoints,
-         opts),
+         layoutOptions),
         (),
         ());
 };
@@ -285,6 +275,22 @@ class EdgeElkLayoutData {
 class EdgeVisual
     : public layout::IEdgeVisualAttribute
     , public EdgeElkLayoutData {};
+
+class EdgeLayout
+    : public layout::IEdgeLayoutAttribute
+    , public EdgeElkLayoutData {
+  public:
+    Path getPath() const override {
+        Path res;
+        for (auto const& sec : sections) {
+            res.moveTo(sec.startPoint);
+            for (auto const& point : sec.bendPoints) { res.lineTo(point); }
+            res.lineTo(sec.endPoint);
+        }
+
+        return res;
+    }
+};
 
 class NodeElkLayoutData {
   public:
@@ -299,18 +305,38 @@ class NodeElkLayoutData {
     hstd::Vec<NodeElkLayoutData> children;
     hstd::Vec<EdgeElkLayoutData> edges;
     hstd::Opt<NodeProperties>    properties;
-    Options                      opts;
+    Options                      layoutOptions;
 
-    NodeElkLayoutData* setSize(double width, double height) {
-        this->width  = width;
-        this->height = height;
-        opts.set("nodeLabels.placement", "[H_CENTER, V_TOP, OUTSIDE]");
-        opts.set("portLabels.placement", "NEXT_TO_PORT_OF_POSSIBLE");
-        opts.set("edgeLabels.placement", "CENTER");
-        opts.set("elk.nodeSize.constraints", "MINIMUM_SIZE");
-        opts.set(
-            "elk.nodeSize.minimum", hstd::fmt("({}, {})", width, height));
-        opts.set("elk.margins", 0);
+    void validate() {
+        LOGIC_ASSERTION_CHECK_FMT(
+            x.has_value() && x.has_value() && x.has_value()
+                && x.has_value(),
+            "node layout data incomplete ID {}: x={} y={} width={} "
+            "height={}",
+            id,
+            x,
+            y,
+            width,
+            height);
+    }
+
+    NodeElkLayoutData* setSize(geometry::Size const& size) {
+        return setSize(size.width(), size.height());
+    }
+
+    NodeElkLayoutData* setSize(double _width, double _height) {
+        this->width  = _width;
+        this->height = _height;
+        layoutOptions.set(
+            "nodeLabels.placement", "[H_CENTER, V_TOP, OUTSIDE]");
+        layoutOptions.set(
+            "portLabels.placement", "NEXT_TO_PORT_OF_POSSIBLE");
+        layoutOptions.set("edgeLabels.placement", "CENTER");
+        layoutOptions.set("elk.nodeSize.constraints", "MINIMUM_SIZE");
+        layoutOptions.set(
+            "elk.nodeSize.minimum",
+            hstd::fmt("({}, {})", _width, _height));
+        layoutOptions.set("elk.margins", 0);
         return this;
     }
 
@@ -328,7 +354,7 @@ class NodeElkLayoutData {
          children,
          edges,
          properties,
-         opts),
+         layoutOptions),
         (),
         ());
 };
@@ -400,25 +426,44 @@ class GroupVisual
 
 class NodeLayout
     : public layout::IVertexLayoutAttribute
-    , public NodeElkLayoutData {};
+    , public NodeElkLayoutData {
+  public:
+    Rect getBBox() const override {
+        return geometry::Rect{
+            x.value(),
+            y.value(),
+            width.value(),
+            height.value(),
+        };
+    }
+};
 
 class GroupLayout
-    : public layout::IVertexLayoutAttribute
-    , public NodeElkLayoutData {};
+    : public layout::IGroupLayoutAttribute
+    , public NodeElkLayoutData {
+  public:
+    geometry::Rect bbox;
+
+    void setBBox(geometry::Rect const& bbox) override {
+        this->bbox = bbox;
+    }
+
+    Rect getBBox() const override { return bbox; }
+};
 
 
 class GraphElkLayoutData {
   public:
-    hstd::Str                               id;
-    hstd::Opt<double>                       x;
-    hstd::Opt<double>                       y;
-    hstd::Opt<double>                       width;
-    hstd::Opt<double>                       height;
-    hstd::Opt<json>                         opts;
-    hstd::Vec<NodeElkLayoutData>            children;
-    hstd::Opt<hstd::Vec<EdgeElkLayoutData>> edges;
-    hstd::Opt<hstd::Vec<Port>>              ports;
-    hstd::Opt<hstd::Vec<Label>>             labels;
+    hstd::Str                    id;
+    hstd::Opt<double>            x;
+    hstd::Opt<double>            y;
+    hstd::Opt<double>            width;
+    hstd::Opt<double>            height;
+    hstd::Opt<json>              opts;
+    hstd::Vec<NodeElkLayoutData> children;
+    hstd::Vec<EdgeElkLayoutData> edges;
+    hstd::Vec<Port>              ports;
+    hstd::Vec<Label>             labels;
 
     BOOST_DESCRIBE_CLASS(
         GraphElkLayoutData,
@@ -453,7 +498,8 @@ class ElkLayoutAlgorithm : public layout::IPlacementAlgorithm {
 
         std::string layoutDiagram(std::string const& graphJson);
         elk::GraphElkLayoutData layoutDiagram(
-            elk::GraphElkLayoutData const& graph);
+            elk::GraphElkLayoutData const&       graph,
+            hstd::SPtr<layout::LayoutRun> const& run);
     };
 
     hstd::SPtr<Manager> manager;
@@ -461,7 +507,9 @@ class ElkLayoutAlgorithm : public layout::IPlacementAlgorithm {
     ElkLayoutAlgorithm(
         hstd::SPtr<layout::LayoutRun> const& run,
         hstd::SPtr<Manager> const&           manager)
-        : layout::IPlacementAlgorithm{run} {}
+        : layout::IPlacementAlgorithm{run}, manager{manager} {
+        hstd::logic_assertion_check_not_nil(manager);
+    }
 
   public:
     Result runSingleLayout(VertexID const& group) override;
@@ -476,18 +524,30 @@ class ElkLayoutAlgorithm : public layout::IPlacementAlgorithm {
 
 } // namespace hstd::ext::graph::elk
 
+template <>
+struct hstd::value_metadata<hstd::ext::graph::elk::Options> {
+    static bool isNil(hstd::ext::graph::elk::Options const& opts) {
+        return opts.data.is_null();
+    }
+
+    static bool isEmpty(hstd::ext::graph::elk::Options const& opts) {
+        return isNil(opts)
+            || ((opts.data.is_array() || opts.data.is_object())
+                && opts.data.size() == 0)
+            || (opts.data.is_string()
+                && opts.data.get_ref<const std::string&>().size() == 0);
+    }
+};
 
 #define SPECIALIZE_WO_NULL_FIELDS(__name)                                 \
     template <>                                                           \
     struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                 \
         : hstd::JsonSerdeDescribedRecordBaseEx<                           \
-              hstd::ext::graph::elk::__name,                              \
-              false> {};
+              hstd::ext::graph::elk::__name> {};
 
 SPECIALIZE_WO_NULL_FIELDS(GraphElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(PortProperties);
 SPECIALIZE_WO_NULL_FIELDS(NodeProperties);
-SPECIALIZE_WO_NULL_FIELDS(Point);
 SPECIALIZE_WO_NULL_FIELDS(Port);
 SPECIALIZE_WO_NULL_FIELDS(EdgeSection);
 SPECIALIZE_WO_NULL_FIELDS(EdgeElkLayoutData);
@@ -500,5 +560,15 @@ struct hstd::JsonSerde<hstd::ext::graph::elk::Options> {
     }
     static hstd::ext::graph::elk::Options from_json(json const& j) {
         return {j};
+    }
+};
+
+template <>
+struct std::formatter<hstd::ext::graph::elk::Options> {
+    template <typename FormatContext>
+    auto format(
+        hstd::ext::graph::elk::Options const& p,
+        FormatContext&                        ctx) const {
+        return hstd::fmt_ctx(p.data, ctx);
     }
 };

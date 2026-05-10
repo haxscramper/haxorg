@@ -2,6 +2,8 @@
 
 struct GraphVisualElk_Test : public GraphUtils_Test {};
 
+geometry::Size size{50, 50};
+
 TEST_F(GraphVisualElk_Test, GraphvizSimpleConstruction) {
     // Create initial graph structure
     auto v1 = addVertex("v1");
@@ -22,13 +24,23 @@ TEST_F(GraphVisualElk_Test, GraphvizSimpleConstruction) {
     auto root = elk::GroupVisual::newRootGraph(run);
     run->addRootGroup(rg_id, root);
 
-    root->addVertex(rg_id, v1);
-    root->addVertex(rg_id, v2);
-    root->addVertex(rg_id, v3);
-    root->addVertex(rg_id, v4);
+    root->addVertex(rg_id, v1)->setSize(size);
+    root->addVertex(rg_id, v2)->setSize(size);
+    root->addVertex(rg_id, v3)->setSize(size);
+    root->addVertex(rg_id, v4)->setSize(size);
     root->addEdge(e12);
     root->addEdge(e23);
     root->addEdge(e31);
 
     run->runFullLayout();
+
+    hstd::writeFile(
+        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }

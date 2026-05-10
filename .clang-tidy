@@ -1,5 +1,5 @@
 ---
-Checks:          '-clang-analyzer-core.CallAndMessage,bugprone-argument-comment'
+Checks:          '-clang-analyzer-core.CallAndMessage,bugprone-argument-comment,modernize-use-ranges'
 WarningsAsErrors: true
 HeaderFilterRegex: ''
 FormatStyle:     google
