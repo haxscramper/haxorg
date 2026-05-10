@@ -9,13 +9,13 @@ using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
-void elk::validate(elk::Graph const& graph) {
+void elk::validate(elk::GraphElkLayoutData const& graph) {
     std::unordered_set<hstd::Str> node_ids;
     std::unordered_set<hstd::Str> port_ids;
     std::unordered_set<hstd::Str> edge_ids;
 
-    std::function<void(Node const&)> collect_node_ids =
-        [&](Node const& node) {
+    std::function<void(NodeElkLayoutData const&)> collect_node_ids =
+        [&](NodeElkLayoutData const& node) {
             if (node.id.empty()) {
                 throw std::runtime_error("Empty node ID");
             }
@@ -26,15 +26,12 @@ void elk::validate(elk::Graph const& graph) {
             }
             node_ids.insert(node.id);
 
-            if (node.ports) {
-                for (const auto& port : *node.ports) {
-                    if (port_ids.contains(port.id)) {
-                        throw std::runtime_error(
-                            std::format(
-                                "Duplicate port id: '{}'", node.id));
-                    }
-                    port_ids.insert(port.id);
+            for (const auto& port : node.ports) {
+                if (port_ids.contains(port.id)) {
+                    throw std::runtime_error(
+                        std::format("Duplicate port id: '{}'", node.id));
                 }
+                port_ids.insert(port.id);
             }
 
             for (const auto& child : node.children) {
@@ -54,9 +51,10 @@ void elk::validate(elk::Graph const& graph) {
         }
     }
 
-    std::function<void(std::optional<std::vector<Edge>> const&)>
-        validate_edges = [&](std::optional<std::vector<Edge>> const&
-                                 edges) {
+    std::function<void(
+        std::optional<std::vector<EdgeElkLayoutData>> const&)>
+        validate_edges = [&](std::optional<std::vector<
+                                 EdgeElkLayoutData>> const& edges) {
             if (!edges) { return; }
 
             for (const auto& edge : *edges) {
@@ -139,9 +137,9 @@ void elk::validate(elk::Graph const& graph) {
 
     validate_edges(graph.edges);
 
-    std::function<void(Node const&)> validate_node_edges =
-        [&](Node const& node) {
-            if (node.edges) { validate_edges(node.edges); }
+    std::function<void(NodeElkLayoutData const&)> validate_node_edges =
+        [&](NodeElkLayoutData const& node) {
+            validate_edges(node.edges);
             for (const auto& child : node.children) {
                 validate_node_edges(child);
             }
@@ -151,7 +149,7 @@ void elk::validate(elk::Graph const& graph) {
 }
 
 
-std::string elk::ElkLayoutManager::layoutDiagram(
+std::string elk::ElkLayoutAlgorithm::Manager::layoutDiagram(
     std::string const& graphJson) {
     LOGIC_ASSERTION_CHECK(
         elkEngine->isInitialized(),
@@ -160,12 +158,112 @@ std::string elk::ElkLayoutManager::layoutDiagram(
     return elkEngine->performLayout(graphJson);
 }
 
-elk::Graph elk::ElkLayoutManager::layoutDiagram(elk::Graph const& graph) {
+elk::GraphElkLayoutData elk::ElkLayoutAlgorithm::Manager::layoutDiagram(
+    elk::GraphElkLayoutData const& graph) {
     json serial = hstd::to_json_eval(graph);
     HSLOG_TRACE("{}", serial.dump(2));
     elk::validate(graph);
     std::string tmp    = serial.dump();
     auto        layout = layoutDiagram(tmp);
     HSLOG_TRACE("{}", layout);
-    return hstd::from_json_eval<elk::Graph>(json::parse(layout));
+    return hstd::from_json_eval<elk::GraphElkLayoutData>(
+        json::parse(layout));
+}
+
+namespace {
+
+elk::EdgeElkLayoutData gen_node_structure(
+    hstd::SPtr<layout::LayoutRun> const& run,
+    EdgeID const&                        edge) {
+    return *run->getEdgeVisualAttribute<elk::EdgeVisual>(edge);
+}
+
+elk::NodeElkLayoutData gen_node_structure(
+    hstd::SPtr<layout::LayoutRun> const&    run,
+    hstd::UnorderedMap<hstd::Str, VertexID> layout_switch_nodes,
+    VertexID const&                         id,
+    hstd::Opt<VertexID> const&              parent) {
+    auto group = run->getGroup(id);
+    if (group->hasAlgorithm()) {
+        run->message(
+            hstd::fmt(
+                "group '{}' has layout algorithm set",
+                group->getStableId()));
+        auto recursiveBBox = run->getLayout(id)->getBBox();
+        auto id_text       = hstd::fmt("tmp-subgraph-node-{}", id);
+        layout_switch_nodes.insert_or_assign(id_text, id);
+
+        elk::NodeElkLayoutData res;
+        res.id = id_text;
+        res.setSize(recursiveBBox.width(), recursiveBBox.height());
+        return res;
+    } else {
+        auto gv_group = hstd::validated_dynamic_cast<elk::GroupVisual>(
+            group);
+        LOGIC_ASSERTION_CHECK(
+            gv_group != nullptr,
+            "Nested subgroup without layout algorithm must be an "
+            "instance of gv::GroupVisual");
+
+        elk::NodeElkLayoutData res;
+        auto                   __scope = run->scopeLevel();
+        for (auto const& sub : run->getSubGroups(id)) {
+            res.children.push_back(
+                gen_node_structure(run, layout_switch_nodes, sub, id));
+        }
+
+        for (auto const& edge : run->getDirectlyNestedEdges(id)) {
+            res.edges.push_back(gen_node_structure(run, edge));
+        }
+
+        return res;
+    }
+};
+} // namespace
+
+hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
+    elk::ElkLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
+    GraphElkLayoutData full_graph;
+    full_graph.x      = this->x;
+    full_graph.y      = this->y;
+    full_graph.width  = this->width;
+    full_graph.height = this->height;
+    full_graph.opts   = this->opts;
+
+    hstd::UnorderedMap<hstd::Str, VertexID> layout_switch_nodes;
+
+
+    {
+        run->message("collecting nodes for the graphviz layout");
+
+        for (auto const& sub : run->getSubGroups(root_id)) {
+            full_graph.children.push_back(gen_node_structure(
+                run, layout_switch_nodes, root_id, std::nullopt));
+        }
+
+        for (auto const& edge : run->getDirectlyNestedEdges(root_id)) {
+            full_graph.edges->push_back(gen_node_structure(run, edge));
+        }
+    }
+
+
+    Result res;
+
+    manager->layoutDiagram(full_graph);
+
+    return res;
+}
+
+hstd::SPtr<elk::GroupVisual> hstd::ext::graph::elk::GroupVisual::
+    newRootGraph(
+        hstd::SPtr<layout::LayoutRun> run,
+        hstd::Str const&              name) {
+
+    auto result = std::make_shared<elk::GroupVisual>(
+        std::make_shared<elk::GroupVisual::SharedCtx>(run), name);
+
+    result->algorithm = std::make_shared<elk::ElkLayoutAlgorithm>(
+        run, std::make_shared<ElkLayoutAlgorithm::Manager>());
+
+    return result;
 }

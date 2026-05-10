@@ -290,15 +290,22 @@ struct JsonSerde<std::shared_ptr<T>> {
     }
 };
 
-template <DescribedRecord T, bool WithNullFields>
+template <
+    DescribedRecord T,
+    bool            WithNullFields  = false,
+    bool            WithEmptyFields = false>
 struct JsonSerdeDescribedRecordBaseEx {
     static json to_json(T const& obj) {
         json result = json::object();
 
         hstd::for_each_field_value_with_bases(
             obj, [&]<typename F>(char const* name, F const& value) {
-                if (WithNullFields
-                    || !hstd::value_metadata<F>::isNil(value)) {
+                if (!hstd::value_metadata<F>::isNil(value)
+                    || !hstd::value_metadata<F>::isEmpty(value)
+                    || (hstd::value_metadata<F>::isNil(value)
+                        && WithNullFields)
+                    || (hstd::value_metadata<F>::isEmpty(value)
+                        && WithEmptyFields)) {
                     result[name] = JsonSerde<
                         std::remove_cvref_t<F>>::to_json(value);
                 }

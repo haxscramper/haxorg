@@ -179,7 +179,6 @@ class ColaGroup
             parent, id, geometry::Rect(0, 0, size.width(), size.height()));
     }
 
-
     hstd::SPtr<ColaEdgeAttribute> addEdge(EdgeID const& id) {
         auto res = std::make_shared<ColaEdgeAttribute>();
         get_run()->addEdge(id, res);

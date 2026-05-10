@@ -5,6 +5,7 @@
 #include <hstd/ext/graph/graph_graphviz.hpp>
 #include <hstd/ext/graph/graph_cola.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
+#include <hstd/ext/graph/graph_elk.hpp>
 
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
