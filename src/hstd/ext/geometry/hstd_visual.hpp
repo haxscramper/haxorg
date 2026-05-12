@@ -282,7 +282,7 @@ struct VisElement {
 
     static VisElement FromText(
         hstd::Str const&    content,
-        Point const&        anchor,
+        Point const&        anchor      = Point(0, 0),
         VisFont const&      font        = VisFont{},
         VisTextAlign const& alignment   = VisTextAlign{},
         hstd::Opt<Rect>     boundingBox = hstd::Opt<Rect>{},

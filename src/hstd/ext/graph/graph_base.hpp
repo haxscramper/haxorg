@@ -1570,8 +1570,13 @@ class IPortLayoutAttribute : public ILayoutAttribute {
     virtual Rect             getBBox() const = 0;
     virtual visual::VisGroup getVisual(PortID const& selfId) const {
         visual::VisGroup res;
+        auto             bb = getBBox();
+        res.offset          = bb.upper_left();
+        res.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE PORT:{}", selfId));
         res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+            visual::VisElement{visual::VisElement::RectShape{
+                geometry::Rect::FromSize(bb.size())}});
         return res;
     }
 };

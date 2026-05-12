@@ -118,6 +118,20 @@ struct Point : public bg::model::d2::point_xy<double> {
 };
 
 
+struct Size : public Point {
+    using Point::Point;
+    double width() const { return this->x(); }
+    double height() const { return this->y(); }
+
+    Size operator/(double other) const {
+        return Size(x() / other, y() / other);
+    }
+
+    Size operator*(double other) const {
+        return Size(x() * other, y() * other);
+    }
+};
+
 struct Rect;
 } // namespace hstd::ext::geometry
 
@@ -339,6 +353,10 @@ struct Rect : bg::model::box<Point> {
         return Rect(center.x() - w / 2, center.y() - h / 2, w, h);
     }
 
+    static Rect FromSize(Size const& s) {
+        return Rect(0, 0, s.width(), s.height());
+    }
+
     static Rect FromUpperLeftWH(Point const& ul, double w, double h) {
         return Rect(ul.x(), ul.y(), w, h);
     }
@@ -371,6 +389,8 @@ struct Rect : bg::model::box<Point> {
         return bg::get<bg::max_corner, 1>(*this)
              - bg::get<bg::min_corner, 1>(*this);
     }
+
+    Size size() const { return Size{width(), height()}; }
 
     Rect operator/(double other) const {
         return Rect(
@@ -453,19 +473,6 @@ struct indexed_access<hstd::ext::geometry::Rect, max_corner, Dimension> {
 
 namespace hstd::ext::geometry {
 
-struct Size : public Point {
-    using Point::Point;
-    double width() const { return this->x(); }
-    double height() const { return this->y(); }
-
-    Size operator/(double other) const {
-        return Size(x() / other, y() / other);
-    }
-
-    Size operator*(double other) const {
-        return Size(x() * other, y() * other);
-    }
-};
 
 struct Path {
     DECL_DESCRIBED_ENUM(

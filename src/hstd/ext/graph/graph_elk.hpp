@@ -500,12 +500,16 @@ class ElkNodeLayoutAttribute
 
     visual::VisGroup getVisual(VertexID const& selfId) const override {
         visual::VisGroup res;
+        auto             bb = getBBox();
+        res.offset          = bb.upper_left();
         res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+            visual::VisElement{visual::VisElement::RectShape{
+                geometry::Rect::FromSize(bb.size())}});
+
         res.elements.push_back(
             visual::VisElement::FromText(
-                run->getGraph()->getVertex(selfId)->getStableId(),
-                getBBox().upper_left()));
+                run->getGraph()->getVertex(selfId)->getStableId()));
+
         res.custom.setAttr(
             "inkscape:label",
             hstd::fmt("ELK VERTEX:{}", run->getDebug(selfId)));
