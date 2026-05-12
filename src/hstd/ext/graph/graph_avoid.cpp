@@ -113,8 +113,8 @@ void add_ports(
         auto s_pid = lp->addPort(run->graph->getSource(eid), eid, true);
         auto e_pid = lp->addPort(run->graph->getTarget(eid), eid, false);
         run->message(hstd::fmt("added ports {} {}", s_pid, e_pid));
-        auto s_port = lp->getmPort(s_pid);
-        auto e_port = lp->getmPort(e_pid);
+        auto s_port = lp->getMPort(s_pid);
+        auto e_port = lp->getMPort(e_pid);
         hstd::logic_assertion_check_not_nil(s_port);
         hstd::logic_assertion_check_not_nil(e_port);
 
@@ -133,7 +133,7 @@ void add_ports(
     for (auto const& vert : vertex_set) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
                    | rv::transform([&](PortID pid) -> IPort* {
-                         return lp->getmPort(pid);
+                         return lp->getMPort(pid);
                      })
                    | rs::to<hstd::Vec>;
 

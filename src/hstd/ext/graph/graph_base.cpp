@@ -192,6 +192,16 @@ void IGraph::addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
 void IGraph::delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
     hierarchies.erase(hierarchy->getHierarchyId());
 }
+void hstd::ext::graph::IGraph::delPorts(
+    hstd::SPtr<IPortCollection> const& collection) {
+    ports.erase(collection->getCategory());
+}
+
+void hstd::ext::graph::IGraph::addPorts(
+    hstd::SPtr<IPortCollection> const& collection) {
+    ports.insert_unqiue(collection->getCategory(), collection);
+}
+
 
 bool hstd::ext::graph::IGraph::hasCollection(
     hstd::SPtr<IEdgeCollection> const& collection) {
@@ -258,6 +268,11 @@ void IGraph::untrackSubVertexRelation(
     VertexID const&         sub) {
     hierarchies.at(hierarchy)->untrackSubVertexRelation(parent, sub);
 }
+hstd::ext::graph::PortCollectionID hstd::ext::graph::IGraph::
+    getPortCollectionID(PortID const& id) const {
+    return PortCollectionID{hstd::u16(id.getMask())};
+}
+
 
 void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
@@ -698,12 +713,7 @@ std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
 
 std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
     EdgeIDSet const& vert) const {
-    return hstd::fmt1(
-        hstd::own_view(hstd::sorted(vert.items()))
-        | hstd::rv::transform([&](EdgeID const& id) -> std::string {
-              return getDebugEdgeFormat(id);
-          })
-        | hstd::rs::to<hstd::Vec>());
+    return getDebugEdgeFormat(hstd::sorted(vert.items()));
 }
 
 std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
@@ -715,6 +725,20 @@ std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
         | hstd::rs::to<hstd::Vec>());
 }
 
+
+std::string hstd::ext::graph::IGraph::getDebugPortFormat(
+    PortIDVec const& vert) const {
+    return hstd::fmt1(
+        vert | hstd::rv::transform([&](PortID const& id) -> std::string {
+            return getDebugPortFormat(id);
+        })
+        | hstd::rs::to<hstd::Vec>());
+}
+
+std::string hstd::ext::graph::IGraph::getDebugPortFormat(
+    PortIDSet const& vert) const {
+    return getDebugPortFormat(hstd::sorted(vert.items()));
+}
 
 std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
     VertexID const& vert) const {
@@ -730,6 +754,18 @@ std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
         getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
         getDebugVertexFormat(getSource(edge)),
         getDebugVertexFormat(getTarget(edge)));
+}
+
+std::string hstd::ext::graph::IGraph::getDebugPortFormat(
+    PortID const& port) const {
+    auto coll = getPortCollection(port);
+    return hstd::fmt(
+        "port {} ({}) connecting {} to {} as {}",
+        port,
+        getPort(port) ? getPort(port)->getStableId() : "nullptr",
+        getDebugEdgeFormat(coll->getEdgeForPort(port)),
+        getDebugVertexFormat(coll->getVertexForPort(port)),
+        coll->isSourcePort(port) ? "start" : "end");
 }
 
 

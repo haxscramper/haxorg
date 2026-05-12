@@ -591,7 +591,6 @@ class IPortCollection {
   protected:
     PortContainer ports;
 
-
     auto getPortIterator(PortID const& pid) const {
         auto& idx = ports.get<ByPortID>();
         auto  it  = idx.find(pid);
@@ -629,7 +628,7 @@ class IPortCollection {
     virtual PortCollectionID getCategory() const       = 0;
     virtual IPort const*     getPort(PortID pid) const = 0;
 
-    IPort* getmPort(PortID pid) {
+    IPort* getMPort(PortID pid) {
         return const_cast<IPort*>(std::as_const(*this).getPort(pid));
     }
 
@@ -720,7 +719,7 @@ class TrivialPortCollection : public IPortCollection {
     }
 
     PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
-        auto id = portStore.add(TrivialPort{});
+        auto id = portStore.add(TrivialPort{}, getCategory().t);
         IPortCollection::addPort(vertex, edge, is_start, id);
         return id;
     }
@@ -1201,6 +1200,8 @@ class IGraph {
   protected:
     hstd::UnorderedMap<EdgeCollectionID, hstd::SPtr<IEdgeCollection>>
         collections;
+    hstd::UnorderedMap<PortCollectionID, hstd::SPtr<IPortCollection>>
+        ports;
     hstd::UnorderedMap<AttributeTrackerID, hstd::SPtr<IAttributeTracker>>
         trackers;
     hstd::UnorderedMap<GraphHierarchyID, hstd::SPtr<IVertexHierarchy>>
@@ -1224,6 +1225,8 @@ class IGraph {
     void delCollection(hstd::SPtr<IEdgeCollection> const& collection);
     void addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
     void delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
+    void addPorts(hstd::SPtr<IPortCollection> const& collection);
+    void delPorts(hstd::SPtr<IPortCollection> const& collection);
 
     bool hasCollection(hstd::SPtr<IEdgeCollection> const& collection);
     bool hasHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
@@ -1376,6 +1379,34 @@ class IGraph {
         VertexID const&         sub);
     /// @}
 
+    /// \name Ports
+    /// @{
+    PortCollectionID getPortCollectionID(PortID const& id) const;
+    hstd::SPtr<IPortCollection> getPortCollection(PortID const& id) const {
+        return ports.at(getPortCollectionID(id));
+    }
+
+    virtual IPort const* getPort(PortID const& id) const {
+        return getPortCollection(id)->getPort(id);
+    }
+
+    virtual IPort* getMPort(PortID const& id) const {
+        return const_cast<IPort*>(getPort(id));
+    }
+
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T const* getCastPort(PortID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getPort(id));
+    }
+
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T* getCastMPort(PortID const& id) const {
+        return hstd::validated_dynamic_cast<T>(getMPort(id));
+    }
+    /// @}
+
     struct SerialSchema {
         struct EdgeCategory {
             hstd::Vec<json> edges;
@@ -1428,10 +1459,15 @@ class IGraph {
 
     std::string getDebugVertexFormat(VertexIDSet const& vert) const;
     std::string getDebugVertexFormat(VertexIDVec const& vert) const;
+    std::string getDebugVertexFormat(VertexID const& vert) const;
+
     std::string getDebugEdgeFormat(EdgeIDSet const& vert) const;
     std::string getDebugEdgeFormat(EdgeIDVec const& vert) const;
-    std::string getDebugVertexFormat(VertexID const& vert) const;
     std::string getDebugEdgeFormat(EdgeID const& edge) const;
+
+    std::string getDebugPortFormat(PortID const& port) const;
+    std::string getDebugPortFormat(PortIDVec const& vert) const;
+    std::string getDebugPortFormat(PortIDSet const& vert) const;
 };
 
 
@@ -1646,12 +1682,12 @@ class LayoutRun : public OperationsTracer {
         EdgeCollectionID   edges_id = EdgeCollectionID{9999})
         : graph{graph}
         , groups{std::make_shared<IdOnlyHierarchy>()}
-        , edges{std::make_shared<TrivialEdgeCollection>(edges_id)} {
+        , edges{std::make_shared<TrivialEdgeCollection>(edges_id)}
+        , ports{std::make_shared<TrivialPortCollection>()} {
+        hstd::logic_assertion_check_not_nil(graph);
         graph->addCollection(edges);
         graph->addHierarchy(groups);
-        hstd::logic_assertion_check_not_nil(graph);
-        hstd::logic_assertion_check_not_nil(groups);
-        hstd::logic_assertion_check_not_nil(edges);
+        graph->addPorts(ports);
     }
 
     void runFullLayout();
@@ -1724,6 +1760,13 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<T> getVertexVisualAttribute(VertexID const& id) const {
         return graph->getVertex(id)->getUniqueAttribute<T>(
             graph->getDebugVertexFormat(id));
+    }
+
+    template <typename T = IPortVisualAttribute>
+        requires std::derived_from<T, IPortVisualAttribute>
+    hstd::SPtr<T> getPortVisualAttribute(PortID const& id) const {
+        return graph->getPort(id)->getUniqueAttribute<T>(
+            graph->getDebugPortFormat(id));
     }
 
     template <typename T = IAttribute>
@@ -1954,6 +1997,34 @@ class LayoutRun : public OperationsTracer {
         auto edge = getGraph()->getMEdge(id);
         edge->addUniqueAttribute(attr);
         edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
+    }
+
+
+    PortID addPort(
+        VertexID const&                         v,
+        EdgeID const&                           e,
+        bool                                    is_start,
+        hstd::SPtr<IPortVisualAttribute> const& attr) {
+        if (is_start) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                edges->getSource(e) == v,
+                "start({}) is {}, attempting to use {}",
+                getDebug(e),
+                getDebug(edges->getSource(e)),
+                getDebug(v));
+        } else {
+            LOGIC_ASSERTION_CHECK_FMT(
+                edges->getTarget(e) == v,
+                "target({}) is {}, attempting to use {}",
+                getDebug(e),
+                getDebug(edges->getTarget(e)),
+                getDebug(v));
+        }
+
+        auto res  = ports->addPort(v, e, is_start);
+        auto edge = getGraph()->getMPort(res);
+        edge->addUniqueAttribute(attr);
+        return res;
     }
 
     hstd::SPtr<IGraph> getGraph() const {

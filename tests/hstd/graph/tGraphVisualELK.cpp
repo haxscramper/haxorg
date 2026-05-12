@@ -172,6 +172,13 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     root->addEdge(e_scale2_plotter);
     root->addEdge(e_ramp2_scape2);
 
+    root->addPort(a_id, e_a_merge, true);
+    root->addPort(merge2_id, e_a_merge, false);
+    root->addPort(b_id, e_b_merge, true);
+    root->addPort(merge2_id, e_b_merge, false);
+    root->addPort(merge2_id, e_merge_server, true);
+    root->addPort(server_id, e_merge_server, false);
+
     run->runFullLayout();
 
     hstd::writeFile(

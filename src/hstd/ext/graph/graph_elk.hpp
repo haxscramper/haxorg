@@ -444,6 +444,15 @@ class ElkGroupVisualAttribute
             get_run()->edges->hasEdge(id), get_run()->getDebug(id));
         return res;
     }
+
+    hstd::SPtr<ElkPortVisualAttribute> addPort(
+        VertexID const& v,
+        EdgeID const&   e,
+        bool            is_start) {
+        auto res = std::make_shared<ElkPortVisualAttribute>();
+        auto id  = get_run()->addPort(v, e, is_start, res);
+        return res;
+    }
 };
 
 class ElkNodeLayoutAttribute

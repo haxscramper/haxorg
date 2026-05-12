@@ -25,6 +25,17 @@ struct MapBase : public CRTP_this_method<Map> {
         return _this()->at(key);
     }
 
+    void insert_unqiue(K const& key, V const& value) {
+        if (contains(key)) {
+            throw hstd::key_error::init(
+                hstd::fmt(
+                    "key {} already present in the map",
+                    hstd::fmt1_maybe(key)));
+        } else {
+            _this()->insert_or_assign(key, value);
+        }
+    }
+
     std::optional<V> pop_opt(K const& key) {
         auto res = get(key);
         if (res) { _this()->erase(key); }
