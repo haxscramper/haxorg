@@ -9,7 +9,9 @@
 #include <hstd/ext/graph/graph_vpsc.hpp>
 namespace hstd::ext::graph::cst {
 
-class AvoidPort : public IPort {
+class AvoidPort
+    : public IPort
+    , public virtual TrivialAttributeObject {
   public:
     std::size_t getHash() const override { return 0; }
 
@@ -18,21 +20,6 @@ class AvoidPort : public IPort {
     }
 
     std::string getRepr() const override { return ""; }
-
-    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
-
-    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
-        attrs.push_back(attr);
-    }
-
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
-        this->attrs = attrs;
-    }
 };
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {

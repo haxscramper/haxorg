@@ -193,7 +193,7 @@ class Label {
         ());
 };
 
-class Port {
+class ElkPortData {
   public:
     hstd::Str                 id;
     hstd::Opt<double>         x;
@@ -205,11 +205,52 @@ class Port {
     Options                   layoutOptions;
 
     BOOST_DESCRIBE_CLASS(
-        Port,
+        ElkPortData,
         (),
         (id, x, y, width, height, labels, properties, layoutOptions),
         (),
         ());
+};
+
+class ElkPort
+    : public IPort
+    , public ElkPortData
+    , public virtual TrivialAttributeObject {
+  public:
+    std::size_t getHash() const override {
+        std::size_t res;
+        hstd::hax_hash_combine(res, id);
+        return res;
+    }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return other->isInstance<ElkPort>()
+            && dynamic_cast<ElkPort const*>(other)->id == this->id;
+    }
+
+    std::string getRepr() const override {
+        return hstd::fmt1(static_cast<ElkPortData const&>(*this));
+    }
+};
+
+class ElkPortCollection : public IPortCollection {
+    hstd::UnorderedIncrementalStore<PortID, ElkPort> portStore;
+
+  public:
+    PortCollectionID getCategory() const override {
+        return hstd::ext::graph::PortCollectionID(
+            hstd::hash_bits<15>(typeid(this).hash_code()));
+    }
+
+    const IPort* getPort(PortID pid) const override {
+        return &portStore.at(pid);
+    }
+
+    PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
+        auto id = portStore.add(ElkPort{});
+        IPortCollection::addPort(vertex, edge, is_start, id);
+        return id;
+    }
 };
 
 class EdgeSection {
@@ -300,7 +341,7 @@ class NodeElkLayoutData {
     hstd::Opt<double>            width;
     hstd::Opt<double>            height;
     hstd::Opt<hstd::Str>         type;
-    hstd::Vec<Port>              ports;
+    hstd::Vec<ElkPortData>       ports;
     hstd::Vec<Label>             labels;
     hstd::Vec<NodeElkLayoutData> children;
     hstd::Vec<EdgeElkLayoutData> edges;
@@ -489,7 +530,7 @@ class GraphElkLayoutData {
     Options                      layoutOptions;
     hstd::Vec<NodeElkLayoutData> children;
     hstd::Vec<EdgeElkLayoutData> edges;
-    hstd::Vec<Port>              ports;
+    hstd::Vec<ElkPortData>       ports;
     hstd::Vec<Label>             labels;
 
     BOOST_DESCRIBE_CLASS(
@@ -584,7 +625,7 @@ struct hstd::value_metadata<hstd::ext::graph::elk::Options> {
 SPECIALIZE_WO_NULL_FIELDS(GraphElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(PortProperties);
 SPECIALIZE_WO_NULL_FIELDS(NodeProperties);
-SPECIALIZE_WO_NULL_FIELDS(Port);
+SPECIALIZE_WO_NULL_FIELDS(ElkPortData);
 SPECIALIZE_WO_NULL_FIELDS(EdgeSection);
 SPECIALIZE_WO_NULL_FIELDS(EdgeElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(NodeElkLayoutData);

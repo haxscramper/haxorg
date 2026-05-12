@@ -402,10 +402,27 @@ class IAttributeObject {
     }
 };
 
+class TrivialAttributeObject : public virtual IAttributeObject {
+  public:
+    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
+        return attrs;
+    }
+
+    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
+        attrs.push_back(attr);
+    }
+
+    void setAttributes(
+        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+        this->attrs = attrs;
+    }
+};
 
 struct IVertex
     : public IGraphObjectBase
-    , public IAttributeObject {
+    , public virtual IAttributeObject {
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
@@ -467,8 +484,8 @@ struct TrivialVertex : public IVertex {
 
 
 struct IEdge
-    : public IGraphObjectBase
-    , public IAttributeObject {
+    : public virtual IGraphObjectBase
+    , public virtual IAttributeObject {
     using id_type = EdgeID;
 
     DESC_FIELDS(IEdge, ());
@@ -492,17 +509,10 @@ struct IEdge
     }
 };
 
-struct TrivialEdge : public IEdge {
+struct TrivialEdge
+    : public IEdge
+    , public virtual TrivialAttributeObject {
     using IEdge::IEdge;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
-
-    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
-        attrs.push_back(attr);
-    }
 
     hstd::Opt<hstd::Str> stableIdOverride;
     std::string          getStableId() const override {
@@ -512,12 +522,6 @@ struct TrivialEdge : public IEdge {
             return IEdge::getStableId();
         }
     }
-
-  public:
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
-        this->attrs = attrs;
-    }
 };
 
 /// \brief Connection port or edge grouping port
@@ -526,7 +530,7 @@ struct TrivialEdge : public IEdge {
 /// by the layout run. Semantic graph
 struct IPort
     : public IGraphObjectBase
-    , public IAttributeObject {
+    , public virtual IAttributeObject {
     using id_type = PortID;
     DESC_FIELDS(IPort, ());
 };
