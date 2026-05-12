@@ -50,6 +50,29 @@ class GraphUtils_Test : public ::testing::Test {
         return res;
     }
 
+    PortID addPort(
+        VertexID const&  v,
+        EdgeID const&    e,
+        bool             is_start,
+        hstd::Str const& id_override) {
+        auto res = run->ports->addPort(v, e, is_start);
+        graph->getCastMPort<TrivialPort>(res)
+            ->stableIdOverride = id_override;
+        return res;
+    }
+
+    PortID addPort(VertexID const& v, EdgeID const& e, bool is_start) {
+        return addPort(
+            v,
+            e,
+            is_start,
+            hstd::fmt(
+                "P-{}-{}-{}",
+                graph->getVertex(v)->getStableId(),
+                graph->getEdge(e)->getStableId(),
+                is_start ? "s" : "e"));
+    }
+
     EdgeID addEdge(
         VertexID const&  source,
         VertexID const&  target,

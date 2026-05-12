@@ -46,6 +46,7 @@ Terminology used
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include "hstd/stdlib/Debug.hpp"
 #include "hstd/stdlib/TraceBase.hpp"
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
@@ -539,6 +540,15 @@ class TrivialPort
     : public IPort
     , public virtual TrivialAttributeObject {
   public:
+    hstd::Opt<hstd::Str> stableIdOverride;
+    std::string          getStableId() const override {
+        if (stableIdOverride) {
+            return stableIdOverride.value();
+        } else {
+            return IPort::getStableId();
+        }
+    }
+
     std::size_t getHash() const override { return 0; }
 
     bool isEqual(IGraphObjectBase const* other) const override {
@@ -549,14 +559,17 @@ class TrivialPort
 };
 
 class IPortCollection {
+  public:
     struct PortEntry {
         VertexID vertex;
         EdgeID   edge;
         /// \brief To distinguish edge ports in case of self-loops.
         bool   is_source;
         PortID port;
+        DESC_FIELDS(PortEntry, (vertex, edge, is_source, port));
     };
 
+  private:
     // Tags for each index
     struct ByCompositeKey {};
     struct ByPortID {};
@@ -591,6 +604,7 @@ class IPortCollection {
   protected:
     PortContainer ports;
 
+
     auto getPortIterator(PortID const& pid) const {
         auto& idx = ports.get<ByPortID>();
         auto  it  = idx.find(pid);
@@ -624,6 +638,13 @@ class IPortCollection {
   public:
     virtual ~IPortCollection() = default;
 
+    hstd::Vec<PortEntry> getAllEntries() const {
+        hstd::Vec<PortEntry> res;
+        for (auto const& e : ports) { res.push_back(e); }
+        return res;
+    }
+
+
     /// \brief Check if the collection has port
     virtual PortCollectionID getCategory() const       = 0;
     virtual IPort const*     getPort(PortID pid) const = 0;
@@ -644,11 +665,11 @@ class IPortCollection {
         return getPortIterator(pid)->is_source;
     }
 
-    hstd::Vec<PortID> getPortsForVertex(VertexID vid) const {
+    PortIDSet getPortsForVertex(VertexID vid) const {
         auto& idx         = ports.get<ByVertexID>();
         auto [begin, end] = idx.equal_range(vid);
-        hstd::Vec<PortID> result;
-        for (; begin != end; ++begin) { result.push_back(begin->port); }
+        PortIDSet result;
+        for (; begin != end; ++begin) { result.incl(begin->port); }
         return result;
     }
 
@@ -1605,6 +1626,7 @@ class IPlacementAlgorithm {
         hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>> edges;
         hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
             vertices;
+        hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>> ports;
     };
 
     hstd::SPtr<LayoutRun> run;
@@ -1741,6 +1763,19 @@ class LayoutRun : public OperationsTracer {
         return hstd::validated_dynamic_cast<T>(graph->getMEdge(id));
     }
 
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T const* getPort(PortID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return hstd::validated_dynamic_cast<T>(ports->getPort(id));
+    }
+
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T* getMPort(PortID const& id) {
+        return hstd::validated_dynamic_cast<T>(ports->getMPort(id));
+    }
+
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     hstd::SPtr<T> getGroup(VertexID const& id) const {
@@ -1794,6 +1829,14 @@ class LayoutRun : public OperationsTracer {
                 "{}",
                 getDebug(id),
                 getDebug(groups->getSubVertices(id)));
+        }
+        return res;
+    }
+
+    PortIDSet getDirectPorts(VertexID const& id) const {
+        PortIDSet res;
+        for (auto const& v : getDirectVertices(id)) {
+            res.incl(ports->getPortsForVertex(v));
         }
         return res;
     }
@@ -2037,6 +2080,17 @@ class LayoutRun : public OperationsTracer {
         return graph->getVertex(id);
     }
 
+    template <typename T = IPortLayoutAttribute>
+        requires std::derived_from<T, IPortLayoutAttribute>
+    hstd::SPtr<T> getLayout(PortID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.ports.contains(id),
+            "No layout attribute specified for Port {}",
+            graph->getDebugPortFormat(id));
+
+        return hstd::validated_dynamic_cast<T>(result.ports.at(id));
+    }
+
     template <typename T = IEdgeLayoutAttribute>
         requires std::derived_from<T, IEdgeLayoutAttribute>
     hstd::SPtr<T> getLayout(EdgeID const& id) const {
@@ -2092,6 +2146,10 @@ class LayoutRun : public OperationsTracer {
 
     hstd::Vec<visual::VisGroup> getVisual() const;
 
+    visual::VisGroup getVisual(PortID const& id) const {
+        return getLayout(id)->getVisual(id);
+    }
+
     visual::VisGroup getVisual(EdgeID const& id) const {
         return getLayout(id)->getVisual(id);
     }
@@ -2112,11 +2170,8 @@ class LayoutRun : public OperationsTracer {
 
     hstd::ColText treeRepr() { return treeRepr(TreeReprConf{}); }
 
-    std::string getDebug(VertexIDSet const& vert) const {
-        return getGraph()->getDebugVertexFormat(vert);
-    }
-    std::string getDebug(VertexIDVec const& vert) const {
-        return getGraph()->getDebugVertexFormat(vert);
+    std::string getDebug(EdgeID const& edge) const {
+        return getGraph()->getDebugEdgeFormat(edge);
     }
     std::string getDebug(EdgeIDSet const& vert) const {
         return getGraph()->getDebugEdgeFormat(vert);
@@ -2124,11 +2179,23 @@ class LayoutRun : public OperationsTracer {
     std::string getDebug(EdgeIDVec const& vert) const {
         return getGraph()->getDebugEdgeFormat(vert);
     }
+    std::string getDebug(VertexIDSet const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(VertexIDVec const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
     std::string getDebug(VertexID const& vert) const {
         return getGraph()->getDebugVertexFormat(vert);
     }
-    std::string getDebug(EdgeID const& edge) const {
-        return getGraph()->getDebugEdgeFormat(edge);
+    std::string getDebug(PortIDSet const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
+    }
+    std::string getDebug(PortIDVec const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
+    }
+    std::string getDebug(PortID const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
     }
 };
 

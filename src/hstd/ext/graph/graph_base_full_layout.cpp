@@ -40,12 +40,40 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         if (group->hasAlgorithm()) {
             auto sub_res = group->getAlgorithm()->runSingleLayout(id);
 
+            run->message(
+                hstd::fmt(
+                    "sub res ports: {} overall ports {}",
+                    run->getDebug(sub_res.ports.keys()),
+                    run->getDebug(run->getDirectPorts(id))));
+
             LOGIC_ASSERTION_CHECK_FMT(
                 sub_res.vertices.contains(id),
                 "Running layout for {} ('{}') should set the bounding box "
                 "for this group.",
                 id,
                 run->getGroup(id)->getStableId());
+
+            auto missing_vertex_layout = run->getDirectVertices(id)
+                                       - VertexIDSet::FromVec(
+                                             sub_res.vertices.keys());
+            LOGIC_ASSERTION_CHECK_FMT(
+                missing_vertex_layout.empty(),
+                "Running layout for {} ('{}') should provide the vertex "
+                "layout for {}",
+                id,
+                run->getGroup(id)->getStableId(),
+                run->getDebug(missing_vertex_layout));
+
+            auto missing_port_layout = run->getDirectPorts(id)
+                                     - PortIDSet::FromVec(
+                                           sub_res.ports.keys());
+            LOGIC_ASSERTION_CHECK_FMT(
+                missing_port_layout.empty(),
+                "Running layout for {} ('{}') should provide the port "
+                "layout for {}",
+                id,
+                run->getGroup(id)->getStableId(),
+                run->getDebug(missing_port_layout));
 
             // Use of `insert_or_assign` here is deliberate -- running
             // layout on the current group might overwrite the positioning
@@ -67,6 +95,10 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                     run->getDebug(id));
 
                 run->result.edges.insert_or_assign(id, attr);
+            }
+
+            for (auto const& [id, attr] : sub_res.ports) {
+                run->result.ports.insert_or_assign(id, attr);
             }
         }
     };

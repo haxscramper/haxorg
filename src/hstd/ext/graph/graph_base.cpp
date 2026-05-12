@@ -966,6 +966,14 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
             visual.custom.title  = graph->getDebugVertexFormat(it);
+
+            for (auto const& port :
+                 hstd::sorted(ports->getPortsForVertex(it).items())) {
+                auto const& attr        = getLayout(port);
+                auto        port_visual = attr->getVisual(port);
+                visual.subgroups.push_back(port_visual);
+            }
+
             result.subgroups.push_back(visual);
         }
 

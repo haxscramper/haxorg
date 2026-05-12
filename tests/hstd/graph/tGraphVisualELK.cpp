@@ -145,6 +145,7 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     run->addRootGroup(r_id, root);
 
     geometry::Size size{50, 30};
+    geometry::Size port_size{5, 5};
 
     root->addVertex(r_id, a_id)->setSize(size);
     root->addVertex(r_id, b_id)->setSize(size);
@@ -172,12 +173,42 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     root->addEdge(e_scale2_plotter);
     root->addEdge(e_ramp2_scape2);
 
-    root->addPort(a_id, e_a_merge, true);
-    root->addPort(merge2_id, e_a_merge, false);
-    root->addPort(b_id, e_b_merge, true);
-    root->addPort(merge2_id, e_b_merge, false);
-    root->addPort(merge2_id, e_merge_server, true);
-    root->addPort(server_id, e_merge_server, false);
+    root->addPort(addPort(a_id, e_a_merge, true))->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_a_merge, false))
+        ->setSize(port_size);
+    root->addPort(addPort(b_id, e_b_merge, true))->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_b_merge, false))
+        ->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_merge_server, true))
+        ->setSize(port_size);
+    root->addPort(addPort(server_id, e_merge_server, false))
+        ->setSize(port_size);
+
+    VertexIDSet all_vertices{
+        a_id,
+        b_id,
+        merge2_id,
+        server_id,
+        comm_resp_id,
+        disc_clock1_id,
+        disc_clock2_id,
+        ramp1_id,
+        ramp2_id,
+        scale1_id,
+        scale2_id,
+        plotter_id,
+    };
+
+    EXPECT_EQ(run->getDirectVertices(r_id).size(), 12);
+    EXPECT_EQ((run->getDirectVertices(r_id) - all_vertices).size(), 0);
+
+    EXPECT_TRUE(run->ports->hasSourcePort(a_id, e_a_merge));
+    EXPECT_TRUE(run->ports->hasTargetPort(merge2_id, e_a_merge));
+    EXPECT_EQ(run->ports->getPortsForVertex(a_id).size(), 1);
+    EXPECT_EQ(run->ports->getPortsForVertex(b_id).size(), 1);
+    EXPECT_EQ(run->ports->getPortsForVertex(merge2_id).size(), 3);
+
+    EXPECT_EQ(run->getDirectPorts(r_id).size(), 6);
 
     run->runFullLayout();
 

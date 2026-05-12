@@ -204,6 +204,22 @@ class ElkPortData {
     hstd::Opt<PortProperties> properties;
     Options                   layoutOptions;
 
+    ElkPortData* setWidth(double arg) {
+        width = arg;
+        return this;
+    }
+
+    ElkPortData* setHeight(double arg) {
+        height = arg;
+        return this;
+    }
+
+    ElkPortData* setSize(geometry::Size size) {
+        width  = size.width();
+        height = size.height();
+        return this;
+    }
+
     BOOST_DESCRIBE_CLASS(
         ElkPortData,
         (),
@@ -221,11 +237,13 @@ class ElkPortLayoutAttribute
     , public layout::IPortLayoutAttribute {
   public:
     Rect getBBox() const override {
+        // port placement may omit some values if they are zeroed out, and
+        // potr does not have to have a width/height either.
         return geometry::Rect{
-            x.value(),
-            y.value(),
-            width.value(),
-            height.value(),
+            x.value_or(0),
+            y.value_or(0),
+            width.value_or(0),
+            height.value_or(0),
         };
     }
 };
@@ -256,7 +274,7 @@ class EdgeSection {
         ());
 };
 
-class EdgeElkLayoutData {
+class ElkEdgeData {
   public:
     hstd::Str              id;
     hstd::Opt<hstd::Str>   source;
@@ -273,7 +291,7 @@ class EdgeElkLayoutData {
     void validate() {}
 
     BOOST_DESCRIBE_CLASS(
-        EdgeElkLayoutData,
+        ElkEdgeData,
         (),
         (id,
          source,
@@ -292,11 +310,11 @@ class EdgeElkLayoutData {
 
 class ElkEdgeVisualAttribute
     : public layout::IEdgeVisualAttribute
-    , public EdgeElkLayoutData {};
+    , public ElkEdgeData {};
 
 class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
-    , public EdgeElkLayoutData {
+    , public ElkEdgeData {
   public:
     Path getPath() const override {
         Path res;
@@ -321,7 +339,7 @@ class NodeElkLayoutData {
     hstd::Vec<ElkPortData>       ports;
     hstd::Vec<Label>             labels;
     hstd::Vec<NodeElkLayoutData> children;
-    hstd::Vec<EdgeElkLayoutData> edges;
+    hstd::Vec<ElkEdgeData>       edges;
     hstd::Opt<NodeProperties>    properties;
     Options                      layoutOptions;
 
@@ -445,6 +463,12 @@ class ElkGroupVisualAttribute
         return res;
     }
 
+    hstd::SPtr<ElkPortVisualAttribute> addPort(PortID const& pid) {
+        auto res = std::make_shared<ElkPortVisualAttribute>();
+        get_run()->getMPort(pid)->addUniqueAttribute(res);
+        return res;
+    }
+
     hstd::SPtr<ElkPortVisualAttribute> addPort(
         VertexID const& v,
         EdgeID const&   e,
@@ -515,7 +539,7 @@ class GraphElkLayoutData {
     hstd::Opt<double>            height;
     Options                      layoutOptions;
     hstd::Vec<NodeElkLayoutData> children;
-    hstd::Vec<EdgeElkLayoutData> edges;
+    hstd::Vec<ElkEdgeData>       edges;
     hstd::Vec<ElkPortData>       ports;
     hstd::Vec<Label>             labels;
 
@@ -613,7 +637,7 @@ SPECIALIZE_WO_NULL_FIELDS(PortProperties);
 SPECIALIZE_WO_NULL_FIELDS(NodeProperties);
 SPECIALIZE_WO_NULL_FIELDS(ElkPortData);
 SPECIALIZE_WO_NULL_FIELDS(EdgeSection);
-SPECIALIZE_WO_NULL_FIELDS(EdgeElkLayoutData);
+SPECIALIZE_WO_NULL_FIELDS(ElkEdgeData);
 SPECIALIZE_WO_NULL_FIELDS(NodeElkLayoutData);
 
 template <>

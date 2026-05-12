@@ -42,6 +42,10 @@ struct UnorderedSet
     }
 
     hstd::Vec<T> items() const { return hstd::Vec<T>{begin(), end()}; }
+
+    static UnorderedSet<T> FromVec(hstd::Vec<T> const& v) {
+        return UnorderedSet<T>{v.begin(), v.end()};
+    }
 };
 
 

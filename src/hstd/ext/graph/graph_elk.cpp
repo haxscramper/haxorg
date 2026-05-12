@@ -51,10 +51,9 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
         port_ids.insert(port.id);
     }
 
-    std::function<void(
-        std::optional<std::vector<EdgeElkLayoutData>> const&)>
-        validate_edges = [&](std::optional<std::vector<
-                                 EdgeElkLayoutData>> const& edges) {
+    std::function<void(std::optional<std::vector<ElkEdgeData>> const&)>
+        validate_edges = [&](std::optional<std::vector<ElkEdgeData>> const&
+                                 edges) {
             if (!edges) { return; }
 
             for (const auto& edge : *edges) {
@@ -176,10 +175,15 @@ struct State {
     hstd::SPtr<layout::LayoutRun>                      run;
     hstd::ext::Unordered1to1Bimap<hstd::Str, VertexID> v_id_map;
     hstd::ext::Unordered1to1Bimap<hstd::Str, EdgeID>   e_id_map;
+    hstd::ext::Unordered1to1Bimap<hstd::Str, PortID>   p_id_map;
     layout::LayoutRun::EdgeIteration                   iter;
 
     State(hstd::SPtr<layout::LayoutRun> const& run)
         : run{run}, iter{run.get()} {}
+
+    PortID get_port_id(hstd::Str const& id) const {
+        return p_id_map.at_right(id);
+    }
 
     VertexID get_vertex_id(hstd::Str const& id) const {
         return v_id_map.at_right(id);
@@ -187,6 +191,32 @@ struct State {
 
     EdgeID get_edge_id(hstd::Str const& id) const {
         return e_id_map.at_right(id);
+    }
+
+    PortIDSet get_ports(VertexID const& vert) const {
+        return run->ports->getPortsForVertex(vert);
+    }
+
+    /// \brief return the ID of the entry the edge will connect to: port or
+    /// vertex directly.
+    hstd::Str get_connecting_id(
+        VertexID const& v,
+        EdgeID const&   e,
+        bool            is_start) {
+        if (run->ports->hasPortConnection(v, e, is_start)) {
+            return get_id(
+                run->ports->getPortForConnection(v, e, is_start));
+        } else {
+            return get_id(v);
+        }
+    }
+
+    hstd::Str get_id(PortID const& id) {
+        if (!p_id_map.contains_right(id)) {
+            auto id_text = run->getGraph()->getPort(id)->getStableId();
+            p_id_map.add_unique(id_text, id);
+        }
+        return p_id_map.at_left(id);
     }
 
     hstd::Str get_id(VertexID const& id) {
@@ -206,16 +236,29 @@ struct State {
     }
 };
 
-elk::EdgeElkLayoutData gen_edge_structure(
+elk::ElkEdgeData gen_edge_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
     EdgeID const&                        edge,
     State&                               id_map) {
     auto res = *run->getEdgeVisualAttribute<elk::ElkEdgeVisualAttribute>(
         edge);
     res.id      = id_map.get_id(edge);
-    res.sources = {id_map.get_id(run->getGraph()->getSource(edge))};
-    res.targets = {id_map.get_id(run->getGraph()->getTarget(edge))};
+    res.sources = {id_map.get_connecting_id(
+        run->getGraph()->getSource(edge), edge, true)};
+    res.targets = {id_map.get_connecting_id(
+        run->getGraph()->getTarget(edge), edge, false)};
     run->message(hstd::fmt("add edge {}", run->getDebug(edge)));
+    return res;
+}
+
+elk::ElkPortData gen_port_structure(
+    hstd::SPtr<layout::LayoutRun> const& run,
+    PortID const&                        port,
+    State&                               id_map) {
+    auto res = *run->getPortVisualAttribute<elk::ElkPortVisualAttribute>(
+        port);
+    res.id = id_map.get_id(port);
+    run->message(hstd::fmt("add port {}", run->getDebug(port)));
     return res;
 }
 
@@ -262,6 +305,7 @@ elk::NodeElkLayoutData gen_node_structure(
     State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
+    elk::NodeElkLayoutData res;
     if (run->isGroupVertex(id)) {
         auto group = run->getGroup(id);
 
@@ -273,19 +317,22 @@ elk::NodeElkLayoutData gen_node_structure(
             auto recursiveBBox = run->getLayout(id)->getBBox();
 
 
-            elk::NodeElkLayoutData res;
             res.id = id_map.get_id(id);
             res.setSize(recursiveBBox.width(), recursiveBBox.height());
-            return res;
         } else {
-            return gen_subgroup_node_structure(run, id_map, id, parent);
+            res = gen_subgroup_node_structure(run, id_map, id, parent);
         }
     } else {
-        elk::NodeElkLayoutData res = *run->getVertexVisualAttribute<
-            elk::ElkNodeVisualAttribute>(id);
+        res = *run->getVertexVisualAttribute<elk::ElkNodeVisualAttribute>(
+            id);
         res.id = id_map.get_id(id);
-        return res;
     }
+
+    for (auto const& port : id_map.get_ports(id)) {
+        res.ports.push_back(gen_port_structure(run, port, id_map));
+    }
+
+    return res;
 };
 } // namespace
 
@@ -314,13 +361,22 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     GraphElkLayoutData post_layout = manager->layoutDiagram(
         full_graph, run);
 
-    auto aux_edge = [&](EdgeElkLayoutData const& node) {
+    auto aux_edge = [&](ElkEdgeData const& node) {
         EdgeID id = id_map.get_edge_id(node.id);
         run->message(hstd::fmt("aux edge {}", run->getDebug(id)));
         auto lyt = std::make_shared<ElkEdgeLayoutAttribute>();
-        static_cast<EdgeElkLayoutData&>(*lyt) = node;
+        static_cast<ElkEdgeData&>(*lyt) = node;
         lyt->validate();
         res.edges.insert_or_assign(id, lyt);
+    };
+
+    auto aux_port = [&](ElkPortData const& port) {
+        PortID id = id_map.get_port_id(port.id);
+        run->message(
+            hstd::fmt("aux port {} using {}", run->getDebug(id), port));
+        auto lyt = std::make_shared<ElkPortLayoutAttribute>();
+        static_cast<ElkPortData&>(*lyt) = port;
+        res.ports.insert_or_assign(id, lyt);
     };
 
     auto aux_node = [&](this auto&&              self,
@@ -335,16 +391,19 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
 
             rs::for_each(node.children, self);
             rs::for_each(node.edges, aux_edge);
+            rs::for_each(node.ports, aux_port);
         } else {
             auto lyt = std::make_shared<ElkNodeLayoutAttribute>(run);
             static_cast<NodeElkLayoutData&>(*lyt) = node;
             lyt->validate();
             res.vertices.insert_or_assign(id, lyt);
+            rs::for_each(node.ports, aux_port);
         }
     };
 
     rs::for_each(post_layout.children, aux_node);
     rs::for_each(post_layout.edges, aux_edge);
+    rs::for_each(post_layout.ports, aux_port);
 
     auto lyt    = std::make_shared<ElkGroupLayoutAttribute>();
     lyt->x      = post_layout.x.value_or(0);
