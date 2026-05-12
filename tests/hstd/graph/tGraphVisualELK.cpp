@@ -23,7 +23,7 @@ TEST_F(GraphVisualElk_Test, SimpleGraph) {
 
     auto rg_id = graph->addVertex();
 
-    auto root = elk::GroupVisual::newRootGraph(run);
+    auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
     run->addRootGroup(rg_id, root);
 
     root->addVertex(rg_id, v1)->setSize(size);
@@ -64,11 +64,11 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
     auto e12     = addEdge(v1, v2, "e12");
     auto e23     = addEdge(v2, v3, "e23");
     auto e34     = addEdge(v3, v4, "e34");
-    auto e_g1_g2 = addEdge(g1, g2, "e34");
+    auto e_g1_g2 = addEdge(g1, g2, "e_g1_g2");
 
     auto rg_id = graph->addVertex();
 
-    auto root = elk::GroupVisual::newRootGraph(run);
+    auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
     run->addRootGroup(rg_id, root);
 
     auto g1_sub = root->addNewNativeSubgroup(rg_id, g1);
@@ -85,11 +85,10 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
     g2_sub->addVertex(g2, v8)->setSize(size);
 
     root->addEdge(e15);
+    root->addEdge(e_g1_g2);
     g1_sub->addEdge(e12);
     g1_sub->addEdge(e23);
     g1_sub->addEdge(e34);
-
-    root->addEdge(e_g1_g2);
 
     run->runFullLayout();
 
@@ -97,6 +96,9 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
+
+    EXPECT_TRUE(res.edges.contains(e15));
+    EXPECT_TRUE(res.edges.contains(e_g1_g2));
 
     auto visual = run->getVisual();
     hstd::writeFile(

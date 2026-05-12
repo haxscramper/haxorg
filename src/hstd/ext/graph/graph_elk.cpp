@@ -209,12 +209,13 @@ elk::EdgeElkLayoutData gen_edge_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
     EdgeID const&                        edge,
     State&                               id_map) {
-    auto res    = *run->getEdgeVisualAttribute<elk::EdgeVisual>(edge);
+    auto res = *run->getEdgeVisualAttribute<elk::ElkEdgeVisualAttribute>(
+        edge);
     res.id      = id_map.get_id(edge);
     res.sources = {id_map.get_id(run->getGraph()->getSource(edge))};
     res.targets = {id_map.get_id(run->getGraph()->getTarget(edge))};
     id_map.processed_edges.incl(edge);
-    // run->message(hstd::value_metadata<hstd::Opt<hstd::Str>>::isEmpty(res.));
+    run->message(hstd::fmt("add edge {}", run->getDebug(edge)));
     return res;
 }
 
@@ -229,29 +230,35 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
     State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
+    auto __scope = run->scopeLevelMsg(
+        hstd::fmt("node structure for {}", id));
     auto group    = run->getGroup(id);
-    auto gv_group = hstd::validated_dynamic_cast<elk::GroupVisual>(group);
+    auto gv_group = hstd::validated_dynamic_cast<
+        elk::ElkGroupVisualAttribute>(group);
     LOGIC_ASSERTION_CHECK(
         gv_group != nullptr,
         "Nested subgroup without layout algorithm must be an "
         "instance of gv::GroupVisual");
 
     elk::NodeElkLayoutData res;
-    res.id       = id_map.get_id(id);
-    auto __scope = run->scopeLevel();
+    res.id = id_map.get_id(id);
     for (auto const& sub : run->getSubGroups(id)) {
         res.children.push_back(gen_node_structure(run, id_map, sub, id));
 
         EdgeIDSet to_drop;
         for (auto const& edge : id_map.leftover_edges) {
-            hstd::logic_assertion_check_not_nil(run);
-            hstd::logic_assertion_check_not_nil(run->groups);
-            hstd::logic_assertion_check_not_nil(run->getGraph());
-            IEdgeProvider::isHierarchyEdge(edge);
             auto common_parent = run->groups->getCommonAncestor({
                 run->getGraph()->getSource(edge),
                 run->getGraph()->getTarget(edge),
             });
+
+            if (common_parent.has_value()) {
+                run->message(
+                    hstd::fmt(
+                        "edge {} source and target have common parent {}",
+                        run->getDebug(edge),
+                        run->getDebug(common_parent.value())));
+            }
 
             if (common_parent.has_value() && common_parent.value() == id) {
                 res.edges.push_back(gen_edge_structure(run, edge, id_map));
@@ -265,16 +272,25 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
         res.children.push_back(gen_node_structure(run, id_map, node, id));
     }
 
-    auto direct_edges   = run->getDirectlyNestedEdges(id)
-                        - id_map.processed_edges;
+    auto direct_edges   = run->getDirectlyNestedEdges(id);
     auto indirect_edges = run->getPartiallyNestedEdges(id)
-                        - id_map.processed_edges;
+                        + run->getGroupIncidentEdges(id);
 
     for (auto const& edge : direct_edges) {
         res.edges.push_back(gen_edge_structure(run, edge, id_map));
     }
 
-    id_map.leftover_edges.incl(indirect_edges - direct_edges);
+    run->message(
+        hstd::fmt("indirect edges {}", run->getDebug(indirect_edges)));
+    run->message(
+        hstd::fmt("direct edges {}", run->getDebug(direct_edges)));
+    run->message(
+        hstd::fmt(
+            "leftover local edges {}",
+            run->getDebug(indirect_edges - direct_edges)));
+
+    id_map.leftover_edges.incl(
+        indirect_edges - direct_edges - id_map.processed_edges);
 
     return res;
 }
@@ -303,9 +319,9 @@ elk::NodeElkLayoutData gen_node_structure(
             return gen_subgroup_node_structure(run, id_map, id, parent);
         }
     } else {
-        elk::NodeElkLayoutData
-            res = *run->getVertexVisualAttribute<elk::NodeVisual>(id);
-        res.id  = id_map.get_id(id);
+        elk::NodeElkLayoutData res = *run->getVertexVisualAttribute<
+            elk::ElkNodeVisualAttribute>(id);
+        res.id = id_map.get_id(id);
         return res;
     }
 };
@@ -314,21 +330,27 @@ elk::NodeElkLayoutData gen_node_structure(
 hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     elk::ElkLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
     GraphElkLayoutData full_graph;
-    full_graph.x      = this->x;
-    full_graph.y      = this->y;
-    full_graph.width  = this->width;
-    full_graph.height = this->height;
-    full_graph.opts   = this->opts;
+    full_graph.x             = this->x;
+    full_graph.y             = this->y;
+    full_graph.width         = this->width;
+    full_graph.height        = this->height;
+    full_graph.layoutOptions = this->layoutOptions;
 
     State id_map;
     id_map.run = run;
 
     {
-        run->message("collecting nodes for the graphviz layout");
+        run->message("collecting nodes for the ELK layout");
         auto sub_group = gen_subgroup_node_structure(
             run, id_map, root_id, std::nullopt);
         full_graph.edges    = sub_group.edges;
         full_graph.children = sub_group.children;
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_map.leftover_edges.size() == 0,
+            "ELK layout could not place the edges within the single "
+            "layour run space: {}. These edges must be placed as unbound "
+            "edges on the overall graph and routed after the main layout.",
+            run->getDebug(id_map.leftover_edges));
     }
 
     Result res;
@@ -338,7 +360,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
 
     auto aux_edge = [&](EdgeElkLayoutData const& node) {
         EdgeID id  = id_map.get_edge_id(node.id);
-        auto   lyt = std::make_shared<EdgeLayout>();
+        auto   lyt = std::make_shared<ElkEdgeLayoutAttribute>();
         static_cast<EdgeElkLayoutData&>(*lyt) = node;
         lyt->validate();
         res.edges.insert_or_assign(id, lyt);
@@ -349,7 +371,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
         VertexID id = id_map.get_vertex_id(node.id);
 
         if (run->isGroupVertex(id)) {
-            auto lyt = std::make_shared<GroupLayout>();
+            auto lyt = std::make_shared<ElkGroupLayoutAttribute>();
             static_cast<NodeElkLayoutData&>(*lyt) = node;
             lyt->validate();
             res.vertices.insert_or_assign(id, lyt);
@@ -357,7 +379,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
             rs::for_each(node.children, self);
             rs::for_each(node.edges, aux_edge);
         } else {
-            auto lyt = std::make_shared<NodeLayout>();
+            auto lyt = std::make_shared<ElkNodeLayoutAttribute>(run);
             static_cast<NodeElkLayoutData&>(*lyt) = node;
             lyt->validate();
             res.vertices.insert_or_assign(id, lyt);
@@ -367,7 +389,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     rs::for_each(post_layout.children, aux_node);
     rs::for_each(post_layout.edges, aux_edge);
 
-    auto lyt    = std::make_shared<GroupLayout>();
+    auto lyt    = std::make_shared<ElkGroupLayoutAttribute>();
     lyt->x      = post_layout.x.value_or(0);
     lyt->y      = post_layout.x.value_or(0);
     lyt->width  = post_layout.width.value();
@@ -377,22 +399,29 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     return res;
 }
 
-hstd::SPtr<elk::GroupVisual> hstd::ext::graph::elk::GroupVisual::
-    newRootGraph(
+hstd::SPtr<elk::ElkGroupVisualAttribute> hstd::ext::graph::elk::
+    ElkGroupVisualAttribute::newRootGraph(
         hstd::SPtr<layout::LayoutRun> run,
         hstd::Str const&              name) {
 
-    auto result = std::make_shared<elk::GroupVisual>(
-        std::make_shared<elk::GroupVisual::SharedCtx>(run), name);
+    auto result = std::make_shared<elk::ElkGroupVisualAttribute>(
+        std::make_shared<elk::ElkGroupVisualAttribute::SharedCtx>(run),
+        name);
 
-    result->algorithm = std::make_shared<elk::ElkLayoutAlgorithm>(
+    auto algo = std::make_shared<elk::ElkLayoutAlgorithm>(
         run, std::make_shared<ElkLayoutAlgorithm::Manager>());
+
+    algo->layoutOptions.set(
+        "org.eclipse.elk.hierarchyHandling", "INCLUDE_CHILDREN");
+
+    result->algorithm = algo;
+
 
     return result;
 }
 
-hstd::ext::visual::VisGroup hstd::ext::graph::elk::GroupLayout::getVisual(
-    VertexID const& id) const {
+hstd::ext::visual::VisGroup hstd::ext::graph::elk::
+    ElkGroupLayoutAttribute::getVisual(VertexID const& id) const {
     visual::VisGroup res;
 
     res.offset = geometry::Point{x.value(), y.value()};

@@ -705,6 +705,10 @@ namespace hstd::ext::graph {
 
 /// \brief Base class for the collections that provide the edges in the
 /// graph.
+///
+/// Edge provider maps the edge ID to the real object. The term "tracking"
+/// refers to the incidence matrix presence: knowing the source/target of
+/// the edge ID, and having the ID itself registered.
 class IEdgeProvider {
   public:
     virtual ~IEdgeProvider() = default;
@@ -742,7 +746,14 @@ class IEdgeProvider {
 
     /// \brief Get list of all incoming edges for the target vertex
     virtual EdgeIDSet getIncoming(VertexID const& vert) const = 0;
-    virtual bool      hasEdge(EdgeID const& id) const         = 0;
+    /// \brief Check if the derived edge provider has the edge object
+    /// associated with the given edge.
+    virtual bool hasEdge(EdgeID const& id) const = 0;
+
+    /// \brief Check if the edge is tracked by the provider. This method is
+    /// independent of the `hasEdge` and is only concerned with the
+    /// incidence matrix presence for the edgei.
+    virtual bool isTrackingEdge(EdgeID const& id) const = 0;
 
     // static API for masking the edge IDs.
 
@@ -785,6 +796,20 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
+    bool isTrackingEdge(EdgeID const& id) const override {
+        bool res = source_target.contains(id);
+        if (res) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                incidence.at(getSource(id)).at(getTarget(id)).contains(id),
+                "malformed edge collection structure: source-target {}-{}"
+                "contains an edge {}, but the incidence matrix does not",
+                getSource(id),
+                getTarget(id),
+                id);
+        }
+        return res;
+    }
+
     EdgeIDSet         getEdges() const override;
     EdgeIDSet         getOutgoing(VertexID const& vert) const override;
     EdgeIDSet         getIncoming(VertexID const& vert) const override;
@@ -867,6 +892,14 @@ struct TrivialEdgeCollection : public IEdgeCollection {
     const IEdge* getEdge(EdgeID const& id) const override {
         return &edgeStore.at(id);
     }
+
+    void trackEdge(
+        EdgeID const&   id,
+        VertexID const& source,
+        VertexID const& target) override {
+        edgeStore.insert_or_assign(id, TrivialEdge{});
+        IEdgeCollection::trackEdge(id, source, target);
+    }
 };
 
 struct IdOnlyEdgeCollection : public IEdgeCollection {
@@ -885,6 +918,15 @@ struct IdOnlyEdgeCollection : public IEdgeCollection {
 
     const IEdge* getEdge(EdgeID const& id) const override {
         return nullptr;
+    }
+
+
+    void trackEdge(
+        EdgeID const&   id,
+        VertexID const& source,
+        VertexID const& target) override {
+        edgeStore.incl(id);
+        IEdgeCollection::trackEdge(id, source, target);
     }
 };
 
@@ -930,6 +972,9 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
+    bool isTrackingEdge(EdgeID const& id) const override {
+        return edgeTracker.contains_right(id);
+    }
 
     /// \brief Return hierarchy identifier used in edge masks.
     virtual GraphHierarchyID getHierarchyId() const = 0;
@@ -1661,7 +1706,16 @@ class LayoutRun : public OperationsTracer {
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     bool isGroupVertex(VertexID const& id) const {
-        return graph->getVertex(id)->hasOptionalAttribute<T>();
+        bool res = graph->getVertex(id)->hasOptionalAttribute<T>();
+        if (!res) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                groups->getSubVertices(id).empty(),
+                "vertex {} is not a group, but it contains sub-vertices "
+                "{}",
+                getDebug(id),
+                getDebug(groups->getSubVertices(id)));
+        }
+        return res;
     }
 
     VertexIDSet getDirectVertices(VertexID const& id) const {
@@ -1712,6 +1766,12 @@ class LayoutRun : public OperationsTracer {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id), "Cannot get nested edges from non-group");
         return edges->getPartiallyIncludedEdges(getDirectVertices(id));
+    }
+
+    EdgeIDSet getGroupIncidentEdges(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get incident edges from non-group");
+        return edges->getPartiallyIncludedEdges({id});
     }
 
     /// \brief Return all the edges nested in the target group and its
@@ -1848,22 +1908,8 @@ class LayoutRun : public OperationsTracer {
 
         geometry::Point offset{0, 0};
         for (auto const& parent : getParentChain(id)) {
-            // message(
-            //     hstd::fmt(
-            //         "parent {} bbox {} final offset {}",
-            //         getDebug(parent),
-            //         getRelativeBBox(parent).upper_left(),
-            //         offset));
-
             offset += getRelativeBBox(parent).upper_left();
         }
-
-        message(
-            hstd::fmt(
-                "absolute offset for {} start is {} move is {}",
-                getDebug(id),
-                start,
-                offset));
 
         return start.move(offset);
     }

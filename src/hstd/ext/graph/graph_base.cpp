@@ -3,6 +3,7 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <stack>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
@@ -825,19 +826,30 @@ void hstd::ext::graph::IEdgeCollection::trackEdge(
     EdgeID const&   id,
     VertexID const& source,
     VertexID const& target) {
+    LOGIC_ASSERTION_CHECK_FMT(
+        hasEdge(id),
+        "Edge incidence tracking must be done after the edge ID is "
+        "already associated with an object in the edge collection. "
+        "hasEdge({}) = false",
+        id);
+
     if (!incidence.contains(source)) {
         incidence.insert_or_assign(
             source, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>{});
     }
+
     if (!incidence.at(source).contains(target)) {
         incidence.at(source).insert_or_assign(target, hstd::Vec<EdgeID>{});
     }
+
     incidence.at(source).at(target).push_back(id);
 
     if (!incoming_from.contains(target)) {
         incoming_from.insert_or_assign(target, hstd::Vec<VertexID>{});
     }
+
     incoming_from.at(target).push_back(source);
+
     source_target.insert_or_assign(
         id, hstd::Pair<VertexID, VertexID>{source, target});
 }
@@ -850,8 +862,7 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
     if (incidence.contains(source)
         && incidence.at(source).contains(target)) {
         auto& edges = incidence.at(source).at(target);
-        edges.erase(
-            std::remove(edges.begin(), edges.end(), id), edges.end());
+        std::erase(edges, id);
         if (edges.empty()) {
             incidence.at(source).erase(target);
             if (incidence.at(source).empty()) { incidence.erase(source); }
@@ -860,9 +871,7 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
 
     if (incoming_from.contains(target)) {
         auto& sources = incoming_from.at(target);
-        sources.erase(
-            std::remove(sources.begin(), sources.end(), source),
-            sources.end());
+        std::erase(sources, source);
         if (sources.empty()) { incoming_from.erase(target); }
     }
 }
@@ -956,14 +965,19 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 void hstd::ext::graph::layout::LayoutRun::treeRepr(
     hstd::ColStream&    os,
     TreeReprConf const& conf) const {
-    auto      g = getGraph();
-    EdgeIDSet visited_edges;
+    auto g = getGraph();
+
+
+    EdgeIDSet leftover_edges;
+    EdgeIDSet processed_edges;
 
     auto aux_edge = [&](EdgeID const& id, int depth) {
         auto visual = getEdgeVisualAttribute(id);
         os.indent(depth * 2);
         os << hstd::fmt("EDGE {}", g->getDebugEdgeFormat(id));
+        processed_edges.incl(id);
     };
+
 
     auto aux =
         [&](this auto&& self, VertexID const& id, int depth) -> void {
@@ -984,12 +998,38 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
                 self(sub, depth + 1);
             }
 
-            for (auto const& sub :
-                 hstd::sorted(getDirectlyNestedEdges(id).items())) {
+            auto direct_edges   = getDirectlyNestedEdges(id);
+            auto indirect_edges = getPartiallyNestedEdges(id)
+                                + getGroupIncidentEdges(id);
+
+            for (auto const& sub : hstd::sorted(direct_edges.items())) {
                 os.newline();
                 aux_edge(sub, depth + 1);
-                visited_edges.incl(sub);
             }
+
+            leftover_edges.incl(
+                indirect_edges - direct_edges - processed_edges);
+
+            EdgeIDSet to_drop;
+            for (auto const& edge : leftover_edges) {
+                auto common_parent = groups->getCommonAncestor({
+                    g->getSource(edge),
+                    g->getTarget(edge),
+                });
+
+                if (common_parent.has_value()
+                    && common_parent.value() == id) {
+                    os.newline();
+                    aux_edge(edge, depth + 1);
+                    os << hstd::fmt(
+                        " cross-group {} <> {}",
+                        g->getSource(edge),
+                        g->getTarget(edge));
+                    to_drop.incl(edge);
+                }
+            }
+
+            leftover_edges.excl(to_drop);
 
             for (auto const& sub :
                  hstd::sorted(getSubGroups(id).items())) {
@@ -1011,6 +1051,18 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
 
     for (auto const& g : hstd::sorted(groups->getRootVertices().items())) {
         aux(g, 0);
+    }
+
+    for (auto const& e : hstd::sorted(leftover_edges.items())) {
+        os.newline();
+        aux_edge(e, 0);
+        os << " leftover";
+    }
+
+    for (auto const& e : hstd::sorted(getAllUnboundEdges().items())) {
+        os.newline();
+        aux_edge(e, 0);
+        os << " unbound";
     }
 }
 

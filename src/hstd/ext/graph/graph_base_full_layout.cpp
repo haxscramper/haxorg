@@ -55,6 +55,17 @@ void layout_run_full_layout(layout::LayoutRun* run) {
             }
 
             for (auto const& [id, attr] : sub_res.edges) {
+                // All edges must be present in the layout run, if this
+                // conflicts with internal logic for some of the layout
+                // algorithms, the filtering must be done on the
+                // `runSingleLayout` side.
+                LOGIC_ASSERTION_CHECK_FMT(
+                    run->edges->hasEdge(id)
+                        && run->edges->isTrackingEdge(id),
+                    "Layout run returned layout information for edge not "
+                    "included in the overall layout run collection: {}",
+                    run->getDebug(id));
+
                 run->result.edges.insert_or_assign(id, attr);
             }
         }

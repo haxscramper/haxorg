@@ -272,11 +272,11 @@ class EdgeElkLayoutData {
         ());
 };
 
-class EdgeVisual
+class ElkEdgeVisualAttribute
     : public layout::IEdgeVisualAttribute
     , public EdgeElkLayoutData {};
 
-class EdgeLayout
+class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
     , public EdgeElkLayoutData {
   public:
@@ -359,11 +359,11 @@ class NodeElkLayoutData {
         ());
 };
 
-class NodeVisual
+class ElkNodeVisualAttribute
     : public layout::IVertexVisualAttribute
     , public NodeElkLayoutData {};
 
-class GroupVisual
+class ElkGroupVisualAttribute
     : public layout::IGroupVisualAttribute
     , public NodeElkLayoutData {
   public:
@@ -388,46 +388,56 @@ class GroupVisual
     hstd::SPtr<SharedCtx> shared;
     LocalCtx              local;
 
-    GroupVisual(hstd::SPtr<SharedCtx> const& ctx, hstd::Str const& name)
+    ElkGroupVisualAttribute(
+        hstd::SPtr<SharedCtx> const& ctx,
+        hstd::Str const&             name)
         : layout::IGroupVisualAttribute{ctx->run}, shared{ctx} {}
 
 
     auto&       get_run() { return shared->run; }
     auto const& get_run() const { return shared->run; }
 
-    static hstd::SPtr<GroupVisual> newRootGraph(
+    static hstd::SPtr<ElkGroupVisualAttribute> newRootGraph(
         hstd::SPtr<layout::LayoutRun> run,
         hstd::Str const&              name = "");
 
-    hstd::SPtr<GroupVisual> addNewNativeSubgroup(
+    hstd::SPtr<ElkGroupVisualAttribute> addNewNativeSubgroup(
         VertexID const& parent,
         VertexID const& id) {
-        auto res = std::make_shared<GroupVisual>(
+        auto res = std::make_shared<ElkGroupVisualAttribute>(
             shared, hstd::fmt("cola_{}", id));
         std::ignore = run->addNestedGroup(parent, id, res);
         return res;
     }
 
 
-    hstd::SPtr<NodeVisual> addVertex(
+    hstd::SPtr<ElkNodeVisualAttribute> addVertex(
         VertexID const& parent,
         VertexID const& id) {
-        auto vattr  = std::make_shared<NodeVisual>();
+        auto vattr  = std::make_shared<ElkNodeVisualAttribute>();
         std::ignore = get_run()->addNestedVertex(parent, id, vattr);
         return vattr;
     }
 
-    hstd::SPtr<EdgeVisual> addEdge(EdgeID const& id) {
-        auto res = std::make_shared<EdgeVisual>();
+    hstd::SPtr<ElkEdgeVisualAttribute> addEdge(EdgeID const& id) {
+        auto res = std::make_shared<ElkEdgeVisualAttribute>();
         get_run()->addEdge(id, res);
+        LOGIC_ASSERTION_CHECK(
+            get_run()->edges->hasEdge(id), get_run()->getDebug(id));
         return res;
     }
 };
 
-class NodeLayout
+class ElkNodeLayoutAttribute
     : public layout::IVertexLayoutAttribute
     , public NodeElkLayoutData {
   public:
+    hstd::SPtr<layout::LayoutRun> run;
+
+
+    ElkNodeLayoutAttribute(hstd::SPtr<layout::LayoutRun> const& run)
+        : run{run} {}
+
     Rect getBBox() const override {
         return geometry::Rect{
             x.value(),
@@ -436,9 +446,23 @@ class NodeLayout
             height.value(),
         };
     }
+
+    visual::VisGroup getVisual(VertexID const& selfId) const override {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        res.elements.push_back(
+            visual::VisElement::FromText(
+                run->getGraph()->getVertex(selfId)->getStableId(),
+                getBBox().upper_left()));
+        res.custom.setAttr(
+            "inkscape:label",
+            hstd::fmt("ELK VERTEX:{}", run->getDebug(selfId)));
+        return res;
+    }
 };
 
-class GroupLayout
+class ElkGroupLayoutAttribute
     : public layout::IGroupLayoutAttribute
     , public NodeElkLayoutData {
   public:
@@ -462,7 +486,7 @@ class GraphElkLayoutData {
     hstd::Opt<double>            y;
     hstd::Opt<double>            width;
     hstd::Opt<double>            height;
-    hstd::Opt<json>              opts;
+    Options                      layoutOptions;
     hstd::Vec<NodeElkLayoutData> children;
     hstd::Vec<EdgeElkLayoutData> edges;
     hstd::Vec<Port>              ports;
@@ -471,7 +495,16 @@ class GraphElkLayoutData {
     BOOST_DESCRIBE_CLASS(
         GraphElkLayoutData,
         (),
-        (id, x, y, width, height, opts, children, edges, ports, labels),
+        (id,
+         x,
+         y,
+         width,
+         height,
+         layoutOptions,
+         children,
+         edges,
+         ports,
+         labels),
         (),
         ());
 };
@@ -521,7 +554,7 @@ class ElkLayoutAlgorithm : public layout::IPlacementAlgorithm {
     hstd::Opt<double> y;
     hstd::Opt<double> width;
     hstd::Opt<double> height;
-    hstd::Opt<json>   opts;
+    Options           layoutOptions;
 };
 
 
