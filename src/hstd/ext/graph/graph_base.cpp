@@ -946,10 +946,12 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     const {
     hstd::Vec<hstd::ext::visual::VisGroup> res;
 
+
     EdgeIteration iter{this};
     auto          aux = [&](this auto&& self,
                             VertexID    id) -> hstd::ext::visual::VisGroup {
         auto                        group  = getGroup(id);
+        auto                        attr   = getLayout(id);
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
 
         for (auto const& sub : hstd::sorted(getSubGroups(id).items())) {
@@ -961,8 +963,16 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
         for (auto const& it :
              hstd::sorted(getDirectVertices(id).items())) {
-            auto const& attr     = getLayout(it);
-            auto        visual   = attr->getVisual(it);
+            auto const& attr   = getLayout(it);
+            auto        visual = attr->getVisual(it);
+            LOGIC_ASSERTION_CHECK_FMT(
+                visual.offset == attr->getBBox().upper_left(),
+                "Vertex visualization group must use the group offset for "
+                "the element placement. The visual group offset is {}, "
+                "bounding box offset {}",
+                visual.offset,
+                attr->getBBox().upper_left());
+
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
             visual.custom.title  = graph->getDebugVertexFormat(it);
@@ -972,6 +982,14 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
                 auto const& attr        = getLayout(port);
                 auto        port_visual = attr->getVisual(port);
                 visual.subgroups.push_back(port_visual);
+
+                LOGIC_ASSERTION_CHECK_FMT(
+                    port_visual.offset == attr->getBBox().upper_left(),
+                    "Vertex port_visualization group must use the group "
+                    "offset for the element placement. The port_visual "
+                    "group offset is {}, bounding box offset {}",
+                    visual.offset,
+                    attr->getBBox().upper_left());
             }
 
             result.subgroups.push_back(visual);
