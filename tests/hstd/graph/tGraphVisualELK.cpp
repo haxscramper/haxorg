@@ -105,3 +105,82 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 }
+
+TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
+    // port of the example model aspect_compositeqm_CompositeQM.json
+    auto r_id           = addVertex("r");
+    auto a_id           = addVertex("a");
+    auto b_id           = addVertex("b");
+    auto merge2_id      = addVertex("Merge2");
+    auto server_id      = addVertex("Server");
+    auto comm_resp_id   = addVertex("comm_resp");
+    auto disc_clock1_id = addVertex("disc_clock1");
+    auto disc_clock2_id = addVertex("disc_clock2");
+    auto ramp1_id       = addVertex("ramp1");
+    auto ramp2_id       = addVertex("ramp2");
+    auto scale1_id      = addVertex("scale1");
+    auto scale2_id      = addVertex("scale2");
+    auto plotter_id     = addVertex("timed_plotter");
+
+    auto e_a_merge      = addEdge(a_id, merge2_id, "e_a_merge");
+    auto e_b_merge      = addEdge(b_id, merge2_id, "e_b_merge");
+    auto e_merge_server = addEdge(merge2_id, server_id, "merge_server");
+    auto e_server_comm  = addEdge(server_id, comm_resp_id, "server_comm");
+
+    auto e_clock1_ramp1 = addEdge(disc_clock1_id, ramp1_id, "clock1_ramp");
+    auto e_clock2_ramp2 = addEdge(disc_clock2_id, ramp2_id, "clock2_ramp");
+
+    auto e_ramp1_scale1   = addEdge(ramp1_id, scale1_id, "ramp1_scale1");
+    auto e_ramp1_plotter  = addEdge(ramp1_id, plotter_id, "ramp1_plotter");
+    auto e_ramp1_scale2   = addEdge(ramp1_id, scale2_id, "ramp1_scale2");
+    auto e_scale1_plotter = addEdge(
+        scale1_id, plotter_id, "scale1_plotter");
+    auto e_scale2_plotter = addEdge(
+        scale2_id, plotter_id, "scale2_plotter");
+
+    auto e_ramp2_scape2 = addEdge(ramp2_id, scale2_id, "ramp2_scape2");
+
+
+    auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
+    run->addRootGroup(r_id, root);
+
+    geometry::Size size{50, 30};
+
+    root->addVertex(r_id, a_id)->setSize(size);
+    root->addVertex(r_id, b_id)->setSize(size);
+    root->addVertex(r_id, merge2_id)->setSize(size);
+    root->addVertex(r_id, server_id)->setSize(size);
+    root->addVertex(r_id, comm_resp_id)->setSize(size);
+    root->addVertex(r_id, disc_clock1_id)->setSize(size);
+    root->addVertex(r_id, disc_clock2_id)->setSize(size);
+    root->addVertex(r_id, ramp1_id)->setSize(size);
+    root->addVertex(r_id, ramp2_id)->setSize(size);
+    root->addVertex(r_id, scale1_id)->setSize(size);
+    root->addVertex(r_id, scale2_id)->setSize(size);
+    root->addVertex(r_id, plotter_id)->setSize(size);
+
+    root->addEdge(e_a_merge);
+    root->addEdge(e_b_merge);
+    root->addEdge(e_merge_server);
+    root->addEdge(e_server_comm);
+    root->addEdge(e_clock1_ramp1);
+    root->addEdge(e_clock2_ramp2);
+    root->addEdge(e_ramp1_scale1);
+    root->addEdge(e_ramp1_plotter);
+    root->addEdge(e_ramp1_scale2);
+    root->addEdge(e_scale1_plotter);
+    root->addEdge(e_scale2_plotter);
+    root->addEdge(e_ramp2_scape2);
+
+    run->runFullLayout();
+
+    hstd::writeFile(
+        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+
+    auto const& res = run->result;
+
+    auto visual = run->getVisual();
+    hstd::writeFile(
+        getDebugFile("result.svg"),
+        hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+}

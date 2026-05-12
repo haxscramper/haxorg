@@ -535,6 +535,18 @@ struct IPort
     DESC_FIELDS(IPort, ());
 };
 
+class TrivialPort
+    : public IPort
+    , public virtual TrivialAttributeObject {
+  public:
+    std::size_t getHash() const override { return 0; }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return true;
+    }
+
+    std::string getRepr() const override { return ""; }
+};
 
 class IPortCollection {
     struct PortEntry {
@@ -691,6 +703,26 @@ class IPortCollection {
     void delPort(PortID pid) {
         auto it = getPortIterator(pid);
         ports.get<ByPortID>().erase(it);
+    }
+};
+
+class TrivialPortCollection : public IPortCollection {
+    hstd::UnorderedIncrementalStore<PortID, TrivialPort> portStore;
+
+  public:
+    PortCollectionID getCategory() const override {
+        return hstd::ext::graph::PortCollectionID(
+            hstd::hash_bits<15>(typeid(this).hash_code()));
+    }
+
+    const IPort* getPort(PortID pid) const override {
+        return &portStore.at(pid);
+    }
+
+    PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
+        auto id = portStore.add(TrivialPort{});
+        IPortCollection::addPort(vertex, edge, is_start, id);
+        return id;
     }
 };
 
@@ -1607,6 +1639,7 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<IGraph>                graph;
     hstd::SPtr<IdOnlyHierarchy>       groups;
     hstd::SPtr<TrivialEdgeCollection> edges;
+    hstd::SPtr<TrivialPortCollection> ports;
 
     LayoutRun(
         hstd::SPtr<IGraph> graph,

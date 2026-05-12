@@ -212,44 +212,21 @@ class ElkPortData {
         ());
 };
 
-class ElkPort
-    : public IPort
-    , public ElkPortData
-    , public virtual TrivialAttributeObject {
+class ElkPortVisualAttribute
+    : public ElkPortData
+    , public layout::IPortVisualAttribute {};
+
+class ElkPortLayoutAttribute
+    : public ElkPortData
+    , public layout::IPortLayoutAttribute {
   public:
-    std::size_t getHash() const override {
-        std::size_t res;
-        hstd::hax_hash_combine(res, id);
-        return res;
-    }
-
-    bool isEqual(IGraphObjectBase const* other) const override {
-        return other->isInstance<ElkPort>()
-            && dynamic_cast<ElkPort const*>(other)->id == this->id;
-    }
-
-    std::string getRepr() const override {
-        return hstd::fmt1(static_cast<ElkPortData const&>(*this));
-    }
-};
-
-class ElkPortCollection : public IPortCollection {
-    hstd::UnorderedIncrementalStore<PortID, ElkPort> portStore;
-
-  public:
-    PortCollectionID getCategory() const override {
-        return hstd::ext::graph::PortCollectionID(
-            hstd::hash_bits<15>(typeid(this).hash_code()));
-    }
-
-    const IPort* getPort(PortID pid) const override {
-        return &portStore.at(pid);
-    }
-
-    PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
-        auto id = portStore.add(ElkPort{});
-        IPortCollection::addPort(vertex, edge, is_start, id);
-        return id;
+    Rect getBBox() const override {
+        return geometry::Rect{
+            x.value(),
+            y.value(),
+            width.value(),
+            height.value(),
+        };
     }
 };
 
