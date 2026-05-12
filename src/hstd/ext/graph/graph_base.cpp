@@ -909,8 +909,10 @@ EdgeIDSet IEdgeCollection::getEdges() const {
 hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     const {
     hstd::Vec<hstd::ext::visual::VisGroup> res;
-    auto aux = [&](this auto&& self,
-                   VertexID    id) -> hstd::ext::visual::VisGroup {
+
+    EdgeIteration iter{this};
+    auto          aux = [&](this auto&& self,
+                            VertexID    id) -> hstd::ext::visual::VisGroup {
         auto                        group  = getGroup(id);
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
 
@@ -932,7 +934,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         }
 
         for (auto const& it :
-             hstd::sorted(getDirectlyNestedEdges(id).items())) {
+             hstd::sorted(iter.getEdgesForGroup(id).items())) {
             auto const& attr     = getLayout(it);
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
@@ -948,7 +950,10 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         res.push_back(aux(rg));
     }
 
+    iter.validateLeftoverEdges();
+
     hstd::ext::visual::VisGroup unbound_edge_overlay;
+
     for (auto const& it : this->getAllUnboundEdges()) {
         auto const& attr     = getLayout(it);
         auto        visual   = attr->getVisual(it);
@@ -957,6 +962,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         visual.custom.title  = graph->getDebugEdgeFormat(it);
         unbound_edge_overlay.subgroups.push_back(visual);
     }
+
     res.push_back(unbound_edge_overlay);
 
     return res;
@@ -967,15 +973,12 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
     TreeReprConf const& conf) const {
     auto g = getGraph();
 
-
-    EdgeIDSet leftover_edges;
-    EdgeIDSet processed_edges;
+    EdgeIteration iter{this};
 
     auto aux_edge = [&](EdgeID const& id, int depth) {
         auto visual = getEdgeVisualAttribute(id);
         os.indent(depth * 2);
         os << hstd::fmt("EDGE {}", g->getDebugEdgeFormat(id));
-        processed_edges.incl(id);
     };
 
 
@@ -998,38 +1001,13 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
                 self(sub, depth + 1);
             }
 
-            auto direct_edges   = getDirectlyNestedEdges(id);
-            auto indirect_edges = getPartiallyNestedEdges(id)
-                                + getGroupIncidentEdges(id);
 
-            for (auto const& sub : hstd::sorted(direct_edges.items())) {
+            for (auto const& sub :
+                 hstd::sorted(iter.getEdgesForGroup(id).items())) {
                 os.newline();
                 aux_edge(sub, depth + 1);
             }
 
-            leftover_edges.incl(
-                indirect_edges - direct_edges - processed_edges);
-
-            EdgeIDSet to_drop;
-            for (auto const& edge : leftover_edges) {
-                auto common_parent = groups->getCommonAncestor({
-                    g->getSource(edge),
-                    g->getTarget(edge),
-                });
-
-                if (common_parent.has_value()
-                    && common_parent.value() == id) {
-                    os.newline();
-                    aux_edge(edge, depth + 1);
-                    os << hstd::fmt(
-                        " cross-group {} <> {}",
-                        g->getSource(edge),
-                        g->getTarget(edge));
-                    to_drop.incl(edge);
-                }
-            }
-
-            leftover_edges.excl(to_drop);
 
             for (auto const& sub :
                  hstd::sorted(getSubGroups(id).items())) {
@@ -1053,7 +1031,7 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
         aux(g, 0);
     }
 
-    for (auto const& e : hstd::sorted(leftover_edges.items())) {
+    for (auto const& e : hstd::sorted(iter.getLeftoverEdges().items())) {
         os.newline();
         aux_edge(e, 0);
         os << " leftover";

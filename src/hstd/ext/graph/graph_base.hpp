@@ -1774,6 +1774,74 @@ class LayoutRun : public OperationsTracer {
         return edges->getPartiallyIncludedEdges({id});
     }
 
+    struct EdgeIteration {
+      private:
+        EdgeIDSet                leftover_edges;
+        EdgeIDSet                processed_edges;
+        layout::LayoutRun const* run;
+
+      public:
+        EdgeIteration(layout::LayoutRun const* run) : run{run} {}
+
+        /// \brief Get set of edges that are fully nested in a given group
+        /// but have not been processed by any other group.
+        ///
+        /// \warning This method mutates the list of leftover and processed
+        /// edges and must be called exactly once for every ID.
+        EdgeIDSet getEdgesForGroup(VertexID const& id) {
+            // collect list of edges between explicit sub-vertices for a
+            // group.
+            auto direct_edges = run->getDirectlyNestedEdges(id);
+            // edges with source/target vertex in the group, or edges
+            // incident to the group itself.
+            auto indirect_edges = run->getPartiallyNestedEdges(id)
+                                + run->getGroupIncidentEdges(id);
+
+            EdgeIDSet result = direct_edges;
+
+            // collating the list of edges that are not explicitly nested.
+            leftover_edges.incl(
+                indirect_edges
+                - direct_edges
+                // indirect edges set will, by definition, encounter and
+                // edge twice: for source entry and for target group.
+                - processed_edges);
+
+            EdgeIDSet to_drop;
+            // for each leftover edge, try to find the common parent, and
+            // check if the current group matches.
+            for (auto const& edge : leftover_edges) {
+                auto common_parent = run->groups->getCommonAncestor({
+                    run->getGraph()->getSource(edge),
+                    run->getGraph()->getTarget(edge),
+                });
+
+                if (common_parent.has_value()
+                    && common_parent.value() == id) {
+                    result.incl(edge);
+                    to_drop.incl(edge);
+                }
+            }
+
+            leftover_edges.excl(to_drop);
+            processed_edges.incl(result);
+
+            return result;
+        }
+
+        EdgeIDSet getLeftoverEdges() { return leftover_edges; }
+
+        void validateLeftoverEdges() {
+            LOGIC_ASSERTION_CHECK_FMT(
+                leftover_edges.size() == 0,
+                "edge iteration layout could not place the edges within "
+                "the single layour run space: {}. These edges must be "
+                "placed as unbound edges on the overall graph and routed "
+                "after the main layout.",
+                run->getDebug(leftover_edges));
+        }
+    };
+
     /// \brief Return all the edges nested in the target group and its
     /// sub-groups, excluding the edges that are at least partially
     /// crossing the algorithm switch boundary

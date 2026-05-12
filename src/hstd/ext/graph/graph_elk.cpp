@@ -176,9 +176,10 @@ struct State {
     hstd::SPtr<layout::LayoutRun>                      run;
     hstd::ext::Unordered1to1Bimap<hstd::Str, VertexID> v_id_map;
     hstd::ext::Unordered1to1Bimap<hstd::Str, EdgeID>   e_id_map;
+    layout::LayoutRun::EdgeIteration                   iter;
 
-    EdgeIDSet leftover_edges;
-    EdgeIDSet processed_edges;
+    State(hstd::SPtr<layout::LayoutRun> const& run)
+        : run{run}, iter{run.get()} {}
 
     VertexID get_vertex_id(hstd::Str const& id) const {
         return v_id_map.at_right(id);
@@ -214,7 +215,6 @@ elk::EdgeElkLayoutData gen_edge_structure(
     res.id      = id_map.get_id(edge);
     res.sources = {id_map.get_id(run->getGraph()->getSource(edge))};
     res.targets = {id_map.get_id(run->getGraph()->getTarget(edge))};
-    id_map.processed_edges.incl(edge);
     run->message(hstd::fmt("add edge {}", run->getDebug(edge)));
     return res;
 }
@@ -244,53 +244,15 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
     res.id = id_map.get_id(id);
     for (auto const& sub : run->getSubGroups(id)) {
         res.children.push_back(gen_node_structure(run, id_map, sub, id));
-
-        EdgeIDSet to_drop;
-        for (auto const& edge : id_map.leftover_edges) {
-            auto common_parent = run->groups->getCommonAncestor({
-                run->getGraph()->getSource(edge),
-                run->getGraph()->getTarget(edge),
-            });
-
-            if (common_parent.has_value()) {
-                run->message(
-                    hstd::fmt(
-                        "edge {} source and target have common parent {}",
-                        run->getDebug(edge),
-                        run->getDebug(common_parent.value())));
-            }
-
-            if (common_parent.has_value() && common_parent.value() == id) {
-                res.edges.push_back(gen_edge_structure(run, edge, id_map));
-                to_drop.incl(edge);
-            }
-        }
-        id_map.leftover_edges.excl(to_drop);
     }
 
     for (auto const& node : run->getDirectVertices(id)) {
         res.children.push_back(gen_node_structure(run, id_map, node, id));
     }
 
-    auto direct_edges   = run->getDirectlyNestedEdges(id);
-    auto indirect_edges = run->getPartiallyNestedEdges(id)
-                        + run->getGroupIncidentEdges(id);
-
-    for (auto const& edge : direct_edges) {
+    for (auto const& edge : id_map.iter.getEdgesForGroup(id)) {
         res.edges.push_back(gen_edge_structure(run, edge, id_map));
     }
-
-    run->message(
-        hstd::fmt("indirect edges {}", run->getDebug(indirect_edges)));
-    run->message(
-        hstd::fmt("direct edges {}", run->getDebug(direct_edges)));
-    run->message(
-        hstd::fmt(
-            "leftover local edges {}",
-            run->getDebug(indirect_edges - direct_edges)));
-
-    id_map.leftover_edges.incl(
-        indirect_edges - direct_edges - id_map.processed_edges);
 
     return res;
 }
@@ -336,8 +298,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     full_graph.height        = this->height;
     full_graph.layoutOptions = this->layoutOptions;
 
-    State id_map;
-    id_map.run = run;
+    State id_map{run};
 
     {
         run->message("collecting nodes for the ELK layout");
@@ -345,12 +306,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
             run, id_map, root_id, std::nullopt);
         full_graph.edges    = sub_group.edges;
         full_graph.children = sub_group.children;
-        LOGIC_ASSERTION_CHECK_FMT(
-            id_map.leftover_edges.size() == 0,
-            "ELK layout could not place the edges within the single "
-            "layour run space: {}. These edges must be placed as unbound "
-            "edges on the overall graph and routed after the main layout.",
-            run->getDebug(id_map.leftover_edges));
+        id_map.iter.validateLeftoverEdges();
     }
 
     Result res;
@@ -359,8 +315,9 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
         full_graph, run);
 
     auto aux_edge = [&](EdgeElkLayoutData const& node) {
-        EdgeID id  = id_map.get_edge_id(node.id);
-        auto   lyt = std::make_shared<ElkEdgeLayoutAttribute>();
+        EdgeID id = id_map.get_edge_id(node.id);
+        run->message(hstd::fmt("aux edge {}", run->getDebug(id)));
+        auto lyt = std::make_shared<ElkEdgeLayoutAttribute>();
         static_cast<EdgeElkLayoutData&>(*lyt) = node;
         lyt->validate();
         res.edges.insert_or_assign(id, lyt);
