@@ -2047,15 +2047,11 @@ class LayoutRun : public OperationsTracer {
         edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
     }
 
-
-    PortID addPort(
-        VertexID const&                         v,
-        EdgeID const&                           e,
-        bool                                    is_start,
-        hstd::SPtr<IPortVisualAttribute> const& attr) {
+    PortID addPort(VertexID const& v, EdgeID const& e, bool is_start) {
         if (is_start) {
             LOGIC_ASSERTION_CHECK_FMT(
                 edges->getSource(e) == v,
+                "Mismatch between provided vertex and edge source: "
                 "start({}) is {}, attempting to use {}",
                 getDebug(e),
                 getDebug(edges->getSource(e)),
@@ -2063,13 +2059,22 @@ class LayoutRun : public OperationsTracer {
         } else {
             LOGIC_ASSERTION_CHECK_FMT(
                 edges->getTarget(e) == v,
+                "Mismatch between provided vertex and target source: "
                 "target({}) is {}, attempting to use {}",
                 getDebug(e),
                 getDebug(edges->getTarget(e)),
                 getDebug(v));
         }
 
-        auto res  = ports->addPort(v, e, is_start);
+        return ports->addPort(v, e, is_start);
+    }
+
+    PortID addPort(
+        VertexID const&                         v,
+        EdgeID const&                           e,
+        bool                                    is_start,
+        hstd::SPtr<IPortVisualAttribute> const& attr) {
+        auto res  = addPort(v, e, is_start);
         auto edge = getGraph()->getMPort(res);
         edge->addUniqueAttribute(attr);
         return res;
@@ -2134,6 +2139,10 @@ class LayoutRun : public OperationsTracer {
         return groups->getParentChain(id);
     }
 
+    geometry::Rect getRelativeBBox(PortID const& id) const {
+        return getLayout(id)->getBBox();
+    }
+
     geometry::Rect getRelativeBBox(VertexID const& id) const {
         return getLayout(id)->getBBox();
     }
@@ -2147,6 +2156,12 @@ class LayoutRun : public OperationsTracer {
         }
 
         return start.move(offset);
+    }
+
+    geometry::Rect getAbsoluteBBox(PortID const& id) const {
+        auto parent_offset = getRelativeBBox(ports->getVertexForPort(id))
+                                 .upper_left();
+        return getRelativeBBox(id).move(parent_offset);
     }
 
     hstd::Vec<visual::VisGroup> getVisual() const;

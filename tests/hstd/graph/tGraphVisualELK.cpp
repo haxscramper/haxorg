@@ -108,6 +108,31 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
 
 TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     // port of the example model aspect_compositeqm_CompositeQM.json
+
+    // clang-format off
+/*
+                                  ┌────────────────┐
+┌───────────┐   ┌────────────┬────┘ ┌───────────┐  └───┬──────────────┐
+│disc_clock1├───┤ramp1       ├──────┤scale1     ├──────┤ timed_plotter│
+└───────────┘   └────────────┴────┐ └───────────┘  ┌───┴──────────────┘
+                                  └────────────────┘
+
+┌───────────┐   ┌────────────┐      ┌───────────┐
+│disc_clock2├───┤ramp2       ├──────┤scale2     │
+└───────────┘   └────────────┘      └───────────┘
+
+
+┌───────────┐
+│a          ■─┐
+└───────────┘  │
+               │
+               │
+┌───────────┐  └■┌───────────┐     ┌───────────────┐   ┌───────────────┐
+│b         ■───■│merge2     ■──■│server         ├───┤ comm_resp     │
+└───────────┘     └───────────┘     └───────────────┘   └───────────────┘
+*/
+    // clang-format on
+
     auto r_id           = addVertex("r");
     auto a_id           = addVertex("a");
     auto b_id           = addVertex("b");
@@ -173,15 +198,24 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     root->addEdge(e_scale2_plotter);
     root->addEdge(e_ramp2_scape2);
 
+    // a->merge
     root->addPort(addPort(a_id, e_a_merge, true))->setSize(port_size);
     root->addPort(addPort(merge2_id, e_a_merge, false))
         ->setSize(port_size);
+
+    // b->merge
     root->addPort(addPort(b_id, e_b_merge, true))->setSize(port_size);
     root->addPort(addPort(merge2_id, e_b_merge, false))
         ->setSize(port_size);
+
+    // merge->server
     root->addPort(addPort(merge2_id, e_merge_server, true))
         ->setSize(port_size);
     root->addPort(addPort(server_id, e_merge_server, false))
+        ->setSize(port_size);
+
+    // server->comm_resp, only one port for the edge
+    root->addPort(addPort(server_id, e_server_comm, true))
         ->setSize(port_size);
 
     VertexIDSet all_vertices{
@@ -202,13 +236,19 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     EXPECT_EQ(run->getDirectVertices(r_id).size(), 12);
     EXPECT_EQ((run->getDirectVertices(r_id) - all_vertices).size(), 0);
 
+    // ports are assigned to individual rectangles, one edge has two ports
+    // associated with two different rectangles.
     EXPECT_TRUE(run->ports->hasSourcePort(a_id, e_a_merge));
+    EXPECT_FALSE(run->ports->hasTargetPort(a_id, e_a_merge));
+
     EXPECT_TRUE(run->ports->hasTargetPort(merge2_id, e_a_merge));
+    EXPECT_FALSE(run->ports->hasSourcePort(merge2_id, e_a_merge));
+
     EXPECT_EQ(run->ports->getPortsForVertex(a_id).size(), 1);
     EXPECT_EQ(run->ports->getPortsForVertex(b_id).size(), 1);
     EXPECT_EQ(run->ports->getPortsForVertex(merge2_id).size(), 3);
 
-    EXPECT_EQ(run->getDirectPorts(r_id).size(), 6);
+    EXPECT_EQ(run->getDirectPorts(r_id).size(), 7);
 
     run->runFullLayout();
 
@@ -216,6 +256,37 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
+
+    EXPECT_OUTCOME_OK(checkLeftOf(
+        run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(a_id)));
+
+    EXPECT_OUTCOME_OK(checkLeftOf(
+        run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(b_id)));
+
+    // source port for b->merge
+    EXPECT_OUTCOME_OK(checkRightOf(
+        /*stationary=*/run->getAbsoluteBBox(b_id),
+        /*relative=*/run->getAbsoluteBBox(
+            run->ports->getPortForConnection(b_id, e_b_merge, true))));
+
+    // source port for a->merge
+    EXPECT_OUTCOME_OK(checkRightOf(
+        /*stationary=*/run->getAbsoluteBBox(a_id),
+        /*relative=*/run->getAbsoluteBBox(
+            run->ports->getPortForConnection(a_id, e_a_merge, true))));
+
+    // target port for a->merge
+    EXPECT_OUTCOME_OK(checkLeftOf(
+        /*stationary=*/run->getAbsoluteBBox(merge2_id),
+        /*relative=*/run->getAbsoluteBBox(run->ports->getPortForConnection(
+            merge2_id, e_a_merge, false))));
+
+    // target port for b->merge
+    EXPECT_OUTCOME_OK(checkLeftOf(
+        /*stationary=*/run->getAbsoluteBBox(merge2_id),
+        /*relative=*/run->getAbsoluteBBox(run->ports->getPortForConnection(
+            merge2_id, e_a_merge, false))));
+
 
     auto visual = run->getVisual();
     hstd::writeFile(

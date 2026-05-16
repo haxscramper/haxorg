@@ -55,7 +55,7 @@ class GraphUtils_Test : public ::testing::Test {
         EdgeID const&    e,
         bool             is_start,
         hstd::Str const& id_override) {
-        auto res = run->ports->addPort(v, e, is_start);
+        auto res = run->addPort(v, e, is_start);
         graph->getCastMPort<TrivialPort>(res)
             ->stableIdOverride = id_override;
         return res;
