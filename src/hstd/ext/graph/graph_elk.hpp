@@ -11,6 +11,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/ext/graph/graph_visual.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 

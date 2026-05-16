@@ -16,6 +16,7 @@
 #    include <hstd/system/generator.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
 #    include <hstd/ext/graph/graph_base.hpp>
+#    include <hstd/ext/graph/graph_visual.hpp>
 
 #    define _attr_aligned(__Class, Method, key, Type)                     \
         __Class* set##Method(                                             \

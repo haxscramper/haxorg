@@ -1,12 +1,14 @@
 #pragma once
 
 #include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/ext/graph/graph_visual.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
 #include <libdialect/hola.h>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/ext/graph/graph_vpsc.hpp>
+
 namespace hstd::ext::graph::cst {
 
 class AvoidPort

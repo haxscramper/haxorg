@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/ext/graph/graph_visual.hpp>
 #include <hstd/ext/graph/adaptagrams_common.hpp>
 #include <libdialect/hola.h>
 #include <hstd/ext/bimap_wrap.hpp>

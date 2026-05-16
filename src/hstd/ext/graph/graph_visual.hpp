@@ -1,0 +1,711 @@
+#pragma once
+
+#include <hstd/ext/graph/graph_base.hpp>
+#include "hstd/stdlib/TraceBase.hpp"
+
+namespace hstd::ext::graph {
+
+/// \brief Generic interface to perform mixed-layout graph visualization
+///
+/// Interface classes in this namespace define a generic algorithm for
+/// graph layout with support for multiple layout solutions in the same
+/// visualization.
+///
+/// Terminology used
+///
+/// - **backend** refers to the particular set of derived classes intended
+///   to wrap a graph visualization library/tool like graphviz, ELK,
+///   Adaptagrams
+namespace layout {
+
+struct layout_error : public hstd::CRTP_hexception<layout_error> {};
+
+struct constraint_error
+    : public hstd::CRTP_hexception<constraint_error, layout_error> {};
+
+/// \brief Base class for configuring individual edge objects for layout
+///
+/// Each layout group type will have its own set of visual attributes
+/// derived. The attributes may hold any inforamtion, including additional
+/// internal data structures necessary to perform layout. For example,
+/// graphviz visual attributes will hold the `agnode_t`, `agedge_t` etc
+/// objets. The `agraph_t` is held by the `IGroup`-derived object -- there
+/// is no visual attribute subclass for a group, as the group itself only
+/// exists for the visualization configuration.
+///
+/// \see ILayoutAttribute for attributes created after the layout is
+/// complete.
+class IVisualAttribute : public IAttribute {};
+
+class IVertexVisualAttribute : public IVisualAttribute {};
+class IEdgeVisualAttribute : public IVisualAttribute {};
+class IPortVisualAttribute : public IVisualAttribute {};
+
+/// \brief Base class for all attributes describing post-layout placement
+/// and shape information for the graph elements.
+class ILayoutAttribute : public IAttribute {
+  public:
+    /// \brief Original type of the layout element, used for the \refP
+    /// VisGroup::original_type field in the \ref LayoutRun::getVisual
+    DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
+};
+
+class IPortLayoutAttribute : public ILayoutAttribute {
+  public:
+    /// \brief position + size relative to parent.
+    virtual Rect             getBBox() const = 0;
+    virtual visual::VisGroup getVisual(PortID const& selfId) const {
+        visual::VisGroup res;
+        auto             bb = getBBox();
+        res.offset          = bb.upper_left();
+        res.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE PORT:{}", selfId));
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{
+                geometry::Rect::FromSize(bb.size())}});
+        return res;
+    }
+};
+
+class IEdgeLayoutAttribute : public ILayoutAttribute {
+  public:
+    virtual Path             getPath() const = 0;
+    virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
+        visual::VisGroup result;
+        result.elements.push_back(
+            visual::VisElement{visual::VisElement::PathShape{getPath()}});
+        result.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE EDGE:{}", selfId));
+        return result;
+    }
+};
+
+class IVertexLayoutAttribute : public ILayoutAttribute {
+  public:
+    /// \brief Vertex bounding box + position relative to the parent
+    virtual Rect             getBBox() const = 0;
+    virtual visual::VisGroup getVisual(VertexID const& selfId) const {
+        visual::VisGroup res;
+        res.elements.push_back(
+            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+        res.elements.push_back(
+            visual::VisElement::FromText(
+                hstd::fmt("{}", selfId), getBBox().upper_left()));
+        res.custom.setAttr(
+            "inkscape:label", hstd::fmt("BASE VERTEX:{}", selfId));
+        return res;
+    }
+};
+
+class IGroupLayoutAttribute : public IVertexLayoutAttribute {
+  public:
+    /// \brief Change the bounding box of the group layout. Used by the
+    /// layout algorithm to move the bounding box when the parent group
+    /// re-arranges the placement.
+    virtual void setBBox(geometry::Rect const& bbox) = 0;
+};
+
+
+class IGroupVisualAttribute;
+class LayoutRun;
+
+class IPlacementAlgorithm {
+  public:
+    static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
+    /// \brief Result of the placement algorithm execution
+    struct Result {
+        hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>> edges;
+        hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
+            vertices;
+        hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>> ports;
+    };
+
+    hstd::SPtr<LayoutRun> run;
+
+    /// \brief Execute single layout run on the input group. If the group
+    /// contains sub-groups with different layout algorithms, their
+    /// placement should already be present in the \ref
+    /// LayoutRun::result.
+    virtual Result runSingleLayout(VertexID const& group) = 0;
+
+    IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
+};
+
+class IConstraint {
+  public:
+    virtual hstd::Vec<VertexID> getAllVertices() const = 0;
+};
+
+
+class IGroupVisualAttribute : public IVertexVisualAttribute {
+  protected:
+    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
+
+
+  public:
+    /// \brief Optional instance of the layout algorithm to be executed on
+    /// the current group.
+    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
+    hstd::SPtr<LayoutRun>              run;
+
+
+    virtual void setOuterPadding(geometry::Padding const& pad)   = 0;
+    virtual hstd::Opt<geometry::Padding> getOuterPadding() const = 0;
+
+    hstd::SPtr<IGraph> getGraph() const;
+
+    template <typename T = IPlacementAlgorithm>
+    hstd::SPtr<T> getAlgorithm() const {
+        auto result = std::dynamic_pointer_cast<T>(algorithm.value());
+        hstd::logic_assertion_check_not_nil(result);
+        return result;
+    }
+
+    template <typename T, typename... Args>
+    std::shared_ptr<T> addConstraint(Args&&... args) {
+        auto res = std::make_shared<T>(std::forward<Args>(args)...);
+        constraints.push_back(res);
+        return res;
+    }
+
+    bool hasAlgorithm() const { return algorithm.has_value(); }
+
+    virtual std::string getStableId() const = 0;
+
+    IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
+};
+
+class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {};
+class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
+  public:
+    geometry::Path path;
+    UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
+    Path getPath() const override { return path; }
+};
+
+class LayoutRun : public OperationsTracer {
+  public:
+    hstd::SPtr<IGraph>                graph;
+    hstd::SPtr<IdOnlyHierarchy>       groups;
+    hstd::SPtr<TrivialEdgeCollection> edges;
+    hstd::SPtr<TrivialPortCollection> ports;
+
+    LayoutRun(
+        hstd::SPtr<IGraph> graph,
+        EdgeCollectionID   edges_id = EdgeCollectionID{9999})
+        : graph{graph}
+        , groups{std::make_shared<IdOnlyHierarchy>()}
+        , edges{std::make_shared<TrivialEdgeCollection>(edges_id)}
+        , ports{std::make_shared<TrivialPortCollection>()} {
+        hstd::logic_assertion_check_not_nil(graph);
+        graph->addCollection(edges);
+        graph->addHierarchy(groups);
+        graph->addPorts(ports);
+    }
+
+    void runFullLayout();
+
+    /// \brief Full store for the layout results of all recursive runs.
+    IPlacementAlgorithm::Result result;
+
+    hstd::SPtr<UnboundEdgeVisualAttribute> addUnboundEdge(
+        EdgeID const& id) {
+        auto attr = std::make_shared<UnboundEdgeVisualAttribute>();
+        addEdge(id, attr);
+        return attr;
+    }
+
+    EdgeIDSet getAllUnboundEdges() const {
+        EdgeIDSet res;
+        auto      el = edges->getEdges();
+        for (auto const& edge : el) {
+            auto vattr = getEdgeVisualAttribute(edge);
+            if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(
+                    vattr)) {
+                res.incl(edge);
+            }
+        }
+        return res;
+    }
+
+    template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
+    T const* getVertex(VertexID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return hstd::validated_dynamic_cast<T>(graph->getVertex(id));
+    }
+
+    template <typename T = IVertex>
+        requires std::derived_from<T, IVertex>
+    T* getMVertex(VertexID const& id) {
+        return hstd::validated_dynamic_cast<T>(graph->getMVertex(id));
+    }
+
+    template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
+    T const* getEdge(EdgeID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return hstd::validated_dynamic_cast<T>(graph->getEdge(id));
+    }
+
+    template <typename T = IEdge>
+        requires std::derived_from<T, IEdge>
+    T* getMEdge(EdgeID const& id) {
+        return hstd::validated_dynamic_cast<T>(graph->getMEdge(id));
+    }
+
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T const* getPort(PortID const& id) const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return hstd::validated_dynamic_cast<T>(ports->getPort(id));
+    }
+
+    template <typename T = IPort>
+        requires std::derived_from<T, IPort>
+    T* getMPort(PortID const& id) {
+        return hstd::validated_dynamic_cast<T>(ports->getMPort(id));
+    }
+
+    template <typename T = IGroupVisualAttribute>
+        requires std::derived_from<T, IGroupVisualAttribute>
+    hstd::SPtr<T> getGroup(VertexID const& id) const {
+        return graph->getVertex(id)->getUniqueAttribute<T>(
+            graph->getDebugVertexFormat(id));
+    }
+
+    template <typename T = IEdgeVisualAttribute>
+        requires std::derived_from<T, IEdgeVisualAttribute>
+    hstd::SPtr<T> getEdgeVisualAttribute(EdgeID const& id) const {
+        return graph->getEdge(id)->getUniqueAttribute<T>(
+            graph->getDebugEdgeFormat(id));
+    }
+
+    template <typename T = IVertexVisualAttribute>
+        requires std::derived_from<T, IVertexVisualAttribute>
+    hstd::SPtr<T> getVertexVisualAttribute(VertexID const& id) const {
+        return graph->getVertex(id)->getUniqueAttribute<T>(
+            graph->getDebugVertexFormat(id));
+    }
+
+    template <typename T = IPortVisualAttribute>
+        requires std::derived_from<T, IPortVisualAttribute>
+    hstd::SPtr<T> getPortVisualAttribute(PortID const& id) const {
+        return graph->getPort(id)->getUniqueAttribute<T>(
+            graph->getDebugPortFormat(id));
+    }
+
+    template <typename T = IAttribute>
+        requires std::derived_from<T, IAttribute>
+    void setAttribute(EdgeID const& id, hstd::SPtr<T> const& attr) const {
+        graph->getEdge(id)->addOrResetUniqueAttribute<T>(id, attr);
+    }
+
+    template <typename T = IAttribute>
+        requires std::derived_from<T, IAttribute>
+    void setAttribute(VertexID const& id, hstd::SPtr<T> const& attr)
+        const {
+        graph->getVertex(id)->addOrResetUniqueAttribute<T>(id, attr);
+    }
+
+
+    template <typename T = IGroupVisualAttribute>
+        requires std::derived_from<T, IGroupVisualAttribute>
+    bool isGroupVertex(VertexID const& id) const {
+        bool res = graph->getVertex(id)->hasOptionalAttribute<T>();
+        if (!res) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                groups->getSubVertices(id).empty(),
+                "vertex {} is not a group, but it contains sub-vertices "
+                "{}",
+                getDebug(id),
+                getDebug(groups->getSubVertices(id)));
+        }
+        return res;
+    }
+
+    PortIDSet getDirectPorts(VertexID const& id) const {
+        PortIDSet res;
+        for (auto const& v : getDirectVertices(id)) {
+            res.incl(ports->getPortsForVertex(v));
+        }
+        return res;
+    }
+
+    VertexIDSet getDirectVertices(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id),
+            "Cannot get nested vertices from non-group");
+        VertexIDSet res;
+        for (auto const& sub : groups->getSubVertices(id)) {
+            if (!isGroupVertex(sub)) { res.incl(sub); }
+        }
+        return res;
+    }
+
+    VertexIDSet getRootGroups() const {
+        VertexIDSet res;
+        for (auto const& sub : groups->getRootVertices()) {
+            if (isGroupVertex(sub)) { res.incl(sub); }
+        }
+        return res;
+    }
+
+    VertexIDSet getSubGroups(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested groups from non-group");
+        VertexIDSet res;
+        for (auto const& sub : groups->getSubVertices(id)) {
+            if (isGroupVertex(sub)) { res.incl(sub); }
+        }
+        return res;
+    }
+
+    /// \brief Get all nested groups that don't switch layout
+    VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const {
+        VertexIDSet noSwitch;
+        for (auto const& sub : getSubGroups(id)) {
+            if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
+        }
+        return noSwitch;
+    }
+
+    EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getFullyIncludedEdges(getDirectVertices(id));
+    }
+
+    EdgeIDSet getPartiallyNestedEdges(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getPartiallyIncludedEdges(getDirectVertices(id));
+    }
+
+    EdgeIDSet getGroupIncidentEdges(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get incident edges from non-group");
+        return edges->getPartiallyIncludedEdges({id});
+    }
+
+    struct EdgeIteration {
+      private:
+        EdgeIDSet                leftover_edges;
+        EdgeIDSet                processed_edges;
+        layout::LayoutRun const* run;
+
+      public:
+        EdgeIteration(layout::LayoutRun const* run) : run{run} {}
+
+        /// \brief Get set of edges that are fully nested in a given group
+        /// but have not been processed by any other group.
+        ///
+        /// \warning This method mutates the list of leftover and processed
+        /// edges and must be called exactly once for every ID.
+        EdgeIDSet getEdgesForGroup(VertexID const& id) {
+            // collect list of edges between explicit sub-vertices for a
+            // group.
+            auto direct_edges = run->getDirectlyNestedEdges(id);
+            // edges with source/target vertex in the group, or edges
+            // incident to the group itself.
+            auto indirect_edges = run->getPartiallyNestedEdges(id)
+                                + run->getGroupIncidentEdges(id);
+
+            EdgeIDSet result = direct_edges;
+
+            // collating the list of edges that are not explicitly nested.
+            leftover_edges.incl(
+                indirect_edges
+                - direct_edges
+                // indirect edges set will, by definition, encounter and
+                // edge twice: for source entry and for target group.
+                - processed_edges);
+
+            EdgeIDSet to_drop;
+            // for each leftover edge, try to find the common parent, and
+            // check if the current group matches.
+            for (auto const& edge : leftover_edges) {
+                auto common_parent = run->groups->getCommonAncestor({
+                    run->getGraph()->getSource(edge),
+                    run->getGraph()->getTarget(edge),
+                });
+
+                if (common_parent.has_value()
+                    && common_parent.value() == id) {
+                    result.incl(edge);
+                    to_drop.incl(edge);
+                }
+            }
+
+            leftover_edges.excl(to_drop);
+            processed_edges.incl(result);
+
+            return result;
+        }
+
+        EdgeIDSet getLeftoverEdges() { return leftover_edges; }
+
+        void validateLeftoverEdges() {
+            LOGIC_ASSERTION_CHECK_FMT(
+                leftover_edges.size() == 0,
+                "edge iteration layout could not place the edges within "
+                "the single layour run space: {}. These edges must be "
+                "placed as unbound edges on the overall graph and routed "
+                "after the main layout.",
+                run->getDebug(leftover_edges));
+        }
+    };
+
+    /// \brief Return all the edges nested in the target group and its
+    /// sub-groups, excluding the edges that are at least partially
+    /// crossing the algorithm switch boundary
+    EdgeIDSet getLayoutLayerNestedEdges(VertexID const& id) const {
+        VertexIDSet noSwitch;
+        auto aux = [&](this auto&& self, VertexID const& id) -> void {
+            for (auto const& sub : getSubGroupsNoLayoutSwitch(id)) {
+                noSwitch.incl(sub);
+                self(sub);
+            }
+
+            noSwitch.incl(getDirectVertices(id));
+        };
+
+        aux(id);
+
+        return edges->getFullyIncludedEdges(noSwitch);
+    }
+
+    void addRootGroup(
+        VertexID const&                          id,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+        groups->trackVertex(id);
+        graph->getMVertex(id)->addUniqueAttribute(attr);
+    }
+
+    EdgeID addNestedGroup(
+        VertexID const&                          parent,
+        VertexID const&                          nested,
+        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+
+        LOGIC_ASSERTION_CHECK(
+            !getGraph()
+                 ->getVertex(nested)
+                 ->getOptionalAttribute<IVertexVisualAttribute>()
+                 .has_value(),
+            "Cannot assign group visual attribute to a vertex that "
+            "already has vertex visual attribute.");
+
+        groups->trackVertex(nested);
+        auto res = groups->trackSubVertexRelation(parent, nested);
+        graph->getMVertex(nested)->addUniqueAttribute(attr);
+
+        return res;
+    }
+
+    EdgeID addNestedVertex(
+        VertexID const&                           parent,
+        VertexID const&                           nested,
+        hstd::SPtr<IVertexVisualAttribute> const& attr) {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(parent),
+            "Cannot assign non-group visual attribute to the vertex "
+            "already "
+            "annotated with the group visual attribute.");
+
+        LOGIC_ASSERTION_CHECK(
+            std::dynamic_pointer_cast<IGroupVisualAttribute>(attr)
+                == nullptr,
+            "Cannot use group visual attribute in the vertex. Classes "
+            "derived from the IVertexVisualAttribute should be managed by "
+            "the addNewNativeSubgroup method");
+
+        getGraph()->getMVertex(nested)->addUniqueAttribute(attr);
+        groups->trackVertex(nested);
+        return groups->trackSubVertexRelation(parent, nested);
+    }
+
+
+    void addEdge(
+        EdgeID const&                           id,
+        hstd::SPtr<IEdgeVisualAttribute> const& attr) {
+        auto edge = getGraph()->getMEdge(id);
+        edge->addUniqueAttribute(attr);
+        edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
+    }
+
+    PortID addPort(VertexID const& v, EdgeID const& e, bool is_start) {
+        if (is_start) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                edges->getSource(e) == v,
+                "Mismatch between provided vertex and edge source: "
+                "start({}) is {}, attempting to use {}",
+                getDebug(e),
+                getDebug(edges->getSource(e)),
+                getDebug(v));
+        } else {
+            LOGIC_ASSERTION_CHECK_FMT(
+                edges->getTarget(e) == v,
+                "Mismatch between provided vertex and target source: "
+                "target({}) is {}, attempting to use {}",
+                getDebug(e),
+                getDebug(edges->getTarget(e)),
+                getDebug(v));
+        }
+
+        return ports->addPort(v, e, is_start);
+    }
+
+    PortID addPort(
+        VertexID const&                         v,
+        EdgeID const&                           e,
+        bool                                    is_start,
+        hstd::SPtr<IPortVisualAttribute> const& attr) {
+        auto res  = addPort(v, e, is_start);
+        auto edge = getGraph()->getMPort(res);
+        edge->addUniqueAttribute(attr);
+        return res;
+    }
+
+    hstd::SPtr<IGraph> getGraph() const {
+        hstd::logic_assertion_check_not_nil(graph);
+        return graph;
+    }
+
+
+    IVertex const* at(VertexID const& id) const {
+        return graph->getVertex(id);
+    }
+
+    template <typename T = IPortLayoutAttribute>
+        requires std::derived_from<T, IPortLayoutAttribute>
+    hstd::SPtr<T> getLayout(PortID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.ports.contains(id),
+            "No layout attribute specified for Port {}",
+            graph->getDebugPortFormat(id));
+
+        return hstd::validated_dynamic_cast<T>(result.ports.at(id));
+    }
+
+    template <typename T = IEdgeLayoutAttribute>
+        requires std::derived_from<T, IEdgeLayoutAttribute>
+    hstd::SPtr<T> getLayout(EdgeID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.edges.contains(id),
+            "No layout attribute specified for edge {}",
+            graph->getDebugEdgeFormat(id));
+
+        return hstd::validated_dynamic_cast<T>(result.edges.at(id));
+    }
+
+    template <typename T = IVertexLayoutAttribute>
+        requires std::derived_from<T, IVertexLayoutAttribute>
+    hstd::SPtr<T> getLayout(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.vertices.contains(id),
+            "No layout attribute specified for vertex ID {}",
+            graph->getDebugVertexFormat(id));
+
+        return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
+    }
+
+    bool hasLayout(VertexID const& id) const {
+        return result.vertices.contains(id);
+    }
+
+    bool hasLayout(EdgeID const& id) const {
+        return result.edges.contains(id);
+    }
+
+    hstd::Opt<VertexID> getParent(VertexID const& id) const {
+        return groups->getParentVertex(id);
+    }
+
+    hstd::Vec<VertexID> getParentChain(VertexID const& id) const {
+        return groups->getParentChain(id);
+    }
+
+    geometry::Rect getRelativeBBox(PortID const& id) const {
+        return getLayout(id)->getBBox();
+    }
+
+    geometry::Rect getRelativeBBox(VertexID const& id) const {
+        return getLayout(id)->getBBox();
+    }
+
+    geometry::Rect getAbsoluteBBox(VertexID const& id) const {
+        auto start = getRelativeBBox(id);
+
+        geometry::Point offset{0, 0};
+        for (auto const& parent : getParentChain(id)) {
+            offset += getRelativeBBox(parent).upper_left();
+        }
+
+        return start.move(offset);
+    }
+
+    geometry::Rect getAbsoluteBBox(PortID const& id) const {
+        auto parent_offset = getRelativeBBox(ports->getVertexForPort(id))
+                                 .upper_left();
+        return getRelativeBBox(id).move(parent_offset);
+    }
+
+    hstd::Vec<visual::VisGroup> getVisual() const;
+
+    visual::VisGroup getVisual(PortID const& id) const {
+        return getLayout(id)->getVisual(id);
+    }
+
+    visual::VisGroup getVisual(EdgeID const& id) const {
+        return getLayout(id)->getVisual(id);
+    }
+
+    visual::VisGroup getVisual(VertexID const& id) const {
+        return getLayout(id)->getVisual(id);
+    }
+
+    struct TreeReprConf {};
+
+    void treeRepr(hstd::ColStream& os, TreeReprConf const& conf) const;
+
+    hstd::ColText treeRepr(TreeReprConf const& conf) {
+        hstd::ColStream os;
+        treeRepr(os, conf);
+        return os.getBuffer();
+    }
+
+    hstd::ColText treeRepr() { return treeRepr(TreeReprConf{}); }
+
+    std::string getDebug(EdgeID const& edge) const {
+        return getGraph()->getDebugEdgeFormat(edge);
+    }
+    std::string getDebug(EdgeIDSet const& vert) const {
+        return getGraph()->getDebugEdgeFormat(vert);
+    }
+    std::string getDebug(EdgeIDVec const& vert) const {
+        return getGraph()->getDebugEdgeFormat(vert);
+    }
+    std::string getDebug(VertexIDSet const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(VertexIDVec const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(VertexID const& vert) const {
+        return getGraph()->getDebugVertexFormat(vert);
+    }
+    std::string getDebug(PortIDSet const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
+    }
+    std::string getDebug(PortIDVec const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
+    }
+    std::string getDebug(PortID const& vert) const {
+        return getGraph()->getDebugPortFormat(vert);
+    }
+};
+
+
+} // namespace layout
+
+} // namespace hstd::ext::graph
