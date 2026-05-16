@@ -361,9 +361,8 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
             .skippedKinds = SemSet{OrgSemKind::Space},
         });
 
-    hstd::ext::Graphviz gvc;
-    gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
-    gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
+    gv->render("/tmp/ReplaceSubnodeAtPath.png");
+    gv->render("/tmp/ReplaceSubnodeAtPath.dot");
 }
 
 

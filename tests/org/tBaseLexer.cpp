@@ -323,14 +323,10 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     if (trace) {
         __perf_trace("cli", "Export mind map as graphviz");
-        hstd::ext::Graphviz gvc;
-        gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
-        gvc.writeFile(getDebugFile("mind_map.dot"), gv);
-        gvc.renderToFile(
-            getDebugFile("mind_map.png"),
-            gv,
-            hstd::ext::Graphviz::RenderFormat::PNG,
-            hstd::ext::Graphviz::LayoutType::Dot);
+        gv->setRankDirection(
+            hstd::ext::graph::gv::GraphGroup::RankDirection::LR);
+        gv->render(getDebugFile("mind_map.dot"));
+        gv->render(getDebugFile("mind_map.png"));
     }
 }
 

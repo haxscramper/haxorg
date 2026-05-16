@@ -27,9 +27,8 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void writeGraphviz(fs::path const& name) {
-        hstd::ext::Graphviz gvc;
-        auto                gv = graph->graph->toGraphviz(start);
-        gvc.renderToFile(name, gv);
+        auto gv = graph->graph->toGraphviz(start);
+        gv->render(name);
     }
 
     void setGraphTrace(fs::path const& name) {
@@ -50,9 +49,8 @@ TEST_F(ImmMapApi, AddNode) {
     s1->addNode(v1.getRootAdapter(), conf);
     EXPECT_EQ(s1->graph->nodeCount(), 1);
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v1.context);
-    gvc.renderToFile(getDebugFile("MapS2.png"), gv);
+    auto gv = s1->graph->toGraphviz(v1.context);
+    gv->render(getDebugFile("MapS2.png"));
 }
 
 TEST_F(ImmMapApi, AddNodeWithLinks) {
@@ -101,9 +99,8 @@ Paragraph [[id:subtree-id]]
         EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v1.context);
-    gvc.renderToFile(getDebugFile("AddNodeWithLinks.png"), gv);
+    auto gv = s1->graph->toGraphviz(v1.context);
+    gv->render(getDebugFile("AddNodeWithLinks.png"));
 }
 
 
@@ -155,9 +152,8 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     EXPECT_EQ(s1->graph->edgeCount(), 2);
     EXPECT_EQ(s1->unresolved.size(), 0);
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v3.context);
-    gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
+    auto gv = s1->graph->toGraphviz(v3.context);
+    gv->render(getDebugFile("SubtreeBacklinks.png"));
 }
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
@@ -202,9 +198,8 @@ radio user paragraph
         EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v1.context);
-    gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
+    auto gv = s1->graph->toGraphviz(v1.context);
+    gv->render(getDebugFile("RadioTargetsForward.png"));
 }
 
 TEST_F(ImmMapApi, RadioTargetsInverse) {
@@ -253,9 +248,8 @@ radio user paragraph
         EXPECT_EQ(s1->unresolved.size(), 0);
     }
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v1.context);
-    gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
+    auto gv = s1->graph->toGraphviz(v1.context);
+    gv->render(getDebugFile("RadioTargetsForward.png"));
 }
 
 TEST_F(ImmMapApi, RadioTargetAliases) {
@@ -416,11 +410,11 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
     EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1->graph->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = s1->graph->toGraphviz(v2.context);
-    gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
-    gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
-    gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
+    auto gv = s1->graph->toGraphviz(v2.context);
+    gv->setRankDirection(
+        hstd::ext::graph::gv::GraphGroup::RankDirection::LR);
+    gv->render("/tmp/SubtreeFullMap.dot");
+    gv->render("/tmp/SubtreeFullMap.png");
 }
 
 Str getSubtreeBlockText() {
@@ -569,11 +563,10 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
             .target = org::graph::MapNode{comment.uniq()}},
         org::graph::MapEdgeProp{});
 
-    hstd::ext::Graphviz gvc;
-    auto                gv = state->graph->toGraphviz(v.context);
+    auto gv = state->graph->toGraphviz(v.context);
     // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
-    gvc.writeFile(getDebugFile("map.dot"), gv);
-    gvc.renderToFile(getDebugFile("map.png"), gv);
+    gv->render(getDebugFile("map.dot"));
+    gv->render(getDebugFile("map.png"));
 
     // org::eachSubnodeRec(root, [](org::ImmAdapter const& it) {
     //     if (SemSet{
@@ -720,19 +713,15 @@ TEST_F(ImmMapApi, Doc1Graph) {
     org::graph::MapGraphState state{v.context};
     state.addNodeRec(v.context, root, conf);
 
-    hstd::ext::Graphviz            gvc;
     org::graph::MapGraph::GvConfig gvConf;
     gvConf.acceptNode = [&](org::graph::MapNode const& node) {
         return 0 < state.graph->inDegree(node)
             || 0 < state.graph->outDegree(node);
     };
     auto gv = state.graph->toGraphviz(v.context, gvConf);
-    gvc.writeFile(getDebugFile("map.dot"), gv);
-    gvc.renderToFile(
-        getDebugFile("map.png"),
-        gv,
-        hstd::ext::Graphviz::RenderFormat::PNG,
-        hstd::ext::Graphviz::LayoutType::Sfdp);
+    gv->render(getDebugFile("map.dot"));
+    gv->render(
+        getDebugFile("map.png"), hstd::ext::graph::gv::LayoutType::Sfdp);
 }
 
 struct TestGraph {
@@ -865,25 +854,6 @@ TEST(ImmMapGraphApi, SourceAndTarget) {
     EXPECT_EQ(tgt, g.nodes.at(1));
 }
 
-TEST(ImmMapGraphApi, BoostPropertyWriter) {
-    auto n = testParseString(getFullMindMapText());
-
-    auto               store = imm::ImmAstContext ::init_start_context();
-    auto               conf  = org::graph::MapConfig::shared();
-    imm::ImmAstVersion v2    = store->addRoot(n);
-    imm::ImmAdapter    file  = v2.getRootAdapter();
-    auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
-    s1->addNodeRec(v2.context, file, conf);
-
-    std::stringstream os;
-
-    auto dp = org::graph::toGraphvizDynamicProperties(*s1->graph);
-
-    write_graphviz_dp(os, *s1->graph, dp);
-
-    writeFile("/tmp/BoostPropertyWriter.dot", os.str());
-}
-
 TEST(ImmMapGraphApi, BoostVisitors) {
     auto n = testParseString(getFullMindMapText());
     using namespace org;
@@ -930,12 +900,11 @@ TEST(ImmMapGraphApi, BoostVisitors) {
                     ++index;
                 }));
 
-    hstd::ext::Graphviz gvc;
-    MapGraph::GvConfig  gvConf;
+    MapGraph::GvConfig gvConf;
 
-    gvConf.getNodeLabel =
-        [&](imm::ImmAdapter const& adapter,
-            MapNodeProp const& prop) -> hstd::ext::Graphviz::Node::Record {
+    gvConf.getNodeLabel = [&](imm::ImmAdapter const& adapter,
+                              MapNodeProp const&     prop)
+        -> hstd::ext::graph::gv::NodeAttribute::Record {
         auto res = MapGraph::GvConfig::getDefaultNodeLabel(adapter, prop);
         MapNode node{adapter.uniq()};
         if (auto forward = forwardBfsExamineOrder.get(node)) {
@@ -955,7 +924,8 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     };
 
     auto gv = s1->graph->toGraphviz(v2.context, gvConf);
-    gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
-    gvc.writeFile(getDebugFile("BoostVisitors.dot"), gv);
-    gvc.renderToFile(getDebugFile("BoostVisitors.png"), gv);
+    gv->setRankDirection(
+        hstd::ext::graph::gv::GraphGroup::RankDirection::LR);
+    gv->render(getDebugFile("BoostVisitors.dot"));
+    gv->render(getDebugFile("BoostVisitors.png"));
 }

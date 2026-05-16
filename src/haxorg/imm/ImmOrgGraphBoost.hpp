@@ -418,8 +418,6 @@ struct boost_color_property_map_bundle {
 };
 
 
-boost::dynamic_properties toGraphvizDynamicProperties(MapGraph const& g);
-
 template <org::graph::IsOrgMapGraph OrgGraphT>
 void bfs_visit(
     OrgGraphT const&                                      g,
