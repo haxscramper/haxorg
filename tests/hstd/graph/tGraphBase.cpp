@@ -2,6 +2,26 @@
 
 struct GraphBase_Test : public GraphUtils_Test {};
 
+struct AutoSegmentTest {
+    std::shared_ptr<TrivialEdgeCollection> segmented_edges;
+    std::shared_ptr<TrivialPortCollection> connection_ports;
+    AutoSegmentingCollection               as;
+
+    AutoSegmentTest(IGraph* g, hstd::SPtr<IVertexHierarchy> const& h)
+        : segmented_edges{std::make_shared<TrivialEdgeCollection>(
+              EdgeCollectionID{139})}
+        , connection_ports{std::make_shared<TrivialPortCollection>()}
+        , as{
+              segmented_edges.get(),
+              connection_ports.get(),
+              h.get(),
+              g,
+          } {
+        g->addPorts(connection_ports);
+        g->addCollection(segmented_edges);
+    }
+};
+
 TEST_F(GraphBase_Test, AddVertex) {
     auto id = addVertex("a");
     EXPECT_NE(graph->getVertex(id), nullptr);
@@ -257,4 +277,10 @@ TEST_F(
     EXPECT_EQ(g.getHierarchyCrossings(e).at(0).crossings.size(), 2);
     EXPECT_EQ(g.getHierarchyCrossings(e).at(0).crossings.at(0), v2);
     EXPECT_EQ(g.getHierarchyCrossings(e).at(0).crossings.at(1), v4);
+
+    AutoSegmentTest as{&g, h};
+
+    as.as.addEdge(e);
+    EXPECT_EQ(as.as.getSegmentationPorts(e).size(), 2);
+    EXPECT_EQ(as.as.getSegments(e).size(), 3);
 }

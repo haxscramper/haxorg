@@ -139,6 +139,17 @@ void IGraph::delTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
 }
 
 void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
+    LOGIC_ASSERTION_CHECK_FMT(
+        (collection->getCategory()
+         & IEdgeCollection::HierarchyCategoryMaskBit)
+            == 0,
+        "Input collection has category {} ({}) which matches the "
+        "hierarchy mask: {}",
+        collection->getCategory(),
+        hstd::format_integer_bits(collection->getCategory(), 'b'),
+        hstd::format_integer_bits(
+            IEdgeCollection::HierarchyCategoryMaskBit, 'b'));
+
     if (auto coll = collections.get(collection->getCategory());
         coll.has_value()) {
         LOGIC_ASSERTION_CHECK_FMT(

@@ -651,7 +651,7 @@ class IPortCollection {
     /// should provide the storage implementation that will generate port
     /// ID, and provide a method that will require only
     /// vertex+edge+is-start.
-    void addPort(VertexID vertex, EdgeID edge, bool is_start, PortID pid) {
+    void addPort(VertexID vertex, PortID pid) {
         auto& port_idx = ports.get<ByPortID>();
         if (port_idx.find(pid) != port_idx.end()) {
             throw port_structure_error::init(
@@ -661,26 +661,34 @@ class IPortCollection {
         }
 
         ports.insert(PortEntry{vertex, pid});
+    }
 
-        auto& edge_idx     = port_edges.get<ByPortCompositeKey>();
-        auto [_, inserted] = edge_idx.insert(
-            PortEdgeEntry{pid, edge, is_start});
-        if (!inserted) {
-            throw port_structure_error::init(
-                hstd::fmt(
-                    "Port {} already has connection to edge {} as {}",
-                    pid,
-                    edge,
-                    is_start ? "start" : "end"));
-        }
+    void addPort(VertexID vertex, EdgeID edge, bool is_start, PortID pid) {
+        addPort(vertex, pid);
+        connectPort(vertex, edge, is_start, pid);
     }
 
     void addPort(PortSpec const& spec, PortID pid) {
         return addPort(spec.v, spec.e, spec.is_start, pid);
     }
 
-    void addEdgeToPort(PortID pid, EdgeID edge, bool is_start) {
-        auto  port_it      = getPortIterator(pid);
+    void connectPort(
+        VertexID vertex,
+        EdgeID   edge,
+        bool     is_start,
+        PortID   pid) {
+        auto port_it = getPortIterator(pid);
+        if (port_it->vertex != vertex) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "Cannot connect port {} of vertex {} to edge {} for "
+                    "vertex {}",
+                    pid,
+                    port_it->vertex,
+                    edge,
+                    vertex));
+        }
+
         auto& edge_idx     = port_edges.get<ByPortCompositeKey>();
         auto [_, inserted] = edge_idx.insert(
             PortEdgeEntry{port_it->port, edge, is_start});
@@ -694,21 +702,6 @@ class IPortCollection {
         }
     }
 
-    void addEdgeToPort(PortID pid, PortSpec const& spec) {
-        auto vertex = getVertexForPort(pid);
-        if (vertex != spec.v) {
-            throw port_structure_error::init(
-                hstd::fmt(
-                    "Cannot connect port {} of vertex {} to edge {} for "
-                    "vertex {}",
-                    pid,
-                    vertex,
-                    spec.e,
-                    spec.v));
-        }
-        addEdgeToPort(pid, spec.e, spec.is_start);
-    }
-
   public:
     virtual ~IPortCollection() = default;
 
@@ -716,6 +709,19 @@ class IPortCollection {
         hstd::Vec<PortEntry> res;
         for (auto const& e : ports) { res.push_back(e); }
         return res;
+    }
+
+    void connectPort(PortSpec const& spec, PortID pid) {
+        connectPort(spec.v, spec.e, spec.is_start, pid);
+    }
+
+    void addEdgeToPort(PortID pid, EdgeID edge, bool is_start) {
+        auto vertex = getVertexForPort(pid);
+        connectPort(vertex, edge, is_start, pid);
+    }
+
+    void addEdgeToPort(PortID pid, PortSpec const& spec) {
+        connectPort(spec.v, spec.e, spec.is_start, pid);
     }
 
 
@@ -863,6 +869,12 @@ class TrivialPortCollection : public IPortCollection {
         return addPort(spec.v, spec.e, spec.is_start);
     }
 
+    PortID addPort(VertexID vertex) {
+        auto id = portStore.add(TrivialPort{}, getCategory().t);
+        IPortCollection::addPort(vertex, id);
+        return id;
+    }
+
     PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
         auto id = portStore.add(TrivialPort{}, getCategory().t);
         IPortCollection::addPort(vertex, edge, is_start, id);
@@ -942,10 +954,13 @@ class IEdgeProvider {
     // static API for masking the edge IDs.
 
     /// \brief Hierachy category should have the first bit set to 1.
-    static constexpr hstd::u16 HierarchyCategoryMask    = 0b1111'1111;
-    static constexpr hstd::u16 HierarchyCategoryMaskBit = 0b1000'0000;
+    static constexpr hstd::u16
+        HierarchyCategoryMask = 0b1111'1111'1111'1111;
+    static constexpr hstd::u16
+        HierarchyCategoryMaskBit = 0b1000'0000'0000'0000;
     /// \brief Regular edge collection should have the first bit set to 0.
-    static constexpr hstd::u16 CollectionCategoryMask = 0b0111'1111;
+    static constexpr hstd::u16
+        CollectionCategoryMask = 0b0111'1111'1111'1111;
 
     static bool isHierarchyEdge(EdgeID const& id);
 
@@ -1156,7 +1171,7 @@ class IVertexHierarchy : public IEdgeProvider {
     GraphHierarchyID getHierarchyIdImpl(T const* self) const {
         return hstd::ext::graph::GraphHierarchyID(
             hstd::hash_bits<15>(typeid(self).hash_code())
-            & HierarchyCategoryMask);
+            | HierarchyCategoryMaskBit);
     }
 
 
@@ -1659,17 +1674,35 @@ struct TrivialGraph : public IGraph {
     }
 };
 
-class SegmentingEdgeCollection : public IEdgeCollection {
-    hstd::SPtr<TrivialEdgeCollection> segmented_edges;
-    hstd::SPtr<TrivialPortCollection> connection_ports;
-    hstd::SPtr<IVertexHierarchy>      hierarchy;
-    hstd::SPtr<IGraph>                graph;
+class AutoSegmentingCollection : public IEdgeCollection {
+    TrivialEdgeCollection*  segmented_edges;
+    TrivialPortCollection*  connection_ports;
+    IVertexHierarchy const* hierarchy;
+    IGraph const*           graph;
 
+    hstd::ext::UnorderedNto1Bimap<hstd::Pair<EdgeID, EdgeID>, PortID>
+                                                  segments_to_ports;
     hstd::ext::UnorderedNto1Bimap<EdgeID, EdgeID> segments_to_edges;
+    hstd::UnorderedMap<EdgeID, int>               segment_index;
 
   public:
+    AutoSegmentingCollection(
+        TrivialEdgeCollection*  segmented_edges,
+        TrivialPortCollection*  connection_ports,
+        IVertexHierarchy const* hierarchy,
+        IGraph const*           graph)
+        : segmented_edges{segmented_edges}
+        , connection_ports{connection_ports}
+        , hierarchy{hierarchy}
+        , graph{graph} {}
+
     EdgeIDVec getSegments(EdgeID const& edge) const {
-        return segments_to_edges.get_left(edge);
+        auto res = segments_to_edges.get_left(edge);
+        hstd::rs::sort(
+            res, [this](EdgeID const& lhs, EdgeID const& rhs) -> bool {
+                return segment_index.at(lhs) < segment_index.at(rhs);
+            });
+        return res;
     }
 
     EdgeID getOriginalEdge(EdgeID const& segment) const {
@@ -1681,16 +1714,42 @@ class SegmentingEdgeCollection : public IEdgeCollection {
             graph->getSource(original), graph->getTarget(original));
         crossings.insert(0, graph->getSource(original));
         crossings.push_back(graph->getTarget(original));
-        for (auto const& it : crossings | hstd::rv::sliding(2)) {
+        // ports and segments are arranged in the same order as the
+        // original vertex, [source] ---> (port) ---> (port) ---> [target]
+        for (auto const& [idx, it] : hstd::rv::zip(
+                 hstd::rv::iota(0, crossings.size()),
+                 crossings | hstd::rv::sliding(2))) {
             auto segment_edge = segmented_edges->addEdge(it[0], it[1]);
             segments_to_edges.add_unique(segment_edge, original);
+            segment_index.insert_or_assign(segment_edge, idx);
+        }
+
+        for (auto const& it : hstd::own_view(getSegments(original))
+                                  | hstd::rv::sliding(2)) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                graph->getTarget(it[0]) == graph->getSource(it[1]),
+                "logic error, segment {}-{} created from edge {} should "
+                "have the target of the first segment match the source fo "
+                "the second segment",
+                graph->getDebugEdgeFormat(it[0]),
+                graph->getDebugEdgeFormat(it[1]),
+                graph->getDebugEdgeFormat(original));
+
+            PortID port = connection_ports->addPort(
+                graph->getTarget(it[0]));
+            connection_ports->addEdgeToPort(port, it[0], true);
+            connection_ports->addEdgeToPort(port, it[1], false);
+            segments_to_ports.add_unique({it[0], it[1]}, port);
         }
     }
 
-    hstd::Vec<IPortCollection::PortSpec> getSegmentationPorts(
-        EdgeID const& original) {
-        for (auto const& segment : hstd::own_view(getSegments(original))
-                                       | hstd::rv::sliding(2)) {}
+    hstd::Vec<PortID> getSegmentationPorts(EdgeID const& original) {
+        return hstd::own_view(getSegments(original)) //
+             | hstd::rv::sliding(2)
+             | hstd::rv::transform([this](auto const& it) -> PortID {
+                   return segments_to_ports.at_right({it[0], it[1]});
+               })
+             | hstd::rs::to<Vec>();
     }
 
     EdgeCollectionID getCategory() const override {
