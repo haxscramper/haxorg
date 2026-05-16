@@ -219,12 +219,14 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
     visual::VisGroup getVisual(VertexID const& selfId) const override {
         visual::VisGroup res;
+        auto             bb = getBBox();
+        res.offset          = bb.upper_left();
         res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{getBBox()}});
+            visual::VisElement{visual::VisElement::RectShape{
+                getBBox().move(-bb.upper_left())}});
         res.elements.push_back(
             visual::VisElement::FromText(
-                text.empty() ? hstd::fmt("{}", selfId) : text,
-                getBBox().upper_left()));
+                text.empty() ? hstd::fmt("{}", selfId) : text));
         res.custom.setAttr(
             "inkscape:label", hstd::fmt("COLA VERTEX:{}", selfId));
         return res;

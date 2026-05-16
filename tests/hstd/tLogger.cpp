@@ -50,16 +50,18 @@ log::sink_ptr init_buffer_sink(Vec<log::log_record>* buffer) {
 struct LoggerTest : public ::testing::Test {
     Vec<log::log_record> buffer;
     log::log_sink_scope  scope;
-    LoggerTest() {
-        scope = HSLOG_SINK_FACTORY_SCOPED(
-            [&]() { return init_buffer_sink(&buffer); });
-    }
-
-    void debug() {
+    void                 debug() {
         for (auto const& it : buffer) {
             std::cout << fmt1(it) << std::endl;
         }
     }
+
+    void SetUp() override {
+        scope = HSLOG_SINK_FACTORY_SCOPED(
+            [&]() { return init_buffer_sink(&buffer); });
+    }
+
+    void TearDown() override { scope = log::log_sink_scope{}; }
 };
 
 const hstd::log::log_category _cat = hstd::log::log_category{"cat"};

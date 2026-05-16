@@ -763,7 +763,6 @@ class GraphGroup
         }
 
         auto tmp = std::make_shared<NodeAttribute>(graph, name);
-        run->message(hstd::fmt("add GV node for {}", name));
         return tmp;
     }
 
@@ -861,7 +860,7 @@ class GraphGroup
 
   public:
     Agraph_t*     graph;
-    EdgeAttribute defaultNode;
+    NodeAttribute defaultNode;
     EdgeAttribute defaultEdge;
     GroupContext  ctx;
 

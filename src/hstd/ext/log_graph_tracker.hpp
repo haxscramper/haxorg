@@ -453,7 +453,7 @@ struct graphviz_processor : public log_graph_processor {
     struct node_info {
         std::string              name{};
         bool                     is_cluster{false};
-        std::vector<std::string> children{};
+        std::vector<std::string> subnodes{};
         bool                     is_slot{false};
         bool                     is_signal{false};
         bool                     is_scope{false};

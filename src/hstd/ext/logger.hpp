@@ -150,26 +150,23 @@ class log_sink_scope {
   public:
     log_sink_scope();
     ~log_sink_scope();
+
     log_sink_scope(log_sink_scope const&)            = delete;
     log_sink_scope& operator=(log_sink_scope const&) = delete;
 
-    log_sink_scope(log_sink_scope&& other) noexcept {
-        other.moved           = true;
-        this->previous_sinks_ = std::move(other.previous_sinks_);
-    };
-
-    log_sink_scope& operator=(log_sink_scope&& other) noexcept {
-        other.moved           = true;
-        this->previous_sinks_ = std::move(other.previous_sinks_);
-        return *this;
-    };
+    log_sink_scope(log_sink_scope&& other) noexcept;
+    log_sink_scope& operator=(log_sink_scope&& other) noexcept;
 
     log_sink_scope& drop_current_sinks();
 
   private:
-    bool                 moved = false;
+    void restore() noexcept;
+
+  private:
+    bool                 active_ = true;
     std::stack<sink_ptr> previous_sinks_;
 };
+
 
 template <int Unique, typename Generator>
 sink_ptr log_sink_mutable_factory(Generator&& gen) {
@@ -401,7 +398,7 @@ log_sink_scope log_sink_scoped_factory(Generator&& gen) {
     sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
     log_sink_scope scope;
     push_sink(sink);
-    return std::move(scope);
+    return scope;
 }
 
 
