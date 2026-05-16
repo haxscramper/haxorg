@@ -353,7 +353,7 @@ hstd::ext::graph::GraphHierarchyID hstd::ext::graph::IGraph::
         id1.t,
         id.format(),
         hierarchies.keys(),
-        hstd::own_view(hierarchies) | format_collection);
+        hierarchies | format_collection);
     return id1;
 }
 
@@ -367,7 +367,7 @@ hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
         id2.t,
         id.format(),
         collections.keys(),
-        hstd::own_view(collections) | format_collection);
+        collections | format_collection);
     return id2;
 }
 

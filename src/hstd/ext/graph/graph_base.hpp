@@ -39,7 +39,6 @@ Terminology used
 
 #pragma once
 
-#include "hstd/stdlib/Array.hpp"
 #include <hstd/stdlib/dod_base.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
@@ -54,6 +53,7 @@ Terminology used
 #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 namespace bmi = boost::multi_index;
 
@@ -561,32 +561,30 @@ class IPortCollection {
   public:
     struct PortEntry {
         VertexID vertex;
-        EdgeID   edge;
-        /// \brief To distinguish edge ports in case of self-loops.
-        bool   is_source;
+        PortID   port;
+        DESC_FIELDS(PortEntry, (vertex, port));
+    };
+
+    struct PortEdgeEntry {
         PortID port;
-        DESC_FIELDS(PortEntry, (vertex, edge, is_source, port));
+        EdgeID edge;
+        /// \brief To distinguish edge ports in case of self-loops.
+        bool is_source;
+        DESC_FIELDS(PortEdgeEntry, (port, edge, is_source));
     };
 
   private:
     // Tags for each index
-    struct ByCompositeKey {};
+    struct ByPortCompositeKey {};
     struct ByPortID {};
     struct ByVertexID {};
+
     struct ByEdgeID {};
+    struct ByPortIDInEdgeMap {};
 
     using PortContainer = bmi::multi_index_container<
         PortEntry,
         bmi::indexed_by<
-            // Unique: (vertex, edge, is_start) — the "left" side of the
-            // bimap
-            bmi::ordered_unique<
-                bmi::tag<ByCompositeKey>,
-                bmi::composite_key<
-                    PortEntry,
-                    bmi::member<PortEntry, VertexID, &PortEntry::vertex>,
-                    bmi::member<PortEntry, EdgeID, &PortEntry::edge>,
-                    bmi::member<PortEntry, bool, &PortEntry::is_source>>>,
             // Unique: port — the "right" side of the bimap
             bmi::ordered_unique<
                 bmi::tag<ByPortID>,
@@ -594,11 +592,35 @@ class IPortCollection {
             // Non-unique: vertex — range query for "ports of vertex"
             bmi::ordered_non_unique<
                 bmi::tag<ByVertexID>,
-                bmi::member<PortEntry, VertexID, &PortEntry::vertex>>,
-            // Non-unique: edge — range query for "ports of edge"
+                bmi::member<PortEntry, VertexID, &PortEntry::vertex>>>>;
+
+    using PortEdgeContainer = bmi::multi_index_container<
+        PortEdgeEntry,
+        bmi::indexed_by<
+            bmi::ordered_unique<
+                bmi::tag<ByPortCompositeKey>,
+                bmi::composite_key<
+                    PortEdgeEntry,
+                    bmi::member<
+                        PortEdgeEntry,
+                        PortID,
+                        &PortEdgeEntry::port>,
+                    bmi::member<
+                        PortEdgeEntry,
+                        EdgeID,
+                        &PortEdgeEntry::edge>,
+                    bmi::member<
+                        PortEdgeEntry,
+                        bool,
+                        &PortEdgeEntry::is_source>>>,
             bmi::ordered_non_unique<
                 bmi::tag<ByEdgeID>,
-                bmi::member<PortEntry, EdgeID, &PortEntry::edge>>>>;
+                bmi::member<PortEdgeEntry, EdgeID, &PortEdgeEntry::edge>>,
+            // Non-unique: edge — range query for "ports of edge"
+            bmi::ordered_non_unique<
+                bmi::tag<ByPortIDInEdgeMap>,
+                bmi::
+                    member<PortEdgeEntry, PortID, &PortEdgeEntry::port>>>>;
 
   public:
     struct PortSpec {
@@ -610,9 +632,9 @@ class IPortCollection {
     // pairs of ports for the edge: source and target
     using EdgePortsSpec = hstd::Pair<PortSpec, PortSpec>;
 
-
   protected:
-    PortContainer ports;
+    PortContainer     ports;
+    PortEdgeContainer port_edges;
 
     auto getPortIterator(PortID const& pid) const {
         auto& idx = ports.get<ByPortID>();
@@ -630,21 +652,61 @@ class IPortCollection {
     /// ID, and provide a method that will require only
     /// vertex+edge+is-start.
     void addPort(VertexID vertex, EdgeID edge, bool is_start, PortID pid) {
-        auto& idx = ports.get<ByCompositeKey>();
-        if (idx.find(std::make_tuple(vertex, edge, is_start))
-            != idx.end()) {
+        auto& port_idx = ports.get<ByPortID>();
+        if (port_idx.find(pid) != port_idx.end()) {
             throw port_structure_error::init(
                 hstd::fmt(
-                    "Port for vertex {} edge {} {} already exists",
-                    vertex,
+                    "port {} is already registered in the collection",
+                    pid));
+        }
+
+        ports.insert(PortEntry{vertex, pid});
+
+        auto& edge_idx     = port_edges.get<ByPortCompositeKey>();
+        auto [_, inserted] = edge_idx.insert(
+            PortEdgeEntry{pid, edge, is_start});
+        if (!inserted) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "Port {} already has connection to edge {} as {}",
+                    pid,
                     edge,
                     is_start ? "start" : "end"));
         }
-        ports.insert(PortEntry{vertex, edge, is_start, pid});
     }
 
     void addPort(PortSpec const& spec, PortID pid) {
         return addPort(spec.v, spec.e, spec.is_start, pid);
+    }
+
+    void addEdgeToPort(PortID pid, EdgeID edge, bool is_start) {
+        auto  port_it      = getPortIterator(pid);
+        auto& edge_idx     = port_edges.get<ByPortCompositeKey>();
+        auto [_, inserted] = edge_idx.insert(
+            PortEdgeEntry{port_it->port, edge, is_start});
+        if (!inserted) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "Port {} already has connection to edge {} as {}",
+                    pid,
+                    edge,
+                    is_start ? "start" : "end"));
+        }
+    }
+
+    void addEdgeToPort(PortID pid, PortSpec const& spec) {
+        auto vertex = getVertexForPort(pid);
+        if (vertex != spec.v) {
+            throw port_structure_error::init(
+                hstd::fmt(
+                    "Cannot connect port {} of vertex {} to edge {} for "
+                    "vertex {}",
+                    pid,
+                    vertex,
+                    spec.e,
+                    spec.v));
+        }
+        addEdgeToPort(pid, spec.e, spec.is_start);
     }
 
   public:
@@ -665,8 +727,13 @@ class IPortCollection {
         return const_cast<IPort*>(std::as_const(*this).getPort(pid));
     }
 
-    EdgeID getEdgeForPort(PortID pid) const {
-        return getPortIterator(pid)->edge;
+    EdgeIDSet getEdgeForPort(PortID pid) const {
+        getPortIterator(pid);
+        auto& idx         = port_edges.get<ByPortIDInEdgeMap>();
+        auto [begin, end] = idx.equal_range(pid);
+        EdgeIDSet result;
+        for (; begin != end; ++begin) { result.incl(begin->edge); }
+        return result;
     }
 
     VertexID getVertexForPort(PortID pid) const {
@@ -674,12 +741,28 @@ class IPortCollection {
     }
 
     bool isSourcePort(PortID pid) const {
-        return getPortIterator(pid)->is_source;
+        getPortIterator(pid);
+        auto& idx         = port_edges.get<ByPortIDInEdgeMap>();
+        auto [begin, end] = idx.equal_range(pid);
+        if (begin == end) {
+            throw port_structure_error::init(
+                hstd::fmt("port {} has no edge connections", pid));
+        }
+
+        bool value = begin->is_source;
+        ++begin;
+        for (; begin != end; ++begin) {
+            if (begin->is_source != value) {
+                throw port_structure_error::init(
+                    hstd::fmt(
+                        "port {} has mixed source/target edge connections",
+                        pid));
+            }
+        }
+        return value;
     }
 
-    bool isTargetPort(PortID pid) const {
-        return !getPortIterator(pid)->is_source;
-    }
+    bool isTargetPort(PortID pid) const { return !isSourcePort(pid); }
 
     PortIDSet getPortsForVertex(VertexID vid) const {
         auto& idx         = ports.get<ByVertexID>();
@@ -690,13 +773,21 @@ class IPortCollection {
     }
 
     hstd::Pair<PortID, PortID> getPortsForEdge(EdgeID eid) const {
-        auto& idx                     = ports.get<ByEdgeID>();
-        auto [begin, end]             = idx.equal_range(eid);
-        std::pair<PortID, PortID> res = {PortID::Nil(), PortID::Nil()};
-        res.first                     = begin->port;
-        ++begin;
-        res.second = begin->port;
-        return res;
+        auto& idx         = port_edges.get<ByEdgeID>();
+        auto [begin, end] = idx.equal_range(eid);
+
+        PortID source = PortID::Nil();
+        PortID target = PortID::Nil();
+
+        for (; begin != end; ++begin) {
+            if (begin->is_source) {
+                source = begin->port;
+            } else {
+                target = begin->port;
+            }
+        }
+
+        return {source, target};
     }
 
     bool hasPortConnection(PortSpec const& spec) const {
@@ -704,9 +795,13 @@ class IPortCollection {
     }
 
     bool hasPortConnection(VertexID vid, EdgeID eid, bool is_start) const {
-        auto& idx = ports.get<ByCompositeKey>();
-        auto  it  = idx.find(std::make_tuple(vid, eid, is_start));
-        return it != idx.end();
+        auto& edge_idx    = port_edges.get<ByEdgeID>();
+        auto [begin, end] = edge_idx.equal_range(eid);
+        for (; begin != end; ++begin) {
+            if (begin->is_source != is_start) { continue; }
+            if (getVertexForPort(begin->port) == vid) { return true; }
+        }
+        return false;
     }
 
     bool hasSourcePort(VertexID vid, EdgeID eid) const {
@@ -719,17 +814,21 @@ class IPortCollection {
 
     PortID getPortForConnection(VertexID vid, EdgeID eid, bool is_start)
         const {
-        auto& idx = ports.get<ByCompositeKey>();
-        auto  it  = idx.find(std::make_tuple(vid, eid, is_start));
-        if (it == idx.end()) {
-            throw port_structure_error::init(
-                hstd::fmt(
-                    "No {} connection between vertex {} and edge {}",
-                    is_start ? "start" : "end",
-                    vid,
-                    eid));
+        auto& edge_idx    = port_edges.get<ByEdgeID>();
+        auto [begin, end] = edge_idx.equal_range(eid);
+        for (; begin != end; ++begin) {
+            if (begin->is_source != is_start) { continue; }
+            if (getVertexForPort(begin->port) == vid) {
+                return begin->port;
+            }
         }
-        return it->port;
+
+        throw port_structure_error::init(
+            hstd::fmt(
+                "No {} connection between vertex {} and edge {}",
+                is_start ? "start" : "end",
+                vid,
+                eid));
     }
 
     PortID getSourcePort(VertexID vid, EdgeID eid) const {
@@ -741,8 +840,9 @@ class IPortCollection {
     }
 
     void delPort(PortID pid) {
-        auto it = getPortIterator(pid);
-        ports.get<ByPortID>().erase(it);
+        getPortIterator(pid);
+        port_edges.get<ByPortIDInEdgeMap>().erase(pid);
+        ports.get<ByPortID>().erase(pid);
     }
 };
 
@@ -1556,6 +1656,53 @@ struct TrivialGraph : public IGraph {
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
         return edges->addEdge(source, target);
+    }
+};
+
+class SegmentingEdgeCollection : public IEdgeCollection {
+    hstd::SPtr<TrivialEdgeCollection> segmented_edges;
+    hstd::SPtr<TrivialPortCollection> connection_ports;
+    hstd::SPtr<IVertexHierarchy>      hierarchy;
+    hstd::SPtr<IGraph>                graph;
+
+    hstd::ext::UnorderedNto1Bimap<EdgeID, EdgeID> segments_to_edges;
+
+  public:
+    EdgeIDVec getSegments(EdgeID const& edge) const {
+        return segments_to_edges.get_left(edge);
+    }
+
+    EdgeID getOriginalEdge(EdgeID const& segment) const {
+        return segments_to_edges.get_right(segment).value();
+    }
+
+    void addEdge(EdgeID const& original) {
+        auto crossings = hierarchy->getHierarchyCrossings(
+            graph->getSource(original), graph->getTarget(original));
+        crossings.insert(0, graph->getSource(original));
+        crossings.push_back(graph->getTarget(original));
+        for (auto const& it : crossings | hstd::rv::sliding(2)) {
+            auto segment_edge = segmented_edges->addEdge(it[0], it[1]);
+            segments_to_edges.add_unique(segment_edge, original);
+        }
+    }
+
+    hstd::Vec<IPortCollection::PortSpec> getSegmentationPorts(
+        EdgeID const& original) {
+        for (auto const& segment : hstd::own_view(getSegments(original))
+                                       | hstd::rv::sliding(2)) {}
+    }
+
+    EdgeCollectionID getCategory() const override {
+        return segmented_edges->getCategory();
+    }
+
+    const IEdge* getEdge(EdgeID const& id) const override {
+        return segmented_edges->getEdge(id);
+    }
+
+    bool hasEdge(EdgeID const& id) const override {
+        return segmented_edges->hasEdge(id);
     }
 };
 

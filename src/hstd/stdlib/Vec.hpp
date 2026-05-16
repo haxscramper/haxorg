@@ -303,6 +303,10 @@ class [[refl(R"({
     using Base::end;
     using Base::insert;
 
+    void insert(int index, T const& value) {
+        Base::insert(begin() + index, value);
+    }
+
     [[refl]] using Base::push_back;
 
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}

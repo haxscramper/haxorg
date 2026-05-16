@@ -28,14 +28,6 @@ TEST_F(GraphBase_Test, OnePortPerVertex) {
     EXPECT_TRUE(ports.isSourcePort(port_a_e));
     EXPECT_TRUE(ports.isTargetPort(port_b_e));
 
-    EXPECT_THROW_TEXT_CONTAINS(
-        port_structure_error, ports.addPort(a, e, true), "already exists");
-
-    EXPECT_THROW_TEXT_CONTAINS(
-        port_structure_error,
-        ports.addPort(b, e, false),
-        "already exists");
-
     EXPECT_EQ(graph->edges->getOutgoing(a).size(), 1);
     EXPECT_EQ(graph->edges->getIncoming(a).size(), 0);
 
