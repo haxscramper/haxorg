@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

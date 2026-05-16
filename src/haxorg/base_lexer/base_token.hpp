@@ -37,7 +37,7 @@ struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
             std::formatter<std::string>{}.format(":", ctx);
             ::hstd::fmt_ctx(p.loc->pos, ctx);
             std::formatter<std::string>{}.format("@", ctx);
-            ::hstd::fmt_ctx(p.loc->file_id.format(""), ctx);
+            ::hstd::fmt_ctx(p.loc->file_id.format(), ctx);
         }
         return ctx.out();
     }

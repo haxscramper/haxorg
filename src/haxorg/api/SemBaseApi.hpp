@@ -168,9 +168,9 @@ struct [[refl]] AstTrackingGroup {
 
     using variant_enum_type = Kind;
     using variant_data_type = Data;
-    char const* sub_variant_get_name() const { return "data"; }
-    Data const& sub_variant_get_data() const { return data; }
-    Kind        sub_variant_get_kind() const { return getKind(); }
+    static char const* sub_variant_get_name() { return "data"; }
+    Data const&        sub_variant_get_data() const { return data; }
+    Kind               sub_variant_get_kind() const { return getKind(); }
 
     BOOST_DESCRIBE_NESTED_ENUM(Kind, RadioTarget, Single, TrackedHashtag);
 

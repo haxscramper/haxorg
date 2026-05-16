@@ -386,6 +386,7 @@ class NodeAttribute
         : node(node_), graph(graph) {}
 
     NodeAttribute(Agraph_t* graph, Str const& name);
+    NodeAttribute(NodeAttribute const& other) = default;
 
     Agnode_t*       get() { return node; }
     Agnode_t const* get() const { return node; }
@@ -885,6 +886,22 @@ class GraphGroup
                 run->getGraph()->getTarget(id)));
         run->addEdge(id, attr);
         return attr;
+    }
+
+    static hstd::SPtr<gv::GraphGroup> newRootGraph(hstd::Str const& name) {
+        auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
+        if (!gvc) {
+            throw std::runtime_error("Failed to create Graphviz context");
+        }
+
+        auto result = std::make_shared<GraphGroup>(
+            GroupContext{
+                .context = GVContext::shared(),
+                .gvc     = gvc,
+            },
+            name);
+
+        return result;
     }
 
 

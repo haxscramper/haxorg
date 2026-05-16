@@ -7,7 +7,7 @@
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph_graphviz.hpp>
+#    include <hstd/ext/graph/graph_graphviz.hpp>
 #endif
 
 namespace org::graph {
@@ -273,21 +273,21 @@ struct [[refl(
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;
 
-        static hstd::ext::Graphviz::Node::Record getDefaultNodeLabel(
+        static hstd::ext::graph::gv::NodeAttribute::Record getDefaultNodeLabel(
             org::imm::ImmAdapter const& node,
             MapNodeProp const&          prop);
-        hstd::Func<hstd::ext::Graphviz::Node::Record(
+        hstd::Func<hstd::ext::graph::gv::NodeAttribute::Record(
             org::imm::ImmAdapter const&,
             MapNodeProp const& prop)>
             getNodeLabel = getDefaultNodeLabel;
     };
 
-    hstd::ext::Graphviz::Graph toGraphviz(
+    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
         org::imm::ImmAstContext::Ptr const& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
-    hstd::ext::Graphviz::Graph toGraphviz(
+    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
         org::imm::ImmAstContext::Ptr const& ctx,
         GvConfig const&                     conf) const;
 #endif

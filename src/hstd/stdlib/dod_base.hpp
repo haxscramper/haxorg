@@ -204,6 +204,10 @@ struct [[nodiscard]] Id {
         int         index_pad_to = 0;
     };
 
+    std::string format(std::string const& name) const {
+        return format(FormatConfig{.name = name});
+    }
+
     /// \brief Write strig representation of the ID into output stream
     std::string format(FormatConfig const& conf = FormatConfig{}) const {
         std::string result;

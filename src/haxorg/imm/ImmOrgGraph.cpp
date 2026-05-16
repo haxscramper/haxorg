@@ -750,14 +750,16 @@ void MapGraph::addNode(MapNode const& node) {
     }
 }
 
+using namespace hstd::ext::graph;
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-Graphviz::Graph MapGraph::toGraphviz(
+hstd::SPtr<gv::GraphGroup> MapGraph::toGraphviz(
     imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
-    Graphviz::Graph                       res{"g"_ss};
-    UnorderedMap<MapNode, Graphviz::Node> gvNodes;
-    UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
+    hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph("g"_ss);
+
+    UnorderedMap<MapNode, hstd::SPtr<gv::NodeAttribute>> gvNodes;
+    UnorderedMap<MapEdge, hstd::SPtr<gv::EdgeAttribute>> gvEdges;
 
     auto edgeOk = [&](MapEdge const& edge) {
         return !conf.acceptEdge || conf.acceptEdge(edge);
@@ -769,8 +771,8 @@ Graphviz::Graph MapGraph::toGraphviz(
 
     for (auto const& [it, props] : nodeProps) {
         if (nodeOk(it)) {
-            auto node = res.node(it.id.id.getReadableId());
-            node.setAttr("org_id", it.id.id.getReadableId());
+            auto node = res->node(it.id.id.getReadableId());
+            node->setAttr("org_id", it.id.id.getReadableId());
             gvNodes.insert_or_assign(it, node);
         }
     }
@@ -781,19 +783,20 @@ Graphviz::Graph MapGraph::toGraphviz(
                 && edgeOk({source, target})) {
                 gvEdges.insert_or_assign(
                     {source, target},
-                    res.edge(gvNodes.at(source), gvNodes.at(target)));
+                    res->edge(*gvNodes.at(source), *gvNodes.at(target)));
             }
         }
     }
 
     for (auto const& [it, prop] : nodeProps) {
         if (!nodeOk(it)) { continue; }
-        using Record = Graphviz::Node::Record;
+        using Record = gv::NodeAttribute::Record;
         auto& node   = gvNodes.at(it);
-        node.startHtmlRecord();
-        *node.getNodeRecord() = conf.getNodeLabel(ctx->adapt(it.id), prop);
+        node->startHtmlRecord();
+        *node->getNodeRecord() = conf.getNodeLabel(
+            ctx->adapt(it.id), prop);
 
-        node.finishHtmlRecord();
+        node->finishHtmlRecord();
     }
 
     return res;
@@ -805,17 +808,17 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
+gv::NodeAttribute::Record MapGraph::GvConfig::getDefaultNodeLabel(
     ImmAdapter const&  node,
     MapNodeProp const& prop) {
-    using Record = Graphviz::Node::Record;
+    using Record = gv::NodeAttribute::Record;
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
 
     auto add_field_text = [&](Str const& name, ImmId id) {
         rec.set(
             name,
-            Record{hstd::ext::Graphviz::escapeHtmlForGraphviz(
+            Record{gv::escapeHtmlForGraphviz(
                 wrap_text(flatWords(node), 60, true))});
     };
 

@@ -247,7 +247,7 @@ struct std::formatter<hstd::ext::diff::NodeStore::Id>
     auto format(
         hstd::ext::diff::NodeStore::Id const& p,
         FormatContext&                        ctx) const {
-        return fmt_ctx(p.id, ctx);
+        return ::hstd::fmt_ctx(p.id, ctx);
     }
 };
 

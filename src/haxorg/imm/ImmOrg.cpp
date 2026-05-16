@@ -791,23 +791,26 @@ struct value_metadata<hstd::ext::ImmBox<T>> {
 
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-hstd::ext::Graphviz::Graph org::imm::toGraphviz(
+hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
     Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const& conf) {
-    hstd::ext::Graphviz::Graph g{"g"_ss};
-    g.setBackgroundColor("beige");
+    // TODO: rewrite to use full IGraph API instead of NodeGroup fallback.
+    using namespace hstd::ext::graph;
+    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newRootGraph("g"_ss);
+    g->setBackgroundColor("beige");
 
-    UnorderedSet<ImmId>                                         visited;
-    UnorderedMap<ImmId, hstd::ext::Graphviz::Node>              gvNodes;
-    UnorderedMap<Pair<ImmId, ImmId>, hstd::ext::Graphviz::Edge> gvEdges;
-    Vec<hstd::ext::Graphviz::Graph>                             gvClusters;
-    ImmAstContext::Ptr ctx = history.front().context;
+    UnorderedSet<ImmId>                                visited;
+    UnorderedMap<ImmId, hstd::SPtr<gv::NodeAttribute>> gvNodes;
+    UnorderedMap<Pair<ImmId, ImmId>, hstd::SPtr<gv::EdgeAttribute>>
+                                    gvEdges;
+    Vec<hstd::SPtr<gv::GraphGroup>> gvClusters;
+    ImmAstContext::Ptr              ctx = history.front().context;
 
-    auto get_graph = [&](int epoch) -> hstd::ext::Graphviz::Graph& {
+    auto get_graph = [&](int epoch) -> hstd::SPtr<gv::GraphGroup> {
         if (conf.withEpochClusters && epoch < history.size()) {
             if (!gvClusters.has(epoch)) {
-                auto sub = g.newSubgraph(fmt("epoch_{}", epoch));
-                sub.setLabel(fmt("Epoch {}", epoch));
+                auto sub = g->newSubgraph(fmt("epoch_{}", epoch));
+                sub->setLabel(fmt("Epoch {}", epoch));
                 gvClusters.resize_at(epoch, sub);
             }
 
@@ -818,16 +821,16 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
     };
 
     auto get_node = [&](ImmId id,
-                        int   idx) -> Opt<hstd::ext::Graphviz::Node> {
+                        int   idx) -> Opt<hstd::SPtr<gv::NodeAttribute>> {
         if (conf.skippedKinds.contains(id.getKind()) || id.isNil()) {
             return std::nullopt;
         } else {
             if (!gvNodes.contains(id)) {
-                auto node = get_graph(idx).node(id.getReadableId());
+                auto node = get_graph(idx)->node(id.getReadableId());
                 if (auto color = conf.epochColors.get(idx); color) {
-                    node.setColor(*color);
+                    node->setColor(*color);
                 }
-                node.setShape(hstd::ext::Graphviz::Node::Shape::rectangle);
+                node->setShape(gv::NodeAttribute::Shape::rectangle);
                 gvNodes.insert_or_assign(id, node);
                 Vec<Str> label;
                 int      maxFieldWidth = 0;
@@ -911,7 +914,7 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
                         }
                     });
 
-                node.setLabel(join("\n", label));
+                node->setLabel(join("\n", label));
             }
 
             return gvNodes.at(id);
@@ -931,9 +934,10 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
                 if (sub_imm) {
                     Pair<ImmId, ImmId> pair{id, it.value()};
                     if (!gvEdges.contains(pair)) {
-                        auto edge = g.edge(*node, *sub_imm);
-                        edge.setColor(conf.epochColors.at(idx));
-                        edge.setLabel(fmt1(it.index()));
+                        auto edge = g->edge(
+                            *node.value(), *sub_imm.value());
+                        edge->setColor(conf.epochColors.at(idx));
+                        edge->setLabel(fmt1(it.index()));
                         gvEdges.insert_or_assign(pair, edge);
                     }
                 }
@@ -958,10 +962,10 @@ hstd::ext::Graphviz::Graph org::imm::toGraphviz(
                 auto const& src = gvNodes.get(act.original->id);
                 auto const& dst = gvNodes.get(act.replaced.id);
                 if (src && dst) {
-                    auto edge = g.edge(*src, *dst);
-                    edge.setConstraint(false);
-                    edge.setStyle("dashed");
-                    edge.setColor("darkgreen");
+                    auto edge = g->edge(*src.value(), *dst.value());
+                    edge->setConstraint(false);
+                    edge->setStyle(gv::EdgeAttribute::Style::dashed);
+                    edge->setColor("darkgreen");
                 }
             }
         }
