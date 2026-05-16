@@ -44,10 +44,7 @@ class GraphUtils_Test : public ::testing::Test {
     }
 
     VertexID addVertex(hstd::Str const& id_override) {
-        auto res = graph->addVertex();
-        graph->getCastMVertex<TrivialVertex>(res)
-            ->stableIdOverride = id_override;
-        return res;
+        return graph->addVertex(id_override);
     }
 
     PortID addPort(

@@ -39,6 +39,7 @@ Terminology used
 
 #pragma once
 
+#include "hstd/stdlib/Array.hpp"
 #include <hstd/stdlib/dod_base.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
@@ -599,9 +600,19 @@ class IPortCollection {
                 bmi::tag<ByEdgeID>,
                 bmi::member<PortEntry, EdgeID, &PortEntry::edge>>>>;
 
+  public:
+    struct PortSpec {
+        VertexID v;
+        EdgeID   e;
+        bool     is_start;
+    };
+
+    // pairs of ports for the edge: source and target
+    using EdgePortsSpec = hstd::Pair<PortSpec, PortSpec>;
+
+
   protected:
     PortContainer ports;
-
 
     auto getPortIterator(PortID const& pid) const {
         auto& idx = ports.get<ByPortID>();
@@ -632,6 +643,9 @@ class IPortCollection {
         ports.insert(PortEntry{vertex, edge, is_start, pid});
     }
 
+    void addPort(PortSpec const& spec, PortID pid) {
+        return addPort(spec.v, spec.e, spec.is_start, pid);
+    }
 
   public:
     virtual ~IPortCollection() = default;
@@ -663,6 +677,10 @@ class IPortCollection {
         return getPortIterator(pid)->is_source;
     }
 
+    bool isTargetPort(PortID pid) const {
+        return !getPortIterator(pid)->is_source;
+    }
+
     PortIDSet getPortsForVertex(VertexID vid) const {
         auto& idx         = ports.get<ByVertexID>();
         auto [begin, end] = idx.equal_range(vid);
@@ -679,6 +697,10 @@ class IPortCollection {
         ++begin;
         res.second = begin->port;
         return res;
+    }
+
+    bool hasPortConnection(PortSpec const& spec) const {
+        return hasPortConnection(spec.v, spec.e, spec.is_start);
     }
 
     bool hasPortConnection(VertexID vid, EdgeID eid, bool is_start) const {
@@ -737,10 +759,18 @@ class TrivialPortCollection : public IPortCollection {
         return &portStore.at(pid);
     }
 
+    PortID addPort(PortSpec const& spec) {
+        return addPort(spec.v, spec.e, spec.is_start);
+    }
+
     PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
         auto id = portStore.add(TrivialPort{}, getCategory().t);
         IPortCollection::addPort(vertex, edge, is_start, id);
         return id;
+    }
+
+    hstd::Pair<PortID, PortID> addPorts(EdgePortsSpec const& spec) {
+        return {addPort(spec.first), addPort(spec.second)};
     }
 };
 
@@ -869,6 +899,13 @@ class IEdgeCollection : public IEdgeProvider {
     EdgeIDSet         getIncoming(VertexID const& vert) const override;
     void              trackVertex(VertexID const& vert) override;
     DependantDeletion untrackVertex(VertexID const& vert) override;
+
+    IPortCollection::EdgePortsSpec getPortSpecs(EdgeID const& e) const {
+        return IPortCollection::EdgePortsSpec{
+            IPortCollection::PortSpec{getSource(e), e, true},
+            IPortCollection::PortSpec{getTarget(e), e, false},
+        };
+    }
 
     VertexID getSource(EdgeID const& id) const override {
         return source_target.at(id).first;
@@ -1498,6 +1535,12 @@ struct TrivialGraph : public IGraph {
         : edges{std::make_shared<TrivialEdgeCollection>(
               EdgeCollectionID{1})} {
         addCollection(edges);
+    }
+
+    VertexID addVertex(hstd::Str const& id_override) {
+        auto res                                             = addVertex();
+        getCastMVertex<TrivialVertex>(res)->stableIdOverride = id_override;
+        return res;
     }
 
     VertexID addVertex() {

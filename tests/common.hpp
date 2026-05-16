@@ -178,3 +178,59 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
             << "Expected success, got failure: "                          \
             << _outcome_result.error().message() << " " << (extra);       \
     } while (0)
+
+
+inline ::testing::AssertionResult TextContainsAll(
+    std::string_view                        text,
+    std::initializer_list<std::string_view> substrings) {
+    for (std::string_view part : substrings) {
+        if (text.find(part) == std::string_view::npos) {
+            std::ostringstream out;
+            out << "expected text to contain substring: \"" << part
+                << "\"\n"
+                << "text was:\n"
+                << text;
+            return ::testing::AssertionFailure() << out.str();
+        }
+    }
+
+    return ::testing::AssertionSuccess();
+}
+
+#define EXPECT_TEXT_CONTAINS(text, ...)                                   \
+    EXPECT_TRUE(TextContainsAll((text), {__VA_ARGS__}))
+
+template <typename E>
+inline std::string_view ExceptionText(E const& ex) {
+    if constexpr (requires { ex.message(); }) {
+        return ex.message();
+    } else {
+        return ex.what();
+    }
+}
+
+template <typename Exception, typename Fn>
+inline ::testing::AssertionResult ThrowsWithTextContainsAll(
+    Fn&&                                    fn,
+    std::initializer_list<std::string_view> substrings) {
+    try {
+        std::forward<Fn>(fn)();
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but no exception was thrown";
+    } catch (Exception const& ex) {
+        return TextContainsAll(ExceptionText(ex), substrings);
+    } catch (std::exception const& ex) {
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but got std::exception: " << ex.what();
+    } catch (...) {
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but got a non-std exception";
+    }
+}
+
+#define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)             \
+    EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(               \
+        [&]() { (void)(expr); }, {__VA_ARGS__})))

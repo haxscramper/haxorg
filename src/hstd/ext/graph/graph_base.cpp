@@ -11,7 +11,7 @@ using namespace hstd::ext::graph;
 
 namespace {
 constexpr char const* vertex_not_found_msg{
-    "{}Vertex {} not found. Missing call to `registerVertex`?"};
+    "{}vertex {} not found. Missing call to `registerVertex`?"};
 } // namespace
 
 IEdgeProvider::DependantDeletion IVertexHierarchy::untrackVertex(
@@ -249,11 +249,11 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
         throw graph_error::init(
-            std::format(vertex_not_found_msg, "Parent ", parent));
+            std::format(vertex_not_found_msg, "parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
         throw graph_error::init(
-            std::format(vertex_not_found_msg, "Sub ", sub));
+            std::format(vertex_not_found_msg, "sub ", sub));
     }
 
     hstd::Vec<EdgeID> result;
@@ -406,12 +406,14 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
     VertexID const& sub) {
     if (!vertexIDs.contains(parent)) {
         throw graph_error::init(
-            std::format(vertex_not_found_msg, "Parent ", parent));
+            std::format(vertex_not_found_msg, "parent ", parent));
     }
+
     if (!vertexIDs.contains(sub)) {
         throw graph_error::init(
-            std::format(vertex_not_found_msg, "Sub ", sub));
+            std::format(vertex_not_found_msg, "sub ", sub));
     }
+
     if (parentMap.contains(sub)) {
         throw graph_error::init(
             std::format("Vertex {} already has a parent", sub));
