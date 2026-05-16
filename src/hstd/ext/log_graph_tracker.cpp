@@ -169,6 +169,14 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
 
     graph->defaultNode.setShape(gv::NodeAttribute::Shape::rect);
 
+    auto get_node = [&](hstd::SPtr<gv::GraphGroup> const& g,
+                        std::string const&                name) {
+        if (!graph_nodes.contains(name)) {
+            graph_nodes.insert_or_assign(name, g->node(name));
+        }
+        return graph_nodes.at(name);
+    };
+
     for (auto const& [name, info] : nodes) {
         if (info.is_cluster) {
             std::string cluster_name = std::format("cluster_{}", name);
@@ -176,16 +184,13 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
             cluster->setLabel(name);
             clusters.insert_or_assign(name, cluster);
 
-            auto node = cluster->node(name);
-            graph_nodes.insert_or_assign(name, node);
+            auto node = get_node(cluster, name);
 
             for (auto const& sub : info.subnodes) {
-                auto sub_node = cluster->node(sub);
-                graph_nodes.insert_or_assign(sub, sub_node);
+                get_node(cluster, sub);
             }
-        } else if (graph_nodes.find(name) == graph_nodes.end()) {
-            auto node = graph->node(name);
-            graph_nodes.insert_or_assign(name, node);
+        } else {
+            get_node(graph, name);
         }
     }
 

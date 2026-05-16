@@ -603,14 +603,20 @@ class LayoutRun : public OperationsTracer {
     hstd::SPtr<T> getLayout(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(
             result.vertices.contains(id),
-            "No layout attribute specified for vertex ID {}",
-            graph->getDebugVertexFormat(id));
+            "No layout attribute specified for vertex ID {}. Have "
+            "vertices {}",
+            getDebug(id),
+            getDebug(result.vertices.keys()));
 
         return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
 
     bool hasLayout(VertexID const& id) const {
         return result.vertices.contains(id);
+    }
+
+    bool hasLayout(PortID const& id) const {
+        return result.ports.contains(id);
     }
 
     bool hasLayout(EdgeID const& id) const {
@@ -632,6 +638,7 @@ class LayoutRun : public OperationsTracer {
     geometry::Rect getRelativeBBox(VertexID const& id) const {
         return getLayout(id)->getBBox();
     }
+
 
     geometry::Rect getAbsoluteBBox(VertexID const& id) const {
         auto start = getRelativeBBox(id);

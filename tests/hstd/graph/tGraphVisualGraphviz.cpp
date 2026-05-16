@@ -286,7 +286,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     auto visual = run->getVisual();
 
-    EXPECT_EQ(visual.size(), 1);
+    EXPECT_EQ(visual.size(), 2);
     EXPECT_EQ(visual.at(0).subgroups.size(), 2);
 
     auto const vsg  = visual.at(0);
@@ -295,8 +295,8 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_EQ(vsg1.subgroups.size(), 6);
     EXPECT_EQ(vsg2.subgroups.size(), 6);
 
-    EXPECT_EQ(vsg1.elements.size(), 1);
-    EXPECT_EQ(vsg2.elements.size(), 1);
+    EXPECT_EQ(vsg1.elements.size(), 2);
+    EXPECT_EQ(vsg2.elements.size(), 2);
 
     // ...............................................
     // :                  :                          :
@@ -471,7 +471,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizIrClusters) {
     EXPECT_EQ(res.edges.size(), 6);
 
     auto visual = run->getVisual();
-    EXPECT_EQ(visual.size(), 1);
+    EXPECT_EQ(visual.size(), 2);
     EXPECT_EQ(visual.at(0).subgroups.size(), 2);
 
     hstd::writeFile(

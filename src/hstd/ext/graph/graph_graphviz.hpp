@@ -900,6 +900,12 @@ class GraphGroup
             },
             name);
 
+        auto graph        = std::make_shared<TrivialGraph>();
+        auto run          = std::make_shared<layout::LayoutRun>(graph);
+        result->algorithm = std::static_pointer_cast<
+            layout::IPlacementAlgorithm>(
+            std::make_shared<gv::Layout>(gvc, run));
+
         return result;
     }
 

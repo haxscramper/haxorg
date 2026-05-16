@@ -252,38 +252,29 @@ struct single_layout_run_state {
             run->message(
                 hstd::fmt("{} rect is {}", run->getDebug(id), rect),
                 _fname);
-            // if (auto pad = group->getOuterPadding()) {
-            //     rect = rect.withInnerPadding(pad.value());
-            //     run->message(
-            //         hstd::fmt(
-            //             "has padding {} added inner {}",
-            //             pad.value(),
-            //             rect));
-            // }
-
             bbox_map.insert_or_assign(id, rect);
 
         } else {
             auto bbox = geometry::Rect::FromLimitBoundaries();
             for (auto const& group_id : run->getSubGroups(id)) {
                 collect_absolute_bounding_box_positions(group_id);
-                run->message(
-                    hstd::fmt(
-                        "{} extend with {}", id, bbox_map.at(group_id)),
-                    _fname);
+                // run->message(
+                //     hstd::fmt(
+                //         "{} extend with {}", id, bbox_map.at(group_id)),
+                //     _fname);
                 bbox.extend(bbox_map.at(group_id));
             }
 
             for (auto const& vert : run->getDirectVertices(id)) {
                 auto rect = ctx->getRect(vert);
                 bbox.extend(adapt::to_hstd(*rect));
-                run->message(
-                    hstd::fmt(
-                        "{} extend with {}", id, adapt::to_hstd(*rect)),
-                    _fname);
+                // run->message(
+                //     hstd::fmt(
+                //         "{} extend with {}", id, adapt::to_hstd(*rect)),
+                //     _fname);
             }
 
-            run->message(hstd::fmt("final {}", bbox), _fname);
+            // run->message(hstd::fmt("final {}", bbox), _fname);
             bbox_map.insert_or_assign(id, bbox);
         }
     }
@@ -328,24 +319,24 @@ struct single_layout_run_state {
             for (auto const& subgroup_id : run->getSubGroups(id)) {
                 auto sub_rel_offset = offset_to_zero_coords;
                 auto subgroup_bbox  = bbox_map.at(subgroup_id);
-                run->message(
-                    hstd::fmt(
-                        "this bbox {} rel offset {}",
-                        subgroup_bbox,
-                        sub_rel_offset),
-                    _fname);
+                // run->message(
+                //     hstd::fmt(
+                //         "this bbox {} rel offset {}",
+                //         subgroup_bbox,
+                //         sub_rel_offset),
+                //     _fname);
 
                 subgroup_bbox = subgroup_bbox.move(sub_rel_offset);
 
-                run->message(
-                    hstd::fmt("after move {}", subgroup_bbox), _fname);
+                // run->message(
+                //     hstd::fmt("after move {}", subgroup_bbox), _fname);
 
-                if (run->getGroup<layout::IGroupVisualAttribute>(
-                           subgroup_id)
-                        ->hasAlgorithm()) {
-                    collect_nodes_and_sub_groups_relative_positions(
-                        subgroup_id, sub_rel_offset);
-                } else {
+                collect_nodes_and_sub_groups_relative_positions(
+                    subgroup_id, sub_rel_offset);
+
+                if (!run->getGroup<layout::IGroupVisualAttribute>(
+                            subgroup_id)
+                         ->hasAlgorithm()) {
                     result.vertices.insert_or_assign(
                         subgroup_id,
                         std::make_shared<cst::ColaGroupLayoutAttribute>(
@@ -408,7 +399,6 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     unsatisifed_validation_state validation_state;
     validation_state.run       = run;
     validation_state.rootGroup = run_state.rootGroup;
-
 
     run_state.recursively_collect_constraints(root_id, validation_state);
 
@@ -476,7 +466,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     {
         auto __scope = run->scopeLevelMsg("collected bounding box");
         for (auto const& [key, value] : run_state.bbox_map) {
-            run->message(hstd::fmt("{} -> {}", key, value));
+            run->message(hstd::fmt("{} -> {}", run->getDebug(key), value));
         }
     }
 

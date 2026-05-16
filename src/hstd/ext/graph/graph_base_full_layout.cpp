@@ -17,7 +17,8 @@ void layout_run_full_layout(layout::LayoutRun* run) {
 
     auto aux = [&](this auto&& self, VertexID const& id) -> void {
         auto __scope = run->scopeLevelMsg(
-            hstd::fmt("running layout for group ID {}", id));
+            hstd::fmt(
+                "running layout for group ID {}", run->getDebug(id)));
         auto group = run->getGroup(id);
         for (auto const& sub :
              hstd::sorted(run->getSubGroups(id).items())) {
@@ -48,20 +49,23 @@ void layout_run_full_layout(layout::LayoutRun* run) {
 
             LOGIC_ASSERTION_CHECK_FMT(
                 sub_res.vertices.contains(id),
-                "Running layout for {} ('{}') should set the bounding box "
+                "Running layout for {} should set the bounding box "
                 "for this group.",
-                id,
-                run->getGroup(id)->getStableId());
+                run->getDebug(id));
 
             auto missing_vertex_layout = run->getDirectVertices(id)
                                        - VertexIDSet::FromVec(
                                              sub_res.vertices.keys());
+            run->message(
+                hstd::fmt(
+                    "generated layout for {}",
+                    run->getDebug(sub_res.vertices.keys())));
+
             LOGIC_ASSERTION_CHECK_FMT(
                 missing_vertex_layout.empty(),
-                "Running layout for {} ('{}') should provide the vertex "
+                "Running layout for {} should provide the vertex "
                 "layout for {}",
-                id,
-                run->getGroup(id)->getStableId(),
+                run->getDebug(id),
                 run->getDebug(missing_vertex_layout));
 
             auto missing_port_layout = run->getDirectPorts(id)
@@ -69,10 +73,9 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                                            sub_res.ports.keys());
             LOGIC_ASSERTION_CHECK_FMT(
                 missing_port_layout.empty(),
-                "Running layout for {} ('{}') should provide the port "
+                "Running layout for {} should provide the port "
                 "layout for {}",
-                id,
-                run->getGroup(id)->getStableId(),
+                run->getDebug(id),
                 run->getDebug(missing_port_layout));
 
             // Use of `insert_or_assign` here is deliberate -- running
@@ -104,6 +107,31 @@ void layout_run_full_layout(layout::LayoutRun* run) {
     };
 
     for (auto const& root : run->groups->getRootVertices()) { aux(root); }
+
+    VertexIDSet all_layout_vertices = VertexIDSet::FromVec(
+        run->result.vertices.keys());
+
+    VertexIDSet hierarchy_vertices         = run->groups->getAllVertices();
+    VertexIDSet missing_hierarchy_vertices = hierarchy_vertices
+                                           - all_layout_vertices;
+    LOGIC_ASSERTION_CHECK_FMT(
+        missing_hierarchy_vertices.empty(),
+        "Full layout run did not provide layout attributes for all "
+        "vertices included in hierarchies. Layout information is missing "
+        "for {}",
+        run->getDebug(missing_hierarchy_vertices));
+
+    // VertexIDSet graph_vertices         =
+    // run->getGraph()->getAllVertices(); VertexIDSet
+    // missing_graph_vertices = graph_vertices
+    //                                    - all_layout_vertices;
+
+    // LOGIC_ASSERTION_CHECK_FMT(
+    //     missing_graph_vertices.empty(),
+    //     "Full layout run did not provide layout attributes for all "
+    //     "vertices included in graph. Layout information is missing "
+    //     "for {}",
+    //     run->getDebug(missing_graph_vertices));
 }
 
 void run_placement_with_subset(
@@ -134,7 +162,10 @@ void run_placement_with_subset(
     }
 
     for (auto const& vert : vertex_set) {
-        router.rects.insert_or_assign(vert, run->getAbsoluteBBox(vert));
+        if (run->hasLayout(vert)) {
+            router.rects.insert_or_assign(
+                vert, run->getAbsoluteBBox(vert));
+        }
     }
 
     auto res = router.routeEdges();
@@ -171,6 +202,7 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         }
     }
 
+    hstd::logic_assertion_check_not_nil(run);
     run_placement_with_subset(
         run, vertex_vertex_edges, vertex_set, "vertex_only_routing");
 
