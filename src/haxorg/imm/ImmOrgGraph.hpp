@@ -98,11 +98,16 @@ struct [[refl]] MapEdge
 
 
 class MapEdgeCollection : public hgraph::IEdgeCollection {
+  public:
     hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>>
         edges;
 
     hgraph::EdgeCollectionID getCollectionID() const override {
         return hgraph::EdgeCollectionID::FromCollectionTypePointer(this);
+    }
+
+    hgraph::EdgeID add(hstd::SPtr<MapEdge> const& e) {
+        return edges.add(e);
     }
 
     const hgraph::IEdge* getEdge(hgraph::EdgeID const& id) const override {
@@ -153,7 +158,8 @@ struct [[refl(
   }
 })")]] MapGraph
     : public hstd::SharedPtrApi<MapGraph>
-    , public hgraph::IGraph {
+    , public hgraph::IGraph
+    , public hstd::OperationsTracer {
     hstd::UnorderedIncrementalStore<hgraph::VertexID, hstd::SPtr<MapNode>>
                                                               nodes;
     hstd::SPtr<MapEdgeCollection>                             edges;
@@ -162,6 +168,13 @@ struct [[refl(
 
     MapNodeProp::Ptr getAttr(hgraph::VertexID id) const {
         return this->getVertex(id)->getUniqueAttribute<MapNodeProp>();
+    }
+
+    hstd::generator<hstd::Pair<hgraph::VertexID, MapNodeProp::Ptr>> getProperties()
+        const {
+        for (auto const& id : getAllVertices()) {
+            co_yield {id, getAttr(id)};
+        }
     }
 
     const hgraph::IVertex* getVertex(
@@ -178,13 +191,14 @@ struct [[refl(
         return id_map.contains(id);
     }
 
-    [[refl]] void addEdge(MapEdge const& edge) {
-        addEdge(edge, MapEdgeProp{});
+    [[refl(R"({"unique-name": "addEdgeWithProp"})")]] hgraph::EdgeID addEdge(
+        hstd::SPtr<MapEdge> const&     node,
+        hstd::SPtr<MapEdgeProp> const& prop) {
+        node->addAttribute(prop);
+        auto res = edges->add(node);
+        return res;
     }
 
-    [[refl(R"({"unique-name": "addEdgeWithProp"})")]] void addEdge(
-        MapEdge const&     edge,
-        MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     [[refl]] hgraph::VertexID addNode(
@@ -198,22 +212,21 @@ struct [[refl(
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
-        hstd::Func<bool(MapNode const& node)> acceptNode;
-        hstd::Func<bool(MapEdge const& edge)> acceptEdge;
+        hgraph::layout::LayoutRun::Ptr run;
+        GvConfig(hgraph::layout::LayoutRun::Ptr run) : run{run} {}
 
-        static hgraph::gv::NodeAttribute::Record getDefaultNodeLabel(
+        virtual bool acceptNode(hgraph::VertexID const& node) const {
+            return true;
+        }
+
+        virtual bool acceptEdge(hgraph::EdgeID const& edge) const {
+            return true;
+        }
+
+        virtual hgraph::gv::NodeAttribute::Record getNodeLabel(
             org::imm::ImmAdapter const& node,
-            MapNodeProp const&          prop);
-        hstd::Func<hgraph::gv::NodeAttribute::Record(
-            org::imm::ImmAdapter const&,
-            MapNodeProp const& prop)>
-            getNodeLabel = getDefaultNodeLabel;
+            MapNodeProp const&          prop) const;
     };
-
-    hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
-        org::imm::ImmAstContext::Ptr const& ctx) const {
-        return toGraphviz(ctx, GvConfig{});
-    }
 
     hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
         org::imm::ImmAstContext::Ptr const& ctx,
@@ -243,8 +256,7 @@ struct [[refl(
     }
   }
 })")]] MapConfig : hstd::SharedPtrApi<MapConfig> {
-    hstd::SPtr<MapInterface>        impl;
-    [[refl]] hstd::OperationsTracer dbg;
+    hstd::SPtr<MapInterface> impl;
     MapConfig(hstd::SPtr<MapInterface> impl);
     MapConfig();
 
@@ -271,12 +283,11 @@ struct [[refl(
       "holder-type": "shared"
     }
   }
-})")]] MapGraphState : hstd::SharedPtrApi<MapGraphState> {
+})")]] MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     /// \brief List of nodes with unresolved outgoing links.
     hstd::UnorderedSet<hgraph::VertexID>              unresolved;
     [[refl]] std::shared_ptr<MapGraph>                graph;
     [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
-
     [[refl]] std::shared_ptr<MapGraph> getGraph() const { return graph; }
 
     MapGraphState(org::imm::ImmAstContext::Ptr ast)
@@ -286,7 +297,6 @@ struct [[refl(
         std::shared_ptr<org::imm::ImmAstContext> ast) {
         return MapGraphState::shared(ast);
     }
-
 
     [[refl]] void registerNode(
         MapNodeProp const&                node,

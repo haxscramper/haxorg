@@ -183,7 +183,9 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
     Path getPath() const override { return path; }
 };
 
-class LayoutRun : public OperationsTracer {
+class LayoutRun
+    : public OperationsTracer
+    , public hstd::SharedPtrApi<LayoutRun> {
   public:
     hstd::SPtr<IGraph>                graph;
     hstd::SPtr<IdOnlyHierarchy>       groups;
