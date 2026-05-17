@@ -193,6 +193,8 @@ struct [[refl(
     hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
     DESC_FIELDS(MapGraph, ());
 
+    MapGraph() : edges{std::make_shared<MapEdgeCollection>()} {}
+
     hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
         return id_map.at(id);
     }
@@ -291,9 +293,11 @@ struct [[refl(
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
-        hgraph::layout::LayoutRun::Ptr run;
-        GvConfig(hgraph::layout::LayoutRun::Ptr run) : run{run} {}
-        hgraph::TrivialGraph layout_graph;
+        hstd::SPtr<hgraph::TrivialGraph> layout_graph;
+        hgraph::layout::LayoutRun::Ptr   run;
+        GvConfig()
+            : layout_graph{std::make_shared<hgraph::TrivialGraph>()}
+            , run{hgraph::layout::LayoutRun::shared(layout_graph)} {}
         hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID>
             layout_vertices;
 
@@ -340,10 +344,12 @@ struct [[refl(
 
     DESC_FIELDS(MapConfig, ());
 
-    /// \brief Get node properties without resolving the target links.
-    virtual hstd::Opt<hstd::SPtr<MapNodeProp>> getInitialNodeProp(
-        std::shared_ptr<MapGraphState> const& state,
-        org::imm::ImmAdapter                  node);
+    /// \brief Get node properties without resolving the target links. This
+    /// is an entry point method that creates a new instance of the
+    /// property attribute object and fills in all outgoing elements in it.
+    virtual hstd::SPtr<MapNodeProp> getInitialNodeProp(
+        MapGraphState const* state,
+        org::imm::ImmAdapter node);
 };
 
 struct [[refl(
@@ -362,7 +368,7 @@ struct [[refl(
   }
 })")]] MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     /// \brief List of nodes with unresolved outgoing links.
-    hstd::UnorderedSet<hgraph::VertexID>              unresolved;
+    hgraph::VertexIDSet                               unresolved;
     [[refl]] std::shared_ptr<MapGraph>                graph;
     [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
     [[refl]] std::shared_ptr<MapGraph> getGraph() const { return graph; }
@@ -384,12 +390,17 @@ struct [[refl(
         org::imm::ImmAdapter const&                     node,
         std::shared_ptr<MapConfig> const&               conf);
 
+    /// \brief Get all outgoing links used in the subtree. This will scan
+    /// the subtree and its sub-nodes for the attached description lists.
     [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
         org::imm::ImmAdapterT<org::imm::ImmSubtree> node) const;
 
+    /// \brief Get the unresolved link used in the specified node. Returns
+    /// only one link per node, if it is present. This function will not
+    /// recursively scan the node, it will only return the link if it is
+    /// present in the node argument.
     [[refl]] hstd::Opt<MapLink> getUnresolvedLink(
         org::imm::ImmAdapterT<org::imm::ImmLink> node) const;
-
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };

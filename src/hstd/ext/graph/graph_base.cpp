@@ -388,7 +388,10 @@ hstd::Vec<VertexID> IGraph::getParentChain(
 void IVertexHierarchy::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
         throw graph_error::init(
-            std::format("Vertex {} already registered in hierarchy", id));
+            std::format(
+                "Vertex {} already registered in hierarchy {}",
+                id,
+                getStableID()));
     }
     vertexIDs.insert(id);
     rootVertices.insert(id);

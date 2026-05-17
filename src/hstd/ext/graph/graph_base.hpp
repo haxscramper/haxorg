@@ -1276,6 +1276,8 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
+    int getVertexCount() const { return vertexIDs.size(); }
+
     bool hasEdge(VertexID const& source, VertexID const& target)
         const override {
         return edgeTracker.contains_left({source, target});

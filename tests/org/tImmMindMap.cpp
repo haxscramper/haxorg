@@ -42,7 +42,8 @@ struct ImmMapApi : ImmOrgApiTestBase {
     void init_with(org::sem::SemId<org::sem::Org> const& node) {
         versions = {store->addRoot(node)};
         state = org::graph::MapGraphState::shared(versions.back().context);
-        setTraceFile(getDebugFile("main.log"));
+        setGraphTraceFile(getDebugFile("graph.log"));
+        setImmContextTraceFile(getDebugFile("imm.log"));
         getGraph()->message("init done");
     }
 
@@ -53,7 +54,8 @@ struct ImmMapApi : ImmOrgApiTestBase {
             versions.push_back(versions.back().context->addRoot(n));
         }
         state = org::graph::MapGraphState::shared(versions.back().context);
-        setTraceFile(getDebugFile("main.log"));
+        setGraphTraceFile(getDebugFile("graph.log"));
+        setImmContextTraceFile(getDebugFile("imm.log"));
         getGraph()->message("init done");
     }
 
@@ -70,9 +72,8 @@ struct ImmMapApi : ImmOrgApiTestBase {
     void writeGraphviz() { writeGraphviz(getDebugFile("graph.png")); }
 
     auto getGraphviz() {
-        graph::MapGraph::GvConfig gvc{
-            hstd::ext::graph::layout::LayoutRun::shared(getGraph())};
-        auto gv = gvc.toGraphviz(start, getGraph());
+        graph::MapGraph::GvConfig gvc{};
+        auto gv = gvc.toGraphviz(versions.back().context, getGraph());
         return gv;
     }
 
@@ -81,8 +82,12 @@ struct ImmMapApi : ImmOrgApiTestBase {
         gv->render(name);
     }
 
-    void setTraceFile(fs::path const& name) {
+    void setGraphTraceFile(fs::path const& name) {
         getGraph()->setTraceFile(name);
+    }
+
+    void setImmContextTraceFile(fs::path const& name) {
+        store->debug->setTraceFile(name);
     }
 
     fs::path getTraceFile() { return getGraph()->traceFile.value(); }
@@ -118,7 +123,20 @@ Paragraph [[id:subtree-id]]
     {
         auto __scope = getGraph()->scopeLevel();
         auto par     = root.at(1);
-        getState()->addNode(par, conf);
+
+        auto init_prop = conf->getInitialNodeProp(state.get(), par);
+        ASSERT_EQ(init_prop->unresolved.size(), 1);
+        ASSERT_TRUE(init_prop->unresolved.at(0).isLink());
+
+        auto v = getState()->addNode(par, conf);
+
+        ASSERT_EQ(
+            getGraph()
+                ->getVertex(v)
+                ->getUniqueAttribute<org::graph::MapNodeProp>()
+                ->unresolved.size(),
+            1);
+
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
@@ -229,7 +247,7 @@ radio user paragraph
 
     auto store = imm::ImmAstContext ::init_start_context();
     auto conf  = org::graph::MapConfig ::shared();
-    setTraceFile(getDebugFile("log"));
+    setGraphTraceFile(getDebugFile("log"));
     store->debug->setTraceFile(getTraceFile());
     imm::ImmAstVersion v1   = store->addRoot(n1);
     auto               root = v1.getRootAdapter();
@@ -292,7 +310,7 @@ also known as a human-readable alias
     writeTreeRepr(
         parseContext->parseString(text, "<test>"),
         getDebugFile("repr.yaml"));
-    setTraceFile(getDebugFile("graph_trace.log"));
+    setGraphTraceFile(getDebugFile("graph_trace.log"));
     addNodeRec(init.context, root);
     writeGraphviz(getDebugFile("RadioTargetAliases.png"));
 

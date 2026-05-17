@@ -268,8 +268,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
         initial_version.getRootAdapter(),
         conf);
 
-    org::graph::MapGraph::GvConfig gvc{
-        hstd::ext::graph::layout::LayoutRun::shared(state->graph)};
+    org::graph::MapGraph::GvConfig gvc{};
 
     auto gv = gvc.toGraphviz(
         initial_version.getContext(), state->graph

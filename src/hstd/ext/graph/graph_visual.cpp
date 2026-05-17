@@ -47,6 +47,7 @@ hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
         VertexID const&                           parent,
         VertexID const&                           nested,
         hstd::SPtr<IVertexVisualAttribute> const& attr) {
+
     LOGIC_ASSERTION_CHECK(
         isGroupVertex(parent),
         "Cannot assign non-group visual attribute to the vertex "
