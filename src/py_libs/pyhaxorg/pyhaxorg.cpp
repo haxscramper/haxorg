@@ -2002,12 +2002,6 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("result"))
     .def_rw("unresolved", &org::graph::MapNodeProp::unresolved)
-    .def("getSubtreeId",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId),
-         nanobind::arg("context"))
-    .def("getFootnoteName",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName),
-         nanobind::arg("context"))
     .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2042,6 +2036,12 @@ list items, this field contains a newly created statment list)RAW")
          },
          nanobind::arg("result"))
     .def_rw("id", &org::graph::MapNode::id)
+    .def("getSubtreeId",
+         static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getSubtreeId),
+         nanobind::arg("context"))
+    .def("getFootnoteName",
+         static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getFootnoteName),
+         nanobind::arg("context"))
     .def("__eq__",
          static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==),
          nanobind::arg("other"))

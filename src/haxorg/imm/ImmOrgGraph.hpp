@@ -47,11 +47,6 @@ struct [[refl]] MapNodeProp
     , public hstd::SharedPtrApi<MapNodeProp> {
     [[refl]] hstd::Vec<MapLink> unresolved;
 
-    [[refl]] hstd::Opt<hstd::Str> getSubtreeId(
-        std::shared_ptr<org::imm::ImmAstContext> const& context) const;
-
-    [[refl]] hstd::Opt<hstd::Str> getFootnoteName(
-        std::shared_ptr<org::imm::ImmAstContext> const& context) const;
 
     DESC_FIELDS(MapNodeProp, (unresolved));
 };
@@ -69,6 +64,12 @@ struct [[refl]] MapNode
     , public virtual hgraph::TrivialAttributeObject
     , public hstd::SharedPtrApi<MapNode> {
     [[refl]] org::imm::ImmUniqId id;
+
+    [[refl]] hstd::Opt<hstd::Str> getSubtreeId(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const;
+
+    [[refl]] hstd::Opt<hstd::Str> getFootnoteName(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const;
 
     MapNode() : id{org::imm::ImmUniqId()} {}
     MapNode(org::imm::ImmUniqId id) : id{id} {}
@@ -114,7 +115,9 @@ struct [[refl]] MapNode
 
 struct [[refl]] MapEdge
     : public hgraph::IEdge
-    , public virtual hgraph::TrivialAttributeObject {};
+    , public virtual hgraph::TrivialAttributeObject {
+    DESC_FIELDS(MapEdge, ());
+};
 
 
 class MapEdgeCollection : public hgraph::IEdgeCollection {
@@ -138,6 +141,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
     bool hasEdge(hgraph::EdgeID const& id) const override {
         return edges.contains(id);
     }
+    DESC_FIELDS(MapEdgeCollection, ());
 };
 
 } // namespace org::graph

@@ -4939,12 +4939,12 @@ HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_GraphMapLinkRadio_get_target(OrgCon
 HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapLinkRadio(OrgContext* org_context, haxorg_GraphMapLinkRadio* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapLink(OrgContext* org_context, haxorg_GraphMapLink* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfGraphMapLink haxorg_GraphMapNodeProp_get_unresolved(OrgContext* org_context, haxorg_GraphMapNodeProp __this);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNodeProp_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNodeProp __this, haxorg_ImmAstContext context);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNodeProp_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNodeProp __this, haxorg_ImmAstContext context);
 HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapNodeProp(OrgContext* org_context, haxorg_GraphMapNodeProp* obj);
 HAXORG_C_API_LINKAGE haxorg_GraphMapLink haxorg_GraphMapEdgeProp_get_link(OrgContext* org_context, haxorg_GraphMapEdgeProp __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapEdgeProp(OrgContext* org_context, haxorg_GraphMapEdgeProp* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_GraphMapNode_get_id(OrgContext* org_context, haxorg_GraphMapNode __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNode_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNode_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);
 HAXORG_C_API_LINKAGE bool haxorg_GraphMapNode___eq___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other);
 HAXORG_C_API_LINKAGE bool haxorg_GraphMapNode___lt___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_GraphMapNode_getAdapter_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);

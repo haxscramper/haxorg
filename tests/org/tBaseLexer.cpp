@@ -255,23 +255,32 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     LOG(INFO) << "Generating mind map";
     auto conf = org::graph::MapConfig::shared();
-    if (trace) { conf->dbg.setTraceFile(getDebugFile("graph_trace.log")); }
 
-    auto graph = org::graph::MapGraphState::FromAstContext(
+    auto state = org::graph::MapGraphState::FromAstContext(
         initial_version.getContext());
-    graph->addNodeRec(
+
+    if (trace) {
+        state->graph->setTraceFile(getDebugFile("graph_trace.log"));
+    }
+
+    state->addNodeRec(
         initial_version.getContext(),
         initial_version.getRootAdapter(),
         conf);
-    auto gv = graph->graph->toGraphviz(
-        initial_version.getContext(),
-        org::graph::MapGraph::GvConfig{
-            .acceptNode = [&](org::graph::MapNode const& node) -> bool {
-                // return true;
-                return 0 < graph->graph->inDegree(node)
-                    || 0 < graph->graph->outDegree(node);
-            },
-        });
+
+    org::graph::MapGraph::GvConfig gvc{
+        hstd::ext::graph::layout::LayoutRun::shared(state->graph)};
+
+    auto gv = gvc.toGraphviz(
+        initial_version.getContext(), state->graph
+        // org::graph::MapGraph::GvConfig{
+        //     .acceptNode = [&](org::graph::MapNode const& node) -> bool {
+        //         // return true;
+        //         return 0 < graph->graph->inDegree(node)
+        //             || 0 < graph->graph->outDegree(node);
+        //     },
+        // }
+    );
 
     auto const context_path = getDebugFile("context.bin");
     auto const graph_path   = getDebugFile("graph.bin");
@@ -286,7 +295,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     {
         __perf_trace("cli", "Serialize mind map to container");
-        writeFile(graph_path, org::imm::serializeToText(graph->graph));
+        writeFile(graph_path, org::imm::serializeToText(state->graph));
     }
 
     {
@@ -316,9 +325,11 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
             readFile(graph_path), graph_tmp->graph);
 
         EXPECT_EQ(
-            graph->graph->edgeCount(), graph_tmp->graph->edgeCount());
+            state->graph->getSummedEdgeCount(),
+            graph_tmp->graph->getSummedEdgeCount());
         EXPECT_EQ(
-            graph->graph->nodeCount(), graph_tmp->graph->nodeCount());
+            state->graph->getVertexCount(),
+            graph_tmp->graph->getVertexCount());
     }
 
     if (trace) {

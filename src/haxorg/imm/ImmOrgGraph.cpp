@@ -826,7 +826,7 @@ std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
     return MapGraphState::FromAstContext(ast);
 }
 
-hstd::Opt<Str> MapNodeProp::getFootnoteName(
+hstd::Opt<Str> MapNode::getFootnoteName(
     std::shared_ptr<imm::ImmAstContext> const& context) const {
     if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
         par && par->isFootnoteDefinition()) {
@@ -836,7 +836,7 @@ hstd::Opt<Str> MapNodeProp::getFootnoteName(
     }
 }
 
-hstd::Opt<Str> MapNodeProp::getSubtreeId(
+hstd::Opt<Str> MapNode::getSubtreeId(
     std::shared_ptr<imm::ImmAstContext> const& context) const {
     if (auto tree = getAdapter(context).asOpt<org::imm::ImmSubtree>();
         tree && tree.value()->treeId.get()) {

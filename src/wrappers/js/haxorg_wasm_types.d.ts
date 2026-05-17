@@ -2330,15 +2330,13 @@ export interface GraphMapLinkLink {
 export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
 export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
-export interface GraphMapNodeProp {
-  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  unresolved: haxorg_wasm.HstdVec<GraphMapLink>
-}
+export interface GraphMapNodeProp { unresolved: haxorg_wasm.HstdVec<GraphMapLink> }
 export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
 export interface GraphMapEdgeProp { link: GraphMapLink }
 export interface GraphMapNodeConstructor { new(): GraphMapNode; }
 export interface GraphMapNode {
+  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
+  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
   __eq__(other: GraphMapNode): boolean;
   __lt__(other: GraphMapNode): boolean;
   getAdapter(context: ImmAstContext): ImmAdapter;

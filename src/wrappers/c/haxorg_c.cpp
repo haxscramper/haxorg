@@ -777,10 +777,6 @@ void haxorg_destroy_GraphMapLink(OrgContext* org_context, haxorg_GraphMapLink* o
 
 haxorg_HstdVecOfGraphMapLink haxorg_GraphMapNodeProp_get_unresolved(OrgContext* org_context, haxorg_GraphMapNodeProp __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfGraphMapLink, org::graph::MapNodeProp, hstd::Vec<org::graph::MapLink>, haxorg_GraphMapNodeProp>(org_context, __this, &org::graph::MapNodeProp::unresolved); }
 
-haxorg_StdOptional haxorg_GraphMapNodeProp_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNodeProp __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId), org_context, __this, context); }
-
-haxorg_StdOptional haxorg_GraphMapNodeProp_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNodeProp __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName), org_context, __this, context); }
-
 void haxorg_destroy_GraphMapNodeProp(OrgContext* org_context, haxorg_GraphMapNodeProp* obj) { org::bind::c::execute_destroy<org::graph::MapNodeProp>(org_context, obj); }
 
 haxorg_GraphMapLink haxorg_GraphMapEdgeProp_get_link(OrgContext* org_context, haxorg_GraphMapEdgeProp __this) { return org::bind::c::get_cpp_field<haxorg_GraphMapLink, org::graph::MapEdgeProp, org::graph::MapLink, haxorg_GraphMapEdgeProp>(org_context, __this, &org::graph::MapEdgeProp::link); }
@@ -788,6 +784,10 @@ haxorg_GraphMapLink haxorg_GraphMapEdgeProp_get_link(OrgContext* org_context, ha
 void haxorg_destroy_GraphMapEdgeProp(OrgContext* org_context, haxorg_GraphMapEdgeProp* obj) { org::bind::c::execute_destroy<org::graph::MapEdgeProp>(org_context, obj); }
 
 haxorg_ImmUniqId haxorg_GraphMapNode_get_id(OrgContext* org_context, haxorg_GraphMapNode __this) { return org::bind::c::get_cpp_field<haxorg_ImmUniqId, org::graph::MapNode, org::imm::ImmUniqId, haxorg_GraphMapNode>(org_context, __this, &org::graph::MapNode::id); }
+
+haxorg_StdOptional haxorg_GraphMapNode_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getSubtreeId), org_context, __this, context); }
+
+haxorg_StdOptional haxorg_GraphMapNode_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getFootnoteName), org_context, __this, context); }
 
 bool haxorg_GraphMapNode___eq___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==), org_context, __this, other); }
 

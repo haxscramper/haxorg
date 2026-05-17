@@ -37,9 +37,9 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvector_bind<hstd::SequenceAnnotationTag>(g, "StdVecOfSequenceAnnotationTag");
   org::bind::js::hstdVec_bind<org::imm::ImmUniqId>(g, "HstdVecOfImmUniqId");
   org::bind::js::stdvector_bind<org::imm::ImmUniqId>(g, "StdVecOfImmUniqId");
-  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
   org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "HstdVecOfGraphMapLink");
   org::bind::js::stdvector_bind<org::graph::MapLink>(g, "StdVecOfGraphMapLink");
+  org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
   org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
   org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "HstdVecOfLispCode");
   org::bind::js::stdvector_bind<org::sem::LispCode>(g, "StdVecOfLispCode");
@@ -510,8 +510,6 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::graph::MapNodeProp>("GraphMapNodeProp")
     .property("unresolved", &org::graph::MapNodeProp::unresolved)
-    .function("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
-    .function("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
     .constructor<>()
     ;
   emscripten::class_<org::graph::MapEdgeProp>("GraphMapEdgeProp")
@@ -520,6 +518,8 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::graph::MapNode>("GraphMapNode")
     .property("id", &org::graph::MapNode::id)
+    .function("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getSubtreeId))
+    .function("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getFootnoteName))
     .function("__eq__", static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==))
     .function("__lt__", static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<))
     .function("getAdapter", static_cast<org::imm::ImmAdapter(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getAdapter))
