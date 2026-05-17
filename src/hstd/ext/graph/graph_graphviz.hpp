@@ -887,6 +887,10 @@ class GraphGroup
         return attr;
     }
 
+    /// \brief Legacy method for constructing graph group without the use
+    /// layout run. graphviz API makes it reasonably easy to generate a
+    /// quick graph visualization, without setting up the full layout run,
+    /// so this method is used as an escape hatch for cases like these.
     static hstd::SPtr<gv::GraphGroup> newRootGraph(hstd::Str const& name) {
         auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
         if (!gvc) {

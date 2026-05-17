@@ -1532,6 +1532,10 @@ class IGraph {
     hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> untrackVertex(
         VertexID const& id);
 
+
+    bool isTrackingVertex(VertexID id) const {
+        return vertexIDs.contains(id);
+    }
     int getVertexCount() const { return this->vertexIDs.size(); }
 
     /// @}

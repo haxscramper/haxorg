@@ -245,6 +245,8 @@ struct [[refl]] ImmUniqId {
     ImmPath path;
     DESC_FIELDS(ImmUniqId, (id, path));
 
+    std::string getReadableId() const { return id.getReadableId(); }
+
     /// \brief Create a new unique ID with different final target.
     ImmUniqId update(ImmId id) const {
         auto res = *this;

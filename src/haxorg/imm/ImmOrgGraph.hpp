@@ -62,7 +62,9 @@ struct [[refl]] MapNodeProp
     DESC_FIELDS(MapNodeProp, (unresolved, id));
 };
 
-struct [[refl]] MapEdgeProp : public hgraph::IAttribute {
+struct [[refl]] MapEdgeProp
+    : public hgraph::IAttribute
+    , public hstd::SharedPtrApi<MapEdgeProp> {
     [[refl]] MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 };
@@ -166,14 +168,33 @@ struct [[refl(
     hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
     DESC_FIELDS(MapGraph, ());
 
+    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
+        return id_map.at(id);
+    }
+
+    org::imm::ImmUniqId getImmID(hgraph::VertexID id) const {
+        return getCastVertex<MapNode>(id)->id;
+    }
+
     MapNodeProp::Ptr getAttr(hgraph::VertexID id) const {
         return this->getVertex(id)->getUniqueAttribute<MapNodeProp>();
     }
 
-    hstd::generator<hstd::Pair<hgraph::VertexID, MapNodeProp::Ptr>> getProperties()
+    MapEdgeProp::Ptr getAttr(hgraph::EdgeID id) const {
+        return this->getEdge(id)->getUniqueAttribute<MapEdgeProp>();
+    }
+
+    hstd::generator<std::tuple<hgraph::VertexID, org::imm::ImmUniqId, MapNodeProp::Ptr>> getProperties()
         const {
         for (auto const& id : getAllVertices()) {
-            co_yield {id, getAttr(id)};
+            co_yield {id, getCastVertex<MapNode>(id)->id, getAttr(id)};
+        }
+    }
+
+    hstd::generator<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> getEdges()
+        const {
+        for (auto const& e : edges->getEdges()) {
+            co_yield {e, getAttr(e)};
         }
     }
 
@@ -214,6 +235,9 @@ struct [[refl(
     struct GvConfig {
         hgraph::layout::LayoutRun::Ptr run;
         GvConfig(hgraph::layout::LayoutRun::Ptr run) : run{run} {}
+        hgraph::TrivialGraph layout_graph;
+        hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID>
+            layout_vertices;
 
         virtual bool acceptNode(hgraph::VertexID const& node) const {
             return true;
@@ -225,12 +249,14 @@ struct [[refl(
 
         virtual hgraph::gv::NodeAttribute::Record getNodeLabel(
             org::imm::ImmAdapter const& node,
-            MapNodeProp const&          prop) const;
+            MapNodeProp::Ptr const&     prop) const;
+
+        hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
+            org::imm::ImmAstContext::Ptr const& ctx,
+            MapGraph::Ptr const&                graph);
     };
 
-    hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
-        org::imm::ImmAstContext::Ptr const& ctx,
-        GvConfig const&                     conf) const;
+
 #endif
 };
 
@@ -240,7 +266,7 @@ struct MapConfig;
 struct MapInterface {
     /// \brief Get node properties without resolving the target links.
     virtual hstd::Opt<MapNodeProp> getInitialNodeProp(
-        std::shared_ptr<MapGraphState> const& s,
+        std::shared_ptr<MapGraphState> const& state,
         org::imm::ImmAdapter                  node,
         std::shared_ptr<MapConfig>            conf);
 };
@@ -341,7 +367,7 @@ struct MapLinkResolveResult {
 /// \brief Resolve a single link with the state `s` and return the edge.
 /// Use `source` as an edge origin.
 hstd::Vec<MapLinkResolveResult> getResolveTarget(
-    MapGraphState::Ptr const&  s,
+    MapGraphState::Ptr const&  state,
     MapNode const&             source,
     MapLink const&             link,
     std::shared_ptr<MapConfig> conf);
@@ -356,7 +382,7 @@ struct MapNodeResolveResult {
 /// graph links into `.node.unresolved` and `.resolved` fields of the
 /// returned.
 MapNodeResolveResult getResolvedNodeInsert(
-    MapGraphState::Ptr const&  s,
+    MapGraphState::Ptr const&  state,
     MapNodeProp const&         node,
     std::shared_ptr<MapConfig> conf);
 

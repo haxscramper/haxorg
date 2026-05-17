@@ -180,7 +180,7 @@ void org::graph::MapGraphState::registerNode(
 
     graph->addNode(node.id);
 
-    state->graph->message(fmt("unresolved:{}", unresolved));
+    graph->message(fmt("unresolved:{}", unresolved));
 
 
     MapNodeResolveResult resolved = getResolvedNodeInsert(
@@ -246,15 +246,15 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
     for (auto const& list : tree.subAs<ImmList>()) {
         if (auto attached = list.getListAttrs("attached");
             attached.has(0) && attached.at(0).getString() == "subtree") {
-            state->graph->message("Subtree has list");
+            graph->message("Subtree has list");
             for (auto const& item : list.subAs<ImmListItem>()) {
-                state->graph->message(fmt("{}", item.id));
+                graph->message(fmt("{}", item.id));
                 if (isLinkedDescriptionItemNode(item)) {
-                    state->graph->message("List has description item");
+                    graph->message("List has description item");
                     for (auto const& link :
                          item.pass(item->header->value())
                              .subAs<ImmLink>()) {
-                        state->graph->message(
+                        graph->message(
                             fmt("List item contains link {}", link));
                         // Description list header might contain
                         // non-link elements. These are ignored in the
@@ -277,7 +277,7 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
 
 
 Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
-    MapGraphState::Ptr const&  s,
+    MapGraphState::Ptr const&  state,
     ImmAdapter                 node,
     std::shared_ptr<MapConfig> conf) {
     // `- [[link-to-something]] :: Description` is stored as a description
@@ -302,11 +302,11 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
         // them will be converted to edges later on.
         if (auto link = arg.asOpt<ImmLink>()) {
             if (auto target = s->getUnresolvedLink(link.value(), conf)) {
-                state->graph
-                    ->message(fmt(
-                        "Got unresolved link for adapter {} under {}",
+                state->graph->message(
+                    fmt("Got unresolved link for adapter {} under {}",
                         arg,
-                        node)) result.unresolved.push_back(target.value());
+                        node));
+                result.unresolved.push_back(target.value());
             }
         }
     };
@@ -338,7 +338,7 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
 }
 
 Vec<MapLinkResolveResult> org::graph::getResolveTarget(
-    MapGraphState::Ptr const&  s,
+    MapGraphState::Ptr const&  state,
     MapNode const&             source,
     MapLink const&             link,
     std::shared_ptr<MapConfig> conf) {
@@ -479,7 +479,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
 
 MapNodeResolveResult org::graph::getResolvedNodeInsert(
-    MapGraphState::Ptr const&  s,
+    MapGraphState::Ptr const&  state,
     MapNodeProp const&         node,
     std::shared_ptr<MapConfig> conf) {
     MapNodeResolveResult result;
@@ -654,47 +654,33 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
 using namespace hstd::ext::graph;
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-hstd::SPtr<gv::GraphGroup> MapGraph::toGraphviz(
+hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
     imm::ImmAstContext::Ptr const& ctx,
-    GvConfig const&                conf) const {
-    hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph("g"_ss);
+    MapGraph::Ptr const&           graph) {
+    hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph(
+        run, "g"_ss);
 
-    auto edgeOk = [&](hgraph::EdgeID const& edge) {
-        return !conf.acceptEdge || conf.acceptEdge(edge);
-    };
+    auto rg = layout_graph.addVertex();
+    run->addRootGroup(rg, res);
 
-    auto nodeOk = [&](hgraph::VertexID const& node) {
-        return !conf.acceptNode || conf.acceptNode(node);
-    };
 
-    for (auto const& [it, prop] : getProperties()) {
-        if (nodeOk(it)) {
-            auto node = res->node(it.id.id.getReadableId());
-            node->setAttr("org_id", it.id.id.getReadableId());
-            gvNodes.insert_or_assign(it, node);
+    for (auto const& [it, imm_id, prop] : graph->getProperties()) {
+        if (acceptNode(it)) {
+            auto node = res->addVertex(rg, it);
+            layout_graph.trackVertex(it);
+            node->setAttr("org_id", imm_id.getReadableId());
+            node->startHtmlRecord();
+            *node->getNodeRecord() = getNodeLabel(
+                ctx->adapt(imm_id), prop);
+            node->finishHtmlRecord();
         }
     }
 
-    for (auto const& [source, targets] : adjList) {
-        for (auto const& target : targets) {
-            if (nodeOk(source) && nodeOk(target)
-                && edgeOk({source, target})) {
-                gvEdges.insert_or_assign(
-                    {source, target},
-                    res->edge(*gvNodes.at(source), *gvNodes.at(target)));
-            }
+    for (auto const& [eid, prop] : graph->getEdges()) {
+        if (acceptNode(graph->getSource(eid))
+            && acceptNode(graph->getTarget(eid)) && acceptEdge(eid)) {
+            auto edge = res->addEdge(eid);
         }
-    }
-
-    for (auto const& [it, prop] : nodeProps) {
-        if (!nodeOk(it)) { continue; }
-        using Record = gv::NodeAttribute::Record;
-        auto& node   = gvNodes.at(it);
-        node->startHtmlRecord();
-        *node->getNodeRecord() = conf.getNodeLabel(
-            ctx->adapt(it.id), prop);
-
-        node->finishHtmlRecord();
     }
 
     return res;
@@ -707,8 +693,8 @@ MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 gv::NodeAttribute::Record MapGraph::GvConfig::getNodeLabel(
-    ImmAdapter const&  node,
-    MapNodeProp const& prop) const {
+    ImmAdapter const&       node,
+    MapNodeProp::Ptr const& prop) const {
     using Record = gv::NodeAttribute::Record;
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
@@ -755,7 +741,7 @@ gv::NodeAttribute::Record MapGraph::GvConfig::getNodeLabel(
                 file ? file->as<ImmFile>()->relPath.get() : Str{"?"}));
     }
 
-    for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
+    for (auto const& [idx, unresolved] : enumerate(prop->unresolved)) {
         if (unresolved.isLink()) {
             auto const& val = node.ctx.lock()
                                   ->adapt(unresolved.getLink().link)
