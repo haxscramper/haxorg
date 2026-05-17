@@ -42,7 +42,9 @@ struct [[refl]] MapLink {
 };
 
 
-struct [[refl]] MapNodeProp : public hgraph::IAttribute {
+struct [[refl]] MapNodeProp
+    : public hgraph::IAttribute
+    , public hstd::SharedPtrApi<MapNodeProp> {
     [[refl]] org::imm::ImmUniqId id;
     [[refl]] hstd::Vec<MapLink>  unresolved;
 
@@ -68,7 +70,8 @@ struct [[refl]] MapEdgeProp : public hgraph::IAttribute {
 
 struct [[refl]] MapNode
     : public hgraph::IVertex
-    , public virtual hgraph::TrivialAttributeObject {
+    , public virtual hgraph::TrivialAttributeObject
+    , public hstd::SharedPtrApi<MapNode> {
     [[refl]] org::imm::ImmUniqId id;
 
     MapNode() : id{org::imm::ImmUniqId()} {}
@@ -82,6 +85,10 @@ struct [[refl]] MapNode
         return id < other.id;
     }
 
+    hstd::SPtr<MapNodeProp> getProp() const {
+        return getUniqueAttribute<MapNodeProp>();
+    }
+
     DESC_FIELDS(MapNode, (id));
 };
 
@@ -91,10 +98,20 @@ struct [[refl]] MapEdge
 
 
 class MapEdgeCollection : public hgraph::IEdgeCollection {
-    hstd::ext::graph::EdgeCollectionID getCollectionID() const override {}
-    const hstd::ext::graph::IEdge*     getEdge(
-        hstd::ext::graph::EdgeID const& id) const override;
-    bool hasEdge(hstd::ext::graph::EdgeID const& id) const override;
+    hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>>
+        edges;
+
+    hgraph::EdgeCollectionID getCollectionID() const override {
+        return hgraph::EdgeCollectionID::FromCollectionTypePointer(this);
+    }
+
+    const hgraph::IEdge* getEdge(hgraph::EdgeID const& id) const override {
+        return edges.at(id).get();
+    }
+
+    bool hasEdge(hgraph::EdgeID const& id) const override {
+        return edges.contains(id);
+    }
 };
 
 } // namespace org::graph
@@ -135,126 +152,48 @@ struct [[refl(
     }
   }
 })")]] MapGraph
-    : hstd::SharedPtrApi<MapGraph>
+    : public hstd::SharedPtrApi<MapGraph>
     , public hgraph::IGraph {
     hstd::UnorderedIncrementalStore<hgraph::VertexID, hstd::SPtr<MapNode>>
-        nodes;
+                                                              nodes;
+    hstd::SPtr<MapEdgeCollection>                             edges;
+    hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
     DESC_FIELDS(MapGraph, ());
 
-    [[refl]] AdjNodesList const& outNodes(MapNode const& node) const {
-        return adjList.at(node);
+    MapNodeProp::Ptr getAttr(hgraph::VertexID id) const {
+        return this->getVertex(id)->getUniqueAttribute<MapNodeProp>();
     }
 
-    [[refl]] AdjNodesList const& inNodes(MapNode const& node) const {
-        return adjListIn.at(node);
-    }
-
-    [[refl]] hstd::Vec<MapEdge> adjEdges(MapNode const& node) const {
-        hstd::Vec<MapEdge> res;
-        for (auto const& out : outNodes(node)) {
-            res.push_back(MapEdge{.source = node, .target = out});
-        }
-
-        for (auto const& in : inNodes(node)) {
-            res.push_back(MapEdge{.source = in, .target = node});
-        }
-
-        return res;
-    }
-
-    [[refl]] hstd::Vec<MapNode> adjNodes(MapNode const& node) const {
-        hstd::UnorderedSet<org::graph::MapNode> adjacent;
-        hstd::Vec<MapNode>                      result;
-        for (auto const& node : outNodes(node)) {
-            adjacent.incl(node);
-            result.push_back(node);
-        }
-
-        for (auto const& n : inNodes(node)) {
-            if (!adjacent.contains(n)) { result.push_back(n); }
-        }
-        return result;
-    }
-
-    [[refl]] hstd::Vec<MapEdge> outEdges(MapNode const& node) const {
-        hstd::Vec<MapEdge> result;
-        for (auto const& target : outNodes(node)) {
-            result.push_back(MapEdge{node, target});
-        }
-        return result;
-    }
-
-    [[refl]] hstd::Vec<MapEdge> inEdges(MapNode const& node) const {
-        hstd::Vec<MapEdge> result;
-        for (auto const& target : inNodes(node)) {
-            result.push_back(MapEdge{target, node});
-        }
-        return result;
-    }
-
-    [[refl]] int outDegree(MapNode const& node) const {
-        return adjList.contains(node) ? adjList.at(node).size() : 0;
-    }
-
-    [[refl]] int inDegree(MapNode const& node) const {
-        return adjListIn.contains(node) ? adjListIn.at(node).size() : 0;
+    const hgraph::IVertex* getVertex(
+        hgraph::VertexID const& id) const override {
+        return nodes.at(id).get();
     }
 
     [[refl]] bool isRegisteredNode(MapNode const& id) const {
-        return adjList.contains(id);
+        return id_map.contains(id.id);
     }
 
     [[refl(R"({"unique-name": "isRegisteredNodeById"})")]] bool isRegisteredNode(
         org::imm::ImmUniqId const& id) const {
-        return adjList.contains(MapNode{id});
+        return id_map.contains(id);
     }
-
-    [[refl(R"({"unique-name": "atMapNode"})")]] MapNodeProp const& at(
-        MapNode const& node) const {
-        return nodeProps.at(node);
-    }
-
-    [[refl(R"({"unique-name": "atMapEdge"})")]] MapEdgeProp const& at(
-        MapEdge const& edge) const {
-        return edgeProps.at(edge);
-    }
-
 
     [[refl]] void addEdge(MapEdge const& edge) {
         addEdge(edge, MapEdgeProp{});
     }
+
     [[refl(R"({"unique-name": "addEdgeWithProp"})")]] void addEdge(
         MapEdge const&     edge,
         MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
-    [[refl]] void addNode(MapNode const& node);
-    [[refl(R"({"unique-name": "addNodeWithProp"})")]] void addNode(
-        MapNode const&     node,
-        MapNodeProp const& prop) {
-        addNode(node);
-        nodeProps.insert_or_assign(node, prop);
-    }
-
-    [[refl]] bool hasEdge(MapNode const& source, MapNode const& target)
-        const {
-        if (adjList.find(source) != adjList.end()) {
-            for (auto const& it : adjList.at(source)) {
-                if (it == target) { return true; }
-            }
-        }
-
-        return false;
-    }
-
-    [[refl]] bool hasNode(MapNode const& node) const {
-        return adjList.contains(node);
-    }
-
-    [[refl(R"({"unique-name": "has2AdapterEdge"})")]] bool hasEdge(
-        org::imm::ImmAdapter const& source,
-        org::imm::ImmAdapter const& target) const {
-        return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
+    [[refl]] hgraph::VertexID addNode(
+        hstd::SPtr<MapNode> const&     node,
+        hstd::SPtr<MapNodeProp> const& prop) {
+        node->addAttribute(prop);
+        auto res = nodes.add(node);
+        id_map.insert_or_assign(node->id, res);
+        return res;
     }
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
@@ -281,59 +220,6 @@ struct [[refl(
         GvConfig const&                     conf) const;
 #endif
 };
-
-struct MapGraphInverse {
-    MapGraph::Ptr origin;
-
-    AdjNodesList const& inNodes(MapNode const& n) const {
-        return origin->outNodes(n);
-    }
-
-    AdjNodesList const& outNodes(MapNode const& n) const {
-        return origin->inNodes(n);
-    }
-
-    hstd::Vec<MapEdge> inEdges(MapNode const& n) const {
-        return origin->outEdges(n);
-    }
-
-    hstd::Vec<MapEdge> outEdges(MapNode const& n) const {
-        return origin->inEdges(n);
-    }
-
-    hstd::Vec<MapNode> adjNodes(MapNode const& n) const {
-        return origin->adjNodes(n);
-    }
-};
-
-struct MapGraphUndirected {
-    MapGraph::Ptr      origin;
-    hstd::Vec<MapNode> adjNodes(MapNode const& n) const {
-        return origin->adjNodes(n);
-    }
-
-    hstd::Vec<MapEdge> adjEdges(MapNode const& n) const {
-        hstd::UnorderedSet<MapNode> adjacent;
-        hstd::Vec<MapEdge>          res;
-        for (auto const& out : origin->outNodes(n)) {
-            res.push_back(MapEdge{.source = n, .target = out});
-            adjacent.incl(out);
-        }
-
-        for (auto const& in : origin->inNodes(n)) {
-            if (!adjacent.contains(in)) {
-                res.push_back(MapEdge{.source = n, .target = in});
-            }
-        }
-        return res;
-    }
-};
-
-template <typename T>
-concept IsOrgMapGraph //
-    = std::is_same_v<std::remove_reference_t<T>, MapGraphUndirected>
-   || std::is_same_v<std::remove_reference_t<T>, MapGraphInverse>
-   || std::is_same_v<std::remove_reference_t<T>, MapGraph>;
 
 struct MapGraphState;
 struct MapConfig;
@@ -387,7 +273,7 @@ struct [[refl(
   }
 })")]] MapGraphState : hstd::SharedPtrApi<MapGraphState> {
     /// \brief List of nodes with unresolved outgoing links.
-    hstd::UnorderedSet<MapNode>                       unresolved;
+    hstd::UnorderedSet<hgraph::VertexID>              unresolved;
     [[refl]] std::shared_ptr<MapGraph>                graph;
     [[refl]] std::shared_ptr<org::imm::ImmAstContext> ast;
 
@@ -437,8 +323,8 @@ struct MapLinkResolveResult {
     /// associated with the ImmUniqId, so the 'target' is always filled,
     /// but the node might not exist in the graph yet. If it does not
     /// exist, the node is added to 'unresolved' in the graph state.
-    MapNode target;
-    MapNode source;
+    hgraph::VertexID target;
+    hgraph::VertexID source;
     DESC_FIELDS(MapLinkResolveResult, (link, target, source));
 };
 

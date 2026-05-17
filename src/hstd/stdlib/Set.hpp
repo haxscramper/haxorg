@@ -46,6 +46,13 @@ struct UnorderedSet
     static UnorderedSet<T> FromVec(hstd::Vec<T> const& v) {
         return UnorderedSet<T>{v.begin(), v.end()};
     }
+
+    template <typename It>
+    static UnorderedSet<T> FromIterable(It&& v) {
+        UnorderedSet<T> res{};
+        for (auto const& it : v) { res.incl(it); }
+        return res;
+    }
 };
 
 

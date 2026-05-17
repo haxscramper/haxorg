@@ -60,16 +60,17 @@ bool org::graph::hasGraphAnnotations(
 
 
 void removeUnresolvedNodeProps(
-    NodeProps&                   props,
-    MapNodeResolveResult const&  resolved_node,
-    MapNode const&               newNode,
-    UnorderedSet<MapNode> const& existingUnresolved,
-    std::shared_ptr<MapConfig>   conf) {
+    MapGraphState::Ptr const&   state,
+    MapNodeResolveResult const& resolved_node,
+    hgraph::VertexID const&     newNode,
+    hgraph::VertexIDSet const&  existingUnresolved,
+    std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
-        auto remove_resolved = [&](MapNode node) {
-            MapNodeProp prop = props[node];
+        auto remove_resolved = [&](hgraph::VertexID node) {
+            auto attr = state->graph->getVertex(node)
+                            ->getUniqueAttribute<MapNodeProp>();
             rs::actions::remove_if(
-                prop.unresolved, [&](MapLink const& old) -> bool {
+                attr->unresolved, [&](MapLink const& old) -> bool {
                     if (old.isLink() && op.link.isLink()) {
                         return old.getLink().link
                             == op.link.getLink().link;
@@ -80,8 +81,6 @@ void removeUnresolvedNodeProps(
                         return false;
                     }
                 });
-
-            props.insert_or_assign(node, prop);
         };
 
         for (auto const& box : existingUnresolved) {
@@ -93,9 +92,8 @@ void removeUnresolvedNodeProps(
 
 void updateUnresolvedNodeTracking(
     MapGraphState::Ptr const&   state,
-    NodeProps&                  props,
     MapNodeResolveResult const& resolved_node,
-    MapNode const&              newNode,
+    hgraph::VertexID const&     newNode,
     std::shared_ptr<MapConfig>  conf) {
     GRAPH_MSG(
         fmt("New node {}, resolution result {}", newNode, resolved_node));
@@ -118,12 +116,12 @@ void updateUnresolvedNodeTracking(
     }
 
     for (auto const& op : resolved_node.resolved) {
-        Vec<MapNode> toRemove;
-        for (MapNode const& it : state->unresolved) {
-            if (props.at(it).unresolved.empty()) {
+        hgraph::VertexIDSet toRemove;
+        for (hgraph::VertexID const& it : state->unresolved) {
+            if (state->graph->getAttr(it)->unresolved.empty()) {
                 GRAPH_MSG(
                     fmt("Node {} fixed all unresolved properties", it));
-                toRemove.push_back(it);
+                toRemove.incl(it);
             }
         }
 
@@ -136,17 +134,6 @@ void updateResolvedEdges(
     MapNodeResolveResult const& resolved_node,
     std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
-        for (auto const& target : s->graph->adjList.at(op.source)) {
-            LOGIC_ASSERTION_CHECK_FMT(
-                op.target != target,
-                "There is already a link between {} and {}, graph cannot "
-                "contain duplicate edges op:{}",
-                op.source,
-                op.target,
-                op);
-        }
-
-
         GRAPH_MSG(fmt("add edge {}-{}", op.source, op.target));
         s->graph->addEdge(
             MapEdge{op.source, op.target}, MapEdgeProp{.link = op.link});

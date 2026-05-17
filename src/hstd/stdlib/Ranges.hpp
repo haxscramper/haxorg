@@ -10,6 +10,7 @@ namespace hstd {
 
 namespace rv = ranges::views;
 namespace rs = ranges;
+namespace ra = ranges::actions;
 using ranges::operator|;
 
 template <class T>

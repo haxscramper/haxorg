@@ -318,12 +318,19 @@ DECL_ID_TYPE_MASKED(IEdge, EdgeIDBase, hstd::u64, 16);
 
 struct EdgeID : public EdgeIDBase {
     using EdgeIDBase::EdgeIDBase;
+
+    EdgeID(EdgeIDBase base) : EdgeIDBase{base} {}
+
     bool isHierarchyEdge() const {
         return EdgeCollectionID(getMask()).isHierarchy();
     }
 
     bool isCollectionEdge() const {
         return EdgeCollectionID(getMask()).isCollection();
+    }
+
+    static EdgeID FromMasked(hstd::u64 value, EdgeCollectionID mask) {
+        return EdgeID(FromMaskedIdx(value, mask.t));
     }
 
     DESC_FIELDS(EdgeID, ());
@@ -1024,6 +1031,36 @@ class IEdgeProvider {
     /// \brief Check if the derived edge provider has the edge object
     /// associated with the given edge.
     virtual bool hasEdge(EdgeID const& id) const = 0;
+
+    virtual int getInDegree(VertexID const& id) const {
+        return getIncoming(id).size();
+    }
+
+    virtual int getOutDegree(VertexID const& id) const {
+        return getOutgoing(id).size();
+    }
+
+    virtual EdgeIDSet getAdjacentEdges(VertexID id) const {
+        return getIncoming(id) + getOutgoing(id);
+    }
+
+    virtual VertexIDSet getOutNodes(VertexID id) const {
+        return VertexIDSet::FromIterable(
+            hstd::own_view(getOutgoing(id))
+            | hstd::rv::transform(
+                [&](EdgeID e) -> VertexID { return getTarget(e); }));
+    }
+
+    virtual VertexIDSet getInNodes(VertexID id) const {
+        return VertexIDSet::FromIterable(
+            hstd::own_view(getIncoming(id))
+            | hstd::rv::transform(
+                [&](EdgeID e) -> VertexID { return getTarget(e); }));
+    }
+
+    virtual VertexIDSet getAdjacentNodes(VertexID id) const {
+        return getOutNodes(id) + getInNodes(id);
+    }
 
     /// \brief Check if the edge is tracked by the provider. This method is
     /// independent of the `hasEdge` and is only concerned with the
