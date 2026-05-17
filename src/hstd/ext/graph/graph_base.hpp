@@ -174,17 +174,89 @@ struct vertex_structure_error
           CRTP_hexception<vertex_structure_error, structure_error> {};
 
 using namespace hstd::ext::geometry;
+/// \name Collection ID groups
+/// @{
+
+
 /// \brief 16-bit ID to track edge collection. Used as a mask in the
 /// `EdgeID`.
 ///
 /// Collection ID is created by the IEdgeCollection::getCollectionId
-BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCollectionID);
+BOOST_STRONG_TYPEDEF(hstd::u16, EdgeCollectionIDBase);
+
+struct EdgeCollectionID : public EdgeCollectionIDBase {
+    /// hierarchy ID if <ID> & HierarchyCategoryMaskBit != 0
+    static constexpr hstd::u16 CollectionTypeMask = 0b1000'0000'0000'0000;
+    static constexpr hstd::u16 IsHierarchyMask    = 0b1000'0000'0000'0000;
+    static constexpr hstd::u16 IsCollectionMask   = 0b0000'0000'0000'0000;
+
+    using EdgeCollectionIDBase::EdgeCollectionIDBase;
+    bool isHierarchy() const {
+        return hstd::masked_equals(t, CollectionTypeMask, IsHierarchyMask);
+    }
+    bool isCollection() const {
+        return hstd::masked_equals(
+            t, CollectionTypeMask, IsCollectionMask);
+    }
+
+    static EdgeCollectionID FromHierarchy(hstd::u16 base) {
+        return EdgeCollectionID(
+            hstd::assign_masked(
+                base, CollectionTypeMask, IsHierarchyMask));
+    }
+
+    static EdgeCollectionID FromCollection(hstd::u16 base) {
+        // first bit must not be set
+        return EdgeCollectionID(
+            hstd::assign_masked(
+                base, CollectionTypeMask, IsCollectionMask));
+    }
+
+    void assert_is_collection() const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            isCollection(),
+            "Collection ID has category {} ({}) which matches the "
+            "hierarchy mask: {}",
+            t,
+            hstd::format_integer_bits(t, 'b'),
+            hstd::format_integer_bits(IsHierarchyMask, 'b'));
+    }
+
+    void assert_is_hierarchy() const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            isHierarchy(),
+            "Hierarchy ID has category {} ({}) which matches the "
+            "collection mask: {}",
+            t,
+            hstd::format_integer_bits(t, 'b'),
+            hstd::format_integer_bits(IsCollectionMask, 'b'));
+    }
+
+    /// \brief Default implementation of the hierarchy ID constructoir.
+    ///
+    /// It creates an ID based on the type, which is sufficient if there is
+    /// only one instance of the hierarchy type in a graph.
+    template <typename T>
+    static EdgeCollectionID FromHierarchyTypePointer(T const* self) {
+        return FromHierarchy(
+            hstd::hash_bits<15>(typeid(self).hash_code()));
+    }
+
+    /// \brief Default implementation of the collection ID constructoir.
+    template <typename T>
+    static EdgeCollectionID FromCollectionTypePointer(T const* self) {
+        return FromCollection(
+            hstd::hash_bits<15>(typeid(self).hash_code()));
+    }
+};
+
 /// \brief 16-bit ID to identify the attribute tracker.
 BOOST_STRONG_TYPEDEF(hstd::u16, AttributeTrackerID);
 BOOST_STRONG_TYPEDEF(hstd::u16, PortCollectionID);
-/// \brief 16-bit ID to track the graph hierarchies. Used as a mask in the
-/// `EdgeID`.
-BOOST_STRONG_TYPEDEF(hstd::u16, GraphHierarchyID);
+
+
+/// @}
+
 } // namespace hstd::ext::graph
 
 template <>
@@ -202,10 +274,6 @@ struct std::formatter<hstd::ext::graph::AttributeTrackerID>
     : public hstd::std_strong_typedef_formatter<
           hstd::ext::graph::AttributeTrackerID> {};
 
-template <>
-struct std::formatter<hstd::ext::graph::GraphHierarchyID>
-    : public hstd::std_strong_typedef_formatter<
-          hstd::ext::graph::GraphHierarchyID> {};
 
 template <>
 struct std::hash<hstd::ext::graph::EdgeCollectionID>
@@ -221,11 +289,6 @@ template <>
 struct std::hash<hstd::ext::graph::AttributeTrackerID>
     : public hstd::strong_typedef_hash<
           hstd::ext::graph::AttributeTrackerID> {};
-
-template <>
-struct std::hash<hstd::ext::graph::GraphHierarchyID>
-    : public hstd::strong_typedef_hash<
-          hstd::ext::graph::GraphHierarchyID> {};
 
 namespace hstd::ext::graph {
 
@@ -251,7 +314,23 @@ template <typename T>
 concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
 
 DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
-DECL_ID_TYPE_MASKED(IEdge, EdgeID, hstd::u64, 16);
+DECL_ID_TYPE_MASKED(IEdge, EdgeIDBase, hstd::u64, 16);
+
+struct EdgeID : public EdgeIDBase {
+    using EdgeIDBase::EdgeIDBase;
+    bool isHierarchyEdge() const {
+        return EdgeCollectionID(getMask()).isHierarchy();
+    }
+
+    bool isCollectionEdge() const {
+        return EdgeCollectionID(getMask()).isCollection();
+    }
+
+    DESC_FIELDS(EdgeID, ());
+};
+
+static_assert(dod::IsIdType<EdgeID>);
+
 /// \brief Categorize the in/out edge connections between vertices.
 ///
 /// The concept of the node port is linked with the layout, but the the
@@ -910,7 +989,7 @@ class IEdgeProvider {
     virtual ~IEdgeProvider() = default;
     /// \brief Return edge category for this collection, uniquely
     /// identifying this specific one collection.
-    virtual EdgeCollectionID getCategory() const = 0;
+    virtual EdgeCollectionID getCollectionID() const = 0;
 
     /// \brief Get already constructed edge object from the store.
     virtual IEdge const* getEdge(EdgeID const& id) const   = 0;
@@ -954,21 +1033,9 @@ class IEdgeProvider {
     // static API for masking the edge IDs.
 
     /// \brief Hierachy category should have the first bit set to 1.
-    static constexpr hstd::u16
-        HierarchyCategoryMask = 0b1111'1111'1111'1111;
-    static constexpr hstd::u16
-        HierarchyCategoryMaskBit = 0b1000'0000'0000'0000;
-    /// \brief Regular edge collection should have the first bit set to 0.
-    static constexpr hstd::u16
-        CollectionCategoryMask = 0b0111'1111'1111'1111;
-
-    static bool isHierarchyEdge(EdgeID const& id);
 
     static EdgeCollectionID edgeCategoryFromEdge(EdgeID const& id);
-
-    static GraphHierarchyID hierarchyIdFromEdge(EdgeID const& id);
-
-    static bool hierarchyUsesMask(GraphHierarchyID const& id);
+    static EdgeCollectionID hierarchyIdFromEdge(EdgeID const& id);
 };
 
 class IEdgeCollection : public IEdgeProvider {
@@ -980,18 +1047,6 @@ class IEdgeCollection : public IEdgeProvider {
     hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
     hstd::UnorderedMap<EdgeID, hstd::Pair<VertexID, VertexID>>
         source_target;
-
-  protected:
-    /// \brief Default implementation of the hierarchy ID constructoir.
-    ///
-    /// It creates an ID based on the type, which is sufficient if there is
-    /// only one instance of the hierarchy type in a graph.
-    template <typename T>
-    EdgeCollectionID getCollectionIdImpl(T const* self) const {
-        return hstd::ext::graph::EdgeCollectionID(
-            hstd::hash_bits<15>(typeid(self).hash_code())
-            & CollectionCategoryMask);
-    }
 
 
   public:
@@ -1085,7 +1140,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
     }
 
     EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        auto res = edgeStore.add(TrivialEdge{}, getCategory());
+        auto res = edgeStore.add(TrivialEdge{}, getCollectionID());
         trackEdge(res, source, target);
         return res;
     }
@@ -1093,7 +1148,9 @@ struct TrivialEdgeCollection : public IEdgeCollection {
     TrivialEdgeCollection(EdgeCollectionID const& id)
         : collection_id{id} {}
 
-    EdgeCollectionID getCategory() const override { return collection_id; }
+    EdgeCollectionID getCollectionID() const override {
+        return collection_id;
+    }
 
     const IEdge* getEdge(EdgeID const& id) const override {
         return &edgeStore.at(id);
@@ -1120,7 +1177,9 @@ struct IdOnlyEdgeCollection : public IEdgeCollection {
 
     IdOnlyEdgeCollection(EdgeCollectionID const& id) : collection_id{id} {}
 
-    EdgeCollectionID getCategory() const override { return collection_id; }
+    EdgeCollectionID getCollectionID() const override {
+        return collection_id;
+    }
 
     const IEdge* getEdge(EdgeID const& id) const override {
         return nullptr;
@@ -1163,17 +1222,6 @@ class IVertexHierarchy : public IEdgeProvider {
     hstd::ext::Unordered1to1Bimap<hstd::Pair<VertexID, VertexID>, EdgeID>
         edgeTracker;
 
-    /// \brief Default implementation of the hierarchy ID constructoir.
-    ///
-    /// It creates an ID based on the type, which is sufficient if there is
-    /// only one instance of the hierarchy type in a graph.
-    template <typename T>
-    GraphHierarchyID getHierarchyIdImpl(T const* self) const {
-        return hstd::ext::graph::GraphHierarchyID(
-            hstd::hash_bits<15>(typeid(self).hash_code())
-            | HierarchyCategoryMaskBit);
-    }
-
 
   public:
     virtual ~IVertexHierarchy() = default;
@@ -1181,9 +1229,6 @@ class IVertexHierarchy : public IEdgeProvider {
     bool isTrackingEdge(EdgeID const& id) const override {
         return edgeTracker.contains_right(id);
     }
-
-    /// \brief Return hierarchy identifier used in edge masks.
-    virtual GraphHierarchyID getHierarchyId() const = 0;
 
     /// \brief Add the vertex to the hierarchy collection without nesting
     /// relations.
@@ -1308,8 +1353,8 @@ struct TrivialHierarchy : public IVertexHierarchy {
     hstd::UnorderedMap<EdgeID, TrivialEdge> edgeStore;
 
   public:
-    EdgeCollectionID getCategory() const override {
-        return EdgeCollectionID(getHierarchyId());
+    EdgeCollectionID getCollectionID() const override {
+        return EdgeCollectionID::FromHierarchyTypePointer(this);
     }
 
     const IEdge* getEdge(EdgeID const& id) const override {
@@ -1318,10 +1363,6 @@ struct TrivialHierarchy : public IVertexHierarchy {
 
     bool hasEdge(EdgeID const& id) const override {
         return edgeStore.contains(id);
-    }
-
-    GraphHierarchyID getHierarchyId() const override {
-        return getHierarchyIdImpl(this);
     }
 
     EdgeID trackSubVertexRelation(
@@ -1337,8 +1378,8 @@ struct IdOnlyHierarchy : public IVertexHierarchy {
     hstd::UnorderedSet<EdgeID> edgeStore;
 
   public:
-    EdgeCollectionID getCategory() const override {
-        return EdgeCollectionID(getHierarchyId());
+    EdgeCollectionID getCollectionID() const override {
+        return EdgeCollectionID::FromHierarchyTypePointer(this);
     }
 
     const IEdge* getEdge(EdgeID const& id) const override {
@@ -1347,10 +1388,6 @@ struct IdOnlyHierarchy : public IVertexHierarchy {
 
     bool hasEdge(EdgeID const& id) const override {
         return edgeStore.contains(id);
-    }
-
-    GraphHierarchyID getHierarchyId() const override {
-        return getHierarchyIdImpl(this);
     }
 };
 
@@ -1375,7 +1412,7 @@ class IGraph {
         ports;
     hstd::UnorderedMap<AttributeTrackerID, hstd::SPtr<IAttributeTracker>>
         trackers;
-    hstd::UnorderedMap<GraphHierarchyID, hstd::SPtr<IVertexHierarchy>>
+    hstd::UnorderedMap<EdgeCollectionID, hstd::SPtr<IVertexHierarchy>>
         hierarchies;
 
     /// \brief Full set of all vertices in the graph
@@ -1383,7 +1420,7 @@ class IGraph {
 
   public:
     struct Crossing {
-        GraphHierarchyID    hierarchy;
+        EdgeCollectionID    hierarchy;
         hstd::Vec<VertexID> crossings;
         DESC_FIELDS(Crossing, (hierarchy, crossings));
     };
@@ -1455,8 +1492,11 @@ class IGraph {
     /// sub-vertex deletions for this hierarchy. It is possible to delete
     /// all the nested vertices with `untrackVertexList` for each set of
     /// vertices in the dependant deletion.
-    hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> untrackVertex(
+    hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> untrackVertex(
         VertexID const& id);
+
+    int getVertexCount() const { return this->vertexIDs.size(); }
+
     /// @}
 
     /// \name Vertex hierarchies
@@ -1464,23 +1504,23 @@ class IGraph {
     /// \brief Get list of all vertices stored in the graph
     VertexIDSet getAllVertices() const;
     /// \brief Get root vertices for the specified hierarchy
-    VertexIDSet getRootVertices(GraphHierarchyID const& hierarchy) const;
+    VertexIDSet getRootVertices(EdgeCollectionID const& hierarchy) const;
     /// \brief Get sub vertices for the specified hierarchy
     VertexIDSet getSubVertices(
-        GraphHierarchyID const& hierarchy,
+        EdgeCollectionID const& hierarchy,
         VertexID const&         id) const;
     /// \brief Get parent vertices for the specified hierarchy
     hstd::Opt<VertexID> getParentVertex(
-        GraphHierarchyID const& hierarchy,
+        EdgeCollectionID const& hierarchy,
         VertexID const&         id) const;
 
     /// \brief Return the highest level of nesting in the hierarchy.
-    int getMaxNestingLevel(GraphHierarchyID const& hierarchy) const;
+    int getMaxNestingLevel(EdgeCollectionID const& hierarchy) const;
 
     /// \brief Return full parent chain for vertex in the selected
     /// hierarchy.
     hstd::Vec<VertexID> getParentChain(
-        GraphHierarchyID const& hierarchy,
+        EdgeCollectionID const& hierarchy,
         VertexID const&         id) const;
 
     /// \brief For id with given ID, compute the list of vertex
@@ -1513,7 +1553,7 @@ class IGraph {
         return hstd::validated_dynamic_cast<T>(getMEdge(id));
     }
 
-    GraphHierarchyID getHierarchyID(EdgeID const& id) const;
+    EdgeCollectionID getHierarchyID(EdgeID const& id) const;
     EdgeCollectionID getCollectionID(EdgeID const& id) const;
 
     hstd::SPtr<IVertexHierarchy> getHierarchy(EdgeID const& id) const {
@@ -1525,7 +1565,7 @@ class IGraph {
     }
 
     hstd::SPtr<IEdgeProvider> getEdgeProvider(EdgeID const& id) const {
-        if (IEdgeProvider::isHierarchyEdge(id)) {
+        if (id.isHierarchyEdge()) {
             return getHierarchy(id);
         } else {
             return getEdgeCollection(id);
@@ -1539,13 +1579,13 @@ class IGraph {
     ///
     /// \return List of newly added edges in all hierarchies.
     hstd::Vec<EdgeID> trackSubVertexRelation(
-        GraphHierarchyID const& hierarchy,
+        EdgeCollectionID const& hierarchy,
         VertexID const&         parent,
         VertexID const&         sub);
     /// \brief Remove the vertex nesting information from a specific
     /// hierarchy.
     void untrackSubVertexRelation(
-        GraphHierarchyID const& hierarchy,
+        EdgeCollectionID const& hierarchy,
         VertexID const&         parent,
         VertexID const&         sub);
     /// @}
@@ -1752,8 +1792,8 @@ class AutoSegmentingCollection : public IEdgeCollection {
              | hstd::rs::to<Vec>();
     }
 
-    EdgeCollectionID getCategory() const override {
-        return segmented_edges->getCategory();
+    EdgeCollectionID getCollectionID() const override {
+        return segmented_edges->getCollectionID();
     }
 
     const IEdge* getEdge(EdgeID const& id) const override {

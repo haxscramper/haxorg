@@ -156,7 +156,7 @@ class DiaHierarchyEdgeCollection
         return store.at(id);
     }
 
-    hstd::ext::graph::GraphHierarchyID getHierarchyId() const override;
+    hstd::ext::graph::EdgeCollectionID getHierarchyId() const override;
 };
 
 class DiaSubtreeIdProperty : public hstd::ext::graph::IAttribute {

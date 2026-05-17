@@ -25,7 +25,7 @@ hstd::Vec<hstd::ext::graph::EdgeID> DiaHierarchyEdgeCollection::
     return res;
 }
 
-hstd::ext::graph::GraphHierarchyID DiaHierarchyEdgeCollection::
+hstd::ext::graph::EdgeCollectionID DiaHierarchyEdgeCollection::
     getHierarchyId() const {
     return getHierarchyIdImpl(this);
 }

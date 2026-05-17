@@ -9,8 +9,11 @@
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/graph_graphviz.hpp>
 #endif
+#include <hstd/ext/graph/graph_base.hpp>
 
 namespace org::graph {
+
+namespace hgraph = hstd::ext::graph;
 
 struct graph_error : hstd::CRTP_hexception<graph_error> {};
 
@@ -39,7 +42,7 @@ struct [[refl]] MapLink {
 };
 
 
-struct [[refl]] MapNodeProp {
+struct [[refl]] MapNodeProp : public hgraph::IAttribute {
     [[refl]] org::imm::ImmUniqId id;
     [[refl]] hstd::Vec<MapLink>  unresolved;
 
@@ -57,13 +60,15 @@ struct [[refl]] MapNodeProp {
     DESC_FIELDS(MapNodeProp, (unresolved, id));
 };
 
-struct [[refl]] MapEdgeProp {
+struct [[refl]] MapEdgeProp : public hgraph::IAttribute {
     [[refl]] MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 };
 
 
-struct [[refl]] MapNode {
+struct [[refl]] MapNode
+    : public hgraph::IVertex
+    , public virtual hgraph::TrivialAttributeObject {
     [[refl]] org::imm::ImmUniqId id;
 
     MapNode() : id{org::imm::ImmUniqId()} {}
@@ -80,16 +85,18 @@ struct [[refl]] MapNode {
     DESC_FIELDS(MapNode, (id));
 };
 
-struct [[refl]] MapEdge {
-    [[refl]] MapNode source;
-    [[refl]] MapNode target;
-    DESC_FIELDS(MapEdge, (source, target));
+struct [[refl]] MapEdge
+    : public hgraph::IEdge
+    , public virtual hgraph::TrivialAttributeObject {};
 
-    bool operator==(MapEdge const& other) const {
-        return this->source == other.source
-            && this->target == other.target;
-    }
+
+class MapEdgeCollection : public hgraph::IEdgeCollection {
+    hstd::ext::graph::EdgeCollectionID getCollectionID() const override {}
+    const hstd::ext::graph::IEdge*     getEdge(
+        hstd::ext::graph::EdgeID const& id) const override;
+    bool hasEdge(hstd::ext::graph::EdgeID const& id) const override;
 };
+
 } // namespace org::graph
 
 
@@ -107,18 +114,11 @@ template <>
 struct std::hash<org::graph::MapEdge> {
     std::size_t operator()(org::graph::MapEdge const& it) const noexcept {
         std::size_t result = 0;
-        hstd::hax_hash_combine(result, it.source.id);
-        hstd::hax_hash_combine(result, it.target.id);
         return result;
     }
 };
 
 namespace org::graph {
-[[refl]] typedef hstd::UnorderedMap<MapNode, MapNodeProp>  NodeProps;
-[[refl]] typedef hstd::UnorderedMap<MapEdge, MapEdgeProp>  EdgeProps;
-[[refl]] typedef hstd::Vec<MapNode>                        AdjNodesList;
-[[refl]] typedef hstd::UnorderedMap<MapNode, AdjNodesList> AdjList;
-
 struct MapGraph;
 
 struct [[refl(
@@ -134,23 +134,12 @@ struct [[refl(
       "holder-type": "shared"
     }
   }
-})")]] MapGraph : hstd::SharedPtrApi<MapGraph> {
-    [[refl]] NodeProps nodeProps;
-    [[refl]] EdgeProps edgeProps;
-    [[refl]] AdjList   adjList;
-    [[refl]] AdjList   adjListIn;
-
-    DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList, adjListIn));
-
-    void clear() {
-        nodeProps.clear();
-        edgeProps.clear();
-        adjList.clear();
-        adjListIn.clear();
-    }
-
-    [[refl]] int nodeCount() const { return nodeProps.size(); }
-    [[refl]] int edgeCount() const { return edgeProps.size(); }
+})")]] MapGraph
+    : hstd::SharedPtrApi<MapGraph>
+    , public hgraph::IGraph {
+    hstd::UnorderedIncrementalStore<hgraph::VertexID, hstd::SPtr<MapNode>>
+        nodes;
+    DESC_FIELDS(MapGraph, ());
 
     [[refl]] AdjNodesList const& outNodes(MapNode const& node) const {
         return adjList.at(node);
@@ -273,21 +262,21 @@ struct [[refl(
         hstd::Func<bool(MapNode const& node)> acceptNode;
         hstd::Func<bool(MapEdge const& edge)> acceptEdge;
 
-        static hstd::ext::graph::gv::NodeAttribute::Record getDefaultNodeLabel(
+        static hgraph::gv::NodeAttribute::Record getDefaultNodeLabel(
             org::imm::ImmAdapter const& node,
             MapNodeProp const&          prop);
-        hstd::Func<hstd::ext::graph::gv::NodeAttribute::Record(
+        hstd::Func<hgraph::gv::NodeAttribute::Record(
             org::imm::ImmAdapter const&,
             MapNodeProp const& prop)>
             getNodeLabel = getDefaultNodeLabel;
     };
 
-    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
+    hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
         org::imm::ImmAstContext::Ptr const& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
-    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
+    hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
         org::imm::ImmAstContext::Ptr const& ctx,
         GvConfig const&                     conf) const;
 #endif

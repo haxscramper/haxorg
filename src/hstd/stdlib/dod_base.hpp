@@ -289,7 +289,7 @@ struct [[nodiscard]] Id {
 
 /// Concent for base ID type and all it's publcily derived types
 template <typename D>
-concept IsIdType = is_base_of_template_v<Id, D>;
+concept IsIdType = is_base_of_template_v<::hstd::dod::Id, D>;
 
 /// \brief Saturated (won't overflow, stops at zero) In-place decrement of
 /// the ID

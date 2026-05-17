@@ -139,27 +139,10 @@ void IGraph::delTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
 }
 
 void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
-    LOGIC_ASSERTION_CHECK_FMT(
-        (collection->getCategory()
-         & IEdgeCollection::HierarchyCategoryMaskBit)
-            == 0,
-        "Input collection has category {} ({}) which matches the "
-        "hierarchy mask: {}",
-        collection->getCategory(),
-        hstd::format_integer_bits(collection->getCategory(), 'b'),
-        hstd::format_integer_bits(
-            IEdgeCollection::HierarchyCategoryMaskBit, 'b'));
 
-    if (auto coll = collections.get(collection->getCategory());
+    if (auto coll = collections.get(collection->getCollectionID());
         coll.has_value()) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !coll.has_value(),
-            "Collection with category ID {} already exists in the graph "
-            "tracker. Existing collection stable ID is {}, attempting to "
-            "add stable ID {}",
-            collection->getCategory().t,
-            coll.value()->getStableID(),
-            collection->getStableID());
+        collection->getCollectionID().assert_is_collection();
     }
 
 
@@ -171,23 +154,21 @@ void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
             collection->getStableID());
     }
 
-    collections.insert_or_assign(collection->getCategory(), collection);
+    collections.insert_or_assign(
+        collection->getCollectionID(), collection);
 }
 
 void IGraph::delCollection(hstd::SPtr<IEdgeCollection> const& collection) {
-    collections.erase(collection->getCategory());
+    collections.erase(collection->getCollectionID());
 }
 
 void IGraph::addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
-    LOGIC_ASSERTION_CHECK_FMT(
-        IEdgeProvider::hierarchyUsesMask(hierarchy->getHierarchyId()),
-        "Hierarchy ID {} must have the hierarchy edge mask bit set",
-        hierarchy->getHierarchyId().t);
+    hierarchy->getCollectionID().assert_is_hierarchy();
 
     LOGIC_ASSERTION_CHECK_FMT(
-        !hierarchies.contains(hierarchy->getHierarchyId()),
+        !hierarchies.contains(hierarchy->getCollectionID()),
         "Hierarchy with ID {} already exists in the graph tracker",
-        hierarchy->getHierarchyId().t);
+        hierarchy->getCollectionID().t);
 
     for (auto const& [_, existing] : hierarchies) {
         LOGIC_ASSERTION_CHECK_FMT(
@@ -197,12 +178,13 @@ void IGraph::addHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
             hierarchy->getStableID());
     }
 
-    hierarchies.insert_or_assign(hierarchy->getHierarchyId(), hierarchy);
+    hierarchies.insert_or_assign(hierarchy->getCollectionID(), hierarchy);
 }
 
 void IGraph::delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
-    hierarchies.erase(hierarchy->getHierarchyId());
+    hierarchies.erase(hierarchy->getCollectionID());
 }
+
 void hstd::ext::graph::IGraph::delPorts(
     hstd::SPtr<IPortCollection> const& collection) {
     ports.erase(collection->getCategory());
@@ -216,12 +198,12 @@ void hstd::ext::graph::IGraph::addPorts(
 
 bool hstd::ext::graph::IGraph::hasCollection(
     hstd::SPtr<IEdgeCollection> const& collection) {
-    return collections.contains(collection->getCategory());
+    return collections.contains(collection->getCollectionID());
 }
 
 bool hstd::ext::graph::IGraph::hasHierarchy(
     hstd::SPtr<IVertexHierarchy> const& hierarchy) {
-    return hierarchies.contains(hierarchy->getHierarchyId());
+    return hierarchies.contains(hierarchy->getCollectionID());
 }
 
 hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() {
@@ -255,7 +237,7 @@ hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
 }
 
 hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
-    GraphHierarchyID const& hierarchy,
+    EdgeCollectionID const& hierarchy,
     VertexID const&         parent,
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
@@ -274,7 +256,7 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
 }
 
 void IGraph::untrackSubVertexRelation(
-    GraphHierarchyID const& hierarchy,
+    EdgeCollectionID const& hierarchy,
     VertexID const&         parent,
     VertexID const&         sub) {
     hierarchies.at(hierarchy)->untrackSubVertexRelation(parent, sub);
@@ -295,13 +277,13 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     for (auto& track : trackers) { track.second->trackVertex(id); }
 }
 
-hstd::UnorderedMap<GraphHierarchyID, IEdgeCollection::DependantDeletion> hstd::
+hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> hstd::
     ext::graph::IGraph::untrackVertex(VertexID const& id) {
     if (!vertexIDs.contains(id)) {
         throw graph_error::init(std::format(vertex_not_found_msg, "", id));
     }
 
-    hstd::UnorderedMap<GraphHierarchyID, IEdgeProvider::DependantDeletion>
+    hstd::UnorderedMap<EdgeCollectionID, IEdgeProvider::DependantDeletion>
         result;
 
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
@@ -330,18 +312,18 @@ VertexIDSet IGraph::getAllVertices() const {
 }
 
 VertexIDSet IGraph::getRootVertices(
-    GraphHierarchyID const& hierarchy) const {
+    EdgeCollectionID const& hierarchy) const {
     return hierarchies.at(hierarchy)->getRootVertices();
 }
 
 VertexIDSet IGraph::getSubVertices(
-    GraphHierarchyID const& hierarchy,
+    EdgeCollectionID const& hierarchy,
     VertexID const&         id) const {
     return hierarchies.at(hierarchy)->getSubVertices(id);
 }
 
 hstd::Opt<VertexID> IGraph::getParentVertex(
-    GraphHierarchyID const& hierarchy,
+    EdgeCollectionID const& hierarchy,
     VertexID const&         id) const {
     return hierarchies.at(hierarchy)->getParentVertex(id);
 }
@@ -354,7 +336,7 @@ auto format_collection = hstd::rv::transform(
                        | hstd::rs::to<hstd::Vec>();
 } // namespace
 
-hstd::ext::graph::GraphHierarchyID hstd::ext::graph::IGraph::
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
     getHierarchyID(EdgeID const& id) const {
     auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
     LOGIC_ASSERTION_CHECK_FMT(
@@ -393,12 +375,12 @@ hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getTarget(
     return getEdgeProvider(id)->getTarget(id);
 }
 
-int IGraph::getMaxNestingLevel(GraphHierarchyID const& hierarchy) const {
+int IGraph::getMaxNestingLevel(EdgeCollectionID const& hierarchy) const {
     return hierarchies.at(hierarchy)->getMaxNestingLevel();
 }
 
 hstd::Vec<VertexID> IGraph::getParentChain(
-    GraphHierarchyID const& hierarchy,
+    EdgeCollectionID const& hierarchy,
     VertexID const&         id) const {
     return hierarchies.at(hierarchy)->getParentChain(id);
 }
@@ -926,23 +908,15 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
 }
 
 std::string IEdgeProvider::getStableID() const {
-    return hstd::fmt("EdgeProvider-{}", getCategory().t);
-}
-
-bool IEdgeProvider::isHierarchyEdge(EdgeID const& id) {
-    return (id.getMask() & HierarchyCategoryMaskBit) != 0;
+    return hstd::fmt("EdgeProvider-{}", getCollectionID().t);
 }
 
 EdgeCollectionID IEdgeProvider::edgeCategoryFromEdge(EdgeID const& id) {
     return EdgeCollectionID(hstd::u16(id.getMask()));
 }
 
-GraphHierarchyID IEdgeProvider::hierarchyIdFromEdge(EdgeID const& id) {
-    return GraphHierarchyID(hstd::u16(id.getMask()));
-}
-
-bool IEdgeProvider::hierarchyUsesMask(GraphHierarchyID const& id) {
-    return (id.t & HierarchyCategoryMaskBit) != 0;
+EdgeCollectionID IEdgeProvider::hierarchyIdFromEdge(EdgeID const& id) {
+    return EdgeCollectionID(hstd::u16(id.getMask()));
 }
 
 EdgeIDSet IEdgeCollection::getEdges() const {
