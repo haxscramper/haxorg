@@ -21,6 +21,7 @@
 #include <haxorg/imm/ImmOrgEdit.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/imm/ImmOrgGraphBoost.hpp>
+#include <haxorg/imm/ImmGetterApi.hpp>
 #include <boost/graph/graphml.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>

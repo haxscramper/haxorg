@@ -494,7 +494,7 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
         }
 
         default: {
-            if (!org::graph::isAttachedDescriptionList(id)) {
+            if (!org::imm::isAttachedDescriptionList(id)) {
                 result.items.push_back(DocItem{.id = id});
             }
 

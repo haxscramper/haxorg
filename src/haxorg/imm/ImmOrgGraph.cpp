@@ -12,6 +12,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include "ImmGetterApi.hpp"
 
 using namespace org::graph;
 using namespace hstd;
@@ -24,56 +25,6 @@ using slk = org::sem::LinkTarget::Kind;
 
 #define GRAPH_MSG(...)                                                    \
     if (GRAPH_TRACE()) { conf->dbg.message(__VA_ARGS__); }
-
-bool org::graph::isDescriptionItem(ImmAdapter const& node) {
-    return node.as<ImmListItem>()->header->has_value();
-}
-
-bool org::graph::isLinkedDescriptionItemNode(ImmAdapter const& n) {
-    return n.is(osk::ListItem)  //
-        && isDescriptionItem(n) //
-        && rs::any_of(
-               n.pass(n.as<ImmListItem>()->header.get().value())
-                   .subAs<ImmLink>(),
-               [](ImmAdapterT<ImmLink> head) -> bool {
-                   return !head->target.isRaw();
-               });
-}
-
-bool org::graph::isLinkedDescriptionItem(ImmAdapter const& n) {
-    // If any of the parent nodes for this box is a linked description
-    // item, ignore the entry as it has already been added as a part of the
-    // link descripion.
-    return rs::any_of(
-        n.getParentChain(/*withSelf = */ false),
-        [&](ImmAdapter parent) -> bool {
-            return isLinkedDescriptionItemNode(parent);
-        });
-}
-
-bool org::graph::isLinkedDescriptionList(ImmAdapter const& n) {
-    return n.is(osk::List)
-        && rs::any_of(n.sub(), [&](ImmAdapter arg) -> bool {
-               return isLinkedDescriptionItem(arg);
-           });
-}
-
-bool org::graph::isInSubtreeDescriptionList(ImmAdapter const& n) {
-    return rs::any_of(n.getParentChain(), [](ImmAdapter tree) {
-        return isAttachedDescriptionList(tree);
-    });
-}
-
-
-bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
-    if (auto list = n.asOpt<ImmList>();
-        list && list->isDescriptionList()) {
-        auto attached = list->getListAttrs("attached");
-        return attached.has(0) && attached.at(0).getString() == "subtree";
-    } else {
-        return false;
-    }
-}
 
 
 bool org::graph::isMmapIgnored(ImmAdapter const& n) {
