@@ -132,7 +132,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
     }
 
     hgraph::EdgeID add(hstd::SPtr<MapEdge> const& e) {
-        return edges.add(e);
+        return edges.add(e, getCollectionID());
     }
 
     const hgraph::IEdge* getEdge(hgraph::EdgeID const& id) const override {
@@ -193,7 +193,9 @@ struct [[refl(
     hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
     DESC_FIELDS(MapGraph, ());
 
-    MapGraph() : edges{std::make_shared<MapEdgeCollection>()} {}
+    MapGraph() : edges{std::make_shared<MapEdgeCollection>()} {
+        addCollection(edges);
+    }
 
     hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
         return id_map.at(id);
@@ -230,11 +232,13 @@ struct [[refl(
         }
     }
 
-    hstd::generator<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> getEdges()
+    hstd::Vec<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> getEdges()
         const {
+        hstd::Vec<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> res;
         for (auto const& e : edges->getEdges()) {
-            co_yield {e, getAttr(e)};
+            res.push_back({e, getAttr(e)});
         }
+        return res;
     }
 
     const hgraph::IVertex* getVertex(
@@ -275,6 +279,7 @@ struct [[refl(
         hgraph::VertexID               target) {
         edge->addAttribute(prop);
         auto res = edges->add(edge);
+        LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
         edges->trackEdge(res, source, target);
         return res;
     }
@@ -415,8 +420,8 @@ struct MapLinkResolveResult {
     /// associated with the ImmUniqId, so the 'target' is always filled,
     /// but the node might not exist in the graph yet. If it does not
     /// exist, the node is added to 'unresolved' in the graph state.
-    hgraph::VertexID target;
-    hgraph::VertexID source;
+    org::imm::ImmUniqId target;
+    org::imm::ImmUniqId source;
     DESC_FIELDS(MapLinkResolveResult, (link, target, source));
 };
 

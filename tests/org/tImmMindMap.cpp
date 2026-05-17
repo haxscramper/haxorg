@@ -120,6 +120,7 @@ Paragraph [[id:subtree-id]]
     EXPECT_EQ(getState()->unresolved.size(), 0);
 
     getGraph()->message("add first node");
+    auto v1 = hstd::ext::graph::VertexID::Nil();
     {
         auto __scope = getGraph()->scopeLevel();
         auto par     = root.at(1);
@@ -128,11 +129,11 @@ Paragraph [[id:subtree-id]]
         ASSERT_EQ(init_prop->unresolved.size(), 1);
         ASSERT_TRUE(init_prop->unresolved.at(0).isLink());
 
-        auto v = getState()->addNode(par, conf);
+        v1 = getState()->addNode(par, conf);
 
         ASSERT_EQ(
             getGraph()
-                ->getVertex(v)
+                ->getVertex(v1)
                 ->getUniqueAttribute<org::graph::MapNodeProp>()
                 ->unresolved.size(),
             1);
@@ -149,8 +150,16 @@ Paragraph [[id:subtree-id]]
         auto __scope = getGraph()->scopeLevel();
         getState()->addNode(root.at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
-        EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
+        ASSERT_EQ(
+            getGraph()
+                ->getVertex(v1)
+                ->getUniqueAttribute<org::graph::MapNodeProp>()
+                ->unresolved.size(),
+            0);
+
         EXPECT_EQ(getState()->unresolved.size(), 0);
+        EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
+        EXPECT_EQ(getGraph()->getEdges().size(), 1);
     }
 
     writeGraphviz();

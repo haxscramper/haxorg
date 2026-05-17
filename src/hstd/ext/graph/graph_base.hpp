@@ -333,6 +333,11 @@ struct [[refl]] EdgeID : public EdgeIDBase {
         return EdgeID(FromMaskedIdx(value, mask.t));
     }
 
+    static EdgeID FromMasked(EdgeID base, EdgeCollectionID mask) {
+        return EdgeID(FromMaskedIdx(base.getIndex(), mask.t));
+    }
+
+
     DESC_FIELDS(EdgeID, ());
 };
 
