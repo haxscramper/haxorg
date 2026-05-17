@@ -575,6 +575,8 @@ export interface haxorg_wasm_module_auto {
   ImmReflFieldId: ImmReflFieldIdConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
+  GraphVertexID: GraphVertexIDConstructor;
+  GraphEdgeIDBase: GraphEdgeIDBaseConstructor;
   ImmPathStep: ImmPathStepConstructor;
   ImmPath: ImmPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
@@ -604,7 +606,6 @@ export interface haxorg_wasm_module_auto {
   GraphMapEdgeProp: GraphMapEdgePropConstructor;
   GraphMapNode: GraphMapNodeConstructor;
   GraphMapEdge: GraphMapEdgeConstructor;
-  GraphMapGraph: GraphMapGraphConstructor;
   GraphMapConfig: GraphMapConfigConstructor;
   GraphMapGraphState: GraphMapGraphStateConstructor;
   LispCode: LispCodeConstructor;
@@ -1026,6 +1027,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
+  GraphMapGraph: GraphMapGraphConstructor;
   ImmIdT: ImmIdTConstructor;
   ImmIdT: ImmIdTConstructor;
   ImmIdT: ImmIdTConstructor;
@@ -1178,6 +1180,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: ImmCmdIncludeKind,
   }
   format_ImmCmdIncludeKind(value: ImmCmdIncludeKind): string;
+  GraphEdgeID: GraphEdgeIDConstructor;
   ImmAdapterOrgAPI: ImmAdapterOrgAPIConstructor;
   Cmd: CmdConstructor;
   CmdCustomRaw: CmdCustomRawConstructor;
@@ -2161,6 +2164,10 @@ export interface ImmId {
 }
 export interface ImmOrgConstructor { new(): ImmOrg; }
 export interface ImmOrg {  }
+export interface GraphVertexIDConstructor { new(): GraphVertexID; }
+export interface GraphVertexID {  }
+export interface GraphEdgeIDBaseConstructor { new(): GraphEdgeIDBase; }
+export interface GraphEdgeIDBase {  }
 export interface ImmPathStepConstructor { new(): ImmPathStep; }
 export interface ImmPathStep {  }
 export interface ImmPathConstructor { new(): ImmPath; }
@@ -2324,10 +2331,8 @@ export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
 export interface GraphMapLinkRadio { target: ImmUniqId }
 export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
 export interface GraphMapNodeProp {
-  getAdapter(context: ImmAstContext): ImmAdapter;
   getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
   getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  id: ImmUniqId
   unresolved: haxorg_wasm.HstdVec<GraphMapLink>
 }
 export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
@@ -2336,62 +2341,27 @@ export interface GraphMapNodeConstructor { new(): GraphMapNode; }
 export interface GraphMapNode {
   __eq__(other: GraphMapNode): boolean;
   __lt__(other: GraphMapNode): boolean;
+  getAdapter(context: ImmAstContext): ImmAdapter;
   id: ImmUniqId
 }
 export interface GraphMapEdgeConstructor { new(): GraphMapEdge; }
-export interface GraphMapEdge {
-  source: GraphMapNode
-  target: GraphMapNode
-}
-export interface GraphMapGraphConstructor { new(): GraphMapGraph; }
-export interface GraphMapGraph {
-  nodeCount(): number;
-  edgeCount(): number;
-  outNodes(node: GraphMapNode): GraphAdjNodesList;
-  inNodes(node: GraphMapNode): GraphAdjNodesList;
-  adjEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  adjNodes(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapNode>;
-  outEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  inEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  outDegree(node: GraphMapNode): number;
-  inDegree(node: GraphMapNode): number;
-  isRegisteredNode(id: GraphMapNode): boolean;
-  isRegisteredNodeById(id: ImmUniqId): boolean;
-  atMapNode(node: GraphMapNode): GraphMapNodeProp;
-  atMapEdge(edge: GraphMapEdge): GraphMapEdgeProp;
-  addEdge(edge: GraphMapEdge): void;
-  addEdgeWithProp(edge: GraphMapEdge, prop: GraphMapEdgeProp): void;
-  addNode(node: GraphMapNode): void;
-  addNodeWithProp(node: GraphMapNode, prop: GraphMapNodeProp): void;
-  hasEdge(source: GraphMapNode, target: GraphMapNode): boolean;
-  hasNode(node: GraphMapNode): boolean;
-  has2AdapterEdge(source: ImmAdapter, target: ImmAdapter): boolean;
-  nodeProps: GraphNodeProps
-  edgeProps: GraphEdgeProps
-  adjList: GraphAdjList
-  adjListIn: GraphAdjList
-}
+export interface GraphMapEdge {  }
 export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
-export interface GraphMapConfig { dbg: OperationsTracer }
+export interface GraphMapConfig {  }
 export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
 export interface GraphMapGraphState {
   getGraph(): GraphMapGraph;
   FromAstContext(ast: ImmAstContext): GraphMapGraphState;
-  registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
-  addNode(node: ImmAdapter, conf: GraphMapConfig): void;
+  addNode(node: ImmAdapter, conf: GraphMapConfig): GraphVertexID;
   addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
-  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.HstdVec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
+  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>): haxorg_wasm.HstdVec<GraphMapLink>;
+  getUnresolvedLink(node: ImmAdapterT<ImmLink>): haxorg_wasm.Optional<GraphMapLink>;
   graph: GraphMapGraph
   ast: ImmAstContext
 }
 export type ImmIdIdType = U64;
 export type ImmIdNodeIdxT = U32;
 export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
-export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
-export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
-export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;
-export type GraphAdjList = haxorg_wasm.HstdMap<GraphMapNode, GraphAdjNodesList>;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;
@@ -3939,6 +3909,13 @@ export enum CmdIncludeKind {
   Src,
   OrgDocument,
 }
+export interface GraphMapGraphConstructor { new(): GraphMapGraph; }
+export interface GraphMapGraph {
+  isRegisteredNode(id: GraphMapNode): boolean;
+  isRegisteredNodeById(id: ImmUniqId): boolean;
+  addEdgeWithProp(edge: StdShared_ptr<GraphMapEdge>, prop: StdShared_ptr<GraphMapEdgeProp>, source: GraphVertexID, target: GraphVertexID): GraphEdgeID;
+  addNode(node: StdShared_ptr<GraphMapNode>, prop: StdShared_ptr<GraphMapNodeProp>): GraphVertexID;
+}
 export interface ImmIdTConstructor { new(): ImmIdT; }
 export interface ImmIdT {  }
 export interface ImmIdTConstructor { new(): ImmIdT; }
@@ -4471,6 +4448,8 @@ export enum ImmCmdIncludeKind {
   Src,
   OrgDocument,
 }
+export interface GraphEdgeIDConstructor { new(): GraphEdgeID; }
+export interface GraphEdgeID {  }
 export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
 export interface ImmAdapterOrgAPI {  }
 export interface CmdConstructor { new(): Cmd; }

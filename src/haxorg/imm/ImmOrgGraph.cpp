@@ -624,8 +624,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                 r1.target);
         }
     } else {
-        hstd::Vec<MapLinkResolveResult>       unique_resolved;
-        std::set<std::pair<MapNode, MapNode>> seen;
+        hstd::Vec<MapLinkResolveResult> unique_resolved;
+        std::set<std::pair<hgraph::VertexID, hgraph::VertexID>> seen;
 
         for (const auto& r : result.resolved) {
             auto pair = std::make_pair(r.target, r.source);

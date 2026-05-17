@@ -40,16 +40,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdoptional_bind<hstd::Str>(g, "StdOptionalOfStr");
   org::bind::js::hstdVec_bind<org::graph::MapLink>(g, "HstdVecOfGraphMapLink");
   org::bind::js::stdvector_bind<org::graph::MapLink>(g, "StdVecOfGraphMapLink");
-  org::bind::js::hstdVec_bind<org::graph::MapNode>(g, "HstdVecOfGraphMapNode");
-  org::bind::js::stdvector_bind<org::graph::MapNode>(g, "StdVecOfGraphMapNode");
-  org::bind::js::hstdVec_bind<org::graph::MapEdge>(g, "HstdVecOfGraphMapEdge");
-  org::bind::js::stdvector_bind<org::graph::MapEdge>(g, "StdVecOfGraphMapEdge");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "HstdMapOfGraphMapNodeGraphMapNodeProp");
-  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::MapNodeProp>(g, "StdMapOfGraphMapNodeGraphMapNodeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "HstdMapOfGraphMapEdgeGraphMapEdgeProp");
-  org::bind::js::stdunordered_map_bind<org::graph::MapEdge, org::graph::MapEdgeProp>(g, "StdMapOfGraphMapEdgeGraphMapEdgeProp");
-  org::bind::js::hstdUnorderedMap_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "HstdMapOfGraphMapNodeGraphAdjNodesList");
-  org::bind::js::stdunordered_map_bind<org::graph::MapNode, org::graph::AdjNodesList>(g, "StdMapOfGraphMapNodeGraphAdjNodesList");
   org::bind::js::stdoptional_bind<org::graph::MapLink>(g, "StdOptionalOfGraphMapLink");
   org::bind::js::hstdVec_bind<org::sem::LispCode>(g, "HstdVecOfLispCode");
   org::bind::js::stdvector_bind<org::sem::LispCode>(g, "StdVecOfLispCode");
@@ -105,9 +95,6 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvariant_bind<org::sem::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::InternalError>(g, "StdVariantOfOrgDiagnosticsParseTokenErrorOrgDiagnosticsParseErrorOrgDiagnosticsIncludeErrorOrgDiagnosticsConvertErrorOrgDiagnosticsInternalError");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "HstdVecOfSemIdOfErrorItem");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorItem>>(g, "StdVecOfSemIdOfErrorItem");
-}
-
-void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::LispValue>(g, "OptOfAttrValueLispValue");
   org::bind::js::hstdOpt_bind<org::sem::AttrValue::Kind>(g, "OptOfAttrValueKind");
   org::bind::js::hstdVec_bind<org::sem::Time::Repeat>(g, "HstdVecOfTimeRepeat");
@@ -118,6 +105,9 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::Symbol::Param>(g, "HstdVecOfSymbolParam");
   org::bind::js::stdvector_bind<org::sem::Symbol::Param>(g, "StdVecOfSymbolParam");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorSkipToken>>(g, "HstdVecOfSemIdOfErrorSkipToken");
+}
+
+void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorSkipToken>>(g, "StdVecOfSemIdOfErrorSkipToken");
   org::bind::js::hstdOpt_bind<org::sem::SemId<org::sem::StmtList>>(g, "OptOfSemIdOfStmtList");
   org::bind::js::hstdVec_bind<org::sem::SubtreePeriod>(g, "HstdVecOfSubtreePeriod");
@@ -209,9 +199,6 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<SubtreeTodoSource>("SubtreeTodoSource");
   org::bind::js::bind_enum<ListFormattingMode>("ListFormattingMode");
   org::bind::js::bind_enum<InitialSubtreeVisibility>("InitialSubtreeVisibility");
-}
-
-void subdivide_2(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<OrgSpecName>("OrgSpecName");
   org::bind::js::bind_enum<OrgNodeKind>("OrgNodeKind");
   org::bind::js::bind_enum<OrgTokenKind>("OrgTokenKind");
@@ -240,6 +227,9 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
     .constructor<>()
     ;
+}
+
+void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::parse::SourceFileId>("ParseSourceFileId")
     ;
   emscripten::class_<org::parse::SourceManager>("ParseSourceManager")
@@ -344,6 +334,12 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmOrg>("ImmOrg")
+    ;
+  emscripten::class_<hstd::ext::graph::VertexID>("GraphVertexID")
+    .constructor<>()
+    ;
+  emscripten::class_<hstd::ext::graph::EdgeIDBase>("GraphEdgeIDBase")
+    .constructor<>()
     ;
   emscripten::class_<org::imm::ImmPathStep>("ImmPathStep")
     .constructor<>()
@@ -513,9 +509,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   emscripten::class_<org::graph::MapNodeProp>("GraphMapNodeProp")
-    .property("id", &org::graph::MapNodeProp::id)
     .property("unresolved", &org::graph::MapNodeProp::unresolved)
-    .function("getAdapter", static_cast<org::imm::ImmAdapter(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getAdapter))
     .function("getSubtreeId", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getSubtreeId))
     .function("getFootnoteName", static_cast<std::optional<hstd::Str>(org::graph::MapNodeProp::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNodeProp::getFootnoteName))
     .constructor<>()
@@ -528,45 +522,14 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("id", &org::graph::MapNode::id)
     .function("__eq__", static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==))
     .function("__lt__", static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<))
+    .function("getAdapter", static_cast<org::imm::ImmAdapter(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getAdapter))
     .constructor<>()
     ;
   emscripten::class_<org::graph::MapEdge>("GraphMapEdge")
-    .property("source", &org::graph::MapEdge::source)
-    .property("target", &org::graph::MapEdge::target)
     .constructor<>()
-    ;
-  emscripten::class_<org::graph::MapGraph>("GraphMapGraph")
-    .smart_ptr<std::shared_ptr<org::graph::MapGraph>>("GraphMapGraph")
-    .property("nodeProps", &org::graph::MapGraph::nodeProps)
-    .property("edgeProps", &org::graph::MapGraph::edgeProps)
-    .property("adjList", &org::graph::MapGraph::adjList)
-    .property("adjListIn", &org::graph::MapGraph::adjListIn)
-    .function("nodeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::nodeCount))
-    .function("edgeCount", static_cast<int(org::graph::MapGraph::*)() const>(&org::graph::MapGraph::edgeCount))
-    .function("outNodes", static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outNodes))
-    .function("inNodes", static_cast<org::graph::AdjNodesList const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inNodes))
-    .function("adjEdges", static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjEdges))
-    .function("adjNodes", static_cast<hstd::Vec<org::graph::MapNode>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::adjNodes))
-    .function("outEdges", static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outEdges))
-    .function("inEdges", static_cast<hstd::Vec<org::graph::MapEdge>(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inEdges))
-    .function("outDegree", static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::outDegree))
-    .function("inDegree", static_cast<int(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::inDegree))
-    .function("isRegisteredNode", static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode))
-    .function("isRegisteredNodeById", static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode))
-    .function("atMapNode", static_cast<org::graph::MapNodeProp const&(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::at))
-    .function("atMapEdge", static_cast<org::graph::MapEdgeProp const&(org::graph::MapGraph::*)(org::graph::MapEdge const&) const>(&org::graph::MapGraph::at))
-    .function("addEdge", static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&)>(&org::graph::MapGraph::addEdge))
-    .function("addEdgeWithProp", static_cast<void(org::graph::MapGraph::*)(org::graph::MapEdge const&, org::graph::MapEdgeProp const&)>(&org::graph::MapGraph::addEdge))
-    .function("addNode", static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&)>(&org::graph::MapGraph::addNode))
-    .function("addNodeWithProp", static_cast<void(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNodeProp const&)>(&org::graph::MapGraph::addNode))
-    .function("hasEdge", static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&, org::graph::MapNode const&) const>(&org::graph::MapGraph::hasEdge))
-    .function("hasNode", static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::hasNode))
-    .function("has2AdapterEdge", static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmAdapter const&, org::imm::ImmAdapter const&) const>(&org::graph::MapGraph::hasEdge))
-    .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::graph::MapGraph>>)
     ;
   emscripten::class_<org::graph::MapConfig>("GraphMapConfig")
     .smart_ptr<std::shared_ptr<org::graph::MapConfig>>("GraphMapConfig")
-    .property("dbg", &org::graph::MapConfig::dbg)
     .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::graph::MapConfig>>)
     ;
   emscripten::class_<org::graph::MapGraphState>("GraphMapGraphState")
@@ -575,11 +538,10 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("ast", &org::graph::MapGraphState::ast)
     .function("getGraph", static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph))
     .class_function("FromAstContext", static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext))
-    .function("registerNode", static_cast<void(org::graph::MapGraphState::*)(org::graph::MapNodeProp const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::registerNode))
-    .function("addNode", static_cast<void(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode))
+    .function("addNode", static_cast<hstd::ext::graph::VertexID(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode))
     .function("addNodeRec", static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec))
-    .function("getUnresolvedSubtreeLinks", static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks))
-    .function("getUnresolvedLink", static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>, std::shared_ptr<org::graph::MapConfig> const&) const>(&org::graph::MapGraphState::getUnresolvedLink))
+    .function("getUnresolvedSubtreeLinks", static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks))
+    .function("getUnresolvedLink", static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>) const>(&org::graph::MapGraphState::getUnresolvedLink))
     ;
   emscripten::class_<org::sem::LispCode>("LispCode")
     .property("data", &org::sem::LispCode::data)
@@ -903,9 +865,6 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::LinkTarget::UserProtocol::*)(org::sem::LinkTarget::UserProtocol const&) const>(&org::sem::LinkTarget::UserProtocol::operator==))
     .constructor<>()
     ;
-}
-
-void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::LinkTarget::Internal>("LinkTargetInternal")
     .property("target", &org::sem::LinkTarget::Internal::target)
     .function("__eq__", static_cast<bool(org::sem::LinkTarget::Internal::*)(org::sem::LinkTarget::Internal const&) const>(&org::sem::LinkTarget::Internal::operator==))
@@ -975,6 +934,9 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::SubtreeLogHead::Refile>("SubtreeLogHeadRefile")
     .property("on", &org::sem::SubtreeLogHead::Refile::on)
     .property("from", &org::sem::SubtreeLogHead::Refile::from)
@@ -1636,9 +1598,6 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("time", &org::sem::Time::Static::time)
     .constructor<>()
     ;
-}
-
-void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Time::Dynamic>("TimeDynamic")
     .property("expr", &org::sem::Time::Dynamic::expr)
     .constructor<>()
@@ -1687,6 +1646,9 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::RadioTarget::*)() const>(&org::sem::RadioTarget::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::RadioTarget>>)
     ;
+}
+
+void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Latex, emscripten::base<org::sem::Org>>("Latex")
     .smart_ptr<org::sem::SemId<org::sem::Latex>>("Latex")
     .function("getKind", static_cast<OrgSemKind(org::sem::Latex::*)() const>(&org::sem::Latex::getKind))
@@ -1914,6 +1876,14 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::CmdInclude::Kind>("CmdIncludeKind");
+  emscripten::class_<org::graph::MapGraph, emscripten::base<hstd::OperationsTracer>>("GraphMapGraph")
+    .smart_ptr<std::shared_ptr<org::graph::MapGraph>>("GraphMapGraph")
+    .function("isRegisteredNode", static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode))
+    .function("isRegisteredNodeById", static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode))
+    .function("addEdgeWithProp", static_cast<hstd::ext::graph::EdgeID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapEdge> const&, std::shared_ptr<org::graph::MapEdgeProp> const&, hstd::ext::graph::VertexID, hstd::ext::graph::VertexID)>(&org::graph::MapGraph::addEdge))
+    .function("addNode", static_cast<hstd::ext::graph::VertexID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapNode> const&, std::shared_ptr<org::graph::MapNodeProp> const&)>(&org::graph::MapGraph::addNode))
+    .constructor(&org::bind::js::holder_type_constructor<std::shared_ptr<org::graph::MapGraph>>)
+    ;
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2103,9 +2073,6 @@ void subdivide_4(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
-}
-
-void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2130,6 +2097,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
+}
+
+void subdivide_5(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, emscripten::base<org::imm::ImmId>>("ImmIdT")
     .constructor<>()
     ;
@@ -2517,6 +2487,9 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::imm::ImmCmdInclude::Kind>("ImmCmdIncludeKind");
+  emscripten::class_<hstd::ext::graph::EdgeID, emscripten::base<hstd::ext::graph::EdgeIDBase>>("GraphEdgeID")
+    .constructor<>()
+    ;
   emscripten::class_<org::imm::ImmAdapterOrgAPI, emscripten::base<org::imm::ImmAdapterVirtualBase>>("ImmAdapterOrgAPI")
     ;
   emscripten::class_<org::sem::Cmd, emscripten::base<org::sem::Stmt>>("Cmd")
@@ -2683,9 +2656,6 @@ void subdivide_5(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::Italic::*)() const>(&org::sem::Italic::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::Italic>>)
     ;
-}
-
-void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Strike, emscripten::base<org::sem::Markup>>("Strike")
     .smart_ptr<org::sem::SemId<org::sem::Strike>>("Strike")
     .function("getKind", static_cast<OrgSemKind(org::sem::Strike::*)() const>(&org::sem::Strike::getKind))
@@ -2728,6 +2698,9 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     .function("__eq__", static_cast<bool(org::imm::ImmBlockComment::*)(org::imm::ImmBlockComment const&) const>(&org::imm::ImmBlockComment::operator==))
     .constructor<>()
     ;
+}
+
+void subdivide_6(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmParagraph, emscripten::base<org::imm::ImmStmt>>("ImmParagraph")
     .function("getKind", static_cast<OrgSemKind(org::imm::ImmParagraph::*)() const>(&org::imm::ImmParagraph::getKind))
     .function("__eq__", static_cast<bool(org::imm::ImmParagraph::*)(org::imm::ImmParagraph const&) const>(&org::imm::ImmParagraph::operator==))
@@ -3085,9 +3058,6 @@ void subdivide_6(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, emscripten::base<org::imm::ImmAdapterStmtListAPI>>("ImmAdapterT")
     ;
-}
-
-void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, emscripten::base<org::imm::ImmAdapterEmptyAPI>>("ImmAdapterT")
     ;
   emscripten::class_<org::imm::ImmAdapterHashTagAPI, emscripten::base<org::imm::ImmAdapterInlineAPI>>("ImmAdapterHashTagAPI")
@@ -3106,6 +3076,9 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     .function("getFrom", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
     .function("getTo", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
     ;
+}
+
+void subdivide_7(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, emscripten::base<org::imm::ImmAdapterMacroAPI>>("ImmAdapterT")
     .function("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getName))
     .function("getAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getAttrs))
@@ -3445,9 +3418,6 @@ void subdivide_7(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, emscripten::base<org::imm::ImmAdapterMarkQuoteAPI>>("ImmAdapterT")
     ;
-}
-
-void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, emscripten::base<org::imm::ImmAdapterRadioTargetAPI>>("ImmAdapterT")
     .function("getWords", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords))
     ;
@@ -3471,6 +3441,9 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
     .function("getKind", static_cast<OrgSemKind(org::sem::CmdColumns::*)() const>(&org::sem::CmdColumns::getKind))
     .constructor(&org::bind::js::holder_type_constructor<org::sem::SemId<org::sem::CmdColumns>>)
     ;
+}
+
+void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::CmdName, emscripten::base<org::sem::Attached>>("CmdName")
     .smart_ptr<org::sem::SemId<org::sem::CmdName>>("CmdName")
     .property("name", &org::sem::CmdName::name)

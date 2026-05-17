@@ -146,7 +146,7 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
         LOGIC_ASSERTION_CHECK_FMT(
             !contains(result),
             "Store already contains value {}",
-            hstd::fmt1_maybe(value));
+            hstd::fmt1_maybe(result));
 
         insert_or_assign(result, value);
     }
@@ -313,10 +313,10 @@ class IGraphObjectBase {
 template <typename T>
 concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
 
-DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
-DECL_ID_TYPE_MASKED(IEdge, EdgeIDBase, hstd::u64, 16);
+DECL_ID_TYPE_MASKED_WITH_ATTR(IVertex, VertexID, hstd::u64, 16, [[refl]]);
+DECL_ID_TYPE_MASKED_WITH_ATTR(IEdge, EdgeIDBase, hstd::u64, 16, [[refl]]);
 
-struct EdgeID : public EdgeIDBase {
+struct [[refl]] EdgeID : public EdgeIDBase {
     using EdgeIDBase::EdgeIDBase;
 
     EdgeID(EdgeIDBase base) : EdgeIDBase{base} {}
@@ -1106,6 +1106,7 @@ class IEdgeCollection : public IEdgeProvider {
         return res;
     }
 
+    using IEdgeProvider::hasEdge;
     bool hasEdge(VertexID const& source, VertexID const& target)
         const override {
         return incidence.contains(source)
