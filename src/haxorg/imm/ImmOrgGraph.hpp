@@ -104,6 +104,8 @@ struct [[refl]] MapNode
             && dynamic_cast<MapNode const*>(other)->id == id;
     }
 
+    std::string getStableId() const override { return id.getReadableId(); }
+
     std::string getRepr() const override { return id.getReadableId(); }
 
     json getSerialNonRecursive(
@@ -283,6 +285,7 @@ struct [[refl(
         node->addAttribute(prop);
         auto res = nodes.add(node);
         id_map.insert_or_assign(node->id, res);
+        trackVertex(res);
         return res;
     }
 

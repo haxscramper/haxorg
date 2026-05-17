@@ -12,30 +12,49 @@ struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapConfig::Ptr     conf;
     org::graph::MapGraphState::Ptr state;
     imm::ImmAstContext::Ptr        store;
-    imm::ImmAstVersion             v_start;
+    hstd::Vec<imm::ImmAstVersion>  versions;
 
     ImmMapApi()
         : conf{org::graph::MapConfig::shared()}
         , store{imm::ImmAstContext::init_start_context()} //
-    {
-        setTraceFile(getDebugFile("main.log"));
+    {}
+
+    imm::ImmAstVersion const& getVersion() const {
+        return versions.back();
     }
 
-    imm::ImmAstVersion const& getVersion1() const { return v_start; }
-    org::graph::MapGraph::Ptr getGraph() const { return state->graph; }
+    hstd::Vec<imm::ImmAdapter> getRootAdapters() const {
+        return versions
+             | hstd::rv::transform([](imm::ImmAstVersion const& v) {
+                   return v.getRootAdapter();
+               })
+             | hstd::rs::to<hstd::Vec>();
+    }
+
+    org::graph::MapGraph::Ptr getGraph() const {
+        hstd::logic_assertion_check_not_nil(state);
+        hstd::logic_assertion_check_not_nil(state->graph);
+        return state->graph;
+    }
+
     org::graph::MapGraphState::Ptr getState() const { return state; }
 
-    void setNode(org::sem::SemId<org::sem::Org> const& node) {
-        v_start = store->addRoot(node);
-        state   = org::graph::MapGraphState::shared(v_start.context);
+    void init_with(org::sem::SemId<org::sem::Org> const& node) {
+        versions = {store->addRoot(node)};
+        state = org::graph::MapGraphState::shared(versions.back().context);
+        setTraceFile(getDebugFile("main.log"));
+        getGraph()->message("init done");
     }
 
-    void setNodes(hstd::Vec<org::sem::SemId<org::sem::Org>> const& nodes) {
-        v_start = store->addRoot(nodes.front());
+    void init_with(
+        hstd::Vec<org::sem::SemId<org::sem::Org>> const& nodes) {
+        versions = {store->addRoot(nodes.front())};
         for (auto const& n : nodes.at(slice(1, 1_B))) {
-            v_start = v_start.context->addRoot(n);
+            versions.push_back(versions.back().context->addRoot(n));
         }
-        state = org::graph::MapGraphState::shared(v_start.context);
+        state = org::graph::MapGraphState::shared(versions.back().context);
+        setTraceFile(getDebugFile("main.log"));
+        getGraph()->message("init done");
     }
 
     void initGraph(std::shared_ptr<org::imm::ImmAstContext> const& ast) {
@@ -71,9 +90,9 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
 
 TEST_F(ImmMapApi, AddNode) {
-    setNode(testParseString("* subtree"));
+    init_with(testParseString("* subtree"));
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
-    getState()->addNode(getVersion1().getRootAdapter(), conf);
+    getState()->addNode(getVersion().getRootAdapter(), conf);
     EXPECT_EQ(getGraph()->getVertexCount(), 1);
 
     writeGraphviz();
@@ -89,8 +108,8 @@ Paragraph [[id:subtree-id]]
   :end:
 )"_ss};
 
-    setNode(testParseString(text));
-    auto root = getVersion1().getRootAdapter();
+    init_with(testParseString(text));
+    auto root = getVersion().getRootAdapter();
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
     EXPECT_EQ(getState()->unresolved.size(), 0);
@@ -141,7 +160,7 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 - [[id:subtree-1]] :: Backlink
 )"_ss};
 
-    setNodes({
+    init_with({
         testParseString(text1),
         testParseString(text2),
     });
@@ -522,8 +541,8 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     auto store = imm::ImmAstContext::init_start_context();
     store->debug->setTraceFile(getDebugFile("store"));
-    imm::ImmAdapter root = getVersion1().getRootAdapter();
-    setNode(n);
+    imm::ImmAdapter root = getVersion().getRootAdapter();
+    init_with(n);
 
     writeTreeRepr(
         root,

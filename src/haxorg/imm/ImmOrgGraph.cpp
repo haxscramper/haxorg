@@ -177,7 +177,8 @@ hgraph::VertexID MapGraphState::addNode(
     auto attr       = MapNodeProp::shared();
     auto graph_node = MapNode::shared(node.uniq());
     auto res        = getGraph()->addNode(graph_node, attr);
-    graph->message(fmt("unresolved:{}", unresolved));
+    graph->message(fmt(
+        "added node:{} unresolved:{}", graph->getDebug(res), unresolved));
 
     MapNodeResolveResult resolved = getResolvedNodeInsert(
         shared_from_this(), res, conf);
@@ -473,13 +474,12 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     auto node    = g->getCastVertex<MapNode>(node_id);
 
     attr->unresolved.clear();
-    g->message(fmt(
-        "Get unresolved for node {}", g->getDebugVertexFormat(node_id)));
+    g->message(fmt("Get unresolved for node {}", g->getDebug(node_id)));
 
     LOGIC_ASSERTION_CHECK_FMT(
         !state->unresolved.contains(node_id),
         "Node {} is already marked as unresolved in the graph",
-        g->getDebugVertexFormat(node_id));
+        g->getDebug(node_id));
 
     {
         auto __scope = g->scopeLevel();
@@ -491,7 +491,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                     fmt("Detected radio target from node {} "
                         "to target {}, which is a resolved "
                         "graph node. ",
-                        g->getDebugVertexFormat(node_id),
+                        g->getDebug(node_id),
                         radio));
                 result.resolved.push_back(
                     MapLinkResolveResult{
@@ -503,7 +503,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                     fmt("Radio target {} from node {} is not "
                         "a resolved graph node.",
                         radio,
-                        g->getDebugVertexFormat(node_id)));
+                        g->getDebug(node_id)));
                 attr->unresolved.push_back(
                     MapLink{MapLink::Radio{.target = radio.uniq()}});
             }
@@ -792,14 +792,14 @@ void org::graph::MapGraphState::addNodeRec(
                 //         par,
                 //         par.treeRepr().toString()));
                 if (org::graph::hasGraphAnnotations(par)) {
-                    addNode(node, conf);
+                    std::ignore = addNode(node, conf);
                 } else {
                     auto group = imm::getSubnodeGroups(ast, node, false);
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {
                         // conf.message(fmt("Paragraph has radio target"));
-                        addNode(node, conf);
+                        std::ignore = addNode(node, conf);
                     }
                 }
                 break;
@@ -807,7 +807,7 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::Subtree: {
                 if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
-                    addNode(node, conf);
+                    std::ignore = addNode(node, conf);
                 }
 
                 for (auto const& it : node) { aux(it); }

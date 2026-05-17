@@ -550,7 +550,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     auto __scope = run->scopeLevelMsg(
         hstd::fmt(
             "running single layout for gv::Layout {}",
-            g->getDebugVertexFormat(root_id)));
+            g->getDebug(root_id)));
     auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(
         run->getGroup(root_id));
 
@@ -607,7 +607,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                run->message(hstd::fmt("{}", g->getDebugEdgeFormat(edge)));
+                run->message(hstd::fmt("{}", g->getDebug(edge)));
                 run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }
@@ -688,10 +688,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
         auto id = EdgeID::FromValue(
             edge.getAttr<hstd::u64>(id_attr).value());
         run->message(
-            hstd::fmt(
-                "each-group iterate edge {}",
-                id,
-                g->getDebugEdgeFormat(id)));
+            hstd::fmt("each-group iterate edge {}", id, g->getDebug(id)));
 
         result.edges.insert_or_assign(
             id,

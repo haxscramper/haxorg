@@ -685,79 +685,77 @@ json IGraph::getGraphSerial() const {
     return hstd::to_json_eval(res);
 }
 
-std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     VertexIDSet const& vert) const {
     return hstd::fmt1(
         hstd::own_view(hstd::sorted(vert.items()))
         | hstd::rv::transform([&](VertexID const& id) -> std::string {
-              return getDebugVertexFormat(id);
+              return getDebug(id);
           })
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     VertexIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](VertexID const& id) -> std::string {
-            return getDebugVertexFormat(id);
+            return getDebug(id);
         })
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     EdgeIDSet const& vert) const {
-    return getDebugEdgeFormat(hstd::sorted(vert.items()));
+    return getDebug(hstd::sorted(vert.items()));
 }
 
-std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     EdgeIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](EdgeID const& id) -> std::string {
-            return getDebugEdgeFormat(id);
+            return getDebug(id);
         })
         | hstd::rs::to<hstd::Vec>());
 }
 
 
-std::string hstd::ext::graph::IGraph::getDebugPortFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     PortIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](PortID const& id) -> std::string {
-            return getDebugPortFormat(id);
+            return getDebug(id);
         })
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebugPortFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     PortIDSet const& vert) const {
-    return getDebugPortFormat(hstd::sorted(vert.items()));
+    return getDebug(hstd::sorted(vert.items()));
 }
 
-std::string hstd::ext::graph::IGraph::getDebugVertexFormat(
+std::string hstd::ext::graph::IGraph::getDebug(
     VertexID const& vert) const {
     return hstd::fmt(
         "vertex {} ({})", vert, getVertex(vert)->getStableId());
 }
 
-std::string hstd::ext::graph::IGraph::getDebugEdgeFormat(
-    EdgeID const& edge) const {
+std::string hstd::ext::graph::IGraph::getDebug(EdgeID const& edge) const {
     return hstd::fmt(
         "edge {} ({}) from {} to {}",
         edge,
         getEdge(edge) ? getEdge(edge)->getStableId() : "nullptr",
-        getDebugVertexFormat(getSource(edge)),
-        getDebugVertexFormat(getTarget(edge)));
+        getDebug(getSource(edge)),
+        getDebug(getTarget(edge)));
 }
 
-std::string hstd::ext::graph::IGraph::getDebugPortFormat(
-    PortID const& port) const {
+std::string hstd::ext::graph::IGraph::getDebug(PortID const& port) const {
     auto coll = getPortCollection(port);
     return hstd::fmt(
         "port {} ({}) connecting {} to {} as {}",
         port,
         getPort(port) ? getPort(port)->getStableId() : "nullptr",
-        getDebugEdgeFormat(coll->getEdgeForPort(port)),
-        getDebugVertexFormat(coll->getVertexForPort(port)),
+        getDebug(coll->getEdgeForPort(port)),
+        getDebug(coll->getVertexForPort(port)),
         coll->isSourcePort(port) ? "start" : "end");
 }
 

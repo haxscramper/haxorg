@@ -432,8 +432,8 @@ TEST_F(GraphAdaptagramsIR_Test, MultiSeparationConstraint) {
                 checkAlignedHorizontally(get_c(col[0]), get_c(col[1])),
                 hstd::fmt(
                     "Failed to align {} and {}",
-                    run->getGraph()->getDebugVertexFormat(col[0]),
-                    run->getGraph()->getDebugVertexFormat(col[1])));
+                    run->getGraph()->getDebug(col[0]),
+                    run->getGraph()->getDebug(col[1])));
         }
     }
 
@@ -443,8 +443,8 @@ TEST_F(GraphAdaptagramsIR_Test, MultiSeparationConstraint) {
                 checkAlignedVertically(get_c(col[0]), get_c(col[1])),
                 hstd::fmt(
                     "Failed to align {} and {}",
-                    run->getGraph()->getDebugVertexFormat(col[0]),
-                    run->getGraph()->getDebugVertexFormat(col[1])));
+                    run->getGraph()->getDebug(col[0]),
+                    run->getGraph()->getDebug(col[1])));
         }
     }
 }

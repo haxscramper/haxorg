@@ -1738,17 +1738,17 @@ class IGraph {
 
     virtual json getGraphSerial() const;
 
-    std::string getDebugVertexFormat(VertexIDSet const& vert) const;
-    std::string getDebugVertexFormat(VertexIDVec const& vert) const;
-    std::string getDebugVertexFormat(VertexID const& vert) const;
+    std::string getDebug(VertexIDSet const& vert) const;
+    std::string getDebug(VertexIDVec const& vert) const;
+    std::string getDebug(VertexID const& vert) const;
 
-    std::string getDebugEdgeFormat(EdgeIDSet const& vert) const;
-    std::string getDebugEdgeFormat(EdgeIDVec const& vert) const;
-    std::string getDebugEdgeFormat(EdgeID const& edge) const;
+    std::string getDebug(EdgeIDSet const& vert) const;
+    std::string getDebug(EdgeIDVec const& vert) const;
+    std::string getDebug(EdgeID const& edge) const;
 
-    std::string getDebugPortFormat(PortID const& port) const;
-    std::string getDebugPortFormat(PortIDVec const& vert) const;
-    std::string getDebugPortFormat(PortIDSet const& vert) const;
+    std::string getDebug(PortID const& port) const;
+    std::string getDebug(PortIDVec const& vert) const;
+    std::string getDebug(PortIDSet const& vert) const;
 };
 
 
@@ -1841,9 +1841,9 @@ class AutoSegmentingCollection : public IEdgeCollection {
                 "logic error, segment {}-{} created from edge {} should "
                 "have the target of the first segment match the source fo "
                 "the second segment",
-                graph->getDebugEdgeFormat(it[0]),
-                graph->getDebugEdgeFormat(it[1]),
-                graph->getDebugEdgeFormat(original));
+                graph->getDebug(it[0]),
+                graph->getDebug(it[1]),
+                graph->getDebug(original));
 
             PortID port = connection_ports->addPort(
                 graph->getTarget(it[0]));

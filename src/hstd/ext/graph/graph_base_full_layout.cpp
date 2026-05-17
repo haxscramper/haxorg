@@ -154,11 +154,11 @@ void run_placement_with_subset(
         LOGIC_ASSERTION_CHECK_FMT(
             vertex_set.contains(g->getSource(e)),
             "Edge {} source is not in the vertex set",
-            g->getDebugEdgeFormat(e));
+            g->getDebug(e));
         LOGIC_ASSERTION_CHECK_FMT(
             vertex_set.contains(g->getTarget(e)),
             "Edge {} target is not in the vertex set",
-            g->getDebugEdgeFormat(e));
+            g->getDebug(e));
     }
 
     for (auto const& vert : vertex_set) {
