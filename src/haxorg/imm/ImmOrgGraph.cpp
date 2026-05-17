@@ -92,7 +92,10 @@ void updateUnresolvedNodeTracking(
     state->graph->message(
         fmt("New node {}, resolution result {}", newNode, resolved_node));
 
-    if (resolved_node.node.unresolved.empty()) {
+    auto node = state->graph->get(newNode);
+    auto attr = state->graph->getAttr(newNode);
+
+    if (attr->unresolved.empty()) {
         // Newly added node has no unresolved elements, remove the ID from
         // map state tracking.
         if (state->unresolved.contains(newNode)) {
@@ -129,8 +132,9 @@ void updateResolvedEdges(
     std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
         s->graph->message(fmt("add edge {}-{}", op.source, op.target));
-        s->graph->addEdge(
-            MapEdge{op.source, op.target}, MapEdgeProp{.link = op.link});
+        auto edge = std::make_shared<MapEdge>();
+        auto attr = std::make_shared<MapEdgeProp>();
+        s->graph->addEdge(edge, attr, op.source, op.target);
     }
 }
 
@@ -138,7 +142,9 @@ void traceNodeResolve(
     MapGraphState::Ptr const&   state,
     MapNodeResolveResult const& resolved_node,
     std::shared_ptr<MapConfig>  conf,
-    MapNode const&              mapNode) {
+    hgraph::VertexID const&     mapNode) {
+    auto node = state->graph->get(mapNode);
+    auto attr = state->graph->getAttr(mapNode);
     if (state->graph->TraceState) {
         auto __scope = state->graph->scopeLevel();
         state->graph->message(
@@ -146,22 +152,13 @@ void traceNodeResolve(
                 "unresolved:{}",
                 mapNode,
                 state->unresolved,
-                resolved_node.node.unresolved,
+                attr->unresolved,
                 resolved_node.resolved));
 
-        if (state->graph->nodeProps.find(mapNode)
-            != state->graph->nodeProps.end()) {
-            for (auto const& u : state->graph->at(mapNode).unresolved) {
-                state->graph->message(fmt(">> g[v] unresolved {}", u));
-            }
-        } else {
-            state->graph->message(
-                fmt(">> new node, no preexisting unresolved"));
+        for (auto const& u : attr->unresolved) {
+            state->graph->message(fmt(">> g[v] unresolved {}", u));
         }
 
-        for (auto const& u : resolved_node.node.unresolved) {
-            state->graph->message(fmt("<<- updated unresolved {}", u));
-        }
         for (auto const& u : resolved_node.resolved) {
             state->graph->message(
                 fmt("<<+ updated resolved {} {}->{}",
@@ -183,25 +180,22 @@ hgraph::VertexID MapGraphState::addNode(
     graph->message(fmt("unresolved:{}", unresolved));
 
     MapNodeResolveResult resolved = getResolvedNodeInsert(
-        shared_from_this(), node, conf);
+        shared_from_this(), res, conf);
 
     // debug-print node resolution state
-    traceNodeResolve(shared_from_this(), resolved, conf, mapNode);
+    traceNodeResolve(shared_from_this(), resolved, conf, res);
 
-    // Assign node resolution result to node properties, all links have
-    // been finalized.
-    graph->nodeProps.insert_or_assign(mapNode, resolved.node);
 
     // Iterate over all known unresolved nodes and adjust node property
     // values in the graph to account for new property changes.
-    removeUnresolvedNodeProps(this, resolved, mapNode, unresolved, conf);
+    removeUnresolvedNodeProps(this, resolved, res, unresolved, conf);
 
     // Collect new list of unresolved nodes for the changes.
-    updateUnresolvedNodeTracking(
-        shared_from_this(), graph->nodeProps, resolved, mapNode, conf);
+    updateUnresolvedNodeTracking(shared_from_this(), resolved, res, conf);
 
     // Add all resolved edges to the graph
     updateResolvedEdges(shared_from_this(), resolved, conf);
+    return res;
 }
 
 
@@ -557,15 +551,15 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                 attr->unresolved.push_back(unresolvedLink);
             } else {
                 for (auto const& resolved : resolved_edit) {
-                    if (g->isRegisteredNode(resolved.target)) {
-                        g->message(
-                            fmt("resolved to known node:{}", resolved));
-                        result.resolved.push_back(resolved);
-                    } else {
-                        g->message(fmt(
-                            "resolved to unregistered node:{}", resolved));
-                        result.node.unresolved.push_back(unresolvedLink);
-                    }
+                    // if (g->isRegisteredNode(resolved.target)) {
+                    //     g->message(
+                    //         fmt("resolved to known node:{}", resolved));
+                    //     result.resolved.push_back(resolved);
+                    // } else {
+                    g->message(
+                        fmt("resolved to unregistered node:{}", resolved));
+                    attr->unresolved.push_back(unresolvedLink);
+                    // }
                 }
             }
         }
@@ -574,16 +568,18 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     g->message(fmt("Process unresolved for state"));
     {
         auto __scope = g->scopeLevel();
-        for (MapNode const& nodeWithUnresolved : state->unresolved) {
+        for (hgraph::VertexID const& nodeWithUnresolved :
+             state->unresolved) {
             LOGIC_ASSERTION_CHECK_FMT(
-                nodeWithUnresolved.id != node_id.id,
+                nodeWithUnresolved != node_id,
                 "cannot resolve already inserted node {} == {} ({}) is "
                 "recorded in s.unresolved",
-                nodeWithUnresolved.id,
-                node_id.id.id,
-                nodeWithUnresolved.id != node_id.id);
+                nodeWithUnresolved,
+                node_id,
+                nodeWithUnresolved != node_id);
 
-            for (auto const& link : g->at(nodeWithUnresolved).unresolved) {
+            for (auto const& link :
+                 g->getAttr(nodeWithUnresolved)->unresolved) {
                 Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                     state, nodeWithUnresolved, link, conf);
                 if (resolved_edit.empty()) {
@@ -591,15 +587,15 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                         "No resolve target for {}", nodeWithUnresolved));
                 } else {
                     for (auto const& resolved : resolved_edit) {
-                        if (g->isRegisteredNode(resolved.target)) {
-                            g->message(
-                                fmt("resolved to registered node:{} it:{} "
-                                    "edit:{}",
-                                    resolved,
-                                    nodeWithUnresolved,
-                                    node));
-                            result.resolved.push_back(resolved);
-                        }
+                        // if (g->isRegisteredNode(resolved.target)) {
+                        g->message(
+                            fmt("resolved to registered node:{} it:{} "
+                                "edit:{}",
+                                resolved,
+                                nodeWithUnresolved,
+                                node_id));
+                        result.resolved.push_back(resolved);
+                        // }
                     }
                 }
             }
@@ -610,7 +606,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         fmt("box:{} resolved:{} unresolved:{}",
             node_id,
             result.resolved,
-            result.node.unresolved));
+            attr->unresolved));
 
     if (false) {
         for (auto const& r1 : result.resolved) {

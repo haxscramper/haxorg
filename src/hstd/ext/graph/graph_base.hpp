@@ -1062,10 +1062,15 @@ class IEdgeProvider {
         return getOutNodes(id) + getInNodes(id);
     }
 
+    virtual int getNumEdges() const { return getEdges().size(); }
+
     /// \brief Check if the edge is tracked by the provider. This method is
     /// independent of the `hasEdge` and is only concerned with the
     /// incidence matrix presence for the edgei.
     virtual bool isTrackingEdge(EdgeID const& id) const = 0;
+
+    virtual bool hasEdge(VertexID const& source, VertexID const& target)
+        const = 0;
 
     // static API for masking the edge IDs.
 
@@ -1100,6 +1105,13 @@ class IEdgeCollection : public IEdgeProvider {
         }
         return res;
     }
+
+    bool hasEdge(VertexID const& source, VertexID const& target)
+        const override {
+        return incidence.contains(source)
+            && incidence.at(source).contains(target);
+    }
+
 
     EdgeIDSet         getEdges() const override;
     EdgeIDSet         getOutgoing(VertexID const& vert) const override;
@@ -1262,6 +1274,11 @@ class IVertexHierarchy : public IEdgeProvider {
 
   public:
     virtual ~IVertexHierarchy() = default;
+
+    bool hasEdge(VertexID const& source, VertexID const& target)
+        const override {
+        return edgeTracker.contains_left({source, target});
+    }
 
     bool isTrackingEdge(EdgeID const& id) const override {
         return edgeTracker.contains_right(id);
@@ -1536,7 +1553,18 @@ class IGraph {
     bool isTrackingVertex(VertexID id) const {
         return vertexIDs.contains(id);
     }
+
     int getVertexCount() const { return this->vertexIDs.size(); }
+    int getSummedEdgeCount() const {
+        int res = 0;
+        for (auto const& [id, coll] : collections) {
+            res += coll->getNumEdges();
+        }
+        for (auto const& [id, hier] : hierarchies) {
+            res += hier->getNumEdges();
+        }
+        return res;
+    }
 
     /// @}
 

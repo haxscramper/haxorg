@@ -134,6 +134,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
         return edges.at(id).get();
     }
 
+    using hgraph::IEdgeCollection::hasEdge;
     bool hasEdge(hgraph::EdgeID const& id) const override {
         return edges.contains(id);
     }
@@ -198,6 +199,14 @@ struct [[refl(
         return getCastVertex<MapNode>(id)->id;
     }
 
+    MapNode const* get(hgraph::VertexID id) const {
+        return this->getCastVertex<MapNode>(id);
+    }
+
+    MapEdge const* get(hgraph::EdgeID id) const {
+        return this->getCastEdge<MapEdge>(id);
+    }
+
     MapNodeProp::Ptr getAttr(hgraph::VertexID id) const {
         return this->getVertex(id)->getUniqueAttribute<MapNodeProp>();
     }
@@ -234,11 +243,31 @@ struct [[refl(
         return id_map.contains(id);
     }
 
+    bool hasEdge(hgraph::VertexID source, hgraph::VertexID target) const {
+        return edges->hasEdge(source, target);
+    }
+
+    bool hasEdge(
+        org::imm::ImmUniqId const& source,
+        org::imm::ImmUniqId const& target) const {
+        return hasEdge(getVertexID(source), getVertexID(target));
+    }
+
+    bool hasEdge(
+        org::imm::ImmAdapter const& source,
+        org::imm::ImmAdapter const& target) const {
+        return hasEdge(source.uniq(), target.uniq());
+    }
+
+
     [[refl(R"({"unique-name": "addEdgeWithProp"})")]] hgraph::EdgeID addEdge(
-        hstd::SPtr<MapEdge> const&     node,
-        hstd::SPtr<MapEdgeProp> const& prop) {
-        node->addAttribute(prop);
-        auto res = edges->add(node);
+        hstd::SPtr<MapEdge> const&     edge,
+        hstd::SPtr<MapEdgeProp> const& prop,
+        hgraph::VertexID               source,
+        hgraph::VertexID               target) {
+        edge->addAttribute(prop);
+        auto res = edges->add(edge);
+        edges->trackEdge(res, source, target);
         return res;
     }
 
