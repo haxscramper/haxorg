@@ -45,13 +45,7 @@ struct [[refl]] MapLink {
 struct [[refl]] MapNodeProp
     : public hgraph::IAttribute
     , public hstd::SharedPtrApi<MapNodeProp> {
-    [[refl]] org::imm::ImmUniqId id;
-    [[refl]] hstd::Vec<MapLink>  unresolved;
-
-    [[refl]] org::imm::ImmAdapter getAdapter(
-        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
-        return context->adapt(id);
-    }
+    [[refl]] hstd::Vec<MapLink> unresolved;
 
     [[refl]] hstd::Opt<hstd::Str> getSubtreeId(
         std::shared_ptr<org::imm::ImmAstContext> const& context) const;
@@ -59,7 +53,7 @@ struct [[refl]] MapNodeProp
     [[refl]] hstd::Opt<hstd::Str> getFootnoteName(
         std::shared_ptr<org::imm::ImmAstContext> const& context) const;
 
-    DESC_FIELDS(MapNodeProp, (unresolved, id));
+    DESC_FIELDS(MapNodeProp, (unresolved));
 };
 
 struct [[refl]] MapEdgeProp
@@ -87,11 +81,35 @@ struct [[refl]] MapNode
         return id < other.id;
     }
 
+    [[refl]] org::imm::ImmAdapter getAdapter(
+        std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+        return context->adapt(id);
+    }
+
     hstd::SPtr<MapNodeProp> getProp() const {
         return getUniqueAttribute<MapNodeProp>();
     }
 
     DESC_FIELDS(MapNode, (id));
+
+    std::size_t getHash() const override {
+        std::size_t res{};
+        hstd::hax_hash_combine(res, id);
+        return res;
+    }
+
+    bool isEqual(IGraphObjectBase const* other) const override {
+        return other->isInstance<MapNode>()
+            && dynamic_cast<MapNode const*>(other)->id == id;
+    }
+
+    std::string getRepr() const override { return id.getReadableId(); }
+
+    json getSerialNonRecursive(
+        hstd::ext::graph::IGraph const*   graph,
+        hstd::ext::graph::VertexID const& id) const override {
+        return json::object({{"id", this->id.getReadableId()}});
+    }
 };
 
 struct [[refl]] MapEdge
@@ -170,6 +188,10 @@ struct [[refl(
 
     hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
         return id_map.at(id);
+    }
+
+    hgraph::VertexID getVertexID(org::imm::ImmAdapter const& ad) const {
+        return getVertexID(ad.uniq());
     }
 
     org::imm::ImmUniqId getImmID(hgraph::VertexID id) const {
@@ -263,13 +285,7 @@ struct [[refl(
 struct MapGraphState;
 struct MapConfig;
 
-struct MapInterface {
-    /// \brief Get node properties without resolving the target links.
-    virtual hstd::Opt<MapNodeProp> getInitialNodeProp(
-        std::shared_ptr<MapGraphState> const& state,
-        org::imm::ImmAdapter                  node,
-        std::shared_ptr<MapConfig>            conf);
-};
+struct MapInterface {};
 
 struct [[refl(
     R"({
@@ -288,11 +304,10 @@ struct [[refl(
 
     DESC_FIELDS(MapConfig, ());
 
-    hstd::Opt<MapNodeProp> getInitialNodeProp(
-        std::shared_ptr<MapGraphState> const& s,
-        org::imm::ImmAdapter                  node) {
-        return impl->getInitialNodeProp(s, node, shared_from_this());
-    }
+    /// \brief Get node properties without resolving the target links.
+    virtual hstd::Opt<hstd::SPtr<MapNodeProp>> getInitialNodeProp(
+        std::shared_ptr<MapGraphState> const& state,
+        org::imm::ImmAdapter                  node);
 };
 
 struct [[refl(
@@ -324,11 +339,7 @@ struct [[refl(
         return MapGraphState::shared(ast);
     }
 
-    [[refl]] void registerNode(
-        MapNodeProp const&                node,
-        std::shared_ptr<MapConfig> const& conf);
-
-    [[refl]] void addNode(
+    [[refl]] hgraph::VertexID addNode(
         org::imm::ImmAdapter const&       node,
         std::shared_ptr<MapConfig> const& conf);
 
@@ -338,12 +349,10 @@ struct [[refl(
         std::shared_ptr<MapConfig> const&               conf);
 
     [[refl]] hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
-        org::imm::ImmAdapterT<org::imm::ImmSubtree> node,
-        std::shared_ptr<MapConfig> const&           conf) const;
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> node) const;
 
     [[refl]] hstd::Opt<MapLink> getUnresolvedLink(
-        org::imm::ImmAdapterT<org::imm::ImmLink> node,
-        std::shared_ptr<MapConfig> const&        conf) const;
+        org::imm::ImmAdapterT<org::imm::ImmLink> node) const;
 
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
@@ -368,23 +377,22 @@ struct MapLinkResolveResult {
 /// Use `source` as an edge origin.
 hstd::Vec<MapLinkResolveResult> getResolveTarget(
     MapGraphState::Ptr const&  state,
-    MapNode const&             source,
+    hgraph::VertexID const&    source,
     MapLink const&             link,
     std::shared_ptr<MapConfig> conf);
 
 struct MapNodeResolveResult {
-    MapNodeProp                     node = MapNodeProp{};
     hstd::Vec<MapLinkResolveResult> resolved;
-    DESC_FIELDS(MapNodeResolveResult, (node, resolved));
+    DESC_FIELDS(MapNodeResolveResult, (resolved));
 };
 
 /// \brief Attempt to resolve links in the initial insert and split the
 /// graph links into `.node.unresolved` and `.resolved` fields of the
 /// returned.
 MapNodeResolveResult getResolvedNodeInsert(
-    MapGraphState::Ptr const&  state,
-    MapNodeProp const&         node,
-    std::shared_ptr<MapConfig> conf);
+    MapGraphState::Ptr const&         state,
+    hstd::ext::graph::VertexID const& node,
+    std::shared_ptr<MapConfig>        conf);
 
 
 bool hasGraphAnnotations(
