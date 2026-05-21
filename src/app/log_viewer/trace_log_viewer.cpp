@@ -237,23 +237,28 @@ void TraceLogViewer::draw_event_row(
     if (has_nested) {
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAllColumns
                                  | ImGuiTreeNodeFlags_AllowOverlap
-                                 | ImGuiTreeNodeFlags_FramePadding;
-        *open_state              = ImGui::TreeNodeEx(
+                                 | ImGuiTreeNodeFlags_FramePadding
+                                 | ImGuiTreeNodeFlags_DefaultOpen;
+        ImGui::Indent(record.nesting_level * 12.0f);
+        *open_state = ImGui::TreeNodeEx(
             label.c_str(),
             flags,
             "%s",
             format_scope_offset(record.nesting_level).c_str());
+        ImGui::Unindent(record.nesting_level * 12.0f);
     } else {
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAllColumns
                                  | ImGuiTreeNodeFlags_Leaf
                                  | ImGuiTreeNodeFlags_NoTreePushOnOpen
                                  | ImGuiTreeNodeFlags_Bullet
                                  | ImGuiTreeNodeFlags_FramePadding;
+        ImGui::Indent(record.nesting_level * 12.0f);
         ImGui::TreeNodeEx(
             label.c_str(),
             flags,
             "%s",
             format_scope_offset(record.nesting_level).c_str());
+        ImGui::Unindent(record.nesting_level * 12.0f);
         *open_state = true;
     }
 
