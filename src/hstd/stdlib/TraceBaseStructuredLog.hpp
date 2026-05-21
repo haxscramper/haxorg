@@ -47,8 +47,8 @@ struct StructuredValue {
     };
 
     struct MapPair {
-        std::unique_ptr<StructuredValue> key;
-        std::unique_ptr<StructuredValue> value;
+        std::shared_ptr<StructuredValue> key;
+        std::shared_ptr<StructuredValue> value;
         DESC_FIELDS(MapPair, (key, value));
     };
 
@@ -478,26 +478,51 @@ struct CounterEvent : TraceEventBase {
 };
 
 /// \brief Async event.
-struct AsyncEvent : TraceEventBase {
-    /// \brief Async phase.
-    /// \warning Allowed values: b, n, e, S, T, p, F.
-    Str ph;
+struct AsyncEventBase : TraceEventBase {
     /// \brief Async identifier.
     StrOrInt id;
 
-    BOOST_DESCRIBE_CLASS(AsyncEvent, (TraceEventBase), (ph, id), (), ());
+    BOOST_DESCRIBE_CLASS(AsyncEventBase, (TraceEventBase), (id), (), ());
+};
+
+struct AsyncEventStart : AsyncEventBase {
+    static constexpr char ph = 'b';
+    BOOST_DESCRIBE_CLASS(AsyncEventStart, (AsyncEventBase), (ph), (), ());
+};
+
+struct AsyncEventStep : AsyncEventBase {
+    static constexpr char ph = 'n';
+    BOOST_DESCRIBE_CLASS(AsyncEventStep, (AsyncEventBase), (ph), (), ());
+};
+
+struct AsyncEventEnd : AsyncEventBase {
+    static constexpr char ph = 'e';
+    BOOST_DESCRIBE_CLASS(AsyncEventEnd, (AsyncEventBase), (ph), (), ());
 };
 
 /// \brief Flow event.
-struct FlowEvent : TraceEventBase {
-    /// \brief Flow phase.
-    /// \warning Allowed values: s, t, f.
-    Str ph;
+struct FlowEventBase : TraceEventBase {
     /// \brief Flow identifier.
     StrOrInt id;
 
-    BOOST_DESCRIBE_CLASS(FlowEvent, (TraceEventBase), (ph, id), (), ());
+    BOOST_DESCRIBE_CLASS(FlowEventBase, (TraceEventBase), (id), (), ());
 };
+
+struct FlowEventStart : FlowEventBase {
+    static constexpr char ph = 's';
+    BOOST_DESCRIBE_CLASS(FlowEventStart, (FlowEventBase), (ph), (), ());
+};
+
+struct FlowEventStep : FlowEventBase {
+    static constexpr char ph = 't';
+    BOOST_DESCRIBE_CLASS(FlowEventStep, (FlowEventBase), (ph), (), ());
+};
+
+struct FlowEventEnd : FlowEventBase {
+    static constexpr char ph = 'f';
+    BOOST_DESCRIBE_CLASS(FlowEventEnd, (FlowEventBase), (ph), (), ());
+};
+
 
 /// \brief Sample event.
 struct SampleEvent
@@ -791,8 +816,12 @@ struct LinkingIdEvent : TraceEventBase {
     __IMPL(CompleteEvent)                                                 \
     __IMPL(InstantEvent)                                                  \
     __IMPL(CounterEvent)                                                  \
-    __IMPL(AsyncEvent)                                                    \
-    __IMPL(FlowEvent)                                                     \
+    __IMPL(AsyncEventStart)                                               \
+    __IMPL(AsyncEventStep)                                                \
+    __IMPL(AsyncEventEnd)                                                 \
+    __IMPL(FlowEventStart)                                                \
+    __IMPL(FlowEventStep)                                                 \
+    __IMPL(FlowEventEnd)                                                  \
     __IMPL(SampleEvent)                                                   \
     __IMPL(ObjectCreatedEvent)                                            \
     __IMPL(ObjectSnapshotEvent)                                           \
@@ -888,5 +917,10 @@ struct TraceLog {
 
 template <typename T>
 json format_event_to_json(T const& value);
+
+template <typename T>
+T load_event_from_json(json const& event);
+
+TraceEvent load_event_variant_from_json(json const& event);
 
 } // namespace hstd::log::record

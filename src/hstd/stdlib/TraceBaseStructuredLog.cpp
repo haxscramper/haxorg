@@ -48,6 +48,49 @@ json hstd::log::record::format_event_to_json(T const& value) {
     return resul;
 }
 
+template <typename T>
+T hstd::log::record::load_event_from_json(json const& event) {
+    return hstd::JsonSerde<T>::from_json(event);
+}
+
+namespace {
+
+template <typename Variant, std::size_t... Is>
+Variant event_from_json_impl(json const& j, std::index_sequence<Is...>) {
+    const char ph = j.at("ph").get<std::string>().at(0);
+
+    Variant result;
+    bool    matched = false;
+
+    (
+        [&] {
+            using T = std::variant_alternative_t<Is, Variant>;
+            if (!matched && T::ph == ph) {
+                result = Variant{
+                    hstd::log::record::load_event_from_json<T>(j)};
+                matched = true;
+            }
+        }(),
+        ...);
+
+    if (!matched) { throw std::runtime_error("unknown event ph"); }
+
+    return result;
+}
+
+template <typename Variant>
+Variant event_from_json(json const& j) {
+    return event_from_json_impl<Variant>(
+        j, std::make_index_sequence<std::variant_size_v<Variant>>{});
+}
+} // namespace
+
+hstd::log::record::TraceEvent hstd::log::record::
+    load_event_variant_from_json(json const& event) {
+    return event_from_json<TraceEvent>(event);
+}
+
+
 #define __define(_T)                                                      \
     template json                                                         \
         hstd::log::record::format_event_to_json<hstd::log::record::_T>(   \

@@ -344,6 +344,33 @@ if(${ORG_BUILD_QT_GUI})
 endif()
 
 if(${ORG_BUILD_IMGUI_GUI})
+
+  set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
+  set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
+  message(STATUS "IMGUI_ORG_ROOT = ${IMGUI_ORG_ROOT}")
+
+  # external dependency for imgui library
+
+  set(IMCONFIG_TEMPLATE_PATH "${IMGUI_ORG_ROOT}/imconfig.h")
+  set(IMCONFIG_FILE_PATH "${IMGUI_DEP_ROOT}/imconfig.h")
+
+  configure_file("${IMCONFIG_TEMPLATE_PATH}" "${IMCONFIG_FILE_PATH}" @ONLY)
+
+  file(GLOB IMGUI_SOURCES "${IMGUI_DEP_ROOT}/*.cpp")
+
+  add_library(
+    imgui STATIC
+    ${IMGUI_SOURCES} "${IMGUI_DEP_ROOT}/backends/imgui_impl_glfw.cpp"
+    "${IMGUI_DEP_ROOT}/misc/cpp/imgui_stdlib.cpp" #
+    "${IMGUI_DEP_ROOT}/backends/imgui_impl_opengl3.cpp" #
+  )
+
+  target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
+  target_include_directories(
+    imgui
+    PUBLIC "${IMGUI_ORG_ROOT}" "${DEPS_DIR}" "${IMGUI_DEP_ROOT}" "${IMGUI_DEP_ROOT}/backends"
+           "${FONTCONFIG_INCLUDE_DIRS}" "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
+
   add_subdirectory(src/app/org_imgui)
 endif()
 
