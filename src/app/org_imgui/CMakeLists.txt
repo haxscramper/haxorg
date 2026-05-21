@@ -7,12 +7,6 @@ pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
 # imgui test engine
 
-file(GLOB IMGUI_TEST_ENGINE_SOURCES "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
-add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
-target_include_directories(
-  imgui_test_engine PUBLIC "${IMGUI_DEP_ROOT}" "${BASE}/thirdparty/imgui_test_engine"
-                           "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
-
 # main part of app setup
 
 file(GLOB ORG_IMGUI_LIB_FILES "${IMGUI_ORG_ROOT}/gui_lib/*.?pp")

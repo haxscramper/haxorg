@@ -345,6 +345,9 @@ endif()
 
 if(${ORG_BUILD_IMGUI_GUI})
 
+  find_package(glfw3 CONFIG REQUIRED)
+  find_package(OpenGL REQUIRED)
+
   set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
   set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
   message(STATUS "IMGUI_ORG_ROOT = ${IMGUI_ORG_ROOT}")
@@ -370,6 +373,13 @@ if(${ORG_BUILD_IMGUI_GUI})
     imgui
     PUBLIC "${IMGUI_ORG_ROOT}" "${DEPS_DIR}" "${IMGUI_DEP_ROOT}" "${IMGUI_DEP_ROOT}/backends"
            "${FONTCONFIG_INCLUDE_DIRS}" "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+  file(GLOB IMGUI_TEST_ENGINE_SOURCES
+       "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
+  add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
+  target_include_directories(
+    imgui_test_engine PUBLIC "${IMGUI_DEP_ROOT}" "${BASE}/thirdparty/imgui_test_engine"
+                             "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
 
   add_subdirectory(src/app/org_imgui)
   add_subdirectory(src/app/log_viewer)

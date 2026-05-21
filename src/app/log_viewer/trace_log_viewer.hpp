@@ -1,46 +1,41 @@
 #pragma once
 
-#include <algorithm>
-#include <cstddef>
-#include <format>
+#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>
-#include <utility>
-#include <variant>
 #include <vector>
 
 #include <imgui.h>
 
-namespace trace_log_viewer {
+using namespace hstd::log::record;
+using namespace hstd;
 
-using EventId = std::size_t;
+using EventId = int;
 
 class TraceLogViewer {
   public:
     struct EventHierarchy {
-        using NestedGetter = std::function<std::vector<EventId>(EventId)>;
+        using NestedGetter = std::function<Vec<EventId>(EventId)>;
 
-        std::vector<EventId> roots;
-        NestedGetter         nestedGetter;
+        Vec<EventId> roots;
+        NestedGetter nestedGetter;
 
-        [[nodiscard]] std::vector<EventId> get_nested_events(
-            EventId id) const {
-            return nestedGetter ? nestedGetter(id)
-                                : std::vector<EventId>{};
+        Vec<EventId> get_nested_events(EventId id) const {
+            return nestedGetter ? nestedGetter(id) : Vec<EventId>{};
         }
     };
 
     TraceLogViewer();
 
-    void set_events(std::vector<TraceEvent> events);
+    void set_events(Vec<TraceEvent> events);
     void clear();
     void draw();
 
-    [[nodiscard]] std::size_t size() const;
-    [[nodiscard]] bool        empty() const;
+    int  size() const;
+    bool empty() const;
 
-    [[nodiscard]] EventHierarchy const& get_hierarchy() const;
+    EventHierarchy const& get_hierarchy() const;
 
   private:
     struct EventLink {
@@ -49,10 +44,10 @@ class TraceLogViewer {
     };
 
     struct EventRecord {
-        EventId              id;
-        TraceEvent const*    event;
-        std::size_t          nesting_level;
-        std::vector<EventId> nested_events;
+        EventId           id;
+        TraceEvent const* event;
+        int               nesting_level;
+        Vec<EventId>      nested_events;
     };
 
     struct RenderColumns {
@@ -63,41 +58,33 @@ class TraceLogViewer {
     };
 
   private:
-    std::vector<TraceEvent>                  events_;
-    std::vector<EventRecord>                 records_;
-    std::unordered_map<EventId, std::size_t> record_index_;
-    std::vector<EventId>                     root_events_;
-    RenderColumns                            columns_;
+    Vec<TraceEvent>                  events;
+    Vec<EventRecord>                 records;
+    std::unordered_map<EventId, int> record_index;
+    Vec<EventId>                     root_events;
+    RenderColumns                    columns;
 
   private:
     void rebuild();
     void build_event_hierarchy();
     void build_record_index();
 
-    [[nodiscard]] EventRecord const&   get_record(EventId id) const;
-    [[nodiscard]] TraceEvent const&    get_event(EventId id) const;
-    [[nodiscard]] std::vector<EventId> get_nested_events_impl(
-        EventId id) const;
+    EventRecord const& get_record(EventId id) const;
+    TraceEvent const&  get_event(EventId id) const;
+    Vec<EventId>       get_nested_events_impl(EventId id) const;
 
-    [[nodiscard]] bool is_begin_event(TraceEvent const& event) const;
-    [[nodiscard]] bool is_end_event(TraceEvent const& event) const;
-    [[nodiscard]] bool is_instant_event(TraceEvent const& event) const;
+    bool is_begin_event(TraceEvent const& event) const;
+    bool is_end_event(TraceEvent const& event) const;
+    bool is_instant_event(TraceEvent const& event) const;
 
-    [[nodiscard]] TraceEventBase const& get_base(
-        TraceEvent const& event) const;
-    [[nodiscard]] StackTraceEventBase const* get_stack_base(
-        TraceEvent const& event) const;
-    [[nodiscard]] CommonEventArgs const& get_args(
-        TraceEvent const& event) const;
+    TraceEventBase const&  get_base(TraceEvent const& event) const;
+    CommonEventArgs const& get_args(TraceEvent const& event) const;
 
-    [[nodiscard]] std::string format_name(TraceEvent const& event) const;
-    [[nodiscard]] std::string format_message(
-        TraceEvent const& event) const;
-    [[nodiscard]] std::string format_source(TraceEvent const& event) const;
-    [[nodiscard]] std::string format_event_kind(
-        TraceEvent const& event) const;
-    [[nodiscard]] std::string format_scope_offset(
-        std::size_t nesting_level) const;
+    std::string format_name(TraceEvent const& event) const;
+    std::string format_message(TraceEvent const& event) const;
+    std::string format_source(TraceEvent const& event) const;
+    std::string format_event_kind(TraceEvent const& event) const;
+    std::string format_scope_offset(int nesting_level) const;
 
     void draw_event_row_recursive(EventId id);
     void draw_event_row(
@@ -110,5 +97,3 @@ class TraceLogViewer {
         char const*            label = nullptr);
     void draw_variables_state(VariablesState const& variables);
 };
-
-} // namespace trace_log_viewer

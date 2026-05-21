@@ -2,30 +2,29 @@
 #include "trace_log_viewer.hpp"
 
 #include <optional>
-
-namespace trace_log_viewer {
+#include <hstd/stdlib/Debug.hpp>
 
 TraceLogViewer::TraceLogViewer() = default;
 
-void TraceLogViewer::set_events(std::vector<TraceEvent> events) {
-    events_ = std::move(events);
+void TraceLogViewer::set_events(Vec<TraceEvent> events_) {
+    events = std::move(events_);
     rebuild();
 }
 
 void TraceLogViewer::clear() {
-    events_.clear();
-    records_.clear();
-    record_index_.clear();
-    root_events_.clear();
+    events.clear();
+    records.clear();
+    record_index.clear();
+    root_events.clear();
 }
 
-std::size_t TraceLogViewer::size() const { return events_.size(); }
+int TraceLogViewer::size() const { return events.size(); }
 
-bool TraceLogViewer::empty() const { return events_.empty(); }
+bool TraceLogViewer::empty() const { return events.empty(); }
 
 auto TraceLogViewer::get_hierarchy() const -> EventHierarchy const& {
     static EventHierarchy hierarchy;
-    hierarchy.roots        = root_events_;
+    hierarchy.roots        = root_events;
     hierarchy.nestedGetter = [this](EventId id) {
         return get_nested_events_impl(id);
     };
@@ -45,40 +44,35 @@ void TraceLogViewer::draw() {
 
     if (ImGui::BeginTable("trace_log_table", 4, flags)) {
         ImGui::TableSetupColumn(
-            "nesting", ImGuiTableColumnFlags_WidthFixed, columns_.nesting);
+            "nesting", ImGuiTableColumnFlags_WidthFixed, columns.nesting);
         ImGui::TableSetupColumn(
-            "name", ImGuiTableColumnFlags_WidthStretch, columns_.name);
+            "name", ImGuiTableColumnFlags_WidthStretch, columns.name);
         ImGui::TableSetupColumn(
             "message",
             ImGuiTableColumnFlags_WidthStretch,
-            columns_.message);
+            columns.message);
         ImGui::TableSetupColumn(
-            "source", ImGuiTableColumnFlags_WidthStretch, columns_.source);
+            "source", ImGuiTableColumnFlags_WidthStretch, columns.source);
 
-        for (EventId id : root_events_) { draw_event_row_recursive(id); }
-
-        columns_.nesting = ImGui::TableGetColumnWidth(0);
-        columns_.name    = ImGui::TableGetColumnWidth(1);
-        columns_.message = ImGui::TableGetColumnWidth(2);
-        columns_.source  = ImGui::TableGetColumnWidth(3);
+        for (EventId id : root_events) { draw_event_row_recursive(id); }
 
         ImGui::EndTable();
     }
 }
 
 void TraceLogViewer::rebuild() {
-    records_.clear();
-    record_index_.clear();
-    root_events_.clear();
+    records.clear();
+    record_index.clear();
+    root_events.clear();
 
     build_event_hierarchy();
     build_record_index();
 }
 
 void TraceLogViewer::build_record_index() {
-    record_index_.clear();
-    for (std::size_t i = 0; i < records_.size(); ++i) {
-        record_index_.insert({records_[i].id, i});
+    record_index.clear();
+    for (int i = 0; i < records.size(); ++i) {
+        record_index.insert({records[i].id, i});
     }
 }
 
@@ -88,13 +82,13 @@ void TraceLogViewer::build_event_hierarchy() {
         std::string name;
     };
 
-    std::vector<OpenFrame> open_stack;
+    Vec<OpenFrame> open_stack;
 
-    records_.reserve(events_.size());
+    records.reserve(events.size());
 
-    for (std::size_t i = 0; i < events_.size(); ++i) {
+    for (int i = 0; i < events.size(); ++i) {
         EventId     id    = i;
-        auto const& event = events_[i];
+        auto const& event = events[i];
 
         EventRecord record{
             .id            = id,
@@ -103,12 +97,12 @@ void TraceLogViewer::build_event_hierarchy() {
             .nested_events = {},
         };
 
-        records_.push_back(record);
+        records.push_back(record);
 
         if (!open_stack.empty()) {
-            records_[open_stack.back().id].nested_events.push_back(id);
+            records[open_stack.back().id].nested_events.push_back(id);
         } else {
-            root_events_.push_back(id);
+            root_events.push_back(id);
         }
 
         if (is_begin_event(event)) {
@@ -124,15 +118,14 @@ void TraceLogViewer::build_event_hierarchy() {
 }
 
 auto TraceLogViewer::get_record(EventId id) const -> EventRecord const& {
-    return records_.at(record_index_.at(id));
+    return records.at(record_index.at(id));
 }
 
 TraceEvent const& TraceLogViewer::get_event(EventId id) const {
     return *get_record(id).event;
 }
 
-std::vector<EventId> TraceLogViewer::get_nested_events_impl(
-    EventId id) const {
+Vec<EventId> TraceLogViewer::get_nested_events_impl(EventId id) const {
     return get_record(id).nested_events;
 }
 
@@ -164,15 +157,6 @@ TraceEventBase const& TraceLogViewer::get_base(
     TraceEvent const& event) const {
     return std::visit(
         [](auto const& value) -> TraceEventBase const& { return value; },
-        event);
-}
-
-StackTraceEventBase const* TraceLogViewer::get_stack_base(
-    TraceEvent const& event) const {
-    return std::visit(
-        [](auto const& value) -> StackTraceEventBase const* {
-            return &value;
-        },
         event);
 }
 
@@ -217,8 +201,7 @@ std::string TraceLogViewer::format_event_kind(
     }
 }
 
-std::string TraceLogViewer::format_scope_offset(
-    std::size_t nesting_level) const {
+std::string TraceLogViewer::format_scope_offset(int nesting_level) const {
     return std::format("{}", nesting_level);
 }
 
@@ -329,7 +312,7 @@ void TraceLogViewer::draw_structured_value(
     }
 
     std::visit(
-        overloaded{
+        hstd::overloaded{
             [&](StructuredValue::Scalar const&) {
                 ImGui::TextUnformatted(node_label.c_str());
             },
@@ -341,7 +324,7 @@ void TraceLogViewer::draw_structured_value(
             },
             [&](StructuredValue::List const& data) {
                 if (ImGui::TreeNode(node_label.c_str())) {
-                    for (std::size_t i = 0; i < data.values.size(); ++i) {
+                    for (int i = 0; i < data.values.size(); ++i) {
                         draw_structured_value(
                             data.values[i],
                             std::format("[{}]", i).c_str());
@@ -351,7 +334,7 @@ void TraceLogViewer::draw_structured_value(
             },
             [&](StructuredValue::Map const& data) {
                 if (ImGui::TreeNode(node_label.c_str())) {
-                    for (std::size_t i = 0; i < data.pairs.size(); ++i) {
+                    for (int i = 0; i < data.pairs.size(); ++i) {
                         auto const& pair = data.pairs[i];
                         if (ImGui::TreeNode(
                                 std::format("pair {}", i).c_str())) {
@@ -394,11 +377,10 @@ void TraceLogViewer::draw_variables_state(
                                                     "{}: {}",
                                                     variable.name,
                                                     *variable.type)
-                                              : variable.name;
+                                              : variable.name.toBase();
+
             draw_structured_value(variable.value, label.c_str());
         }
         ImGui::TreePop();
     }
 }
-
-} // namespace trace_log_viewer
