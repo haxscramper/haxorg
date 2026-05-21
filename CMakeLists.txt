@@ -372,6 +372,7 @@ if(${ORG_BUILD_IMGUI_GUI})
            "${FONTCONFIG_INCLUDE_DIRS}" "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
 
   add_subdirectory(src/app/org_imgui)
+  add_subdirectory(src/app/log_viewer)
 endif()
 
 # Build the list of "CMake package" targets (no pyhaxorg here)
