@@ -151,6 +151,14 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
             value);
     }
 
+    static bool isNil(hstd::Variant<Args...> const& value) {
+        return std::visit(
+            []<typename Arg>(Arg const& arg) {
+                return hstd::value_metadata<Arg>::isNil(arg);
+            },
+            value);
+    }
+
     static std::string typeName() {
         return Str{"Variant<"}
              + Str{", "}.join(

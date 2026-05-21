@@ -9,14 +9,14 @@ using namespace hstd::ext::graph;
 
 namespace {
 void layout_run_full_layout(layout::LayoutRun* run) {
-    auto __scope = run->scopeLevelMsg(
+    auto __scope = run->begin_scope(
         hstd::fmt(
             "run full layout for the graph with root IDs {}",
             run->groups->getRootVertices()),
         "full-aux");
 
     auto aux = [&](this auto&& self, VertexID const& id) -> void {
-        auto __scope = run->scopeLevelMsg(
+        auto __scope = run->begin_scope(
             hstd::fmt(
                 "running layout for group ID {}", run->getDebug(id)));
         auto group = run->getGroup(id);
@@ -176,7 +176,7 @@ void run_placement_with_subset(
 }
 
 void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
-    auto __scope = run->scopeLevelMsg(
+    auto __scope = run->begin_scope(
         "unbound edge placement", "unbound-edge");
     EdgeIDSet   vertex_vertex_edges;
     EdgeIDSet   group_vertex_edges;

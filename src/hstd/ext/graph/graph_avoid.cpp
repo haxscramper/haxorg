@@ -108,7 +108,7 @@ void add_ports(
     EdgeIDSet const&                            edge_set,
     VertexIDSet const&                          vertex_set,
     hstd::SPtr<cst::AvoidPortCollection> const& lp) {
-    auto __ports = run->scopeLevelHandleMsg("add ports");
+    auto __ports = run->begin_scope("add ports");
     for (auto const& eid : edge_set) {
         auto s_pid = lp->addPort(run->graph->getSource(eid), eid, true);
         auto e_pid = lp->addPort(run->graph->getTarget(eid), eid, false);
@@ -231,7 +231,7 @@ void connect_edge_pins(
         auto eid_avoid = get_id_proxy(eid, id_map);
         algo->run->message(
             hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
-        auto __scope = algo->run->scopeLevel();
+        auto __scope = algo->run->begin_scope();
 
         auto source = algo->run->getGraph()->getSource(eid);
         auto target = algo->run->getGraph()->getTarget(eid);
@@ -281,7 +281,7 @@ void write_layout_state(
     cst::AvoidRouterAlgorithm::Result const& layout_res,
     hstd::Str const&                         suffix = "") {
     visual::VisGroup res;
-    auto __scope = algo->run->scopeLevelMsg("rectangle placement");
+    auto __scope = algo->run->begin_scope("rectangle placement");
     for (auto const& [id, rect] : algo->rects) {
         res.add(
             visual::VisGroup::FromRectAndText(
@@ -308,7 +308,7 @@ void write_layout_state(
 
 hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     AvoidRouterAlgorithm::routeEdges() {
-    auto __scope = run->scopeLevelMsg("route edges");
+    auto __scope = run->begin_scope("route edges");
     hstd::logic_assertion_check_not_nil(run);
 
     Result res;

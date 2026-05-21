@@ -83,10 +83,12 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void setGraphTraceFile(fs::path const& name) {
+        getGraph()->traceStructured = true;
         getGraph()->setTraceFile(name);
     }
 
     void setImmContextTraceFile(fs::path const& name) {
+        store->debug->traceStructured = true;
         store->debug->setTraceFile(name);
     }
 
@@ -122,7 +124,7 @@ Paragraph [[id:subtree-id]]
     getGraph()->message("add first node");
     auto v1 = hstd::ext::graph::VertexID::Nil();
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         auto par     = root.at(1);
 
         auto init_prop = conf->getInitialNodeProp(state.get(), par);
@@ -147,7 +149,7 @@ Paragraph [[id:subtree-id]]
 
     getGraph()->message("add second node");
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         getState()->addNode(root.at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         ASSERT_EQ(
@@ -224,7 +226,7 @@ radio user paragraph
 
     getGraph()->message("add first node");
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         auto par     = root.at(1);
         s1->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
@@ -235,7 +237,7 @@ radio user paragraph
 
     getGraph()->message("add second node");
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         s1->addNode(root.at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
@@ -269,7 +271,7 @@ radio user paragraph
 
     getGraph()->message("add first node");
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         auto par     = root.at(1);
         s1->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
@@ -284,7 +286,7 @@ radio user paragraph
 
     getGraph()->message("add second node");
     {
-        auto __scope = getGraph()->scopeLevel();
+        auto __scope = getGraph()->begin_scope();
         s1->addNode(root.at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);

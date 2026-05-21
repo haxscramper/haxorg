@@ -273,7 +273,7 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
     State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
-    auto __scope = run->scopeLevelMsg(
+    auto __scope = run->begin_scope(
         hstd::fmt("node structure for {}", id));
     auto group    = run->getGroup(id);
     auto gv_group = hstd::validated_dynamic_cast<

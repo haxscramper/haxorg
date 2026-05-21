@@ -119,9 +119,10 @@ struct EvalContext {
 
 
 #define EVAL_SCOPE()                                                      \
-    auto CONCAT(__scope, __COUNTER__) = isTraceEnabled()                  \
-                                          ? conf.debug->scopeLevel()      \
-                                          : finally_std::nop();
+    auto CONCAT(                                                          \
+        __scope, __COUNTER__) = isTraceEnabled()                          \
+                                  ? conf.debug->begin_scope()             \
+                                  : conf.debug->begin_scope_nop();
 
     Opt<json> getTargetValue(imm::ImmId const& target_id, bool asFlatText)
         const {

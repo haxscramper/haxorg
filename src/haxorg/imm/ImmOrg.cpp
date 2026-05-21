@@ -1333,7 +1333,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
                         "radio target linked with {}",
                         range,
                         targetId));
-                auto __scope = ctx->debug->scopeLevel();
+                auto __scope = ctx->debug->begin_scope();
                 for (auto const& it : result.target->nodes) {
                     ctx->debug->message(fmt("- target {}", it));
                 }
@@ -1386,7 +1386,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
         ctx->debug->message(fmt("Get subnode groups for {}", node.uniq()));
     }
-    auto __scope = ctx->debug->scopeLevel();
+    auto __scope = ctx->debug->begin_scope();
 
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
         ImmAdapter const& it = sub.at(groupingIdx);
@@ -1407,7 +1407,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                 for (ImmId const& radioId : *radioTargets) {
                     ctx->debug->message(
                         fmt("Trying radio ID {}", radioId));
-                    auto __scope      = ctx->debug->scopeLevel();
+                    auto __scope      = ctx->debug->begin_scope();
                     auto radioAdapter = it.ctx.lock()->adaptUnrooted(
                         radioId);
 
@@ -1493,7 +1493,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
 
     {
-        auto _s = ctx->debug->scopeLevelMsg("Final result grouping");
+        auto _s = ctx->debug->begin_scope("Final result grouping");
         for (auto const& it : result) {
             ctx->debug->message(fmt("Final {}", it));
         }

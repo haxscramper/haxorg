@@ -741,7 +741,7 @@ struct org_ident {
 
 void switch_command(Cursor& c) {
     __perf_trace("tokens", "command");
-    auto __scope = c.p.scopeLevel();
+    auto __scope = c.p.begin_scope();
     c.token1(otk::LineCommand, &advance_count, 2);
     c.token0(otk::Word, [](Cursor& c) {
         advance_ident(c);

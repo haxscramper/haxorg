@@ -29,15 +29,28 @@ struct OperationsMsg {
 struct OperationsTracer;
 
 struct [[refl]] OperationsTracer {
-    [[refl]] bool TraceState      = false;
-    [[refl]] bool traceToFile     = false;
-    [[refl]] bool traceToBuffer   = false;
-    [[refl]] bool traceStructured = false;
-    [[refl]] bool traceColored    = true;
-    [[refl]] int  activeLevel     = 0;
+    [[refl]] bool              TraceState      = false;
+    [[refl]] bool              traceToFile     = false;
+    [[refl]] bool              traceToBuffer   = false;
+    [[refl]] bool              traceStructured = false;
+    [[refl]] bool              traceColored    = true;
+    [[refl]] mutable int       activeLevel     = 0;
+    hstd::Opt<fs::path>        traceFile;
+    [[refl]] std::string       traceBuffer;
+    mutable SPtr<std::ostream> stream;
 
-    hstd::Opt<fs::path>  traceFile;
-    [[refl]] std::string traceBuffer;
+
+    [[refl]] void begin_scope_event(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE());
+
+    [[refl]] void end_scope_event(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE());
 
     DESC_FIELDS(
         OperationsTracer,
@@ -50,33 +63,40 @@ struct [[refl]] OperationsTracer {
 
     struct ScopeHandle {
         OperationsTracer* tracer;
-        void              start();
-        void              end();
+        void              start(
+            Opt<std::string> const& value    = std::nullopt,
+            char const*             function = __builtin_FUNCTION(),
+            int                     line     = __builtin_LINE(),
+            char const*             file     = __builtin_FILE());
+
+        void end(
+            Opt<std::string> const& value    = std::nullopt,
+            char const*             function = __builtin_FUNCTION(),
+            int                     line     = __builtin_LINE(),
+            char const*             file     = __builtin_FILE());
+
         ~ScopeHandle() {
-            if (tracer != nullptr) { end(); }
+            if (tracer != nullptr) {
+                end(std::nullopt, nullptr, -1, nullptr);
+            }
         }
     };
 
+    ScopeHandle begin_scope_nop() { return ScopeHandle{nullptr}; }
 
-    ScopeHandle scopeLevelHandle() const;
-    ScopeHandle scopeLevelHandleMsg(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) const;
 
-    finally_std scopeLevel() const;
+    ScopeHandle begin_scope(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE()) const;
+
     finally_std scopeTrace(bool state);
-    finally_std scopeLevelMsg(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) const;
+
 
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
-    SPtr<std::ostream> stream;
 
     SPtr<std::ostream> getTraceFile();
 

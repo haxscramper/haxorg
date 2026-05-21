@@ -170,7 +170,7 @@ struct single_layout_run_state {
         VertexID const&               id,
         unsatisifed_validation_state& validation_state) {
         char const* _fname  = "constraints";
-        auto        __scope = run->scopeLevelMsg(
+        auto        __scope = run->begin_scope(
             hstd::fmt("recursively collect on {}", run->getDebug(id)),
             _fname);
         auto group = run->getGroup(id);
@@ -238,7 +238,7 @@ struct single_layout_run_state {
     hstd::UnorderedMap<VertexID, geometry::Rect> bbox_map;
     void collect_absolute_bounding_box_positions(VertexID const& id) {
         char const* _fname  = "absolute-bbox";
-        auto        __scope = run->scopeLevelMsg(
+        auto        __scope = run->begin_scope(
             hstd::fmt("absolute bounding box on {}", run->getDebug(id)),
             _fname);
 
@@ -285,7 +285,7 @@ struct single_layout_run_state {
         VertexID const&        id,
         geometry::Point const& rel_offset) {
         char const* _fname  = "relative-pos";
-        auto        __scope = run->scopeLevelMsg(
+        auto        __scope = run->begin_scope(
             hstd::fmt(
                 "relative position on {} offset {}",
                 run->getDebug(id),
@@ -311,7 +311,7 @@ struct single_layout_run_state {
             result.vertices.insert_or_assign(id, prev_attribute);
         } else {
             auto group_bbox = bbox_map.at(id);
-            auto __scope    = run->scopeLevelMsg(
+            auto __scope    = run->begin_scope(
                 hstd::fmt("parent bbox {}", group_bbox), _fname);
 
             auto const& offset_to_zero_coords = -group_bbox.upper_left();
@@ -359,7 +359,7 @@ struct single_layout_run_state {
     }
 
     void execute_edge_placement(cst::ColaLayoutAlgorithm* algo) {
-        auto __scope = run->scopeLevelMsg(__PRETTY_FUNCTION__);
+        auto __scope = run->begin_scope(__PRETTY_FUNCTION__);
         auto r       = algo->router;
         r->run       = run.get();
         // r->rects     = rootGroup->shared.get();
@@ -383,7 +383,7 @@ struct single_layout_run_state {
 
 layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
     ColaLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
-    auto __scope = run->scopeLevelMsg(
+    auto __scope = run->begin_scope(
         hstd::fmt(
             "running single layout for cst::ColaLayoutAlgorithm {}",
             run->getDebug(root_id)));
@@ -441,7 +441,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     {
         VisGroup res;
-        auto     __scope = run->scopeLevelMsg("rectangle placement");
+        auto     __scope = run->begin_scope("rectangle placement");
         for (auto const& id : run->getDirectVertices(root_id).items()) {
             res.add(
                 VisGroup::FromRectAndText(
@@ -464,7 +464,7 @@ layout::IPlacementAlgorithm::Result hstd::ext::graph::cst::
 
     run_state.collect_absolute_bounding_box_positions(root_id);
     {
-        auto __scope = run->scopeLevelMsg("collected bounding box");
+        auto __scope = run->begin_scope("collected bounding box");
         for (auto const& [key, value] : run_state.bbox_map) {
             run->message(hstd::fmt("{} -> {}", run->getDebug(key), value));
         }

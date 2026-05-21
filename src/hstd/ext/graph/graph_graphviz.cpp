@@ -547,7 +547,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     VertexID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
     auto g       = run->getGraph();
-    auto __scope = run->scopeLevelMsg(
+    auto __scope = run->begin_scope(
         hstd::fmt(
             "running single layout for gv::Layout {}",
             g->getDebug(root_id)));
@@ -592,7 +592,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
             gv_group->setAttr(id_sub_group, id.getValue());
 
-            auto __scope = run->scopeLevel();
+            auto __scope = run->begin_scope();
             // iterate over sub-groups to find all layout switches
             for (auto const& sub : run->getSubGroups(id)) {
                 self(sub, id);

@@ -159,7 +159,7 @@ void traceNodeResolve(
     auto node = state->graph->get(mapNode);
     auto attr = state->graph->getAttr(mapNode);
     if (state->graph->TraceState) {
-        auto __scope = state->graph->scopeLevel();
+        auto __scope = state->graph->begin_scope();
         state->graph->message(
             fmt("v:{} original unresolved state:{} resolved:{} still "
                 "unresolved:{}",
@@ -329,8 +329,8 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
             }
         }
     } else if (!NestedNodes.contains(node->getKind())) {
-        state->graph->message("registering nested outgoing links");
-        auto __tmp = state->graph->scopeLevel();
+        auto __tmp = state->graph->begin_scope(
+            "registering nested outgoing links");
         org::eachSubnodeRec(node, true, register_used_links);
     }
 
@@ -490,8 +490,7 @@ struct resolve_state {
     std::shared_ptr<MapConfig> const& conf;
 
     void collect_radio_targets() {
-        auto __scope = g->scopeLevel();
-        g->message(fmt("Collecting radio targets in graph"));
+        auto __scope = g->begin_scope("Collecting radio targets in graph");
 
         auto found_radio_target_node = [&](ImmAdapter const& radio) {
             if (g->isRegisteredNode(radio.uniq())) {
@@ -550,7 +549,7 @@ struct resolve_state {
     void attempt_attribute_resolve() {
         auto original_unresolved = attr->unresolved;
         attr->unresolved.clear();
-        auto __scope = g->scopeLevel();
+        auto __scope = g->begin_scope();
         for (auto const& unresolvedLink : original_unresolved) {
             Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                 state, node_id, unresolvedLink, conf);
@@ -576,7 +575,7 @@ struct resolve_state {
 
     void process_global_pending_unresolved() {
         g->message(fmt("Process unresolved for state"));
-        auto __scope = g->scopeLevel();
+        auto __scope = g->begin_scope();
         for (hgraph::VertexID const& nodeWithUnresolved :
              state->unresolved) {
             LOGIC_ASSERTION_CHECK_FMT(
@@ -654,7 +653,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     MapNodeResolveResult result;
 
     auto g       = state->graph;
-    auto __scope = g->scopeLevel();
+    auto __scope = g->begin_scope();
     auto attr    = g->getAttr(node_id);
     auto node    = g->getCastVertex<MapNode>(node_id);
 
@@ -832,7 +831,7 @@ void org::graph::MapGraphState::addNodeRec(
     Func<void(ImmAdapter const&)> aux;
     aux = [&](ImmAdapter const& node) {
         graph->message(fmt("recursive add {}", node), "addNodeRec");
-        auto __tmp = graph->scopeLevel();
+        auto __tmp = graph->begin_scope();
         switch (node->getKind()) {
             case OrgSemKind::File:
             case OrgSemKind::Directory:

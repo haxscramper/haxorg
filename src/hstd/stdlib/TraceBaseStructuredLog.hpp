@@ -7,9 +7,9 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Pair.hpp>
 
 namespace hstd::log::record {
-using IntOrFloat    = Variant<int, float>;
 using StrOrInt      = Variant<Str, int>;
 using JsonPrimitive = Variant<Str, int, float, bool, std::nullptr_t>;
 using JsonValue     = json;
@@ -46,14 +46,21 @@ struct StructuredValue {
         DESC_FIELDS(List, (values));
     };
 
+    struct MapPair {
+        std::unique_ptr<StructuredValue> key;
+        std::unique_ptr<StructuredValue> value;
+        DESC_FIELDS(MapPair, (key, value));
+    };
+
     struct Map {
-        Vec<Pair<StructuredValue, StructuredValue>> pairs;
+        Vec<MapPair> pairs;
         DESC_FIELDS(Map, (pairs));
     };
 
     struct Field {
         Str                         name;
         hstd::SPtr<StructuredValue> value;
+        DESC_FIELDS(Field, (name, value));
     };
 
     struct Object {
@@ -220,7 +227,12 @@ struct CommonEventArgs {
     /// \brief Structured custom program state payload.
     Opt<TraceEventState> state;
 
-    DESC_FIELDS(CommonEventArgs, (state));
+    Str      file;
+    Str      function;
+    int      line;
+    Opt<Str> message;
+
+    DESC_FIELDS(CommonEventArgs, (state, file, function, line, message));
 };
 
 /// \brief Object snapshot arguments.
@@ -280,7 +292,7 @@ struct ClockSyncArgs {
     /// \brief Sync marker identifier.
     Str sync_id;
     /// \brief Issuer-domain sync timestamp in microseconds.
-    Opt<IntOrFloat> issue_ts;
+    Opt<double> issue_ts;
 
     DESC_FIELDS(ClockSyncArgs, (state, sync_id, issue_ts));
 };
@@ -338,12 +350,12 @@ struct ExplicitId {
 struct TraceEventBase {
     /// \brief Event name.
     Opt<Str> name;
-    /// \brief Comma-separated categories.
-    Opt<Str> cat;
+    /// \brief Log event categories.
+    Vec<Str> cat;
     /// \brief Timestamp in microseconds.
-    Opt<IntOrFloat> ts;
+    Opt<double> ts;
     /// \brief Thread timestamp in microseconds.
-    Opt<IntOrFloat> tts;
+    Opt<double> tts;
     /// \brief Process identifier.
     Opt<int> pid;
     /// \brief Thread identifier.
@@ -359,7 +371,13 @@ struct TraceEventBase {
     /// \brief Explicitly scoped identifier.
     Opt<ExplicitId> id2;
     /// \brief Structured args.
-    Opt<CommonEventArgs> args;
+    CommonEventArgs args;
+
+    void init_ids();
+    void init_location(
+        char const* function = __builtin_FUNCTION(),
+        int         line     = __builtin_LINE(),
+        char const* file     = __builtin_FILE());
 
     BOOST_DESCRIBE_CLASS(
         TraceEventBase,
@@ -416,9 +434,9 @@ struct CompleteEvent
     /// \brief Complete-event phase.
     static constexpr char ph = 'X';
     /// \brief Duration in microseconds.
-    IntOrFloat dur;
+    double dur;
     /// \brief Optional thread duration in microseconds.
-    Opt<IntOrFloat> tdur;
+    Opt<double> tdur;
     /// \brief Optional end stack frame id.
     Opt<StrOrInt> esf;
     /// \brief Optional raw end stack.
@@ -436,9 +454,7 @@ struct CompleteEvent
 struct InstantEvent
     : TraceEventBase
     , StackTraceEventBase {
-    /// \brief Instant phase.
-    /// \warning Allowed values: i, I.
-    Str ph;
+    static constexpr char ph = 'I';
     /// \brief Instant scope.
     /// \warning Allowed values: g, p, t.
     Opt<Str> s;
@@ -769,32 +785,45 @@ struct LinkingIdEvent : TraceEventBase {
     BOOST_DESCRIBE_CLASS(LinkingIdEvent, (TraceEventBase), (id), (), ());
 };
 
+#define ALL_TRACE_EVENT_TYPES(__IMPL)                                     \
+    __IMPL(DurationBeginEvent)                                            \
+    __IMPL(DurationEndEvent)                                              \
+    __IMPL(CompleteEvent)                                                 \
+    __IMPL(InstantEvent)                                                  \
+    __IMPL(CounterEvent)                                                  \
+    __IMPL(AsyncEvent)                                                    \
+    __IMPL(FlowEvent)                                                     \
+    __IMPL(SampleEvent)                                                   \
+    __IMPL(ObjectCreatedEvent)                                            \
+    __IMPL(ObjectSnapshotEvent)                                           \
+    __IMPL(ObjectDestroyedEvent)                                          \
+    __IMPL(MetadataProcessNameEvent)                                      \
+    __IMPL(MetadataProcessLabelsEvent)                                    \
+    __IMPL(MetadataProcessSortIndexEvent)                                 \
+    __IMPL(MetadataThreadNameEvent)                                       \
+    __IMPL(MetadataThreadSortIndexEvent)                                  \
+    __IMPL(GenericMetadataEvent)                                          \
+    __IMPL(GlobalMemoryDumpEvent)                                         \
+    __IMPL(ProcessMemoryDumpEvent)                                        \
+    __IMPL(MarkEvent)                                                     \
+    __IMPL(ClockSyncEvent)                                                \
+    __IMPL(ContextEnterEvent)                                             \
+    __IMPL(ContextLeaveEvent)                                             \
+    __IMPL(LinkingIdEvent)
+
+#define COMMA
+#define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
+#define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
+
+#define ALL_TRACE_EVENT_TYPES_CSV(__CMD)                                  \
+    SKIP_FIRST_ARG(ALL_TRACE_EVENT_TYPES(__CMD))
+
+#define __id(A) , A
+
 /// \brief Union of all trace event variants.
-using TraceEvent = Variant<
-    DurationBeginEvent,
-    DurationEndEvent,
-    CompleteEvent,
-    InstantEvent,
-    CounterEvent,
-    AsyncEvent,
-    FlowEvent,
-    SampleEvent,
-    ObjectCreatedEvent,
-    ObjectSnapshotEvent,
-    ObjectDestroyedEvent,
-    MetadataProcessNameEvent,
-    MetadataProcessLabelsEvent,
-    MetadataProcessSortIndexEvent,
-    MetadataThreadNameEvent,
-    MetadataThreadSortIndexEvent,
-    GenericMetadataEvent,
-    GlobalMemoryDumpEvent,
-    ProcessMemoryDumpEvent,
-    MarkEvent,
-    ClockSyncEvent,
-    ContextEnterEvent,
-    ContextLeaveEvent,
-    LinkingIdEvent>;
+using TraceEvent = Variant<ALL_TRACE_EVENT_TYPES_CSV(__id)>;
+
+#undef __id
 
 
 /// \brief Top-level stack frame definition.
@@ -816,13 +845,13 @@ struct GlobalSample {
     /// \brief Thread identifier.
     int tid;
     /// \brief Sample timestamp in microseconds.
-    IntOrFloat ts;
+    double ts;
     /// \brief Sample source/counter name.
     Str name;
     /// \brief Root stack frame identifier.
     StrOrInt sf;
     /// \brief Sample weight/value.
-    IntOrFloat weight;
+    double weight;
 
     DESC_FIELDS(GlobalSample, (cpu, tid, ts, name, sf, weight));
 };
@@ -855,4 +884,9 @@ struct TraceLog {
          samples,
          controllerTraceDataKey));
 };
+
+
+template <typename T>
+json format_event_to_json(T const& value);
+
 } // namespace hstd::log::record

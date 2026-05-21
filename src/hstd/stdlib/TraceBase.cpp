@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <cpptrace/cpptrace.hpp>
@@ -119,7 +121,11 @@ void OperationsTracer::message(OperationsMsg const& value) const {
     if (TraceState) {
         auto os = getStream();
         if (traceStructured) {
-            os << to_json_eval(value).dump();
+            log::record::InstantEvent event;
+            event.init_ids();
+            event.init_location(value.function, value.line, value.file);
+            event.args.message = value.msg;
+            os << log::record::format_event_to_json(event).dump();
         } else {
             std::string prefix = fmt(
                 "{0}{1}{2}{3} @{4}",
@@ -182,10 +188,53 @@ void OperationsTracer::stacktraceMessage() const {
 }
 
 
-finally_std OperationsTracer::scopeLevel() const {
-    ++(const_cast<OperationsTracer*>(this)->activeLevel);
-    return finally_std{
-        [&]() { --(const_cast<OperationsTracer*>(this)->activeLevel); }};
+void OperationsTracer::begin_scope_event(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    if (traceStructured) {
+        auto                            os = getStream();
+        log::record::DurationBeginEvent e;
+        e.init_ids();
+        e.init_location(function, line, file);
+        e.args.message = value;
+        os << log::record::format_event_to_json(e).dump();
+        endStream(os);
+    } else {
+        if (value) { message(value.value(), function, line, file); }
+        ++activeLevel;
+    }
+}
+
+void OperationsTracer::end_scope_event(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    if (traceStructured) {
+        auto                          os = getStream();
+        log::record::DurationEndEvent e;
+        e.init_ids();
+        e.init_location(function, line, file);
+        e.args.message = value;
+        os << log::record::format_event_to_json(e).dump();
+        endStream(os);
+    } else {
+        --activeLevel;
+        if (value) { message(value.value(), function, line, file); }
+    }
+}
+
+hstd::OperationsTracer::ScopeHandle OperationsTracer::begin_scope(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) const {
+
+    ScopeHandle res{const_cast<OperationsTracer*>(this)};
+    res.start(value, function, line, file);
+    return res;
 }
 
 finally_std OperationsTracer::scopeTrace(bool state) {
@@ -195,46 +244,25 @@ finally_std OperationsTracer::scopeTrace(bool state) {
         [initialTrace, this]() { TraceState = initialTrace; }};
 }
 
-finally_std OperationsTracer::scopeLevelMsg(
-    std::string const& value,
-    char const*        function,
-    int                line,
-    char const*        file) const {
-    message(value, function, line, file);
-    return scopeLevel();
-}
-
-
 void OperationsMsg::use_stacktrace_as_msg() {
 #if !ORG_BUILD_EMCC
     this->msg = cpptrace::generate_trace().to_string(false);
 #endif
 }
 
-void hstd::OperationsTracer::ScopeHandle::start() {
-    ++tracer->activeLevel;
+void hstd::OperationsTracer::ScopeHandle::start(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    tracer->begin_scope_event(value, function, line, file);
 }
 
-void hstd::OperationsTracer::ScopeHandle::end() {
-    --tracer->activeLevel;
+void hstd::OperationsTracer::ScopeHandle::end(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    tracer->end_scope_event(value, function, line, file);
     tracer = nullptr;
-}
-
-hstd::OperationsTracer::ScopeHandle hstd::OperationsTracer::
-    scopeLevelHandle() const {
-    ScopeHandle res{const_cast<OperationsTracer*>(this)};
-    res.start();
-    return res;
-}
-
-hstd::OperationsTracer::ScopeHandle hstd::OperationsTracer::
-    scopeLevelHandleMsg(
-        std::string const& value,
-        char const*        function,
-        int                line,
-        char const*        file) const {
-    ScopeHandle res{const_cast<OperationsTracer*>(this)};
-    res.start();
-    message(value, function, line, file);
-    return res;
 }

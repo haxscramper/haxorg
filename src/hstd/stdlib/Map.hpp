@@ -134,6 +134,8 @@ struct value_metadata<hstd::UnorderedMap<K, V>> {
         return value.empty();
     }
 
+    static bool isNil(UnorderedMap<K, V> const& value) { return false; }
+
     static std::string typeName() {
         return std::string{"UnorderedMap<"} + value_metadata<K>::typeName()
              + std::string{", "} + value_metadata<V>::typeName()
