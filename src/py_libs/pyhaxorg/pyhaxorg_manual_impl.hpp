@@ -53,7 +53,6 @@
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/serde/SemOrgCereal.hpp>
 
 
 template <>
@@ -144,76 +143,6 @@ PyCodeEvalParameters {
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
     org::parse::OrgDirectoryParseParameters* parameters,
     nanobind::callable                       callback);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstContextToText"
-})")]] nanobind::bytes
-    serializeAstContextToText(
-        std::shared_ptr<imm::ImmAstContext> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstContextFromText"
-})")]] void
-    serializeAstContextFromText(
-        nanobind::bytes const&                     binary,
-        std::shared_ptr<imm::ImmAstContext> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstReplaceEpochToText"
-})")]] nanobind::bytes
-    serializeAstReplaceEpochToText(
-        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstReplaceEpochFromText"
-})")]] void
-    serializeAstReplaceEpochFromText(
-        nanobind::bytes const&                          binary,
-        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeMapGraphFromText"
-})")]] void
-    serializeMapGraphFromText(
-        nanobind::bytes const&                       binary,
-        std::shared_ptr<org::graph::MapGraph> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeMapGraphToText"
-})")]] nanobind::bytes
-    serializeMapGraphToText(
-        std::shared_ptr<org::graph::MapGraph> const& store);
-
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     parse::OrgDirectoryParseParameters* params,

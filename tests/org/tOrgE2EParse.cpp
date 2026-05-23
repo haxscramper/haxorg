@@ -20,46 +20,6 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
         it->getKind());
 }
 
-TEST(TestFiles, OrgCerealSerdeRoundtrip) {
-    org::parse::ParseContext parseContext;
-    auto                     node = parseContext.parseFile(
-        __CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org"
-        // "/home/haxscramper/tmp/doc1.org",
-    );
-
-    writeFile(
-        "/tmp/cereal_value_dump.json", org::exportToJsonString(node));
-
-    auto start_context = org::imm::ImmAstContext::init_start_context();
-    start_context->addRoot(node);
-
-    std::string binary_buffer = org::imm::serializeToText(start_context);
-    {
-        ColStream os;
-        start_context->store->format(os);
-        writeFile("/tmp/msgpack_first_dump.txt", os.toString(false));
-    }
-
-    writeFile(
-        "/tmp/msgpack_first.json",
-        org::imm::serializeFromTextToJson(binary_buffer).dump(2));
-    auto final_context = org::imm::ImmAstContext::init_start_context();
-    org::imm::serializeFromText(binary_buffer, final_context);
-
-    {
-        ColStream os;
-        final_context->store->format(os);
-        writeFile("/tmp/msgpack_second_dump.txt", os.toString(false));
-    }
-
-    Vec<compare_report> out;
-
-    reporting_comparator<org::imm::ImmAstStore>::compare(
-        *start_context->store, *final_context->store, out, {});
-
-    show_compare_reports(out);
-}
-
 TEST(TestFiles, AllNodeSerdeRoundtrip) {
 #if ORG_BUILD_WITH_PROTOBUF
     std::string

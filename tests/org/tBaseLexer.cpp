@@ -10,11 +10,9 @@
 #include <haxorg/test/corpusrunner.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/serde/SemOrgCereal.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include "../common.hpp"
 #include "hstd/ext/logger.hpp"
-#include "hstd/stdlib/Debug.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
@@ -146,9 +144,6 @@ TEST(ManualFileRun, TestDoc1) {
                         .withReflFields = true,
                     })
                 .toString(false));
-
-        writeFile(
-            "/tmp/cereal_dump.bin", org::imm::serializeToText(n.context));
     }
 }
 
@@ -276,57 +271,13 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
             || 0 < state->graph->getOutDegree(node);
     };
 
-    auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph);
+    auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph)
+                  ->setDirectionLR();
 
+    gv->render(getDebugFile("result.png"));
     auto const context_path = getDebugFile("context.bin");
     auto const graph_path   = getDebugFile("graph.bin");
     auto const epoch_path   = getDebugFile("epoch.bin");
-
-    {
-        __perf_trace("cli", "Serialize initial context to container");
-        writeFile(
-            context_path,
-            org::imm::serializeToText(initial_version.getContext()));
-    }
-
-    {
-        __perf_trace("cli", "Serialize mind map to container");
-        writeFile(graph_path, org::imm::serializeToText(state->graph));
-    }
-
-    {
-        __perf_trace("cli", "Serialize current epoch to container");
-        writeFile(
-            epoch_path,
-            org::imm::serializeToText(initial_version.getEpoch()));
-    }
-
-    auto deserialized_context = imm::ImmAstContext::init_start_context();
-    auto deserialized_version = deserialized_context->getEmptyVersion();
-
-    {
-        org::imm::serializeFromText(
-            readFile(context_path), deserialized_version.getContext());
-    }
-
-    {
-        org::imm::serializeFromText(
-            readFile(epoch_path), deserialized_version.getEpoch());
-    }
-
-    {
-        auto graph_tmp = org::graph::MapGraphState::FromAstContext(
-            deserialized_context);
-        org::imm::serializeFromText(
-            readFile(graph_path), graph_tmp->graph);
-
-        EXPECT_EQ(
-            state->graph->getSummedEdgeCount(),
-            graph_tmp->graph->getSummedEdgeCount());
-        EXPECT_EQ(
-            state->graph->getVertexCount(),
-            graph_tmp->graph->getVertexCount());
-    }
 
     if (trace) {
         __perf_trace("cli", "Export mind map as graphviz");

@@ -46,10 +46,6 @@ endif()
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
                                     foonathan::lexy immer::immer)
 
-if(${ORG_BUILD_WITH_MSGPACK})
-  target_link_libraries(haxorg PUBLIC msgpack-cxx)
-endif()
-
 if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
   find_package(graphviz REQUIRED)
   target_link_libraries(haxorg PUBLIC graphviz::cgraph graphviz::gvc)

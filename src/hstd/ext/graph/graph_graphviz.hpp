@@ -858,6 +858,10 @@ class GraphGroup
     _attr(GraphGroup, Compound, compound, bool);
     _attr(GraphGroup, Concentrate, concentrate, bool);
 
+    GraphGroup* setDirectionLR() {
+        return setRankDirection(RankDirection::LR);
+    }
+
   public:
     Agraph_t*     graph;
     NodeAttribute defaultNode;

@@ -61,7 +61,6 @@ option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cm
 
 # Optional features in the haxorg library
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
-option(ORG_BUILD_WITH_MSGPACK "Include msgpack serialization functionality in the build" ON)
 option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
 option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
 option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
@@ -93,22 +92,15 @@ if(${ORG_BUILD_QT_GUI} AND NOT ${ORG_BUILD_WITH_QT})
   )
 endif()
 
-if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_WITH_MSGPACK})
-  message(FATAL_ERROR "py-haxorg bindings were enabled, but msgpack option was disabled. "
-                      "Python wrappers require msgpack features.")
-endif()
-
 if(${ORG_BUILD_TESTS}
    OR ${ORG_BUILD_QT_GUI}
    OR ${ORG_BUILD_IMGUI_GUI})
   if(NOT ${ORG_BUILD_WITH_ADAPTAGRAMS}
      OR NOT ${ORG_BUILD_WITH_CGRAPH}
-     OR NOT ${ORG_BUILD_WITH_MSGPACK}
      OR NOT ${ORG_BUILD_WITH_PROTOBUF})
     message(
       STATUS "ORG_BUILD_WITH_ADAPTAGRAMS = ${ORG_BUILD_WITH_ADAPTAGRAMS} -- must be ON\n"
              "-- ORG_BUILD_WITH_CGRAPH = ${ORG_BUILD_WITH_CGRAPH} -- must be ON\n"
-             "-- ORG_BUILD_WITH_MSGPACK = ${ORG_BUILD_WITH_MSGPACK} -- must be ON\n"
              "-- ORG_BUILD_WITH_PROTOBUF = ${ORG_BUILD_WITH_PROTOBUF} -- must be ON\n"
              "-- Alternatively, disable test/example compilation:\n"
              "-- ORG_BUILD_TESTS = ${ORG_BUILD_TESTS} -- must be OFF\n"
@@ -238,13 +230,6 @@ endif()
 
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
-
-if(${ORG_BUILD_WITH_MSGPACK})
-  add_definitions(-DORG_BUILD_WITH_MSGPACK=1)
-  find_package(msgpack-cxx CONFIG REQUIRED)
-else()
-  add_definitions(-DORG_BUILD_WITH_MSGPACK=0)
-endif()
 
 if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
   find_package(SQLiteCpp CONFIG REQUIRED)
