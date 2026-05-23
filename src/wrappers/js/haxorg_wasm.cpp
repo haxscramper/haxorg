@@ -280,6 +280,8 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("traceColored", &hstd::OperationsTracer::traceColored)
     .property("activeLevel", &hstd::OperationsTracer::activeLevel)
     .property("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .function("begin_scope_event", static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::begin_scope_event))
+    .function("end_scope_event", static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::end_scope_event))
     .function("setTraceFileStr", static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr))
     .function("sendMessage", static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage))
     .constructor<>()
@@ -3661,13 +3663,6 @@ void subdivide_8(org::bind::js::type_registration_guard& g) {
   emscripten::function("getSubnodeGroups", static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups));
   emscripten::function("annotateSequence", static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence));
   emscripten::function("initMapGraphState", static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState));
-  emscripten::function("serializeAstContextToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText));
-  emscripten::function("serializeAstContextFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText));
-  emscripten::function("serializeAstEpochToText", static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText));
-  emscripten::function("serializeAstEpochFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText));
-  emscripten::function("serializeMapGraphToText", static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText));
-  emscripten::function("serializeMapGraphFromText", static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText));
-  emscripten::function("serializeFromTextToTreeDump", static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump));
   haxorg_wasm_manual_register();
 }
 

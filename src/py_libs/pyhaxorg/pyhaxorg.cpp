@@ -1254,6 +1254,18 @@ node can have subnodes.)RAW")
     .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
     .def_rw("activeLevel", &hstd::OperationsTracer::activeLevel)
     .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("begin_scope_event",
+         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::begin_scope_event),
+         nanobind::arg("value") = std::nullopt,
+         nanobind::arg("function") = __builtin_FUNCTION(),
+         nanobind::arg("line") = 46,
+         nanobind::arg("file") = __builtin_FILE())
+    .def("end_scope_event",
+         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::end_scope_event),
+         nanobind::arg("value") = std::nullopt,
+         nanobind::arg("function") = __builtin_FUNCTION(),
+         nanobind::arg("line") = 52,
+         nanobind::arg("file") = __builtin_FILE())
     .def("setTraceFileStr",
          static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
          nanobind::arg("outfile"),
@@ -2061,6 +2073,20 @@ list items, this field contains a newly created statment list)RAW")
          nanobind::arg("name"))
     ;
   nanobind::class_<org::graph::MapEdge>(m, "GraphMapEdge")
+    .def("__init__",
+         [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) -> void {
+         new(result) org::graph::MapEdge();
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](org::graph::MapEdge const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::graph::MapEdge const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
     ;
   nanobind::class_<org::graph::MapConfig>(m, "GraphMapConfig")
     .def("__init__",
@@ -2096,10 +2122,16 @@ list items, this field contains a newly created statment list)RAW")
          nanobind::arg("conf"))
     .def("getUnresolvedSubtreeLinks",
          static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
-         nanobind::arg("node"))
+         nanobind::arg("node"),
+         R"RAW(\brief Get all outgoing links used in the subtree. This will scan
+the subtree and its sub-nodes for the attached description lists.)RAW")
     .def("getUnresolvedLink",
          static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>) const>(&org::graph::MapGraphState::getUnresolvedLink),
-         nanobind::arg("node"))
+         nanobind::arg("node"),
+         R"RAW(\brief Get the unresolved link used in the specified node. Returns
+only one link per node, if it is present. This function will not
+recursively scan the node, it will only return the link if it is
+present in the node argument.)RAW")
     .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -8735,30 +8767,6 @@ ingoing elements.)RAW")
   m.def("initMapGraphState",
         static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState),
         nanobind::arg("ast"));
-  m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeToText),
-        nanobind::arg("store"));
-  m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::imm::serializeFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeToText),
-        nanobind::arg("store"));
-  m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::imm::serializeFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeToText",
-        static_cast<std::string(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeToText),
-        nanobind::arg("store"));
-  m.def("serializeFromText",
-        static_cast<void(*)(std::string const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::imm::serializeFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeFromTextToTreeDump",
-        static_cast<std::string(*)(std::string const&)>(&org::imm::serializeFromTextToTreeDump),
-        nanobind::arg("binary"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRec),
         nanobind::arg("node"),
@@ -8771,27 +8779,6 @@ ingoing elements.)RAW")
         static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setShouldProcessPath),
         nanobind::arg("parameters"),
         nanobind::arg("callback"));
-  m.def("serializeAstContextToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextToText),
-        nanobind::arg("store"));
-  m.def("serializeAstContextFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstContext> const&)>(&org::bind::python::serializeAstContextFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeAstReplaceEpochToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochToText),
-        nanobind::arg("store"));
-  m.def("serializeAstReplaceEpochFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::imm::ImmAstReplaceEpoch> const&)>(&org::bind::python::serializeAstReplaceEpochFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeMapGraphFromText",
-        static_cast<void(*)(nanobind::bytes const&, std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphFromText),
-        nanobind::arg("binary"),
-        nanobind::arg("store"));
-  m.def("serializeMapGraphToText",
-        static_cast<nanobind::bytes(*)(std::shared_ptr<org::graph::MapGraph> const&)>(&org::bind::python::serializeMapGraphToText),
-        nanobind::arg("store"));
   m.def("setGetParsedNode",
         static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setGetParsedNode),
         nanobind::arg("params"),

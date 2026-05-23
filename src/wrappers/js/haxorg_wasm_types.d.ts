@@ -1491,13 +1491,6 @@ export interface haxorg_wasm_module_auto {
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.HstdVec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.HstdVec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.HstdVec<SequenceAnnotation>;
   initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
-  serializeAstContextToText(store: ImmAstContext): string;
-  serializeAstContextFromText(binary: string, store: ImmAstContext): void;
-  serializeAstEpochToText(store: ImmAstReplaceEpoch): string;
-  serializeAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
-  serializeMapGraphToText(store: GraphMapGraph): string;
-  serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
-  serializeFromTextToTreeDump(binary: string): string;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export enum CheckboxState {
@@ -2108,6 +2101,8 @@ export interface Org {
 }
 export interface OperationsTracerConstructor { new(): OperationsTracer; }
 export interface OperationsTracer {
+  begin_scope_event(value: haxorg_wasm.Optional<string>, function_: string, line: number, file: string): void;
+  end_scope_event(value: haxorg_wasm.Optional<string>, function_: string, line: number, file: string): void;
   setTraceFileStr(outfile: string, overwrite: boolean): void;
   sendMessage(value: string, function_: string, line: number, file: string): void;
   TraceState: boolean

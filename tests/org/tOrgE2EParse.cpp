@@ -1,6 +1,5 @@
 #include "tOrgTestCommon.hpp"
 
-#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
