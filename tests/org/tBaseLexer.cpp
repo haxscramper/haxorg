@@ -14,6 +14,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include "../common.hpp"
 #include "hstd/ext/logger.hpp"
+#include "hstd/stdlib/Debug.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
@@ -268,18 +269,14 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
         initial_version.getRootAdapter(),
         conf);
 
-    org::graph::MapGraph::GvConfig gvc{};
+    org::graph::MapGraph::GvConfigCallbackFilters gvc{};
+    gvc.accept_node_cb =
+        [&](hstd::ext::graph::VertexID const& node) -> bool {
+        return 0 < state->graph->getInDegree(node)
+            || 0 < state->graph->getOutDegree(node);
+    };
 
-    auto gv = gvc.toGraphviz(
-        initial_version.getContext(), state->graph
-        // org::graph::MapGraph::GvConfig{
-        //     .acceptNode = [&](org::graph::MapNode const& node) -> bool {
-        //         // return true;
-        //         return 0 < graph->graph->inDegree(node)
-        //             || 0 < graph->graph->outDegree(node);
-        //     },
-        // }
-    );
+    auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph);
 
     auto const context_path = getDebugFile("context.bin");
     auto const graph_path   = getDebugFile("graph.bin");

@@ -52,6 +52,19 @@ struct [[refl]] OperationsTracer {
         int                     line     = __builtin_LINE(),
         char const*             file     = __builtin_FILE());
 
+
+    template <typename... _Args>
+    [[nodiscard]] inline std::string fmt_message(
+        std::format_string<_Args...> __fmt,
+        _Args&&... __args) {
+        if (TraceState) {
+            return std::vformat(
+                __fmt.get(), std::make_format_args(__args...));
+        } else {
+            return "";
+        }
+    }
+
     DESC_FIELDS(
         OperationsTracer,
         (TraceState,

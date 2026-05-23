@@ -18,6 +18,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <fstream>
+#include <hstd/stdlib/Ranges.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <SemOrgProto.pb.h>
@@ -274,11 +275,7 @@ void addSubnodes(
     Vec<SemId<Org>>&          result,
     char const*               field,
     Vec<sem::SemId<T>> const& value) {
-    rs::copy(
-        value | rv::transform([](sem::SemId<T> const& id) {
-            return id.asOrg();
-        }),
-        std::back_inserter(result));
+    for (auto const& v : value) { result.push_back(v.asOrg()); }
 }
 
 

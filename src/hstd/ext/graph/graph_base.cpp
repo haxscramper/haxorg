@@ -910,6 +910,21 @@ std::string IEdgeProvider::getStableID() const {
     return hstd::fmt("EdgeProvider-{}", getCollectionID().t);
 }
 
+hstd::ext::graph::VertexIDSet hstd::ext::graph::IEdgeProvider::getOutNodes(
+    VertexID id) const {
+    return VertexIDSet::FromIterable(
+        hstd::own_view(getOutgoing(id))
+        | hstd::rv::transform(
+            [&](EdgeID e) -> VertexID { return getTarget(e); }));
+}
+hstd::ext::graph::VertexIDSet hstd::ext::graph::IEdgeProvider::getInNodes(
+    VertexID id) const {
+    return VertexIDSet::FromIterable(
+        hstd::own_view(getIncoming(id))
+        | hstd::rv::transform(
+            [&](EdgeID e) -> VertexID { return getTarget(e); }));
+}
+
 EdgeCollectionID IEdgeProvider::edgeCategoryFromEdge(EdgeID const& id) {
     return EdgeCollectionID(hstd::u16(id.getMask()));
 }
@@ -926,4 +941,55 @@ EdgeIDSet IEdgeCollection::getEdges() const {
         }
     }
     return result;
+}
+hstd::ext::graph::EdgeIDVec hstd::ext::graph::AutoSegmentingCollection::
+    getSegments(EdgeID const& edge) const {
+    auto res = segments_to_edges.get_left(edge);
+    hstd::rs::sort(
+        res, [this](EdgeID const& lhs, EdgeID const& rhs) -> bool {
+            return segment_index.at(lhs) < segment_index.at(rhs);
+        });
+    return res;
+}
+void hstd::ext::graph::AutoSegmentingCollection::addEdge(
+    EdgeID const& original) {
+    auto crossings = hierarchy->getHierarchyCrossings(
+        graph->getSource(original), graph->getTarget(original));
+    crossings.insert(0, graph->getSource(original));
+    crossings.push_back(graph->getTarget(original));
+    // ports and segments are arranged in the same order as the
+    // original vertex, [source] ---> (port) ---> (port) ---> [target]
+    for (auto const& [idx, it] : hstd::rv::zip(
+             hstd::rv::iota(0, crossings.size()),
+             crossings | hstd::rv::sliding(2))) {
+        auto segment_edge = segmented_edges->addEdge(it[0], it[1]);
+        segments_to_edges.add_unique(segment_edge, original);
+        segment_index.insert_or_assign(segment_edge, idx);
+    }
+
+    for (auto const& it :
+         hstd::own_view(getSegments(original)) | hstd::rv::sliding(2)) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            graph->getTarget(it[0]) == graph->getSource(it[1]),
+            "logic error, segment {}-{} created from edge {} should "
+            "have the target of the first segment match the source fo "
+            "the second segment",
+            graph->getDebug(it[0]),
+            graph->getDebug(it[1]),
+            graph->getDebug(original));
+
+        PortID port = connection_ports->addPort(graph->getTarget(it[0]));
+        connection_ports->addEdgeToPort(port, it[0], true);
+        connection_ports->addEdgeToPort(port, it[1], false);
+        segments_to_ports.add_unique({it[0], it[1]}, port);
+    }
+}
+hstd::Vec<PortID> hstd::ext::graph::AutoSegmentingCollection::
+    getSegmentationPorts(EdgeID const& original) {
+    return hstd::own_view(getSegments(original)) //
+         | hstd::rv::sliding(2)
+         | hstd::rv::transform([this](auto const& it) -> PortID {
+               return segments_to_ports.at_right({it[0], it[1]});
+           })
+         | hstd::rs::to<Vec>();
 }

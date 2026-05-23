@@ -475,6 +475,9 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
     writeGraphviz();
+
+    auto Subtree_1 = file.at({1, 0}).as<org::imm::ImmSubtree>();
+    // EXPECT_EQ(getGraph().getEd)
 }
 
 Str getSubtreeBlockText() {

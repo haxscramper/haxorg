@@ -53,7 +53,6 @@ Terminology used
 #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
-#include <hstd/stdlib/Ranges.hpp>
 
 namespace bmi = boost::multi_index;
 
@@ -1049,19 +1048,9 @@ class IEdgeProvider {
         return getIncoming(id) + getOutgoing(id);
     }
 
-    virtual VertexIDSet getOutNodes(VertexID id) const {
-        return VertexIDSet::FromIterable(
-            hstd::own_view(getOutgoing(id))
-            | hstd::rv::transform(
-                [&](EdgeID e) -> VertexID { return getTarget(e); }));
-    }
+    virtual VertexIDSet getOutNodes(VertexID id) const;
 
-    virtual VertexIDSet getInNodes(VertexID id) const {
-        return VertexIDSet::FromIterable(
-            hstd::own_view(getIncoming(id))
-            | hstd::rv::transform(
-                [&](EdgeID e) -> VertexID { return getTarget(e); }));
-    }
+    virtual VertexIDSet getInNodes(VertexID id) const;
 
     virtual VertexIDSet getAdjacentNodes(VertexID id) const {
         return getOutNodes(id) + getInNodes(id);
@@ -1649,8 +1638,42 @@ class IGraph {
         }
     }
 
+    hstd::Vec<hstd::SPtr<IEdgeProvider>> getAllEdgeProviers() const {
+        hstd::Vec<hstd::SPtr<IEdgeProvider>> result;
+        for (auto const& e : collections) { result.push_back(e.second); }
+        for (auto const& h : hierarchies) { result.push_back(h.second); }
+        return result;
+    }
+
     virtual VertexID getSource(EdgeID const& id) const;
     virtual VertexID getTarget(EdgeID const& id) const;
+
+    virtual EdgeIDSet getOutgoing(VertexID const& id) const {
+        EdgeIDSet result;
+        for (auto const& p : getAllEdgeProviers()) {
+            result.incl(p->getOutgoing(id));
+        }
+        return result;
+    }
+
+    virtual EdgeIDSet getIncoming(VertexID const& id) const {
+        EdgeIDSet result;
+        for (auto const& p : getAllEdgeProviers()) {
+            result.incl(p->getIncoming(id));
+        }
+        return result;
+    }
+
+
+    virtual int getInDegree(VertexID const& v) const {
+        return getIncoming(v).size();
+    }
+
+    virtual int getOutDegree(VertexID const& v) const {
+        return getOutgoing(v).size();
+    }
+
+
     /// \brief Provide additional information about the vertex nesting
     /// relation for a specific hierarchy.
     ///
@@ -1813,61 +1836,15 @@ class AutoSegmentingCollection : public IEdgeCollection {
         , hierarchy{hierarchy}
         , graph{graph} {}
 
-    EdgeIDVec getSegments(EdgeID const& edge) const {
-        auto res = segments_to_edges.get_left(edge);
-        hstd::rs::sort(
-            res, [this](EdgeID const& lhs, EdgeID const& rhs) -> bool {
-                return segment_index.at(lhs) < segment_index.at(rhs);
-            });
-        return res;
-    }
+    EdgeIDVec getSegments(EdgeID const& edge) const;
 
     EdgeID getOriginalEdge(EdgeID const& segment) const {
         return segments_to_edges.get_right(segment).value();
     }
 
-    void addEdge(EdgeID const& original) {
-        auto crossings = hierarchy->getHierarchyCrossings(
-            graph->getSource(original), graph->getTarget(original));
-        crossings.insert(0, graph->getSource(original));
-        crossings.push_back(graph->getTarget(original));
-        // ports and segments are arranged in the same order as the
-        // original vertex, [source] ---> (port) ---> (port) ---> [target]
-        for (auto const& [idx, it] : hstd::rv::zip(
-                 hstd::rv::iota(0, crossings.size()),
-                 crossings | hstd::rv::sliding(2))) {
-            auto segment_edge = segmented_edges->addEdge(it[0], it[1]);
-            segments_to_edges.add_unique(segment_edge, original);
-            segment_index.insert_or_assign(segment_edge, idx);
-        }
+    void addEdge(EdgeID const& original);
 
-        for (auto const& it : hstd::own_view(getSegments(original))
-                                  | hstd::rv::sliding(2)) {
-            LOGIC_ASSERTION_CHECK_FMT(
-                graph->getTarget(it[0]) == graph->getSource(it[1]),
-                "logic error, segment {}-{} created from edge {} should "
-                "have the target of the first segment match the source fo "
-                "the second segment",
-                graph->getDebug(it[0]),
-                graph->getDebug(it[1]),
-                graph->getDebug(original));
-
-            PortID port = connection_ports->addPort(
-                graph->getTarget(it[0]));
-            connection_ports->addEdgeToPort(port, it[0], true);
-            connection_ports->addEdgeToPort(port, it[1], false);
-            segments_to_ports.add_unique({it[0], it[1]}, port);
-        }
-    }
-
-    hstd::Vec<PortID> getSegmentationPorts(EdgeID const& original) {
-        return hstd::own_view(getSegments(original)) //
-             | hstd::rv::sliding(2)
-             | hstd::rv::transform([this](auto const& it) -> PortID {
-                   return segments_to_ports.at_right({it[0], it[1]});
-               })
-             | hstd::rs::to<Vec>();
-    }
+    hstd::Vec<PortID> getSegmentationPorts(EdgeID const& original);
 
     EdgeCollectionID getCollectionID() const override {
         return segmented_edges->getCollectionID();

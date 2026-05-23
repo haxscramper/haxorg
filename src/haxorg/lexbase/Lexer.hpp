@@ -1,6 +1,7 @@
 #pragma once
 
 #include <haxorg/lexbase/TokenStore.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 namespace org::parse {
 template <typename K, typename V>
@@ -238,8 +239,10 @@ struct LexerCommon {
     }
 
     template <typename Target>
-    int find(hstd::IntSet<K> const& skip, Target const& target) const {
-        int offset = 0;
+    int find(
+        hstd::IntSet<K> const& skip,
+        Target const&          target,
+        int                    offset = 0) const {
         while (at(skip, offset)) { ++offset; }
 
         if (at(target, offset)) {
@@ -249,18 +252,23 @@ struct LexerCommon {
         }
     }
 
-    bool ahead(hstd::IntSet<K> const& skip, hstd::Vec<K> const& target)
-        const {
-        return find(skip, target) != -1;
+    bool ahead(
+        hstd::IntSet<K> const& skip,
+        hstd::Vec<K> const&    target,
+        int                    offset = 0) const {
+        return find(skip, target, offset) != -1;
     }
 
-    bool ahead(hstd::IntSet<K> const& skip, hstd::IntSet<K> const& target)
-        const {
-        return find(skip, target) != -1;
+    bool ahead(
+        hstd::IntSet<K> const& skip,
+        hstd::IntSet<K> const& target,
+        int                    offset = 0) const {
+        return find(skip, target, offset) != -1;
     }
 
-    bool ahead(K const& skip, K const& target) const {
-        return find(hstd::IntSet<K>{skip}, hstd::IntSet<K>{target}) != -1;
+    bool ahead(K const& skip, K const& target, int offset = 0) const {
+        return find(hstd::IntSet<K>{skip}, hstd::IntSet<K>{target}, offset)
+            != -1;
     }
 
     /// Check if the lexer is positioned on the appropriate token kind
@@ -313,8 +321,7 @@ struct LexerCommon {
     virtual TokenId<K, V> getPos() const { return pos; }
     virtual void          setPos(TokenId<K, V> id) { this->pos = id; }
 
-    int find(K kind) {
-        int offset = 0;
+    int find(K kind, int offset = 0) {
         while (hasNext(offset)) {
             if (at(kind, offset)) {
                 return offset;

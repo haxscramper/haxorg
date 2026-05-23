@@ -1209,10 +1209,13 @@ TestResult org::test::gtest_run_spec(
     TestParams const&     params,
     hstd::fs::path const& testDir) {
 
-    auto sink = HSLOG_SINK_FACTORY_SCOPED(([&testDir]() {
-        return ::hstd::log::init_file_sink(
-            (testDir / "hslog.log").native());
-    }));
+    // FIXME: after changes in the logger scoping handler this crashes with
+    // the segfault due to incorrect allocation of the generator object.
+
+    // auto sink = HSLOG_SINK_FACTORY_SCOPED(([&testDir]() {
+    //     return ::hstd::log::init_file_sink(
+    //         (testDir / "hslog.log").native());
+    // }));
 
 
     auto spec              = params.spec;

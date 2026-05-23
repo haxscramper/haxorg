@@ -331,6 +331,35 @@ struct [[refl(
             MapGraph::Ptr const&                graph);
     };
 
+    struct GvConfigCallbackFilters : public GvConfig {
+        hstd::Func<bool(hstd::ext::graph::VertexID node)> accept_node_cb;
+        hstd::Func<bool(hstd::ext::graph::EdgeID edge)>   accept_edge_cb;
+
+        bool acceptNode(
+            hstd::ext::graph::VertexID const& node) const override {
+            if (accept_node_cb) {
+                return accept_node_cb(node);
+            } else {
+                return GvConfig::acceptNode(node);
+            }
+        }
+
+        bool acceptEdge(
+            hstd::ext::graph::EdgeID const& edge) const override {
+            if (accept_edge_cb) {
+                return accept_edge_cb(edge);
+            } else {
+                return GvConfig::acceptEdge(edge);
+            }
+        }
+
+        // hstd::ext::graph::gv::NodeAttribute::Record getNodeLabel(
+        //     const imm::ImmAdapter&  node,
+        //     const MapNodeProp::Ptr& prop) const override {
+        //     if ()
+        // }
+    };
+
 
 #endif
 };

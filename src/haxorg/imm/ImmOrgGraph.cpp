@@ -59,6 +59,7 @@ void removeUnresolvedNodeProps(
     hgraph::VertexID const&     newNode,
     hgraph::VertexIDSet const&  existingUnresolved,
     std::shared_ptr<MapConfig>  conf) {
+    __perf_trace("mmpa", "remove unresolved node props");
     for (auto const& op : resolved_node.resolved) {
         state->graph->message(
             fmt("removing unresolved node props {}", op));
@@ -95,6 +96,7 @@ void updateUnresolvedNodeTracking(
     MapNodeResolveResult const& resolved_node,
     hgraph::VertexID const&     newNode,
     std::shared_ptr<MapConfig>  conf) {
+    __perf_trace("mmpa", "update unresolved node tracking");
     auto attr = state->graph->getAttr(newNode);
     state->graph->message(
         fmt("New node {}, resolution result {}, attribute unresolved {}",
@@ -156,9 +158,9 @@ void traceNodeResolve(
     MapNodeResolveResult const& resolved_node,
     std::shared_ptr<MapConfig>  conf,
     hgraph::VertexID const&     mapNode) {
-    auto node = state->graph->get(mapNode);
-    auto attr = state->graph->getAttr(mapNode);
     if (state->graph->TraceState) {
+        auto node    = state->graph->get(mapNode);
+        auto attr    = state->graph->getAttr(mapNode);
         auto __scope = state->graph->begin_scope();
         state->graph->message(
             fmt("v:{} original unresolved state:{} resolved:{} still "
@@ -186,16 +188,17 @@ void traceNodeResolve(
 hgraph::VertexID MapGraphState::addNode(
     imm::ImmAdapter const&            node,
     std::shared_ptr<MapConfig> const& conf) {
+    __perf_trace("mmpa", "add node");
 
     auto attr = conf->getInitialNodeProp(this, node);
-    graph->message(
-        fmt("initial node prop unresolved:{}", attr->unresolved));
+    graph->message(graph->fmt_message(
+        "initial node prop unresolved:{}", attr->unresolved));
     auto graph_node = MapNode::shared(node.uniq());
     auto res        = getGraph()->addNode(graph_node, attr);
-    graph->message(
-        fmt("added node:{} unresolved:{}",
-            graph->getDebug(res),
-            getGraph()->getAttr(res)->unresolved));
+    graph->message(graph->fmt_message(
+        "added node:{} unresolved:{}",
+        graph->getDebug(res),
+        getGraph()->getAttr(res)->unresolved));
 
 
     MapNodeResolveResult resolved = getResolvedNodeInsert(
@@ -294,11 +297,11 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     LOGIC_ASSERTION_CHECK_FMT(
         !isMmapIgnored(node), "Node {} is ignored for mmap", node);
 
-    state->graph->message(
-        fmt("box:{} desc-item:{} desc-list:{}",
-            node.id.getReadableId(),
-            isLinkedDescriptionItem(node),
-            isLinkedDescriptionList(node)));
+    state->graph->message(state->graph->fmt_message(
+        "box:{} desc-item:{} desc-list:{}",
+        node.id.getReadableId(),
+        isLinkedDescriptionItem(node),
+        isLinkedDescriptionList(node)));
 
     auto result = std::make_shared<MapNodeProp>();
 
@@ -307,10 +310,10 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
         // them will be converted to edges later on.
         if (auto link = arg.asOpt<ImmLink>()) {
             if (auto target = state->getUnresolvedLink(link.value())) {
-                state->graph->message(
-                    fmt("Got unresolved link for adapter {} under {}",
-                        arg,
-                        node));
+                state->graph->message(state->graph->fmt_message(
+                    "Got unresolved link for adapter {} under {}",
+                    arg,
+                    node));
                 result->unresolved.push_back(target.value());
             }
         }
@@ -335,10 +338,10 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     }
 
 
-    state->graph->message(
-        fmt("box:{} unresolved:{}",
-            node.id.getReadableId(),
-            result->unresolved));
+    state->graph->message(state->graph->fmt_message(
+        "box:{} unresolved:{}",
+        node.id.getReadableId(),
+        result->unresolved));
 
 
     return result;
@@ -828,36 +831,33 @@ void org::graph::MapGraphState::addNodeRec(
     std::shared_ptr<org::imm::ImmAstContext> const& ast,
     ImmAdapter const&                               node,
     std::shared_ptr<MapConfig> const&               conf) {
-    Func<void(ImmAdapter const&)> aux;
-    aux = [&](ImmAdapter const& node) {
-        graph->message(fmt("recursive add {}", node), "addNodeRec");
-        auto __tmp = graph->begin_scope();
+    auto aux = [&](this auto&& self, ImmAdapter const& node) {
+        if (isMmapIgnored(node)) {
+            graph->message(graph->fmt_message("mmap ignored {}", node));
+            return;
+        }
+
+        __perf_trace(
+            "mmpa", "Recursive add node", kind, fmt1(node.getKind()));
+
+        auto __tmp = graph->begin_scope(
+            graph->fmt_message("recursive add {}", node), "addNodeRec");
         switch (node->getKind()) {
             case OrgSemKind::File:
             case OrgSemKind::Directory:
             case OrgSemKind::Symlink:
             case OrgSemKind::Document: {
-                __perf_trace(
-                    "mmpa",
-                    "Recursive add node",
-                    kind,
-                    fmt1(node.getKind()));
-
-                for (auto const& it : node) { aux(it); }
+                for (auto const& it : node) { self(it); }
                 break;
             }
             case OrgSemKind::CmdInclude:
             case OrgSemKind::ListItem:
             case OrgSemKind::List: {
-                for (auto const& it : node) { aux(it); }
+                for (auto const& it : node) { self(it); }
                 break;
             }
             case OrgSemKind::Paragraph: {
                 auto par = node.as<imm::ImmParagraph>();
-                // conf.message(
-                //     fmt("rec visit of {}\n{}",
-                //         par,
-                //         par.treeRepr().toString()));
                 if (org::graph::hasGraphAnnotations(par)) {
                     std::ignore = addNode(node, conf);
                 } else {
@@ -865,7 +865,6 @@ void org::graph::MapGraphState::addNodeRec(
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {
-                        // conf.message(fmt("Paragraph has radio target"));
                         std::ignore = addNode(node, conf);
                     }
                 }
@@ -877,7 +876,7 @@ void org::graph::MapGraphState::addNodeRec(
                     std::ignore = addNode(node, conf);
                 }
 
-                for (auto const& it : node) { aux(it); }
+                for (auto const& it : node) { self(it); }
                 break;
             }
             default: {
