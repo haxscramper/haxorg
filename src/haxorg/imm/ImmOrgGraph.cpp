@@ -21,6 +21,32 @@ using namespace hstd::ext;
 using osk = OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
+namespace {
+inline bool __is_trace_state(hstd::OperationsTracer const& t) {
+    return t.TraceState;
+}
+inline bool __is_trace_state(hstd::OperationsTracer const* t) {
+    return t->TraceState;
+}
+inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
+    return t->TraceState;
+}
+} // namespace
+
+
+#define OP_TRACER_MESSAGE(__tracer, __format, ...)                        \
+    if (__is_trace_state(__tracer)) {                                     \
+        __tracer->message(                                                \
+            __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
+    }
+
+#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                  \
+    __is_trace_state(__tracer)                                            \
+        ? __tracer->begin_scope(                                          \
+              __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
+        : __tracer->begin_scope();
+
+
 bool org::graph::isMmapIgnored(ImmAdapter const& n) {
     return isInSubtreeDescriptionList(n)
         || (isLinkedDescriptionList(n) && isAttachedDescriptionList(n));
@@ -61,8 +87,8 @@ void removeUnresolvedNodeProps(
     std::shared_ptr<MapConfig>  conf) {
     __perf_trace("mmpa", "remove unresolved node props");
     for (auto const& op : resolved_node.resolved) {
-        state->graph->message(
-            fmt("removing unresolved node props {}", op));
+        OP_TRACER_MESSAGE(
+            state->graph, "removing unresolved node props {}", op);
         auto remove_resolved = [&](hgraph::VertexID node) {
             auto attr = state->graph->getVertex(node)
                             ->getUniqueAttribute<MapNodeProp>();
@@ -75,10 +101,11 @@ void removeUnresolvedNodeProps(
                         res = old.getRadio().target
                            == op.link.getRadio().target;
                     }
-                    state->graph->message(
-                        fmt("checking if state must be removed? {} for {}",
-                            res,
-                            old));
+                    OP_TRACER_MESSAGE(
+                        state->graph,
+                        "checking if state must be removed? {} for {}",
+                        res,
+                        old);
                     return res;
                 });
         };
@@ -98,11 +125,12 @@ void updateUnresolvedNodeTracking(
     std::shared_ptr<MapConfig>  conf) {
     __perf_trace("mmpa", "update unresolved node tracking");
     auto attr = state->graph->getAttr(newNode);
-    state->graph->message(
-        fmt("New node {}, resolution result {}, attribute unresolved {}",
-            newNode,
-            resolved_node,
-            attr->unresolved.size()));
+    OP_TRACER_MESSAGE(
+        state->graph,
+        "New node {}, resolution result {}, attribute unresolved {}",
+        newNode,
+        resolved_node,
+        attr->unresolved.size());
 
     auto node = state->graph->get(newNode);
 
@@ -118,7 +146,8 @@ void updateUnresolvedNodeTracking(
             "Duplicate unresolved boxes are not expected: {}",
             newNode);
 
-        state->graph->message(fmt("Adding {} as unresolved", newNode));
+        OP_TRACER_MESSAGE(
+            state->graph, "Adding {} as unresolved", newNode);
 
         state->unresolved.insert(newNode);
     }
@@ -127,8 +156,10 @@ void updateUnresolvedNodeTracking(
         hgraph::VertexIDSet toRemove;
         for (hgraph::VertexID const& it : state->unresolved) {
             if (state->graph->getAttr(it)->unresolved.empty()) {
-                state->graph->message(
-                    fmt("Node {} fixed all unresolved properties", it));
+                OP_TRACER_MESSAGE(
+                    state->graph,
+                    "Node {} fixed all unresolved properties",
+                    it);
                 toRemove.incl(it);
             }
         }
@@ -142,7 +173,8 @@ void updateResolvedEdges(
     MapNodeResolveResult const& resolved_node,
     std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
-        s->graph->message(fmt("add edge {}-{}", op.source, op.target));
+        OP_TRACER_MESSAGE(
+            s->graph, "add edge {}-{}", op.source, op.target);
         auto edge = std::make_shared<MapEdge>();
         auto attr = std::make_shared<MapEdgeProp>();
         s->graph->addEdge(
@@ -162,24 +194,26 @@ void traceNodeResolve(
         auto node    = state->graph->get(mapNode);
         auto attr    = state->graph->getAttr(mapNode);
         auto __scope = state->graph->begin_scope();
-        state->graph->message(
-            fmt("v:{} original unresolved state:{} resolved:{} still "
-                "unresolved:{}",
-                mapNode,
-                state->unresolved,
-                attr->unresolved,
-                resolved_node.resolved));
+        OP_TRACER_MESSAGE(
+            state->graph,
+            "v:{} original unresolved state:{} resolved:{} still "
+            "unresolved:{}",
+            mapNode,
+            state->unresolved,
+            attr->unresolved,
+            resolved_node.resolved);
 
         for (auto const& u : attr->unresolved) {
-            state->graph->message(fmt(">> g[v] unresolved {}", u));
+            OP_TRACER_MESSAGE(state->graph, ">> g[v] unresolved {}", u);
         }
 
         for (auto const& u : resolved_node.resolved) {
-            state->graph->message(
-                fmt("<<+ updated resolved {} {}->{}",
-                    u.link,
-                    u.source,
-                    u.target));
+            OP_TRACER_MESSAGE(
+                state->graph,
+                "<<+ updated resolved {} {}->{}",
+                u.link,
+                u.source,
+                u.target);
         }
     }
 }
@@ -191,14 +225,15 @@ hgraph::VertexID MapGraphState::addNode(
     __perf_trace("mmpa", "add node");
 
     auto attr = conf->getInitialNodeProp(this, node);
-    graph->message(graph->fmt_message(
-        "initial node prop unresolved:{}", attr->unresolved));
+    OP_TRACER_MESSAGE(
+        graph, "initial node prop unresolved:{}", attr->unresolved);
     auto graph_node = MapNode::shared(node.uniq());
     auto res        = getGraph()->addNode(graph_node, attr);
-    graph->message(graph->fmt_message(
+    OP_TRACER_MESSAGE(
+        graph,
         "added node:{} unresolved:{}",
         graph->getDebug(res),
-        getGraph()->getAttr(res)->unresolved));
+        getGraph()->getAttr(res)->unresolved);
 
 
     MapNodeResolveResult resolved = getResolvedNodeInsert(
@@ -258,16 +293,16 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
     for (auto const& list : tree.subAs<ImmList>()) {
         if (auto attached = list.getListAttrs("attached");
             attached.has(0) && attached.at(0).getString() == "subtree") {
-            graph->message("Subtree has list");
+            OP_TRACER_MESSAGE(graph, "Subtree has list");
             for (auto const& item : list.subAs<ImmListItem>()) {
-                graph->message(fmt("{}", item.id));
+                OP_TRACER_MESSAGE(graph, "{}", item.id);
                 if (isLinkedDescriptionItemNode(item)) {
-                    graph->message("List has description item");
+                    OP_TRACER_MESSAGE(graph, "List has description item");
                     for (auto const& link :
                          item.pass(item->header->value())
                              .subAs<ImmLink>()) {
-                        graph->message(
-                            fmt("List item contains link {}", link));
+                        OP_TRACER_MESSAGE(
+                            graph, "List item contains link {}", link);
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
@@ -297,11 +332,12 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     LOGIC_ASSERTION_CHECK_FMT(
         !isMmapIgnored(node), "Node {} is ignored for mmap", node);
 
-    state->graph->message(state->graph->fmt_message(
+    OP_TRACER_MESSAGE(
+        state->graph,
         "box:{} desc-item:{} desc-list:{}",
         node.id.getReadableId(),
         isLinkedDescriptionItem(node),
-        isLinkedDescriptionList(node)));
+        isLinkedDescriptionList(node));
 
     auto result = std::make_shared<MapNodeProp>();
 
@@ -310,10 +346,11 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
         // them will be converted to edges later on.
         if (auto link = arg.asOpt<ImmLink>()) {
             if (auto target = state->getUnresolvedLink(link.value())) {
-                state->graph->message(state->graph->fmt_message(
+                OP_TRACER_MESSAGE(
+                    state->graph,
                     "Got unresolved link for adapter {} under {}",
                     arg,
-                    node));
+                    node);
                 result->unresolved.push_back(target.value());
             }
         }
@@ -338,10 +375,11 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     }
 
 
-    state->graph->message(state->graph->fmt_message(
+    OP_TRACER_MESSAGE(
+        state->graph,
         "box:{} unresolved:{}",
         node.id.getReadableId(),
-        result->unresolved));
+        result->unresolved);
 
 
     return result;
@@ -353,7 +391,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     MapLink const&             link,
     std::shared_ptr<MapConfig> conf) {
     auto g = state->graph;
-    g->message(fmt("Get resolve targets {} {}", source, link));
+    OP_TRACER_MESSAGE(g, "Get resolve targets {} {}", source, link);
 
     Vec<MapLinkResolveResult> result;
 
@@ -368,10 +406,11 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 .source = g->getImmID(source),
             });
     } else {
-        g->message(
-            fmt("footnotes {}", state->ast->currentTrack->footnotes));
-        g->message(fmt("subtrees {}", state->ast->currentTrack->subtrees));
-        g->message(fmt("names {}", state->ast->currentTrack->names));
+        OP_TRACER_MESSAGE(
+            g, "footnotes {}", state->ast->currentTrack->footnotes);
+        OP_TRACER_MESSAGE(
+            g, "subtrees {}", state->ast->currentTrack->subtrees);
+        OP_TRACER_MESSAGE(g, "names {}", state->ast->currentTrack->names);
 
         auto add_edge = [&](imm::ImmId const& target) {
             auto adapters = state->ast->getAdaptersFor(target);
@@ -397,14 +436,15 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 auto text = link_adapter->target.getId().text;
                 if (auto target = state->ast->currentTrack->subtrees.get(
                         text)) {
-                    g->message(
-                        fmt("Subtree ID {} on {} resolved to {}",
-                            text,
-                            source,
-                            *target));
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Subtree ID {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target);
                     add_edge(*target);
                 } else {
-                    g->message(fmt("Not subtree with ID {}", text));
+                    OP_TRACER_MESSAGE(g, "Not subtree with ID {}", text);
                 }
                 break;
             }
@@ -413,14 +453,16 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 auto text = link_adapter->target.getCustomId().text;
                 if (auto target = state->ast->currentTrack->customIds.get(
                         text)) {
-                    g->message(
-                        fmt("Subtree custom ID {} on {} resolved to {}",
-                            text,
-                            source,
-                            *target));
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Subtree custom ID {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target);
                     add_edge(*target);
                 } else {
-                    g->message(fmt("Not subtree with custom ID {}", text));
+                    OP_TRACER_MESSAGE(
+                        g, "Not subtree with custom ID {}", text);
                 }
                 break;
             }
@@ -430,14 +472,15 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                                       .target;
                 if (auto target = state->ast->currentTrack->footnotes.get(
                         text)) {
-                    g->message(
-                        fmt("Footnote name {} on {} resolved to {}",
-                            text,
-                            source,
-                            *target));
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Footnote name {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target);
                     add_edge(*target);
                 } else {
-                    g->message(fmt("No footnote with ID {}", text));
+                    OP_TRACER_MESSAGE(g, "No footnote with ID {}", text);
                 }
                 break;
             }
@@ -447,16 +490,17 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                                       .target;
                 if (auto target = state->ast->currentTrack->names.get(
                         text)) {
-                    g->message(
-                        fmt("Internal link name '{}' on '{}' resolved to "
-                            "named "
-                            "node '{}'",
-                            text,
-                            source,
-                            *target));
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Internal link name '{}' on '{}' resolved to "
+                        "named node '{}'",
+                        text,
+                        source,
+                        *target);
                     add_edge(*target);
                 } else {
-                    g->message(fmt("No internal link with ID '{}'", text));
+                    OP_TRACER_MESSAGE(
+                        g, "No internal link with ID '{}'", text);
                 }
                 break;
             }
@@ -493,27 +537,30 @@ struct resolve_state {
     std::shared_ptr<MapConfig> const& conf;
 
     void collect_radio_targets() {
+        __perf_trace("mmpa", "collect_radio_targets");
         auto __scope = g->begin_scope("Collecting radio targets in graph");
 
         auto found_radio_target_node = [&](ImmAdapter const& radio) {
             if (g->isRegisteredNode(radio.uniq())) {
-                g->message(
-                    fmt("Detected radio target from node {} "
-                        "to target {}, which is a resolved "
-                        "graph node. ",
-                        g->getDebug(node_id),
-                        radio));
+                OP_TRACER_MESSAGE(
+                    g,
+                    "Detected radio target from node {} "
+                    "to target {}, which is a resolved "
+                    "graph node. ",
+                    g->getDebug(node_id),
+                    radio);
                 result.resolved.push_back(
                     MapLinkResolveResult{
                         .target = radio.uniq(),
                         .source = g->getImmID(node_id),
                     });
             } else {
-                g->message(
-                    fmt("Radio target {} from node {} is not "
-                        "a resolved graph node.",
-                        radio,
-                        g->getDebug(node_id)));
+                OP_TRACER_MESSAGE(
+                    g,
+                    "Radio target {} from node {} is not "
+                    "a resolved graph node.",
+                    radio,
+                    g->getDebug(node_id));
                 attr->unresolved.push_back(
                     MapLink{MapLink::Radio{.target = radio.uniq()}});
             }
@@ -523,9 +570,9 @@ struct resolve_state {
                            .asOpt<org::imm::ImmParagraph>()) {
             for (auto const& group : getSubnodeGroups(
                      state->ast, node->getAdapter(state->ast))) {
-                g->message(fmt("Group {}", group));
+                OP_TRACER_MESSAGE(g, "Group {}", group);
                 if (group.isRadioTarget()) {
-                    g->message(fmt("Got radio target group"));
+                    OP_TRACER_MESSAGE(g, "Got radio target group");
                     auto groupTarget = group.getRadioTarget().target;
                     if (groupTarget.is(OrgSemKind::Subtree)) {
                         for (auto const& subtree :
@@ -550,6 +597,7 @@ struct resolve_state {
     }
 
     void attempt_attribute_resolve() {
+        __perf_trace("mmpa", "attempt_attribute_resolve");
         auto original_unresolved = attr->unresolved;
         attr->unresolved.clear();
         auto __scope = g->begin_scope();
@@ -557,18 +605,20 @@ struct resolve_state {
             Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                 state, node_id, unresolvedLink, conf);
             if (resolved_edit.empty()) {
-                g->message(
-                    fmt("No resolved links from {}", unresolvedLink));
+                OP_TRACER_MESSAGE(
+                    g, "No resolved links from {}", unresolvedLink);
                 attr->unresolved.push_back(unresolvedLink);
             } else {
                 for (auto const& resolved : resolved_edit) {
                     if (g->isRegisteredNode(resolved.target)) {
-                        g->message(
-                            fmt("resolved to known node:{}", resolved));
+                        OP_TRACER_MESSAGE(
+                            g, "resolved to known node:{}", resolved);
                         result.resolved.push_back(resolved);
                     } else {
-                        g->message(fmt(
-                            "resolved to unregistered node:{}", resolved));
+                        OP_TRACER_MESSAGE(
+                            g,
+                            "resolved to unregistered node:{}",
+                            resolved);
                         attr->unresolved.push_back(unresolvedLink);
                     }
                 }
@@ -577,7 +627,8 @@ struct resolve_state {
     }
 
     void process_global_pending_unresolved() {
-        g->message(fmt("Process unresolved for state"));
+        __perf_trace("mmpa", "process_global_pending_unresolved");
+        OP_TRACER_MESSAGE(g, "Process unresolved for state");
         auto __scope = g->begin_scope();
         for (hgraph::VertexID const& nodeWithUnresolved :
              state->unresolved) {
@@ -594,17 +645,18 @@ struct resolve_state {
                 Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                     state, nodeWithUnresolved, link, conf);
                 if (resolved_edit.empty()) {
-                    g->message(fmt(
-                        "No resolve target for {}", nodeWithUnresolved));
+                    OP_TRACER_MESSAGE(
+                        g, "No resolve target for {}", nodeWithUnresolved);
                 } else {
                     for (auto const& resolved : resolved_edit) {
                         if (g->isRegisteredNode(resolved.target)) {
-                            g->message(
-                                fmt("resolved to registered node:{} it:{} "
-                                    "edit:{}",
-                                    resolved,
-                                    nodeWithUnresolved,
-                                    node_id));
+                            OP_TRACER_MESSAGE(
+                                g,
+                                "resolved to registered node:{} it:{} "
+                                "edit:{}",
+                                resolved,
+                                nodeWithUnresolved,
+                                node_id);
                             result.resolved.push_back(resolved);
                         }
                     }
@@ -653,6 +705,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     MapGraphState::Ptr const&  state,
     hgraph::VertexID const&    node_id,
     std::shared_ptr<MapConfig> conf) {
+    __perf_trace("mmpa", "getResolvedNodeInsert");
     MapNodeResolveResult result;
 
     auto g       = state->graph;
@@ -661,14 +714,16 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     auto node    = g->getCastVertex<MapNode>(node_id);
 
 
-    g->message(fmt("Get unresolved for node {}", g->getDebug(node_id)));
+    OP_TRACER_MESSAGE(
+        g, "Get unresolved for node {}", g->getDebug(node_id));
 
     LOGIC_ASSERTION_CHECK_FMT(
         !state->unresolved.contains(node_id),
         "Node {} is already marked as unresolved in the graph",
         g->getDebug(node_id));
 
-    g->message(fmt("Unresolved state {}", g->getDebug(state->unresolved)));
+    OP_TRACER_MESSAGE(
+        g, "Unresolved state {}", g->getDebug(state->unresolved));
 
     resolve_state rs{
         .g       = g,
@@ -685,11 +740,12 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     rs.process_global_pending_unresolved();
 
 
-    g->message(
-        fmt("box:{} resolved:{} unresolved:{}",
-            node_id,
-            result.resolved,
-            attr->unresolved));
+    OP_TRACER_MESSAGE(
+        g,
+        "box:{} resolved:{} unresolved:{}",
+        node_id,
+        result.resolved,
+        attr->unresolved);
 
     rs.fill_resolved_nodes();
 
@@ -833,7 +889,7 @@ void org::graph::MapGraphState::addNodeRec(
     std::shared_ptr<MapConfig> const&               conf) {
     auto aux = [&](this auto&& self, ImmAdapter const& node) {
         if (isMmapIgnored(node)) {
-            graph->message(graph->fmt_message("mmap ignored {}", node));
+            OP_TRACER_MESSAGE(graph, "mmap ignored {}", node);
             return;
         }
 
