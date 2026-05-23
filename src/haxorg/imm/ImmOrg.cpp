@@ -249,11 +249,46 @@ struct TreeReprFieldPrint<hstd::ext::ImmVec<org::sem::NamedProperty>> {
 
 #define _cat "imm.repr"
 
+namespace {
+template <typename T>
+struct get_value_format {
+    static std::string get(
+        org::imm::ImmAdapterT<T> const& t,
+        ImmTreeReprContext const&       ctx) {
+        return "";
+    }
+};
+
+template <typename T>
+    requires std::derived_from<T, org::imm::ImmLeaf>
+struct get_value_format<T> {
+    static std::string get(
+        org::imm::ImmAdapterT<T> const& t,
+        ImmTreeReprContext const&       ctx) {
+        return hstd::escape_for_write(t.value().text);
+    }
+};
+
+
+template <>
+struct get_value_format<org::imm::ImmSubtree> {
+    static std::string get(
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> const& t,
+        ImmTreeReprContext const&                          ctx) {
+        return hstd::escape_for_write(t.getCleanTitle());
+    }
+};
+
+
+} // namespace
+
 void treeReprRec(
     ImmAdapter                id,
     ColStream&                os,
     ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
+    // TODO: Align the subtree kind and readable ID using fixed width
+    // padding on the subtree.
     os << fmt("{} {}", id->getKind(), id.id.getReadableId());
     if (!ctx.path.empty()) { os << fmt(" PATH:{}", ctx.path); }
     bool printed_field_repr    = false;
@@ -278,6 +313,13 @@ void treeReprRec(
                     });
             });
     };
+
+    switch_node_value(
+        id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+            auto s = get_value_format<N>::get(id.as<N>(), ctx);
+            if (!s.empty()) { os << " " << s; }
+        });
+
 
     if (ctx.conf.withReflFields) {
         if (ctx.conf.withAuxFields) {

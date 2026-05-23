@@ -47,9 +47,7 @@ bool is_full_trace_on_cli_enabled();
 void writeTreeRepr(
     imm::ImmAdapter               n,
     fs::path const&               path,
-    imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{
-        .withAuxFields = true,
-    });
+    imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{});
 
 void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full);
 

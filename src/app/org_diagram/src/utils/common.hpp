@@ -214,34 +214,10 @@ bool haxorg_qCompareOp(
     QCOMPARE_OP_IMPL(computed, baseline, >=, GreaterThanOrEqual)
 
 
-template <typename T>
-hstd::outcome::result<T, std::string> getStructuredProperty(
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
-    std::string const&                                 kind) {
-    BOOST_OUTCOME_TRY_OPTIONAL(
-        property,
-        node.getPropertyByKind("customsubtreejson", kind),
-        hstd::fmt("Property :prop_json:{}: not found", kind));
-
-    BOOST_OUTCOME_TRY_SUB_VARIANT(json_data, property, CustomSubtreeJson);
-    try {
-        return hstd::from_json_eval<T>(json_data.value.getRef());
-    } catch (json::type_error& err) {
-        return hstd::fmt(
-            "Property :prop_json:{}: JSON did not match the expected "
-            "structure. While reading type {}, got error: {}. JSON syntax "
-            "is valid, the value is {}",
-            kind,
-            hstd::value_metadata<T>::typeName(),
-            err.what(),
-            json_data.value.getRef().dump());
-    }
-}
-
-
-hstd::outcome::result<org::sem::AttrGroup const*, std::string> getFlagProperty(
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
-    std::string const&                                 kind);
+hstd::outcome::
+    result<org::sem::AttrGroup const*, std::string> getFlagProperty(
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,
+        std::string const&                                 kind);
 
 bool hasProperty(
     org::imm::ImmAdapterT<org::imm::ImmSubtree> const& node,

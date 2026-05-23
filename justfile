@@ -60,6 +60,10 @@ run_doxygen_docs_build:
   {{workflow_run}} --task docs_doxygen \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
 
+run_include_graph_generation:
+  {{workflow_run}} --task generate_include_graph \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
 run_codechecker:
   {{workflow_run}} --task docs_doxygen \
     run_codechecker_analysis

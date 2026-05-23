@@ -10,6 +10,7 @@
 #    include <hstd/ext/graph/graph_graphviz.hpp>
 #endif
 #include <hstd/ext/graph/graph_base.hpp>
+#include <haxorg/imm/ImmGetterApi.hpp>
 
 namespace org::graph {
 
@@ -107,6 +108,13 @@ struct [[refl]] MapNode
     std::string getStableId() const override { return id.getReadableId(); }
 
     std::string getRepr() const override { return id.getReadableId(); }
+
+    template <typename T>
+    hstd::outcome::result<T, std::string> getJsonProperty(
+        std::shared_ptr<org::imm::ImmAstContext> const& context,
+        std::string const&                              name) {
+        return getStructuredProperty<T>(context->adapt(id), name);
+    }
 
     json getSerialNonRecursive(
         hstd::ext::graph::IGraph const*   graph,

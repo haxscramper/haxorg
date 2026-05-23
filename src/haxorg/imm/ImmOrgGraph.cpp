@@ -502,8 +502,8 @@ struct resolve_state {
                         radio));
                 result.resolved.push_back(
                     MapLinkResolveResult{
-                        .source = g->getImmID(node_id),
                         .target = radio.uniq(),
+                        .source = g->getImmID(node_id),
                     });
             } else {
                 g->message(

@@ -452,6 +452,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
     imm::ImmAdapter file = getLastRootAdapter();
 
     EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
+    // see debug `repr.txt` for the test for the full collection of paths.
     auto node_s10  = file.at(Vec{1, 0});
     auto node_p110 = file.at({1, 1, 0});
     auto node_s12  = file.at(Vec{1, 2});
@@ -586,42 +587,56 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
     EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
 
-    // state->graph->addEdge(
-    //     org::graph::MapEdge{
-    //         .source = org::graph::MapNode{par_above.uniq()},
-    //         .target = org::graph::MapNode{comment.uniq()}},
-    //     org::graph::MapEdgeProp{});
-
     writeGraphviz();
 
-    // org::eachSubnodeRec(root, [](org::ImmAdapter const& it) {
-    //     if (SemSet{
-    //             OrgSemKind::Subtree,
-    //             OrgSemKind::Paragraph,
-    //             OrgSemKind::List}
-    //             .contains(it->getKind())) {
-    //         std::cout << getSelfTest(it).toBase() << std::endl;
-    //     }
-    // });
+    auto List_1       = root.at(1).at(0);
+    auto List_2       = root.at(2).at(0);
+    auto Paragraph_10 = root.at(1).at(9);
+    EXPECT_EQ((imm::flatWords(Paragraph_10)), (Vec<Str>{"Footnote", "2"}));
 
-    auto List_1         = root.at(1).at(0);
-    auto List_2         = root.at(2).at(0);
-    auto Paragraph_10   = root.at(1).at(9);
-    auto Paragraph_11   = root.at(1).at(11);
-    auto Paragraph_12   = root.at(1).at(13);
-    auto Paragraph_14   = root.at(2).at(0).at(0).at(0);
-    auto Paragraph_16   = root.at(2).at(0).at(1).at(0);
-    auto Paragraph_17   = root.at(2).at(0).at(2).at(0);
-    auto Paragraph_19   = root.at(2).at(0).at(3).at(0);
-    auto Paragraph_20   = root.at(2).at(1);
-    auto Paragraph_3    = root.at(1).at(0).at(0).at(0);
-    auto Paragraph_5    = root.at(1).at(0).at(1).at(0);
-    auto Paragraph_6    = root.at(1).at(1);
-    auto Paragraph_7    = root.at(1).at(3).at(0);
-    auto Paragraph_8    = root.at(1).at(5);
-    auto Paragraph_9    = root.at(1).at(7);
-    auto Subtree_1      = root.at(1);
-    auto Subtree_2      = root.at(2);
+    auto Paragraph_11 = root.at(1).at(11);
+    EXPECT_EQ(
+        (imm::flatWords(Paragraph_11)),
+        (Vec<Str>{"Recursive", "footnote", "1"}));
+
+    auto Paragraph_12 = root.at(1).at(13);
+    EXPECT_EQ(
+        (imm::flatWords(Paragraph_12)),
+        (Vec<Str>{"Recursive", "footnote", "2"}));
+
+
+    auto Paragraph_14 = root.at(2).at(0).at(0).at(0);
+    auto Paragraph_16 = root.at(2).at(0).at(1).at(0);
+    auto Paragraph_17 = root.at(2).at(0).at(2).at(0);
+    auto Paragraph_19 = root.at(2).at(0).at(3).at(0);
+    auto Paragraph_20 = root.at(2).at(1);
+    EXPECT_EQ(
+        (imm::flatWords(Paragraph_20)),
+        (Vec<Str>{"Paragraph", "with", "name", "annotations"}));
+
+    auto Paragraph_3 = root.at(1).at(0).at(0).at(0);
+    auto Paragraph_5 = root.at(1).at(0).at(1).at(0);
+    auto Paragraph_6 = root.at(1).at(1);
+    EXPECT_EQ(
+        (imm::flatWords(Paragraph_6)),
+        (Vec<Str>{"Internal", "paragraph"}));
+
+    auto Paragraph_7 = root.at(1).at(3).at(0);
+    auto Paragraph_8 = root.at(1).at(5);
+    auto Paragraph_9 = root.at(1).at(7);
+    EXPECT_EQ(
+        (imm::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
+
+    auto Subtree_1 = root.at(1);
+    EXPECT_EQ(
+        (imm::flatWords(Subtree_1.as<imm::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "1"}));
+
+    auto Subtree_2 = root.at(2);
+    EXPECT_EQ(
+        (imm::flatWords(Subtree_2.as<imm::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "2"}));
+
     auto BlockComment_1 = root.at(1).at(3);
 
     EXPECT_EQ(List_1->getKind(), OrgSemKind::List);
@@ -644,39 +659,9 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(Subtree_2->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(BlockComment_1->getKind(), OrgSemKind::BlockComment);
 
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_20)),
-        (Vec<Str>{"Paragraph", "with", "name", "annotations"}));
-
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_6)),
-        (Vec<Str>{"Internal", "paragraph"}));
-
-
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
-
-    EXPECT_EQ((imm::flatWords(Paragraph_10)), (Vec<Str>{"Footnote", "2"}));
-
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_11)),
-        (Vec<Str>{"Recursive", "footnote", "1"}));
-
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_12)),
-        (Vec<Str>{"Recursive", "footnote", "2"}));
-
-
-    EXPECT_EQ(
-        (imm::flatWords(Subtree_1.as<imm::ImmSubtree>().getTitle())),
-        (Vec<Str>{"Subtree", "1"}));
-
-    EXPECT_EQ(
-        (imm::flatWords(Subtree_2.as<imm::ImmSubtree>().getTitle())),
-        (Vec<Str>{"Subtree", "2"}));
-
     auto g = getGraph();
 
+    // from description list to surrounding elements
     g->hasEdge(List_2, Paragraph_20);
     g->hasEdge(List_2, Subtree_1);
     g->hasEdge(List_2, Subtree_2);
