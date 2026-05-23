@@ -23,6 +23,10 @@ struct ImmMapApi : ImmOrgApiTestBase {
         return versions.back();
     }
 
+    imm::ImmAdapter getLastRootAdapter() const {
+        return getVersion().getRootAdapter();
+    }
+
     hstd::Vec<imm::ImmAdapter> getRootAdapters() const {
         return versions
              | hstd::rv::transform([](imm::ImmAstVersion const& v) {
@@ -38,6 +42,43 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     org::graph::MapGraphState::Ptr getState() const { return state; }
+
+    void init_with(Str const& text) {
+        auto node = testParseString(text);
+        writeTreeRepr(node, getDebugFile("repr.yaml"));
+        init_with(node);
+        writeTreeRepr(getLastRootAdapter(), getDebugFile("repr.txt"));
+        writeTreeRepr(
+            getLastRootAdapter(),
+            getDebugFile("repr_verbose.txt"),
+            imm::ImmAdapter::TreeReprConf{
+                .withReflFields = true,
+                .withAuxFields  = true,
+            });
+    }
+
+    void init_with(Vec<std::string> const& texts) {
+        auto nodes = texts
+                   | hstd::rv::transform(
+                         std::bind_back(&testParseString, std::nullopt))
+                   | hstd::rs::to<Vec>();
+        for (auto const& [idx, node] : hstd::enumerate(nodes)) {
+            writeTreeRepr(node, getDebugFile(fmt("repr_{}.yaml", idx)));
+        }
+
+        init_with(nodes);
+        for (auto const& [idx, adapter] :
+             hstd::enumerate(getRootAdapters())) {
+            writeTreeRepr(adapter, getDebugFile(fmt("repr_{}.txt", idx)));
+            writeTreeRepr(
+                adapter,
+                getDebugFile(fmt("repr_{}_verbose.txt", idx)),
+                imm::ImmAdapter::TreeReprConf{
+                    .withReflFields = true,
+                    .withAuxFields  = true,
+                });
+        }
+    }
 
     void init_with(org::sem::SemId<org::sem::Org> const& node) {
         versions = {store->addRoot(node)};
@@ -63,10 +104,18 @@ struct ImmMapApi : ImmOrgApiTestBase {
         state = org::graph::MapGraphState::FromAstContext(ast);
     }
 
-    void addNodeRec(
-        std::shared_ptr<org::imm::ImmAstContext> const& ast,
-        imm::ImmAdapter const&                          node) {
-        state->addNodeRec(ast, node, conf);
+    void addNodeRec(Vec<imm::ImmAdapter> const& nodes) {
+        for (auto const& node : nodes) {
+            state->addNodeRec(node.ctx.lock(), node, conf);
+        }
+    }
+
+    void addNode(imm::ImmAdapter const& node) {
+        state->addNodeRec(node.ctx.lock(), node, conf);
+    }
+
+    void addNodeRec(imm::ImmAdapter const& node) {
+        state->addNodeRec(node.ctx.lock(), node, conf);
     }
 
     void writeGraphviz() { writeGraphviz(getDebugFile("graph.png")); }
@@ -83,12 +132,12 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void setGraphTraceFile(fs::path const& name) {
-        getGraph()->traceStructured = true;
+        // getGraph()->traceStructured = true;
         getGraph()->setTraceFile(name);
     }
 
     void setImmContextTraceFile(fs::path const& name) {
-        store->debug->traceStructured = true;
+        // store->debug->traceStructured = true;
         store->debug->setTraceFile(name);
     }
 
@@ -97,25 +146,24 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
 
 TEST_F(ImmMapApi, AddNode) {
-    init_with(testParseString("* subtree"));
+    init_with("* subtree");
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
-    getState()->addNode(getVersion().getRootAdapter(), conf);
+    auto v1 = getState()->addNode(getVersion().getRootAdapter(), conf);
     EXPECT_EQ(getGraph()->getVertexCount(), 1);
 
     writeGraphviz();
 }
 
 TEST_F(ImmMapApi, AddNodeWithLinks) {
-    Str text{R"(
+    init_with(R"(
 Paragraph [[id:subtree-id]]
 
 * Subtree
   :properties:
   :id: subtree-id
   :end:
-)"_ss};
+)"_ss);
 
-    init_with(testParseString(text));
     auto root = getVersion().getRootAdapter();
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
@@ -150,7 +198,7 @@ Paragraph [[id:subtree-id]]
     getGraph()->message("add second node");
     {
         auto __scope = getGraph()->begin_scope();
-        getState()->addNode(root.at(3), conf);
+        auto v       = getState()->addNode(root.at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         ASSERT_EQ(
             getGraph()
@@ -169,7 +217,8 @@ Paragraph [[id:subtree-id]]
 
 
 TEST_F(ImmMapApi, SubtreeBacklinks) {
-    Str text1{R"(
+    init_with({
+        R"(
 * Subtree1
   :properties:
   :id: subtree-1
@@ -177,9 +226,8 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 
 #+attr_list: :attached subtree
 - [[id:subtree-2]] :: Forward link
-)"_ss};
-
-    Str text2{R"(
+)"_ss,
+        R"(
 * Subtree2
   :properties:
   :id: subtree-2
@@ -187,14 +235,11 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 
 #+attr_list: :attached subtree
 - [[id:subtree-1]] :: Backlink
-)"_ss};
-
-    init_with({
-        testParseString(text1),
-        testParseString(text2),
+)"_ss,
     });
 
-    getGraph()->setTraceFile(getDebugFile("SubtreeBacklinks_log.txt"));
+    addNodeRec(getRootAdapters());
+
     EXPECT_EQ(getGraph()->getVertexCount(), 2);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
     EXPECT_EQ(getState()->unresolved.size(), 0);
@@ -203,77 +248,53 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 }
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
-    Str text{R"(
+    init_with(R"(
 <<<radio>>> target paragraph
 
 radio user paragraph
-)"_ss};
-
-    auto n1 = testParseString(text);
-
-    auto store = imm::ImmAstContext ::init_start_context();
-    auto conf  = org::graph::MapConfig ::shared();
-    getGraph()->setTraceFile(getDebugFile("log"));
-    store->debug->setTraceFile(getGraph()->getTraceFile());
-    imm::ImmAstVersion v1   = store->addRoot(n1);
-    auto               root = v1.getRootAdapter();
-
-    auto s1 = org::graph::MapGraphState::FromAstContext(v1.context);
+)"_ss);
 
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
-    EXPECT_EQ(s1->unresolved.size(), 0);
+    EXPECT_EQ(getState()->unresolved.size(), 0);
 
-    getGraph()->message("add first node");
     {
-        auto __scope = getGraph()->begin_scope();
-        auto par     = root.at(1);
-        s1->addNode(par, conf);
+        auto __scope = getGraph()->begin_scope("add first node");
+        auto par     = getLastRootAdapter().at(1);
+        auto v       = getState()->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
-        ASSERT_EQ(s1->unresolved.size(), 0);
+        ASSERT_EQ(getState()->unresolved.size(), 0);
     }
 
-    getGraph()->message("add second node");
     {
-        auto __scope = getGraph()->begin_scope();
-        s1->addNode(root.at(3), conf);
+        auto __scope = getGraph()->begin_scope("add second node");
+        auto v = getState()->addNode(getLastRootAdapter().at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
-        EXPECT_EQ(s1->unresolved.size(), 0);
+        EXPECT_EQ(getState()->unresolved.size(), 0);
     }
 
     writeGraphviz();
 }
 
 TEST_F(ImmMapApi, RadioTargetsInverse) {
-    Str text{R"(
+    init_with(R"(
 radio user paragraph
 
 <<<radio>>> target paragraph
-)"_ss};
+)"_ss);
 
-    auto n1 = testParseString(text);
-
-    auto store = imm::ImmAstContext ::init_start_context();
-    auto conf  = org::graph::MapConfig ::shared();
-    setGraphTraceFile(getDebugFile("log"));
-    store->debug->setTraceFile(getTraceFile());
-    imm::ImmAstVersion v1   = store->addRoot(n1);
-    auto               root = v1.getRootAdapter();
-
-    auto s1 = org::graph::MapGraphState::FromAstContext(v1.context);
 
     EXPECT_EQ(getGraph()->getVertexCount(), 0);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
-    EXPECT_EQ(s1->unresolved.size(), 0);
+    EXPECT_EQ(getState()->unresolved.size(), 0);
 
-    getGraph()->message("add first node");
     {
-        auto __scope = getGraph()->begin_scope();
-        auto par     = root.at(1);
-        s1->addNode(par, conf);
+        auto __scope = getGraph()->begin_scope("add first node");
+        auto par     = getLastRootAdapter().at(1);
+        auto v       = getState()->addNode(par, conf);
         EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
@@ -281,23 +302,22 @@ radio user paragraph
         // context is constructed, even though the graph node with radio
         // target has not been added to the graph yet, the unresolve link
         // is registered.
-        ASSERT_EQ(s1->unresolved.size(), 1);
+        ASSERT_EQ(getState()->unresolved.size(), 1);
     }
 
-    getGraph()->message("add second node");
     {
-        auto __scope = getGraph()->begin_scope();
-        s1->addNode(root.at(3), conf);
+        auto __scope = getGraph()->begin_scope("add second node");
+        auto v = getState()->addNode(getLastRootAdapter().at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
-        EXPECT_EQ(s1->unresolved.size(), 0);
+        EXPECT_EQ(getState()->unresolved.size(), 0);
     }
 
     writeGraphviz();
 }
 
 TEST_F(ImmMapApi, RadioTargetAliases) {
-    Str text{R"(
+    init_with(R"(
 * Subtree with item description
   :properties:
   :radio_id: alias1
@@ -312,18 +332,11 @@ alias1 is a thing
 alias2 is a thing
 
 also known as a human-readable alias
-)"_ss};
+)"_ss);
 
-    auto init = getInitialVersion(text);
-    auto root = init.getRootAdapter();
-    initGraph(init.context);
-    writeTreeRepr(root, getDebugFile("repr.txt"));
-    writeTreeRepr(
-        parseContext->parseString(text, "<test>"),
-        getDebugFile("repr.yaml"));
-    setGraphTraceFile(getDebugFile("graph_trace.log"));
-    addNodeRec(init.context, root);
-    writeGraphviz(getDebugFile("RadioTargetAliases.png"));
+    auto root = getLastRootAdapter();
+    addNodeRec(root);
+    writeGraphviz();
 
     imm::ImmAdapter t1         = root.at(1);
     imm::ImmAdapter t2         = root.at(2);
@@ -331,9 +344,9 @@ also known as a human-readable alias
     imm::ImmAdapter par_alias2 = t2.at(2);
     imm::ImmAdapter par_human  = t2.at(4);
 
-    EXPECT_TRUE(state->graph->hasEdge(par_alias1.uniq(), t1.uniq()));
-    EXPECT_TRUE(state->graph->hasEdge(par_alias2.uniq(), t1.uniq()));
-    EXPECT_TRUE(state->graph->hasEdge(par_human.uniq(), t1.uniq()));
+    EXPECT_TRUE(getGraph()->hasEdge(par_alias1.uniq(), t1.uniq()));
+    EXPECT_TRUE(getGraph()->hasEdge(par_alias2.uniq(), t1.uniq()));
+    EXPECT_TRUE(getGraph()->hasEdge(par_human.uniq(), t1.uniq()));
 }
 
 Str getFullMindMapText() {
@@ -423,13 +436,8 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
 using osk = OrgSemKind;
 
 TEST_F(ImmMapApi, SubtreeFullMap) {
-    auto n = testParseString(getFullMindMapText());
-
-    auto store = imm::ImmAstContext::init_start_context();
-
-    imm::ImmAstVersion v2 = store->addRoot(n);
-    auto s1 = org::graph::MapGraphState::FromAstContext(v2.context);
-    imm::ImmAdapter file = v2.getRootAdapter();
+    init_with(getFullMindMapText());
+    imm::ImmAdapter file = getLastRootAdapter();
 
     EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
     auto node_s10  = file.at(Vec{1, 0});
@@ -448,17 +456,12 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     auto conf = org::graph::MapConfig ::shared();
     getGraph()->setTraceFile(getDebugFile("conf"));
-    s1->addNodeRec(v2.context, v2.getRootAdapter(), conf);
+    addNodeRec(file);
 
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
-
-    auto gv = getGraphviz();
-    gv->setRankDirection(
-        hstd::ext::graph::gv::GraphGroup::RankDirection::LR);
-    gv->render("/tmp/SubtreeFullMap.dot");
-    gv->render("/tmp/SubtreeFullMap.png");
+    writeGraphviz();
 }
 
 Str getSubtreeBlockText() {
@@ -553,42 +556,17 @@ void addAll(
     org::graph::MapGraphState::Ptr const& state,
     DocBlock const&                       block,
     org::graph::MapConfig::Ptr            conf) {
-    for (auto const& it : block.items) { state->addNode(it.id, conf); }
+    for (auto const& it : block.items) {
+        std::ignore = state->addNode(it.id, conf);
+    }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
 
 TEST_F(ImmMapApi, SubtreeBlockMap) {
-    auto n = testParseString(getSubtreeBlockText());
-    org::exportToTreeFile(
-        n,
-        getDebugFile("sem_tree.txt"),
-        org::OrgTreeExportOpts{
-            .withColor = false,
-        });
-
-
-    auto store = imm::ImmAstContext::init_start_context();
-    store->debug->setTraceFile(getDebugFile("store"));
-    imm::ImmAdapter root = getVersion().getRootAdapter();
-    init_with(n);
-
-    writeTreeRepr(
-        root,
-        getDebugFile("imm_path.txt"),
-        imm::ImmAdapter::TreeReprConf{
-            .withAuxFields = true,
-        });
-
-    writeTreeRepr(
-        root,
-        getDebugFile("imm_tree.txt"),
-        imm::ImmAdapter::TreeReprConf{
-            .withReflFields = true,
-            .withAuxFields  = true,
-        });
-
-    DocBlock doc = fromAst(root);
+    init_with(getSubtreeBlockText());
+    imm::ImmAdapter root = getLastRootAdapter();
+    DocBlock        doc  = fromAst(root);
     addAll(state, doc, conf);
 
     imm::ImmAdapter comment   = root.at({1, 3});
@@ -602,10 +580,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     //         .target = org::graph::MapNode{comment.uniq()}},
     //     org::graph::MapEdgeProp{});
 
-    auto gv = getGraphviz();
-    // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
-    gv->render(getDebugFile("map.dot"));
-    gv->render(getDebugFile("map.png"));
+    writeGraphviz();
 
     // org::eachSubnodeRec(root, [](org::ImmAdapter const& it) {
     //     if (SemSet{
