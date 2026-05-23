@@ -55,6 +55,11 @@ struct ImmMapApi : ImmOrgApiTestBase {
                 .withReflFields = true,
                 .withAuxFields  = true,
             });
+
+        writeFile(
+            getDebugFile("repr_tracking.txt"),
+            getVersion().getContext()->currentTrack->toString().toString(
+                false));
     }
 
     void init_with(Vec<std::string> const& texts) {
@@ -77,26 +82,33 @@ struct ImmMapApi : ImmOrgApiTestBase {
                     .withReflFields = true,
                     .withAuxFields  = true,
                 });
+
+            writeFile(
+                getDebugFile(fmt("repr_{}_tracking.txt", idx)),
+                getVersion()
+                    .getContext()
+                    ->currentTrack->toString()
+                    .toString(false));
         }
     }
 
     void init_with(org::sem::SemId<org::sem::Org> const& node) {
+        setImmContextTraceFile(getDebugFile("imm.log"));
         versions = {store->addRoot(node)};
         state = org::graph::MapGraphState::shared(versions.back().context);
         setGraphTraceFile(getDebugFile("graph.log"));
-        setImmContextTraceFile(getDebugFile("imm.log"));
         getGraph()->message("init done");
     }
 
     void init_with(
         hstd::Vec<org::sem::SemId<org::sem::Org>> const& nodes) {
+        setImmContextTraceFile(getDebugFile("imm.log"));
         versions = {store->addRoot(nodes.front())};
         for (auto const& n : nodes.at(slice(1, 1_B))) {
             versions.push_back(versions.back().context->addRoot(n));
         }
         state = org::graph::MapGraphState::shared(versions.back().context);
         setGraphTraceFile(getDebugFile("graph.log"));
-        setImmContextTraceFile(getDebugFile("imm.log"));
         getGraph()->message("init done");
     }
 

@@ -637,11 +637,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
         __perf_trace("imm", "search radio targets");
         for (auto const& target :
              id.subAs<org::imm::ImmRadioTarget>(false)) {
-            if (ctx.lock()->debug->TraceState) {
-                message(
-                    fmt("Node {} contains radio target {}", node, target));
-                edit_radio_targets(target->words, target.id);
-            }
+            message(fmt("Node {} contains radio target {}", node, target));
+            edit_radio_targets(target->words, target.id);
         }
     };
 
@@ -1379,7 +1376,6 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                 track.radioTargets.size(),
                 reinterpret_cast<intptr_t>(ctx.get())));
 
-        ctx->debug->stacktraceMessage();
         for (auto const& [key, value] : track.radioTargets) {
             ctx->debug->message(_dfmt_expr(key, value));
         }
