@@ -79,18 +79,12 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     write_schema(Tu, proto_lib / "TU.schema.json")
 
 
-CODEGEN_TASKS = [
-    "adaptagrams",
-    "pyhaxorg",
-]
-
-
 @haxorg_task(
     dependencies=[generate_python_protobuf_files, build_and_setup_text_layout_lib])
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
-    build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
+    build_targets(ctx=ctx, targets=["reflection_tool"])
     from py_codegen.refl_read import open_proto_file
 
     task = "pyhaxorg"
@@ -124,16 +118,15 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
     ctx.run(build_and_setup_text_layout_lib)
     from py_codegen.codegen import run_codegen_task
 
-    for task in CODEGEN_TASKS:
-        run_codegen_task(
-            task=task,
-            reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
-            is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
-            manual_tu_path=get_script_root(
-                ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"),
-        )
+    task = "pyhaxorg"
+    run_codegen_task(
+        reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
+        is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
+        manual_tu_path=get_script_root(
+            ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"),
+    )
 
-        log(CAT).info("Updated code definitions")
+    log(CAT).info("Updated code definitions")
 
 
 @haxorg_task()
@@ -177,7 +170,7 @@ def generate_include_graph(ctx: TaskContext) -> None:
                                       "build/haxorg/compile_commands_with_headers.json")
     # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
-    build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
+    build_targets(ctx=ctx, targets=["reflection_tool"])
 
     from py_repository.code_analysis.gen_include_graph import gen_include_graph
     gen_include_graph(

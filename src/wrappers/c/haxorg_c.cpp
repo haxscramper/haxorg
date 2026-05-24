@@ -111,18 +111,6 @@ haxorg_SequenceAnnotationTag haxorg_HstdVecOfSequenceAnnotationTag_atIndex_const
 
 void haxorg_destroy_HstdVecOfSequenceAnnotationTag(OrgContext* org_context, haxorg_HstdVecOfSequenceAnnotationTag* obj) { org::bind::c::execute_destroy<hstd::Vec<hstd::SequenceAnnotationTag>>(org_context, obj); }
 
-int haxorg_HstdVecOfImmUniqId_size_const(OrgContext* org_context, haxorg_HstdVecOfImmUniqId __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<org::imm::ImmUniqId>::*)() const>(&hstd::Vec<org::imm::ImmUniqId>::size), org_context, __this); }
-
-haxorg_ImmUniqId haxorg_HstdVecOfImmUniqId_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfImmUniqId __this, int idx) { return org::bind::c::execute_cpp<haxorg_ImmUniqId>(static_cast<org::imm::ImmUniqId const&(hstd::Vec<org::imm::ImmUniqId>::*)(int) const>(&hstd::Vec<org::imm::ImmUniqId>::at), org_context, __this, idx); }
-
-void haxorg_destroy_HstdVecOfImmUniqId(OrgContext* org_context, haxorg_HstdVecOfImmUniqId* obj) { org::bind::c::execute_destroy<hstd::Vec<org::imm::ImmUniqId>>(org_context, obj); }
-
-int haxorg_HstdVecOfGraphMapLink_size_const(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<org::graph::MapLink>::*)() const>(&hstd::Vec<org::graph::MapLink>::size), org_context, __this); }
-
-haxorg_GraphMapLink haxorg_HstdVecOfGraphMapLink_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink __this, int idx) { return org::bind::c::execute_cpp<haxorg_GraphMapLink>(static_cast<org::graph::MapLink const&(hstd::Vec<org::graph::MapLink>::*)(int) const>(&hstd::Vec<org::graph::MapLink>::at), org_context, __this, idx); }
-
-void haxorg_destroy_HstdVecOfGraphMapLink(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink* obj) { org::bind::c::execute_destroy<hstd::Vec<org::graph::MapLink>>(org_context, obj); }
-
 int haxorg_HstdVecOfLispCode_size_const(OrgContext* org_context, haxorg_HstdVecOfLispCode __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Vec<org::sem::LispCode>::*)() const>(&hstd::Vec<org::sem::LispCode>::size), org_context, __this); }
 
 haxorg_LispCode haxorg_HstdVecOfLispCode_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfLispCode __this, int idx) { return org::bind::c::execute_cpp<haxorg_LispCode>(static_cast<org::sem::LispCode const&(hstd::Vec<org::sem::LispCode>::*)(int) const>(&hstd::Vec<org::sem::LispCode>::at), org_context, __this, idx); }
@@ -752,76 +740,6 @@ haxorg_HstdVecOfSequenceAnnotationTag haxorg_SequenceAnnotation_get_annotations(
 bool haxorg_SequenceAnnotation_isAnnotatedWith_const(OrgContext* org_context, haxorg_SequenceAnnotation __this, int groupKind, int segmentKind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(hstd::SequenceAnnotation::*)(int, int) const>(&hstd::SequenceAnnotation::isAnnotatedWith), org_context, __this, groupKind, segmentKind); }
 
 void haxorg_destroy_SequenceAnnotation(OrgContext* org_context, haxorg_SequenceAnnotation* obj) { org::bind::c::execute_destroy<hstd::SequenceAnnotation>(org_context, obj); }
-
-haxorg_GraphMapLinkRadio haxorg_GraphMapLink_getRadio(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<haxorg_GraphMapLinkRadio>(static_cast<org::graph::MapLink::Radio&(org::graph::MapLink::*)()>(&org::graph::MapLink::getRadio), org_context, __this); }
-
-haxorg_GraphMapLinkRadio haxorg_GraphMapLink_getRadio_const(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<haxorg_GraphMapLinkRadio>(static_cast<org::graph::MapLink::Radio const&(org::graph::MapLink::*)() const>(&org::graph::MapLink::getRadio), org_context, __this); }
-
-bool haxorg_GraphMapLink_isRadio_const(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isRadio), org_context, __this); }
-
-haxorg_GraphMapLinkLink haxorg_GraphMapLink_getLink(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<haxorg_GraphMapLinkLink>(static_cast<org::graph::MapLink::Link&(org::graph::MapLink::*)()>(&org::graph::MapLink::getLink), org_context, __this); }
-
-haxorg_GraphMapLinkLink haxorg_GraphMapLink_getLink_const(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<haxorg_GraphMapLinkLink>(static_cast<org::graph::MapLink::Link const&(org::graph::MapLink::*)() const>(&org::graph::MapLink::getLink), org_context, __this); }
-
-bool haxorg_GraphMapLink_isLink_const(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isLink), org_context, __this); }
-
-haxorg_GraphMapLinkKind haxorg_GraphMapLink_getKind_const(OrgContext* org_context, haxorg_GraphMapLink __this) { return org::bind::c::execute_cpp<haxorg_GraphMapLinkKind>(static_cast<org::graph::MapLink::Kind(org::graph::MapLink::*)() const>(&org::graph::MapLink::getKind), org_context, __this); }
-
-haxorg_ImmUniqId haxorg_GraphMapLinkLink_get_link(OrgContext* org_context, haxorg_GraphMapLinkLink __this) { return org::bind::c::get_cpp_field<haxorg_ImmUniqId, org::graph::MapLink::Link, org::imm::ImmUniqId, haxorg_GraphMapLinkLink>(org_context, __this, &org::graph::MapLink::Link::link); }
-
-haxorg_HstdVecOfImmUniqId haxorg_GraphMapLinkLink_get_description(OrgContext* org_context, haxorg_GraphMapLinkLink __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfImmUniqId, org::graph::MapLink::Link, hstd::Vec<org::imm::ImmUniqId>, haxorg_GraphMapLinkLink>(org_context, __this, &org::graph::MapLink::Link::description); }
-
-void haxorg_destroy_GraphMapLinkLink(OrgContext* org_context, haxorg_GraphMapLinkLink* obj) { org::bind::c::execute_destroy<org::graph::MapLink::Link>(org_context, obj); }
-
-haxorg_ImmUniqId haxorg_GraphMapLinkRadio_get_target(OrgContext* org_context, haxorg_GraphMapLinkRadio __this) { return org::bind::c::get_cpp_field<haxorg_ImmUniqId, org::graph::MapLink::Radio, org::imm::ImmUniqId, haxorg_GraphMapLinkRadio>(org_context, __this, &org::graph::MapLink::Radio::target); }
-
-void haxorg_destroy_GraphMapLinkRadio(OrgContext* org_context, haxorg_GraphMapLinkRadio* obj) { org::bind::c::execute_destroy<org::graph::MapLink::Radio>(org_context, obj); }
-
-void haxorg_destroy_GraphMapLink(OrgContext* org_context, haxorg_GraphMapLink* obj) { org::bind::c::execute_destroy<org::graph::MapLink>(org_context, obj); }
-
-haxorg_HstdVecOfGraphMapLink haxorg_GraphMapNodeProp_get_unresolved(OrgContext* org_context, haxorg_GraphMapNodeProp __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfGraphMapLink, org::graph::MapNodeProp, hstd::Vec<org::graph::MapLink>, haxorg_GraphMapNodeProp>(org_context, __this, &org::graph::MapNodeProp::unresolved); }
-
-void haxorg_destroy_GraphMapNodeProp(OrgContext* org_context, haxorg_GraphMapNodeProp* obj) { org::bind::c::execute_destroy<org::graph::MapNodeProp>(org_context, obj); }
-
-haxorg_GraphMapLink haxorg_GraphMapEdgeProp_get_link(OrgContext* org_context, haxorg_GraphMapEdgeProp __this) { return org::bind::c::get_cpp_field<haxorg_GraphMapLink, org::graph::MapEdgeProp, org::graph::MapLink, haxorg_GraphMapEdgeProp>(org_context, __this, &org::graph::MapEdgeProp::link); }
-
-void haxorg_destroy_GraphMapEdgeProp(OrgContext* org_context, haxorg_GraphMapEdgeProp* obj) { org::bind::c::execute_destroy<org::graph::MapEdgeProp>(org_context, obj); }
-
-haxorg_ImmUniqId haxorg_GraphMapNode_get_id(OrgContext* org_context, haxorg_GraphMapNode __this) { return org::bind::c::get_cpp_field<haxorg_ImmUniqId, org::graph::MapNode, org::imm::ImmUniqId, haxorg_GraphMapNode>(org_context, __this, &org::graph::MapNode::id); }
-
-haxorg_StdOptional haxorg_GraphMapNode_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getSubtreeId), org_context, __this, context); }
-
-haxorg_StdOptional haxorg_GraphMapNode_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getFootnoteName), org_context, __this, context); }
-
-bool haxorg_GraphMapNode___eq___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==), org_context, __this, other); }
-
-bool haxorg_GraphMapNode___lt___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<), org_context, __this, other); }
-
-haxorg_ImmAdapter haxorg_GraphMapNode_getAdapter_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getAdapter), org_context, __this, context); }
-
-void haxorg_destroy_GraphMapNode(OrgContext* org_context, haxorg_GraphMapNode* obj) { org::bind::c::execute_destroy<org::graph::MapNode>(org_context, obj); }
-
-void haxorg_destroy_GraphMapEdge(OrgContext* org_context, haxorg_GraphMapEdge* obj) { org::bind::c::execute_destroy<org::graph::MapEdge>(org_context, obj); }
-
-void haxorg_destroy_GraphMapConfig(OrgContext* org_context, haxorg_GraphMapConfig* obj) { org::bind::c::execute_destroy<org::graph::MapConfig>(org_context, obj); }
-
-haxorg_GraphMapGraph haxorg_GraphMapGraphState_get_graph(OrgContext* org_context, haxorg_GraphMapGraphState __this) { return org::bind::c::get_cpp_field<haxorg_GraphMapGraph, org::graph::MapGraphState, std::shared_ptr<org::graph::MapGraph>, haxorg_GraphMapGraphState>(org_context, __this, &org::graph::MapGraphState::graph); }
-
-haxorg_ImmAstContext haxorg_GraphMapGraphState_get_ast(OrgContext* org_context, haxorg_GraphMapGraphState __this) { return org::bind::c::get_cpp_field<haxorg_ImmAstContext, org::graph::MapGraphState, std::shared_ptr<org::imm::ImmAstContext>, haxorg_GraphMapGraphState>(org_context, __this, &org::graph::MapGraphState::ast); }
-
-haxorg_GraphMapGraph haxorg_GraphMapGraphState_getGraph_const(OrgContext* org_context, haxorg_GraphMapGraphState __this) { return org::bind::c::execute_cpp<haxorg_GraphMapGraph>(static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph), org_context, __this); }
-
-haxorg_GraphMapGraphState haxorg_GraphMapGraphState_FromAstContext(OrgContext* org_context, haxorg_ImmAstContext ast) { return org::bind::c::execute_cpp<haxorg_GraphMapGraphState>(static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext), org_context, ast); }
-
-haxorg_GraphVertexID haxorg_GraphMapGraphState_addNode(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmAdapter node, haxorg_GraphMapConfig conf) { return org::bind::c::execute_cpp<haxorg_GraphVertexID>(static_cast<hstd::ext::graph::VertexID(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode), org_context, __this, node, conf); }
-
-void haxorg_GraphMapGraphState_addNodeRec(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmAstContext ast, haxorg_ImmAdapter node, haxorg_GraphMapConfig conf) { return org::bind::c::execute_cpp<void>(static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec), org_context, __this, ast, node, conf); }
-
-haxorg_HstdVecOfGraphMapLink haxorg_GraphMapGraphState_getUnresolvedSubtreeLinks_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmSubtreeAdapter node) { return org::bind::c::execute_cpp<haxorg_HstdVecOfGraphMapLink>(static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks), org_context, __this, node); }
-
-haxorg_StdOptional haxorg_GraphMapGraphState_getUnresolvedLink_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmLinkAdapter node) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>) const>(&org::graph::MapGraphState::getUnresolvedLink), org_context, __this, node); }
-
-void haxorg_destroy_GraphMapGraphState(OrgContext* org_context, haxorg_GraphMapGraphState* obj) { org::bind::c::execute_destroy<org::graph::MapGraphState>(org_context, obj); }
 
 void haxorg_create_LispCode_LispCode(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::LispCode { return org::sem::LispCode(); }, org_context); }
 
@@ -2679,16 +2597,6 @@ void haxorg_destroy_CmdIncludeOrgDocument(OrgContext* org_context, haxorg_CmdInc
 
 void haxorg_destroy_CmdInclude(OrgContext* org_context, haxorg_CmdInclude* obj) { org::bind::c::execute_destroy<org::sem::CmdInclude>(org_context, obj); }
 
-bool haxorg_GraphMapGraph_isRegisteredNode_const(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapNode id) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode), org_context, __this, id); }
-
-bool haxorg_GraphMapGraph_isRegisteredNodeById_const(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_ImmUniqId id) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode), org_context, __this, id); }
-
-haxorg_GraphEdgeID haxorg_GraphMapGraph_addEdgeWithProp(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapEdge edge, haxorg_GraphMapEdgeProp prop, haxorg_GraphVertexID source, haxorg_GraphVertexID target) { return org::bind::c::execute_cpp<haxorg_GraphEdgeID>(static_cast<hstd::ext::graph::EdgeID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapEdge> const&, std::shared_ptr<org::graph::MapEdgeProp> const&, hstd::ext::graph::VertexID, hstd::ext::graph::VertexID)>(&org::graph::MapGraph::addEdge), org_context, __this, edge, prop, source, target); }
-
-haxorg_GraphVertexID haxorg_GraphMapGraph_addNode(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapNode node, haxorg_GraphMapNodeProp prop) { return org::bind::c::execute_cpp<haxorg_GraphVertexID>(static_cast<hstd::ext::graph::VertexID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapNode> const&, std::shared_ptr<org::graph::MapNodeProp> const&)>(&org::graph::MapGraph::addNode), org_context, __this, node, prop); }
-
-void haxorg_destroy_GraphMapGraph(OrgContext* org_context, haxorg_GraphMapGraph* obj) { org::bind::c::execute_destroy<org::graph::MapGraph>(org_context, obj); }
-
 bool haxorg_ImmNoNode___eq___const(OrgContext* org_context, haxorg_ImmNoNode __this, haxorg_ImmNoNode other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmNoNode::*)(org::imm::ImmNoNode const&) const>(&org::imm::ImmNoNode::operator==), org_context, __this, other); }
 
 void haxorg_destroy_ImmNoNode(OrgContext* org_context, haxorg_ImmNoNode* obj) { org::bind::c::execute_destroy<org::imm::ImmNoNode>(org_context, obj); }
@@ -4496,7 +4404,5 @@ haxorg_AstTrackingMap haxorg_getAstTrackingMap(OrgContext* org_context, haxorg_H
 haxorg_HstdVecOfAstTrackingGroup haxorg_getSubnodeGroups(OrgContext* org_context, haxorg_SemIdOfOrg node, haxorg_AstTrackingMap map) { return org::bind::c::execute_cpp<haxorg_HstdVecOfAstTrackingGroup>(static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups), org_context, node, map); }
 
 haxorg_HstdVecOfSequenceAnnotation haxorg_annotateSequence(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup groups, int first, int last) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSequenceAnnotation>(static_cast<hstd::Vec<hstd::SequenceAnnotation>(*)(hstd::Vec<hstd::SequenceSegmentGroup> const&, int, int)>(&hstd::annotateSequence), org_context, groups, first, last); }
-
-haxorg_GraphMapGraphState haxorg_initMapGraphState(OrgContext* org_context, haxorg_ImmAstContext ast) { return org::bind::c::execute_cpp<haxorg_GraphMapGraphState>(static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState), org_context, ast); }
 
 /* clang-format on */

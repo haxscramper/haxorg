@@ -33,6 +33,10 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   target_link_libraries(hstd PUBLIC Boost::boost_describe Boost::boost_preprocessor)
 endif()
 
+if(NOT ${ORG_BUILD_EMCC})
+  target_link_libraries(hstd PUBLIC Boost::log cpptrace::cpptrace)
+endif()
+
 # Tracing
 if(${ORG_BUILD_WITH_PERFETTO})
   target_link_libraries(hstd PUBLIC Perfetto::perfetto)
@@ -45,8 +49,6 @@ endif()
 # Graph processing and visualization
 if(${ORG_BUILD_WITH_GRAPH_VISUAL})
   if(${ORG_BUILD_WITH_ELK})
-    target_link_libraries(hstd PUBLIC Boost::log cpptrace::cpptrace)
-
     add_subdirectory("${BASE}/src/hstd/ext/graph/jni_elk")
     target_link_libraries(hstd PUBLIC jni_elk_lib)
   endif()

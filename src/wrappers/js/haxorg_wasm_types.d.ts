@@ -599,15 +599,6 @@ export interface haxorg_wasm_module_auto {
   SequenceSegmentGroup: SequenceSegmentGroupConstructor;
   SequenceAnnotationTag: SequenceAnnotationTagConstructor;
   SequenceAnnotation: SequenceAnnotationConstructor;
-  GraphMapLink: GraphMapLinkConstructor;
-  GraphMapLinkLink: GraphMapLinkLinkConstructor;
-  GraphMapLinkRadio: GraphMapLinkRadioConstructor;
-  GraphMapNodeProp: GraphMapNodePropConstructor;
-  GraphMapEdgeProp: GraphMapEdgePropConstructor;
-  GraphMapNode: GraphMapNodeConstructor;
-  GraphMapEdge: GraphMapEdgeConstructor;
-  GraphMapConfig: GraphMapConfigConstructor;
-  GraphMapGraphState: GraphMapGraphStateConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -1027,7 +1018,6 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
-  GraphMapGraph: GraphMapGraphConstructor;
   ImmIdT: ImmIdTConstructor;
   ImmIdT: ImmIdTConstructor;
   ImmIdT: ImmIdTConstructor;
@@ -1490,7 +1480,6 @@ export interface haxorg_wasm_module_auto {
   getAstTrackingMap(nodes: haxorg_wasm.HstdVec<Org>): AstTrackingMap;
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.HstdVec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.HstdVec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.HstdVec<SequenceAnnotation>;
-  initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export enum CheckboxState {
@@ -2306,51 +2295,6 @@ export interface SequenceAnnotation {
   first: number
   last: number
   annotations: haxorg_wasm.HstdVec<SequenceAnnotationTag>
-}
-export interface GraphMapLinkConstructor { new(): GraphMapLink; }
-export interface GraphMapLink {
-  getRadio(): GraphMapLinkRadio;
-  getRadio(): GraphMapLinkRadio;
-  isRadio(): boolean;
-  getLink(): GraphMapLinkLink;
-  getLink(): GraphMapLinkLink;
-  isLink(): boolean;
-  getKind(): GraphMapLinkKind;
-}
-export interface GraphMapLinkLinkConstructor { new(): GraphMapLinkLink; }
-export interface GraphMapLinkLink {
-  link: ImmUniqId
-  description: haxorg_wasm.HstdVec<ImmUniqId>
-}
-export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
-export interface GraphMapLinkRadio { target: ImmUniqId }
-export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
-export interface GraphMapNodeProp { unresolved: haxorg_wasm.HstdVec<GraphMapLink> }
-export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
-export interface GraphMapEdgeProp { link: GraphMapLink }
-export interface GraphMapNodeConstructor { new(): GraphMapNode; }
-export interface GraphMapNode {
-  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  __eq__(other: GraphMapNode): boolean;
-  __lt__(other: GraphMapNode): boolean;
-  getAdapter(context: ImmAstContext): ImmAdapter;
-  id: ImmUniqId
-}
-export interface GraphMapEdgeConstructor { new(): GraphMapEdge; }
-export interface GraphMapEdge {  }
-export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
-export interface GraphMapConfig {  }
-export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
-export interface GraphMapGraphState {
-  getGraph(): GraphMapGraph;
-  FromAstContext(ast: ImmAstContext): GraphMapGraphState;
-  addNode(node: ImmAdapter, conf: GraphMapConfig): GraphVertexID;
-  addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
-  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>): haxorg_wasm.HstdVec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>): haxorg_wasm.Optional<GraphMapLink>;
-  graph: GraphMapGraph
-  ast: ImmAstContext
 }
 export type ImmIdIdType = U64;
 export type ImmIdNodeIdxT = U32;
@@ -3901,13 +3845,6 @@ export enum CmdIncludeKind {
   Custom,
   Src,
   OrgDocument,
-}
-export interface GraphMapGraphConstructor { new(): GraphMapGraph; }
-export interface GraphMapGraph {
-  isRegisteredNode(id: GraphMapNode): boolean;
-  isRegisteredNodeById(id: ImmUniqId): boolean;
-  addEdgeWithProp(edge: StdShared_ptr<GraphMapEdge>, prop: StdShared_ptr<GraphMapEdgeProp>, source: GraphVertexID, target: GraphVertexID): GraphEdgeID;
-  addNode(node: StdShared_ptr<GraphMapNode>, prop: StdShared_ptr<GraphMapNodeProp>): GraphVertexID;
 }
 export interface ImmIdTConstructor { new(): ImmIdT; }
 export interface ImmIdT {  }

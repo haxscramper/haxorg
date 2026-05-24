@@ -1,10 +1,11 @@
-#include "graph_elk.hpp"
+#if ORG_BUILD_WITH_ELK
+#    include "graph_elk.hpp"
 
-#include <unordered_set>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/ext/bimap_wrap.hpp>
-#include <hstd/stdlib/Ranges.hpp>
+#    include <unordered_set>
+#    include <hstd/ext/logger.hpp>
+#    include <hstd/stdlib/JsonSerde.hpp>
+#    include <hstd/ext/bimap_wrap.hpp>
+#    include <hstd/stdlib/Ranges.hpp>
 
 
 using namespace hstd;
@@ -460,3 +461,4 @@ hstd::ext::visual::VisGroup hstd::ext::graph::elk::
 
     return res;
 }
+#endif

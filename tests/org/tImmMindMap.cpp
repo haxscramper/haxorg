@@ -130,7 +130,17 @@ struct ImmMapApi : ImmOrgApiTestBase {
         state->addNodeRec(node.ctx.lock(), node, conf);
     }
 
-    void writeGraphviz() { writeGraphviz(getDebugFile("graph.png")); }
+    void writeRepresentation() {
+        writeGraphviz(getDebugFile("graph.png"));
+        auto        serial = state->graph->get_serial();
+        std::string json;
+        google::protobuf::json::PrintOptions j_opts;
+        j_opts.add_whitespace = true;
+        auto status = google::protobuf::util::MessageToJsonString(
+            *serial, &json, j_opts);
+        EXPECT_TRUE(status.ok());
+        writeFile(getDebugFile("serial.json"), json);
+    }
 
     auto getGraphviz() {
         graph::MapGraph::GvConfig gvc{};
@@ -144,12 +154,10 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void setGraphTraceFile(fs::path const& name) {
-        // getGraph()->traceStructured = true;
         getGraph()->setTraceFile(name);
     }
 
     void setImmContextTraceFile(fs::path const& name) {
-        // store->debug->traceStructured = true;
         store->debug->setTraceFile(name);
     }
 
@@ -163,7 +171,7 @@ TEST_F(ImmMapApi, AddNode) {
     auto v1 = getState()->addNode(getVersion().getRootAdapter(), conf);
     EXPECT_EQ(getGraph()->getVertexCount(), 1);
 
-    writeGraphviz();
+    writeRepresentation();
 }
 
 TEST_F(ImmMapApi, AddNodeWithLinks) {
@@ -224,7 +232,7 @@ Paragraph [[id:subtree-id]]
         EXPECT_EQ(getGraph()->getEdges().size(), 1);
     }
 
-    writeGraphviz();
+    writeRepresentation();
 }
 
 
@@ -256,7 +264,7 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
     EXPECT_EQ(getState()->unresolved.size(), 0);
 
-    writeGraphviz();
+    writeRepresentation();
 }
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
@@ -288,7 +296,7 @@ radio user paragraph
         EXPECT_EQ(getState()->unresolved.size(), 0);
     }
 
-    writeGraphviz();
+    writeRepresentation();
 }
 
 TEST_F(ImmMapApi, RadioTargetsInverse) {
@@ -325,7 +333,7 @@ radio user paragraph
         EXPECT_EQ(getState()->unresolved.size(), 0);
     }
 
-    writeGraphviz();
+    writeRepresentation();
 }
 
 TEST_F(ImmMapApi, RadioTargetAliases) {
@@ -348,7 +356,7 @@ also known as a human-readable alias
 
     auto root = getLastRootAdapter();
     addNodeRec(root);
-    writeGraphviz();
+    writeRepresentation();
 
     imm::ImmAdapter t1         = root.at(1);
     imm::ImmAdapter t2         = root.at(2);
@@ -474,7 +482,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
-    writeGraphviz();
+    writeRepresentation();
 
     auto Subtree_1 = file.at({1, 0}).as<org::imm::ImmSubtree>();
     // EXPECT_EQ(getGraph().getEd)
@@ -590,7 +598,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
     EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
 
-    writeGraphviz();
+    writeRepresentation();
 
     auto List_1       = root.at(1).at(0);
     auto List_2       = root.at(2).at(0);
@@ -737,5 +745,5 @@ TEST_F(ImmMapApi, Doc1Graph) {
     // gv->render(
     //     getDebugFile("map.png"),
     //     hstd::ext::graph::gv::LayoutType::Sfdp);
-    writeGraphviz();
+    writeRepresentation();
 }

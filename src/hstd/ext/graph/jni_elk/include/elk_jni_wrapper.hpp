@@ -1,6 +1,7 @@
 #pragma once
 
-#include <string>
+#if ORG_BUILD_WITH_ELK
+#    include <string>
 
 namespace elk_jni {
 
@@ -20,3 +21,5 @@ class ElkLayoutEngine {
 };
 
 } // namespace elk_jni
+
+#endif

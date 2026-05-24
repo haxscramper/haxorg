@@ -92,22 +92,6 @@ struct org::bind::c::VTable<std::optional<org::AstTrackingAlternatives>> {
 };
 
 template <>
-struct org::bind::c::VTable<std::optional<hstd::Str>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<org::graph::MapLink>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
 struct org::bind::c::VTable<std::optional<org::sem::Tblfm::Expr::AxisRef::Position>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
@@ -133,6 +117,14 @@ struct org::bind::c::VTable<std::optional<bool>> {
 
 template <>
 struct org::bind::c::VTable<std::optional<double>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<hstd::Str>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);

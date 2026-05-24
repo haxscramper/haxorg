@@ -15,7 +15,7 @@ struct IVertex
     virtual void write_serial(
         proto::IVertex* out,
         IGraph const*   graph,
-        VertexID const& self_id) const = 0;
+        VertexID const& self_id) const;
 #endif
 };
 

@@ -1,0 +1,13 @@
+syntax = "proto3";
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "SemOrgProto.proto";
+
+package org.graph.proto;
+
+message MapNodePayload {
+  oneof node {
+    orgproto.Subtree subtree = 1;
+    orgproto.Paragraph paragraph = 2;
+  }
+}

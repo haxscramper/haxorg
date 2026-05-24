@@ -1,11 +1,12 @@
-#include "elk_jni_wrapper.hpp"
-#include <jni.h>
-#include <iostream>
-#include <format>
+#if ORG_BUILD_WITH_ELK
+#    include "elk_jni_wrapper.hpp"
+#    include <jni.h>
+#    include <iostream>
+#    include <format>
 
 
-#include <dlfcn.h>
-#define PATH_SEPARATOR ":"
+#    include <dlfcn.h>
+#    define PATH_SEPARATOR ":"
 
 namespace elk_jni {
 
@@ -168,3 +169,4 @@ bool ElkLayoutEngine::isInitialized() const {
 }
 
 } // namespace elk_jni
+#endif

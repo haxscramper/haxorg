@@ -19,10 +19,6 @@ struct haxorg_HstdVecOfSequenceSegment;
 
 struct haxorg_HstdVecOfSequenceAnnotationTag;
 
-struct haxorg_HstdVecOfImmUniqId;
-
-struct haxorg_HstdVecOfGraphMapLink;
-
 struct haxorg_HstdVecOfLispCode;
 
 struct haxorg_HstdVecOfTblfmAssign;
@@ -435,24 +431,6 @@ struct haxorg_SequenceAnnotationTag;
 
 struct haxorg_SequenceAnnotation;
 
-struct haxorg_GraphMapLink;
-
-struct haxorg_GraphMapLinkLink;
-
-struct haxorg_GraphMapLinkRadio;
-
-struct haxorg_GraphMapNodeProp;
-
-struct haxorg_GraphMapEdgeProp;
-
-struct haxorg_GraphMapNode;
-
-struct haxorg_GraphMapEdge;
-
-struct haxorg_GraphMapConfig;
-
-struct haxorg_GraphMapGraphState;
-
 struct haxorg_LispCode;
 
 struct haxorg_LispCodeCall;
@@ -756,8 +734,6 @@ struct haxorg_CmdIncludeCustom;
 struct haxorg_CmdIncludeSrc;
 
 struct haxorg_CmdIncludeOrgDocument;
-
-struct haxorg_GraphMapGraph;
 
 struct haxorg_ImmNoNode;
 
@@ -1631,16 +1607,6 @@ struct haxorg_HstdVecOfSequenceAnnotationTag {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['hstd', 'Vec', [['org', 'imm', 'ImmUniqId']]]
-struct haxorg_HstdVecOfImmUniqId {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'Vec', [['org', 'graph', 'MapLink']]]
-struct haxorg_HstdVecOfGraphMapLink {
-  haxorg_ptr_payload data;
-};
-
 /// \brief ['hstd', 'Vec', [['org', 'sem', 'LispCode']]]
 struct haxorg_HstdVecOfLispCode {
   haxorg_ptr_payload data;
@@ -2033,51 +1999,6 @@ struct haxorg_SequenceAnnotationTag {
 
 /// \brief ['hstd', 'SequenceAnnotation']
 struct haxorg_SequenceAnnotation {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapLink', 'Link']
-struct haxorg_GraphMapLinkLink {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapLink', 'Radio']
-struct haxorg_GraphMapLinkRadio {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapLink']
-struct haxorg_GraphMapLink {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapNodeProp']
-struct haxorg_GraphMapNodeProp {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapEdgeProp']
-struct haxorg_GraphMapEdgeProp {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapNode']
-struct haxorg_GraphMapNode {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapEdge']
-struct haxorg_GraphMapEdge {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapConfig']
-struct haxorg_GraphMapConfig {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapGraphState']
-struct haxorg_GraphMapGraphState {
   haxorg_ptr_payload data;
 };
 
@@ -2841,11 +2762,6 @@ struct haxorg_CmdIncludeOrgDocument {
 
 /// \brief ['org', 'sem', 'CmdInclude']
 struct haxorg_CmdInclude {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['org', 'graph', 'MapGraph']
-struct haxorg_GraphMapGraph {
   haxorg_ptr_payload data;
 };
 
@@ -4606,12 +4522,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceSegment(OrgContext* or
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfSequenceAnnotationTag_size_const(OrgContext* org_context, haxorg_HstdVecOfSequenceAnnotationTag __this);
 HAXORG_C_API_LINKAGE haxorg_SequenceAnnotationTag haxorg_HstdVecOfSequenceAnnotationTag_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfSequenceAnnotationTag __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfSequenceAnnotationTag(OrgContext* org_context, haxorg_HstdVecOfSequenceAnnotationTag* obj);
-HAXORG_C_API_LINKAGE int haxorg_HstdVecOfImmUniqId_size_const(OrgContext* org_context, haxorg_HstdVecOfImmUniqId __this);
-HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_HstdVecOfImmUniqId_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfImmUniqId __this, int idx);
-HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfImmUniqId(OrgContext* org_context, haxorg_HstdVecOfImmUniqId* obj);
-HAXORG_C_API_LINKAGE int haxorg_HstdVecOfGraphMapLink_size_const(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLink haxorg_HstdVecOfGraphMapLink_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink __this, int idx);
-HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfGraphMapLink(OrgContext* org_context, haxorg_HstdVecOfGraphMapLink* obj);
 HAXORG_C_API_LINKAGE int haxorg_HstdVecOfLispCode_size_const(OrgContext* org_context, haxorg_HstdVecOfLispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCode haxorg_HstdVecOfLispCode_atIndex_const(OrgContext* org_context, haxorg_HstdVecOfLispCode __this, int idx);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdVecOfLispCode(OrgContext* org_context, haxorg_HstdVecOfLispCode* obj);
@@ -4927,41 +4837,6 @@ HAXORG_C_API_LINKAGE int haxorg_SequenceAnnotation_get_last(OrgContext* org_cont
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfSequenceAnnotationTag haxorg_SequenceAnnotation_get_annotations(OrgContext* org_context, haxorg_SequenceAnnotation __this);
 HAXORG_C_API_LINKAGE bool haxorg_SequenceAnnotation_isAnnotatedWith_const(OrgContext* org_context, haxorg_SequenceAnnotation __this, int groupKind, int segmentKind);
 HAXORG_C_API_LINKAGE void haxorg_destroy_SequenceAnnotation(OrgContext* org_context, haxorg_SequenceAnnotation* obj);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLinkRadio haxorg_GraphMapLink_getRadio(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLinkRadio haxorg_GraphMapLink_getRadio_const(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapLink_isRadio_const(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLinkLink haxorg_GraphMapLink_getLink(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLinkLink haxorg_GraphMapLink_getLink_const(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapLink_isLink_const(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLinkKind haxorg_GraphMapLink_getKind_const(OrgContext* org_context, haxorg_GraphMapLink __this);
-HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_GraphMapLinkLink_get_link(OrgContext* org_context, haxorg_GraphMapLinkLink __this);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfImmUniqId haxorg_GraphMapLinkLink_get_description(OrgContext* org_context, haxorg_GraphMapLinkLink __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapLinkLink(OrgContext* org_context, haxorg_GraphMapLinkLink* obj);
-HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_GraphMapLinkRadio_get_target(OrgContext* org_context, haxorg_GraphMapLinkRadio __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapLinkRadio(OrgContext* org_context, haxorg_GraphMapLinkRadio* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapLink(OrgContext* org_context, haxorg_GraphMapLink* obj);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfGraphMapLink haxorg_GraphMapNodeProp_get_unresolved(OrgContext* org_context, haxorg_GraphMapNodeProp __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapNodeProp(OrgContext* org_context, haxorg_GraphMapNodeProp* obj);
-HAXORG_C_API_LINKAGE haxorg_GraphMapLink haxorg_GraphMapEdgeProp_get_link(OrgContext* org_context, haxorg_GraphMapEdgeProp __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapEdgeProp(OrgContext* org_context, haxorg_GraphMapEdgeProp* obj);
-HAXORG_C_API_LINKAGE haxorg_ImmUniqId haxorg_GraphMapNode_get_id(OrgContext* org_context, haxorg_GraphMapNode __this);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNode_getSubtreeId_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapNode_getFootnoteName_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapNode___eq___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapNode___lt___const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_GraphMapNode other);
-HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_GraphMapNode_getAdapter_const(OrgContext* org_context, haxorg_GraphMapNode __this, haxorg_ImmAstContext context);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapNode(OrgContext* org_context, haxorg_GraphMapNode* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapEdge(OrgContext* org_context, haxorg_GraphMapEdge* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapConfig(OrgContext* org_context, haxorg_GraphMapConfig* obj);
-HAXORG_C_API_LINKAGE haxorg_GraphMapGraph haxorg_GraphMapGraphState_get_graph(OrgContext* org_context, haxorg_GraphMapGraphState __this);
-HAXORG_C_API_LINKAGE haxorg_ImmAstContext haxorg_GraphMapGraphState_get_ast(OrgContext* org_context, haxorg_GraphMapGraphState __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapGraph haxorg_GraphMapGraphState_getGraph_const(OrgContext* org_context, haxorg_GraphMapGraphState __this);
-HAXORG_C_API_LINKAGE haxorg_GraphMapGraphState haxorg_GraphMapGraphState_FromAstContext(OrgContext* org_context, haxorg_ImmAstContext ast);
-HAXORG_C_API_LINKAGE haxorg_GraphVertexID haxorg_GraphMapGraphState_addNode(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmAdapter node, haxorg_GraphMapConfig conf);
-HAXORG_C_API_LINKAGE void haxorg_GraphMapGraphState_addNodeRec(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmAstContext ast, haxorg_ImmAdapter node, haxorg_GraphMapConfig conf);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfGraphMapLink haxorg_GraphMapGraphState_getUnresolvedSubtreeLinks_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmSubtreeAdapter node);
-HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_GraphMapGraphState_getUnresolvedLink_const(OrgContext* org_context, haxorg_GraphMapGraphState __this, haxorg_ImmLinkAdapter node);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapGraphState(OrgContext* org_context, haxorg_GraphMapGraphState* obj);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCode_LispCode(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode___eq___const(OrgContext* org_context, haxorg_LispCode __this, haxorg_LispCode other);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isCall_const(OrgContext* org_context, haxorg_LispCode __this);
@@ -5890,11 +5765,6 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_minLeve
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeOrgDocument(OrgContext* org_context, haxorg_CmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdInclude(OrgContext* org_context, haxorg_CmdInclude* obj);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapGraph_isRegisteredNode_const(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapNode id);
-HAXORG_C_API_LINKAGE bool haxorg_GraphMapGraph_isRegisteredNodeById_const(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_ImmUniqId id);
-HAXORG_C_API_LINKAGE haxorg_GraphEdgeID haxorg_GraphMapGraph_addEdgeWithProp(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapEdge edge, haxorg_GraphMapEdgeProp prop, haxorg_GraphVertexID source, haxorg_GraphVertexID target);
-HAXORG_C_API_LINKAGE haxorg_GraphVertexID haxorg_GraphMapGraph_addNode(OrgContext* org_context, haxorg_GraphMapGraph __this, haxorg_GraphMapNode node, haxorg_GraphMapNodeProp prop);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphMapGraph(OrgContext* org_context, haxorg_GraphMapGraph* obj);
 HAXORG_C_API_LINKAGE bool haxorg_ImmNoNode___eq___const(OrgContext* org_context, haxorg_ImmNoNode __this, haxorg_ImmNoNode other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmNoNode(OrgContext* org_context, haxorg_ImmNoNode* obj);
 HAXORG_C_API_LINKAGE haxorg_OrgDiagnostics haxorg_ImmErrorItem_get_diag(OrgContext* org_context, haxorg_ImmErrorItem __this);
@@ -6799,5 +6669,4 @@ HAXORG_C_API_LINKAGE void haxorg_exportToTreeFile(OrgContext* org_context, haxor
 HAXORG_C_API_LINKAGE haxorg_AstTrackingMap haxorg_getAstTrackingMap(OrgContext* org_context, haxorg_HstdVecOfSemIdOfOrg nodes);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfAstTrackingGroup haxorg_getSubnodeGroups(OrgContext* org_context, haxorg_SemIdOfOrg node, haxorg_AstTrackingMap map);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfSequenceAnnotation haxorg_annotateSequence(OrgContext* org_context, haxorg_HstdVecOfSequenceSegmentGroup groups, int first, int last);
-HAXORG_C_API_LINKAGE haxorg_GraphMapGraphState haxorg_initMapGraphState(OrgContext* org_context, haxorg_ImmAstContext ast);
 /* clang-format on */

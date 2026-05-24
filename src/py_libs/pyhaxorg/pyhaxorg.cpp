@@ -46,10 +46,6 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
-NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmUniqId>)
-NB_MAKE_OPAQUE(std::vector<org::imm::ImmUniqId>)
-NB_MAKE_OPAQUE(hstd::Vec<org::graph::MapLink>)
-NB_MAKE_OPAQUE(std::vector<org::graph::MapLink>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
@@ -173,10 +169,6 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
   org::bind::python::bind_stdvector<hstd::SequenceAnnotationTag>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::imm::ImmUniqId>(m, "HstdVecOfImmUniqId", type_registry_guard);
-  org::bind::python::bind_stdvector<org::imm::ImmUniqId>(m, "StdVecOfImmUniqId", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::graph::MapLink>(m, "HstdVecOfGraphMapLink", type_registry_guard);
-  org::bind::python::bind_stdvector<org::graph::MapLink>(m, "StdVecOfGraphMapLink", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
@@ -1943,200 +1935,6 @@ and a segment kind.)RAW")
                      })
     .def("__getattr__",
          [](hstd::SequenceAnnotation const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapLink::Link>(m, "GraphMapLinkLink")
-    .def("__init__",
-         [](org::graph::MapLink::Link* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink::Link();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("link", &org::graph::MapLink::Link::link, R"RAW(\brief Original link used to create the graph edge. Used to
-return an edge to unresolved state when target is deleted. When
-source is deleted the edge is simply dropped.)RAW")
-    .def_rw("description", &org::graph::MapLink::Link::description, R"RAW(MapLink description field can be reused or, for description
-list items, this field contains a newly created statment list)RAW")
-    .def("__repr__", [](org::graph::MapLink::Link const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapLink::Link const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapLink::Radio>(m, "GraphMapLinkRadio")
-    .def("__init__",
-         [](org::graph::MapLink::Radio* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink::Radio();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("target", &org::graph::MapLink::Radio::target)
-    .def("__repr__", [](org::graph::MapLink::Radio const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapLink::Radio const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapLink>(m, "GraphMapLink")
-    .def("__init__",
-         [](org::graph::MapLink* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapLink();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getRadio", static_cast<org::graph::MapLink::Radio&(org::graph::MapLink::*)()>(&org::graph::MapLink::getRadio))
-    .def("isRadio", static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isRadio))
-    .def("getLink", static_cast<org::graph::MapLink::Link&(org::graph::MapLink::*)()>(&org::graph::MapLink::getLink))
-    .def("isLink", static_cast<bool(org::graph::MapLink::*)() const>(&org::graph::MapLink::isLink))
-    .def("getKind", static_cast<org::graph::MapLink::Kind(org::graph::MapLink::*)() const>(&org::graph::MapLink::getKind))
-    .def("__repr__", [](org::graph::MapLink const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapLink const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapNodeProp>(m, "GraphMapNodeProp")
-    .def("__init__",
-         [](org::graph::MapNodeProp* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapNodeProp();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("unresolved", &org::graph::MapNodeProp::unresolved)
-    .def("__repr__", [](org::graph::MapNodeProp const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapNodeProp const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapEdgeProp>(m, "GraphMapEdgeProp")
-    .def("__init__",
-         [](org::graph::MapEdgeProp* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapEdgeProp();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("link", &org::graph::MapEdgeProp::link)
-    .def("__repr__", [](org::graph::MapEdgeProp const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapEdgeProp const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapNode>(m, "GraphMapNode")
-    .def("__init__",
-         [](org::graph::MapNode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapNode();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("id", &org::graph::MapNode::id)
-    .def("getSubtreeId",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getSubtreeId),
-         nanobind::arg("context"))
-    .def("getFootnoteName",
-         static_cast<std::optional<hstd::Str>(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getFootnoteName),
-         nanobind::arg("context"))
-    .def("__eq__",
-         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator==),
-         nanobind::arg("other"))
-    .def("__lt__",
-         static_cast<bool(org::graph::MapNode::*)(org::graph::MapNode const&) const>(&org::graph::MapNode::operator<),
-         nanobind::arg("other"))
-    .def("getAdapter",
-         static_cast<org::imm::ImmAdapter(org::graph::MapNode::*)(std::shared_ptr<org::imm::ImmAstContext> const&) const>(&org::graph::MapNode::getAdapter),
-         nanobind::arg("context"))
-    .def("__repr__", [](org::graph::MapNode const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapNode const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapEdge>(m, "GraphMapEdge")
-    .def("__init__",
-         [](org::graph::MapEdge* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapEdge();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::graph::MapEdge const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapEdge const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapConfig>(m, "GraphMapConfig")
-    .def("__init__",
-         [](org::graph::MapConfig* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapConfig();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::graph::MapConfig const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapConfig const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::graph::MapGraphState>(m, "GraphMapGraphState")
-    .def_rw("graph", &org::graph::MapGraphState::graph)
-    .def_rw("ast", &org::graph::MapGraphState::ast)
-    .def("getGraph", static_cast<std::shared_ptr<org::graph::MapGraph>(org::graph::MapGraphState::*)() const>(&org::graph::MapGraphState::getGraph))
-    .def_static("FromAstContextStatic",
-                static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::MapGraphState::FromAstContext),
-                nanobind::arg("ast"))
-    .def("addNode",
-         static_cast<hstd::ext::graph::VertexID(org::graph::MapGraphState::*)(org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNode),
-         nanobind::arg("node"),
-         nanobind::arg("conf"))
-    .def("addNodeRec",
-         static_cast<void(org::graph::MapGraphState::*)(std::shared_ptr<org::imm::ImmAstContext> const&, org::imm::ImmAdapter const&, std::shared_ptr<org::graph::MapConfig> const&)>(&org::graph::MapGraphState::addNodeRec),
-         nanobind::arg("ast"),
-         nanobind::arg("node"),
-         nanobind::arg("conf"))
-    .def("getUnresolvedSubtreeLinks",
-         static_cast<hstd::Vec<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmSubtree>) const>(&org::graph::MapGraphState::getUnresolvedSubtreeLinks),
-         nanobind::arg("node"),
-         R"RAW(\brief Get all outgoing links used in the subtree. This will scan
-the subtree and its sub-nodes for the attached description lists.)RAW")
-    .def("getUnresolvedLink",
-         static_cast<std::optional<org::graph::MapLink>(org::graph::MapGraphState::*)(org::imm::ImmAdapterT<org::imm::ImmLink>) const>(&org::graph::MapGraphState::getUnresolvedLink),
-         nanobind::arg("node"),
-         R"RAW(\brief Get the unresolved link used in the specified node. Returns
-only one link per node, if it is present. This function will not
-recursively scan the node, it will only return the link if it is
-present in the node argument.)RAW")
-    .def("__repr__", [](org::graph::MapGraphState const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapGraphState const& _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -6652,40 +6450,6 @@ present in the node argument.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::graph::MapGraph, hstd::OperationsTracer>(m, "GraphMapGraph")
-    .def("__init__",
-         [](org::graph::MapGraph* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::graph::MapGraph();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("isRegisteredNode",
-         static_cast<bool(org::graph::MapGraph::*)(org::graph::MapNode const&) const>(&org::graph::MapGraph::isRegisteredNode),
-         nanobind::arg("id"))
-    .def("isRegisteredNode",
-         static_cast<bool(org::graph::MapGraph::*)(org::imm::ImmUniqId const&) const>(&org::graph::MapGraph::isRegisteredNode),
-         nanobind::arg("id"))
-    .def("addEdge",
-         static_cast<hstd::ext::graph::EdgeID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapEdge> const&, std::shared_ptr<org::graph::MapEdgeProp> const&, hstd::ext::graph::VertexID, hstd::ext::graph::VertexID)>(&org::graph::MapGraph::addEdge),
-         nanobind::arg("edge"),
-         nanobind::arg("prop"),
-         nanobind::arg("source"),
-         nanobind::arg("target"))
-    .def("addNode",
-         static_cast<hstd::ext::graph::VertexID(org::graph::MapGraph::*)(std::shared_ptr<org::graph::MapNode> const&, std::shared_ptr<org::graph::MapNodeProp> const&)>(&org::graph::MapGraph::addNode),
-         nanobind::arg("node"),
-         nanobind::arg("prop"),
-         R"RAW(\brief Add node to the graph, without registering any outgoing or
-ingoing elements.)RAW")
-    .def("__repr__", [](org::graph::MapGraph const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::graph::MapGraph const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
   nanobind::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, org::imm::ImmId>(m, "ImmIdTNoNode")
     ;
   nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
@@ -8764,9 +8528,6 @@ ingoing elements.)RAW")
         nanobind::arg("groups"),
         nanobind::arg("first"),
         nanobind::arg("last"));
-  m.def("initMapGraphState",
-        static_cast<std::shared_ptr<org::graph::MapGraphState>(*)(std::shared_ptr<org::imm::ImmAstContext>)>(&org::graph::initMapGraphState),
-        nanobind::arg("ast"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRec),
         nanobind::arg("node"),

@@ -7,32 +7,27 @@ set_target_output(haxorg)
 set_target_flags(haxorg)
 
 if(${ORG_BUILD_WITH_PROTOBUF})
-  protobuf_generate(
-    LANGUAGE
-    cpp
-    OUT_VAR
-    ORG_PROTO_GENERATED_FILES
-    PROTOC_EXE
-    "${PROTOC_PATH}"
+  haxorg_add_protobuf(
+    TARGET
+    haxorg
+    UNIQUE_TARGET
+    haxorg_sem_protobuf
     IMPORT_DIRS
     "${BASE}/src/haxorg/serde"
-    PROTOS
+    PROTO_SOURCES
     "${BASE}/src/haxorg/serde/SemOrgProto.proto"
-    "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto"
-    PROTOC_OUT_DIR
-    "${CMAKE_CURRENT_BINARY_DIR}")
+    "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto")
 
-  # Create a custom target for protobuf generation
-  add_custom_target(
-    haxorg_generate_protobuf
-    DEPENDS ${ORG_PROTO_GENERATED_FILES}
-    COMMENT "Generating protobuf files")
-
-  target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
-  add_dependencies(haxorg haxorg_generate_protobuf)
-  message(STATUS "ORG_PROTO_GENERATED_FILES = ${ORG_PROTO_GENERATED_FILES}")
-
-  target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+  haxorg_add_protobuf(
+    TARGET
+    haxorg
+    UNIQUE_TARGET
+    haxorg_imm_graph_protobuf
+    IMPORT_DIRS
+    "${BASE}/src/haxorg/serde"
+    "${BASE}/src/haxorg/imm"
+    PROTO_SOURCES
+    "${BASE}/src/haxorg/imm/ImmOrgGraph.proto")
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json

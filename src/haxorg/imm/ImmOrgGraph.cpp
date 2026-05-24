@@ -13,6 +13,9 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include "ImmGetterApi.hpp"
+#include "ImmOrgGraph.pb.h"
+#include <haxorg/serde/SemOrgSerde.hpp>
+#include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 
 using namespace org::graph;
 using namespace hstd;
@@ -202,7 +205,7 @@ hgraph::VertexID MapGraphState::addNode(
     auto attr = conf->getInitialNodeProp(this, node);
     OP_TRACER_MESSAGE(
         graph, "initial node prop unresolved:{}", attr->unresolved);
-    auto graph_node = MapNode::shared(node.uniq());
+    auto graph_node = MapNode::shared(node);
     auto res        = getGraph()->addNode(graph_node, attr);
     OP_TRACER_MESSAGE(
         graph,
@@ -541,10 +544,10 @@ struct resolve_state {
             }
         };
 
-        if (auto par = node->getAdapter(state->ast)
+        if (auto par = node->getAdapter()
                            .asOpt<org::imm::ImmParagraph>()) {
-            for (auto const& group : getSubnodeGroups(
-                     state->ast, node->getAdapter(state->ast))) {
+            for (auto const& group :
+                 getSubnodeGroups(state->ast, node->getAdapter())) {
                 OP_TRACER_MESSAGE(g, "Group {}", group);
                 if (group.isRadioTarget()) {
                     OP_TRACER_MESSAGE(g, "Got radio target group");
@@ -925,7 +928,7 @@ std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
 
 hstd::Opt<Str> MapNode::getFootnoteName(
     std::shared_ptr<imm::ImmAstContext> const& context) const {
-    if (auto par = getAdapter(context).asOpt<org::imm::ImmParagraph>();
+    if (auto par = getAdapter().asOpt<org::imm::ImmParagraph>();
         par && par->isFootnoteDefinition()) {
         return par->getFootnoteName();
     } else {
@@ -933,9 +936,26 @@ hstd::Opt<Str> MapNode::getFootnoteName(
     }
 }
 
+void org::graph::MapNode::write_serial(
+    hgraph::proto::IVertex* out,
+    hgraph::IGraph const*   graph,
+    hgraph::VertexID const& self_id) const {
+    IVertex::write_serial(out, graph, self_id);
+    out->set_type("org::graph::MapNode");
+    proto::MapNodePayload payload;
+
+    org::algo::proto_serde<orgproto::Subtree, org::sem::Subtree>::write(
+        payload.mutable_subtree(),
+        *org::imm::sem_from_immer(id.id, *id.ctx.lock())
+             .as<org::sem::Subtree>());
+
+    out->mutable_payload()->PackFrom(payload);
+}
+
+
 hstd::Opt<Str> MapNode::getSubtreeId(
     std::shared_ptr<imm::ImmAstContext> const& context) const {
-    if (auto tree = getAdapter(context).asOpt<org::imm::ImmSubtree>();
+    if (auto tree = getAdapter().asOpt<org::imm::ImmSubtree>();
         tree && tree.value()->treeId.get()) {
         return tree.value()->treeId->value();
     } else {

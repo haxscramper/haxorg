@@ -1,18 +1,20 @@
 #pragma once
 
-#include "elk_jni_wrapper.hpp"
-#include <memory>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/ext/graph/base/graph_base.hpp>
-#include <hstd/ext/graph/visual/graph_visual.hpp>
-#include <hstd/stdlib/Debug.hpp>
+#if ORG_BUILD_WITH_ELK
+
+#    include "elk_jni_wrapper.hpp"
+#    include <memory>
+#    include <hstd/stdlib/Exception.hpp>
+#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/Str.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/JsonSerde.hpp>
+#    include <hstd/stdlib/JsonUse.hpp>
+#    include <hstd/ext/graph/base/graph_base.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/stdlib/Debug.hpp>
 
 
 namespace hstd::ext::graph::elk {
@@ -74,17 +76,17 @@ class Options {
         data[key] = value;
     }
 
-#if false
-#    include <algorithm>
-#    include <stdexcept>
-#    include <string>
-#    include <string_view>
-#    include <vector>
+#    if false
+#        include <algorithm>
+#        include <stdexcept>
+#        include <string>
+#        include <string_view>
+#        include <vector>
 
-#    include <lexy/action/parse.hpp>
-#    include <lexy/callback.hpp>
-#    include <lexy/dsl.hpp>
-#    include <lexy/input/string_input.hpp>
+#        include <lexy/action/parse.hpp>
+#        include <lexy/callback.hpp>
+#        include <lexy/dsl.hpp>
+#        include <lexy/input/string_input.hpp>
 
 class IdentifierList {
 public:
@@ -172,7 +174,7 @@ private:
         return std::find(items.begin(), items.end(), ident) != items.end();
     }
 };
-#endif
+#    endif
 };
 
 class Label {
@@ -652,11 +654,11 @@ struct hstd::value_metadata<hstd::ext::graph::elk::Options> {
     }
 };
 
-#define SPECIALIZE_WO_NULL_FIELDS(__name)                                 \
-    template <>                                                           \
-    struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                 \
-        : hstd::JsonSerdeDescribedRecordBaseEx<                           \
-              hstd::ext::graph::elk::__name> {};
+#    define SPECIALIZE_WO_NULL_FIELDS(__name)                             \
+        template <>                                                       \
+        struct hstd::JsonSerde<hstd::ext::graph::elk::__name>             \
+            : hstd::JsonSerdeDescribedRecordBaseEx<                       \
+                  hstd::ext::graph::elk::__name> {};
 
 SPECIALIZE_WO_NULL_FIELDS(GraphElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(PortProperties);
@@ -685,3 +687,4 @@ struct std::formatter<hstd::ext::graph::elk::Options> {
         return hstd::fmt_ctx(p.data, ctx);
     }
 };
+#endif
