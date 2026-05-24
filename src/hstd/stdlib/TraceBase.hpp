@@ -104,15 +104,12 @@ struct [[refl]] OperationsTracer {
         int                     line     = __builtin_LINE(),
         char const*             file     = __builtin_FILE()) const;
 
+
     finally_std scopeTrace(bool state);
-
-
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
-
-    SPtr<std::ostream> getTraceFile();
-
+    SPtr<std::ostream>  getTraceFile();
     hstd::Opt<fs::path> getTraceFileDir() const;
     void                writeAdjacentToTraceFile(
         hstd::Str const& suffix,
@@ -151,6 +148,31 @@ struct [[refl]] OperationsTracer {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE()) const;
 };
+
+
+namespace {
+inline bool __is_trace_state(hstd::OperationsTracer const& t) {
+    return t.TraceState;
+}
+inline bool __is_trace_state(hstd::OperationsTracer const* t) {
+    return t->TraceState;
+}
+inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
+    return t->TraceState;
+}
+} // namespace
+
+#define OP_TRACER_MESSAGE(__tracer, __format, ...)                        \
+    if (::hstd::__is_trace_state(__tracer)) {                             \
+        __tracer->message(                                                \
+            __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
+    }
+
+#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                  \
+    ::hstd::__is_trace_state(__tracer)                                    \
+        ? __tracer->begin_scope(                                          \
+              __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
+        : __tracer->begin_scope();
 
 
 template <typename Derived, typename Msg>

@@ -21,31 +21,6 @@ using namespace hstd::ext;
 using osk = OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
-namespace {
-inline bool __is_trace_state(hstd::OperationsTracer const& t) {
-    return t.TraceState;
-}
-inline bool __is_trace_state(hstd::OperationsTracer const* t) {
-    return t->TraceState;
-}
-inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
-    return t->TraceState;
-}
-} // namespace
-
-
-#define OP_TRACER_MESSAGE(__tracer, __format, ...)                        \
-    if (__is_trace_state(__tracer)) {                                     \
-        __tracer->message(                                                \
-            __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
-    }
-
-#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                  \
-    __is_trace_state(__tracer)                                            \
-        ? __tracer->begin_scope(                                          \
-              __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
-        : __tracer->begin_scope();
-
 
 bool org::graph::isMmapIgnored(ImmAdapter const& n) {
     return isInSubtreeDescriptionList(n)

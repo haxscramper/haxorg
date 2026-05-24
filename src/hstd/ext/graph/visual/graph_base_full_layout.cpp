@@ -1,8 +1,8 @@
-#include "graph_base.hpp"
+#include <hstd/ext/graph/base/graph_base.hpp>
 
 #include <hstd/stdlib/algorithms.hpp>
-#include <hstd/ext/graph/graph_avoid.hpp>
-#include <hstd/ext/graph/graph_vpsc.hpp>
+#include <hstd/ext/graph/visual/graph_avoid.hpp>
+#include <hstd/ext/graph/visual/graph_vpsc.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 
 using namespace hstd::ext::graph;
@@ -41,11 +41,11 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         if (group->hasAlgorithm()) {
             auto sub_res = group->getAlgorithm()->runSingleLayout(id);
 
-            run->message(
-                hstd::fmt(
-                    "sub res ports: {} overall ports {}",
-                    run->getDebug(sub_res.ports.keys()),
-                    run->getDebug(run->getDirectPorts(id))));
+            OP_TRACER_MESSAGE(
+                run,
+                "sub res ports: {} overall ports {}",
+                run->getDebug(sub_res.ports.keys()),
+                run->getDebug(run->getDirectPorts(id)));
 
             LOGIC_ASSERTION_CHECK_FMT(
                 sub_res.vertices.contains(id),
@@ -56,10 +56,10 @@ void layout_run_full_layout(layout::LayoutRun* run) {
             auto missing_vertex_layout = run->getDirectVertices(id)
                                        - VertexIDSet::FromVec(
                                              sub_res.vertices.keys());
-            run->message(
-                hstd::fmt(
-                    "generated layout for {}",
-                    run->getDebug(sub_res.vertices.keys())));
+            OP_TRACER_MESSAGE(
+                run,
+                "generated layout for {}",
+                run->getDebug(sub_res.vertices.keys()));
 
             LOGIC_ASSERTION_CHECK_FMT(
                 missing_vertex_layout.empty(),
@@ -191,7 +191,7 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         }
     }
 
-    run->message(hstd::fmt("vertex_set:\n{}", run->getDebug(vertex_set)));
+    OP_TRACER_MESSAGE(run, "vertex_set:\n{}", run->getDebug(vertex_set));
 
     for (auto const& edge : run->getAllUnboundEdges()) {
         if (vertex_set.contains(run->edges->getSource(edge))

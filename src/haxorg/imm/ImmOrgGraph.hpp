@@ -7,9 +7,9 @@
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph/graph_graphviz.hpp>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #endif
-#include <hstd/ext/graph/graph_base.hpp>
+#include <hstd/ext/graph/base/graph_base.hpp>
 #include <haxorg/imm/ImmGetterApi.hpp>
 
 namespace org::graph {

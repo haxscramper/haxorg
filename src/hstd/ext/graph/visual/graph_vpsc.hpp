@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/ext/graph/graph_base.hpp>
-#include <hstd/ext/graph/graph_visual.hpp>
-#include <hstd/ext/graph/adaptagrams_common.hpp>
+#include <hstd/ext/graph/base/graph_base.hpp>
+#include <hstd/ext/graph/visual/graph_visual.hpp>
+#include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #include <libdialect/hola.h>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/algorithms.hpp>
