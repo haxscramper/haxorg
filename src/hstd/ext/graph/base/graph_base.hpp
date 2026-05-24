@@ -75,7 +75,8 @@ class IGraph {
         hierarchies;
 
     /// \brief Full set of all vertices in the graph
-    hstd::UnorderedSet<VertexID> vertexIDs;
+    hstd::UnorderedSet<VertexID>      vertexIDs;
+    hstd::UnorderedMap<Str, VertexID> stableIdMap;
 
   public:
     struct Crossing {
@@ -109,6 +110,14 @@ class IGraph {
     virtual IVertex const* getVertex(VertexID const& id) const = 0;
     virtual IVertex*       getMVertex(VertexID const& id) const {
         return const_cast<IVertex*>(getVertex(id));
+    }
+
+    bool hasVertexStableId(Str const& id) const {
+        return stableIdMap.contains(id);
+    }
+
+    VertexID getVertexIDByStableId(Str const& id) const {
+        return stableIdMap.at(id);
     }
 
     template <typename T = IVertex>

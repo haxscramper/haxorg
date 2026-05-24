@@ -164,8 +164,13 @@ struct [[refl]] SemId {
     template <typename T>
     SemId<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
-            LOGIC_ASSERTION_CHECK(value->getKind() == T::staticKind, "");
+            LOGIC_ASSERTION_CHECK_FMT(
+                value->getKind() == T::staticKind,
+                "Cannot get node kind {} from the adapter kind {}",
+                T::staticKind,
+                value->getKind());
         }
+
         return SemId<T>{std::dynamic_pointer_cast<T>(value)};
     }
 

@@ -936,6 +936,14 @@ hstd::Opt<Str> MapNode::getFootnoteName(
     }
 }
 
+namespace {
+template <typename Out, typename Imm>
+void write_sem_to_proto(Out* out, org::imm::ImmAdapter const& ad) {
+    org::algo::proto_serde<Out, Imm>::write(
+        out, *org::imm::sem_from_immer(ad.id, *ad.ctx.lock()).as<Imm>());
+}
+} // namespace
+
 void org::graph::MapNode::write_serial(
     hgraph::proto::IVertex* out,
     hgraph::IGraph const*   graph,
@@ -944,10 +952,9 @@ void org::graph::MapNode::write_serial(
     out->set_type("org::graph::MapNode");
     proto::MapNodePayload payload;
 
-    org::algo::proto_serde<orgproto::Subtree, org::sem::Subtree>::write(
-        payload.mutable_subtree(),
-        *org::imm::sem_from_immer(id.id, *id.ctx.lock())
-             .as<org::sem::Subtree>());
+    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+        payload.mutable_node(),
+        org::imm::sem_from_immer(id.id, *id.ctx.lock()));
 
     out->mutable_payload()->PackFrom(payload);
 }

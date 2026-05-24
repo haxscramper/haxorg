@@ -6,8 +6,5 @@ import "SemOrgProto.proto";
 package org.graph.proto;
 
 message MapNodePayload {
-  oneof node {
-    orgproto.Subtree subtree = 1;
-    orgproto.Paragraph paragraph = 2;
-  }
+  orgproto.AnyNode node = 1;
 }

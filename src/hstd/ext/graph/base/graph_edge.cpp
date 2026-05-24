@@ -47,6 +47,7 @@ void IEdgeCollection::trackVertex(VertexID const& vert) {
         incidence.insert_or_assign(
             vert, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>{});
     }
+
     if (!incoming_from.contains(vert)) {
         incoming_from.insert_or_assign(vert, hstd::Vec<VertexID>{});
     }
@@ -101,6 +102,13 @@ void hstd::ext::graph::IEdgeCollection::trackEdge(
         "already associated with an object in the edge collection. "
         "hasEdge({}) = false",
         id);
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        !hasEdgeStableId(getEdge(id)->getStableId()),
+        "The collection already contains edge with stable ID {}",
+        getEdge(id)->getStableId());
+
+    stableIdMap.insert_or_assign(getEdge(id)->getStableId(), id);
 
     if (!incidence.contains(source)) {
         incidence.insert_or_assign(

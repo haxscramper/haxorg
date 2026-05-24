@@ -59,6 +59,9 @@ struct TrivialEdge
 /// refers to the incidence matrix presence: knowing the source/target of
 /// the edge ID, and having the ID itself registered.
 class IEdgeProvider {
+  protected:
+    hstd::UnorderedMap<Str, EdgeID> stableIdMap;
+
   public:
     virtual ~IEdgeProvider() = default;
     /// \brief Return edge category for this collection, uniquely
@@ -69,6 +72,14 @@ class IEdgeProvider {
     virtual IEdge const* getEdge(EdgeID const& id) const   = 0;
     virtual VertexID     getSource(EdgeID const& id) const = 0;
     virtual VertexID     getTarget(EdgeID const& id) const = 0;
+
+    bool hasEdgeStableId(Str const& id) const {
+        return stableIdMap.contains(id);
+    }
+
+    EdgeID getEdgeIDByStableId(Str const& id) const {
+        return stableIdMap.at(id);
+    }
 
     /// \brief Return stable identifier for this edge collection.
     virtual std::string getStableID() const;

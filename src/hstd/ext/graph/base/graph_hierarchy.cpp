@@ -163,6 +163,7 @@ EdgeID IVertexHierarchy::trackSubVertexRelation(
         nestedInMap.insert_or_assign(
             parent, hstd::UnorderedSet<VertexID>{});
     }
+
     nestedInMap.at(parent).insert(sub);
     if (rootVertices.contains(sub)) { rootVertices.erase(sub); }
     EdgeID result = EdgeID::FromMasked(
