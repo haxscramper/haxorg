@@ -223,6 +223,29 @@ hstd::Opt<VertexID> IVertexHierarchy::getParentVertex(
     if (parentMap.contains(id)) { return parentMap.at(id); }
     return hstd::Opt<VertexID>{};
 }
+
+void hstd::ext::graph::IVertexHierarchy::write_serial(
+    proto::IVertexHierarchy* out,
+    IGraph const*            graph) const {
+    out->set_stable_id(getStableID());
+    for (auto const& v : rootVertices) {
+        out->add_root_vertex_ids(graph->getStableId(v));
+    }
+
+    for (auto const& [nested, parent] : parentMap) {
+        (*out->mutable_parent_map())[graph->getStableId(
+            nested)] = graph->getStableId(parent);
+    }
+
+    for (auto const& [parent, sub_vertices] : nestedInMap) {
+        auto& ref = (*out->mutable_nested_in_map())[graph->getStableId(
+            parent)];
+        for (auto const& sub : sub_vertices) {
+            ref.add_vertices(graph->getStableId(sub));
+        }
+    }
+}
+
 std::optional<VertexID> hstd::ext::graph::IVertexHierarchy::
     getCommonAncestor(VertexIDSet const& ids) const {
     if (ids.empty()) { return std::nullopt; }

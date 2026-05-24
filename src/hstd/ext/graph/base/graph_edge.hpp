@@ -32,10 +32,7 @@ struct IEdge
     virtual void write_serial(
         proto::IEdge* out,
         IGraph const* graph,
-        EdgeID const& self_id) const {
-        out->set_stable_id(getStableId());
-        // out->set_source_vertex_id();
-    }
+        EdgeID const& self_id) const;
 #endif
 };
 
@@ -152,6 +149,11 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
+    virtual void write_serial(
+        proto::IEdgeCollection* out,
+        IGraph const*           graph) const;
+
+
     bool isTrackingEdge(EdgeID const& id) const override {
         bool res = source_target.contains(id);
         if (res) {

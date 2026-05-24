@@ -271,37 +271,19 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
           hstd::UnorderedMap<std::string, V>> {};
 
 
-json IGraph::getGraphSerial() const {
-    // IGraph::SerialSchema res{};
-    // for (auto const& [_, collection] : collections) {
-    //     SerialSchema::EdgeCategory category;
-    //     category.categoryName = collection->getStableID();
-    //     for (auto const& edge : collection->getEdges()) {
-    //         category.edges.push_back(
-    //             collection->getEdge(edge)->getSerialNonRecursive(
-    //                 this, edge));
+void IGraph::write_serial(proto::IGraphProto* out) const {
+    for (auto const& [_, collection] : collections) {
+        collection->write_serial(out->add_collections(), this);
+    }
 
-    //         auto& cross = category.hierarchyEdgeCrossings
-    //                           [collection->getEdge(edge)->getStableId()];
-    //         for (auto const& item : getHierarchyCrossings(edge)) {
-    //             SerialSchema::EdgeCategory::HierarchyCrossing crossing;
-    //             crossing.hierarchyName = hierarchies.at(item.hierarchy)
-    //                                          ->getStableID();
-    //             for (auto const& c : item.crossings) {
-    //                 crossing.crossings.push_back(
-    //                     getVertex(c)->getStableId());
-    //             }
-    //             cross.push_back(crossing);
-    //         }
-    //     }
+    for (auto const& [_, hierarchy] : hierarchies) {
+        hierarchy->write_serial(out->add_hierarchies(), this);
+    }
 
-    //     res.edges.insert_or_assign(category.categoryName, category);
-    // }
-
-    // for (auto const& vertex : hstd::sorted(
-    //          hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
-    //     res.flatVertexIDs.push_back(getVertex(vertex)->getStableId());
-    // }
+    for (auto const& vertex : hstd::sorted(
+             hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
+        getVertex(vertex)->write_serial(out->add_vertices(), this, vertex);
+    }
 
     // for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
     //     SerialSchema::Hierarchy serial_hierarchy;
@@ -346,6 +328,12 @@ json IGraph::getGraphSerial() const {
     // }
 
     // return hstd::to_json_eval(res);
+}
+
+std::unique_ptr<proto::IGraphProto> IGraph::get_serial() const {
+    auto result = std::make_unique<proto::IGraphProto>();
+    write_serial(result.get());
+    return std::move(result);
 }
 
 std::string hstd::ext::graph::IGraph::getDebug(

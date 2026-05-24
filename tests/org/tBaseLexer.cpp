@@ -18,6 +18,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <google/protobuf/util/json_util.h>
 
 
 using namespace hstd;
@@ -286,6 +287,16 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
         gv->render(getDebugFile("mind_map.dot"));
         gv->render(getDebugFile("mind_map.png"));
     }
+
+    auto serial = state->graph->get_serial();
+
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status           = google::protobuf::util::MessageToJsonString(
+        *serial, &json, j_opts);
+    EXPECT_TRUE(status.ok());
+    writeFile(getDebugFile("serial.json"), json);
 }
 
 TEST(ManualFileRun, TestDirCorpus) {

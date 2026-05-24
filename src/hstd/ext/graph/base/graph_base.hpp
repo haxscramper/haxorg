@@ -374,7 +374,8 @@ class IGraph {
             (vertices, edges, hierarchies, flatVertexIDs));
     };
 
-    virtual json getGraphSerial() const;
+    virtual void write_serial(proto::IGraphProto* out) const;
+    std::unique_ptr<proto::IGraphProto> get_serial() const;
 
     std::string getDebug(VertexIDSet const& vert) const;
     std::string getDebug(VertexIDVec const& vert) const;
@@ -387,6 +388,18 @@ class IGraph {
     std::string getDebug(PortID const& port) const;
     std::string getDebug(PortIDVec const& vert) const;
     std::string getDebug(PortIDSet const& vert) const;
+
+    std::string getStableId(VertexID const& id) const {
+        return getVertex(id)->getStableId();
+    }
+
+    std::string getStableId(EdgeID const& id) const {
+        return getEdge(id)->getStableId();
+    }
+
+    std::string getStableId(PortID const& id) const {
+        return getPort(id)->getStableId();
+    }
 };
 
 

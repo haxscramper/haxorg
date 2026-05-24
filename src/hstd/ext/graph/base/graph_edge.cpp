@@ -1,4 +1,5 @@
 #include "graph_edge.hpp"
+#include "graph_base.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 
 
@@ -79,6 +80,16 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
     return DependantDeletion{.vertices = {vert}, .edges = edgesToRemove};
 }
 
+
+void hstd::ext::graph::IEdgeCollection::write_serial(
+    proto::IEdgeCollection* out,
+    IGraph const*           graph) const {
+    out->set_type("IEdgeCollection");
+    out->set_stable_id(getStableID());
+    for (auto const& e : getEdges()) {
+        getEdge(e)->write_serial(out->add_edges(), graph, e);
+    }
+}
 
 void hstd::ext::graph::IEdgeCollection::trackEdge(
     EdgeID const&   id,
@@ -169,4 +180,15 @@ EdgeIDSet IEdgeCollection::getEdges() const {
         }
     }
     return result;
+}
+
+void hstd::ext::graph::IEdge::write_serial(
+    proto::IEdge* out,
+    IGraph const* graph,
+    EdgeID const& self_id) const {
+    out->set_stable_id(getStableId());
+    out->set_source_vertex_id(
+        graph->getStableId(graph->getSource(self_id)));
+    out->set_target_vertex_id(
+        graph->getStableId(graph->getTarget(self_id)));
 }

@@ -37,6 +37,10 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
+    virtual void write_serial(
+        proto::IVertexHierarchy* out,
+        IGraph const*            graph) const;
+
     int getVertexCount() const { return vertexIDs.size(); }
 
     bool hasEdge(VertexID const& source, VertexID const& target)
