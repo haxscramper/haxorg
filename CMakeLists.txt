@@ -63,6 +63,7 @@ option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cm
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
 option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
+option(ORG_BUILD_WITH_ELK "Enable JNI-ELK graph layout" OFF)
 option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
 option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
@@ -80,6 +81,14 @@ option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
 
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
 option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
+
+if(ORG_BUILD_WITH_CGRAPH
+   OR ORG_BUILD_WITH_ADAPTAGRAMS
+   OR ORG_BUILD_WITH_ELK)
+  set(ORG_BUILD_WITH_GRAPH_VISUAL ON)
+else()
+  set(ORG_BUILD_WITH_GRAPH_VISUAL OFF)
+endif()
 
 if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_WITH_CGRAPH})
   message(FATAL_ERROR "Adaptagrams features require cgraph to be enabled")
@@ -121,6 +130,12 @@ if(${ORG_BUILD_WITH_TRACY} AND ${ORG_BUILD_WITH_PERFETTO})
   )
 endif()
 
+function(opt_1_excludes_opt_2 opt1 opt2)
+  if(${opt1} AND ${opt2})
+    message(FATAL_ERROR "${opt2} cannot be enabled when ${opt1} is enabled")
+  endif()
+endfunction()
+
 if(${ORG_BUILD_EMCC})
   if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
     message(
@@ -128,8 +143,15 @@ if(${ORG_BUILD_EMCC})
         "CMAKE_SIZEOF_VOID_P is not '4' (set to '${CMAKE_SIZEOF_VOID_P}') -- wasm build expects 32-bit compile"
     )
   endif()
-
 endif()
+
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PROTOBUF)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ADAPTAGRAMS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PERFETTO)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_TESTS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_INTERNAL_TOOLS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_PYHAXORG_BINDINGS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_TRACY)
 
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
@@ -180,7 +202,7 @@ if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
   pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 endif()
 
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 endif()
 
@@ -231,7 +253,7 @@ endif()
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   find_package(SQLiteCpp CONFIG REQUIRED)
 endif()
 
@@ -239,7 +261,7 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(absl CONFIG REQUIRED)
 endif()
 
-if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_TESTS})
   find_package(GTest CONFIG REQUIRED)
   find_package(benchmark CONFIG REQUIRED)
 endif()
@@ -250,14 +272,14 @@ endif()
 find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(lexy CONFIG REQUIRED)
-if(${ORG_BUILD_WITH_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_PERFETTO})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(BoostDescribe CONFIG REQUIRED)
   find_package(BoostPreprocessor CONFIG REQUIRED)
 endif()
-if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   find_package(Adaptagrams CONFIG REQUIRED)
 endif()
 if(NOT ${ORG_BUILD_EMCC})
@@ -274,12 +296,24 @@ else()
   add_definitions(-DORG_BUILD_EMCC=0)
 endif()
 
-if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_PROTOBUF})
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
   if(NOT ${ORG_IS_CONAN_BUILD})
     include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
   endif()
+
+  execute_process(
+    COMMAND which protoc
+    OUTPUT_VARIABLE PROTOC_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
+
+  execute_process(
+    COMMAND protoc --version
+    OUTPUT_VARIABLE PROTOC_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
 else()
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
 endif()
@@ -318,7 +352,7 @@ if(NOT ${ORG_BUILD_EMCC})
   add_subdirectory(src/py_libs)
 endif()
 
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   add_subdirectory(scripts/cxx_repository)
   add_subdirectory(scripts/cxx_codegen)
 endif()
@@ -371,10 +405,14 @@ if(${ORG_BUILD_IMGUI_GUI})
 endif()
 
 # Build the list of "CMake package" targets (no pyhaxorg here)
-if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams jni_elk_lib)
-else()
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  list(APPEND ORG_INSTALL_TARGET_LIST adaptagrams)
+endif()
+
+if(${ORG_BUILD_WITH_ELK})
+  list(APPEND ORG_INSTALL_TARGET_LIST jni_elk_lib)
 endif()
 
 # Install normal libs into lib/, export them, etc.
@@ -388,7 +426,7 @@ install(
   DESTINATION include)
 
 # Install the Python extension into the *platlib root* (site-packages/)
-if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_PYHAXORG_BINDINGS})
   install(TARGETS pyhaxorg py_textlayout_cpp LIBRARY DESTINATION ".")
 endif()
 
