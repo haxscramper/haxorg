@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <adaptagrams/adaptagrams_ir.hpp>
 
 #include <hstd/ext/graph/base/graph_base.hpp>
 #include <hstd/ext/graph/visual/graph_graphviz.hpp>

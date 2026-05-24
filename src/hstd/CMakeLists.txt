@@ -65,6 +65,8 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
     cpp
     OUT_VAR
     HSTD_PROTO_BASE_GRAPH_GENERATED_FILES
+    PROTOC_EXE
+    "${PROTOC_PATH}"
     IMPORT_DIRS
     "${BASE}/src/hstd/ext/graph/base"
     PROTOS
@@ -80,6 +82,7 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
 
   target_sources(hstd PRIVATE "${HSTD_PROTO_BASE_GRAPH_GENERATED_FILES}")
   add_dependencies(hstd hstd_proto_base_graph_generate_files)
+  target_link_libraries(hstd PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
 target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"

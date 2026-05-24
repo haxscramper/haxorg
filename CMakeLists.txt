@@ -300,18 +300,16 @@ if(${ORG_BUILD_WITH_PROTOBUF})
   message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
+
   if(NOT ${ORG_IS_CONAN_BUILD})
     include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
   endif()
 
-  execute_process(
-    COMMAND which protoc
-    OUTPUT_VARIABLE PROTOC_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  get_target_property(PROTOC_PATH protobuf::protoc IMPORTED_LOCATION_RELWITHDEBINFO)
   message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
 
   execute_process(
-    COMMAND protoc --version
+    COMMAND "${PROTOC_PATH}" --version
     OUTPUT_VARIABLE PROTOC_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")

@@ -12,6 +12,8 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     cpp
     OUT_VAR
     ORG_PROTO_GENERATED_FILES
+    PROTOC_EXE
+    "${PROTOC_PATH}"
     IMPORT_DIRS
     "${BASE}/src/haxorg/serde"
     PROTOS
@@ -29,6 +31,8 @@ if(${ORG_BUILD_WITH_PROTOBUF})
   target_sources(haxorg PRIVATE "${ORG_PROTO_GENERATED_FILES}")
   add_dependencies(haxorg haxorg_generate_protobuf)
   message(STATUS "ORG_PROTO_GENERATED_FILES = ${ORG_PROTO_GENERATED_FILES}")
+
+  target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json
@@ -37,10 +41,6 @@ target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohm
 if(${ORG_BUILD_WITH_CGRAPH})
   find_package(graphviz REQUIRED)
   target_link_libraries(haxorg PUBLIC graphviz::cgraph graphviz::gvc)
-endif()
-
-if(${ORG_BUILD_WITH_PROTOBUF})
-  target_link_libraries(haxorg PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
 if(${ORG_BUILD_WITH_PERFETTO})
