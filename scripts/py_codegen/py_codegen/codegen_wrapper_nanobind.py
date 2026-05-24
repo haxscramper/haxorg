@@ -42,49 +42,6 @@ NB_INCLUDE_LIST = [
 ]
 
 
-@beartype
-def gen_adaptagrams_wrappers(
-    ast: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-    reflection_path: Path,
-) -> GenFiles:
-    "Generate wrappers for adaptagrams library"
-    tu: refl_read.ConvTu = refl_read.conv_proto_file(reflection_path)
-
-    reflection_debug = Path("/tmp/haxorg/adaptagrams_reflection.json")
-    reflection_debug.write_text(refl_read.open_proto_file(reflection_path).to_json(2))
-    log(CAT).debug(f"Debug reflection data to '{reflection_debug}'")
-
-    with ExceptionContextNote(f"reflection_debug:{reflection_debug}"):
-        type_map = get_type_map(tu.enums + tu.structs + tu.typedefs)  # type: ignore
-        conf = NanobindAstbuilderConfig(type_map)
-        res = NbModule("py_adaptagrams", conf)
-        res.add_all(tu.get_all(), ast=ast)
-        specializations = collect_type_specializations(tu.get_all(), conf)
-        res.add_type_specializations(
-            ast=ast,
-            specializations=specializations,
-        )
-
-        return GenFiles([
-            GenUnit(header=GenTu(
-                "{root}/scripts/py_wrappers/py_wrappers/py_adaptagrams.pyi",
-                [GenTuPass(res.build_typedef(pyast))],
-                clangFormatGuard=False,
-            )),
-            GenUnit(header=GenTu(
-                "{root}/src/py_libs/py_adaptagrams/adaptagrams_py_wrap.cpp",
-                [
-                    GenTuPass("#undef slots"),
-                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp", True),
-                    GenTuInclude("py_libs/nanobind_utils.hpp", True),
-                    *NB_INCLUDE_LIST,
-                    GenTuPass(res.build_bind(ast)),
-                ],
-            )),
-        ])
-
-
 class HaxorgNanobindWrapperConfig(NanobindAstbuilderConfig):
     "Override some nanobind generation options for haxorg-specific types"
 

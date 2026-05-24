@@ -93,35 +93,27 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     build_targets(ctx=ctx, targets=["reflection_tool", "haxorg_generate_protobuf"])
     from py_codegen.refl_read import open_proto_file
 
-    for task in CODEGEN_TASKS:
-        out_file = get_build_root(ctx, f"{task}.pb")
-        match task:
-            case "pyhaxorg":
-                src_file = get_script_root(
-                    ctx, "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
+    task = "pyhaxorg"
+    out_file = get_build_root(ctx, f"{task}.pb")
+    src_file = get_script_root(ctx, "src/py_libs/pyhaxorg/pyhaxorg_manual_refl.cpp")
 
-            case "adaptagrams":
-                src_file = get_script_root(
-                    ctx, "src/py_libs/py_adaptagrams/adaptagrams_ir_refl_target.cpp")
+    run_command_with_json_args(
+        ctx,
+        str(get_build_root(ctx, "haxorg/reflection_tool")),
+        args=cov.ReflectionCLI(
+            output=str(out_file),
+            input=[str(src_file)],
+            log_path=str(get_workflow_out(ctx, f"{task}_reflection_run.log")),
+            mode=cov.Mode.AllAnotatedSymbols,
+            verbose_log=ctx.config.log_level == HaxorgLogLevel.VERBOSE,
+            reflection=cov.ReflectionConfig(compilation_database=str(compile_commands),),
+        ).model_dump(),
+    )
 
-        run_command_with_json_args(
-            ctx,
-            str(get_build_root(ctx, "haxorg/reflection_tool")),
-            args=cov.ReflectionCLI(
-                output=str(out_file),
-                input=[str(src_file)],
-                log_path=str(get_workflow_out(ctx, f"{task}_reflection_run.log")),
-                mode=cov.Mode.AllAnotatedSymbols,
-                verbose_log=ctx.config.log_level == HaxorgLogLevel.VERBOSE,
-                reflection=cov.ReflectionConfig(
-                    compilation_database=str(compile_commands),),
-            ).model_dump(),
-        )
+    reflection_debug = get_tmpdir().joinpath(f"reflection_{task}.json")
+    reflection_debug.write_text(open_proto_file(out_file).to_json(2))
 
-        reflection_debug = get_tmpdir().joinpath(f"reflection_{task}.json")
-        reflection_debug.write_text(open_proto_file(out_file).to_json(2))
-
-        log(CAT).info(f"Updated reflection, wrote debug JSON to {reflection_debug}")
+    log(CAT).info(f"Updated reflection, wrote debug JSON to {reflection_debug}")
 
 
 # TODO Make compiled reflection generation build optional

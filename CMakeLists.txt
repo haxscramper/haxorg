@@ -297,6 +297,7 @@ else()
 endif()
 
 if(${ORG_BUILD_WITH_PROTOBUF})
+  message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
   if(NOT ${ORG_IS_CONAN_BUILD})
@@ -326,14 +327,47 @@ set(JSON_BuildTests
 
 if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=1)
+
+  set(COLA_DIR "${DEPS_DIR}/adaptagrams/cola")
+  include(CMakeParseArguments)
+
+  add_library(adaptagrams)
+  haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
+  target_link_libraries(
+    adaptagrams
+    PUBLIC Adaptagrams::dialect
+           Adaptagrams::cola
+           Adaptagrams::avoid
+           Adaptagrams::topology
+           Adaptagrams::vpsc
+           hstd
+           absl::log
+           absl::base)
+
+  target_include_directories(adaptagrams PUBLIC $<BUILD_INTERFACE:${COLA_DIR}>
+                                                $<INSTALL_INTERFACE:include>)
+
+  install(
+    DIRECTORY ${COLA_DIR}/
+    DESTINATION include
+    FILES_MATCHING
+    PATTERN "*.h")
+
+  glob_add_sources2(
+    TARGET
+    "adaptagrams"
+    LS_REGEX
+    "${CMAKE_CURRENT_SOURCE_DIR}/.*"
+    SEARCH_BASE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    RECURSE
+    OFF)
+
 else()
   add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=0)
 endif()
 
 add_subdirectory(src/hstd)
-if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-  add_subdirectory(src/adaptagrams)
-endif()
 
 if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
