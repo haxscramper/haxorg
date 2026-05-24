@@ -421,3 +421,32 @@ std::string hstd::ext::graph::IGraph::getDebug(PortID const& port) const {
         getDebug(coll->getVertexForPort(port)),
         coll->isSourcePort(port) ? "start" : "end");
 }
+
+
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
+    getHierarchyID(EdgeID const& id) const {
+    auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
+    LOGIC_ASSERTION_CHECK_FMT(
+        hierarchies.contains(id1),
+        "Graph does not contain hierarchy with ID {} for edge ID {}. "
+        "Have collections {}, stable IDs {}",
+        id1.t,
+        id.format(),
+        hierarchies.keys(),
+        hierarchies | format_collection);
+    return id1;
+}
+
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
+    getCollectionID(EdgeID const& id) const {
+    auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
+    LOGIC_ASSERTION_CHECK_FMT(
+        collections.contains(id2),
+        "Graph does not contain edge collection with ID {} for edge "
+        "ID {}. Have collections {}, stable IDs {}",
+        id2.t,
+        id.format(),
+        collections.keys(),
+        collections | format_collection);
+    return id2;
+}

@@ -1,4 +1,7 @@
 #pragma once
+
+#include "graph_common.hpp"
+
 namespace hstd::ext::graph {
 
 /// \brief Base class for all attributes associated with vertices. The
@@ -16,7 +19,7 @@ struct IAttribute {
     }
 
 #ifdef ORG_BUILD_WITH_PROTOBUF
-    virtual void write_serial(proto::IAttribute*) const = 0;
+    virtual void write_serial(proto::IAttribute* out) const = 0;
 #endif
 };
 

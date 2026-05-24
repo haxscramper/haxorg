@@ -173,6 +173,3 @@ hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::getSourcePort(
     EdgeID   eid) const {
     return getPortForConnection(vid, eid, true);
 }
-
-hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::
-    getPortForConnection(VertexID vid, EdgeID eid, bool is_start) const {}

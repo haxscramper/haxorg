@@ -50,6 +50,9 @@ struct [[refl]] MapNodeProp
 
 
     DESC_FIELDS(MapNodeProp, (unresolved));
+
+    void write_serial(
+        hstd::ext::graph::proto::IAttribute*) const override {}
 };
 
 struct [[refl]] MapEdgeProp
@@ -57,6 +60,9 @@ struct [[refl]] MapEdgeProp
     , public hstd::SharedPtrApi<MapEdgeProp> {
     [[refl]] MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
+
+    void write_serial(
+        hstd::ext::graph::proto::IAttribute*) const override {}
 };
 
 
@@ -116,11 +122,12 @@ struct [[refl]] MapNode
         return getStructuredProperty<T>(context->adapt(id), name);
     }
 
-    json getSerialNonRecursive(
-        hstd::ext::graph::IGraph const*   graph,
-        hstd::ext::graph::VertexID const& id) const override {
-        return json::object({{"id", this->id.getReadableId()}});
-    }
+
+  public:
+    void write_serial(
+        hgraph::proto::IVertex* out,
+        hgraph::IGraph const*   graph,
+        hgraph::VertexID const& self_id) const override {}
 };
 
 struct [[refl]] MapEdge

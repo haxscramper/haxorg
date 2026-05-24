@@ -231,12 +231,19 @@ class ElkPortData {
 
 class ElkPortVisualAttribute
     : public ElkPortData
-    , public layout::IPortVisualAttribute {};
+    , public layout::IPortVisualAttribute {
+
+
+  public:
+    void write_serial(proto::IAttribute* out) const override {}
+};
 
 class ElkPortLayoutAttribute
     : public ElkPortData
     , public layout::IPortLayoutAttribute {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     Rect getBBox() const override {
         // port placement may omit some values if they are zeroed out, and
         // potr does not have to have a width/height either.
@@ -311,7 +318,10 @@ class ElkEdgeData {
 
 class ElkEdgeVisualAttribute
     : public layout::IEdgeVisualAttribute
-    , public ElkEdgeData {};
+    , public ElkEdgeData {
+  public:
+    void write_serial(proto::IAttribute*) const override {}
+};
 
 class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
@@ -327,6 +337,8 @@ class ElkEdgeLayoutAttribute
 
         return res;
     }
+
+    void write_serial(proto::IAttribute*) const override {}
 };
 
 class NodeElkLayoutData {
@@ -398,12 +410,17 @@ class NodeElkLayoutData {
 
 class ElkNodeVisualAttribute
     : public layout::IVertexVisualAttribute
-    , public NodeElkLayoutData {};
+    , public NodeElkLayoutData {
+  public:
+    void write_serial(proto::IAttribute* out) const override {}
+};
 
 class ElkGroupVisualAttribute
     : public layout::IGroupVisualAttribute
     , public NodeElkLayoutData {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     void setOuterPadding(geometry::Padding const& pad) override {
         logic_todo_impl();
     }
@@ -484,6 +501,8 @@ class ElkNodeLayoutAttribute
     : public layout::IVertexLayoutAttribute
     , public NodeElkLayoutData {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     hstd::SPtr<layout::LayoutRun> run;
 
 
@@ -522,6 +541,8 @@ class ElkGroupLayoutAttribute
     : public layout::IGroupLayoutAttribute
     , public NodeElkLayoutData {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     geometry::Rect bbox;
 
     void setBBox(geometry::Rect const& bbox) override {

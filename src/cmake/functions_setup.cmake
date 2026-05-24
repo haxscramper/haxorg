@@ -213,3 +213,30 @@ function(haxorg_add_library TARGET)
   set_target_output("${TARGET}")
   set_target_flags("${TARGET}")
 endfunction()
+
+function(haxorg_add_protobuf)
+  cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET" "IMPORT_DIRS;PROTO_SOURCES" ${ARGN})
+
+  protobuf_generate(
+    LANGUAGE
+    cpp
+    OUT_VAR
+    HAP_GENERATED_FILES
+    PROTOC_EXE
+    "${PROTOC_PATH}"
+    IMPORT_DIRS
+    ${HAP_IMPORT_DIRS}
+    PROTOS
+    ${HAP_PROTO_SOURCES}
+    PROTOC_OUT_DIR
+    "${CMAKE_CURRENT_BINARY_DIR}")
+
+  add_custom_target(
+    ${HAP_UNIQUE_TARGET}_generate_files
+    DEPENDS ${HAP_GENERATED_FILES}
+    COMMENT "Generating protobuf files")
+
+  target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_FILES})
+  add_dependencies(${HAP_TARGET} ${HAP_UNIQUE_TARGET}_generate_files)
+  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+endfunction()

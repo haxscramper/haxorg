@@ -175,9 +175,15 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
-class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {};
+class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
+  public:
+    void write_serial(proto::IAttribute* out) const override {}
+};
+
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
     Path getPath() const override { return path; }

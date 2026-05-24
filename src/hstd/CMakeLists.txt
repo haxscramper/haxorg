@@ -60,29 +60,15 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
     target_link_libraries(hstd PUBLIC adaptagrams)
   endif()
 
-  protobuf_generate(
-    LANGUAGE
-    cpp
-    OUT_VAR
-    HSTD_PROTO_BASE_GRAPH_GENERATED_FILES
-    PROTOC_EXE
-    "${PROTOC_PATH}"
+  haxorg_add_protobuf(
+    TARGET
+    hstd
+    UNIQUE_TARGET
+    hstd_proto_base_graph
     IMPORT_DIRS
     "${BASE}/src/hstd/ext/graph/base"
-    PROTOS
-    "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
-    PROTOC_OUT_DIR
-    "${CMAKE_CURRENT_BINARY_DIR}")
-
-  # Create a custom target for protobuf generation
-  add_custom_target(
-    hstd_proto_base_graph_generate_files
-    DEPENDS ${HSTD_PROTO_BASE_GRAPH_GENERATED_FILES}
-    COMMENT "Generating protobuf files")
-
-  target_sources(hstd PRIVATE "${HSTD_PROTO_BASE_GRAPH_GENERATED_FILES}")
-  add_dependencies(hstd hstd_proto_base_graph_generate_files)
-  target_link_libraries(hstd PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+    PROTO_SOURCES
+    "${BASE}/src/hstd/ext/graph/base/graph_base.proto")
 endif()
 
 target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>

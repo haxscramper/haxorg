@@ -33,6 +33,8 @@ class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
 
 class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     geometry::Path path;
     AvoidEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
     Path getPath() const override { return path; }
@@ -40,6 +42,8 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
   public:
+    void write_serial(proto::IAttribute* out) const override {}
+
     Rect getBBox() const override {
         return Rect::FromCenterWH(Point(xOffset, yOffset), width, height);
     }

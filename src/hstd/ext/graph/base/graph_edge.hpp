@@ -2,6 +2,7 @@
 
 #include "graph_common.hpp"
 #include "graph_attribute.hpp"
+#include "graph_port.hpp"
 
 namespace hstd::ext::graph {
 
@@ -23,9 +24,6 @@ struct IEdge
 
     virtual std::size_t getHash() const override;
     virtual bool isEqual(IGraphObjectBase const* other) const override;
-    virtual json getSerialNonRecursive(
-        IGraph const*                   graph,
-        hstd::ext::graph::EdgeID const& id) const;
     virtual std::string getRepr() const override {
         return hstd::fmt1(*this);
     }
@@ -182,12 +180,12 @@ class IEdgeCollection : public IEdgeProvider {
     void              trackVertex(VertexID const& vert) override;
     DependantDeletion untrackVertex(VertexID const& vert) override;
 
-    // IPortCollection::EdgePortsSpec getPortSpecs(EdgeID const& e) const {
-    //     return IPortCollection::EdgePortsSpec{
-    //         IPortCollection::PortSpec{getSource(e), e, true},
-    //         IPortCollection::PortSpec{getTarget(e), e, false},
-    //     };
-    // }
+    IPortCollection::EdgePortsSpec getPortSpecs(EdgeID const& e) const {
+        return IPortCollection::EdgePortsSpec{
+            IPortCollection::PortSpec{getSource(e), e, true},
+            IPortCollection::PortSpec{getTarget(e), e, false},
+        };
+    }
 
     VertexID getSource(EdgeID const& id) const override {
         return source_target.at(id).first;
