@@ -53,6 +53,7 @@ Terminology used
 #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include "graph_base.pb.h"
 
 namespace bmi = boost::multi_index;
 
@@ -371,6 +372,10 @@ struct IAttribute {
     bool isInstance() const {
         return dynamic_cast<T const*>(this) != nullptr;
     }
+
+#ifdef ORG_BUILD_WITH_PROTOBUF
+    virtual void write_serial(proto::IAttribute*) const = 0;
+#endif
 };
 
 /// \brief Base class for trackers implementing reverse lookup for
@@ -490,6 +495,14 @@ class IAttributeObject {
         }
         setAttributes(new_list);
     }
+
+    void write_serial(
+        ::google::protobuf::RepeatedPtrField<
+            ::hstd::ext::graph::proto::IAttribute>* out) const {
+        for (auto const& attr : getAttributes()) {
+            attr->write_serial(out->Add());
+        }
+    }
 };
 
 class TrivialAttributeObject : public virtual IAttributeObject {
@@ -516,9 +529,12 @@ struct IVertex
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
-    virtual json getSerialNonRecursive(
-        IGraph const*                     graph,
-        hstd::ext::graph::VertexID const& id) const = 0;
+#ifdef ORG_BUILD_WITH_PROTOBUF
+    virtual void write_serial(
+        proto::IVertex* out,
+        IGraph const*   graph,
+        VertexID const& self_id) const = 0;
+#endif
 };
 
 struct TrivialVertex : public IVertex {
@@ -550,9 +566,13 @@ struct TrivialVertex : public IVertex {
         return hstd::fmt("IVertex({})", selfId);
     }
 
-    json getSerialNonRecursive(IGraph const* graph, VertexID const& id)
-        const override {
-        return json{};
+    void write_serial(
+        proto::IVertex* out,
+        IGraph const*   graph,
+        VertexID const& id) const override {
+        out->set_type("trivial-vertex");
+        out->set_stable_id(getStableId());
+        IAttributeObject::write_serial(out->mutable_attributes());
     }
 
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
@@ -597,6 +617,16 @@ struct IEdge
     virtual std::string getRepr() const override {
         return hstd::fmt1(*this);
     }
+
+#if ORG_BUILD_WITH_PROTOBUF
+    virtual void write_serial(
+        proto::IEdge* out,
+        IGraph const* graph,
+        EdgeID const& self_id) const {
+        out->set_stable_id(getStableId());
+        // out->set_source_vertex_id();
+    }
+#endif
 };
 
 struct TrivialEdge

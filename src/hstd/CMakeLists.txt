@@ -85,6 +85,8 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
   target_link_libraries(hstd PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
+target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                                       $<INSTALL_INTERFACE:src>)
 target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
                                        "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
