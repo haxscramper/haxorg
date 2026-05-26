@@ -490,11 +490,12 @@ class ElkGroupVisualAttribute
     }
 
     hstd::SPtr<ElkPortVisualAttribute> addPort(
-        VertexID const& v,
-        EdgeID const&   e,
-        bool            is_start) {
+        VertexID const&               v,
+        EdgeID const&                 e,
+        bool                          is_start,
+        hstd::Opt<std::string> const& stable_id = std::nullopt) {
         auto res = std::make_shared<ElkPortVisualAttribute>();
-        auto id  = get_run()->addPort(v, e, is_start, res);
+        auto id  = get_run()->addPort(v, e, is_start, stable_id, res);
         return res;
     }
 };

@@ -67,9 +67,10 @@ hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
 }
 
 hstd::ext::graph::PortID hstd::ext::graph::layout::LayoutRun::addPort(
-    VertexID const& v,
-    EdgeID const&   e,
-    bool            is_start) {
+    VertexID const&                   v,
+    EdgeID const&                     e,
+    bool                              is_start,
+    std::optional<std::string> const& stable_id) {
     if (is_start) {
         LOGIC_ASSERTION_CHECK_FMT(
             edges->getSource(e) == v,
@@ -88,7 +89,7 @@ hstd::ext::graph::PortID hstd::ext::graph::layout::LayoutRun::addPort(
             getDebug(v));
     }
 
-    return ports->addPort(v, e, is_start);
+    return ports->addPort(v, e, is_start, stable_id);
 }
 
 

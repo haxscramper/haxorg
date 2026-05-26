@@ -15,13 +15,7 @@ class AvoidPort
     : public IPort
     , public virtual TrivialAttributeObject {
   public:
-    std::size_t getHash() const override { return 0; }
-
-    bool isEqual(IGraphObjectBase const* other) const override {
-        return true;
-    }
-
-    std::string getRepr() const override { return ""; }
+    using IPort::IPort;
 };
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
@@ -84,7 +78,8 @@ class AvoidPortCollection : public IPortCollection {
     }
 
     PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
-        auto id = portStore.add(AvoidPort{});
+        auto id = portStore.add(
+            AvoidPort{hstd::fmt1(portStore.getNextId())});
         IPortCollection::addPort(vertex, edge, is_start, id);
         return id;
     }

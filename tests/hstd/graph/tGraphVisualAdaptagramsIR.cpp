@@ -600,10 +600,7 @@ TEST_F(GraphAdaptagramsIR_Test, LibcolaSubgroups) {
     VertexIDVec       vs;
     hstd::Vec<EdgeID> es;
     for (int i = 0; i < 11; ++i) {
-        auto id = graph->addVertex();
-        graph->getCastMVertex<TrivialVertex>(id)
-            ->stableIdOverride = hstd::fmt("id_{}", i);
-        vs.push_back(id);
+        vs.push_back(graph->addVertex(hstd::fmt("id_{}", i)));
     }
 
     auto edge = [&](int source, int target) {

@@ -43,6 +43,7 @@ class IVertexHierarchy : public IEdgeProvider {
 
     int getVertexCount() const { return vertexIDs.size(); }
 
+    using IEdgeProvider::hasEdge;
     bool hasEdge(VertexID const& source, VertexID const& target)
         const override {
         return edgeTracker.contains_left({source, target});
@@ -77,9 +78,12 @@ class IVertexHierarchy : public IEdgeProvider {
     /// \note The function has a default implementation, but the
     /// derived hierarchy classes may override the sub-vertex tracking or
     /// write a code around it to actually create an edge object.
-    virtual EdgeID trackSubVertexRelation(
+    virtual void trackSubVertexRelation(
+        EdgeID const&   edge,
         VertexID const& parent,
         VertexID const& sub);
+
+    EdgeID getNestingEdgeID(VertexID const& parent, VertexID const& sub);
 
     VertexID getSource(EdgeID const& edge) const override {
         return edgeTracker.at_left(edge).first;
@@ -188,12 +192,9 @@ struct TrivialHierarchy : public IVertexHierarchy {
     }
 
     EdgeID trackSubVertexRelation(
-        VertexID const& parent,
-        VertexID const& sub) override {
-        auto id = IVertexHierarchy::trackSubVertexRelation(parent, sub);
-        edgeStore.insert_or_assign(id, TrivialEdge{});
-        return id;
-    }
+        VertexID const&               parent,
+        VertexID const&               sub,
+        hstd::Opt<TrivialEdge> const& init_vertex = std::nullopt);
 };
 
 struct IdOnlyHierarchy : public IVertexHierarchy {
@@ -210,6 +211,16 @@ struct IdOnlyHierarchy : public IVertexHierarchy {
 
     bool hasEdge(EdgeID const& id) const override {
         return edgeStore.contains(id);
+    }
+
+    EdgeID trackSubVertexRelation(
+        VertexID const&               parent,
+        VertexID const&               sub,
+        hstd::Opt<TrivialEdge> const& init_vertex = std::nullopt) {
+        auto id = getNestingEdgeID(parent, sub);
+        edgeStore.incl(id);
+        IVertexHierarchy::trackSubVertexRelation(id, parent, sub);
+        return id;
     }
 };
 

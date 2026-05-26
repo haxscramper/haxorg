@@ -173,3 +173,27 @@ hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::getSourcePort(
     EdgeID   eid) const {
     return getPortForConnection(vid, eid, true);
 }
+
+hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
+    VertexID                          vertex,
+    EdgeID                            edge,
+    bool                              is_start,
+    std::optional<std::string> const& stable_id) {
+    auto id = portStore.add(
+        TrivialPort{stable_id.value_or(
+            hstd::fmt1(portStore.getNextId(getCategory().t)))},
+        getCategory().t);
+    IPortCollection::addPort(vertex, edge, is_start, id);
+    return id;
+}
+
+hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
+    VertexID                          vertex,
+    std::optional<std::string> const& stable_id) {
+    auto id = portStore.add(
+        TrivialPort{stable_id.value_or(
+            hstd::fmt1(portStore.getNextId(getCategory().t)))},
+        getCategory().t);
+    IPortCollection::addPort(vertex, id);
+    return id;
+}

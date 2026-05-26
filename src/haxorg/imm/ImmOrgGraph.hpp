@@ -79,8 +79,12 @@ struct MapNode
     hstd::Opt<hstd::Str> getFootnoteName(
         std::shared_ptr<org::imm::ImmAstContext> const& context) const;
 
-    MapNode() : id{org::imm::ImmAdapter()} {}
-    MapNode(org::imm::ImmAdapter const& id) : id{id} {}
+    MapNode() : hgraph::IVertex{""}, id{org::imm::ImmAdapter()} {}
+    MapNode(
+        org::imm::ImmAdapter const&   id,
+        hstd::Opt<std::string> const& stable_id = std::nullopt)
+        : hgraph::IVertex{stable_id.value_or(id.id.getReadableId())}
+        , id{id} {}
 
     bool operator==(MapNode const& other) const {
         return this->id == other.id;
@@ -109,12 +113,6 @@ struct MapNode
             && dynamic_cast<MapNode const*>(other)->id == id;
     }
 
-    std::string getStableId() const override {
-        return id.id.getReadableId();
-    }
-
-    std::string getRepr() const override { return id.id.getReadableId(); }
-
     template <typename T>
     hstd::outcome::result<T, std::string> getJsonProperty(
         std::shared_ptr<org::imm::ImmAstContext> const& context,
@@ -134,6 +132,7 @@ struct MapEdge
     : public hgraph::IEdge
     , public virtual hgraph::TrivialAttributeObject {
     DESC_FIELDS(MapEdge, ());
+    using hgraph::IEdge::IEdge;
 };
 
 

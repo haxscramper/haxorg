@@ -112,6 +112,9 @@ class IGraph {
         return const_cast<IVertex*>(getVertex(id));
     }
 
+    // TODO: Add method to access edge ID from the stable ID. Also make
+    // this method fail if there are multiple edge collections with the
+    // same stable ID.
     bool hasVertexStableId(Str const& id) const {
         return stableIdMap.contains(id);
     }
@@ -297,6 +300,7 @@ class IGraph {
     /// \return List of newly added edges in all hierarchies.
     hstd::Vec<EdgeID> trackSubVertexRelation(
         EdgeCollectionID const& hierarchy,
+        EdgeID const&           edge,
         VertexID const&         parent,
         VertexID const&         sub);
     /// \brief Remove the vertex nesting information from a specific
@@ -422,25 +426,18 @@ struct TrivialGraph : public IGraph {
         addCollection(edges);
     }
 
-    VertexID addVertex(hstd::Str const& id_override) {
-        auto res                                             = addVertex();
-        getCastMVertex<TrivialVertex>(res)->stableIdOverride = id_override;
-        return res;
-    }
-
-    VertexID addVertex() {
-        auto result = vertexStore.add(
-            TrivialVertex{vertexStore.getNextId()});
-        trackVertex(result);
-        return result;
-    }
+    VertexID addVertex(
+        std::optional<std::string> const& stable_id = std::nullopt);
 
     const IVertex* getVertex(VertexID const& id) const override {
         return &vertexStore.at(id);
     }
 
-    EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        return edges->addEdge(source, target);
+    EdgeID addEdge(
+        VertexID const&               source,
+        VertexID const&               target,
+        hstd::Opt<std::string> const& stable_id = std::nullopt) {
+        return edges->addEdge(source, target, stable_id);
     }
 };
 

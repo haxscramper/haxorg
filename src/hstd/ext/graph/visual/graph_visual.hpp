@@ -456,14 +456,19 @@ class LayoutRun
         edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
     }
 
-    PortID addPort(VertexID const& v, EdgeID const& e, bool is_start);
+    PortID addPort(
+        VertexID const&                   v,
+        EdgeID const&                     e,
+        bool                              is_start,
+        std::optional<std::string> const& stable_id);
 
     PortID addPort(
         VertexID const&                         v,
         EdgeID const&                           e,
         bool                                    is_start,
+        std::optional<std::string> const&       stable_id,
         hstd::SPtr<IPortVisualAttribute> const& attr) {
-        auto res  = addPort(v, e, is_start);
+        auto res  = addPort(v, e, is_start, stable_id);
         auto edge = getGraph()->getMPort(res);
         edge->addUniqueAttribute(attr);
         return res;

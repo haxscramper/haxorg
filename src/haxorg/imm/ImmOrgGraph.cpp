@@ -153,7 +153,9 @@ void updateResolvedEdges(
     for (auto const& op : resolved_node.resolved) {
         OP_TRACER_MESSAGE(
             s->graph, "add edge {}-{}", op.source, op.target);
-        auto edge = std::make_shared<MapEdge>();
+        auto edge = std::make_shared<MapEdge>(
+            hstd::fmt1(s->graph->edges->edges.getNextId(
+                s->graph->edges->getCollectionID().t)));
         auto attr = std::make_shared<MapEdgeProp>();
         s->graph->addEdge(
             edge,

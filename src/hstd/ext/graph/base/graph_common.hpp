@@ -219,11 +219,16 @@ struct vertex_structure_error
 /// Container classes (vertex hierarchies, edge collections) are not graph
 /// objects.
 class IGraphObjectBase {
+    std::string stable_id;
+
   public:
-    virtual std::size_t getHash() const                              = 0;
-    virtual bool        isEqual(IGraphObjectBase const* other) const = 0;
-    virtual std::string getRepr() const                              = 0;
+    virtual std::size_t getHash() const;
+    virtual bool        isEqual(IGraphObjectBase const* other) const;
+    virtual std::string getRepr() const;
     virtual std::string getStableId() const;
+
+    IGraphObjectBase(std::string const& _stable_id)
+        : stable_id{_stable_id} {}
 
     virtual ~IGraphObjectBase() = default;
 

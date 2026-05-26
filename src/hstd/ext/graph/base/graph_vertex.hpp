@@ -11,6 +11,8 @@ struct IVertex
     using id_type = VertexID;
     DESC_FIELDS(IVertex, ());
 
+    using IGraphObjectBase::IGraphObjectBase;
+
 #ifdef ORG_BUILD_WITH_PROTOBUF
     virtual void write_serial(
         proto::IVertex* out,
@@ -22,30 +24,12 @@ struct IVertex
 struct TrivialVertex : public IVertex {
     VertexID selfId;
 
-    TrivialVertex(VertexID selfId) : selfId{selfId} {}
+    TrivialVertex(std::string const& _stable_id, VertexID selfId)
+        : IVertex{_stable_id}, selfId{selfId} {}
 
-    hstd::Opt<hstd::Str> stableIdOverride;
-    std::string          getStableId() const override {
-        if (stableIdOverride) {
-            return stableIdOverride.value();
-        } else {
-            return hstd::fmt("IVertex-{}", selfId);
-        }
-    }
-
-    std::size_t getHash() const override {
-        std::size_t result;
-        hstd::hax_hash_combine(result, selfId);
-        return result;
-    }
-
-    bool isEqual(IGraphObjectBase const* other) const override {
-        return this->selfId
-            == dynamic_cast<TrivialVertex const*>(other)->selfId;
-    }
 
     std::string getRepr() const override {
-        return hstd::fmt("IVertex({})", selfId);
+        return hstd::fmt("IVertex({})", getStableId());
     }
 
     void write_serial(

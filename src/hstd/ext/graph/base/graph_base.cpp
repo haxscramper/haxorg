@@ -122,6 +122,7 @@ hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
 
 hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     EdgeCollectionID const& hierarchy,
+    EdgeID const&           edge,
     VertexID const&         parent,
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
@@ -134,8 +135,8 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     }
 
     hstd::Vec<EdgeID> result;
-    result.push_back(
-        hierarchies.at(hierarchy)->trackSubVertexRelation(parent, sub));
+    result.push_back(edge);
+    hierarchies.at(hierarchy)->trackSubVertexRelation(edge, parent, sub);
     return result;
 }
 
@@ -437,4 +438,15 @@ hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
         collections.keys(),
         collections | format_collection);
     return id2;
+}
+
+VertexID TrivialGraph::addVertex(
+    std::optional<std::string> const& stable_id) {
+    auto result = vertexStore.add(
+        TrivialVertex{
+            stable_id.value_or(hstd::fmt1(vertexStore.getNextId())),
+            vertexStore.getNextId(),
+        });
+    trackVertex(result);
+    return result;
 }

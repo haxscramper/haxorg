@@ -100,7 +100,8 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
-        (g.trackSubVertexRelation(h->getCollectionID(), a, b)),
+        (g.trackSubVertexRelation(
+            h->getCollectionID(), EdgeID::Nil(), a, b)),
         "parent vertex",
         "not found");
 
@@ -108,18 +109,21 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
-        (g.trackSubVertexRelation(h->getCollectionID(), a, b)),
+        (g.trackSubVertexRelation(
+            h->getCollectionID(), EdgeID::Nil(), a, b)),
         "sub vertex",
         "not found");
 
     h->trackVertex(b);
 
-    auto e = g.trackSubVertexRelation(
-        h->getCollectionID(), /*parent=*/a, /*sub=*/b);
+    auto e = h->getNestingEdgeID(a, b);
+
+    g.trackSubVertexRelation(
+        h->getCollectionID(), e, /*parent=*/a, /*sub=*/b);
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
-        (g.trackSubVertexRelation(h->getCollectionID(), a, b)),
+        (g.trackSubVertexRelation(h->getCollectionID(), e, a, b)),
         "already has a parent");
 
     EXPECT_EQ(h->getIncoming(b).size(), 1);

@@ -11,6 +11,8 @@ struct IEdge
     , public virtual IAttributeObject {
     using id_type = EdgeID;
 
+    using IGraphObjectBase::IGraphObjectBase;
+
     DESC_FIELDS(IEdge, ());
 
     struct SerialSchema {
@@ -40,15 +42,6 @@ struct TrivialEdge
     : public IEdge
     , public virtual TrivialAttributeObject {
     using IEdge::IEdge;
-
-    hstd::Opt<hstd::Str> stableIdOverride;
-    std::string          getStableId() const override {
-        if (stableIdOverride) {
-            return stableIdOverride.value();
-        } else {
-            return IEdge::getStableId();
-        }
-    }
 };
 
 
@@ -262,8 +255,14 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         return edgeStore.contains(id);
     }
 
-    EdgeID addEdge(VertexID const& source, VertexID const& target) {
-        auto res = edgeStore.add(TrivialEdge{}, getCollectionID());
+    EdgeID addEdge(
+        VertexID const&               source,
+        VertexID const&               target,
+        hstd::Opt<std::string> const& stable_id = std::nullopt) {
+        auto res = edgeStore.add(
+            TrivialEdge{
+                stable_id.value_or(hstd::fmt("{}-{}", source, target))},
+            getCollectionID());
         trackEdge(res, source, target);
         return res;
     }
@@ -283,7 +282,6 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         EdgeID const&   id,
         VertexID const& source,
         VertexID const& target) override {
-        edgeStore.insert_or_assign(id, TrivialEdge{});
         IEdgeCollection::trackEdge(id, source, target);
     }
 };

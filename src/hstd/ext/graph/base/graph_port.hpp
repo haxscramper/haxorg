@@ -22,28 +22,14 @@ struct IPort
     , public virtual IAttributeObject {
     using id_type = PortID;
     DESC_FIELDS(IPort, ());
+    using IGraphObjectBase::IGraphObjectBase;
 };
 
 class TrivialPort
     : public IPort
     , public virtual TrivialAttributeObject {
   public:
-    hstd::Opt<hstd::Str> stableIdOverride;
-    std::string          getStableId() const override {
-        if (stableIdOverride) {
-            return stableIdOverride.value();
-        } else {
-            return IPort::getStableId();
-        }
-    }
-
-    std::size_t getHash() const override { return 0; }
-
-    bool isEqual(IGraphObjectBase const* other) const override {
-        return true;
-    }
-
-    std::string getRepr() const override { return ""; }
+    using IPort::IPort;
 };
 
 class IPortCollection {
@@ -234,17 +220,15 @@ class TrivialPortCollection : public IPortCollection {
         return addPort(spec.v, spec.e, spec.is_start);
     }
 
-    PortID addPort(VertexID vertex) {
-        auto id = portStore.add(TrivialPort{}, getCategory().t);
-        IPortCollection::addPort(vertex, id);
-        return id;
-    }
+    PortID addPort(
+        VertexID                          vertex,
+        std::optional<std::string> const& stable_id = std::nullopt);
 
-    PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
-        auto id = portStore.add(TrivialPort{}, getCategory().t);
-        IPortCollection::addPort(vertex, edge, is_start, id);
-        return id;
-    }
+    PortID addPort(
+        VertexID                          vertex,
+        EdgeID                            edge,
+        bool                              is_start,
+        std::optional<std::string> const& stable_id = std::nullopt);
 
     hstd::Pair<PortID, PortID> addPorts(EdgePortsSpec const& spec) {
         return {addPort(spec.first), addPort(spec.second)};
