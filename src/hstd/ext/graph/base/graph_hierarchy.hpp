@@ -37,9 +37,14 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
-    virtual void write_serial(
+    virtual void writeSerial(
         proto::IVertexHierarchy* out,
         IGraph const*            graph) const;
+
+    void readSerial(
+        proto::IVertexHierarchy const* in,
+        IGraph const*                  graph,
+        IGraphSerialReaderFactory*     factory);
 
     int getVertexCount() const { return vertexIDs.size(); }
 

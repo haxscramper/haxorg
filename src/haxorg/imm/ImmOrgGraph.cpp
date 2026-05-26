@@ -958,11 +958,11 @@ void write_sem_to_proto(Out* out, org::imm::ImmAdapter const& ad) {
 }
 } // namespace
 
-void org::graph::MapNode::write_serial(
+void org::graph::MapNode::writeSerial(
     hgraph::proto::IVertex* out,
     hgraph::IGraph const*   graph,
     hgraph::VertexID const& self_id) const {
-    IVertex::write_serial(out, graph, self_id);
+    IVertex::writeSerial(out, graph, self_id);
     out->set_type("org::graph::MapNode");
     proto::MapNodePayload payload;
 

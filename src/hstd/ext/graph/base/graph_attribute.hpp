@@ -19,7 +19,12 @@ struct IAttribute {
     }
 
 #ifdef ORG_BUILD_WITH_PROTOBUF
-    virtual void write_serial(proto::IAttribute* out) const = 0;
+    virtual void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const = 0;
+    virtual void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) const = 0;
 #endif
 };
 
@@ -141,12 +146,27 @@ class IAttributeObject {
         setAttributes(new_list);
     }
 
-    void write_serial(
+    void writeSerial(
         ::google::protobuf::RepeatedPtrField<
-            ::hstd::ext::graph::proto::IAttribute>* out) const {
+            ::hstd::ext::graph::proto::IAttribute>* out,
+        IGraph const*                               graph) const {
         for (auto const& attr : getAttributes()) {
-            attr->write_serial(out->Add());
+            attr->writeSerial(out->Add(), graph);
         }
+    }
+
+    void readSerial(
+        ::google::protobuf::RepeatedPtrField<
+            ::hstd::ext::graph::proto::IAttribute> const* in,
+        IGraph const*                                     graph,
+        IGraphSerialReaderFactory*                        factory) {
+        hstd::Vec<hstd::SPtr<IAttribute>> attrs;
+        for (auto const& a : *in) {
+            auto attr = factory->newAttribute(&a);
+            attr->readSerial(&a, graph, factory);
+            attrs.push_back(attr);
+        }
+        setAttributes(attrs);
     }
 };
 

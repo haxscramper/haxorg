@@ -13,7 +13,7 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     UNIQUE_TARGET
     haxorg_sem_protobuf
     IMPORT_DIRS
-    "${BASE}/src/haxorg/serde"
+    "${BASE}"
     PROTO_SOURCES
     "${BASE}/src/haxorg/serde/SemOrgProto.proto"
     "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto")
@@ -24,8 +24,7 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     UNIQUE_TARGET
     haxorg_imm_graph_protobuf
     IMPORT_DIRS
-    "${BASE}/src/haxorg/serde"
-    "${BASE}/src/haxorg/imm"
+    "${BASE}"
     PROTO_SOURCES
     "${BASE}/src/haxorg/imm/ImmOrgGraph.proto")
 endif()

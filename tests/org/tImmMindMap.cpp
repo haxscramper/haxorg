@@ -8,6 +8,15 @@
 #include <hstd/stdlib/MapFormatter.hpp>
 
 
+std::unique_ptr<hstd::ext::graph::proto::IGraphProto> run_layout(
+    std::unique_ptr<hstd::ext::graph::proto::IGraphProto> const& proto) {
+    hstd::ext::graph::layout::LayoutRun::TrivialState state;
+    state.graph->read_serial(proto.get());
+
+
+    logic_todo_impl();
+}
+
 struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapConfig::Ptr     conf;
     org::graph::MapGraphState::Ptr state;
@@ -140,6 +149,11 @@ struct ImmMapApi : ImmOrgApiTestBase {
             *serial, &json, j_opts);
         EXPECT_TRUE(status.ok());
         writeFile(getDebugFile("serial.json"), json);
+    }
+
+    void runExternalizedLayoutPipeline() {
+        auto serial           = state->graph->get_serial();
+        auto completed_layout = run_layout(serial);
     }
 
     auto getGraphviz() {

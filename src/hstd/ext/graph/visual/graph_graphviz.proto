@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package hstd.ext.graph.gv.proto;
+
+message NodeAttributePayload {
+  map<string, string> fields = 1;
+}
+
+message EdgeAttributePayload {
+  map<string, string> fields = 1;
+}
+
+message GroupAttributePayload {
+  map<string, string> fields = 1;
+}

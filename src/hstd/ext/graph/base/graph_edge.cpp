@@ -82,15 +82,20 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
 }
 
 
-void hstd::ext::graph::IEdgeCollection::write_serial(
+void hstd::ext::graph::IEdgeCollection::writeSerial(
     proto::IEdgeCollection* out,
     IGraph const*           graph) const {
     out->set_type("IEdgeCollection");
     out->set_stable_id(getStableID());
     for (auto const& e : getEdges()) {
-        getEdge(e)->write_serial(out->add_edges(), graph, e);
+        getEdge(e)->writeSerial(out->add_edges(), graph, e);
     }
 }
+
+void hstd::ext::graph::IEdgeCollection::readSerial(
+    proto::IEdgeCollection const* in,
+    IGraph const*                 graph,
+    IGraphSerialReaderFactory*    factory) {}
 
 void hstd::ext::graph::IEdgeCollection::trackEdge(
     EdgeID const&   id,
@@ -190,7 +195,7 @@ EdgeIDSet IEdgeCollection::getEdges() const {
     return result;
 }
 
-void hstd::ext::graph::IEdge::write_serial(
+void hstd::ext::graph::IEdge::writeSerial(
     proto::IEdge* out,
     IGraph const* graph,
     EdgeID const& self_id) const {

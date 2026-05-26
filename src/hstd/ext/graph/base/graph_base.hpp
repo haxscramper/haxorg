@@ -415,7 +415,11 @@ class IGraph {
             (vertices, edges, hierarchies, flatVertexIDs));
     };
 
-    virtual void write_serial(proto::IGraphProto* out) const;
+    virtual void writeSerial(proto::IGraphProto* out) const;
+    virtual void readSerial(
+        proto::IGraphProto const*  in,
+        IGraphSerialReaderFactory* factory);
+
     std::unique_ptr<proto::IGraphProto> get_serial() const;
 
     std::string getDebug(VertexIDSet const& vert) const;

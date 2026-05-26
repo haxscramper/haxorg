@@ -610,7 +610,7 @@ class NodeAttribute
     Agnode_t* node;
     Agraph_t* graph;
 
-    void write_serial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute*) const override {}
 };
 
 class EdgeAttribute
@@ -669,7 +669,7 @@ class EdgeAttribute
     Agraph_t* graph;
     Agedge_t* edge_;
 
-    void write_serial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute*) const override {}
 };
 
 class Layout;
@@ -899,7 +899,7 @@ class GraphGroup
         return hstd::fmt("graph-group-{}", name());
     }
 
-    void write_serial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute*) const override {}
 };
 
 class Graphviz;
@@ -936,7 +936,7 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-    void write_serial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out) const override {}
 
     NodeAttribute node;
     GraphGroup    graph;
@@ -957,7 +957,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-    void write_serial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out) const override {}
 
     EdgeAttribute edge;
     GraphGroup    graph;
@@ -979,7 +979,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    void write_serial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out) const override {}
 
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;

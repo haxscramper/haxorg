@@ -177,12 +177,12 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
   public:
-    void write_serial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out) const override {}
 };
 
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
-    void write_serial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out) const override {}
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}

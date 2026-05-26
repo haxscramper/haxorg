@@ -313,18 +313,18 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
           hstd::UnorderedMap<std::string, V>> {};
 
 
-void IGraph::write_serial(proto::IGraphProto* out) const {
+void IGraph::writeSerial(proto::IGraphProto* out) const {
     for (auto const& [_, collection] : collections) {
-        collection->write_serial(out->add_collections(), this);
+        collection->writeSerial(out->add_collections(), this);
     }
 
     for (auto const& [_, hierarchy] : hierarchies) {
-        hierarchy->write_serial(out->add_hierarchies(), this);
+        hierarchy->writeSerial(out->add_hierarchies(), this);
     }
 
     for (auto const& vertex : hstd::sorted(
              hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
-        getVertex(vertex)->write_serial(out->add_vertices(), this, vertex);
+        getVertex(vertex)->writeSerial(out->add_vertices(), this, vertex);
     }
 
     // for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
@@ -372,9 +372,37 @@ void IGraph::write_serial(proto::IGraphProto* out) const {
     // return hstd::to_json_eval(res);
 }
 
+void IGraph::readSerial(
+    proto::IGraphProto const*  in,
+    IGraphSerialReaderFactory* factory) {
+
+    for (auto const& v : in->vertices()) {
+        auto new_vertex = factory->newVertex(&v);
+        new_vertex->readSerial(&v, this);
+    }
+
+    for (auto const& coll : in->collections()) {
+        auto new_collection = factory->newEdgeCollection(&coll);
+        new_collection->readSerial(&coll, this, factory);
+        addCollection(new_collection);
+    }
+
+    for (auto const& coll : in->hierarchies()) {
+        auto new_collection = factory->newVertexHierarchy(&coll);
+        new_collection->readSerial(&coll, this, factory);
+        addHierarchy(new_collection);
+    }
+
+    for (auto const& coll : in->ports()) {
+        auto new_collection = factory->newPortCollection(&coll);
+        new_collection->readSerial(&coll, this, factory);
+        addPorts(new_collection);
+    }
+}
+
 std::unique_ptr<proto::IGraphProto> IGraph::get_serial() const {
     auto result = std::make_unique<proto::IGraphProto>();
-    write_serial(result.get());
+    writeSerial(result.get());
     return std::move(result);
 }
 

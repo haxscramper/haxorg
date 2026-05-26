@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package hstd.ext.visual.proto;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/wrappers.proto";
+
+message Point {
+  double x = 1;
+  double y = 2;
+}
+
+message Rect {
+  double x = 1;
+  double y = 2;
+  double width = 3;
+  double height = 4;
+}
+
+message Path {
+  repeated Point points = 1;
+}
+
+message Polygon {
+  repeated Point points = 1;
+}
+
+message VisColor {
+  uint32 r = 1;
+  uint32 g = 2;
+  uint32 b = 3;
+  uint32 a = 4;
+}
+
+message VisPen {
+  enum LineStyle {
+    LINE_STYLE_UNSPECIFIED = 0;
+    LINE_STYLE_SOLID = 1;
+    LINE_STYLE_DASH = 2;
+    LINE_STYLE_DOT = 3;
+    LINE_STYLE_DASH_DOT = 4;
+    LINE_STYLE_NONE = 5;
+  }
+
+  VisColor color = 1;
+  double width = 2;
+  LineStyle style = 3;
+}
+
+message VisBrush {
+  enum BrushStyle {
+    BRUSH_STYLE_UNSPECIFIED = 0;
+    BRUSH_STYLE_SOLID = 1;
+    BRUSH_STYLE_NONE = 2;
+    BRUSH_STYLE_HORIZONTAL = 3;
+    BRUSH_STYLE_VERTICAL = 4;
+    BRUSH_STYLE_CROSS = 5;
+    BRUSH_STYLE_DIAGONAL_FORWARD = 6;
+    BRUSH_STYLE_DIAGONAL_BACKWARD = 7;
+    BRUSH_STYLE_DIAGONAL_CROSS = 8;
+  }
+
+  VisColor color = 1;
+  BrushStyle style = 2;
+}
+
+message VisFont {
+  enum Weight {
+    WEIGHT_UNSPECIFIED = 0;
+    WEIGHT_THIN = 1;
+    WEIGHT_LIGHT = 2;
+    WEIGHT_NORMAL = 3;
+    WEIGHT_BOLD = 4;
+    WEIGHT_BLACK = 5;
+  }
+
+  enum FontStyle {
+    FONT_STYLE_UNSPECIFIED = 0;
+    FONT_STYLE_NORMAL = 1;
+    FONT_STYLE_ITALIC = 2;
+    FONT_STYLE_OBLIQUE = 3;
+  }
+
+  string family = 1;
+  double pixel_size = 2;
+  Weight weight = 3;
+  FontStyle font_style = 4;
+}
+
+message VisTextAlign {
+  enum HAlign {
+    H_ALIGN_UNSPECIFIED = 0;
+    H_ALIGN_LEFT = 1;
+    H_ALIGN_CENTER = 2;
+    H_ALIGN_RIGHT = 3;
+  }
+
+  enum VAlign {
+    V_ALIGN_UNSPECIFIED = 0;
+    V_ALIGN_TOP = 1;
+    V_ALIGN_CENTER = 2;
+    V_ALIGN_BOTTOM = 3;
+  }
+
+  HAlign horizontal = 1;
+  VAlign vertical = 2;
+}
+
+message VisCustom {
+  enum DebugMode {
+    DEBUG_MODE_UNSPECIFIED = 0;
+    DEBUG_MODE_COMMON_DEBUG = 1;
+    DEBUG_MODE_FORCE_DEBUG = 2;
+    DEBUG_MODE_IGNORE_DEBUG = 3;
+  }
+
+  google.protobuf.Struct extra = 1;
+  repeated string comment = 2;
+  google.protobuf.StringValue title = 3;
+  repeated string desc = 4;
+  map<string, string> attrs = 5;
+  DebugMode debug_mode = 6;
+}
+
+message RectShape {
+  Rect geometry = 1;
+  VisPen pen = 2;
+  VisBrush brush = 3;
+  google.protobuf.DoubleValue corner_radius = 4;
+}
+
+message EllipseShape {
+  Rect geometry = 1;
+  VisPen pen = 2;
+  VisBrush brush = 3;
+}
+
+message LineShape {
+  Point p1 = 1;
+  Point p2 = 2;
+  VisPen pen = 3;
+}
+
+message PathShape {
+  Path path = 1;
+  VisPen pen = 2;
+  VisBrush brush = 3;
+}
+
+message PolygonShape {
+  Polygon points = 1;
+  VisPen pen = 2;
+  VisBrush brush = 3;
+}
+
+message TextShape {
+  string content = 1;
+  Point anchor = 2;
+  optional Rect bounding_box = 3;
+  VisFont font = 5;
+  VisTextAlign alignment = 6;
+  VisColor color = 7;
+}
+
+message PixmapShape {
+  string path = 1;
+  Rect geometry = 2;
+}
+
+message PointShape {
+  Point position = 1;
+  VisPen pen = 2;
+  VisBrush brush = 3;
+  double radius = 4;
+}
+
+message VisElement {
+  oneof data {
+    RectShape rect = 1;
+    EllipseShape ellipse = 2;
+    LineShape line = 3;
+    PathShape path = 4;
+    PolygonShape polygon = 5;
+    TextShape text = 6;
+    PixmapShape pixmap = 7;
+    PointShape point = 8;
+  }
+
+  VisCustom custom = 9;
+}
+
+message VisGroup {
+  Point offset = 1;
+  repeated VisElement elements = 2;
+  repeated VisGroup subgroups = 3;
+  VisCustom custom = 4;
+  optional Point max_point = 5;
+  google.protobuf.UInt64Value original_id = 7;
+  google.protobuf.UInt64Value original_type = 8;
+}

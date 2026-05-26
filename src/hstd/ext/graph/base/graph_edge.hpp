@@ -31,7 +31,7 @@ struct IEdge
     }
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void write_serial(
+    virtual void writeSerial(
         proto::IEdge* out,
         IGraph const* graph,
         EdgeID const& self_id) const;
@@ -153,10 +153,14 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
-    virtual void write_serial(
+    virtual void writeSerial(
         proto::IEdgeCollection* out,
         IGraph const*           graph) const;
 
+    virtual void 0readSerial(
+        proto::IEdgeCollection const* in,
+        IGraph const*                 graph,
+        IGraphSerialReaderFactory*    factory);
 
     bool isTrackingEdge(EdgeID const& id) const override {
         bool res = source_target.contains(id);

@@ -48,9 +48,23 @@ message IVertexHierarchy {
   google.protobuf.Any payload = 8;
 }
 
+message IPort {
+  string port_id = 1;
+  string edge_id = 2;
+  bool is_target = 3;
+  string vertex_id = 4;
+  google.protobuf.Any payload = 5;
+}
+
+message IPortCollection {
+  repeated IPort ports = 1;
+  google.protobuf.Any payload = 2;
+}
+
 message IGraphProto {
   repeated IEdgeCollection collections = 1;
   repeated IVertexHierarchy hierarchies = 2;
   repeated IVertex vertices = 3;
-  google.protobuf.Any payload = 4;
+  repeated IPortCollection ports = 4;
+  google.protobuf.Any payload = 5;
 }

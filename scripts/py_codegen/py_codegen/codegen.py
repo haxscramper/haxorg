@@ -204,7 +204,7 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
         GenUnit(header=GenTu("{base}/serde/SemOrgProto.proto", [
             GenTuPass('syntax = "proto3";'),
             GenTuPass("package orgproto;"),
-            GenTuPass('import "SemOrgProtoManual.proto";'),
+            GenTuPass('import "src/haxorg/serde/SemOrgProtoManual.proto";'),
             GenTuPass(protobuf),
         ])),
         GenUnit(

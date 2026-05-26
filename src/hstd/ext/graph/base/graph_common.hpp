@@ -286,7 +286,27 @@ using EdgeIDVec   = hstd::Vec<EdgeID>;
 using PortIDVec   = hstd::Vec<PortID>;
 
 class IGraph;
+class IVertexHierarchy;
+class IEdgeCollection;
+class IPortCollection;
+class IAttribute;
 
+class IGraphSerialReaderFactory {
+  public:
+    virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
+        proto::IVertexHierarchy const* in) const = 0;
+    virtual hstd::SPtr<IEdgeCollection> newEdgeCollection(
+        proto::IEdgeCollection const* in) const = 0;
+    virtual hstd::SPtr<IPortCollection> newPortCollection(
+        proto::IPortCollection const* in) const = 0;
+    virtual hstd::SPtr<IAttribute> newAttribute(
+        proto::IAttribute const* in) const = 0;
+
+    // NOTE: Technically this method could be implemented in the IGraph
+    // interface instead.
+    virtual hstd::SPtr<IVertex> newVertex(
+        proto::IVertex const* in) const = 0;
+};
 
 } // namespace hstd::ext::graph
 

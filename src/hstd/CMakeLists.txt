@@ -68,9 +68,12 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
     UNIQUE_TARGET
     hstd_proto_base_graph
     IMPORT_DIRS
-    "${BASE}/src/hstd/ext/graph/base"
+    "${BASE}"
     PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/base/graph_base.proto")
+    "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
+    "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
+    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
 endif()
 
 target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>

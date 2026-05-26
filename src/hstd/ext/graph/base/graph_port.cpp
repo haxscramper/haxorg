@@ -121,6 +121,15 @@ void hstd::ext::graph::IPortCollection::connectPort(
     }
 }
 
+void hstd::ext::graph::IPortCollection::writeSerial(
+    proto::IPortCollection* out,
+    IGraph const*           graph) const {}
+
+void hstd::ext::graph::IPortCollection::readSerial(
+    proto::IPortCollection const* in,
+    IGraph const*                 graph,
+    IGraphSerialReaderFactory*    factory) {}
+
 bool hstd::ext::graph::IPortCollection::isSourcePort(PortID pid) const {
     getPortIterator(pid);
     auto& idx         = port_edges.get<ByPortIDInEdgeMap>();

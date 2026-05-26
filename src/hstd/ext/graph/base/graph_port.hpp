@@ -135,6 +135,15 @@ class IPortCollection {
   public:
     virtual ~IPortCollection() = default;
 
+    virtual void writeSerial(
+        proto::IPortCollection* out,
+        IGraph const*           graph) const;
+
+    virtual void readSerial(
+        proto::IPortCollection const* in,
+        IGraph const*                 graph,
+        IGraphSerialReaderFactory*    factory);
+
     hstd::Vec<PortEntry> getAllEntries() const {
         hstd::Vec<PortEntry> res;
         for (auto const& e : ports) { res.push_back(e); }

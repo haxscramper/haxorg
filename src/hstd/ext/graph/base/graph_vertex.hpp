@@ -14,10 +14,14 @@ struct IVertex
     using IGraphObjectBase::IGraphObjectBase;
 
 #ifdef ORG_BUILD_WITH_PROTOBUF
-    virtual void write_serial(
+    virtual void writeSerial(
         proto::IVertex* out,
         IGraph const*   graph,
         VertexID const& self_id) const;
+
+    virtual void readSerial(
+        proto::IVertex const* in,
+        IGraph const*         graph) = 0;
 #endif
 };
 
@@ -32,13 +36,13 @@ struct TrivialVertex : public IVertex {
         return hstd::fmt("IVertex({})", getStableId());
     }
 
-    void write_serial(
+    void writeSerial(
         proto::IVertex* out,
         IGraph const*   graph,
         VertexID const& id) const override {
         out->set_type("trivial-vertex");
         out->set_stable_id(getStableId());
-        IAttributeObject::write_serial(out->mutable_attributes());
+        IAttributeObject::writeSerial(out->mutable_attributes(), graph);
     }
 
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
