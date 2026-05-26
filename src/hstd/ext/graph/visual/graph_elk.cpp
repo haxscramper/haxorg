@@ -195,7 +195,7 @@ struct State {
     }
 
     PortIDSet get_ports(VertexID const& vert) const {
-        return run->ports->getPortsForVertex(vert);
+        return run->getPorts()->getPortsForVertex(vert);
     }
 
     /// \brief return the ID of the entry the edge will connect to: port or
@@ -204,9 +204,9 @@ struct State {
         VertexID const& v,
         EdgeID const&   e,
         bool            is_start) {
-        if (run->ports->hasPortConnection(v, e, is_start)) {
+        if (run->getPorts()->hasPortConnection(v, e, is_start)) {
             return get_id(
-                run->ports->getPortForConnection(v, e, is_start));
+                run->getPorts()->getPortForConnection(v, e, is_start));
         } else {
             return get_id(v);
         }

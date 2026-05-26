@@ -14,6 +14,17 @@ constexpr char const* vertex_not_found_msg{
     "{}vertex {} not found. Missing call to `registerVertex`?"};
 } // namespace
 
+IGraph::IGraph(
+    Vec<hstd::SPtr<IEdgeCollection>>   collections,
+    Vec<hstd::SPtr<IPortCollection>>   ports,
+    Vec<hstd::SPtr<IVertexHierarchy>>  hierarchies,
+    Vec<hstd::SPtr<IAttributeTracker>> trackers) {
+    for (auto const& c : collections) { addCollection(c); }
+    for (auto const& h : hierarchies) { addHierarchy(h); }
+    for (auto const& p : ports) { addPorts(p); }
+    for (auto const& t : trackers) { addTracker(t); }
+}
+
 void IGraph::addTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
     trackers.insert_or_assign(tracker->getTrackerID(), tracker);
 }
@@ -152,6 +163,30 @@ void IGraph::untrackSubVertexRelation(
     VertexID const&         sub) {
     hierarchies.at(hierarchy)->untrackSubVertexRelation(parent, sub);
 }
+
+void IGraph::validatePortArguments(
+    VertexID const& v,
+    EdgeID const&   e,
+    bool            is_start) {
+    if (is_start) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            getSource(e) == v,
+            "Mismatch between provided vertex and edge source: "
+            "start({}) is {}, attempting to use {}",
+            getDebug(e),
+            getDebug(getSource(e)),
+            getDebug(v));
+    } else {
+        LOGIC_ASSERTION_CHECK_FMT(
+            getTarget(e) == v,
+            "Mismatch between provided vertex and target source: "
+            "target({}) is {}, attempting to use {}",
+            getDebug(e),
+            getDebug(getTarget(e)),
+            getDebug(v));
+    }
+}
+
 hstd::ext::graph::PortCollectionID hstd::ext::graph::IGraph::
     getPortCollectionID(PortID const& id) const {
     return PortCollectionID{hstd::u16(id.getMask())};

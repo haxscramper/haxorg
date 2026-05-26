@@ -875,12 +875,11 @@ class GraphGroup
     Str            name() const { return agnameof(graph); }
     GVContext::Ptr context() { return ctx.context; }
 
-    hstd::SPtr<NodeAttribute> addVertex(
-        VertexID const& parent,
-        VertexID const& id) {
-        auto vertex       = run->getVertex(id);
-        auto attribute    = this->node(vertex->getStableId());
-        auto nesting_edge = run->addNestedVertex(parent, id, attribute);
+    hstd::SPtr<NodeAttribute> addVertex(EdgeID const& edge) {
+        auto vertex_id = run->getNestedVertex(edge);
+        auto vertex    = run->getVertex(vertex_id);
+        auto attribute = this->node(vertex->getStableId());
+        run->setNestedVertexAttribute(edge, attribute);
         return attribute;
     }
 
@@ -899,27 +898,7 @@ class GraphGroup
     /// layout run. graphviz API makes it reasonably easy to generate a
     /// quick graph visualization, without setting up the full layout run,
     /// so this method is used as an escape hatch for cases like these.
-    static hstd::SPtr<gv::GraphGroup> newRootGraph(hstd::Str const& name) {
-        auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
-        if (!gvc) {
-            throw std::runtime_error("Failed to create Graphviz context");
-        }
-
-        auto result = std::make_shared<GraphGroup>(
-            GroupContext{
-                .context = GVContext::shared(),
-                .gvc     = gvc,
-            },
-            name);
-
-        auto graph        = std::make_shared<TrivialGraph>();
-        auto run          = std::make_shared<layout::LayoutRun>(graph);
-        result->algorithm = std::static_pointer_cast<
-            layout::IPlacementAlgorithm>(
-            std::make_shared<gv::Layout>(gvc, run));
-
-        return result;
-    }
+    static hstd::SPtr<gv::GraphGroup> newRootGraph(hstd::Str const& name);
 
 
     static hstd::SPtr<GraphGroup> newRootGraph(
@@ -927,18 +906,8 @@ class GraphGroup
         hstd::Str const&              name = "");
 
     hstd::SPtr<GraphGroup> addNewNativeSubgroup(
-        VertexID const& parent,
-        VertexID const& id,
-        bool            with_algorithm = false) {
-        hstd::SPtr<GraphGroup> res;
-        if (with_algorithm) {
-            res = newRootGraph(run);
-        } else {
-            res = newSubgraph(hstd::fmt("GV_{}", id));
-        }
-        std::ignore = run->addNestedGroup(parent, id, res);
-        return res;
-    }
+        EdgeID const& edge,
+        bool          with_algorithm = false);
 
     std::string getStableId() const override {
         return hstd::fmt("graph-group-{}", name());

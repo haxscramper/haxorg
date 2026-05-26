@@ -18,13 +18,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::SPtr<cst::ColaGroup> cola_root = cst::ColaGroup::newRootGraph(
         run, "cola_root");
 
-    run->addRootGroup(cola_root_id, cola_root);
+    run->setRootGroupAttribute(cola_root_id, cola_root);
 
     // sidebar dot layout
     hstd::SPtr<gv::GraphGroup> dot_sub1 = gv::GraphGroup::newRootGraph(
         run, "dot_sub1");
 
-    std::ignore = run->addNestedGroup(cola_root_id, dot_sub1_id, dot_sub1);
+    run->setNestedGroupAttribute(
+        addNesting(cola_root_id, dot_sub1_id), dot_sub1);
 
     auto l1 = addVertex("l1");
     auto l2 = addVertex("l2");
@@ -34,13 +35,20 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto l6 = addVertex("l6");
     auto l7 = addVertex("l7");
 
-    dot_sub1->addVertex(dot_sub1_id, l1)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l2)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l3)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l4)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l5)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l6)->setFixedPointWH(rect);
-    dot_sub1->addVertex(dot_sub1_id, l7)->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l1))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l2))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l3))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l4))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l5))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l6))
+        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l7))
+        ->setFixedPointWH(rect);
 
     auto e_l1_l2 = addEdge(l1, l2, "e_l1_l2");
     auto e_l2_l3 = addEdge(l2, l3, "e_l2_l3");
@@ -62,8 +70,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::SPtr<cst::ColaGroup> cola_sub1 = cst::ColaGroup::newRootGraph(
         run, "cola_sub1");
 
-    std::ignore = run->addNestedGroup(
-        cola_root_id, cola_sub1_id, cola_sub1);
+    run->setNestedGroupAttribute(
+        addNesting(cola_root_id, cola_sub1_id), cola_sub1);
 
     auto g1 = addVertex("g1");
     auto g2 = addVertex("g2");
@@ -74,14 +82,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto g7 = addVertex("g7");
     auto g8 = addVertex("g8");
 
-    cola_sub1->addVertex(cola_sub1_id, g1, rect);
-    cola_sub1->addVertex(cola_sub1_id, g2, rect);
-    cola_sub1->addVertex(cola_sub1_id, g3, rect);
-    cola_sub1->addVertex(cola_sub1_id, g4, rect);
-    cola_sub1->addVertex(cola_sub1_id, g5, rect);
-    cola_sub1->addVertex(cola_sub1_id, g6, rect);
-    cola_sub1->addVertex(cola_sub1_id, g7, rect);
-    cola_sub1->addVertex(cola_sub1_id, g8, rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g1), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g2), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g3), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g4), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g5), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g6), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g7), rect);
+    cola_sub1->addVertex(addNesting(cola_sub1_id, g8), rect);
 
     auto e_g1_g5 = addEdge(g1, g5, "e_g1_g5");
     auto e_g2_g6 = addEdge(g2, g6, "e_g2_g6");
@@ -118,8 +126,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
     circo_sub2->setOuterPadding(geometry::Padding{5});
 
-    std::ignore = run->addNestedGroup(
-        cola_sub1_id, circo_sub2_id, circo_sub2);
+    run->setNestedGroupAttribute(
+        addNesting(cola_sub1_id, circo_sub2_id), circo_sub2);
 
     auto c1 = addVertex("c1");
     auto c2 = addVertex("c2");
@@ -130,14 +138,22 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto c7 = addVertex("c7");
     auto c8 = addVertex("c8");
 
-    circo_sub2->addVertex(circo_sub2_id, c1)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c2)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c3)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c4)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c5)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c6)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c7)->setFixedPointWH(rect);
-    circo_sub2->addVertex(circo_sub2_id, c8)->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c1))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c2))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c3))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c4))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c5))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c6))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c7))
+        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c8))
+        ->setFixedPointWH(rect);
 
     auto e_c1_c2 = addEdge(c1, c2, "e_c1_c2");
     auto e_c2_c3 = addEdge(c2, c3, "e_c2_c3");
@@ -163,17 +179,22 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     dot_sub2->setOuterPadding(geometry::Padding{5});
 
-    std::ignore = run->addNestedGroup(cola_sub1_id, dot_sub2_id, dot_sub2);
+    run->setNestedGroupAttribute(
+        addNesting(cola_sub1_id, dot_sub2_id), dot_sub2);
 
     auto d1 = addVertex("d1");
     auto d2 = addVertex("d2");
     auto d3 = addVertex("d3");
     auto d4 = addVertex("d4");
 
-    dot_sub2->addVertex(dot_sub2_id, d1)->setFixedPointWH(rect);
-    dot_sub2->addVertex(dot_sub2_id, d2)->setFixedPointWH(rect);
-    dot_sub2->addVertex(dot_sub2_id, d3)->setFixedPointWH(rect);
-    dot_sub2->addVertex(dot_sub2_id, d4)->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d1))
+        ->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d2))
+        ->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d3))
+        ->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d4))
+        ->setFixedPointWH(rect);
 
     auto e_d1_d2 = addEdge(d1, d2, "e_d1_d2");
     auto e_d1_d3 = addEdge(d1, d3, "e_d1_d3");
@@ -251,13 +272,13 @@ TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
         run, "r5");
     r5->setOuterPadding(pad);
 
-    run->addRootGroup(r1_id, r1);
-    std::ignore = run->addNestedGroup(r1_id, r2_id, r2);
-    std::ignore = run->addNestedGroup(r2_id, r3_id, r3);
-    std::ignore = run->addNestedGroup(r3_id, r4_id, r4);
-    std::ignore = run->addNestedGroup(r4_id, r5_id, r5);
+    run->setRootGroupAttribute(r1_id, r1);
+    run->setNestedGroupAttribute(addNesting(r1_id, r2_id), r2);
+    run->setNestedGroupAttribute(addNesting(r2_id, r3_id), r3);
+    run->setNestedGroupAttribute(addNesting(r3_id, r4_id), r4);
+    run->setNestedGroupAttribute(addNesting(r4_id, r5_id), r5);
 
-    r5->addVertex(r5_id, node_id, rect);
+    r5->addVertex(addNesting(r5_id, node_id), rect);
 
     run->runFullLayout();
 

@@ -53,6 +53,33 @@ class IVertexHierarchy : public IEdgeProvider {
         return edgeTracker.contains_right(id);
     }
 
+    void assertHasEdge(EdgeID const& id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            hasEdge(id),
+            "Vertex hierarchy {} must have the object associated with ID "
+            "{}, but hasEdge({}) = false",
+            getStableID(),
+            id,
+            id);
+    }
+
+    void assertTrackingEdge(EdgeID const& id) const {
+        // Edge tracking must be done after the edge object is already
+        // registered, and all tracked edges must have object associated
+        // with them.
+        assertHasEdge(id);
+        LOGIC_ASSERTION_CHECK_FMT(
+            isTrackingEdge(id),
+            "Vertex hierarchy {} must be tracking edge {} ({}), but "
+            "isTrackingEdge({}) = false",
+            getStableID(),
+            id,
+            getEdge(id) ? getEdge(id)->getStableId() : "<null>",
+            id);
+    }
+
+    void assertKnownVertex(VertexID const& id) {}
+
     /// \brief Add the vertex to the hierarchy collection without nesting
     /// relations.
     void trackVertex(VertexID const& id) override;
@@ -91,6 +118,11 @@ class IVertexHierarchy : public IEdgeProvider {
 
     VertexID getTarget(EdgeID const& edge) const override {
         return edgeTracker.at_left(edge).first;
+    }
+
+    hstd::Pair<VertexID, VertexID> getParentAndNested(
+        EdgeID const& edge) const {
+        return {getSource(edge), getTarget(edge)};
     }
 
     /// \brief Remove the vertex nesting information. As `sub` can only be

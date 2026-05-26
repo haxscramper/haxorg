@@ -170,21 +170,20 @@ class ColaGroup
     LocalCtx              local;
 
     hstd::SPtr<ColaVertexAttribute> addVertex(
-        VertexID const&       parent,
-        VertexID const&       id,
+        EdgeID const&         edge,
         geometry::Rect const& size) {
-        auto vattr  = std::make_shared<ColaVertexAttribute>(size);
-        std::ignore = get_run()->addNestedVertex(parent, id, vattr);
+        auto id    = get_run()->getGraph()->getTarget(edge);
+        auto vattr = std::make_shared<ColaVertexAttribute>(size);
+        get_run()->setNestedVertexAttribute(edge, vattr);
         shared->addVertex(id, size);
         return vattr;
     }
 
     hstd::SPtr<ColaVertexAttribute> addVertex(
-        VertexID const&       parent,
-        VertexID const&       id,
+        EdgeID const&         edge,
         geometry::Size const& size) {
         return addVertex(
-            parent, id, geometry::Rect(0, 0, size.width(), size.height()));
+            edge, geometry::Rect(0, 0, size.width(), size.height()));
     }
 
     hstd::SPtr<ColaEdgeAttribute> addEdge(EdgeID const& id) {
@@ -197,12 +196,10 @@ class ColaGroup
         return API::Group::getStableId();
     }
 
-    hstd::SPtr<ColaGroup> addNewNativeSubgroup(
-        VertexID const& parent,
-        VertexID const& id) {
+    hstd::SPtr<ColaGroup> addNewNativeSubgroup(EdgeID const& edge) {
         auto res = std::make_shared<ColaGroup>(
-            shared, hstd::fmt("cola_{}", id));
-        std::ignore = run->addNestedGroup(parent, id, res);
+            shared, hstd::fmt("cola_{}", edge));
+        run->setNestedGroupAttribute(edge, res);
         return res;
     }
 

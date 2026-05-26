@@ -110,8 +110,10 @@ void add_ports(
     hstd::SPtr<cst::AvoidPortCollection> const& lp) {
     auto __ports = run->begin_scope("add ports");
     for (auto const& eid : edge_set) {
-        auto s_pid = lp->addPort(run->graph->getSource(eid), eid, true);
-        auto e_pid = lp->addPort(run->graph->getTarget(eid), eid, false);
+        auto s_pid = lp->addPort(
+            run->getGraph()->getSource(eid), eid, true);
+        auto e_pid = lp->addPort(
+            run->getGraph()->getTarget(eid), eid, false);
         run->message(hstd::fmt("added ports {} {}", s_pid, e_pid));
         auto s_port = lp->getMPort(s_pid);
         auto e_port = lp->getMPort(e_pid);

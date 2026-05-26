@@ -458,20 +458,17 @@ class ElkGroupVisualAttribute
         hstd::Str const&              name = "");
 
     hstd::SPtr<ElkGroupVisualAttribute> addNewNativeSubgroup(
-        VertexID const& parent,
-        VertexID const& id) {
+        EdgeID const& edge) {
+        auto id  = run->getNestedVertex(edge);
         auto res = std::make_shared<ElkGroupVisualAttribute>(
             shared, hstd::fmt("cola_{}", id));
-        std::ignore = run->addNestedGroup(parent, id, res);
+        run->setNestedGroupAttribute(edge, res);
         return res;
     }
 
-
-    hstd::SPtr<ElkNodeVisualAttribute> addVertex(
-        VertexID const& parent,
-        VertexID const& id) {
-        auto vattr  = std::make_shared<ElkNodeVisualAttribute>();
-        std::ignore = get_run()->addNestedVertex(parent, id, vattr);
+    hstd::SPtr<ElkNodeVisualAttribute> addVertex(EdgeID const& edge) {
+        auto vattr = std::make_shared<ElkNodeVisualAttribute>();
+        get_run()->setNestedVertexAttribute(edge, vattr);
         return vattr;
     }
 
@@ -479,23 +476,13 @@ class ElkGroupVisualAttribute
         auto res = std::make_shared<ElkEdgeVisualAttribute>();
         get_run()->setEdgeAttribute(id, res);
         LOGIC_ASSERTION_CHECK(
-            get_run()->edges->hasEdge(id), get_run()->getDebug(id));
+            get_run()->getEdges()->hasEdge(id), get_run()->getDebug(id));
         return res;
     }
 
     hstd::SPtr<ElkPortVisualAttribute> addPort(PortID const& pid) {
         auto res = std::make_shared<ElkPortVisualAttribute>();
         get_run()->getMPort(pid)->addUniqueAttribute(res);
-        return res;
-    }
-
-    hstd::SPtr<ElkPortVisualAttribute> addPort(
-        VertexID const&               v,
-        EdgeID const&                 e,
-        bool                          is_start,
-        hstd::Opt<std::string> const& stable_id = std::nullopt) {
-        auto res = std::make_shared<ElkPortVisualAttribute>();
-        auto id  = get_run()->addPort(v, e, is_start, stable_id, res);
         return res;
     }
 };

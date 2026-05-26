@@ -85,6 +85,13 @@ class IGraph {
         DESC_FIELDS(Crossing, (hierarchy, crossings));
     };
 
+    IGraph() {}
+    IGraph(
+        Vec<hstd::SPtr<IEdgeCollection>>   collections,
+        Vec<hstd::SPtr<IPortCollection>>   ports       = {},
+        Vec<hstd::SPtr<IVertexHierarchy>>  hierarchies = {},
+        Vec<hstd::SPtr<IAttributeTracker>> trackers    = {});
+
     /// \name IGraph tracker/provider operations
     /// @{
     void addTracker(hstd::SPtr<IAttributeTracker> const& tracker);
@@ -99,6 +106,21 @@ class IGraph {
     bool hasCollection(hstd::SPtr<IEdgeCollection> const& collection);
     bool hasHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
     bool hasPorts(hstd::SPtr<IPortCollection> const& hierarchy);
+
+    hstd::SPtr<IVertexHierarchy> getHierarchy(
+        EdgeCollectionID const& id) const {
+        return hierarchies.at(id);
+    }
+
+    hstd::SPtr<IEdgeCollection> getEdgeCollection(
+        EdgeCollectionID const& id) const {
+        return collections.at(id);
+    }
+
+    hstd::SPtr<IPortCollection> getPortCollection(
+        PortCollectionID const& id) const {
+        return ports.at(id);
+    }
 
     /// \brief Get list of all edge providers in the graph: vertex
     /// hierarchies and general edge collections.
@@ -338,6 +360,11 @@ class IGraph {
     T* getCastMPort(PortID const& id) const {
         return hstd::validated_dynamic_cast<T>(getMPort(id));
     }
+
+    void validatePortArguments(
+        VertexID const& v,
+        EdgeID const&   e,
+        bool            is_start);
     /// @}
 
     struct SerialSchema {
@@ -420,6 +447,17 @@ class IGraph {
 struct TrivialGraph : public IGraph {
     hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
     hstd::SPtr<TrivialEdgeCollection>                        edges;
+
+    TrivialGraph(
+        hstd::Vec<hstd::SPtr<IEdgeCollection>>   collections,
+        hstd::Vec<hstd::SPtr<IPortCollection>>   ports       = {},
+        hstd::Vec<hstd::SPtr<IVertexHierarchy>>  hierarchies = {},
+        hstd::Vec<hstd::SPtr<IAttributeTracker>> trackers    = {})
+        : IGraph(collections, ports, hierarchies, trackers)
+        , edges{std::make_shared<TrivialEdgeCollection>(
+              EdgeCollectionID{1})} {
+        addCollection(edges);
+    }
 
     TrivialGraph()
         : edges{std::make_shared<TrivialEdgeCollection>(

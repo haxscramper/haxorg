@@ -299,13 +299,11 @@ struct MapGraph
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
-        hstd::SPtr<hgraph::TrivialGraph> layout_graph;
-        hgraph::layout::LayoutRun::Ptr   run;
-        GvConfig()
-            : layout_graph{std::make_shared<hgraph::TrivialGraph>()}
-            , run{hgraph::layout::LayoutRun::shared(
-                  layout_graph,
-                  layout_graph->edges)} {}
+        hgraph::layout::LayoutRun::TrivialState state;
+        hgraph::layout::LayoutRun::Ptr          run;
+
+        GvConfig() : run{state.init()} {}
+
         hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID>
             layout_vertices;
 

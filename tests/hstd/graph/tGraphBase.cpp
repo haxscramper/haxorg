@@ -24,16 +24,16 @@ struct AutoSegmentTest {
 
 TEST_F(GraphBase_Test, AddVertex) {
     auto id = addVertex("a");
-    EXPECT_NE(graph->getVertex(id), nullptr);
+    EXPECT_NE(getGraph()->getVertex(id), nullptr);
 }
 
 TEST_F(GraphBase_Test, AddEdge) {
     auto a = addVertex("a");
     auto b = addVertex("b");
     auto e = addEdge(a, b, "e");
-    EXPECT_TRUE(graph->edges->hasEdge(e));
-    EXPECT_EQ(graph->edges->getSource(e), a);
-    EXPECT_EQ(graph->edges->getTarget(e), b);
+    EXPECT_TRUE(getGraph()->edges->hasEdge(e));
+    EXPECT_EQ(getGraph()->edges->getSource(e), a);
+    EXPECT_EQ(getGraph()->edges->getTarget(e), b);
 }
 
 TEST_F(GraphBase_Test, OnePortPerVertex) {
@@ -48,11 +48,11 @@ TEST_F(GraphBase_Test, OnePortPerVertex) {
     EXPECT_TRUE(ports.isSourcePort(port_a_e));
     EXPECT_TRUE(ports.isTargetPort(port_b_e));
 
-    EXPECT_EQ(graph->edges->getOutgoing(a).size(), 1);
-    EXPECT_EQ(graph->edges->getIncoming(a).size(), 0);
+    EXPECT_EQ(getGraph()->edges->getOutgoing(a).size(), 1);
+    EXPECT_EQ(getGraph()->edges->getIncoming(a).size(), 0);
 
-    EXPECT_EQ(graph->edges->getOutgoing(b).size(), 0);
-    EXPECT_EQ(graph->edges->getIncoming(b).size(), 1);
+    EXPECT_EQ(getGraph()->edges->getOutgoing(b).size(), 0);
+    EXPECT_EQ(getGraph()->edges->getIncoming(b).size(), 1);
 }
 
 TEST_F(GraphBase_Test, MultiPort) {
@@ -72,15 +72,15 @@ TEST_F(GraphBase_Test, MultiPort) {
     auto bc2 = addEdge(b, c, "bc2");
     auto bc3 = addEdge(b, c, "bc3");
 
-    ports.addPorts(graph->edges->getPortSpecs(ab1));
-    ports.addPorts(graph->edges->getPortSpecs(ab2));
+    ports.addPorts(getGraph()->edges->getPortSpecs(ab1));
+    ports.addPorts(getGraph()->edges->getPortSpecs(ab2));
 
-    ports.addPorts(graph->edges->getPortSpecs(ac1));
-    ports.addPorts(graph->edges->getPortSpecs(ac2));
+    ports.addPorts(getGraph()->edges->getPortSpecs(ac1));
+    ports.addPorts(getGraph()->edges->getPortSpecs(ac2));
 
-    ports.addPorts(graph->edges->getPortSpecs(bc1));
-    ports.addPorts(graph->edges->getPortSpecs(bc2));
-    ports.addPorts(graph->edges->getPortSpecs(bc3));
+    ports.addPorts(getGraph()->edges->getPortSpecs(bc1));
+    ports.addPorts(getGraph()->edges->getPortSpecs(bc2));
+    ports.addPorts(getGraph()->edges->getPortSpecs(bc3));
 
     EXPECT_EQ(ports.getPortsForVertex(a).size(), 4);
     EXPECT_EQ(ports.getPortsForVertex(b).size(), 5);

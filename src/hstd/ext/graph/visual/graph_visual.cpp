@@ -21,11 +21,12 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
     return edges->getFullyIncludedEdges(noSwitch);
 }
 
-hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
-    addNestedGroup(
-        VertexID const&                          parent,
-        VertexID const&                          nested,
-        hstd::SPtr<IGroupVisualAttribute> const& attr) {
+void hstd::ext::graph::layout::LayoutRun::setNestedGroupAttribute(
+    EdgeID const&                            edge,
+    hstd::SPtr<IGroupVisualAttribute> const& attr) {
+
+    getGroups()->assertTrackingEdge(edge);
+    auto [parent, nested] = getGroups()->getParentAndNested(edge);
 
     LOGIC_ASSERTION_CHECK(
         !getGraph()
@@ -35,24 +36,20 @@ hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
         "Cannot assign group visual attribute to a vertex that "
         "already has vertex visual attribute.");
 
-    groups->trackVertex(nested);
-    auto res = groups->trackSubVertexRelation(parent, nested);
     graph->getMVertex(nested)->addUniqueAttribute(attr);
-
-    return res;
 }
 
-hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
-    addNestedVertex(
-        VertexID const&                           parent,
-        VertexID const&                           nested,
-        hstd::SPtr<IVertexVisualAttribute> const& attr) {
+void hstd::ext::graph::layout::LayoutRun::setNestedVertexAttribute(
+    EdgeID const&                             edge,
+    hstd::SPtr<IVertexVisualAttribute> const& attr) {
+
+    getGroups()->assertTrackingEdge(edge);
+    auto [parent, nested] = getGroups()->getParentAndNested(edge);
 
     LOGIC_ASSERTION_CHECK(
         isGroupVertex(parent),
         "Cannot assign non-group visual attribute to the vertex "
-        "already "
-        "annotated with the group visual attribute.");
+        "already annotated with the group visual attribute.");
 
     LOGIC_ASSERTION_CHECK(
         std::dynamic_pointer_cast<IGroupVisualAttribute>(attr) == nullptr,
@@ -60,38 +57,9 @@ hstd::ext::graph::EdgeID hstd::ext::graph::layout::LayoutRun::
         "derived from the IVertexVisualAttribute should be managed by "
         "the addNewNativeSubgroup method");
 
+
     getGraph()->getMVertex(nested)->addUniqueAttribute(attr);
-    hstd::logic_assertion_check_not_nil(groups);
-    groups->trackVertex(nested);
-    return groups->trackSubVertexRelation(parent, nested);
 }
-
-hstd::ext::graph::PortID hstd::ext::graph::layout::LayoutRun::addPort(
-    VertexID const&                   v,
-    EdgeID const&                     e,
-    bool                              is_start,
-    std::optional<std::string> const& stable_id) {
-    if (is_start) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            edges->getSource(e) == v,
-            "Mismatch between provided vertex and edge source: "
-            "start({}) is {}, attempting to use {}",
-            getDebug(e),
-            getDebug(edges->getSource(e)),
-            getDebug(v));
-    } else {
-        LOGIC_ASSERTION_CHECK_FMT(
-            edges->getTarget(e) == v,
-            "Mismatch between provided vertex and target source: "
-            "target({}) is {}, attempting to use {}",
-            getDebug(e),
-            getDebug(edges->getTarget(e)),
-            getDebug(v));
-    }
-
-    return ports->addPort(v, e, is_start, stable_id);
-}
-
 
 hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
     const {
@@ -181,19 +149,15 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
 
 layout::LayoutRun::LayoutRun(
-    hstd::SPtr<IGraph>                graph,
-    hstd::SPtr<TrivialEdgeCollection> _edges,
-    hstd::SPtr<TrivialPortCollection> _ports,
-    EdgeCollectionID                  edges_id)
+    hstd::SPtr<IGraph> graph,
+    EdgeCollectionID   edge_id,
+    PortCollectionID   port_id,
+    EdgeCollectionID   hierarchy_id)
     : graph{graph}
-    , groups{std::make_shared<IdOnlyHierarchy>()}
-    , edges{_edges ? _edges : std::make_shared<TrivialEdgeCollection>(edges_id)}
-    , ports{_ports ? _ports : std::make_shared<TrivialPortCollection>()} {
+    , groups{graph->getHierarchy(hierarchy_id)}
+    , edges{graph->getEdgeCollection(edge_id)}
+    , ports{graph->getPortCollection(port_id)} {
     hstd::logic_assertion_check_not_nil(graph);
-    if (!graph->hasCollection(edges)) { graph->addCollection(edges); }
-    if (!graph->hasHierarchy(groups)) { graph->addHierarchy(groups); }
-    // if (graph.has)
-    graph->addPorts(ports);
 }
 
 EdgeIDSet layout::LayoutRun::getAllUnboundEdges() const {
@@ -332,7 +296,7 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
 
 hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
     getGraph() const {
-    return run->graph;
+    return run->getGraph();
 }
 
 hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
@@ -359,7 +323,7 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
     // for each leftover edge, try to find the common parent, and
     // check if the current group matches.
     for (auto const& edge : leftover_edges) {
-        auto common_parent = run->groups->getCommonAncestor({
+        auto common_parent = run->getGroups()->getCommonAncestor({
             run->getGraph()->getSource(edge),
             run->getGraph()->getTarget(edge),
         });

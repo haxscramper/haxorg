@@ -21,15 +21,15 @@ TEST_F(GraphVisualElk_Test, SimpleGraph) {
     auto e23 = addEdge(v2, v3, "e23");
     auto e31 = addEdge(v3, v1, "e31");
 
-    auto rg_id = graph->addVertex();
+    auto rg_id = getGraph()->addVertex();
 
     auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
-    run->addRootGroup(rg_id, root);
+    run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(rg_id, v1)->setSize(size);
-    root->addVertex(rg_id, v2)->setSize(size);
-    root->addVertex(rg_id, v3)->setSize(size);
-    root->addVertex(rg_id, v4)->setSize(size);
+    root->addVertex(addNesting(rg_id, v1))->setSize(size);
+    root->addVertex(addNesting(rg_id, v2))->setSize(size);
+    root->addVertex(addNesting(rg_id, v3))->setSize(size);
+    root->addVertex(addNesting(rg_id, v4))->setSize(size);
     root->addEdge(e12);
     root->addEdge(e23);
     root->addEdge(e31);
@@ -66,23 +66,23 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
     auto e34     = addEdge(v3, v4, "e34");
     auto e_g1_g2 = addEdge(g1, g2, "e_g1_g2");
 
-    auto rg_id = graph->addVertex();
+    auto rg_id = getGraph()->addVertex();
 
     auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
-    run->addRootGroup(rg_id, root);
+    run->setRootGroupAttribute(rg_id, root);
 
-    auto g1_sub = root->addNewNativeSubgroup(rg_id, g1);
-    auto g2_sub = root->addNewNativeSubgroup(rg_id, g2);
+    auto g1_sub = root->addNewNativeSubgroup(addNesting(rg_id, g1));
+    auto g2_sub = root->addNewNativeSubgroup(addNesting(rg_id, g2));
 
-    g1_sub->addVertex(g1, v1)->setSize(size);
-    g1_sub->addVertex(g1, v2)->setSize(size);
-    g1_sub->addVertex(g1, v3)->setSize(size);
-    g1_sub->addVertex(g1, v4)->setSize(size);
+    g1_sub->addVertex(addNesting(g1, v1))->setSize(size);
+    g1_sub->addVertex(addNesting(g1, v2))->setSize(size);
+    g1_sub->addVertex(addNesting(g1, v3))->setSize(size);
+    g1_sub->addVertex(addNesting(g1, v4))->setSize(size);
 
-    g2_sub->addVertex(g2, v5)->setSize(size);
-    g2_sub->addVertex(g2, v6)->setSize(size);
-    g2_sub->addVertex(g2, v7)->setSize(size);
-    g2_sub->addVertex(g2, v8)->setSize(size);
+    g2_sub->addVertex(addNesting(g2, v5))->setSize(size);
+    g2_sub->addVertex(addNesting(g2, v6))->setSize(size);
+    g2_sub->addVertex(addNesting(g2, v7))->setSize(size);
+    g2_sub->addVertex(addNesting(g2, v8))->setSize(size);
 
     root->addEdge(e15);
     root->addEdge(e_g1_g2);
@@ -167,23 +167,23 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
 
 
     auto root = elk::ElkGroupVisualAttribute::newRootGraph(run);
-    run->addRootGroup(r_id, root);
+    run->setRootGroupAttribute(r_id, root);
 
     geometry::Size size{50, 30};
     geometry::Size port_size{5, 5};
 
-    root->addVertex(r_id, a_id)->setSize(size);
-    root->addVertex(r_id, b_id)->setSize(size);
-    root->addVertex(r_id, merge2_id)->setSize(size);
-    root->addVertex(r_id, server_id)->setSize(size);
-    root->addVertex(r_id, comm_resp_id)->setSize(size);
-    root->addVertex(r_id, disc_clock1_id)->setSize(size);
-    root->addVertex(r_id, disc_clock2_id)->setSize(size);
-    root->addVertex(r_id, ramp1_id)->setSize(size);
-    root->addVertex(r_id, ramp2_id)->setSize(size);
-    root->addVertex(r_id, scale1_id)->setSize(size);
-    root->addVertex(r_id, scale2_id)->setSize(size);
-    root->addVertex(r_id, plotter_id)->setSize(size);
+    root->addVertex(addNesting(r_id, a_id))->setSize(size);
+    root->addVertex(addNesting(r_id, b_id))->setSize(size);
+    root->addVertex(addNesting(r_id, merge2_id))->setSize(size);
+    root->addVertex(addNesting(r_id, server_id))->setSize(size);
+    root->addVertex(addNesting(r_id, comm_resp_id))->setSize(size);
+    root->addVertex(addNesting(r_id, disc_clock1_id))->setSize(size);
+    root->addVertex(addNesting(r_id, disc_clock2_id))->setSize(size);
+    root->addVertex(addNesting(r_id, ramp1_id))->setSize(size);
+    root->addVertex(addNesting(r_id, ramp2_id))->setSize(size);
+    root->addVertex(addNesting(r_id, scale1_id))->setSize(size);
+    root->addVertex(addNesting(r_id, scale2_id))->setSize(size);
+    root->addVertex(addNesting(r_id, plotter_id))->setSize(size);
 
     root->addEdge(e_a_merge);
     root->addEdge(e_b_merge);
@@ -238,15 +238,15 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
 
     // ports are assigned to individual rectangles, one edge has two ports
     // associated with two different rectangles.
-    EXPECT_TRUE(run->ports->hasSourcePort(a_id, e_a_merge));
-    EXPECT_FALSE(run->ports->hasTargetPort(a_id, e_a_merge));
+    EXPECT_TRUE(run->getPorts()->hasSourcePort(a_id, e_a_merge));
+    EXPECT_FALSE(run->getPorts()->hasTargetPort(a_id, e_a_merge));
 
-    EXPECT_TRUE(run->ports->hasTargetPort(merge2_id, e_a_merge));
-    EXPECT_FALSE(run->ports->hasSourcePort(merge2_id, e_a_merge));
+    EXPECT_TRUE(run->getPorts()->hasTargetPort(merge2_id, e_a_merge));
+    EXPECT_FALSE(run->getPorts()->hasSourcePort(merge2_id, e_a_merge));
 
-    EXPECT_EQ(run->ports->getPortsForVertex(a_id).size(), 1);
-    EXPECT_EQ(run->ports->getPortsForVertex(b_id).size(), 1);
-    EXPECT_EQ(run->ports->getPortsForVertex(merge2_id).size(), 3);
+    EXPECT_EQ(run->getPorts()->getPortsForVertex(a_id).size(), 1);
+    EXPECT_EQ(run->getPorts()->getPortsForVertex(b_id).size(), 1);
+    EXPECT_EQ(run->getPorts()->getPortsForVertex(merge2_id).size(), 3);
 
     EXPECT_EQ(run->getDirectPorts(r_id).size(), 7);
 
@@ -267,25 +267,29 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     EXPECT_OUTCOME_OK(checkRightOf(
         /*stationary=*/run->getAbsoluteBBox(b_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->ports->getPortForConnection(b_id, e_b_merge, true))));
+            run->getPorts()->getPortForConnection(
+                b_id, e_b_merge, true))));
 
     // source port for a->merge
     EXPECT_OUTCOME_OK(checkRightOf(
         /*stationary=*/run->getAbsoluteBBox(a_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->ports->getPortForConnection(a_id, e_a_merge, true))));
+            run->getPorts()->getPortForConnection(
+                a_id, e_a_merge, true))));
 
     // target port for a->merge
     EXPECT_OUTCOME_OK(checkLeftOf(
         /*stationary=*/run->getAbsoluteBBox(merge2_id),
-        /*relative=*/run->getAbsoluteBBox(run->ports->getPortForConnection(
-            merge2_id, e_a_merge, false))));
+        /*relative=*/run->getAbsoluteBBox(
+            run->getPorts()->getPortForConnection(
+                merge2_id, e_a_merge, false))));
 
     // target port for b->merge
     EXPECT_OUTCOME_OK(checkLeftOf(
         /*stationary=*/run->getAbsoluteBBox(merge2_id),
-        /*relative=*/run->getAbsoluteBBox(run->ports->getPortForConnection(
-            merge2_id, e_a_merge, false))));
+        /*relative=*/run->getAbsoluteBBox(
+            run->getPorts()->getPortForConnection(
+                merge2_id, e_a_merge, false))));
 
 
     auto visual = run->getVisual();

@@ -377,6 +377,53 @@ void gv::GraphGroup::render(
     algo->renderToFile(path, *this, format);
 }
 
+hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(Str const& name) {
+    auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
+    if (!gvc) {
+        throw std::runtime_error("Failed to create Graphviz context");
+    }
+
+    auto result = std::make_shared<GraphGroup>(
+        GroupContext{
+            .context = GVContext::shared(),
+            .gvc     = gvc,
+        },
+        name);
+
+    auto graph  = std::make_shared<TrivialGraph>();
+    auto groups = std::make_shared<IdOnlyHierarchy>();
+    auto ports  = std::make_shared<TrivialPortCollection>();
+    graph->addHierarchy(groups);
+    graph->addPorts(ports);
+    auto run = std::make_shared<layout::LayoutRun>(
+        graph,
+        graph->edges->getCollectionID(),
+        ports->getCollectionID(),
+        groups->getCollectionID());
+    result->algorithm = std::static_pointer_cast<
+        layout::IPlacementAlgorithm>(
+        std::make_shared<gv::Layout>(gvc, run));
+
+    return result;
+}
+
+hstd::SPtr<gv::GraphGroup> gv::GraphGroup::addNewNativeSubgroup(
+    EdgeID const& edge,
+    bool          with_algorithm) {
+    hstd::SPtr<GraphGroup> res;
+    if (with_algorithm) {
+        res = newRootGraph(run);
+    } else {
+        res = newSubgraph(
+            hstd::fmt(
+                "GV_{}",
+                run->getGraph()->getStableId(
+                    run->getGraph()->getTarget(edge))));
+    }
+    run->setNestedGroupAttribute(edge, res);
+    return res;
+}
+
 Str gv::alignText(Str const& text, TextAlign direction) {
     Str res = text;
     switch (direction) {

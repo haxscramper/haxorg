@@ -743,12 +743,13 @@ hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
     hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph(
         run, "g"_ss);
 
-    LOGIC_ASSERTION_CHECK(run->groups->getEdges().size() == 0, "");
-    LOGIC_ASSERTION_CHECK(res->run->graph->getVertexCount() == 0, "");
-    LOGIC_ASSERTION_CHECK(res->run->groups->getVertexCount() == 0, "");
+    LOGIC_ASSERTION_CHECK(run->getGroups()->getEdges().size() == 0, "");
+    LOGIC_ASSERTION_CHECK(res->run->getGraph()->getVertexCount() == 0, "");
+    LOGIC_ASSERTION_CHECK(
+        res->run->getGroups()->getVertexCount() == 0, "");
 
-    auto rg = layout_graph->addVertex();
-    run->addRootGroup(rg, res);
+    auto rg = state.graph->addVertex();
+    run->setRootGroupAttribute(rg, res);
     // base ID <-> mapped ID
     hstd::ext::Unordered1to1Bimap<VertexID, VertexID> ids;
 
@@ -758,9 +759,11 @@ hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
 
     for (auto const& [it, imm_id, prop] : graph->getProperties()) {
         if (acceptNode(it)) {
-            auto mapped_id = layout_graph->addVertex();
+            auto mapped_id = state.graph->addVertex();
             ids.add_unique(it, mapped_id);
-            auto node = res->addVertex(rg, mapped_id);
+            state.hierarchy->trackVertex(mapped_id);
+            auto node = res->addVertex(
+                state.hierarchy->trackSubVertexRelation(rg, mapped_id));
             node->setAttr("org_id", imm_id.getReadableId());
             node->startHtmlRecord();
             *node->getNodeRecord() = getNodeLabel(
@@ -772,7 +775,7 @@ hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
     for (auto const& [eid, prop] : graph->getEdges()) {
         if (acceptNode(graph->getSource(eid))
             && acceptNode(graph->getTarget(eid)) && acceptEdge(eid)) {
-            auto mapped_edge = layout_graph->addEdge(
+            auto mapped_edge = state.graph->addEdge(
                 get_mapped(graph->getTarget(eid)),
                 get_mapped(graph->getSource(eid)));
             auto edge = res->addEdge(mapped_edge);

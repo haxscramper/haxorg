@@ -37,13 +37,26 @@ struct TestGraph : public TrivialGraph {};
 class GraphUtils_Test : public ::testing::Test {
   protected:
     void SetUp() override {
-        graph = std::make_shared<TestGraph>();
-        run   = std::make_shared<layout::LayoutRun>(graph);
+        state = layout::LayoutRun::TrivialState{};
+        run   = state.init();
         run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 
+    hstd::SPtr<TrivialGraph>     getGraph() const { return state.graph; }
+    hstd::SPtr<TrivialHierarchy> getHierarchy() const {
+        return state.hierarchy;
+    }
+
+    hstd::SPtr<TrivialPortCollection> getPorts() const {
+        return state.ports;
+    }
+
     VertexID addVertex(hstd::Str const& id_override) {
-        return graph->addVertex(id_override);
+        return getGraph()->addVertex(id_override);
+    }
+
+    EdgeID addNesting(VertexID const& parent, VertexID const& sub) {
+        return getHierarchy()->trackSubVertexRelation(parent, sub);
     }
 
     PortID addPort(
@@ -51,7 +64,7 @@ class GraphUtils_Test : public ::testing::Test {
         EdgeID const&    e,
         bool             is_start,
         hstd::Str const& id_override) {
-        return run->addPort(v, e, is_start, id_override);
+        return getPorts()->addPort(v, e, is_start, id_override);
     }
 
     PortID addPort(VertexID const& v, EdgeID const& e, bool is_start) {
@@ -61,8 +74,8 @@ class GraphUtils_Test : public ::testing::Test {
             is_start,
             hstd::fmt(
                 "P-{}-{}-{}",
-                graph->getVertex(v)->getStableId(),
-                graph->getEdge(e)->getStableId(),
+                getGraph()->getVertex(v)->getStableId(),
+                getGraph()->getEdge(e)->getStableId(),
                 is_start ? "s" : "e"));
     }
 
@@ -70,24 +83,26 @@ class GraphUtils_Test : public ::testing::Test {
         VertexID const&  source,
         VertexID const&  target,
         hstd::Str const& id_override) {
-        return graph->addEdge(source, target, id_override);
+        return getGraph()->addEdge(source, target, id_override);
     }
 
-    hstd::SPtr<TestGraph>         graph;
-    hstd::SPtr<layout::LayoutRun> run;
-    hstd::SPtr<TrivialHierarchy>  hierarchy;
+    hstd::SPtr<layout::LayoutRun>   run;
+    layout::LayoutRun::TrivialState state;
 
     hstd::SPtr<gv::GraphGroup> getGvGroup(VertexID const& id) {
         return run->getGroup<gv::GraphGroup>(id);
     }
 
     hstd::SPtr<gv::NodeAttribute> getGv(VertexID const& id) {
-        return graph->getVertex(id)
+        return getGraph()
+            ->getVertex(id)
             ->getUniqueAttribute<gv::NodeAttribute>();
     }
 
     hstd::SPtr<gv::EdgeAttribute> getGv(EdgeID const& id) {
-        return graph->getEdge(id)->getUniqueAttribute<gv::EdgeAttribute>();
+        return getGraph()
+            ->getEdge(id)
+            ->getUniqueAttribute<gv::EdgeAttribute>();
     }
 
     hstd::SPtr<cst::ColaGroup> getColaGroup(VertexID const& id) {
@@ -95,12 +110,14 @@ class GraphUtils_Test : public ::testing::Test {
     }
 
     hstd::SPtr<cst::ColaVertexAttribute> getCola(VertexID const& id) {
-        return graph->getVertex(id)
+        return getGraph()
+            ->getVertex(id)
             ->getUniqueAttribute<cst::ColaVertexAttribute>();
     }
 
     hstd::SPtr<cst::ColaEdgeAttribute> getCola(EdgeID const& id) {
-        return graph->getEdge(id)
+        return getGraph()
+            ->getEdge(id)
             ->getUniqueAttribute<cst::ColaEdgeAttribute>();
     }
 };

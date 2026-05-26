@@ -12,7 +12,7 @@ void layout_run_full_layout(layout::LayoutRun* run) {
     auto __scope = run->begin_scope(
         hstd::fmt(
             "run full layout for the graph with root IDs {}",
-            run->groups->getRootVertices()),
+            run->getGroups()->getRootVertices()),
         "full-aux");
 
     auto aux = [&](this auto&& self, VertexID const& id) -> void {
@@ -91,8 +91,8 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                 // algorithms, the filtering must be done on the
                 // `runSingleLayout` side.
                 LOGIC_ASSERTION_CHECK_FMT(
-                    run->edges->hasEdge(id)
-                        && run->edges->isTrackingEdge(id),
+                    run->getEdges()->hasEdge(id)
+                        && run->getEdges()->isTrackingEdge(id),
                     "Layout run returned layout information for edge not "
                     "included in the overall layout run collection: {}",
                     run->getDebug(id));
@@ -106,12 +106,14 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         }
     };
 
-    for (auto const& root : run->groups->getRootVertices()) { aux(root); }
+    for (auto const& root : run->getGroups()->getRootVertices()) {
+        aux(root);
+    }
 
     VertexIDSet all_layout_vertices = VertexIDSet::FromVec(
         run->result.vertices.keys());
 
-    VertexIDSet hierarchy_vertices         = run->groups->getAllVertices();
+    VertexIDSet hierarchy_vertices = run->getGroups()->getAllVertices();
     VertexIDSet missing_hierarchy_vertices = hierarchy_vertices
                                            - all_layout_vertices;
     LOGIC_ASSERTION_CHECK_FMT(
@@ -183,7 +185,7 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
     VertexIDSet vertex_set;
     VertexIDSet group_set;
 
-    for (auto const& vert : run->graph->getAllVertices()) {
+    for (auto const& vert : run->getGraph()->getAllVertices()) {
         if (run->isGroupVertex(vert)) {
             group_set.incl(vert);
         } else {
@@ -194,8 +196,8 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
     OP_TRACER_MESSAGE(run, "vertex_set:\n{}", run->getDebug(vertex_set));
 
     for (auto const& edge : run->getAllUnboundEdges()) {
-        if (vertex_set.contains(run->edges->getSource(edge))
-            && vertex_set.contains(run->edges->getTarget(edge))) {
+        if (vertex_set.contains(run->getEdges()->getSource(edge))
+            && vertex_set.contains(run->getEdges()->getTarget(edge))) {
             vertex_vertex_edges.incl(edge);
         } else {
             group_vertex_edges.incl(edge);

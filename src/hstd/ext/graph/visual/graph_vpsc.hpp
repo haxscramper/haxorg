@@ -24,8 +24,8 @@ class VpscRectTracker {
         EdgeID const&                 id,
         hstd::SPtr<layout::LayoutRun> run) const {
         return {
-            getVertexIdx(run->graph->getSource(id)),
-            getVertexIdx(run->graph->getTarget(id)),
+            getVertexIdx(run->getGraph()->getSource(id)),
+            getVertexIdx(run->getGraph()->getTarget(id)),
         };
     }
 

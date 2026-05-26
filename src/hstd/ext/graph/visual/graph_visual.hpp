@@ -192,21 +192,47 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
 class LayoutRun
     : public OperationsTracer
     , public hstd::SharedPtrApi<LayoutRun> {
-  public:
-    // TODO: Instead of storing or creating edge/port collections for the
-    // layout run, the constructor should require the input graph to store
-    // the objects with specific IDs instead. Constructor then can call
-    // `graph.getCollection()` to assign to the collection field.
-    hstd::SPtr<IGraph>                graph;
-    hstd::SPtr<IdOnlyHierarchy>       groups;
-    hstd::SPtr<TrivialEdgeCollection> edges;
-    hstd::SPtr<TrivialPortCollection> ports;
+  protected:
+    hstd::SPtr<IGraph>           graph;
+    hstd::SPtr<IVertexHierarchy> groups;
+    hstd::SPtr<IEdgeCollection>  edges;
+    hstd::SPtr<IPortCollection>  ports;
 
+  public:
     LayoutRun(
-        hstd::SPtr<IGraph>                graph,
-        hstd::SPtr<TrivialEdgeCollection> _edges = nullptr,
-        hstd::SPtr<TrivialPortCollection> _ports = nullptr,
-        EdgeCollectionID edges_id                = EdgeCollectionID{9999});
+        hstd::SPtr<IGraph> graph,
+        EdgeCollectionID   edge_id,
+        PortCollectionID   port_id,
+        EdgeCollectionID   hierarchy_id);
+
+    hstd::SPtr<IVertexHierarchy> getGroups() const { return groups; }
+    hstd::SPtr<IEdgeCollection>  getEdges() const { return edges; }
+    hstd::SPtr<IPortCollection>  getPorts() const { return ports; }
+    hstd::SPtr<IGraph>           getGraph() const { return graph; }
+
+    /// \brief Minimal set of graph object collections required to manage
+    /// the full layout run.
+    struct TrivialState {
+        hstd::SPtr<TrivialHierarchy>      hierarchy;
+        hstd::SPtr<TrivialPortCollection> ports;
+        hstd::SPtr<TrivialGraph>          graph;
+
+        TrivialState()
+            : ports{std::make_shared<TrivialPortCollection>()}
+            , hierarchy{std::make_shared<TrivialHierarchy>()}
+            , graph{std::make_shared<TrivialGraph>(
+                  hstd::Vec<hstd::SPtr<IEdgeCollection>>{},
+                  hstd::Vec<hstd::SPtr<IPortCollection>>{ports},
+                  hstd::Vec<hstd::SPtr<IVertexHierarchy>>{hierarchy})} {}
+
+        hstd::SPtr<LayoutRun> init() {
+            return LayoutRun::shared(
+                graph,
+                graph->edges->getCollectionID(),
+                ports->getCollectionID(),
+                hierarchy->getCollectionID());
+        }
+    };
 
     void runFullLayout();
 
@@ -393,55 +419,38 @@ class LayoutRun
     /// crossing the algorithm switch boundary
     EdgeIDSet getLayoutLayerNestedEdges(VertexID const& id) const;
 
-    void addRootGroup(
+    void setRootGroupAttribute(
         VertexID const&                          id,
         hstd::SPtr<IGroupVisualAttribute> const& attr) {
         groups->trackVertex(id);
         graph->getMVertex(id)->addUniqueAttribute(attr);
     }
 
-    EdgeID addNestedGroup(
-        VertexID const&                          parent,
-        VertexID const&                          nested,
+    /// \brief Set unique attribute to the target (nested) vertex for the
+    /// edge.
+    void setNestedGroupAttribute(
+        EdgeID const&                            edge,
         hstd::SPtr<IGroupVisualAttribute> const& attr);
 
-    EdgeID addNestedVertex(
-        VertexID const&                           parent,
-        VertexID const&                           nested,
+    void setNestedVertexAttribute(
+        EdgeID const&                             edge,
         hstd::SPtr<IVertexVisualAttribute> const& attr);
 
-    // TODO: Document this function and related operations for adding the
-    // elements to the layout run. Update the implementation so the layout
-    // run itself is not used to construct the semantic structure of the
-    // graph: the layout run should expect all the elements to already be
-    // added in the required ports and edges.
     void setEdgeAttribute(
         EdgeID const&                           id,
         hstd::SPtr<IEdgeVisualAttribute> const& attr);
 
-    PortID addPort(
-        VertexID const&                   v,
-        EdgeID const&                     e,
-        bool                              is_start,
-        std::optional<std::string> const& stable_id);
-
-    PortID addPort(
-        VertexID const&                         v,
-        EdgeID const&                           e,
-        bool                                    is_start,
-        std::optional<std::string> const&       stable_id,
+    void setPortAttribute(
+        PortID const&                           id,
         hstd::SPtr<IPortVisualAttribute> const& attr) {
-        auto res  = addPort(v, e, is_start, stable_id);
-        auto edge = getGraph()->getMPort(res);
+        auto edge = getGraph()->getMPort(id);
         edge->addUniqueAttribute(attr);
-        return res;
     }
 
-    hstd::SPtr<IGraph> getGraph() const {
-        hstd::logic_assertion_check_not_nil(graph);
-        return graph;
+    VertexID getNestedVertex(EdgeID const& edge) const {
+        getGroups()->assertTrackingEdge(edge);
+        return getGraph()->getTarget(edge);
     }
-
 
     IVertex const* at(VertexID const& id) const {
         return graph->getVertex(id);
