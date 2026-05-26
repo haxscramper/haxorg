@@ -12,7 +12,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
 #include <boost/bimap.hpp>
-#include "graph_base.pb.h"
+#include "src/hstd/ext/graph/base/graph_base.pb.h"
 
 namespace hstd {
 template <typename ID, typename T>

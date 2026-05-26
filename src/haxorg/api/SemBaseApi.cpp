@@ -21,7 +21,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
-#    include <SemOrgProto.pb.h>
+#    include <src/haxorg/serde/SemOrgProto.pb.h>
 #endif
 
 using namespace org::sem;

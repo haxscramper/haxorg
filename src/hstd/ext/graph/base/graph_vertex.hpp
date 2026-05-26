@@ -45,6 +45,9 @@ struct TrivialVertex : public IVertex {
         IAttributeObject::writeSerial(out->mutable_attributes(), graph);
     }
 
+    void readSerial(proto::IVertex const* in, IGraph const* graph)
+        override {}
+
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
 
     hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {

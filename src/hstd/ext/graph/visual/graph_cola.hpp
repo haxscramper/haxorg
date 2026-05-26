@@ -114,7 +114,13 @@ BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET);
 
 class ColaVertexAttribute : public layout::IVertexVisualAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     geometry::Rect rect;
     ColaVertexAttribute(geometry::Rect const& rect) : rect{rect} {}
@@ -122,7 +128,13 @@ class ColaVertexAttribute : public layout::IVertexVisualAttribute {
 
 class ColaEdgeAttribute : public layout::IEdgeVisualAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 };
 
 
@@ -137,7 +149,13 @@ class ColaGroup
     , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute>
     , public std::enable_shared_from_this<ColaGroup> {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     hstd::Opt<geometry::Padding> outerPadding;
 
@@ -214,7 +232,13 @@ static_assert(
 
 class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     geometry::Rect rect;
     std::string    text;
@@ -242,7 +266,13 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     visual::VisGroup getVisual(VertexID const& id) const override;
 

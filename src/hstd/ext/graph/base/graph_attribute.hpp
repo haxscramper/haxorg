@@ -24,7 +24,7 @@ struct IAttribute {
     virtual void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) const = 0;
+        IGraphSerialReaderFactory* factory) = 0;
 #endif
 };
 

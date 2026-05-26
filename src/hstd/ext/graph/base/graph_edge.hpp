@@ -157,7 +157,7 @@ class IEdgeCollection : public IEdgeProvider {
         proto::IEdgeCollection* out,
         IGraph const*           graph) const;
 
-    virtual void 0readSerial(
+    virtual void readSerial(
         proto::IEdgeCollection const* in,
         IGraph const*                 graph,
         IGraphSerialReaderFactory*    factory);

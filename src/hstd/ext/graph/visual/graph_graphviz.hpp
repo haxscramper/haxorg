@@ -610,7 +610,13 @@ class NodeAttribute
     Agnode_t* node;
     Agraph_t* graph;
 
-    void writeSerial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute*, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 };
 
 class EdgeAttribute
@@ -669,7 +675,12 @@ class EdgeAttribute
     Agraph_t* graph;
     Agedge_t* edge_;
 
-    void writeSerial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute*, IGraph const* graph)
+        const override {}
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 };
 
 class Layout;
@@ -899,7 +910,13 @@ class GraphGroup
         return hstd::fmt("graph-group-{}", name());
     }
 
-    void writeSerial(proto::IAttribute*) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 };
 
 class Graphviz;
@@ -936,7 +953,13 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     NodeAttribute node;
     GraphGroup    graph;
@@ -957,7 +980,13 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     EdgeAttribute edge;
     GraphGroup    graph;
@@ -979,7 +1008,13 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
 
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;

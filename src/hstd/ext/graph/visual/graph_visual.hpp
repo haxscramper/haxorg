@@ -177,12 +177,24 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
+
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
 };
 
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out) const override {}
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {}
+
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {}
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}

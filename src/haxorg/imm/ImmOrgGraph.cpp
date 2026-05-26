@@ -13,7 +13,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include "ImmGetterApi.hpp"
-#include "ImmOrgGraph.pb.h"
+#include "src/haxorg/imm/ImmOrgGraph.pb.h"
 #include "hstd/stdlib/Debug.hpp"
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>

@@ -52,8 +52,14 @@ struct MapNodeProp
 
     DESC_FIELDS(MapNodeProp, (unresolved));
 
-    void writeSerial(hstd::ext::graph::proto::IAttribute*) const override {
-    }
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        hstd::ext::graph::IGraph const*      graph) const override {}
+
+    void readSerial(
+        hstd::ext::graph::proto::IAttribute const*   in,
+        hstd::ext::graph::IGraph const*              graph,
+        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {}
 };
 
 struct MapEdgeProp
@@ -62,8 +68,14 @@ struct MapEdgeProp
     MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 
-    void writeSerial(hstd::ext::graph::proto::IAttribute*) const override {
-    }
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        hstd::ext::graph::IGraph const*      graph) const override {}
+
+    void readSerial(
+        hstd::ext::graph::proto::IAttribute const*   in,
+        hstd::ext::graph::IGraph const*              graph,
+        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {}
 };
 
 
@@ -122,6 +134,11 @@ struct MapNode
 
 
   public:
+    void readSerial(
+        hstd::ext::graph::proto::IVertex const* in,
+        hstd::ext::graph::IGraph const*         graph) override {}
+
+
     void writeSerial(
         hgraph::proto::IVertex* out,
         hgraph::IGraph const*   graph,
