@@ -12,6 +12,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
 #include <boost/bimap.hpp>
+#include "hstd/stdlib/TraceBase.hpp"
 #include "src/hstd/ext/graph/base/graph_base.pb.h"
 
 namespace hstd {
@@ -291,7 +292,7 @@ class IEdgeCollection;
 class IPortCollection;
 class IAttribute;
 
-class IGraphSerialReaderFactory {
+class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
     virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
         proto::IVertexHierarchy const* in) const = 0;

@@ -7,14 +7,59 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 
+#include "src/haxorg/imm/ImmOrgGraph.pb.h"
 
-std::unique_ptr<hstd::ext::graph::proto::IGraphProto> run_layout(
-    std::unique_ptr<hstd::ext::graph::proto::IGraphProto> const& proto) {
-    hstd::ext::graph::layout::LayoutRun::TrivialState state;
-    state.graph->read_serial(proto.get());
+using namespace hstd::ext::graph;
+
+std::string getJString(google::protobuf::Message const& message) {
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status           = google::protobuf::util::MessageToJsonString(
+        message, &json, j_opts);
+
+    EXPECT_TRUE(status.ok());
+    return json;
+}
+
+class TestFactory : public IGraphSerialReaderFactory {
+  public:
+    hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
+        proto::IVertexHierarchy const* in) const override {
+        auto url = in->payload().type_url();
+        OP_TRACER_MESSAGE(this, "URL {}", url);
+    }
+
+    hstd::SPtr<IEdgeCollection> newEdgeCollection(
+        proto::IEdgeCollection const* in) const override {}
+
+    hstd::SPtr<IPortCollection> newPortCollection(
+        proto::IPortCollection const* in) const override {}
+
+    hstd::SPtr<IAttribute> newAttribute(
+        proto::IAttribute const* in) const override {}
+
+    hstd::SPtr<IVertex> newVertex(
+        proto::IVertex const* in) const override {
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {}
+    }
+};
 
 
-    logic_todo_impl();
+std::unique_ptr<proto::IGraphProto> run_layout(
+    std::unique_ptr<proto::IGraphProto> const& proto) {
+    layout::LayoutRun::TrivialState state;
+    TestFactory                     factory;
+    factory.setTraceFile(getDebugFile("graph_serial_read.log"));
+    state.graph->readSerial(proto.get(), &factory);
+    auto run = state.init();
+    run->setTraceFile(getDebugFile("serial_read_layout.log"));
+    run->runFullLayout();
+    auto result = std::make_unique<proto::IGraphProto>();
+    state.graph->writeSerial(result.get());
+    writeFile(
+        getDebugFile("serial_layout_result.json"), getJString(*result));
+    return result;
 }
 
 struct ImmMapApi : ImmOrgApiTestBase {
@@ -141,14 +186,8 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
     void writeRepresentation() {
         writeGraphviz(getDebugFile("graph.png"));
-        auto        serial = state->graph->get_serial();
-        std::string json;
-        google::protobuf::json::PrintOptions j_opts;
-        j_opts.add_whitespace = true;
-        auto status = google::protobuf::util::MessageToJsonString(
-            *serial, &json, j_opts);
-        EXPECT_TRUE(status.ok());
-        writeFile(getDebugFile("serial.json"), json);
+        auto serial = state->graph->get_serial();
+        writeFile(getDebugFile("serial.json"), getJString(*serial));
     }
 
     void runExternalizedLayoutPipeline() {
@@ -187,6 +226,7 @@ TEST_F(ImmMapApi, AddNode) {
     EXPECT_EQ(getGraph()->getVertexCount(), 1);
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 TEST_F(ImmMapApi, AddNodeWithLinks) {
@@ -205,7 +245,7 @@ Paragraph [[id:subtree-id]]
     EXPECT_EQ(getState()->unresolved.size(), 0);
 
     getGraph()->message("add first node");
-    auto v1 = hstd::ext::graph::VertexID::Nil();
+    auto v1 = VertexID::Nil();
     {
         auto __scope = getGraph()->begin_scope();
         auto par     = root.at(1);
@@ -759,6 +799,6 @@ TEST_F(ImmMapApi, Doc1Graph) {
     // gv->render(getDebugFile("map.dot"));
     // gv->render(
     //     getDebugFile("map.png"),
-    //     hstd::ext::graph::gv::LayoutType::Sfdp);
+    //     gv::LayoutType::Sfdp);
     writeRepresentation();
 }

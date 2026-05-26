@@ -12,6 +12,8 @@
 #include <hstd/ext/graph/base/graph_base.hpp>
 #include <haxorg/imm/ImmGetterApi.hpp>
 #include <haxorg/serde/SemOrgSerde.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
 
 namespace org::graph {
 

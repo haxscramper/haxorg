@@ -44,19 +44,19 @@ struct [[refl]] OperationsTracer {
         Opt<std::string> const& value    = std::nullopt,
         char const*             function = __builtin_FUNCTION(),
         int                     line     = __builtin_LINE(),
-        char const*             file     = __builtin_FILE());
+        char const*             file     = __builtin_FILE()) const;
 
     [[refl]] void end_scope_event(
         Opt<std::string> const& value    = std::nullopt,
         char const*             function = __builtin_FUNCTION(),
         int                     line     = __builtin_LINE(),
-        char const*             file     = __builtin_FILE());
+        char const*             file     = __builtin_FILE()) const;
 
 
     template <typename... _Args>
     [[nodiscard]] inline std::string fmt_message(
         std::format_string<_Args...> __fmt,
-        _Args&&... __args) {
+        _Args&&... __args) const {
         if (TraceState) {
             return std::vformat(
                 __fmt.get(), std::make_format_args(__args...));
@@ -95,7 +95,7 @@ struct [[refl]] OperationsTracer {
         }
     };
 
-    ScopeHandle begin_scope_nop() { return ScopeHandle{nullptr}; }
+    ScopeHandle begin_scope_nop() const { return ScopeHandle{nullptr}; }
 
 
     ScopeHandle begin_scope(
@@ -138,7 +138,7 @@ struct [[refl]] OperationsTracer {
         std::string const& value,
         std::string const& function,
         int                line,
-        std::string const& file) {
+        std::string const& file) const {
         message(value, function.c_str(), line, file.c_str());
     }
 

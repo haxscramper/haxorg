@@ -192,7 +192,7 @@ void OperationsTracer::begin_scope_event(
     Opt<std::string> const& value,
     char const*             function,
     int                     line,
-    char const*             file) {
+    char const*             file) const {
     if (traceStructured) {
         auto                            os = getStream();
         log::record::DurationBeginEvent e;
@@ -211,7 +211,7 @@ void OperationsTracer::end_scope_event(
     Opt<std::string> const& value,
     char const*             function,
     int                     line,
-    char const*             file) {
+    char const*             file) const {
     if (traceStructured) {
         auto                          os = getStream();
         log::record::DurationEndEvent e;

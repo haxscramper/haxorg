@@ -217,6 +217,8 @@ endfunction()
 function(haxorg_add_protobuf)
   cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET" "IMPORT_DIRS;PROTO_SOURCES" ${ARGN})
 
+  set(PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
+
   protobuf_generate(
     LANGUAGE
     cpp
@@ -229,7 +231,7 @@ function(haxorg_add_protobuf)
     PROTOS
     ${HAP_PROTO_SOURCES}
     PROTOC_OUT_DIR
-    "${CMAKE_BINARY_DIR}/generated")
+    "${PROTO_OUT_DIR}")
 
   add_custom_target(
     ${HAP_UNIQUE_TARGET}_generate_files
@@ -238,6 +240,11 @@ function(haxorg_add_protobuf)
 
   target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_FILES})
   add_dependencies(${HAP_TARGET} ${HAP_UNIQUE_TARGET}_generate_files)
-  target_include_directories(${HAP_TARGET} PRIVATE "${CMAKE_BINARY_DIR}/generated")
+
+  target_include_directories(${HAP_TARGET} PUBLIC $<BUILD_INTERFACE:${PROTO_OUT_DIR}>
+                                                  $<INSTALL_INTERFACE:include>)
+
   target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+
+  install(FILES ${HAP_GENERATED_FILES} DESTINATION include)
 endfunction()
