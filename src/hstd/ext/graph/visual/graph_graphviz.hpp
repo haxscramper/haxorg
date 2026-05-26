@@ -891,7 +891,7 @@ class GraphGroup
                 run->getGraph()->getSource(id)),
             *ctx.run->getVertexVisualAttribute<NodeAttribute>(
                 run->getGraph()->getTarget(id)));
-        run->addEdge(id, attr);
+        run->setEdgeAttribute(id, attr);
         return attr;
     }
 

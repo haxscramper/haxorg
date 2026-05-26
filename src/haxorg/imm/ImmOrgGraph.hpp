@@ -303,7 +303,9 @@ struct MapGraph
         hgraph::layout::LayoutRun::Ptr   run;
         GvConfig()
             : layout_graph{std::make_shared<hgraph::TrivialGraph>()}
-            , run{hgraph::layout::LayoutRun::shared(layout_graph)} {}
+            , run{hgraph::layout::LayoutRun::shared(
+                  layout_graph,
+                  layout_graph->edges)} {}
         hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID>
             layout_vertices;
 

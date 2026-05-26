@@ -181,8 +181,8 @@ hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
     std::optional<std::string> const& stable_id) {
     auto id = portStore.add(
         TrivialPort{stable_id.value_or(
-            hstd::fmt1(portStore.getNextId(getCategory().t)))},
-        getCategory().t);
+            hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
+        getCollectionID().t);
     IPortCollection::addPort(vertex, edge, is_start, id);
     return id;
 }
@@ -192,8 +192,8 @@ hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
     std::optional<std::string> const& stable_id) {
     auto id = portStore.add(
         TrivialPort{stable_id.value_or(
-            hstd::fmt1(portStore.getNextId(getCategory().t)))},
-        getCategory().t);
+            hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
+        getCollectionID().t);
     IPortCollection::addPort(vertex, id);
     return id;
 }

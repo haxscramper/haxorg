@@ -68,7 +68,7 @@ class AvoidPortCollection : public IPortCollection {
     hstd::UnorderedIncrementalStore<PortID, AvoidPort> portStore;
 
   public:
-    PortCollectionID getCategory() const override {
+    PortCollectionID getCollectionID() const override {
         return hstd::ext::graph::PortCollectionID(
             hstd::hash_bits<15>(typeid(this).hash_code()));
     }

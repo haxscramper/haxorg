@@ -98,6 +98,7 @@ class IGraph {
 
     bool hasCollection(hstd::SPtr<IEdgeCollection> const& collection);
     bool hasHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
+    bool hasPorts(hstd::SPtr<IPortCollection> const& hierarchy);
 
     /// \brief Get list of all edge providers in the graph: vertex
     /// hierarchies and general edge collections.

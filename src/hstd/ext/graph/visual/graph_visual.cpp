@@ -180,6 +180,80 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 }
 
 
+layout::LayoutRun::LayoutRun(
+    hstd::SPtr<IGraph>                graph,
+    hstd::SPtr<TrivialEdgeCollection> _edges,
+    hstd::SPtr<TrivialPortCollection> _ports,
+    EdgeCollectionID                  edges_id)
+    : graph{graph}
+    , groups{std::make_shared<IdOnlyHierarchy>()}
+    , edges{_edges ? _edges : std::make_shared<TrivialEdgeCollection>(edges_id)}
+    , ports{_ports ? _ports : std::make_shared<TrivialPortCollection>()} {
+    hstd::logic_assertion_check_not_nil(graph);
+    if (!graph->hasCollection(edges)) { graph->addCollection(edges); }
+    if (!graph->hasHierarchy(groups)) { graph->addHierarchy(groups); }
+    // if (graph.has)
+    graph->addPorts(ports);
+}
+
+EdgeIDSet layout::LayoutRun::getAllUnboundEdges() const {
+    EdgeIDSet res;
+    auto      el = edges->getEdges();
+    for (auto const& edge : el) {
+        auto vattr = getEdgeVisualAttribute(edge);
+        if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(vattr)) {
+            res.incl(edge);
+        }
+    }
+    return res;
+}
+
+VertexIDSet layout::LayoutRun::getDirectVertices(
+    VertexID const& id) const {
+    LOGIC_ASSERTION_CHECK(
+        isGroupVertex(id), "Cannot get nested vertices from non-group");
+    VertexIDSet res;
+    for (auto const& sub : groups->getSubVertices(id)) {
+        if (!isGroupVertex(sub)) { res.incl(sub); }
+    }
+    return res;
+}
+
+VertexIDSet layout::LayoutRun::getSubGroups(VertexID const& id) const {
+    LOGIC_ASSERTION_CHECK(
+        isGroupVertex(id), "Cannot get nested groups from non-group");
+    VertexIDSet res;
+    for (auto const& sub : groups->getSubVertices(id)) {
+        if (isGroupVertex(sub)) { res.incl(sub); }
+    }
+    return res;
+}
+
+VertexIDSet layout::LayoutRun::getSubGroupsNoLayoutSwitch(
+    VertexID const& id) const {
+    VertexIDSet noSwitch;
+    for (auto const& sub : getSubGroups(id)) {
+        if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
+    }
+    return noSwitch;
+}
+
+void layout::LayoutRun::setEdgeAttribute(
+    EdgeID const&                           id,
+    hstd::SPtr<IEdgeVisualAttribute> const& attr) {
+    LOGIC_ASSERTION_CHECK_FMT(
+        edges->hasEdge(id),
+        "Layout run edge collection must have the edge registered "
+        "before adding the attribute, id: {}",
+        id);
+
+    auto edge = getGraph()->getMEdge(id);
+    LOGIC_ASSERTION_CHECK(edge != nullptr, "");
+    edge->addUniqueAttribute(attr);
+    // edges->trackEdge(id, graph->getSource(id),
+    // graph->getTarget(id));
+}
+
 void hstd::ext::graph::layout::LayoutRun::treeRepr(
     hstd::ColStream&    os,
     TreeReprConf const& conf) const {

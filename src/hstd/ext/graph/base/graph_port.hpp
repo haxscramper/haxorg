@@ -156,7 +156,7 @@ class IPortCollection {
 
 
     /// \brief Check if the collection has port
-    virtual PortCollectionID getCategory() const       = 0;
+    virtual PortCollectionID getCollectionID() const   = 0;
     virtual IPort const*     getPort(PortID pid) const = 0;
 
     IPort* getMPort(PortID pid) {
@@ -207,7 +207,7 @@ class TrivialPortCollection : public IPortCollection {
     hstd::UnorderedIncrementalStore<PortID, TrivialPort> portStore;
 
   public:
-    PortCollectionID getCategory() const override {
+    PortCollectionID getCollectionID() const override {
         return hstd::ext::graph::PortCollectionID(
             hstd::hash_bits<15>(typeid(this).hash_code()));
     }

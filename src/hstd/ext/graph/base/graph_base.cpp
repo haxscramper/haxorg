@@ -71,12 +71,12 @@ void IGraph::delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
 
 void hstd::ext::graph::IGraph::delPorts(
     hstd::SPtr<IPortCollection> const& collection) {
-    ports.erase(collection->getCategory());
+    ports.erase(collection->getCollectionID());
 }
 
 void hstd::ext::graph::IGraph::addPorts(
     hstd::SPtr<IPortCollection> const& collection) {
-    ports.insert_unqiue(collection->getCategory(), collection);
+    ports.insert_unqiue(collection->getCollectionID(), collection);
 }
 
 
@@ -89,6 +89,12 @@ bool hstd::ext::graph::IGraph::hasHierarchy(
     hstd::SPtr<IVertexHierarchy> const& hierarchy) {
     return hierarchies.contains(hierarchy->getCollectionID());
 }
+
+bool hstd::ext::graph::IGraph::hasPorts(
+    hstd::SPtr<IPortCollection> const& hierarchy) {
+    return ports.contains(hierarchy->getCollectionID());
+}
+
 
 hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() {
     hstd::Vec<IEdgeProvider*> result;

@@ -477,7 +477,7 @@ class ElkGroupVisualAttribute
 
     hstd::SPtr<ElkEdgeVisualAttribute> addEdge(EdgeID const& id) {
         auto res = std::make_shared<ElkEdgeVisualAttribute>();
-        get_run()->addEdge(id, res);
+        get_run()->setEdgeAttribute(id, res);
         LOGIC_ASSERTION_CHECK(
             get_run()->edges->hasEdge(id), get_run()->getDebug(id));
         return res;

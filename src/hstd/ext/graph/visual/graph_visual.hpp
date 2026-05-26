@@ -193,23 +193,20 @@ class LayoutRun
     : public OperationsTracer
     , public hstd::SharedPtrApi<LayoutRun> {
   public:
+    // TODO: Instead of storing or creating edge/port collections for the
+    // layout run, the constructor should require the input graph to store
+    // the objects with specific IDs instead. Constructor then can call
+    // `graph.getCollection()` to assign to the collection field.
     hstd::SPtr<IGraph>                graph;
     hstd::SPtr<IdOnlyHierarchy>       groups;
     hstd::SPtr<TrivialEdgeCollection> edges;
     hstd::SPtr<TrivialPortCollection> ports;
 
     LayoutRun(
-        hstd::SPtr<IGraph> graph,
-        EdgeCollectionID   edges_id = EdgeCollectionID{9999})
-        : graph{graph}
-        , groups{std::make_shared<IdOnlyHierarchy>()}
-        , edges{std::make_shared<TrivialEdgeCollection>(edges_id)}
-        , ports{std::make_shared<TrivialPortCollection>()} {
-        hstd::logic_assertion_check_not_nil(graph);
-        graph->addCollection(edges);
-        graph->addHierarchy(groups);
-        graph->addPorts(ports);
-    }
+        hstd::SPtr<IGraph>                graph,
+        hstd::SPtr<TrivialEdgeCollection> _edges = nullptr,
+        hstd::SPtr<TrivialPortCollection> _ports = nullptr,
+        EdgeCollectionID edges_id                = EdgeCollectionID{9999});
 
     void runFullLayout();
 
@@ -219,22 +216,11 @@ class LayoutRun
     hstd::SPtr<UnboundEdgeVisualAttribute> addUnboundEdge(
         EdgeID const& id) {
         auto attr = std::make_shared<UnboundEdgeVisualAttribute>();
-        addEdge(id, attr);
+        setEdgeAttribute(id, attr);
         return attr;
     }
 
-    EdgeIDSet getAllUnboundEdges() const {
-        EdgeIDSet res;
-        auto      el = edges->getEdges();
-        for (auto const& edge : el) {
-            auto vattr = getEdgeVisualAttribute(edge);
-            if (std::dynamic_pointer_cast<UnboundEdgeVisualAttribute>(
-                    vattr)) {
-                res.incl(edge);
-            }
-        }
-        return res;
-    }
+    EdgeIDSet getAllUnboundEdges() const;
 
     template <typename T = IVertex>
         requires std::derived_from<T, IVertex>
@@ -340,16 +326,7 @@ class LayoutRun
         return res;
     }
 
-    VertexIDSet getDirectVertices(VertexID const& id) const {
-        LOGIC_ASSERTION_CHECK(
-            isGroupVertex(id),
-            "Cannot get nested vertices from non-group");
-        VertexIDSet res;
-        for (auto const& sub : groups->getSubVertices(id)) {
-            if (!isGroupVertex(sub)) { res.incl(sub); }
-        }
-        return res;
-    }
+    VertexIDSet getDirectVertices(VertexID const& id) const;
 
     VertexIDSet getRootGroups() const {
         VertexIDSet res;
@@ -359,24 +336,10 @@ class LayoutRun
         return res;
     }
 
-    VertexIDSet getSubGroups(VertexID const& id) const {
-        LOGIC_ASSERTION_CHECK(
-            isGroupVertex(id), "Cannot get nested groups from non-group");
-        VertexIDSet res;
-        for (auto const& sub : groups->getSubVertices(id)) {
-            if (isGroupVertex(sub)) { res.incl(sub); }
-        }
-        return res;
-    }
+    VertexIDSet getSubGroups(VertexID const& id) const;
 
     /// \brief Get all nested groups that don't switch layout
-    VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const {
-        VertexIDSet noSwitch;
-        for (auto const& sub : getSubGroups(id)) {
-            if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
-        }
-        return noSwitch;
-    }
+    VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const;
 
     EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
@@ -447,14 +410,14 @@ class LayoutRun
         VertexID const&                           nested,
         hstd::SPtr<IVertexVisualAttribute> const& attr);
 
-
-    void addEdge(
+    // TODO: Document this function and related operations for adding the
+    // elements to the layout run. Update the implementation so the layout
+    // run itself is not used to construct the semantic structure of the
+    // graph: the layout run should expect all the elements to already be
+    // added in the required ports and edges.
+    void setEdgeAttribute(
         EdgeID const&                           id,
-        hstd::SPtr<IEdgeVisualAttribute> const& attr) {
-        auto edge = getGraph()->getMEdge(id);
-        edge->addUniqueAttribute(attr);
-        edges->trackEdge(id, graph->getSource(id), graph->getTarget(id));
-    }
+        hstd::SPtr<IEdgeVisualAttribute> const& attr);
 
     PortID addPort(
         VertexID const&                   v,
