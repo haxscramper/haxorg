@@ -436,8 +436,8 @@ EdgeID TrivialHierarchy::trackSubVertexRelation(
     edgeStore.insert_or_assign(
         id,
         init_vertex.has_value()
-            ? TrivialEdge{hstd::fmt("{}-{}", parent, sub)}
-            : init_vertex.value());
+            ? init_vertex.value()
+            : TrivialEdge{hstd::fmt("{}-{}", parent, sub)});
 
     IVertexHierarchy::trackSubVertexRelation(id, parent, sub);
 

@@ -377,6 +377,25 @@ void gv::GraphGroup::render(
     algo->renderToFile(path, *this, format);
 }
 
+hstd::SPtr<gv::EdgeAttribute> gv::GraphGroup::addEdge(EdgeID const& id) {
+    auto attr = edge(
+        *ctx.run->getVertexVisualAttribute<NodeAttribute>(
+            run->getGraph()->getSource(id)),
+        *ctx.run->getVertexVisualAttribute<NodeAttribute>(
+            run->getGraph()->getTarget(id)));
+    run->setEdgeAttribute(id, attr);
+    return attr;
+}
+
+hstd::SPtr<gv::NodeAttribute> gv::GraphGroup::addVertex(
+    EdgeID const& edge) {
+    auto vertex_id = run->getNestedVertex(edge);
+    auto vertex    = run->getVertex(vertex_id);
+    auto attribute = this->node(vertex->getStableId());
+    run->setNestedVertexAttribute(edge, attribute);
+    return attribute;
+}
+
 hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(Str const& name) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
     if (!gvc) {

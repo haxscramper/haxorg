@@ -144,6 +144,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
     auto getGraphviz() {
         graph::MapGraph::GvConfig gvc{};
+        gvc.run->setTraceFile(getDebugFile("layout_run.log"));
         auto gv = gvc.toGraphviz(versions.back().context, getGraph());
         return gv;
     }

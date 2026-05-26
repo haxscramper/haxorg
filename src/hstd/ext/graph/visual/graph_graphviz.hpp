@@ -875,24 +875,10 @@ class GraphGroup
     Str            name() const { return agnameof(graph); }
     GVContext::Ptr context() { return ctx.context; }
 
-    hstd::SPtr<NodeAttribute> addVertex(EdgeID const& edge) {
-        auto vertex_id = run->getNestedVertex(edge);
-        auto vertex    = run->getVertex(vertex_id);
-        auto attribute = this->node(vertex->getStableId());
-        run->setNestedVertexAttribute(edge, attribute);
-        return attribute;
-    }
+    hstd::SPtr<NodeAttribute> addVertex(EdgeID const& edge);
 
 
-    hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id) {
-        auto attr = edge(
-            *ctx.run->getVertexVisualAttribute<NodeAttribute>(
-                run->getGraph()->getSource(id)),
-            *ctx.run->getVertexVisualAttribute<NodeAttribute>(
-                run->getGraph()->getTarget(id)));
-        run->setEdgeAttribute(id, attr);
-        return attr;
-    }
+    hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id);
 
     /// \brief Legacy method for constructing graph group without the use
     /// layout run. graphviz API makes it reasonably easy to generate a

@@ -759,11 +759,19 @@ hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
 
     for (auto const& [it, imm_id, prop] : graph->getProperties()) {
         if (acceptNode(it)) {
-            auto mapped_id = state.graph->addVertex();
+            auto mapped_id = state.graph->addVertex(
+                imm_id.getReadableId());
             ids.add_unique(it, mapped_id);
             state.hierarchy->trackVertex(mapped_id);
-            auto node = res->addVertex(
-                state.hierarchy->trackSubVertexRelation(rg, mapped_id));
+            auto nesting_id = state.hierarchy->trackSubVertexRelation(
+                rg, mapped_id);
+            OP_TRACER_MESSAGE(
+                run,
+                "Nesting ID {} {}",
+                nesting_id,
+                run->getDebug(nesting_id));
+
+            auto node = res->addVertex(nesting_id);
             node->setAttr("org_id", imm_id.getReadableId());
             node->startHtmlRecord();
             *node->getNodeRecord() = getNodeLabel(

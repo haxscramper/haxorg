@@ -117,7 +117,7 @@ class IVertexHierarchy : public IEdgeProvider {
     }
 
     VertexID getTarget(EdgeID const& edge) const override {
-        return edgeTracker.at_left(edge).first;
+        return edgeTracker.at_left(edge).second;
     }
 
     hstd::Pair<VertexID, VertexID> getParentAndNested(
