@@ -143,6 +143,7 @@ message NodeAttributePayload {
   optional TextAlign xlabel_align = 18;
   optional PointPayload xlabelpos = 19;
   optional PointPayload margin = 20;
+  string parent_stable_id = 21;
 }
 
 message EdgeAttributePayload {
@@ -205,4 +206,5 @@ message GroupAttributePayload {
   optional PointPayload viewport = 41;
   optional bool compound = 42;
   optional bool concentrate = 43;
+  optional string parent_stable_id = 44;
 }

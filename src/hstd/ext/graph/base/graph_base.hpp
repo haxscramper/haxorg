@@ -436,6 +436,7 @@ class IGraph {
     };
 
     virtual void writeSerial(proto::IGraphProto* out) const = 0;
+
     virtual void readSerial(
         proto::IGraphProto const*  in,
         IGraphSerialReaderFactory* factory) = 0;

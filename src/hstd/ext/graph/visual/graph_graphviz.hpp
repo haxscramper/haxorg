@@ -843,7 +843,8 @@ class GraphGroup
     /// layout run. graphviz API makes it reasonably easy to generate a
     /// quick graph visualization, without setting up the full layout run,
     /// so this method is used as an escape hatch for cases like these.
-    static hstd::SPtr<gv::GraphGroup> newRootGraph(hstd::Str const& name);
+    static hstd::SPtr<gv::GraphGroup> newStandaloneRootGraph(
+        hstd::Str const& name);
 
 
     static hstd::SPtr<GraphGroup> newRootGraph(

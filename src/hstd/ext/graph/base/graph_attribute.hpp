@@ -157,26 +157,14 @@ class IAttributeObject {
     void writeSerial(
         ::google::protobuf::RepeatedPtrField<
             ::hstd::ext::graph::proto::IAttribute>* out,
-        IGraph const*                               graph) const {
-        for (auto const& attr : getAttributes()) {
-            attr->writeSerial(out->Add(), graph);
-        }
-    }
+        IGraph const*                               graph) const;
 
     void readSerial(
         ::google::protobuf::RepeatedPtrField<
             ::hstd::ext::graph::proto::IAttribute> const* in,
         IGraph const*                                     graph,
         IGraphSerialReaderFactory*                        factory,
-        IAttributeObject const*                           vertex) {
-        hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-        for (auto const& a : *in) {
-            auto attr = factory->newAttribute(&a, vertex);
-            attr->readSerial(&a, graph, factory, vertex);
-            attrs.push_back(attr);
-        }
-        setAttributes(attrs);
-    }
+        IAttributeObject const*                           vertex);
 };
 
 class TrivialAttributeObject : public virtual IAttributeObject {

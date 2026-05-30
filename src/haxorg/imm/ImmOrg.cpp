@@ -835,7 +835,8 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
     ImmAstGraphvizConf const& conf) {
     // TODO: rewrite to use full IGraph API instead of NodeGroup fallback.
     using namespace hstd::ext::graph;
-    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newRootGraph("g"_ss);
+    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newStandaloneRootGraph(
+        "g"_ss);
     g->setBackgroundColor("beige");
 
     UnorderedSet<ImmId>                                visited;

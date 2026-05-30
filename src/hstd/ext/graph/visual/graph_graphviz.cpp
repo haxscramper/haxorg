@@ -396,7 +396,8 @@ hstd::SPtr<gv::NodeAttribute> gv::GraphGroup::addVertex(
     return attribute;
 }
 
-hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(Str const& name) {
+hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newStandaloneRootGraph(
+    Str const& name) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
     if (!gvc) {
         throw std::runtime_error("Failed to create Graphviz context");

@@ -24,8 +24,6 @@ std::string getJString(google::protobuf::Message const& message) {
 
 class TestFactory : public IGraphSerialReaderFactory {
   public:
-    std::stack<hstd::SPtr<IVertex>> groupStack;
-
     hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
         proto::IVertexHierarchy const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
@@ -75,28 +73,56 @@ class TestFactory : public IGraphSerialReaderFactory {
         }
     }
 
+    hstd::SPtr<layout::LayoutRun> run;
+    hstd::SPtr<IGraph>            graph;
+
     hstd::SPtr<IAttribute> newAttribute(
         proto::IAttribute const* in,
+        IGraph const*            graph,
         IAttributeObject const*  parent) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+
+        if (!run) {
+            run = std::make_shared<layout::LayoutRun>(
+                this->graph,
+                this->graph->getCollections().at(0)->getCollectionID(),
+                this->graph->getPorts().at(0)->getCollectionID(),
+                this->graph->getHierarchies().at(0)->getCollectionID());
+        }
+
         if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
             auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            if (groupStack.empty()
-                || !groupStack.top()
-                        ->hasOptionalAttribute<gv::GraphGroup>()) {
-                return gv::GraphGroup::newRootGraph(vertex->getStableId());
-            } else {
-                return groupStack.top()
+            gv::proto::GroupAttributePayload pl;
+            in->payload().UnpackTo(&pl);
+
+            if (pl.has_parent_stable_id()) {
+                return graph
+                    ->getVertex(graph->getVertexIDByStableId(
+                        pl.parent_stable_id()))
                     ->getUniqueAttribute<gv::GraphGroup>()
                     ->newSubgraph(vertex->getStableId());
+            } else {
+                return gv::GraphGroup::newRootGraph(
+                    run, vertex->getStableId());
             }
         } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
             auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            return groupStack.top()
+            gv::proto::NodeAttributePayload pl;
+            in->payload().UnpackTo(&pl);
+            LOGIC_ASSERTION_CHECK_FMT(
+                !pl.parent_stable_id().empty(),
+                "Parent stable ID cannot be set to empty, graphviz "
+                "attribute for node '{}' must have the parent ID "
+                "specified",
+                vertex->getStableId());
+
+            return graph
+                ->getVertex(
+                    graph->getVertexIDByStableId(pl.parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->node(vertex->getStableId());
         } else {
@@ -105,7 +131,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         }
     }
 
-    hstd::SPtr<IVertex> beginVertex(proto::IVertex const* in) override {
+    hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
@@ -121,11 +147,8 @@ class TestFactory : public IGraphSerialReaderFactory {
                 in->payload().type_url());
         }
 
-        groupStack.push(res);
         return res;
     }
-
-    void endVertex(IVertex const* in) override { groupStack.pop(); }
 };
 
 
@@ -156,6 +179,7 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         attr_payload.set_width(2);
         attr_payload.set_height(2);
         attr_payload.set_label(out_vertex->stable_id());
+        attr_payload.set_parent_stable_id(rg_id);
         auto out_attr = out_vertex->add_attributes();
         out_attr->mutable_payload()->PackFrom(attr_payload);
         out_vertex->mutable_payload()->PackFrom(
@@ -186,7 +210,8 @@ std::unique_ptr<proto::IGraphProto> run_layout(
         getDebugFile("proto_laoyout_initial.json"),
         getJString(*proto_layout));
 
-    auto graph = std::make_shared<TrivialGraphBase>();
+    auto graph    = std::make_shared<TrivialGraphBase>();
+    factory.graph = graph;
     graph->readSerial(proto_layout.get(), &factory);
     graph
         ->getVertex(
@@ -198,14 +223,13 @@ std::unique_ptr<proto::IGraphProto> run_layout(
         ->getUniqueAttribute<gv::GraphGroup>()
         ->render(getDebugFile("render.png"));
 
-    auto run = std::make_shared<layout::LayoutRun>(
-        graph,
-        graph->getCollections().at(0)->getCollectionID(),
-        graph->getPorts().at(0)->getCollectionID(),
-        graph->getHierarchies().at(0)->getCollectionID());
+    if (graph->getPorts().empty()) {
+        graph->addPorts(std::make_shared<TrivialPortCollection>());
+    }
 
-    run->setTraceFile(getDebugFile("serial_read_layout.log"));
-    run->runFullLayout();
+
+    factory.run->setTraceFile(getDebugFile("serial_read_layout.log"));
+    factory.run->runFullLayout();
     auto result = std::make_unique<proto::IGraphProto>();
     graph->writeSerial(result.get());
     writeFile(

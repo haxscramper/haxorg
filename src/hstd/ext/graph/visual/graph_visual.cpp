@@ -149,10 +149,10 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
 
 
 layout::LayoutRun::LayoutRun(
-    hstd::SPtr<IGraph> graph,
-    EdgeCollectionID   edge_id,
-    PortCollectionID   port_id,
-    EdgeCollectionID   hierarchy_id)
+    hstd::SPtr<IGraph> const& graph,
+    EdgeCollectionID          edge_id,
+    PortCollectionID          port_id,
+    EdgeCollectionID          hierarchy_id)
     : graph{graph}
     , groups{graph->getHierarchy(hierarchy_id)}
     , edges{graph->getEdgeCollection(edge_id)}

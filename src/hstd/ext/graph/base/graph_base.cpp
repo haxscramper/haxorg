@@ -327,50 +327,6 @@ void IGraph::writeSerial(proto::IGraphProto* out) const {
              hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
         getVertex(vertex)->writeSerial(out->add_vertices(), this, vertex);
     }
-
-    // for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
-    //     SerialSchema::Hierarchy serial_hierarchy;
-    //     serial_hierarchy.hierarchyName   = hierarchy->getStableID();
-    //     serial_hierarchy.maxNestingLevel =
-    //     hierarchy->getMaxNestingLevel();
-
-    //     for (auto const& vertex :
-    //          hstd::sorted(hierarchy->getRootVertices().items())) {
-    //         serial_hierarchy.rootVertexIDs.push_back(
-    //             getVertex(vertex)->getStableId());
-    //     }
-
-    //     for (auto const& parent : hierarchy->getAllVertices()) {
-    //         auto nested = hierarchy->getSubVertices(parent);
-    //         if (!nested.empty()) {
-    //             auto& arr = serial_hierarchy.vertexNestingMap
-    //                             [getVertex(parent)->getStableId()];
-    //             for (auto const& it : nested) {
-    //                 arr.push_back(getVertex(it)->getStableId());
-    //             }
-    //         }
-    //     }
-
-    //     for (auto const& nested : hierarchy->getAllVertices()) {
-    //         if (auto parent = hierarchy->getParentVertex(nested)) {
-    //             serial_hierarchy.vertexParentMap
-    //                 [getVertex(nested)
-    //                      ->getStableId()] = getVertex(parent.value())
-    //                                             ->getStableId();
-    //         }
-    //     }
-
-    //     res.hierarchies.insert_or_assign(
-    //         hierarchy->getStableID(), serial_hierarchy);
-    // }
-
-    // for (auto const& vertex : vertexIDs) {
-    //     json this_serial = getVertex(vertex)->getSerialNonRecursive(
-    //         this, vertex);
-    //     res.vertices[getVertex(vertex)->getStableId()] = this_serial;
-    // }
-
-    // return hstd::to_json_eval(res);
 }
 
 void IGraph::readSerial(
@@ -378,22 +334,41 @@ void IGraph::readSerial(
     IGraphSerialReaderFactory* factory) {
     OP_TRACER_MESSAGE_SCOPE(factory, "IGraph read serial");
 
+    hstd::Vec<hstd::SPtr<IEdgeCollection>>  collection_list;
+    hstd::Vec<hstd::SPtr<IVertexHierarchy>> hierarchy_list;
+    hstd::Vec<hstd::SPtr<IPortCollection>>  ports_list;
+
     for (auto const& coll : in->collections()) {
         auto new_collection = factory->newEdgeCollection(&coll);
-        new_collection->readSerial(&coll, this, factory);
-        addCollection(new_collection);
+        collection_list.push_back(new_collection);
     }
 
     for (auto const& coll : in->hierarchies()) {
         auto new_collection = factory->newVertexHierarchy(&coll);
-        new_collection->readSerial(&coll, this, factory);
-        addHierarchy(new_collection);
+        hierarchy_list.push_back(new_collection);
     }
 
     for (auto const& coll : in->ports()) {
         auto new_collection = factory->newPortCollection(&coll);
-        new_collection->readSerial(&coll, this, factory);
-        addPorts(new_collection);
+        ports_list.push_back(new_collection);
+    }
+
+    // split the collection content reading and the collection object
+    // construction so objects could access full set of collections if
+    // necessary.
+    for (auto const& [coll, entry] :
+         hstd::rv::zip(in->collections(), collection_list)) {
+        entry->readSerial(&coll, this, factory);
+    }
+
+    for (auto const& [coll, entry] :
+         hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
+        entry->readSerial(&coll, this, factory);
+    }
+
+    for (auto const& [coll, entry] :
+         hstd::rv::zip(in->ports(), ports_list)) {
+        entry->readSerial(&coll, this, factory);
     }
 }
 
@@ -530,11 +505,10 @@ void TrivialGraphBase::readSerial(
     OP_TRACER_MESSAGE(factory, "TrivialBaseGraph readSerial");
 
     for (auto const& v : in->vertices()) {
-        auto new_vertex = factory->beginVertex(&v);
+        auto new_vertex = factory->newVertex(&v);
         new_vertex->readSerial(&v, this, factory);
         std::ignore = addVertex(
             *hstd::validated_dynamic_cast<TrivialVertex>(new_vertex));
-        factory->endVertex(new_vertex.get());
     }
 
     IGraph::readSerial(in, factory);

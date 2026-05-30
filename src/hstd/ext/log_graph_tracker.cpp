@@ -162,7 +162,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
         hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run) {
     using namespace hstd::ext;
     using namespace hstd::ext::graph;
-    auto graph = gv::GraphGroup::newRootGraph("g"_ss);
+    auto graph = gv::GraphGroup::newStandaloneRootGraph("g"_ss);
     std::unordered_map<std::string, hstd::SPtr<gv::NodeAttribute>>
         graph_nodes{};
     std::unordered_map<std::string, hstd::SPtr<gv::GraphGroup>> clusters{};

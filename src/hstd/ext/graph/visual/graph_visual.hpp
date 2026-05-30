@@ -225,10 +225,10 @@ class LayoutRun
 
   public:
     LayoutRun(
-        hstd::SPtr<IGraph> graph,
-        EdgeCollectionID   edge_id,
-        PortCollectionID   port_id,
-        EdgeCollectionID   hierarchy_id);
+        hstd::SPtr<IGraph> const& graph,
+        EdgeCollectionID          edge_id,
+        PortCollectionID          port_id,
+        EdgeCollectionID          hierarchy_id);
 
     hstd::SPtr<IVertexHierarchy> getGroups() const { return groups; }
     hstd::SPtr<IEdgeCollection>  getEdges() const { return edges; }

@@ -12,5 +12,8 @@ void hstd::ext::graph::IVertex::readSerial(
     proto::IVertex const*      in,
     IGraph const*              graph,
     IGraphSerialReaderFactory* factory) {
+    OP_TRACER_MESSAGE_SCOPE(factory, "IVertex::readSerial");
     IAttributeObject::readSerial(&in->attributes(), graph, factory, this);
+    OP_TRACER_MESSAGE(
+        factory, "read {} attributes", getAttributes().size());
 }

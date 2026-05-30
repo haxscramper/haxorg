@@ -307,12 +307,10 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
         proto::IPortCollection const* in) = 0;
     virtual hstd::SPtr<IAttribute> newAttribute(
         proto::IAttribute const* in,
+        IGraph const*            graph,
         IAttributeObject const*  vertex) = 0;
 
-    // NOTE: Technically this method could be implemented in the IGraph
-    // interface instead.
-    virtual hstd::SPtr<IVertex> beginVertex(proto::IVertex const* in) = 0;
-    virtual void                endVertex(IVertex const* in)          = 0;
+    virtual hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) = 0;
 };
 
 } // namespace hstd::ext::graph
