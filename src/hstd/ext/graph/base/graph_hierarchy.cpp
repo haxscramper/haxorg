@@ -275,25 +275,94 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
     proto::IVertexHierarchy const* in,
     IGraph const*                  graph,
     IGraphSerialReaderFactory*     factory) {
-    for (auto const& root : in->root_vertex_ids()) {
-        rootVertices.incl(graph->getVertexIDByStableId(root));
-    }
-
-    for (auto const& v : in->vertex_set()) {
-        vertexIDs.incl(graph->getVertexIDByStableId(v.first));
-    }
-
-    for (auto const& [sub_vertex, parent_vertex] : in->parent_map()) {
-        parentMap.insert_unqiue(
-            graph->getVertexIDByStableId(sub_vertex),
-            graph->getVertexIDByStableId(parent_vertex));
-    }
+    OP_TRACER_MESSAGE_SCOPE(factory, "IVertexHierarchy read serial base");
+    VertexIDSet has_parent;
 
     for (auto const& [parent_vertex, nested_list] : in->nested_in_map()) {
-        auto&
-            ref = nestedInMap[graph->getVertexIDByStableId(parent_vertex)];
+        auto  parent_id = graph->getVertexIDByStableId(parent_vertex);
+        auto& ref       = nestedInMap[parent_id];
+        vertexIDs.incl(parent_id);
         for (auto const& nested : nested_list.vertices()) {
-            ref.incl(graph->getVertexIDByStableId(nested));
+            auto nested_id = graph->getVertexIDByStableId(nested);
+            has_parent.incl(nested_id);
+            ref.incl(nested_id);
+            parentMap.insert_unqiue(nested_id, parent_id);
+            OP_TRACER_MESSAGE(
+                factory,
+                "{} ({}) -> {} ({})",
+                nested_id,
+                nested,
+                parent_id,
+                parent_vertex);
+
+            vertexIDs.incl(nested_id);
+        }
+    }
+
+    rootVertices = vertexIDs - has_parent;
+
+    char const* deser_note
+        = "Note: vertex hierarchy is "
+          "de-serialized based on the nesting map structure, "
+          "and `vertex_set` is redundant and can be left empty. "
+          "All vertices must be referenced in the nesting map";
+
+    for (auto const& v : in->vertex_set()) {
+        auto id = graph->getVertexIDByStableId(v.first);
+        if (!nestedInMap.contains(id)) {
+            throw serde_error::init(
+                hstd::fmt(
+                    "vertex hierarchy vertex_set contains ID not present "
+                    "in the nesting map: '{}'. {}",
+                    v.first,
+                    deser_note));
+        }
+    }
+
+
+    for (auto const& root : in->root_vertex_ids()) {
+        auto id = graph->getVertexIDByStableId(root);
+        if (!nestedInMap.contains(id)) {
+            throw serde_error::init(
+                hstd::fmt(
+                    "vertex hierarchy root_vertex_ids contains ID not "
+                    "present in the nesting map: '{}'. {}.",
+                    root,
+                    deser_note));
+        }
+
+        if (parentMap.contains(id)) {
+            throw serde_error::init(
+                hstd::fmt(
+                    "vertex hierarchy root_vertex_ids contains ID that "
+                    "has a parent ID in the nesting map: '{}' has a "
+                    "parent '{}'. '{}' has sub-vertices '{}'. {}.",
+                    root,
+                    parentMap.at(id),
+                    parentMap.at(id),
+                    in->nested_in_map().at(root).vertices()
+                        | hstd::rs::to<Vec>(),
+                    deser_note));
+        }
+    }
+
+
+    for (auto const& [sub_vertex, parent_vertex] : in->parent_map()) {
+        auto sub_vertex_id    = graph->getVertexIDByStableId(sub_vertex);
+        auto parent_vertex_id = graph->getVertexIDByStableId(
+            parent_vertex);
+        if (!parentMap.contains(sub_vertex_id)) {
+            throw serde_error::init(
+                hstd::fmt(
+                    "vertex hierarchy contains unexpected parent map "
+                    "field parent-of({}) = {}. Nesting map specified "
+                    "sub-vertices for '{}' as {}. {}.",
+                    sub_vertex,
+                    parent_vertex,
+                    parent_vertex,
+                    in->nested_in_map().at(parent_vertex).vertices()
+                        | hstd::rs::to<Vec>(),
+                    deser_note));
         }
     }
 }

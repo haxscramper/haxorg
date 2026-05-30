@@ -201,6 +201,9 @@ BOOST_STRONG_TYPEDEF(hstd::u16, PortCollectionID);
 
 struct graph_error : public hstd::CRTP_hexception<graph_error> {};
 
+struct serde_error
+    : public hstd::CRTP_hexception<serde_error, graph_error> {};
+
 struct structure_error
     : public hstd::CRTP_hexception<structure_error, graph_error> {};
 

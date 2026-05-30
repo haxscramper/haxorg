@@ -199,6 +199,7 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
             std::format("Vertex {} already registered", id));
     }
     vertexIDs.insert(id);
+    stableIdMap.insert_unqiue(getVertex(id)->getStableId(), id);
 
     for (auto& track : trackers) { track.second->trackVertex(id); }
 }
@@ -375,7 +376,7 @@ void IGraph::writeSerial(proto::IGraphProto* out) const {
 void IGraph::readSerial(
     proto::IGraphProto const*  in,
     IGraphSerialReaderFactory* factory) {
-
+    OP_TRACER_MESSAGE_SCOPE(factory, "IGraph read serial");
 
     for (auto const& coll : in->collections()) {
         auto new_collection = factory->newEdgeCollection(&coll);
@@ -514,26 +515,26 @@ VertexID TrivialGraphBase::addVertex(
 }
 
 VertexID TrivialGraphBase::addVertex(TrivialVertex const& vertex) {
-
     auto result = vertexStore.add(vertex);
     trackVertex(result);
     return result;
 }
 
-void TrivialGraph::writeSerial(proto::IGraphProto* out) const {
+void TrivialGraphBase::writeSerial(proto::IGraphProto* out) const {
     IGraph::writeSerial(out);
 }
 
-void TrivialGraph::readSerial(
+void TrivialGraphBase::readSerial(
     proto::IGraphProto const*  in,
     IGraphSerialReaderFactory* factory) {
+    OP_TRACER_MESSAGE(factory, "TrivialBaseGraph readSerial");
 
     for (auto const& v : in->vertices()) {
         auto new_vertex = factory->beginVertex(&v);
-        new_vertex->readSerial(&v, this);
-        factory->endVertex(new_vertex.get());
-        addVertex(
+        new_vertex->readSerial(&v, this, factory);
+        std::ignore = addVertex(
             *hstd::validated_dynamic_cast<TrivialVertex>(new_vertex));
+        factory->endVertex(new_vertex.get());
     }
 
     IGraph::readSerial(in, factory);

@@ -168,12 +168,16 @@ inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
             __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
     }
 
-#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                  \
+#define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)           \
     ::hstd::__is_trace_state(__tracer)                                    \
         ? __tracer->begin_scope(                                          \
               __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
         : __tracer->begin_scope();
 
+#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                     \
+    auto                                                                     \
+        BOOST_PP_CAT(__scope, __COUNTER__) = OP_TRACER_MESSAGE_SCOPE_HANDLE( \
+            __tracer, __format __VA_OPT__(, ) __VA_ARGS__);
 
 template <typename Derived, typename Msg>
 struct OperationsMsgBulder : CRTP_this_method<Derived> {

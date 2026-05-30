@@ -157,7 +157,13 @@ class IGraph {
     }
 
     VertexID getVertexIDByStableId(Str const& id) const {
-        return stableIdMap.at(id);
+        if (auto res = stableIdMap.get(id)) {
+            return res.value();
+        } else {
+            throw graph_error::init(
+                hstd::fmt(
+                    "Could not find key '{}' in the vertex graph", id));
+        }
     }
 
     template <typename T = IVertex>
@@ -481,6 +487,11 @@ struct TrivialGraphBase : public IGraph {
     const IVertex* getVertex(VertexID const& id) const override {
         return &vertexStore.at(id);
     }
+
+    void writeSerial(proto::IGraphProto* out) const override;
+    void readSerial(
+        proto::IGraphProto const*  in,
+        IGraphSerialReaderFactory* factory) override;
 };
 
 struct TrivialGraph : public TrivialGraphBase {
@@ -510,12 +521,6 @@ struct TrivialGraph : public TrivialGraphBase {
         hstd::Opt<std::string> const& stable_id = std::nullopt) {
         return edges->addEdge(source, target, stable_id);
     }
-
-
-    void writeSerial(proto::IGraphProto* out) const override;
-    void readSerial(
-        proto::IGraphProto const*  in,
-        IGraphSerialReaderFactory* factory) override;
 };
 
 

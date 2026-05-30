@@ -20,12 +20,15 @@ struct IVertex
         VertexID const& self_id) const;
 
     virtual void readSerial(
-        proto::IVertex const* in,
-        IGraph const*         graph) = 0;
+        proto::IVertex const*      in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) = 0;
 #endif
 };
 
-struct TrivialVertex : public IVertex {
+struct TrivialVertex
+    : public IVertex
+    , public virtual TrivialAttributeObject {
     explicit TrivialVertex(std::string const& _stable_id)
         : IVertex{_stable_id} {}
 
@@ -37,28 +40,15 @@ struct TrivialVertex : public IVertex {
         proto::IVertex* out,
         IGraph const*   graph,
         VertexID const& id) const override {
-        out->set_type("trivial-vertex");
-        out->set_stable_id(getStableId());
-        IAttributeObject::writeSerial(out->mutable_attributes(), graph);
+        IVertex::writeSerial(out, graph, id);
+        out->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
     }
 
-    void readSerial(proto::IVertex const* in, IGraph const* graph)
-        override {}
-
-    hstd::Vec<hstd::SPtr<IAttribute>> attrs;
-
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
-
-    void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
-        attrs.push_back(attr);
-    }
-
-  public:
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
-        this->attrs = attrs;
+    void readSerial(
+        proto::IVertex const*      in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {
+        IVertex::readSerial(in, graph, factory);
     }
 };
 

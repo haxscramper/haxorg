@@ -48,6 +48,9 @@ class IAttributeObject {
     virtual void setAttributes(
         hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) = 0;
 
+
+    hstd::Vec<hstd::Str> getAttributeRepr() const;
+
     /// \brief Get first instance of the attribute with dynamic type `T`.
     template <typename T>
         requires std::derived_from<T, IAttribute>
@@ -107,9 +110,11 @@ class IAttributeObject {
             throw graph_error::init(
                 hstd::fmt(
                     "Graph object is expected to have exactly one "
-                    "attribute of type {}, but found none. {}",
+                    "attribute of type {}, but found none. {}. Has "
+                    "attributes {}.",
                     hstd::value_metadata<T>::typeName(),
-                    err_ctx));
+                    err_ctx,
+                    getAttributeRepr()));
         }
 
         return result;

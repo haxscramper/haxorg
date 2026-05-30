@@ -136,11 +136,14 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
     auto        out_hierarchy = out->add_hierarchies();
     std::string rg_id{"root-vertex"};
 
+
     auto out_vertex = out->add_vertices();
     out_vertex->set_stable_id(rg_id);
     out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
-    out_hierarchy->mutable_vertex_set()->insert({rg_id, true});
-    out_hierarchy->add_root_vertex_ids(rg_id);
+    gv::proto::GroupAttributePayload attr_payload;
+    auto out_attr = out_vertex->add_attributes();
+    out_attr->mutable_payload()->PackFrom(attr_payload);
+
     out_hierarchy->mutable_nested_in_map()->insert(
         {rg_id, proto::VertexIDVec{}});
     out_hierarchy->mutable_payload()->PackFrom(
@@ -157,10 +160,6 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         out_attr->mutable_payload()->PackFrom(attr_payload);
         out_vertex->mutable_payload()->PackFrom(
             proto::TrivialVertexPayload{});
-        out_hierarchy->mutable_vertex_set()->insert(
-            {vertex.stable_id(), true});
-        out_hierarchy->mutable_parent_map()->insert(
-            {vertex.stable_id(), rg_id});
         out_hierarchy->mutable_nested_in_map()->at(rg_id).add_vertices(
             vertex.stable_id());
     }

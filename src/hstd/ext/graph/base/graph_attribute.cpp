@@ -9,3 +9,12 @@ void hstd::ext::graph::IAttribute::readSerial(
 void hstd::ext::graph::IAttribute::writeSerial(
     proto::IAttribute* out,
     IGraph const*      graph) const {};
+
+hstd::Vec<hstd::Str> hstd::ext::graph::IAttributeObject::getAttributeRepr()
+    const {
+    hstd::Vec<hstd::Str> result;
+    for (auto const& a : getAttributes()) {
+        result.push_back(a->getRepr());
+    }
+    return result;
+}
