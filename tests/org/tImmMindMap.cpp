@@ -87,6 +87,11 @@ class TestFactory : public IGraphSerialReaderFactory {
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
 
         if (!run) {
+            if (this->graph->getPorts().empty()) {
+                this->graph->addPorts(
+                    std::make_shared<TrivialPortCollection>());
+            }
+
             run = std::make_shared<layout::LayoutRun>(
                 this->graph,
                 this->graph->getCollections().at(0)->getCollectionID(),
@@ -222,11 +227,6 @@ std::unique_ptr<proto::IGraphProto> run_layout(
                 .at(0))
         ->getUniqueAttribute<gv::GraphGroup>()
         ->render(getDebugFile("render.png"));
-
-    if (graph->getPorts().empty()) {
-        graph->addPorts(std::make_shared<TrivialPortCollection>());
-    }
-
 
     factory.run->setTraceFile(getDebugFile("serial_read_layout.log"));
     factory.run->runFullLayout();

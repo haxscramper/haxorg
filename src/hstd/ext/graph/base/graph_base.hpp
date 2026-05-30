@@ -435,11 +435,13 @@ class IGraph {
             (vertices, edges, hierarchies, flatVertexIDs));
     };
 
-    virtual void writeSerial(proto::IGraphProto* out) const = 0;
+    void writeSerial(proto::IGraphProto* out) const;
 
-    virtual void readSerial(
+    void readSerial(
         proto::IGraphProto const*  in,
-        IGraphSerialReaderFactory* factory) = 0;
+        IGraphSerialReaderFactory* factory);
+
+    virtual VertexID addVertex(hstd::SPtr<IVertex> const& vertex) = 0;
 
     std::unique_ptr<proto::IGraphProto> get_serial() const;
 
@@ -483,16 +485,12 @@ struct TrivialGraphBase : public IGraph {
     VertexID addVertex(
         std::optional<std::string> const& stable_id = std::nullopt);
 
+    VertexID addVertex(hstd::SPtr<IVertex> const& vertex) override;
     VertexID addVertex(TrivialVertex const& vertex);
 
     const IVertex* getVertex(VertexID const& id) const override {
         return &vertexStore.at(id);
     }
-
-    void writeSerial(proto::IGraphProto* out) const override;
-    void readSerial(
-        proto::IGraphProto const*  in,
-        IGraphSerialReaderFactory* factory) override;
 };
 
 struct TrivialGraph : public TrivialGraphBase {

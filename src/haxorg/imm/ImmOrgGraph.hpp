@@ -240,6 +240,11 @@ struct MapGraph
     hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
     DESC_FIELDS(MapGraph, ());
 
+    hstd::ext::graph::VertexID addVertex(
+        hstd::SPtr<hstd::ext::graph::IVertex> const& vertex) override {
+        return nodes.add(hstd::validated_dynamic_cast<MapNode>(vertex));
+    }
+
     MapGraph() : edges{std::make_shared<MapEdgeCollection>()} {
         addCollection(edges);
     }
@@ -401,20 +406,6 @@ struct MapGraph
 
 
 #endif
-
-    void writeSerial(
-        hstd::ext::graph::proto::IGraphProto* out) const override {
-        IGraph::writeSerial(out);
-    }
-
-    void readSerial(
-        hstd::ext::graph::proto::IGraphProto const*  in,
-        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {
-        throw hstd::logic_error::init(
-            "ImmOrgGraph does not support de-serialiation from the "
-            "protobuf. Rebuild the immutable AST context and reconstruct "
-            "the graph from that state instead.");
-    }
 };
 
 struct MapGraphState;

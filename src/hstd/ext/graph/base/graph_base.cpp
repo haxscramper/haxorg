@@ -341,16 +341,26 @@ void IGraph::readSerial(
     for (auto const& coll : in->collections()) {
         auto new_collection = factory->newEdgeCollection(&coll);
         collection_list.push_back(new_collection);
+        addCollection(new_collection);
     }
 
     for (auto const& coll : in->hierarchies()) {
         auto new_collection = factory->newVertexHierarchy(&coll);
         hierarchy_list.push_back(new_collection);
+        addHierarchy(new_collection);
     }
 
     for (auto const& coll : in->ports()) {
         auto new_collection = factory->newPortCollection(&coll);
         ports_list.push_back(new_collection);
+        addPorts(new_collection);
+    }
+
+
+    for (auto const& v : in->vertices()) {
+        auto new_vertex = factory->newVertex(&v);
+        new_vertex->readSerial(&v, this, factory);
+        std::ignore = addVertex(new_vertex);
     }
 
     // split the collection content reading and the collection object
@@ -489,27 +499,12 @@ VertexID TrivialGraphBase::addVertex(
         });
 }
 
+VertexID TrivialGraphBase::addVertex(hstd::SPtr<IVertex> const& vertex) {
+    return addVertex(*hstd::validated_dynamic_cast<TrivialVertex>(vertex));
+}
+
 VertexID TrivialGraphBase::addVertex(TrivialVertex const& vertex) {
     auto result = vertexStore.add(vertex);
     trackVertex(result);
     return result;
-}
-
-void TrivialGraphBase::writeSerial(proto::IGraphProto* out) const {
-    IGraph::writeSerial(out);
-}
-
-void TrivialGraphBase::readSerial(
-    proto::IGraphProto const*  in,
-    IGraphSerialReaderFactory* factory) {
-    OP_TRACER_MESSAGE(factory, "TrivialBaseGraph readSerial");
-
-    for (auto const& v : in->vertices()) {
-        auto new_vertex = factory->newVertex(&v);
-        new_vertex->readSerial(&v, this, factory);
-        std::ignore = addVertex(
-            *hstd::validated_dynamic_cast<TrivialVertex>(new_vertex));
-    }
-
-    IGraph::readSerial(in, factory);
 }
