@@ -1384,8 +1384,8 @@ void setProtoField(Message* msg, Str const& name, T const& value) {
         Reflection const* pr = p->GetReflection();
         auto const*       fx = p->GetDescriptor()->FindFieldByName("x");
         auto const*       fy = p->GetDescriptor()->FindFieldByName("y");
-        pr->SetDouble(p, fx, value.x);
-        pr->SetDouble(p, fy, value.y);
+        pr->SetDouble(p, fx, value.x());
+        pr->SetDouble(p, fy, value.y());
     }
 }
 
@@ -1411,8 +1411,7 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
         Reflection const* pr = p.GetReflection();
         auto const*       fx = p.GetDescriptor()->FindFieldByName("x");
         auto const*       fy = p.GetDescriptor()->FindFieldByName("y");
-        value.x              = pr->GetDouble(p, fx);
-        value.y              = pr->GetDouble(p, fy);
+        value = Point(pr->GetDouble(p, fx), pr->GetDouble(p, fy));
     } else {
         return false;
     }
@@ -1438,7 +1437,7 @@ void writeAttrs(Attr const* self, Payload* payload) {
         do {                                                              \
             Opt<Type>      value;                                         \
             Opt<TextAlign> dir;                                           \
-            self->getAttr(#key, value, dir);                              \
+            self->getAttr(#key, value);                                   \
             if (value) { setProtoField(payload, #key, *value); }          \
             if (dir) {                                                    \
                 setProtoField(payload, Str(#key) + Str("_align"), *dir);  \
@@ -1502,36 +1501,46 @@ void readAttrs(Attr* self, Payload const& payload) {
 void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
-    logic_todo_impl();
+    layout::IGroupVisualAttribute::writeSerial(out, graph);
+    writeAttrs(this, out->mutable_payload());
 }
+
 void hstd::ext::graph::gv::GraphGroup::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
-    IGraphSerialReaderFactory*      factory) {
-    logic_todo_impl();
+    IGraphSerialReaderFactory*      factory,
+    IVertex const*                  vertex) {
+    layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
+    readAttrs(this, in->payload());
 }
 
 void hstd::ext::graph::gv::NodeAttribute::writeSerial(
-    graph::proto::IAttribute*,
-    IGraph const* graph) const {
-    logic_todo_impl();
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    layout::IVertexVisualAttribute::writeSerial(out, graph);
+    writeAttrs(this, out->mutable_payload());
 }
 void hstd::ext::graph::gv::NodeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
-    IGraphSerialReaderFactory*      factory) {
-    logic_todo_impl();
+    IGraphSerialReaderFactory*      factory,
+    IVertex const*                  vertex) {
+    layout::IVertexVisualAttribute::readSerial(in, graph, factory, vertex);
+    readAttrs(this, in->payload());
 }
 
 void hstd::ext::graph::gv::EdgeAttribute::writeSerial(
-    graph::proto::IAttribute*,
-    IGraph const* graph) const {
-    logic_todo_impl();
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    layout::IEdgeVisualAttribute::writeSerial(out, graph);
+    writeAttrs(this, out->mutable_payload());
 }
 void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
-    IGraphSerialReaderFactory*      factory) {
+    IGraphSerialReaderFactory*      factory,
+    IVertex const*                  vertex) {
+    layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
     logic_todo_impl();
 }
 

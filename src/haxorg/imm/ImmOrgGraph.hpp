@@ -61,7 +61,10 @@ struct MapNodeProp
     void readSerial(
         hstd::ext::graph::proto::IAttribute const*   in,
         hstd::ext::graph::IGraph const*              graph,
-        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {}
+        hstd::ext::graph::IGraphSerialReaderFactory* factory,
+        hstd::ext::graph::IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 };
 
 struct MapEdgeProp
@@ -77,7 +80,10 @@ struct MapEdgeProp
     void readSerial(
         hstd::ext::graph::proto::IAttribute const*   in,
         hstd::ext::graph::IGraph const*              graph,
-        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {}
+        hstd::ext::graph::IGraphSerialReaderFactory* factory,
+        hstd::ext::graph::IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 };
 
 

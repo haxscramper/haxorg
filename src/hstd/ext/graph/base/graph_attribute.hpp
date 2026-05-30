@@ -24,7 +24,8 @@ struct IAttribute {
     virtual void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) = 0;
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) = 0;
 #endif
 };
 
@@ -159,11 +160,12 @@ class IAttributeObject {
         ::google::protobuf::RepeatedPtrField<
             ::hstd::ext::graph::proto::IAttribute> const* in,
         IGraph const*                                     graph,
-        IGraphSerialReaderFactory*                        factory) {
+        IGraphSerialReaderFactory*                        factory,
+        IVertex const*                                    vertex) {
         hstd::Vec<hstd::SPtr<IAttribute>> attrs;
         for (auto const& a : *in) {
-            auto attr = factory->newAttribute(&a);
-            attr->readSerial(&a, graph, factory);
+            auto attr = factory->newAttribute(&a, vertex);
+            attr->readSerial(&a, graph, factory, vertex);
             attrs.push_back(attr);
         }
         setAttributes(attrs);

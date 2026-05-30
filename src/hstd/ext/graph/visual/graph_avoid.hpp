@@ -33,7 +33,8 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {}
 
     geometry::Path path;
     AvoidEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
@@ -48,7 +49,10 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {};
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    };
 
     Rect getBBox() const override {
         return Rect::FromCenterWH(Point(xOffset, yOffset), width, height);

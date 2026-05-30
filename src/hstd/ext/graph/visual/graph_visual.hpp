@@ -180,10 +180,15 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 };
 
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
@@ -191,10 +196,15 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}

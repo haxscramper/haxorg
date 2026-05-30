@@ -291,22 +291,24 @@ class IVertexHierarchy;
 class IEdgeCollection;
 class IPortCollection;
 class IAttribute;
+class IVertex;
 
 class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
     virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
-        proto::IVertexHierarchy const* in) const = 0;
+        proto::IVertexHierarchy const* in) = 0;
     virtual hstd::SPtr<IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) const = 0;
+        proto::IEdgeCollection const* in) = 0;
     virtual hstd::SPtr<IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) const = 0;
+        proto::IPortCollection const* in) = 0;
     virtual hstd::SPtr<IAttribute> newAttribute(
-        proto::IAttribute const* in) const = 0;
+        proto::IAttribute const* in,
+        IVertex const*           vertex) = 0;
 
     // NOTE: Technically this method could be implemented in the IGraph
     // interface instead.
-    virtual hstd::SPtr<IVertex> newVertex(
-        proto::IVertex const* in) const = 0;
+    virtual hstd::SPtr<IVertex> beginVertex(proto::IVertex const* in) = 0;
+    virtual void                endVertex(proto::IVertex const* in)   = 0;
 };
 
 } // namespace hstd::ext::graph

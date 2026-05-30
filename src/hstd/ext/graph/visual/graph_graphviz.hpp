@@ -669,7 +669,8 @@ class NodeAttribute
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override;
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override;
 };
 
 class EdgeAttribute
@@ -713,7 +714,8 @@ class EdgeAttribute
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override;
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override;
 };
 
 class Layout;
@@ -858,7 +860,8 @@ class GraphGroup
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override;
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override;
 };
 
 class Graphviz;
@@ -903,7 +906,8 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override {
         logic_todo_impl();
     }
 
@@ -934,7 +938,8 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override {
         logic_todo_impl();
     }
 
@@ -966,7 +971,8 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
+        IGraphSerialReaderFactory*      factory,
+        IVertex const*                  vertex) override {
         logic_todo_impl();
     }
 

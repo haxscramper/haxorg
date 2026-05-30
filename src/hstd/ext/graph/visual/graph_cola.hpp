@@ -120,7 +120,10 @@ class ColaVertexAttribute : public layout::IVertexVisualAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     geometry::Rect rect;
     ColaVertexAttribute(geometry::Rect const& rect) : rect{rect} {}
@@ -134,7 +137,10 @@ class ColaEdgeAttribute : public layout::IEdgeVisualAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 };
 
 
@@ -155,7 +161,10 @@ class ColaGroup
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     hstd::Opt<geometry::Padding> outerPadding;
 
@@ -238,7 +247,10 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     geometry::Rect rect;
     std::string    text;
@@ -272,7 +284,10 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        IGraphSerialReaderFactory* factory,
+        IVertex const*             vertex) override {
+        logic_todo_impl();
+    }
 
     visual::VisGroup getVisual(VertexID const& id) const override;
 

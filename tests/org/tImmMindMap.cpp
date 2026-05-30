@@ -24,8 +24,10 @@ std::string getJString(google::protobuf::Message const& message) {
 
 class TestFactory : public IGraphSerialReaderFactory {
   public:
+    std::stack<hstd::SPtr<IVertex>> groupStack;
+
     hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
-        proto::IVertexHierarchy const* in) const override {
+        proto::IVertexHierarchy const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
@@ -39,7 +41,7 @@ class TestFactory : public IGraphSerialReaderFactory {
     }
 
     hstd::SPtr<IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) const override {
+        proto::IEdgeCollection const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
@@ -55,7 +57,7 @@ class TestFactory : public IGraphSerialReaderFactory {
     }
 
     hstd::SPtr<IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) const override {
+        proto::IPortCollection const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
@@ -69,37 +71,53 @@ class TestFactory : public IGraphSerialReaderFactory {
     }
 
     hstd::SPtr<IAttribute> newAttribute(
-        proto::IAttribute const* in) const override {
+        proto::IAttribute const* in,
+        IVertex const*           vertex) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+        } else if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
+            if (groupStack.empty()
+                || !groupStack.top()
+                        ->hasOptionalAttribute<gv::GraphGroup>()) {
+                return gv::GraphGroup::newRootGraph(vertex->getStableId());
+            } else {
+                return groupStack.top()
+                    ->getUniqueAttribute<gv::GraphGroup>()
+                    ->newSubgraph(vertex->getStableId());
+            }
+        } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
+            return groupStack.top()
+                ->getUniqueAttribute<gv::GraphGroup>()
+                ->node(vertex->getStableId());
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
         }
     }
 
-    hstd::SPtr<IVertex> newVertex(
-        proto::IVertex const* in) const override {
+    hstd::SPtr<IVertex> beginVertex(proto::IVertex const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        hstd::SPtr<IVertex> res;
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-            return std::make_shared<org::graph::MapNode>();
-        } else if (
-            in->payload()
-                .Is<hstd::ext::graph::gv::proto::NodeAttributePayload>()) {
-            return std::make_shared<hstd::ext::graph::gv::NodeAttribute>();
+            res = std::make_shared<org::graph::MapNode>();
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
         }
+
+        groupStack.push(res);
+        return res;
     }
+
+    void endVertex(proto::IVertex const* in) override { groupStack.pop(); }
 };
 
 
