@@ -8,3 +8,5 @@ package org.graph.proto;
 message MapNodePayload {
   orgproto.AnyNode node = 1;
 }
+
+message MapEdgeCollectionPayload {};

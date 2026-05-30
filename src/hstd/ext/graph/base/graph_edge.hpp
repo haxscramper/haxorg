@@ -155,12 +155,12 @@ class IEdgeCollection : public IEdgeProvider {
   public:
     virtual void writeSerial(
         proto::IEdgeCollection* out,
-        IGraph const*           graph) const;
+        IGraph const*           graph) const = 0;
 
     virtual void readSerial(
         proto::IEdgeCollection const* in,
         IGraph const*                 graph,
-        IGraphSerialReaderFactory*    factory);
+        IGraphSerialReaderFactory*    factory) = 0;
 
     bool isTrackingEdge(EdgeID const& id) const override {
         bool res = source_target.contains(id);
@@ -287,6 +287,20 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         VertexID const& source,
         VertexID const& target) override {
         IEdgeCollection::trackEdge(id, source, target);
+    }
+
+    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
+        const override {
+        IEdgeCollection::writeSerial(out, graph);
+        proto::TrivialEdgeCollectionPayload tag;
+        out->mutable_payload()->PackFrom(tag);
+    }
+
+    void readSerial(
+        proto::IEdgeCollection const* in,
+        IGraph const*                 graph,
+        IGraphSerialReaderFactory*    factory) override {
+        IEdgeCollection::readSerial(in, graph, factory);
     }
 };
 

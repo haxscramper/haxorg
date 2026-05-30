@@ -26,22 +26,76 @@ class TestFactory : public IGraphSerialReaderFactory {
   public:
     hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
         proto::IVertexHierarchy const* in) const override {
-        auto url = in->payload().type_url();
-        OP_TRACER_MESSAGE(this, "URL {}", url);
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
     }
 
     hstd::SPtr<IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) const override {}
+        proto::IEdgeCollection const* in) const override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        if (in->payload()
+                .Is<org::graph::proto::MapEdgeCollectionPayload>()) {
+            return std::make_shared<org::graph::MapEdgeCollection>();
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
+    }
 
     hstd::SPtr<IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) const override {}
+        proto::IPortCollection const* in) const override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
+    }
 
     hstd::SPtr<IAttribute> newAttribute(
-        proto::IAttribute const* in) const override {}
+        proto::IAttribute const* in) const override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
+    }
 
     hstd::SPtr<IVertex> newVertex(
         proto::IVertex const* in) const override {
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {}
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+            auto res = std::make_shared<org::graph::MapNode>();
+            return res;
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
     }
 };
 

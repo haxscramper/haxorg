@@ -5,6 +5,25 @@
 namespace hstd {
 struct logic_unhandled_kind_error
     : CRTP_hexception<logic_unhandled_kind_error> {
+
+
+    static logic_unhandled_kind_error init(
+        std::string const& kind,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+        auto result = logic_unhandled_kind_error{};
+#if !ORG_BUILD_EMCC
+        result.eager = cpptrace::generate_trace();
+#endif
+        result.msg = "Unexpected kind ";
+        result.msg += kind;
+        result.line     = line;
+        result.file     = file;
+        result.function = function;
+        return result;
+    }
+
     template <IsEnum E>
     static logic_unhandled_kind_error init(
         E           kind,

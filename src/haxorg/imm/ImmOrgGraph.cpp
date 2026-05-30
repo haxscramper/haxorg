@@ -983,3 +983,18 @@ hstd::Opt<Str> MapNode::getSubtreeId(
         return std::nullopt;
     }
 }
+
+void MapEdgeCollection::writeSerial(
+    hstd::ext::graph::proto::IEdgeCollection* out,
+    hstd::ext::graph::IGraph const*           graph) const {
+    IEdgeCollection::writeSerial(out, graph);
+    proto::MapEdgeCollectionPayload tag;
+    out->mutable_payload()->PackFrom(tag);
+}
+
+void MapEdgeCollection::readSerial(
+    hstd::ext::graph::proto::IEdgeCollection const* in,
+    hstd::ext::graph::IGraph const*                 graph,
+    hstd::ext::graph::IGraphSerialReaderFactory*    factory) {
+    IEdgeCollection::readSerial(in, graph, factory);
+}

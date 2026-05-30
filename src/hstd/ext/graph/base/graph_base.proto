@@ -33,6 +33,10 @@ message IEdgeCollection {
   google.protobuf.Any payload = 4;
 }
 
+message TrivialEdgeCollectionPayload {};
+message IdOnlyEdgeCollectionPayload {};
+message AutoSegmentingCollectioneCollection {};
+
 message VertexIDVec {
   repeated string vertices = 1;
 }

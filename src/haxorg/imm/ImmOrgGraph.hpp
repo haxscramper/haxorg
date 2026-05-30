@@ -177,6 +177,16 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
         return edges.contains(id);
     }
     DESC_FIELDS(MapEdgeCollection, ());
+
+
+    void writeSerial(
+        hstd::ext::graph::proto::IEdgeCollection* out,
+        hstd::ext::graph::IGraph const*           graph) const override;
+
+    void readSerial(
+        hstd::ext::graph::proto::IEdgeCollection const* in,
+        hstd::ext::graph::IGraph const*                 graph,
+        hstd::ext::graph::IGraphSerialReaderFactory*    factory) override;
 };
 
 } // namespace org::graph

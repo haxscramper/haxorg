@@ -305,6 +305,20 @@ class AutoSegmentingCollection : public IEdgeCollection {
     bool hasEdge(EdgeID const& id) const override {
         return segmented_edges->hasEdge(id);
     }
+
+    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
+        const override {
+        IEdgeCollection::writeSerial(out, graph);
+        proto::AutoSegmentingCollectioneCollection tag;
+        out->mutable_payload()->PackFrom(tag);
+    }
+
+    void readSerial(
+        proto::IEdgeCollection const* in,
+        IGraph const*                 graph,
+        IGraphSerialReaderFactory*    factory) override {
+        IEdgeCollection::readSerial(in, graph, factory);
+    }
 };
 
 } // namespace hstd::ext::graph
