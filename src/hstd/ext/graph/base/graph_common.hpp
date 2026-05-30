@@ -311,6 +311,8 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
         IAttributeObject const*  vertex) = 0;
 
     virtual hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) = 0;
+    virtual hstd::SPtr<IEdge>   newEdge(proto::IEdge const* edge)   = 0;
+    virtual hstd::SPtr<IPort>   newPort(proto::IPort const* port)   = 0;
 };
 
 } // namespace hstd::ext::graph

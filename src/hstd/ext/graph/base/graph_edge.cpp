@@ -1,5 +1,6 @@
 #include "graph_edge.hpp"
 #include "graph_base.hpp"
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 
 
@@ -204,4 +205,28 @@ void hstd::ext::graph::IEdge::writeSerial(
         graph->getStableId(graph->getSource(self_id)));
     out->set_target_vertex_id(
         graph->getStableId(graph->getTarget(self_id)));
+}
+
+void TrivialEdgeCollection::readSerial(
+    proto::IEdgeCollection const* in,
+    IGraph const*                 graph,
+    IGraphSerialReaderFactory*    factory) {
+    IEdgeCollection::readSerial(in, graph, factory);
+
+    for (auto const& e : in->edges()) {
+        auto out_edge = factory->newEdge(&e);
+        // NOTE: the 'read serial' logic is brittle here: first the edge
+        // must be created by the factor, then added to the store, track
+        // it, and only then it is possible to read the attributes. The
+        // similar pattern appears in other vertex readers, ideally this
+        // should be addressed before merging the final branch for
+        // universal layout.
+        auto id = edgeStore.add(
+            *hstd::validated_dynamic_cast<TrivialEdge>(out_edge));
+        trackEdge(
+            id,
+            graph->getVertexIDByStableId(e.source_vertex_id()),
+            graph->getVertexIDByStableId(e.target_vertex_id()));
+        out_edge->readSerial(&e, graph, factory);
+    }
 }

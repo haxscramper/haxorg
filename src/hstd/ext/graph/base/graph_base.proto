@@ -18,6 +18,7 @@ message IVertex {
   google.protobuf.Any payload = 4;
 }
 
+message TrivialEdgePayload {}
 message IEdge {
   string stable_id = 1;
   string type = 2;

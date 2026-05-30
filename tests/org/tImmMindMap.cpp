@@ -130,6 +130,29 @@ class TestFactory : public IGraphSerialReaderFactory {
                     graph->getVertexIDByStableId(pl.parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->node(vertex->getStableId());
+        } else if (in->payload().Is<gv::proto::EdgeAttributePayload>()) {
+            auto vertex = hstd::validated_dynamic_cast<IEdge>(parent);
+            gv::proto::EdgeAttributePayload pl;
+            in->payload().UnpackTo(&pl);
+            LOGIC_ASSERTION_CHECK_FMT(
+                !pl.parent_stable_id().empty(),
+                "Parent stable ID cannot be set to empty, graphviz "
+                "attribute for node '{}' must have the parent ID "
+                "specified",
+                vertex->getStableId());
+
+            auto edge_id = graph->getEdgeIDByStableId(
+                vertex->getStableId());
+
+            return graph
+                ->getVertex(
+                    graph->getVertexIDByStableId(pl.parent_stable_id()))
+                ->getUniqueAttribute<gv::GraphGroup>()
+                ->edge(
+                    *graph->getVertex(graph->getSource(edge_id))
+                         ->getUniqueAttribute<gv::NodeAttribute>(),
+                    *graph->getVertex(graph->getTarget(edge_id))
+                         ->getUniqueAttribute<gv::NodeAttribute>());
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -153,6 +176,34 @@ class TestFactory : public IGraphSerialReaderFactory {
         }
 
         return res;
+    }
+
+
+    hstd::SPtr<IEdge> newEdge(proto::IEdge const* edge) override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            edge->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*edge));
+
+        if (edge->payload().Is<proto::TrivialEdgePayload>()) {
+            return std::make_shared<TrivialEdge>(edge->stable_id());
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                edge->payload().type_url());
+        }
+    }
+
+    hstd::SPtr<IPort> newPort(proto::IPort const* port) override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            port->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*port));
+
+        if (port->payload().Is<org::graph::proto::MapNodePayload>()) {
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                port->payload().type_url());
+        }
     }
 };
 
@@ -200,6 +251,17 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         auto out_edge = edges->add_edges();
         out_edge->set_source_vertex_id(edge.source_vertex_id());
         out_edge->set_target_vertex_id(edge.target_vertex_id());
+        out_edge->set_stable_id(
+            hstd::fmt(
+                "{}-{}",
+                edge.source_vertex_id(),
+                edge.target_vertex_id()));
+
+        gv::proto::EdgeAttributePayload attr_payload;
+        auto out_attr = out_edge->add_attributes();
+        attr_payload.set_parent_stable_id(rg_id);
+        out_attr->mutable_payload()->PackFrom(attr_payload);
+        out_edge->mutable_payload()->PackFrom(proto::TrivialEdgePayload{});
     }
 
     return out;
@@ -463,6 +525,7 @@ Paragraph [[id:subtree-id]]
     }
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 
@@ -495,6 +558,7 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     EXPECT_EQ(getState()->unresolved.size(), 0);
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
@@ -527,6 +591,7 @@ radio user paragraph
     }
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 TEST_F(ImmMapApi, RadioTargetsInverse) {
@@ -564,6 +629,7 @@ radio user paragraph
     }
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 TEST_F(ImmMapApi, RadioTargetAliases) {
@@ -597,6 +663,9 @@ also known as a human-readable alias
     EXPECT_TRUE(getGraph()->hasEdge(par_alias1.uniq(), t1.uniq()));
     EXPECT_TRUE(getGraph()->hasEdge(par_alias2.uniq(), t1.uniq()));
     EXPECT_TRUE(getGraph()->hasEdge(par_human.uniq(), t1.uniq()));
+
+    writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 Str getFullMindMapText() {
@@ -713,6 +782,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
     EXPECT_TRUE(getGraph()->hasEdge(node_p110.uniq(), node_s10.uniq()));
 
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 
     auto Subtree_1 = file.at({1, 0}).as<org::imm::ImmSubtree>();
     // EXPECT_EQ(getGraph().getEd)
@@ -913,6 +983,9 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     g->hasEdge(Paragraph_9, Paragraph_10);
     g->hasEdge(Paragraph_10, Paragraph_11);
     g->hasEdge(Paragraph_11, Paragraph_12);
+
+    writeRepresentation();
+    runExternalizedLayoutPipeline();
 }
 
 TEST_F(ImmMapApi, Doc1Graph) {
@@ -976,4 +1049,5 @@ TEST_F(ImmMapApi, Doc1Graph) {
     //     getDebugFile("map.png"),
     //     gv::LayoutType::Sfdp);
     writeRepresentation();
+    runExternalizedLayoutPipeline();
 }

@@ -138,7 +138,19 @@ class IGraph {
 
     /// \brief Get list of all edge providers in the graph: vertex
     /// hierarchies and general edge collections.
-    hstd::Vec<IEdgeProvider*> getEdgeProviders();
+    hstd::Vec<IEdgeProvider*> getEdgeProviders() const;
+
+    EdgeID getEdgeIDByStableId(Str const& id) const {
+        for (auto const& pr : getEdgeProviders()) {
+            if (pr->hasEdgeStableId(id)) {
+                return pr->getEdgeIDByStableId(id);
+            }
+        }
+        throw edge_structure_error::init(
+            hstd::fmt(
+                "No edge is associated with the stable ID '{}'", id));
+    }
+
     /// @}
 
     /// \name Vertices
@@ -157,6 +169,7 @@ class IGraph {
     }
 
     VertexID getVertexIDByStableId(Str const& id) const {
+        LOGIC_ASSERTION_CHECK(!id.empty(), "stable ID cannot be empty");
         if (auto res = stableIdMap.get(id)) {
             return res.value();
         } else {
@@ -182,30 +195,32 @@ class IGraph {
     ///
     /// Add the vertex to the graph collection. Will not
     /// automatically register all nested vertices and recursive data.
-    /// After the base vertex is registered, provide additional structural
-    /// information using `trackSubVertexRelation`.
+    /// After the base vertex is registered, provide additional
+    /// structural information using `trackSubVertexRelation`.
     ///
     /// \warning Should be called with the full list of vertices to
-    /// track: this method will not attempt to expand the set of vertices
-    /// to include nested ones.
+    /// track: this method will not attempt to expand the set of
+    /// vertices to include nested ones.
     void trackVertex(VertexID const& ids);
-    /// \brief Remove vertex from the graph collection and recursively drop
-    /// all the elements from the hierarchies.
+    /// \brief Remove vertex from the graph collection and recursively
+    /// drop all the elements from the hierarchies.
     ///
     /// \note No follow-up calls to `untrackSubVertexRelation` is
     /// necessary to match the `trackSubVertexRelation` -- hierarchy
     /// deletion is done by this method.
     ///
-    /// \warning Calling this method will RECURSIVELY DROP ALL SUB-VERTICES
-    /// under `id` if they are also deleted in all hierarchies.
+    /// \warning Calling this method will RECURSIVELY DROP ALL
+    /// SUB-VERTICES under `id` if they are also deleted in all
+    /// hierarchies.
     ///
-    /// \return Map of the dependant deletions in the graph hierarchies.
-    /// Un-registering vertex *does not delete sub-vertices from the
-    /// graph*, it only removes invalid edges. The returned value from this
-    /// function contains a mapping from the hierarchy ID to the list of
-    /// sub-vertex deletions for this hierarchy. It is possible to delete
-    /// all the nested vertices with `untrackVertexList` for each set of
-    /// vertices in the dependant deletion.
+    /// \return Map of the dependant deletions in the graph
+    /// hierarchies. Un-registering vertex *does not delete
+    /// sub-vertices from the graph*, it only removes invalid edges.
+    /// The returned value from this function contains a mapping from
+    /// the hierarchy ID to the list of sub-vertex deletions for this
+    /// hierarchy. It is possible to delete all the nested vertices
+    /// with `untrackVertexList` for each set of vertices in the
+    /// dependant deletion.
     hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> untrackVertex(
         VertexID const& id);
 
@@ -253,15 +268,15 @@ class IGraph {
         VertexID const&         id) const;
 
     /// \brief For id with given ID, compute the list of vertex
-    /// boundaries it crossed in each tracked hierarchy between the source
-    /// and the target.
+    /// boundaries it crossed in each tracked hierarchy between the
+    /// source and the target.
     hstd::Vec<Crossing> getHierarchyCrossings(EdgeID const& edge_id) const;
     /// @}
 
     /// \name Edges
     /// @{
-    /// \brief Get the edge from the collection/hierarchy. Use the edge ID
-    /// mask to determine which collection the edge comes from.
+    /// \brief Get the edge from the collection/hierarchy. Use the edge
+    /// ID mask to determine which collection the edge comes from.
     virtual IEdge const* getEdge(EdgeID const& id) const {
         return getEdgeProvider(id)->getEdge(id);
     }
@@ -398,9 +413,9 @@ class IGraph {
                 DESC_FIELDS(HierarchyCrossing, (hierarchyName, crossings));
             };
 
-            /// \brief EdgeId -> List of Vertex IDs for parent hierarchies
-            /// it has crossed. See `getHierarchyCrossings` method for more
-            /// details.
+            /// \brief EdgeId -> List of Vertex IDs for parent
+            /// hierarchies it has crossed. See `getHierarchyCrossings`
+            /// method for more details.
             hstd::UnorderedMap<std::string, hstd::Vec<HierarchyCrossing>>
                 hierarchyEdgeCrossings;
 

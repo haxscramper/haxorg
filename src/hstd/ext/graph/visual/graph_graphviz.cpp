@@ -1542,7 +1542,7 @@ void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
-    logic_todo_impl();
+    readAttrs(this, in->payload());
 }
 
 

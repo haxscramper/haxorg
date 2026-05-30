@@ -169,6 +169,15 @@ struct MapEdge
     , public virtual hgraph::TrivialAttributeObject {
     DESC_FIELDS(MapEdge, ());
     using hgraph::IEdge::IEdge;
+
+    void readSerial(
+        hstd::ext::graph::proto::IEdge const*        in,
+        hstd::ext::graph::IGraph const*              graph,
+        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {
+        throw hstd::ext::graph::serde_error::init(
+            "imm org map graph does not support de-serialization, build "
+            "immutable AST context and build the graph from it.");
+    }
 };
 
 

@@ -107,7 +107,7 @@ bool hstd::ext::graph::IGraph::hasPorts(
 }
 
 
-hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() {
+hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() const {
     hstd::Vec<IEdgeProvider*> result;
     for (auto const& [id, collection] : collections) {
         result.push_back(collection.get());
@@ -357,6 +357,11 @@ void IGraph::readSerial(
     }
 
 
+    // order of data de-serialization is important. Vertices are loaded
+    // first because they don't depend on any other graph elements. Then
+    // the edges are loaded since an edge needs a source and a target node.
+    // Finally, ports are loaded last since they are defined at an
+    // intersection of the vertex and edge.
     for (auto const& v : in->vertices()) {
         auto new_vertex = factory->newVertex(&v);
         new_vertex->readSerial(&v, this, factory);

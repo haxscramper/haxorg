@@ -35,6 +35,11 @@ struct IEdge
         proto::IEdge* out,
         IGraph const* graph,
         EdgeID const& self_id) const;
+
+    virtual void readSerial(
+        proto::IEdge const*        in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) = 0;
 #endif
 };
 
@@ -42,6 +47,15 @@ struct TrivialEdge
     : public IEdge
     , public virtual TrivialAttributeObject {
     using IEdge::IEdge;
+
+  public:
+    void readSerial(
+        proto::IEdge const*        in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory) override {
+        IAttributeObject::readSerial(
+            &in->attributes(), graph, factory, this);
+    }
 };
 
 
@@ -67,10 +81,12 @@ class IEdgeProvider {
     virtual VertexID     getTarget(EdgeID const& id) const = 0;
 
     bool hasEdgeStableId(Str const& id) const {
+        LOGIC_ASSERTION_CHECK(!id.empty(), "stable ID cannot be empty");
         return stableIdMap.contains(id);
     }
 
     EdgeID getEdgeIDByStableId(Str const& id) const {
+        LOGIC_ASSERTION_CHECK(!id.empty(), "stable ID cannot be empty");
         return stableIdMap.at(id);
     }
 
@@ -299,9 +315,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
     void readSerial(
         proto::IEdgeCollection const* in,
         IGraph const*                 graph,
-        IGraphSerialReaderFactory*    factory) override {
-        IEdgeCollection::readSerial(in, graph, factory);
-    }
+        IGraphSerialReaderFactory*    factory) override;
 };
 
 struct IdOnlyEdgeCollection : public IEdgeCollection {

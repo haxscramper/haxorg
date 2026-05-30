@@ -160,6 +160,7 @@ message EdgeAttributePayload {
   optional string URL = 11;
   optional string lhead = 12;
   optional string ltail = 13;
+  string parent_stable_id = 14;
 }
 
 message GroupAttributePayload {
