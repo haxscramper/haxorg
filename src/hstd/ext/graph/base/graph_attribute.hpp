@@ -13,7 +13,7 @@ struct IAttribute {
   public:
     virtual ~IAttribute() = default;
 
-    virtual std::string getRepr() const { return ""; }
+    virtual std::string getRepr() const = 0;
 
     template <typename T>
     bool isInstance() const {

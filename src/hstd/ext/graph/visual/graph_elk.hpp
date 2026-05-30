@@ -235,10 +235,15 @@ class ElkPortVisualAttribute
     : public ElkPortData
     , public layout::IPortVisualAttribute {
 
-
   public:
+    std::string getRepr() const override {
+        return "ElkPortVisualAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -253,8 +258,14 @@ class ElkPortLayoutAttribute
     : public ElkPortData
     , public layout::IPortLayoutAttribute {
   public:
+    std::string getRepr() const override {
+        return "ElkPortLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -340,8 +351,14 @@ class ElkEdgeVisualAttribute
     : public layout::IEdgeVisualAttribute
     , public ElkEdgeData {
   public:
+    std::string getRepr() const override {
+        return "ElkPortVisualAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -356,6 +373,9 @@ class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
     , public ElkEdgeData {
   public:
+    std::string getRepr() const override {
+        return "ElkEdgeLayoutAttribute";
+    }
     Path getPath() const override {
         Path res;
         for (auto const& sec : sections) {
@@ -368,7 +388,9 @@ class ElkEdgeLayoutAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -450,8 +472,13 @@ class ElkNodeVisualAttribute
     : public layout::IVertexVisualAttribute
     , public NodeElkLayoutData {
   public:
+    std::string getRepr() const override {
+        return "ElkNodeVisualAttribute";
+    }
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -466,8 +493,13 @@ class ElkGroupVisualAttribute
     : public layout::IGroupVisualAttribute
     , public NodeElkLayoutData {
   public:
+    std::string getRepr() const override {
+        return "ElkGroupVisualAttribute";
+    }
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -545,8 +577,14 @@ class ElkNodeLayoutAttribute
     : public layout::IVertexLayoutAttribute
     , public NodeElkLayoutData {
   public:
+    std::string getRepr() const override {
+        return "ElkNodeLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -594,8 +632,13 @@ class ElkGroupLayoutAttribute
     : public layout::IGroupLayoutAttribute
     , public NodeElkLayoutData {
   public:
+    std::string getRepr() const override {
+        return "ElkGroupLayoutAttribute";
+    }
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,

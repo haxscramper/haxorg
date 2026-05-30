@@ -114,8 +114,11 @@ BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET);
 
 class ColaVertexAttribute : public layout::IVertexVisualAttribute {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    std::string getRepr() const override { return "ColaVertexAttribute"; }
+    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -131,8 +134,11 @@ class ColaVertexAttribute : public layout::IVertexVisualAttribute {
 
 class ColaEdgeAttribute : public layout::IEdgeVisualAttribute {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    std::string getRepr() const override { return "ColaEdgeAttribute"; }
+    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -155,8 +161,11 @@ class ColaGroup
     , public GroupBase<ColaGroup, ColaVertexAttribute, ColaEdgeAttribute>
     , public std::enable_shared_from_this<ColaGroup> {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    std::string getRepr() const override { return "ColaGroup"; }
+    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -241,8 +250,14 @@ static_assert(
 
 class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
+    std::string getRepr() const override {
+        return "ColaVertexLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -278,8 +293,14 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
+    std::string getRepr() const override {
+        return "ColaGroupLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,

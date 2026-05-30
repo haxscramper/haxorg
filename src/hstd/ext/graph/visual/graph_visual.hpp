@@ -177,6 +177,9 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
   public:
+    std::string getRepr() const override {
+        return "UnboundEdgeVisualAttr";
+    }
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,

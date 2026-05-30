@@ -681,6 +681,8 @@ class EdgeAttribute
     EdgeAttribute(Agraph_t* graph, Agedge_t* edge)
         : edge_(edge), graph(graph) {}
 
+    std::string getRepr() const override { return "gv::EdgeAttribute"; }
+
     EdgeAttribute(
         Agraph_t*            graph,
         NodeAttribute const& head,
@@ -820,6 +822,8 @@ class GraphGroup
     GraphGroup* setDirectionLR() {
         return setRankDirection(RankDirection::LR);
     }
+
+    std::string getRepr() const override { return "gv::GraphGroup"; }
 
   public:
     Agraph_t*     graph;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/system/exceptions.hpp"
 #include <hstd/ext/graph/base/graph_base.hpp>
 #include <hstd/ext/graph/visual/graph_visual.hpp>
 #include <hstd/ext/graph/visual/adaptagrams_common.hpp>
@@ -27,14 +28,22 @@ class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
 
 class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
+    std::string getRepr() const override {
+        return "AvoidEdgeLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {}
+        IAttributeObject const*    vertex) override {
+        logic_todo_impl();
+    }
 
     geometry::Path path;
     AvoidEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
@@ -43,8 +52,14 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
   public:
+    std::string getRepr() const override {
+        return "AvoidPortLayoutAttribute";
+    }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         proto::IAttribute const*   in,

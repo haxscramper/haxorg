@@ -51,8 +51,9 @@ struct MapNodeProp
     , public hstd::SharedPtrApi<MapNodeProp> {
     hstd::Vec<MapLink> unresolved;
 
-
     DESC_FIELDS(MapNodeProp, (unresolved));
+
+    std::string getRepr() const override { return "MapNodeProp"; }
 
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
@@ -63,7 +64,10 @@ struct MapNodeProp
         hstd::ext::graph::IGraph const*              graph,
         hstd::ext::graph::IGraphSerialReaderFactory* factory,
         hstd::ext::graph::IAttributeObject const*    vertex) override {
-        logic_todo_impl();
+        throw hstd::ext::graph::serde_error::init(
+            "Map node prop does not support de-serialization from graph. "
+            "Construct immutable AST context and rebuild the graph from "
+            "it");
     }
 };
 
@@ -73,9 +77,13 @@ struct MapEdgeProp
     MapLink link;
     DESC_FIELDS(MapEdgeProp, (link));
 
+    std::string getRepr() const override { return "MapEdgeProp"; }
+
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
-        hstd::ext::graph::IGraph const*      graph) const override {}
+        hstd::ext::graph::IGraph const*      graph) const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
         hstd::ext::graph::proto::IAttribute const*   in,
