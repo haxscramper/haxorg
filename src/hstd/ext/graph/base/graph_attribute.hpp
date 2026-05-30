@@ -4,6 +4,8 @@
 
 namespace hstd::ext::graph {
 
+class IAttributeObject;
+
 /// \brief Base class for all attributes associated with vertices. The
 /// attribute might be an individual value, or a complex composite object,
 /// depending on the use case.
@@ -25,7 +27,7 @@ struct IAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) = 0;
+        IAttributeObject const*    vertex) = 0;
 #endif
 };
 
@@ -161,7 +163,7 @@ class IAttributeObject {
             ::hstd::ext::graph::proto::IAttribute> const* in,
         IGraph const*                                     graph,
         IGraphSerialReaderFactory*                        factory,
-        IVertex const*                                    vertex) {
+        IAttributeObject const*                           vertex) {
         hstd::Vec<hstd::SPtr<IAttribute>> attrs;
         for (auto const& a : *in) {
             auto attr = factory->newAttribute(&a, vertex);

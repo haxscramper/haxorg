@@ -670,7 +670,7 @@ class NodeAttribute
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override;
+        IAttributeObject const*         vertex) override;
 };
 
 class EdgeAttribute
@@ -715,7 +715,7 @@ class EdgeAttribute
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override;
+        IAttributeObject const*         vertex) override;
 };
 
 class Layout;
@@ -861,7 +861,7 @@ class GraphGroup
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override;
+        IAttributeObject const*         vertex) override;
 };
 
 class Graphviz;
@@ -907,7 +907,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override {
+        IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
 
@@ -939,7 +939,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override {
+        IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
 
@@ -972,7 +972,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
-        IVertex const*                  vertex) override {
+        IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
 

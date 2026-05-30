@@ -58,6 +58,24 @@ struct MapBase : public CRTP_this_method<Map> {
 
         return result;
     }
+
+    Vec<V> values() const {
+        Vec<V> result;
+        for (const auto& [key, value] : *_this()) {
+            result.push_back(value);
+        }
+
+        return result;
+    }
+
+    Vec<V const&> values_ref() const {
+        Vec<V const&> result;
+        for (const auto& [key, value] : *_this()) {
+            result.push_back(value);
+        }
+
+        return result;
+    }
 };
 
 template <typename K, typename V, typename Hash = std::hash<K>>

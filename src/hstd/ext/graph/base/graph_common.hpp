@@ -292,6 +292,7 @@ class IEdgeCollection;
 class IPortCollection;
 class IAttribute;
 class IVertex;
+class IAttributeObject;
 
 class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
@@ -303,12 +304,12 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
         proto::IPortCollection const* in) = 0;
     virtual hstd::SPtr<IAttribute> newAttribute(
         proto::IAttribute const* in,
-        IVertex const*           vertex) = 0;
+        IAttributeObject const*  vertex) = 0;
 
     // NOTE: Technically this method could be implemented in the IGraph
     // interface instead.
     virtual hstd::SPtr<IVertex> beginVertex(proto::IVertex const* in) = 0;
-    virtual void                endVertex(proto::IVertex const* in)   = 0;
+    virtual void                endVertex(IVertex const* in)          = 0;
 };
 
 } // namespace hstd::ext::graph

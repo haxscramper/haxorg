@@ -244,7 +244,7 @@ class ElkPortVisualAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -260,7 +260,7 @@ class ElkPortLayoutAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -347,7 +347,7 @@ class ElkEdgeVisualAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -374,7 +374,7 @@ class ElkEdgeLayoutAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -457,7 +457,7 @@ class ElkNodeVisualAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -473,7 +473,7 @@ class ElkGroupVisualAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -552,7 +552,7 @@ class ElkNodeLayoutAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -601,7 +601,7 @@ class ElkGroupLayoutAttribute
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 

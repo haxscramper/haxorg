@@ -33,7 +33,8 @@ class TestFactory : public IGraphSerialReaderFactory {
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+        if (in->payload().Is<proto::TrivialVertexHierarchyPayload>()) {
+            return std::make_shared<TrivialHierarchy>();
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -50,6 +51,10 @@ class TestFactory : public IGraphSerialReaderFactory {
         if (in->payload()
                 .Is<org::graph::proto::MapEdgeCollectionPayload>()) {
             return std::make_shared<org::graph::MapEdgeCollection>();
+        } else if (
+            in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
+            return std::make_shared<TrivialEdgeCollection>(
+                EdgeCollectionID{in->collection_id()});
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -72,14 +77,14 @@ class TestFactory : public IGraphSerialReaderFactory {
 
     hstd::SPtr<IAttribute> newAttribute(
         proto::IAttribute const* in,
-        IVertex const*           vertex) override {
+        IAttributeObject const*  parent) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-        } else if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
+        if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
+            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
             if (groupStack.empty()
                 || !groupStack.top()
                         ->hasOptionalAttribute<gv::GraphGroup>()) {
@@ -90,6 +95,7 @@ class TestFactory : public IGraphSerialReaderFactory {
                     ->newSubgraph(vertex->getStableId());
             }
         } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
+            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
             return groupStack.top()
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->node(vertex->getStableId());
@@ -108,6 +114,8 @@ class TestFactory : public IGraphSerialReaderFactory {
         hstd::SPtr<IVertex> res;
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
             res = std::make_shared<org::graph::MapNode>();
+        } else if (in->payload().Is<proto::TrivialVertexPayload>()) {
+            res = std::make_shared<TrivialVertex>(in->stable_id());
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -117,7 +125,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         return res;
     }
 
-    void endVertex(proto::IVertex const* in) override { groupStack.pop(); }
+    void endVertex(IVertex const* in) override { groupStack.pop(); }
 };
 
 
@@ -125,14 +133,36 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
     std::unique_ptr<proto::IGraphProto> const& in) {
     auto out = std::make_unique<proto::IGraphProto>();
 
+    auto        out_hierarchy = out->add_hierarchies();
+    std::string rg_id{"root-vertex"};
+
+    auto out_vertex = out->add_vertices();
+    out_vertex->set_stable_id(rg_id);
+    out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
+    out_hierarchy->mutable_vertex_set()->insert({rg_id, true});
+    out_hierarchy->add_root_vertex_ids(rg_id);
+    out_hierarchy->mutable_nested_in_map()->insert(
+        {rg_id, proto::VertexIDVec{}});
+    out_hierarchy->mutable_payload()->PackFrom(
+        proto::TrivialVertexHierarchyPayload{});
+
     for (auto const& vertex : in->vertices()) {
         auto out_vertex = out->add_vertices();
         out_vertex->set_stable_id(vertex.stable_id());
-        gv::proto::NodeAttributePayload vertex_payload;
-        vertex_payload.set_width(2);
-        vertex_payload.set_height(2);
-        vertex_payload.set_label(out_vertex->stable_id());
-        out_vertex->mutable_payload()->PackFrom(vertex_payload);
+        gv::proto::NodeAttributePayload attr_payload;
+        attr_payload.set_width(2);
+        attr_payload.set_height(2);
+        attr_payload.set_label(out_vertex->stable_id());
+        auto out_attr = out_vertex->add_attributes();
+        out_attr->mutable_payload()->PackFrom(attr_payload);
+        out_vertex->mutable_payload()->PackFrom(
+            proto::TrivialVertexPayload{});
+        out_hierarchy->mutable_vertex_set()->insert(
+            {vertex.stable_id(), true});
+        out_hierarchy->mutable_parent_map()->insert(
+            {vertex.stable_id(), rg_id});
+        out_hierarchy->mutable_nested_in_map()->at(rg_id).add_vertices(
+            vertex.stable_id());
     }
 
     auto edges = out->add_collections();
@@ -153,14 +183,32 @@ std::unique_ptr<proto::IGraphProto> run_layout(
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
 
     auto proto_layout = get_layout_structure(proto);
+    writeFile(
+        getDebugFile("proto_laoyout_initial.json"),
+        getJString(*proto_layout));
 
-    layout::LayoutRun::TrivialState state;
-    state.graph->readSerial(proto_layout.get(), &factory);
-    auto run = state.init();
+    auto graph = std::make_shared<TrivialGraphBase>();
+    graph->readSerial(proto_layout.get(), &factory);
+    graph
+        ->getVertex(
+            graph
+                ->getRootVertices(
+                    graph->getHierarchies().at(0)->getCollectionID())
+                .items()
+                .at(0))
+        ->getUniqueAttribute<gv::GraphGroup>()
+        ->render(getDebugFile("render.png"));
+
+    auto run = std::make_shared<layout::LayoutRun>(
+        graph,
+        graph->getCollections().at(0)->getCollectionID(),
+        graph->getPorts().at(0)->getCollectionID(),
+        graph->getHierarchies().at(0)->getCollectionID());
+
     run->setTraceFile(getDebugFile("serial_read_layout.log"));
     run->runFullLayout();
     auto result = std::make_unique<proto::IGraphProto>();
-    state.graph->writeSerial(result.get());
+    graph->writeSerial(result.get());
     writeFile(
         getDebugFile("serial_layout_result.json"), getJString(*result));
     return result;

@@ -107,6 +107,20 @@ class IGraph {
     bool hasHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy);
     bool hasPorts(hstd::SPtr<IPortCollection> const& hierarchy);
 
+    Vec<SPtr<IVertexHierarchy>> getHierarchies() const {
+        return hierarchies.values();
+    }
+
+    Vec<SPtr<IEdgeCollection>> getCollections() const {
+        return collections.values();
+    }
+
+    Vec<SPtr<IPortCollection>> getPorts() const { return ports.values(); }
+
+    Vec<SPtr<IAttributeTracker>> getAttributeTrackers() const {
+        return trackers.values();
+    }
+
     hstd::SPtr<IVertexHierarchy> getHierarchy(
         EdgeCollectionID const& id) const {
         return hierarchies.at(id);
@@ -415,10 +429,10 @@ class IGraph {
             (vertices, edges, hierarchies, flatVertexIDs));
     };
 
-    virtual void writeSerial(proto::IGraphProto* out) const;
+    virtual void writeSerial(proto::IGraphProto* out) const = 0;
     virtual void readSerial(
         proto::IGraphProto const*  in,
-        IGraphSerialReaderFactory* factory);
+        IGraphSerialReaderFactory* factory) = 0;
 
     std::unique_ptr<proto::IGraphProto> get_serial() const;
 
@@ -447,8 +461,29 @@ class IGraph {
     }
 };
 
+struct TrivialGraphBase : public IGraph {
+    hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
 
-struct TrivialGraph : public IGraph {
+    TrivialGraphBase(
+        hstd::Vec<hstd::SPtr<IEdgeCollection>>   collections,
+        hstd::Vec<hstd::SPtr<IPortCollection>>   ports       = {},
+        hstd::Vec<hstd::SPtr<IVertexHierarchy>>  hierarchies = {},
+        hstd::Vec<hstd::SPtr<IAttributeTracker>> trackers    = {})
+        : IGraph(collections, ports, hierarchies, trackers) {}
+
+    TrivialGraphBase() {}
+
+    VertexID addVertex(
+        std::optional<std::string> const& stable_id = std::nullopt);
+
+    VertexID addVertex(TrivialVertex const& vertex);
+
+    const IVertex* getVertex(VertexID const& id) const override {
+        return &vertexStore.at(id);
+    }
+};
+
+struct TrivialGraph : public TrivialGraphBase {
     hstd::UnorderedIncrementalStore<VertexID, TrivialVertex> vertexStore;
     hstd::SPtr<TrivialEdgeCollection>                        edges;
 
@@ -457,7 +492,7 @@ struct TrivialGraph : public IGraph {
         hstd::Vec<hstd::SPtr<IPortCollection>>   ports       = {},
         hstd::Vec<hstd::SPtr<IVertexHierarchy>>  hierarchies = {},
         hstd::Vec<hstd::SPtr<IAttributeTracker>> trackers    = {})
-        : IGraph(collections, ports, hierarchies, trackers)
+        : TrivialGraphBase(collections, ports, hierarchies, trackers)
         , edges{std::make_shared<TrivialEdgeCollection>(
               EdgeCollectionID{1})} {
         addCollection(edges);
@@ -469,19 +504,18 @@ struct TrivialGraph : public IGraph {
         addCollection(edges);
     }
 
-    VertexID addVertex(
-        std::optional<std::string> const& stable_id = std::nullopt);
-
-    const IVertex* getVertex(VertexID const& id) const override {
-        return &vertexStore.at(id);
-    }
-
     EdgeID addEdge(
         VertexID const&               source,
         VertexID const&               target,
         hstd::Opt<std::string> const& stable_id = std::nullopt) {
         return edges->addEdge(source, target, stable_id);
     }
+
+
+    void writeSerial(proto::IGraphProto* out) const override;
+    void readSerial(
+        proto::IGraphProto const*  in,
+        IGraphSerialReaderFactory* factory) override;
 };
 
 

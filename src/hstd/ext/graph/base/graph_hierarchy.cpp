@@ -274,7 +274,29 @@ void hstd::ext::graph::IVertexHierarchy::writeSerial(
 void hstd::ext::graph::IVertexHierarchy::readSerial(
     proto::IVertexHierarchy const* in,
     IGraph const*                  graph,
-    IGraphSerialReaderFactory*     factory) {}
+    IGraphSerialReaderFactory*     factory) {
+    for (auto const& root : in->root_vertex_ids()) {
+        rootVertices.incl(graph->getVertexIDByStableId(root));
+    }
+
+    for (auto const& v : in->vertex_set()) {
+        vertexIDs.incl(graph->getVertexIDByStableId(v.first));
+    }
+
+    for (auto const& [sub_vertex, parent_vertex] : in->parent_map()) {
+        parentMap.insert_unqiue(
+            graph->getVertexIDByStableId(sub_vertex),
+            graph->getVertexIDByStableId(parent_vertex));
+    }
+
+    for (auto const& [parent_vertex, nested_list] : in->nested_in_map()) {
+        auto&
+            ref = nestedInMap[graph->getVertexIDByStableId(parent_vertex)];
+        for (auto const& nested : nested_list.vertices()) {
+            ref.incl(graph->getVertexIDByStableId(nested));
+        }
+    }
+}
 
 std::optional<VertexID> hstd::ext::graph::IVertexHierarchy::
     getCommonAncestor(VertexIDSet const& ids) const {

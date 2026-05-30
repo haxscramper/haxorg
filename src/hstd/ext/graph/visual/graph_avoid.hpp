@@ -34,7 +34,7 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {}
+        IAttributeObject const*    vertex) override {}
 
     geometry::Path path;
     AvoidEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
@@ -50,7 +50,7 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     };
 

@@ -1509,7 +1509,7 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
     IGraphSerialReaderFactory*      factory,
-    IVertex const*                  vertex) {
+    IAttributeObject const*         vertex) {
     layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
     readAttrs(this, in->payload());
 }
@@ -1524,7 +1524,7 @@ void hstd::ext::graph::gv::NodeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
     IGraphSerialReaderFactory*      factory,
-    IVertex const*                  vertex) {
+    IAttributeObject const*         vertex) {
     layout::IVertexVisualAttribute::readSerial(in, graph, factory, vertex);
     readAttrs(this, in->payload());
 }
@@ -1539,7 +1539,7 @@ void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
     IGraphSerialReaderFactory*      factory,
-    IVertex const*                  vertex) {
+    IAttributeObject const*         vertex) {
     layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
     logic_todo_impl();
 }

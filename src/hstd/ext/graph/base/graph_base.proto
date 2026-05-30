@@ -10,6 +10,7 @@ message IAttribute {
   google.protobuf.Any payload = 2;
 }
 
+message TrivialVertexPayload {};
 message IVertex {
   string stable_id = 1;
   string type = 2;
@@ -30,7 +31,8 @@ message IEdgeCollection {
   string stable_id = 1;
   string type = 2;
   repeated IEdge edges = 3;
-  google.protobuf.Any payload = 4;
+  uint32 collection_id = 4;
+  google.protobuf.Any payload = 5;
 }
 
 message TrivialEdgeCollectionPayload {};
@@ -40,6 +42,8 @@ message AutoSegmentingCollectioneCollection {};
 message VertexIDVec {
   repeated string vertices = 1;
 }
+
+message TrivialVertexHierarchyPayload {};
 
 message IVertexHierarchy {
   string stable_id = 1;

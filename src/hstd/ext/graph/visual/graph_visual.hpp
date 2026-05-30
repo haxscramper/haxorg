@@ -181,7 +181,7 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -197,7 +197,7 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 

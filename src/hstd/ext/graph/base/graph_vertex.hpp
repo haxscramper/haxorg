@@ -26,11 +26,8 @@ struct IVertex
 };
 
 struct TrivialVertex : public IVertex {
-    VertexID selfId;
-
-    TrivialVertex(std::string const& _stable_id, VertexID selfId)
-        : IVertex{_stable_id}, selfId{selfId} {}
-
+    explicit TrivialVertex(std::string const& _stable_id)
+        : IVertex{_stable_id} {}
 
     std::string getRepr() const override {
         return hstd::fmt("IVertex({})", getStableId());

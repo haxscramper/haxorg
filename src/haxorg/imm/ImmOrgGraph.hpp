@@ -62,7 +62,7 @@ struct MapNodeProp
         hstd::ext::graph::proto::IAttribute const*   in,
         hstd::ext::graph::IGraph const*              graph,
         hstd::ext::graph::IGraphSerialReaderFactory* factory,
-        hstd::ext::graph::IVertex const*             vertex) override {
+        hstd::ext::graph::IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -81,7 +81,7 @@ struct MapEdgeProp
         hstd::ext::graph::proto::IAttribute const*   in,
         hstd::ext::graph::IGraph const*              graph,
         hstd::ext::graph::IGraphSerialReaderFactory* factory,
-        hstd::ext::graph::IVertex const*             vertex) override {
+        hstd::ext::graph::IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };

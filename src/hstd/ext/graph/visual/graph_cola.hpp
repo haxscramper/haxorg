@@ -121,7 +121,7 @@ class ColaVertexAttribute : public layout::IVertexVisualAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -138,7 +138,7 @@ class ColaEdgeAttribute : public layout::IEdgeVisualAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 };
@@ -162,7 +162,7 @@ class ColaGroup
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -248,7 +248,7 @@ class ColaVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
@@ -285,7 +285,7 @@ class ColaGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IVertex const*             vertex) override {
+        IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
 
