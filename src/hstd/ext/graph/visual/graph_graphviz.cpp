@@ -795,7 +795,7 @@ gv::NodeAttribute::NodeAttribute(
     Str const&    name,
     Record const& record)
     : NodeAttribute(graph, name) {
-    setShape(Shape::record);
+    setNodeShape(NodeShape::record);
     setLabel(record.toString());
 }
 
@@ -946,11 +946,11 @@ visual::VisPen buildPenFromNode(gv::NodeAttribute const& node) {
     if (auto c = node.getColor()) { pen.color = parseGvColor(*c); }
     // Check for style attribute for dashed/dotted
     if (auto style = node.getStyle()) {
-        if (*style == gv::NodeAttribute::Style::dashed) {
+        if (*style == gv::Style::dashed) {
             pen.style = visual::VisPen::LineStyle::Dash;
-        } else if (*style == gv::NodeAttribute::Style::dotted) {
+        } else if (*style == gv::Style::dotted) {
             pen.style = visual::VisPen::LineStyle::Dot;
-        } else if (*style == gv::NodeAttribute::Style::invis) {
+        } else if (*style == gv::Style::invis) {
             pen.style = visual::VisPen::LineStyle::None;
         }
     }
@@ -962,8 +962,7 @@ visual::VisBrush buildBrushFromNode(gv::NodeAttribute const& node) {
     if (auto fc = node.getFillColor()) {
         return visual::VisBrush::solid(parseGvColor(*fc));
     }
-    if (auto style = node.getStyle();
-        style == gv::NodeAttribute::Style::filled) {
+    if (auto style = node.getStyle(); style == gv::Style::filled) {
         auto c = node.getColor();
         return visual::VisBrush::solid(
             c ? parseGvColor(*c) : visual::VisColor{192, 192, 192, 255});
@@ -1007,11 +1006,11 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
     visual::VisPen pen;
     if (auto c = edge.getColor()) { pen.color = parseGvColor(*c); }
     if (auto style = edge.getStyle()) {
-        if (*style == gv::EdgeAttribute::Style::dashed) {
+        if (*style == gv::Style::dashed) {
             pen.style = visual::VisPen::LineStyle::Dash;
-        } else if (*style == gv::EdgeAttribute::Style::dotted) {
+        } else if (*style == gv::Style::dotted) {
             pen.style = visual::VisPen::LineStyle::Dot;
-        } else if (*style == gv::EdgeAttribute::Style::invis) {
+        } else if (*style == gv::Style::invis) {
             pen.style = visual::VisPen::LineStyle::None;
         }
     }
@@ -1042,8 +1041,8 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
     visual::VisBrush brush = buildBrushFromNode(node);
 
     visual::VisElement shapeElem;
-    using S = gv::NodeAttribute::Shape;
-    switch (node.getShape().value_or(S::box)) {
+    using S = gv::NodeShape;
+    switch (node.getNodeShape().value_or(S::box)) {
         case S::ellipse:
         case S::circle:
         case S::oval: {
@@ -1107,7 +1106,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
             rect.brush = brush;
             // Check for rounded style
             if (auto style = node.getStyle();
-                style == gv::NodeAttribute::Style::rounded) {
+                style == gv::Style::rounded) {
                 rect.cornerRadius = std::min(
                                         nodeRect.width(),
                                         nodeRect.height())
@@ -1277,15 +1276,15 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
             rect.pen.color = parseGvColor(*c);
         }
         if (auto style = group->getStyle()) {
-            if (style == gv::GraphGroup::Style::dashed) {
+            if (style == gv::Style::dashed) {
                 rect.pen.style = visual::VisPen::LineStyle::Dash;
-            } else if (style == gv::GraphGroup::Style::dotted) {
+            } else if (style == gv::Style::dotted) {
                 rect.pen.style = visual::VisPen::LineStyle::Dot;
-            } else if (style == gv::GraphGroup::Style::solid) {
+            } else if (style == gv::Style::solid) {
                 rect.pen.style = visual::VisPen::LineStyle::Solid;
-            } else if (style == gv::GraphGroup::Style::invis) {
+            } else if (style == gv::Style::invis) {
                 rect.pen.style = visual::VisPen::LineStyle::None;
-            } else if (style == gv::GraphGroup::Style::filled) {
+            } else if (style == gv::Style::filled) {
                 auto fc    = group->getFillColor();
                 rect.brush = visual::VisBrush::solid(
                     fc ? parseGvColor(*fc)

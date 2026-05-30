@@ -167,7 +167,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
         graph_nodes{};
     std::unordered_map<std::string, hstd::SPtr<gv::GraphGroup>> clusters{};
 
-    graph->defaultNode.setShape(gv::NodeAttribute::Shape::rect);
+    graph->defaultNode.setNodeShape(gv::NodeShape::rect);
 
     auto get_node = [&](hstd::SPtr<gv::GraphGroup> const& g,
                         std::string const&                name) {

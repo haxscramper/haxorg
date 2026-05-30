@@ -100,12 +100,38 @@ class TestFactory : public IGraphSerialReaderFactory {
 };
 
 
+std::unique_ptr<proto::IGraphProto> get_layout_structure(
+    std::unique_ptr<proto::IGraphProto> const& in) {
+    auto out = std::make_unique<proto::IGraphProto>();
+
+    for (auto const& vertex : in->vertices()) {
+        auto out_vertex = out->add_vertices();
+        out_vertex->set_stable_id(vertex.stable_id());
+        gv::proto::NodeAttributePayload vertex_payload;
+        out_vertex->mutable_payload()->PackFrom(vertex_payload);
+    }
+
+    auto edges = out->add_collections();
+    edges->mutable_payload()->PackFrom(
+        proto::TrivialEdgeCollectionPayload{});
+    for (auto const& edge : in->collections().at(0).edges()) {
+        auto out_edge = edges->add_edges();
+        out_edge->set_source_vertex_id(edge.source_vertex_id());
+        out_edge->set_target_vertex_id(edge.target_vertex_id());
+    }
+
+    return out;
+}
+
 std::unique_ptr<proto::IGraphProto> run_layout(
     std::unique_ptr<proto::IGraphProto> const& proto) {
-    layout::LayoutRun::TrivialState state;
-    TestFactory                     factory;
+    TestFactory factory;
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
-    state.graph->readSerial(proto.get(), &factory);
+
+    auto proto_layout = get_layout_structure(proto);
+
+    layout::LayoutRun::TrivialState state;
+    state.graph->readSerial(proto_layout.get(), &factory);
     auto run = state.init();
     run->setTraceFile(getDebugFile("serial_read_layout.log"));
     run->runFullLayout();

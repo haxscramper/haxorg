@@ -74,6 +74,17 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
     "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
+
+  haxorg_add_protobuf(
+    TARGET
+    hstd
+    UNIQUE_TARGET
+    hstd_proto_graphviz_graph
+    IMPORT_DIRS
+    "${BASE}"
+    PROTO_SOURCES
+    "${BASE}/src/hstd/ext/graph/visual/graph_graphviz.proto")
+
 endif()
 
 target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>

@@ -282,8 +282,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     if (trace) {
         __perf_trace("cli", "Export mind map as graphviz");
-        gv->setRankDirection(
-            hstd::ext::graph::gv::GraphGroup::RankDirection::LR);
+        gv->setRankDirection(hstd::ext::graph::gv::RankDirection::LR);
         gv->render(getDebugFile("mind_map.dot"));
         gv->render(getDebugFile("mind_map.png"));
     }

@@ -35,11 +35,11 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     // configure visual parameters for graphviz nodes. The methods are
     // specific to the graphviz layout nodes, and use cgraph API
     // internally.
-    auto shape = gv::NodeAttribute::Shape::rect;
-    getGv(v1)->setFixedPointWH(120, 120)->setShape(shape);
-    getGv(v2)->setFixedPointWH(120, 120)->setShape(shape);
-    getGv(v3)->setFixedPointWH(240, 240)->setShape(shape);
-    getGv(v4)->setFixedPointWH(240, 240)->setShape(shape);
+    auto shape = gv::NodeShape::rect;
+    getGv(v1)->setFixedPointWH(120, 120)->setNodeShape(shape);
+    getGv(v2)->setFixedPointWH(120, 120)->setNodeShape(shape);
+    getGv(v3)->setFixedPointWH(240, 240)->setNodeShape(shape);
+    getGv(v4)->setFixedPointWH(240, 240)->setNodeShape(shape);
 
     // Add edges to the graphviz graph. This links already existing
     // semantic vertices to the visual representation in the layout.
@@ -141,21 +141,21 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     auto sg_1 = root->addNewNativeSubgroup(addNesting(rg_id, sg_id1));
     auto sg_2 = root->addNewNativeSubgroup(addNesting(rg_id, sg_id2));
 
-    auto shape = gv::NodeAttribute::Shape::rect;
+    auto shape = gv::NodeShape::rect;
 
     EXPECT_EQ(run->getSubGroups(rg_id).size(), 2);
 
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(3))))
         ->setFixedPointWH(120, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-3");
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(4))))
         ->setFixedPointWH(180, 120)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-4");
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(6))))
         ->setFixedPointWH(240, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-6");
 
     EXPECT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 0);
@@ -164,19 +164,19 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(5))))
         ->setFixedPointWH(120, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-5");
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(9))))
         ->setFixedPointWH(120, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-9");
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(7))))
         ->setFixedPointWH(120, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-7");
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(10))))
         ->setFixedPointWH(120, 60)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("VERT-10");
 
 
@@ -428,32 +428,32 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizIrClusters) {
     auto sg_1 = root->addNewNativeSubgroup(addNesting(rg_id, sg_id1));
     auto sg_2 = root->addNewNativeSubgroup(addNesting(rg_id, sg_id2));
 
-    auto shape = gv::NodeAttribute::Shape::rect;
+    auto shape = gv::NodeShape::rect;
 
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(0))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("A0");
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(1))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("A1");
     as<gv::NodeAttribute>(sg_1->addVertex(addNesting(sg_id1, vs.at(2))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("A2");
 
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(3))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("B0");
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(4))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("B1");
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(5))))
         ->setFixedPointWH(60, 40)
-        ->setShape(shape)
+        ->setNodeShape(shape)
         ->setLabel("B2");
 
     as<gv::EdgeAttribute>(sg_1->addEdge(e01));

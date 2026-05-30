@@ -17,6 +17,8 @@
 #    include <hstd/stdlib/Filesystem.hpp>
 #    include <hstd/ext/graph/base/graph_base.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <src/hstd/ext/graph/base/graph_base.pb.h>
+#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
 
 #    define _attr_aligned(__Class, Method, key, Type)                     \
         __Class* set##Method(                                             \
@@ -76,12 +78,7 @@ struct UserDataBase {
     Agrec_t header;
 };
 
-enum class TextAlign
-{
-    Left,
-    Center,
-    Right
-};
+DECL_DESCRIBED_ENUM_STANDALONE(TextAlign, Left, Center, Right);
 
 enum class LayoutType
 {
@@ -109,6 +106,203 @@ enum class RenderFormat
     XDOT, /// Extended dot format
     DOT,  /// Write original DOT file
 };
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    Style,
+    solid,
+    dashed,
+    dotted,
+    bold,
+    invis,
+    tapered,
+    filled,
+    striped,
+    wedged,
+    diagonals,
+    rounded);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    NodeArrowSize,
+    tiny,
+    small,
+    normal,
+    large,
+    huge);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    NodeArrowType,
+    normal,
+    inv,
+    dot,
+    odot,
+    none,
+    tee,
+    empty,
+    invempty,
+    diamond,
+    odiamond,
+    ediamond,
+    open,
+    halfopen,
+    vee,
+    invvee,
+    box,
+    obox,
+    crow,
+    invcrow,
+    curve,
+    icurve,
+    lace,
+    ilace);
+
+DECL_DESCRIBED_ENUM_STANDALONE(NodeDir, forward, back, both, none);
+DECL_DESCRIBED_ENUM_STANDALONE(Rank, none, same, source, sink);
+DECL_DESCRIBED_ENUM_STANDALONE(RankDirection, LR, TB, BT, RL);
+DECL_DESCRIBED_ENUM_STANDALONE(Splines, Ortho, Polyline, Curved);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    NodeShape,
+    box,
+    polygon,
+    ellipse,
+    oval,
+    circle,
+    point,
+    egg,
+    triangle,
+    plaintext,
+    plain,
+    diamond,
+    trapezium,
+    parallelogram,
+    house,
+    pentagon,
+    hexagon,
+    septagon,
+    octagon,
+    doublecircle,
+    doubleoctagon,
+    tripleoctagon,
+    invtriangle,
+    invtrapezium,
+    invhouse,
+    Mdiamond,
+    Msquare,
+    Mcircle,
+    rect,
+    rectangle,
+    square,
+    star,
+    none,
+    underline,
+    cylinder,
+    note,
+    tab,
+    folder,
+    box3d,
+    component,
+    promoter,
+    cds,
+    terminator,
+    utr,
+    primersite,
+    restrictionsite,
+    fivepoverhang,
+    threepoverhang,
+    noverhang,
+    assembly,
+    signature,
+    insulator,
+    ribosite,
+    record,
+    rnastab,
+    proteasesite,
+    proteinstab,
+    rpromoter,
+    rarrow,
+    larrow,
+    lpromoter);
+
+
+#    define _GV_NODE_ATTRIBUTES(                                          \
+        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
+        __eattr_use_impl(NodeAttribute, NodeShape, shape);                \
+        __eattr_use_impl(NodeAttribute, NodeArrowSize, arrowsize);        \
+        __eattr_use_impl(NodeAttribute, NodeDir, dir);                    \
+        __eattr_use_impl(NodeAttribute, Style, style);                    \
+        __attr_impl(NodeAttribute, PenWidth, penwidth, double);           \
+        __attr_impl(NodeAttribute, Color, color, Str);                    \
+        __attr_impl(NodeAttribute, FillColor, fillcolor, Str);            \
+        __attr_impl(NodeAttribute, FontColor, fontcolor, Str);            \
+        __attr_impl(NodeAttribute, FontName, fontname, Str);              \
+        __attr_impl(NodeAttribute, FontSize, fontsize, double);           \
+        __attr_impl(NodeAttribute, Height, height, double);               \
+        __attr_aligned_impl(NodeAttribute, Label, label, Str);            \
+        __attr_impl(NodeAttribute, Position, pos, Point);                 \
+        __attr_impl(NodeAttribute, URL, URL, Str);                        \
+        __attr_impl(NodeAttribute, Width, width, double);                 \
+        __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);          \
+        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, Point);     \
+        __attr_impl(NodeAttribute, Margin, margin, Point);
+
+#    define _GV_EDGE_ATTRIBUTES(                                          \
+        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
+        __attr_impl(EdgeAttribute, Constraint, constraint, bool);         \
+        __attr_impl(EdgeAttribute, Color, color, Str /*Str*/);            \
+        __attr_impl(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);    \
+        __attr_impl(EdgeAttribute, FontName, fontname, Str);              \
+        __attr_impl(EdgeAttribute, FontSize, fontsize, double);           \
+        __attr_aligned_impl(EdgeAttribute, Label, label, Str);            \
+        __attr_impl(EdgeAttribute, LabelPosition, lp, Point);             \
+        __attr_impl(EdgeAttribute, PenWidth, penwidth, double);           \
+        __eattr_use_impl(EdgeAttribute, Style, style);                    \
+        __attr_impl(EdgeAttribute, URL, URL, Str);                        \
+        __attr_impl(EdgeAttribute, LHead, lhead, Str);                    \
+        __attr_impl(EdgeAttribute, LTail, ltail, Str);
+
+#    define _GV_GRAPH_ATTRIBUTES(                                         \
+        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
+        __eattr_use_impl(GraphGroup, RankDirection, rankdir);             \
+        __eattr_use_impl(GraphGroup, Rank, rank);                         \
+        __attr_impl(GraphGroup, Damping, Damping, double);                \
+        __attr_impl(GraphGroup, K, K, double);                            \
+        __attr_impl(GraphGroup, URL, URL, Str);                           \
+        __attr_impl(GraphGroup, AspectRatio, aspect, double);             \
+        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str);           \
+        __attr_impl(GraphGroup, DefaultDistance, defaultdist, double);    \
+        __attr_impl(GraphGroup, DefaultNodeColor, defaultNodeColor, Str); \
+        __attr_impl(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str); \
+        __attr_impl(GraphGroup, FontColor, fontcolor, Str);               \
+        __attr_impl(GraphGroup, Color, color, Str);                       \
+        __attr_impl(GraphGroup, PenWidth, penwidth, double);              \
+        __attr_impl(GraphGroup, FillColor, fillcolor, Str);               \
+        __eattr_use_impl(GraphGroup, Style, style);                       \
+        __attr_impl(GraphGroup, FontName, fontname, Str);                 \
+        __attr_impl(GraphGroup, FontSize, fontsize, double);              \
+        __attr_aligned_impl(GraphGroup, Label, label, Str);               \
+        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str);         \
+        __attr_impl(GraphGroup, LabelJustification, labeljust, Str);      \
+        __attr_impl(GraphGroup, LabelLocator, labelloc, Str);             \
+        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str);       \
+        __attr_impl(GraphGroup, Layers, layers, Str);                     \
+        __attr_impl(GraphGroup, Margin, margin, Point);                   \
+        __attr_impl(GraphGroup, Pad, pad, Point);                         \
+        __attr_impl(GraphGroup, NodeSeparation, nodesep, double);         \
+        __attr_impl(GraphGroup, OutputOrder, outputorder, Str);           \
+        __attr_impl(GraphGroup, PageDirection, pagedir, Str);             \
+        __attr_impl(GraphGroup, PageHeight, pageheight, double);          \
+        __attr_impl(GraphGroup, PageWidth, pagewidth, double);            \
+        __attr_impl(GraphGroup, Quantum, quantum, double);                \
+        __attr_impl(GraphGroup, RankSeparation, ranksep, double);         \
+        __attr_impl(GraphGroup, Resolution, resolution, double);          \
+        __attr_impl(GraphGroup, SearchSize, searchsize, int);             \
+        __attr_impl(GraphGroup, Size, size, Point);                       \
+        __attr_impl(GraphGroup, Spline, splines, Str);                    \
+        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str);             \
+        __attr_impl(GraphGroup, TrueColor, truecolor, bool);              \
+        __attr_impl(GraphGroup, ViewPort, viewport, Point);               \
+        __attr_impl(GraphGroup, Compound, compound, bool);                \
+        __attr_impl(GraphGroup, Concentrate, concentrate, bool);
 
 Str alignText(Str const& text, TextAlign direction);
 
@@ -358,14 +552,16 @@ class NodeAttribute
         Str toString(bool braceCount = 1) const;
     };
 
+    _GV_NODE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
+
     void startHtmlRecord() {
-        setShape(Shape::plaintext);
+        setNodeShape(NodeShape::plaintext);
         bindRecord<Record>("record");
         getNodeRecord()->content = Vec<Record>{};
     }
 
     void startRecord() {
-        setShape(Shape::record);
+        setNodeShape(NodeShape::record);
         bindRecord<Record>("record");
         getNodeRecord()->content = Vec<Record>{};
     }
@@ -399,161 +595,14 @@ class NodeAttribute
 
     std::string getPropertiesAsString() const;
 
-    _eattr(
-        NodeAttribute,
-        Shape,
-        shape,
-        //
-        box,
-        polygon,
-        ellipse,
-        oval,
-        circle,
-        point,
-        egg,
-        triangle,
-        plaintext,
-        plain,
-        diamond,
-        trapezium,
-        parallelogram,
-        house,
-        pentagon,
-        hexagon,
-        septagon,
-        octagon,
-        doublecircle,
-        doubleoctagon,
-        tripleoctagon,
-        invtriangle,
-        invtrapezium,
-        invhouse,
-        Mdiamond,
-        Msquare,
-        Mcircle,
-        rect,
-        rectangle,
-        square,
-        star,
-        none,
-        underline,
-        cylinder,
-        note,
-        tab,
-        folder,
-        box3d,
-        component,
-        promoter,
-        cds,
-        terminator,
-        utr,
-        primersite,
-        restrictionsite,
-        fivepoverhang,
-        threepoverhang,
-        noverhang,
-        assembly,
-        signature,
-        insulator,
-        ribosite,
-        record,
-        rnastab,
-        proteasesite,
-        proteinstab,
-        rpromoter,
-        rarrow,
-        larrow,
-        lpromoter);
 
-    DECL_DESCRIBED_ENUM(
-        ArrowType,
-        normal,
-        inv,
-        dot,
-        odot,
-        none,
-        tee,
-        empty,
-        invempty,
-        diamond,
-        odiamond,
-        ediamond,
-        open,
-        halfopen,
-        vee,
-        invvee,
-        box,
-        obox,
-        crow,
-        invcrow,
-        curve,
-        icurve,
-        lace,
-        ilace);
-
-    void setArrowHead(ArrowType type) {
-        setAttr("arrowhead", enum_serde<ArrowType>::to_string(type));
+    void setArrowHead(NodeArrowType type) {
+        setAttr("arrowhead", enum_serde<NodeArrowType>::to_string(type));
     };
 
-    void setArrowTail(ArrowType type) {
-        setAttr("arrowtail", enum_serde<ArrowType>::to_string(type));
+    void setArrowTail(NodeArrowType type) {
+        setAttr("arrowtail", enum_serde<NodeArrowType>::to_string(type));
     };
-
-    _eattr(
-        NodeAttribute,
-        ArrowSize,
-        arrowsize,
-        tiny,
-        small,
-        normal,
-        large,
-        huge);
-    _eattr(NodeAttribute, Dir, dir, forward, back, both, none);
-    _eattr(
-        NodeAttribute,
-        Style,
-        style,
-        solid,
-        dashed,
-        dotted,
-        bold,
-        invis,
-        tapered,
-        filled,
-        striped,
-        wedged,
-        diagonals,
-        rounded);
-
-    /// \brief Width of the edge's line
-    _attr(NodeAttribute, PenWidth, penwidth, double);
-    /// \brief Color of the node's border
-    _attr(NodeAttribute, Color, color, Str);
-    /// \brief Fill color of the node
-    _attr(NodeAttribute, FillColor, fillcolor, Str);
-    /// \brief Font color of the node's label
-    _attr(NodeAttribute, FontColor, fontcolor, Str);
-    /// \brief Font name of the node's label
-    _attr(NodeAttribute, FontName, fontname, Str);
-    /// \brief Font size of the node's label
-    _attr(NodeAttribute, FontSize, fontsize, double);
-    /// \brief Height of the node
-    _attr(NodeAttribute, Height, height, double);
-    /// \brief Label (text) of the node
-    _attr_aligned(NodeAttribute, Label, label, Str);
-    /// \brief Position of the node's center
-    _attr(NodeAttribute, Position, pos, Point);
-    /// \brief URL associated with the node
-    _attr(NodeAttribute, URL, URL, Str);
-    /// \brief Width of the node
-    _attr(NodeAttribute, Width, width, double);
-    /// \brief External label (text) of the node
-    _attr_aligned(NodeAttribute, XLabel, xlabel, Str);
-    /// \brief Position of the node's external label
-    _attr(NodeAttribute, XLabelPosition, xlabelpos, Point);
-    /// \brief Margin around the drawing
-    _attr(NodeAttribute, Margin, margin, Point);
-
 
     NodeAttribute* setInchWidth(double inches) {
         setAttr("width", inches);
@@ -610,13 +659,17 @@ class NodeAttribute
     Agnode_t* node;
     Agraph_t* graph;
 
-    void writeSerial(proto::IAttribute*, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 };
 
 class EdgeAttribute
@@ -632,6 +685,8 @@ class EdgeAttribute
         NodeAttribute const& head,
         NodeAttribute const& tail);
 
+    _GV_EDGE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
+
     Agedge_t*       get() { return edge_; }
     Agedge_t const* get() const { return edge_; }
 
@@ -640,28 +695,6 @@ class EdgeAttribute
     NodeAttribute head() { return NodeAttribute(graph, AGHEAD(edge_)); }
     NodeAttribute tail() { return NodeAttribute(graph, AGTAIL(edge_)); }
 
-    _attr(EdgeAttribute, Constraint, constraint, bool);
-    /// \brief Color of the edge
-    _attr(EdgeAttribute, Color, color, Str /*Str*/);
-    /// \brief Font color of the edge's label
-    _attr(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);
-    /// \brief Font name of the edge's label
-    _attr(EdgeAttribute, FontName, fontname, Str);
-    /// \brief Font size of the edge's label
-    _attr(EdgeAttribute, FontSize, fontsize, double);
-    /// \brief Label (text) of the edge
-    _attr_aligned(EdgeAttribute, Label, label, Str);
-    /// \brief Position of the edge's label
-    _attr(EdgeAttribute, LabelPosition, lp, Point);
-    /// \brief Width of the edge's line
-    _attr(EdgeAttribute, PenWidth, penwidth, double);
-    using Style = gv::NodeAttribute::Style;
-    /// \brief Style of the edge's line
-    _eattr_use(EdgeAttribute, Style, style);
-    /// \brief URL associated with the edge
-    _attr(EdgeAttribute, URL, URL, Str);
-    _attr(EdgeAttribute, LHead, lhead, Str);
-    _attr(EdgeAttribute, LTail, ltail, Str);
 
     void setLHead(NodeAttribute node) { setLHead(node.name()); }
     void setLTail(NodeAttribute node) { setLTail(node.name()); }
@@ -675,12 +708,16 @@ class EdgeAttribute
     Agraph_t* graph;
     Agedge_t* edge_;
 
-    void writeSerial(proto::IAttribute*, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 };
 
 class Layout;
@@ -725,13 +762,6 @@ class GraphGroup
 
     std::string getPropertiesAsString() const;
 
-    enum class Splines
-    {
-        Ortho,
-        Polyline,
-        Curved
-    };
-
 
     hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
         auto res = std::make_shared<GraphGroup>(
@@ -739,7 +769,6 @@ class GraphGroup
 
         return res;
     }
-
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -788,90 +817,7 @@ class GraphGroup
         return std::make_shared<EdgeAttribute>(graph, head, tail);
     }
 
-    /// \brief Direction of layout ranks
-    _eattr(GraphGroup, RankDirection, rankdir, LR, TB, BT, RL);
-    /// \brief Placement of nodes withing the graph.
-    ///
-    /// 'none' is the default value (not in the same/source/sink list
-    /// that is explicitly recognized by GV), 'same' causes nodes to be
-    /// placd on the same level, `source` is closer to the source
-    /// nodes, `sink` is closer to the target
-    _eattr(GraphGroup, Rank, rank, none, same, source, sink);
-
-    /// \brief Damping factor for force-directed layout
-    _attr(GraphGroup, Damping, Damping, double);
-    /// \brief Spring constant factor for force-directed layout
-    _attr(GraphGroup, K, K, double);
-    /// \brief URL associated with the graph
-    _attr(GraphGroup, URL, URL, Str);
-    /// \brief Desired aspect ratio of the drawing
-    _attr(GraphGroup, AspectRatio, aspect, double);
-    /// \brief Background color of the graph
-    _attr(GraphGroup, BackgroundColor, bgcolor, Str);
-    /// \brief Default edge length
-    _attr(GraphGroup, DefaultDistance, defaultdist, double);
-    /// \brief Default node color
-    _attr(GraphGroup, DefaultNodeColor, defaultNodeColor, Str);
-    /// \brief Default edge color
-    _attr(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str);
-    /// \brief Font color
-    _attr(GraphGroup, FontColor, fontcolor, Str);
-    /// \brief border color
-    _attr(GraphGroup, Color, color, Str);
-    _attr(GraphGroup, PenWidth, penwidth, double);
-    _attr(GraphGroup, FillColor, fillcolor, Str);
-    using Style = NodeAttribute::Style;
-    _eattr_use(GraphGroup, Style, style);
-    /// \brief Font name
-    _attr(GraphGroup, FontName, fontname, Str);
-    /// \brief Font size
-    _attr(GraphGroup, FontSize, fontsize, double);
-    /// \brief Label (title) of the graph
-    _attr_aligned(GraphGroup, Label, label, Str);
-    /// \brief URL associated with the graph label
-    _attr_aligned(GraphGroup, LabelURL, labelURL, Str);
-    /// \brief Horizontal placement of the graph label
-    _attr(GraphGroup, LabelJustification, labeljust, Str);
-    /// \brief Vertical placement of the graph label
-    _attr(GraphGroup, LabelLocator, labelloc, Str);
-    /// \brief Layer separator character
-    _attr(GraphGroup, LayerListSeparator, layersep, Str);
-    /// \brief List of layers in the graph
-    _attr(GraphGroup, Layers, layers, Str);
-    /// \brief Margin around the drawing
-    _attr(GraphGroup, Margin, margin, Point);
-    /// \brief Padding inside of the cluster
-    _attr(GraphGroup, Pad, pad, Point);
-    /// \brief Minimum separation between nodes
-    _attr(GraphGroup, NodeSeparation, nodesep, double);
-    /// \brief Order in which nodes and edges are drawn
-    _attr(GraphGroup, OutputOrder, outputorder, Str);
-    /// \brief Direction of page layout
-    _attr(GraphGroup, PageDirection, pagedir, Str);
-    /// \brief Height of output pages
-    _attr(GraphGroup, PageHeight, pageheight, double);
-    /// \brief Width of output pages
-    _attr(GraphGroup, PageWidth, pagewidth, double);
-    /// \brief Cluster quantum scale factor
-    _attr(GraphGroup, Quantum, quantum, double);
-    /// \brief Minimum separation between ranks
-    _attr(GraphGroup, RankSeparation, ranksep, double);
-    /// \brief Resolution (dpi) of the output image
-    _attr(GraphGroup, Resolution, resolution, double);
-    /// \brief Size of the layout search space
-    _attr(GraphGroup, SearchSize, searchsize, int);
-    /// \brief Maximum size of the drawing
-    _attr(GraphGroup, Size, size, Point);
-    /// \brief Type of edges (splines, lines, etc.)
-    _attr(GraphGroup, Spline, splines, Str);
-    /// \brief Style sheet used for the output
-    _attr(GraphGroup, StyleSheet, stylesheet, Str);
-    /// \brief Whether to use truecolor in the output
-    _attr(GraphGroup, TrueColor, truecolor, bool);
-    /// \brief Viewport size and position
-    _attr(GraphGroup, ViewPort, viewport, Point);
-    _attr(GraphGroup, Compound, compound, bool);
-    _attr(GraphGroup, Concentrate, concentrate, bool);
+    _GV_GRAPH_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
     GraphGroup* setDirectionLR() {
         return setRankDirection(RankDirection::LR);
@@ -910,13 +856,17 @@ class GraphGroup
         return hstd::fmt("graph-group-{}", name());
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 };
 
 class Graphviz;
@@ -953,13 +903,17 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 
     NodeAttribute node;
     GraphGroup    graph;
@@ -980,13 +934,17 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 
     EdgeAttribute edge;
     GraphGroup    graph;
@@ -1008,13 +966,17 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {}
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {}
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory) override {
+        logic_todo_impl();
+    }
 
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;

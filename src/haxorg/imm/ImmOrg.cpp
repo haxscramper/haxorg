@@ -869,7 +869,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
                 if (auto color = conf.epochColors.get(idx); color) {
                     node->setColor(*color);
                 }
-                node->setShape(gv::NodeAttribute::Shape::rectangle);
+                node->setNodeShape(gv::NodeShape::rectangle);
                 gvNodes.insert_or_assign(id, node);
                 Vec<Str> label;
                 int      maxFieldWidth = 0;
@@ -1003,7 +1003,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
                 if (src && dst) {
                     auto edge = g->edge(*src.value(), *dst.value());
                     edge->setConstraint(false);
-                    edge->setStyle(gv::EdgeAttribute::Style::dashed);
+                    edge->setStyle(gv::Style::dashed);
                     edge->setColor("darkgreen");
                 }
             }
