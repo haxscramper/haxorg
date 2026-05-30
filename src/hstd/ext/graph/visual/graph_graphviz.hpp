@@ -19,6 +19,8 @@
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <src/hstd/ext/graph/base/graph_base.pb.h>
 #    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#    include <google/protobuf/descriptor.h>
+#    include <google/protobuf/message.h>
 
 #    define _attr_aligned(__Class, Method, key, Type)                     \
         __Class* set##Method(                                             \
@@ -49,16 +51,16 @@
         __Class* set##Method(Type const& value);
 
 
-#    define _eattr_use(__Class, Name, key)                                \
-        __Class* set##Name(Name value) {                                  \
-            setAttr(#key, enum_serde<Name>::to_string(value));            \
+#    define _eattr_use(__Class, Name, key, Type)                          \
+        __Class* set##Name(Type value) {                                  \
+            setAttr(#key, enum_serde<Type>::to_string(value));            \
             return this;                                                  \
         }                                                                 \
-        Opt<Name> get##Name() const {                                     \
+        Opt<Type> get##Name() const {                                     \
             Opt<Str> result;                                              \
             getAttr(#key, result);                                        \
             if (result) {                                                 \
-                return enum_serde<Name>::from_string(result.value());     \
+                return enum_serde<Type>::from_string(result.value());     \
             } else {                                                      \
                 return std::nullopt;                                      \
             }                                                             \
@@ -226,10 +228,11 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 
 #    define _GV_NODE_ATTRIBUTES(                                          \
         __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
-        __eattr_use_impl(NodeAttribute, NodeShape, shape);                \
-        __eattr_use_impl(NodeAttribute, NodeArrowSize, arrowsize);        \
-        __eattr_use_impl(NodeAttribute, NodeDir, dir);                    \
-        __eattr_use_impl(NodeAttribute, Style, style);                    \
+        __eattr_use_impl(NodeAttribute, NodeShape, shape, gv::NodeShape); \
+        __eattr_use_impl(                                                 \
+            NodeAttribute, NodeArrowSize, arrowsize, gv::NodeArrowSize);  \
+        __eattr_use_impl(NodeAttribute, NodeDir, dir, gv::NodeDir);       \
+        __eattr_use_impl(NodeAttribute, Style, style, gv::Style);         \
         __attr_impl(NodeAttribute, PenWidth, penwidth, double);           \
         __attr_impl(NodeAttribute, Color, color, Str);                    \
         __attr_impl(NodeAttribute, FillColor, fillcolor, Str);            \
@@ -255,15 +258,16 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_aligned_impl(EdgeAttribute, Label, label, Str);            \
         __attr_impl(EdgeAttribute, LabelPosition, lp, Point);             \
         __attr_impl(EdgeAttribute, PenWidth, penwidth, double);           \
-        __eattr_use_impl(EdgeAttribute, Style, style);                    \
+        __eattr_use_impl(EdgeAttribute, Style, style, gv::Style);         \
         __attr_impl(EdgeAttribute, URL, URL, Str);                        \
         __attr_impl(EdgeAttribute, LHead, lhead, Str);                    \
         __attr_impl(EdgeAttribute, LTail, ltail, Str);
 
 #    define _GV_GRAPH_ATTRIBUTES(                                         \
         __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
-        __eattr_use_impl(GraphGroup, RankDirection, rankdir);             \
-        __eattr_use_impl(GraphGroup, Rank, rank);                         \
+        __eattr_use_impl(                                                 \
+            GraphGroup, RankDirection, rankdir, gv::RankDirection);       \
+        __eattr_use_impl(GraphGroup, Rank, rank, gv::Rank);               \
         __attr_impl(GraphGroup, Damping, Damping, double);                \
         __attr_impl(GraphGroup, K, K, double);                            \
         __attr_impl(GraphGroup, URL, URL, Str);                           \
@@ -276,7 +280,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(GraphGroup, Color, color, Str);                       \
         __attr_impl(GraphGroup, PenWidth, penwidth, double);              \
         __attr_impl(GraphGroup, FillColor, fillcolor, Str);               \
-        __eattr_use_impl(GraphGroup, Style, style);                       \
+        __eattr_use_impl(GraphGroup, Style, style, gv::Style);            \
         __attr_impl(GraphGroup, FontName, fontname, Str);                 \
         __attr_impl(GraphGroup, FontSize, fontsize, double);              \
         __attr_aligned_impl(GraphGroup, Label, label, Str);               \
@@ -660,16 +664,12 @@ class NodeAttribute
     Agraph_t* graph;
 
     void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
-        logic_todo_impl();
-    }
+        IGraphSerialReaderFactory*      factory) override;
 };
 
 class EdgeAttribute
@@ -709,15 +709,11 @@ class EdgeAttribute
     Agedge_t* edge_;
 
     void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
-        logic_todo_impl();
-    }
+        IGraphSerialReaderFactory*      factory) override;
 };
 
 class Layout;
@@ -857,16 +853,12 @@ class GraphGroup
     }
 
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory) override {
-        logic_todo_impl();
-    }
+        IGraphSerialReaderFactory*      factory) override;
 };
 
 class Graphviz;

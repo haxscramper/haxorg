@@ -90,8 +90,11 @@ class TestFactory : public IGraphSerialReaderFactory {
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-            auto res = std::make_shared<org::graph::MapNode>();
-            return res;
+            return std::make_shared<org::graph::MapNode>();
+        } else if (
+            in->payload()
+                .Is<hstd::ext::graph::gv::proto::NodeAttributePayload>()) {
+            return std::make_shared<hstd::ext::graph::gv::NodeAttribute>();
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -108,6 +111,9 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         auto out_vertex = out->add_vertices();
         out_vertex->set_stable_id(vertex.stable_id());
         gv::proto::NodeAttributePayload vertex_payload;
+        vertex_payload.set_width(2);
+        vertex_payload.set_height(2);
+        vertex_payload.set_label(out_vertex->stable_id());
         out_vertex->mutable_payload()->PackFrom(vertex_payload);
     }
 

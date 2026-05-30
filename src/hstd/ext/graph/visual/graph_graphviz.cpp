@@ -443,6 +443,7 @@ hstd::SPtr<gv::GraphGroup> gv::GraphGroup::addNewNativeSubgroup(
     return res;
 }
 
+
 Str gv::alignText(Str const& text, TextAlign direction) {
     Str res = text;
     switch (direction) {
@@ -850,6 +851,7 @@ std::string gv::EdgeAttribute::getPropertiesAsString() const {
     }
     return result;
 }
+
 
 std::string gv::GraphGroup::getPropertiesAsString() const {
     std::stringstream ss;
@@ -1345,5 +1347,193 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
 
     return result;
 }
+
+namespace {
+using ::google::protobuf::EnumValueDescriptor;
+using ::google::protobuf::FieldDescriptor;
+using ::google::protobuf::Message;
+using ::google::protobuf::Reflection;
+using namespace gv;
+
+inline FieldDescriptor const* findField(
+    Message const& msg,
+    Str const&     name) {
+    return msg.GetDescriptor()->FindFieldByName(name);
+}
+
+template <typename T>
+void setProtoField(Message* msg, Str const& name, T const& value) {
+    auto const* field = msg->GetDescriptor()->FindFieldByName(name);
+    if (!field) { return; }
+    Reflection const* refl = msg->GetReflection();
+
+    if constexpr (std::is_same_v<T, bool>) {
+        refl->SetBool(msg, field, value);
+    } else if constexpr (std::is_same_v<T, int>) {
+        refl->SetInt32(msg, field, value);
+    } else if constexpr (std::is_same_v<T, double>) {
+        refl->SetDouble(msg, field, value);
+    } else if constexpr (std::is_same_v<T, Str>) {
+        refl->SetString(msg, field, value);
+    } else if constexpr (std::is_enum_v<T>) {
+        auto const* enum_value = field->enum_type()->FindValueByNumber(
+            static_cast<int>(value));
+        if (enum_value) { refl->SetEnum(msg, field, enum_value); }
+    } else if constexpr (std::is_same_v<T, Point>) {
+        Message*          p  = refl->MutableMessage(msg, field);
+        Reflection const* pr = p->GetReflection();
+        auto const*       fx = p->GetDescriptor()->FindFieldByName("x");
+        auto const*       fy = p->GetDescriptor()->FindFieldByName("y");
+        pr->SetDouble(p, fx, value.x);
+        pr->SetDouble(p, fy, value.y);
+    }
+}
+
+template <typename T>
+bool getProtoField(Message const& msg, Str const& name, T& value) {
+    auto const* field = msg.GetDescriptor()->FindFieldByName(name);
+    if (!field) { return false; }
+    Reflection const* refl = msg.GetReflection();
+    if (!refl->HasField(msg, field)) { return false; }
+
+    if constexpr (std::is_same_v<T, bool>) {
+        value = refl->GetBool(msg, field);
+    } else if constexpr (std::is_same_v<T, int>) {
+        value = refl->GetInt32(msg, field);
+    } else if constexpr (std::is_same_v<T, double>) {
+        value = refl->GetDouble(msg, field);
+    } else if constexpr (std::is_same_v<T, Str>) {
+        value = refl->GetString(msg, field);
+    } else if constexpr (std::is_enum_v<T>) {
+        value = static_cast<T>(refl->GetEnum(msg, field)->number());
+    } else if constexpr (std::is_same_v<T, Point>) {
+        Message const&    p  = refl->GetMessage(msg, field);
+        Reflection const* pr = p.GetReflection();
+        auto const*       fx = p.GetDescriptor()->FindFieldByName("x");
+        auto const*       fy = p.GetDescriptor()->FindFieldByName("y");
+        value.x              = pr->GetDouble(p, fx);
+        value.y              = pr->GetDouble(p, fy);
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+template <typename Attr, typename Payload>
+void writeAttrs(Attr const* self, Payload* payload) {
+#    define WRITE_ATTR(__Class, Method, key, Type)                        \
+        do {                                                              \
+            auto v = self->get##Method();                                 \
+            if (v) { setProtoField(payload, #key, *v); }                  \
+        } while (false)
+
+#    define WRITE_EATTR(__Class, Name, key, _type)                        \
+        do {                                                              \
+            auto v = self->get##Name();                                   \
+            if (v) { setProtoField(payload, #key, *v); }                  \
+        } while (false)
+
+#    define WRITE_ALIGNED(__Class, Method, key, Type)                     \
+        do {                                                              \
+            Opt<Type>      value;                                         \
+            Opt<TextAlign> dir;                                           \
+            self->getAttr(#key, value, dir);                              \
+            if (value) { setProtoField(payload, #key, *value); }          \
+            if (dir) {                                                    \
+                setProtoField(payload, Str(#key) + Str("_align"), *dir);  \
+            }                                                             \
+        } while (false)
+
+    if constexpr (std::is_same_v<Attr, NodeAttribute>) {
+        _GV_NODE_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+    } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
+        _GV_EDGE_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+    } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
+        _GV_GRAPH_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+    }
+
+#    undef WRITE_ATTR
+#    undef WRITE_EATTR
+#    undef WRITE_ALIGNED
+}
+
+template <typename Attr, typename Payload>
+void readAttrs(Attr* self, Payload const& payload) {
+#    define READ_ATTR(__Class, Method, key, Type)                         \
+        do {                                                              \
+            Type v;                                                       \
+            if (getProtoField(payload, #key, v)) {                        \
+                self->set##Method(v);                                     \
+            }                                                             \
+        } while (false)
+
+#    define READ_EATTR(__Class, Name, key, _type)                         \
+        do {                                                              \
+            _type v;                                                      \
+            if (getProtoField(payload, #key, v)) { self->set##Name(v); }  \
+        } while (false)
+
+#    define READ_ALIGNED(__Class, Method, key, Type)                      \
+        do {                                                              \
+            Type v;                                                       \
+            if (getProtoField(payload, #key, v)) {                        \
+                TextAlign dir = TextAlign::Left;                          \
+                (void)getProtoField(                                      \
+                    payload, Str(#key) + Str("_align"), dir);             \
+                self->set##Method(v, dir);                                \
+            }                                                             \
+        } while (false)
+
+    if constexpr (std::is_same_v<Attr, NodeAttribute>) {
+        _GV_NODE_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+    } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
+        _GV_EDGE_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+    } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
+        _GV_GRAPH_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+    }
+
+#    undef READ_ATTR
+#    undef READ_EATTR
+#    undef READ_ALIGNED
+}
+} // namespace
+
+void hstd::ext::graph::gv::GraphGroup::writeSerial(
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    logic_todo_impl();
+}
+void hstd::ext::graph::gv::GraphGroup::readSerial(
+    graph::proto::IAttribute const* in,
+    IGraph const*                   graph,
+    IGraphSerialReaderFactory*      factory) {
+    logic_todo_impl();
+}
+
+void hstd::ext::graph::gv::NodeAttribute::writeSerial(
+    graph::proto::IAttribute*,
+    IGraph const* graph) const {
+    logic_todo_impl();
+}
+void hstd::ext::graph::gv::NodeAttribute::readSerial(
+    graph::proto::IAttribute const* in,
+    IGraph const*                   graph,
+    IGraphSerialReaderFactory*      factory) {
+    logic_todo_impl();
+}
+
+void hstd::ext::graph::gv::EdgeAttribute::writeSerial(
+    graph::proto::IAttribute*,
+    IGraph const* graph) const {
+    logic_todo_impl();
+}
+void hstd::ext::graph::gv::EdgeAttribute::readSerial(
+    graph::proto::IAttribute const* in,
+    IGraph const*                   graph,
+    IGraphSerialReaderFactory*      factory) {
+    logic_todo_impl();
+}
+
 
 #endif
