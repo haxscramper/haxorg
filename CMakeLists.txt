@@ -63,6 +63,7 @@ option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cm
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
 option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
 option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
+option(ORG_BUILD_WITH_KIWI "Enable kiwisolver graph layout" OFF)
 option(ORG_BUILD_WITH_ELK "Enable JNI-ELK graph layout" OFF)
 option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
@@ -84,7 +85,8 @@ option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distri
 
 if(ORG_BUILD_WITH_CGRAPH
    OR ORG_BUILD_WITH_ADAPTAGRAMS
-   OR ORG_BUILD_WITH_ELK)
+   OR ORG_BUILD_WITH_ELK
+   OR ORG_BUILD_WITH_KIWI)
   set(ORG_BUILD_WITH_GRAPH_VISUAL ON)
 else()
   set(ORG_BUILD_WITH_GRAPH_VISUAL OFF)
@@ -106,11 +108,13 @@ if(${ORG_BUILD_TESTS}
    OR ${ORG_BUILD_IMGUI_GUI})
   if(NOT ${ORG_BUILD_WITH_ADAPTAGRAMS}
      OR NOT ${ORG_BUILD_WITH_CGRAPH}
+     OR NOT ${ORG_BUILD_WITH_KIWI}
      OR NOT ${ORG_BUILD_WITH_PROTOBUF})
     message(
       STATUS "ORG_BUILD_WITH_ADAPTAGRAMS = ${ORG_BUILD_WITH_ADAPTAGRAMS} -- must be ON\n"
              "-- ORG_BUILD_WITH_CGRAPH = ${ORG_BUILD_WITH_CGRAPH} -- must be ON\n"
              "-- ORG_BUILD_WITH_PROTOBUF = ${ORG_BUILD_WITH_PROTOBUF} -- must be ON\n"
+             "-- ORG_BUILD_WITH_KIWI = ${ORG_BUILD_WITH_KIWI} -- must be ON\n"
              "-- Alternatively, disable test/example compilation:\n"
              "-- ORG_BUILD_TESTS = ${ORG_BUILD_TESTS} -- must be OFF\n"
              "-- ORG_BUILD_WITH_QT = ${ORG_BUILD_WITH_QT} -- must be OFF\n"
@@ -147,6 +151,7 @@ endif()
 
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PROTOBUF)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ADAPTAGRAMS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_KIWI)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PERFETTO)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_TESTS)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_INTERNAL_TOOLS)
@@ -306,6 +311,13 @@ else()
   add_definitions(-DORG_BUILD_WITH_ELK=0)
 endif()
 
+if(${ORG_BUILD_WITH_KIWI})
+  add_subdirectory(thirdparty/kiwi)
+  add_definitions(-DORG_BUILD_WITH_KIWI=1)
+else()
+  add_definitions(-DORG_BUILD_WITH_KIWI=0)
+endif()
+
 if(${ORG_BUILD_WITH_PROTOBUF})
   message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
@@ -451,6 +463,10 @@ set(ORG_INSTALL_TARGET_LIST haxorg hstd)
 
 if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   list(APPEND ORG_INSTALL_TARGET_LIST adaptagrams)
+endif()
+
+if(${ORG_BUILD_WITH_KIWI})
+  list(APPEND ORG_INSTALL_TARGET_LIST kiwi)
 endif()
 
 if(${ORG_BUILD_WITH_ELK})

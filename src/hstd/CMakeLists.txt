@@ -46,6 +46,10 @@ if(${ORG_BUILD_WITH_TRACY})
   target_link_libraries(hstd PUBLIC Tracy::TracyClient)
 endif()
 
+if(${ORG_BUILD_WITH_KIWI})
+  target_link_libraries(hstd PUBLIC kiwi::kiwi)
+endif()
+
 # Graph processing and visualization
 if(${ORG_BUILD_WITH_GRAPH_VISUAL})
   if(${ORG_BUILD_WITH_ELK})

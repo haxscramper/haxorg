@@ -787,6 +787,8 @@ class GraphGroup
         return (Agraphinfo_t*)AGDATA(graph);
     }
 
+    /// \brief Create a new graphviz graph node and return attribute handle
+    /// for it.
     hstd::SPtr<NodeAttribute> node(Str const& name) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         auto existing_node = agnode(
@@ -802,6 +804,8 @@ class GraphGroup
         return tmp;
     }
 
+    /// \brief Create new edge between two existing graph nodes, return
+    /// graph edge attribute handle.
     hstd::SPtr<EdgeAttribute> edge(
         NodeAttribute const& head,
         NodeAttribute const& tail) {

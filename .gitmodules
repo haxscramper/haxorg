@@ -75,4 +75,7 @@
 	url = https://github.com/wjakob/nanobind.git
 [submodule "thirdparty/graphviz"]
 	path = thirdparty/graphviz
-	url = https://gitlab.com/graphviz/graphviz.git
+    url = https://gitlab.com/graphviz/graphviz.git
+[submodule "thirdparty/kiwi"]
+	path = thirdparty/kiwi
+	url = https://github.com/nucleic/kiwi.git
