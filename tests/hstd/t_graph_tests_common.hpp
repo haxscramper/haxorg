@@ -5,6 +5,7 @@
 #include <hstd/ext/graph/visual/graph_cola.hpp>
 #include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #include <hstd/ext/graph/visual/graph_elk.hpp>
+#include <hstd/ext/graph/visual/graph_kiwi.hpp>
 
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
@@ -54,7 +55,15 @@ class GraphUtils_Test : public ::testing::Test {
         return getGraph()->addVertex(id_override);
     }
 
+    void trackHierarchyVertex(VertexID const& id) {
+        if (!getHierarchy()->isTrackingVertex(id)) {
+            getHierarchy()->trackVertex(id);
+        }
+    }
+
     EdgeID addNesting(VertexID const& parent, VertexID const& sub) {
+        trackHierarchyVertex(parent);
+        trackHierarchyVertex(sub);
         return getHierarchy()->trackSubVertexRelation(parent, sub);
     }
 

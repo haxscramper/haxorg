@@ -140,16 +140,7 @@ class IGraph {
     /// hierarchies and general edge collections.
     hstd::Vec<IEdgeProvider*> getEdgeProviders() const;
 
-    EdgeID getEdgeIDByStableId(Str const& id) const {
-        for (auto const& pr : getEdgeProviders()) {
-            if (pr->hasEdgeStableId(id)) {
-                return pr->getEdgeIDByStableId(id);
-            }
-        }
-        throw edge_structure_error::init(
-            hstd::fmt(
-                "No edge is associated with the stable ID '{}'", id));
-    }
+    EdgeID getEdgeIDByStableId(Str const& id) const;
 
     /// @}
 
@@ -168,16 +159,7 @@ class IGraph {
         return stableIdMap.contains(id);
     }
 
-    VertexID getVertexIDByStableId(Str const& id) const {
-        LOGIC_ASSERTION_CHECK(!id.empty(), "stable ID cannot be empty");
-        if (auto res = stableIdMap.get(id)) {
-            return res.value();
-        } else {
-            throw graph_error::init(
-                hstd::fmt(
-                    "Could not find key '{}' in the vertex graph", id));
-        }
-    }
+    VertexID getVertexIDByStableId(Str const& id) const;
 
     template <typename T = IVertex>
         requires std::derived_from<T, IVertex>

@@ -85,6 +85,10 @@ class IVertexHierarchy : public IEdgeProvider {
 
     void assertKnownVertex(VertexID const& id) {}
 
+    bool isTrackingVertex(VertexID const& id) const {
+        return vertexIDs.contains(id);
+    }
+
     /// \brief Add the vertex to the hierarchy collection without nesting
     /// relations.
     void trackVertex(VertexID const& id) override;

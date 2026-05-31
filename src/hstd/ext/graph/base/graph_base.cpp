@@ -118,6 +118,26 @@ hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() const {
     return result;
 }
 
+EdgeID IGraph::getEdgeIDByStableId(Str const& id) const {
+    for (auto const& pr : getEdgeProviders()) {
+        if (pr->hasEdgeStableId(id)) {
+            return pr->getEdgeIDByStableId(id);
+        }
+    }
+    throw edge_structure_error::init(
+        hstd::fmt("No edge is associated with the stable ID '{}'", id));
+}
+
+VertexID IGraph::getVertexIDByStableId(Str const& id) const {
+    LOGIC_ASSERTION_CHECK(!id.empty(), "stable ID cannot be empty");
+    if (auto res = stableIdMap.get(id)) {
+        return res.value();
+    } else {
+        throw graph_error::init(
+            hstd::fmt("Could not find key '{}' in the vertex graph", id));
+    }
+}
+
 hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
     EdgeID const& edge_id) const {
     hstd::Vec<Crossing> result;
