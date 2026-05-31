@@ -33,11 +33,13 @@ void hstd::ext::graph::IAttributeObject::readSerial(
     IGraph const*                                     graph,
     IGraphSerialReaderFactory*                        factory,
     IAttributeObject const*                           vertex) {
+    OP_TRACER_MESSAGE_SCOPE(factory, "IAttributeObject::readSerial");
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
     for (auto const& a : *in) {
         auto attr = factory->newAttribute(&a, graph, vertex);
         attr->readSerial(&a, graph, factory, vertex);
         attrs.push_back(attr);
     }
+    OP_TRACER_MESSAGE(factory, "Read {} attributes", attrs.size());
     setAttributes(attrs);
 }

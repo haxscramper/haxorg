@@ -227,6 +227,8 @@ void TrivialEdgeCollection::readSerial(
             id,
             graph->getVertexIDByStableId(e.source_vertex_id()),
             graph->getVertexIDByStableId(e.target_vertex_id()));
-        out_edge->readSerial(&e, graph, factory);
+        // And then, serial data reading must be done on the copied trivial
+        // edge object, not on the original out edge.
+        edgeStore.at(id).readSerial(&e, graph, factory);
     }
 }
