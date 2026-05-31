@@ -119,7 +119,7 @@ Str gv::escapeHtml(Str const& input) {
     return escaped;
 }
 
-Str gv::NodeAttribute::Record::toHtml(bool horizontal) const {
+Str gv::Record::toHtml(bool horizontal) const {
     auto generateCell = [](Record const& rec) -> Str {
         return rec.isFinal() ? rec.getLabel() : rec.toHtml();
     };
@@ -137,18 +137,12 @@ Str gv::NodeAttribute::Record::toHtml(bool horizontal) const {
 
     if (isRecord()) {
         auto const& nested = getNested();
-        if (std::all_of(
-                nested.begin(),
-                nested.end(),
-                [](Record const& r) { return r.isRecord(); })
-            && std::all_of(
-                nested.front().getNested().begin(),
-                nested.front().getNested().end(),
-                [&nested](Record const& r) {
-                    return std::all_of(
-                        nested.begin(),
-                        nested.end(),
-                        [&](Record const& row) {
+        if (std::ranges::all_of(
+                nested, [](Record const& r) { return r.isRecord(); })
+            && std::ranges::all_of(
+                nested.front().getNested(), [&nested](Record const& r) {
+                    return std::ranges::all_of(
+                        nested, [&](Record const& row) {
                             return row.isRecord()
                                 && row.getNested().size()
                                        == nested.front()
@@ -189,9 +183,7 @@ Str gv::NodeAttribute::Record::toHtml(bool horizontal) const {
     }
 }
 
-void gv::NodeAttribute::Record::set(
-    Str const&    columnKey,
-    Record const& value) {
+void gv::Record::set(Str const& columnKey, Record const& value) {
     if (isFinal()) {
         content = Vec<Record>{Record({Record(columnKey), value})};
     } else {
@@ -209,29 +201,25 @@ void gv::NodeAttribute::Record::set(
     }
 }
 
-gv::NodeAttribute::Record gv::NodeAttribute::Record::fromEscapedText(
-    Str const& text,
-    TextAlign  align) {
+gv::Record gv::Record::fromEscapedText(Str const& text, TextAlign align) {
     Record res;
     res.content = escapeHtmlForGraphviz(text, align);
     return res;
 }
 
-gv::NodeAttribute::Record gv::NodeAttribute::Record::fromRow(
-    Vec<Record> const& recs) {
+gv::Record gv::Record::fromRow(Vec<Record> const& recs) {
     Record res;
     res.content = recs;
     return res;
 }
 
-gv::NodeAttribute::Record gv::NodeAttribute::Record::fromEscapedTextRow(
-    Vec<Str> const& cells) {
+gv::Record gv::Record::fromEscapedTextRow(Vec<Str> const& cells) {
     Record res = fromRow({});
     for (auto const& cell : cells) { res.add(fromEscapedText(cell)); }
     return res;
 }
 
-Str gv::NodeAttribute::Record::toString(bool braceCount) const {
+Str gv::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {
         if (tag) { result += std::format("<{}>", *tag); }

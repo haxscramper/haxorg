@@ -799,10 +799,10 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-gv::NodeAttribute::Record MapGraph::GvConfig::getNodeLabel(
+gv::Record MapGraph::GvConfig::getNodeLabel(
     ImmAdapter const&       node,
     MapNodeProp::Ptr const& prop) const {
-    using Record = gv::NodeAttribute::Record;
+    using Record = gv::Record;
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
 

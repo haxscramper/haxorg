@@ -326,8 +326,11 @@ template <typename T>
 struct GraphvizObjBase : CRTP_this_method<T> {
     using CRTP_this_method<T>::_this;
 
+    /// \brief graphviz allows binding arbitrary objects to the graph
+    /// elements: this method can be used to store some additional payload
+    /// that cannot be serialized to the simple string attributes.
     template <typename Rec, typename... Args>
-    Rec* bindRecord(Str const& name, Args&&... args) {
+    Rec* bindPayload(Str const& name, Args&&... args) {
         Rec* result = (Rec*)agbindrec(
             _this()->get(), strdup(name), sizeof(Rec), false);
         if (result != nullptr) {
@@ -339,11 +342,11 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     }
 
     template <typename Rec>
-    Rec* getRecord(Str const& name) {
+    Rec* getPayload(Str const& name) {
         return (Rec*)aggetrec(_this()->get(), strdup(name), false);
     }
 
-    void delRecord(Str const& name) {
+    void delPayload(Str const& name) {
         agdelrec(_this()->get(), strdup(name));
     }
 
@@ -477,100 +480,100 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     bool isAgInEdge() const { return tag().objtype == AGINEDGE; }
 };
 
+
+/// \brief Structured representation of the graphviz 'record' node type.
+struct Record {
+    Opt<Str>                                     tag;
+    Variant<Str, Vec<Record>>                    content;
+    std::unordered_map<std::string, std::string> htmlAttrs;
+
+    DESC_FIELDS(Record, (tag, content, htmlAttrs));
+
+    /// \brief Export the record content into a HTML table and attempt to
+    /// detect the simple patterns (2d grid of elements) to result in a
+    /// better alignment of the content.
+    Str toHtml(bool horizontal = true) const;
+
+    Record() {}
+    Record(Str const& content, Opt<Str> const& tag = std::nullopt)
+        : content(content), tag(tag) {}
+
+    Record(Vec<Record> const& sub) : content(sub) {}
+
+    void push_back(Vec<Str> const& cells) {
+        Vec<Record> row;
+        for (const auto& it : cells) { row.push_back(it); }
+        getNested().push_back(Record(row));
+    }
+
+    void push_back(Record const& rec) { getNested().push_back(rec); }
+
+    bool isFinal() const { return std::holds_alternative<Str>(content); }
+
+    /// \brief Treat the record as a key-value table, with the first column
+    /// used as a key and the second one used as a value.
+    void set(Str const& columnKey, Record const& value);
+    void setEscaped(Str const& columnKey, Str const& value) {
+        set(columnKey, fromEscapedText(value));
+    }
+
+    void setHtml(Str const& columnKey, Str const& value) {
+        set(columnKey, fromHtmlText(value));
+    }
+
+    bool               isRecord() const { return !isFinal(); }
+    Str&               getLabel() { return std::get<Str>(content); }
+    Str const&         getLabel() const { return std::get<Str>(content); }
+    Vec<Record>&       getNested() { return std::get<1>(content); }
+    Vec<Record> const& getNested() const { return std::get<1>(content); }
+
+
+    static Record fromEscapedText(
+        Str const& text,
+        TextAlign  align = TextAlign::Left);
+
+    static Record fromHtmlText(Str const& text) { return Record{text}; }
+
+    static Record fromRow(Vec<Record> const& recs);
+
+    static Record fromEscapedTextRow(Vec<Str> const& cells);
+
+    void add(Record const& rec) { getNested().push_back(rec); }
+    void addHtml(Str const& html) { getLabel().append(html); }
+    void addEscaped(Str const& text, TextAlign align = TextAlign::Left) {
+        getLabel().append(escapeHtmlForGraphviz(text.toBase(), align));
+    }
+
+    Record& htmlAttr(std::string const& key, std::string const& value) {
+        htmlAttrs.insert_or_assign(key, value);
+        return *this;
+    }
+
+    Str toString(bool braceCount = 1) const;
+};
+
 class NodeAttribute
     : public GraphvizObjBase<NodeAttribute>
     , public layout::IVertexVisualAttribute {
   public:
     static const int graphvizKind = AGNODE;
-    struct Record {
-        Str toHtml(bool horizontal = true) const;
 
-
-        Record() {}
-        Record(Str const& content, Opt<Str> const& tag = std::nullopt)
-            : content(content), tag(tag) {}
-
-        Record(Vec<Record> const& sub) : content(sub) {}
-
-        void push_back(Vec<Str> const& cells) {
-            Vec<Record> row;
-            for (const auto& it : cells) { row.push_back(it); }
-            getNested().push_back(Record(row));
-        }
-
-        void push_back(Record const& rec) { getNested().push_back(rec); }
-
-        bool isFinal() const {
-            return std::holds_alternative<Str>(content);
-        }
-
-        void set(Str const& columnKey, Record const& value);
-        void setEscaped(Str const& columnKey, Str const& value) {
-            set(columnKey, fromEscapedText(value));
-        }
-
-        void setHtml(Str const& columnKey, Str const& value) {
-            set(columnKey, fromHtmlText(value));
-        }
-
-        bool         isRecord() const { return !isFinal(); }
-        Str&         getLabel() { return std::get<Str>(content); }
-        Str const&   getLabel() const { return std::get<Str>(content); }
-        Vec<Record>& getNested() { return std::get<1>(content); }
-        Vec<Record> const& getNested() const {
-            return std::get<1>(content);
-        }
-
-        Opt<Str>                                     tag;
-        Variant<Str, Vec<Record>>                    content;
-        std::unordered_map<std::string, std::string> htmlAttrs;
-
-
-        static Record fromEscapedText(
-            Str const& text,
-            TextAlign  align = TextAlign::Left);
-
-        static Record fromHtmlText(Str const& text) {
-            return Record{text};
-        }
-
-        static Record fromRow(Vec<Record> const& recs);
-
-        static Record fromEscapedTextRow(Vec<Str> const& cells);
-
-        void add(Record const& rec) { getNested().push_back(rec); }
-        void addHtml(Str const& html) { getLabel().append(html); }
-        void addEscaped(
-            Str const& text,
-            TextAlign  align = TextAlign::Left) {
-            getLabel().append(escapeHtmlForGraphviz(text.toBase(), align));
-        }
-
-        Record& htmlAttr(
-            std::string const& key,
-            std::string const& value) {
-            htmlAttrs.insert_or_assign(key, value);
-            return *this;
-        }
-
-        Str toString(bool braceCount = 1) const;
-    };
 
     _GV_NODE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
     void startHtmlRecord() {
         setNodeShape(NodeShape::plaintext);
-        bindRecord<Record>("record");
+        bindPayload<Record>("record");
         getNodeRecord()->content = Vec<Record>{};
     }
 
     void startRecord() {
         setNodeShape(NodeShape::record);
-        bindRecord<Record>("record");
+        bindPayload<Record>("record");
         getNodeRecord()->content = Vec<Record>{};
     }
 
-    Record* getNodeRecord() { return getRecord<Record>("record"); }
+    Record* getNodeRecord() { return getPayload<Record>("record"); }
 
     void finishRecord(int braceCount = 1) {
         setLabel(getNodeRecord()->toString(braceCount));

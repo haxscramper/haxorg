@@ -375,7 +375,7 @@ struct MapGraph
             return true;
         }
 
-        virtual hgraph::gv::NodeAttribute::Record getNodeLabel(
+        virtual hgraph::gv::Record getNodeLabel(
             org::imm::ImmAdapter const& node,
             MapNodeProp::Ptr const&     prop) const;
 
