@@ -171,13 +171,17 @@ class AlignConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
-/// \brief Separates two rectangles by a specified offset along a given
-/// anchor axis.
+/// \brief Separate constraint creates to lanes of shapes (with one or more
+/// shape per lane) and then arranges so the lanes would have a fixed
+/// distance between them. Each lane is managed by the align constraint, so
+/// it is possible to offset the individual shapes relative to the lane.
+///
 /// \details Creates a single equality constraint:
 /// anchor_expr(first_rect, first_anchor)
 ///  == anchor_expr(second_rect, second_anchor) + offset.
 class SeparateConstraint : public ConstraintBase {
   public:
+    // TODO: Replace direct usage of the basic ID with the Align
     /// \brief ID of the first rectangle.
     Str first_rect_id;
     /// \brief Anchor on the first rectangle.

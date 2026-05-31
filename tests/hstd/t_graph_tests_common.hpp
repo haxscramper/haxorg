@@ -2,7 +2,6 @@
 
 #include <hstd/ext/graph/base/graph_base.hpp>
 #include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#include <hstd/ext/graph/visual/graph_cola.hpp>
 #include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #include <hstd/ext/graph/visual/graph_elk.hpp>
 #include <hstd/ext/graph/visual/graph_kiwi.hpp>
@@ -111,21 +110,5 @@ class GraphUtils_Test : public ::testing::Test {
         return getGraph()
             ->getEdge(id)
             ->getUniqueAttribute<gv::EdgeAttribute>();
-    }
-
-    hstd::SPtr<cst::ColaGroup> getColaGroup(VertexID const& id) {
-        return run->getGroup<cst::ColaGroup>(id);
-    }
-
-    hstd::SPtr<cst::ColaVertexAttribute> getCola(VertexID const& id) {
-        return getGraph()
-            ->getVertex(id)
-            ->getUniqueAttribute<cst::ColaVertexAttribute>();
-    }
-
-    hstd::SPtr<cst::ColaEdgeAttribute> getCola(EdgeID const& id) {
-        return getGraph()
-            ->getEdge(id)
-            ->getUniqueAttribute<cst::ColaEdgeAttribute>();
     }
 };

@@ -15,7 +15,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto dot_sub2_id   = addVertex("dot_sub2");
 
     // main cola wrapper
-    hstd::SPtr<cst::ColaGroup> cola_root = cst::ColaGroup::newRootGraph(
+    hstd::SPtr<kw::KiwiGroup> cola_root = kw::KiwiGroup::newRootGraph(
         run, "cola_root");
 
     run->setRootGroupAttribute(cola_root_id, cola_root);
@@ -67,7 +67,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub1->setOuterPadding(pad);
 
     // intermediate cola layout
-    hstd::SPtr<cst::ColaGroup> cola_sub1 = cst::ColaGroup::newRootGraph(
+    hstd::SPtr<kw::KiwiGroup> cola_sub1 = kw::KiwiGroup::newRootGraph(
         run, "cola_sub1");
 
     run->setNestedGroupAttribute(
@@ -236,8 +236,6 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
-    auto const& res = run->result;
-
     auto visual = run->getVisual();
     hstd::writeFile(
         getDebugFile("result.svg"),
@@ -252,24 +250,19 @@ TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
     auto r5_id   = addVertex("r5_id");
     auto node_id = addVertex("node");
 
-    hstd::SPtr<cst::ColaGroup> r1 = cst::ColaGroup::newRootGraph(
-        run, "r1");
+    hstd::SPtr<kw::KiwiGroup> r1 = kw::KiwiGroup::newRootGraph(run, "r1");
     r1->setOuterPadding(pad);
 
-    hstd::SPtr<cst::ColaGroup> r2 = cst::ColaGroup::newRootGraph(
-        run, "r2");
+    hstd::SPtr<kw::KiwiGroup> r2 = kw::KiwiGroup::newRootGraph(run, "r2");
     r2->setOuterPadding(pad);
 
-    hstd::SPtr<cst::ColaGroup> r3 = cst::ColaGroup::newRootGraph(
-        run, "r3");
+    hstd::SPtr<kw::KiwiGroup> r3 = kw::KiwiGroup::newRootGraph(run, "r3");
     r3->setOuterPadding(pad);
 
-    hstd::SPtr<cst::ColaGroup> r4 = cst::ColaGroup::newRootGraph(
-        run, "r4");
+    hstd::SPtr<kw::KiwiGroup> r4 = kw::KiwiGroup::newRootGraph(run, "r4");
     r4->setOuterPadding(pad);
 
-    hstd::SPtr<cst::ColaGroup> r5 = cst::ColaGroup::newRootGraph(
-        run, "r5");
+    hstd::SPtr<kw::KiwiGroup> r5 = kw::KiwiGroup::newRootGraph(run, "r5");
     r5->setOuterPadding(pad);
 
     run->setRootGroupAttribute(r1_id, r1);
@@ -284,8 +277,6 @@ TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
 
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));
-
-    auto const& res = run->result;
 
     auto visual = run->getVisual();
     hstd::writeFile(

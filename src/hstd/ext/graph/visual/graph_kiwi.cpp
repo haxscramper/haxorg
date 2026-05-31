@@ -310,10 +310,10 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::
 
 layout::IPlacementAlgorithm::Result kw::KiwiLayoutAlgorithm::
     runSingleLayout(VertexID const& root_id) {
-    auto __scope = run->begin_scope(
-        hstd::fmt(
-            "running single layout for kw::KiwiLayoutAlgorithm {}",
-            run->getDebug(root_id)));
+    OP_TRACER_MESSAGE_SCOPE(
+        run,
+        "running single layout for kw::KiwiLayoutAlgorithm {}",
+        run->getDebug(root_id));
 
     hstd::logic_assertion_check_not_nil(router);
 

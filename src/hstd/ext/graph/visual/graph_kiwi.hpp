@@ -9,7 +9,7 @@
 
 namespace hstd::ext::graph::kw {
 
-enum class [[refl]] GraphDimension
+enum class GraphDimension
 {
     XDIM  = 0,
     YDIM  = 1,
@@ -240,15 +240,16 @@ class AlignConstraint : public KiwiConstraint {
   public:
     DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
 
-    struct [[refl]] Spec {
-        [[refl]] Opt<double> fixPos = std::nullopt;
-        [[refl]] AxisAlign   align  = AxisAlign::Center;
-        [[refl]] double      offset = 0.0;
+    struct Spec {
+        Opt<double> fixPos = std::nullopt;
+        AxisAlign   align  = AxisAlign::Center;
+        double      offset = 0.0;
         DESC_FIELDS(Spec, (fixPos, align, offset));
     };
 
     hstd::UnorderedMap<VertexID, Spec> vertices;
-    [[refl]] GraphDimension            dimension = GraphDimension::UNSET;
+    /// Which axis to partition nodes
+    GraphDimension dimension = GraphDimension::UNSET;
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
     using KiwiConstraint::KiwiConstraint;
@@ -288,13 +289,25 @@ class AlignConstraint : public KiwiConstraint {
         const override;
 };
 
+// TODO: Simplify implementation of the constraint: it should be trivially
+// convertible to the kiwi_ir constraint intead of managing its own
+// sub-structure of the layouts. The `separateHorizontally` was ported into
+// the higher-level constraint because the align constraints require more
+// annoying logic to change the axis direction. That should also be
+// addressed. Ultimately all high-level graph-based constraints should act
+// as a thin wrappers around kiwi_ir.
+//
+// This should be doen before writing protobuf description for the kiwi
+// layout specification.
 class SeparateConstraint : public KiwiConstraint {
   public:
-    [[refl]] AlignConstraint left;
-    [[refl]] AlignConstraint right;
-    [[refl]] double          separationDistance = 1.0;
-    [[refl]] bool            isExactSeparation  = false;
-    [[refl]] GraphDimension  dimension          = GraphDimension::UNSET;
+    /// \brief The first lane to align
+    AlignConstraint left;
+    /// \brief Second lane to align
+    AlignConstraint right;
+    double          separationDistance = 1.0;
+    bool            isExactSeparation  = false;
+    GraphDimension  dimension          = GraphDimension::UNSET;
     DESC_FIELDS(
         SeparateConstraint,
         (left, right, separationDistance, isExactSeparation, dimension));
@@ -311,6 +324,8 @@ class SeparateConstraint : public KiwiConstraint {
             "separate {} <> {}", left.getRepr(), right.getRepr());
     }
 
+    /// \brief The lanes are placed vertically, with the separation
+    /// distance configuring the X-offset between the lanes.
     SeparateConstraint* separateHorizontally() {
         dimension = GraphDimension::XDIM;
         left.useVerticalAxis();
@@ -318,6 +333,8 @@ class SeparateConstraint : public KiwiConstraint {
         return this;
     }
 
+    /// \brief The lanes are placed horizontally, with the separation
+    /// distance configuring the Y-offset between the lanes.
     SeparateConstraint* separateVertically() {
         dimension = GraphDimension::YDIM;
         left.useHorizontalAxis();
@@ -345,6 +362,7 @@ class SeparateConstraint : public KiwiConstraint {
         return this;
     }
 
+    /// \brief Add vertex to the first alignment lane.
     SeparateConstraint* addLeftVertex(VertexIDVec const& id) {
         for (auto const& i : id) { addLeftVertex(i); }
         return this;
@@ -355,6 +373,7 @@ class SeparateConstraint : public KiwiConstraint {
         return this;
     }
 
+    /// \brief Add vertex to the second alignment lane.
     SeparateConstraint* addRightVertex(
         VertexID const& id,
         AlignConstraint::AxisAlign
@@ -371,10 +390,10 @@ class SeparateConstraint : public KiwiConstraint {
 
 class MultiSeparateConstraint : public KiwiConstraint {
   public:
-    [[refl]] hstd::Vec<AlignConstraint> lines;
-    [[refl]] GraphDimension             dimension = GraphDimension::XDIM;
-    [[refl]] double                     separationDistance = 0.0;
-    [[refl]] bool                       isExactSeparation  = false;
+    hstd::Vec<AlignConstraint> lines;
+    GraphDimension             dimension          = GraphDimension::XDIM;
+    double                     separationDistance = 0.0;
+    bool                       isExactSeparation  = false;
     DESC_FIELDS(
         MultiSeparateConstraint,
         (lines, dimension, separationDistance, isExactSeparation));
@@ -413,6 +432,8 @@ class MultiSeparateConstraint : public KiwiConstraint {
         return this;
     }
 
+    /// \brief Add a vertex to the *existing* lane, with specified offset
+    /// parameters.
     MultiSeparateConstraint* addAlignVertex(
         VertexID const& id,
         int             lane,
@@ -429,6 +450,7 @@ class MultiSeparateConstraint : public KiwiConstraint {
         return this;
     }
 
+    /// \brief Add a fully new lane with the fixed set of vertices.
     MultiSeparateConstraint* addFullLane(VertexIDVec const& vertices) {
         addLane();
         for (auto const& vert : vertices) {
