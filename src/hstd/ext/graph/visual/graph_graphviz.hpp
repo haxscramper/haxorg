@@ -21,6 +21,7 @@
 #    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
 #    include <google/protobuf/descriptor.h>
 #    include <google/protobuf/message.h>
+#    include <hstd/stdlib/Xml.hpp>
 
 #    define _attr_aligned(__Class, Method, key, Type)                     \
         __Class* set##Method(                                             \
@@ -492,7 +493,7 @@ struct Record {
     /// \brief Export the record content into a HTML table and attempt to
     /// detect the simple patterns (2d grid of elements) to result in a
     /// better alignment of the content.
-    Str toHtml(bool horizontal = true) const;
+    XmlNode toHtml(bool horizontal = true) const;
 
     Record() {}
     Record(Str const& content, Opt<Str> const& tag = std::nullopt)
@@ -579,9 +580,7 @@ class NodeAttribute
         setLabel(getNodeRecord()->toString(braceCount));
     }
 
-    void finishHtmlRecord(bool horizontal = false) {
-        setHtmlAttr("label", getNodeRecord()->toHtml(horizontal));
-    }
+    void finishHtmlRecord(bool horizontal = false);
 
     NodeAttribute(Agraph_t* graph, Str const& name, Record const& record);
 

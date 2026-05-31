@@ -119,68 +119,68 @@ Str gv::escapeHtml(Str const& input) {
     return escaped;
 }
 
-Str gv::Record::toHtml(bool horizontal) const {
-    auto generateCell = [](Record const& rec) -> Str {
-        return rec.isFinal() ? rec.getLabel() : rec.toHtml();
-    };
-
-    auto get_html_tag = [&](Record const* rec, Str const& tagname) -> Str {
-        Str res;
-        res += "<";
-        res += tagname;
+hstd::XmlNode gv::Record::toHtml(bool horizontal) const {
+    auto make_tag = [](Record const*      rec,
+                       std::string const& tagname) -> hstd::XmlNode {
+        hstd::XmlNode node(tagname);
         for (auto const& [key, value] : rec->htmlAttrs) {
-            res += std::format(" {}='{}'", key, value);
+            node.set_attr(key, value);
         }
-        res += ">";
-        return res;
+        return node;
     };
 
-    if (isRecord()) {
-        auto const& nested = getNested();
-        if (std::ranges::all_of(
-                nested, [](Record const& r) { return r.isRecord(); })
-            && std::ranges::all_of(
-                nested.front().getNested(), [&nested](Record const& r) {
-                    return std::ranges::all_of(
-                        nested, [&](Record const& row) {
-                            return row.isRecord()
-                                && row.getNested().size()
-                                       == nested.front()
-                                              .getNested()
-                                              .size();
-                        });
-                })) {
-
-
-            Str html = get_html_tag(this, "table");
-            for (Record const& row : nested) {
-                html += "\n" + get_html_tag(&row, "tr");
-                for (Record const& cell : row.getNested()) {
-                    html += "\n" + get_html_tag(&cell, "td")
-                          + generateCell(cell) + "</td>"_ss;
-                }
-                html += "</tr>";
-            }
-            html += "</table>";
-            return html;
+    auto append_cell_content = [&](hstd::XmlNode& cell,
+                                   Record const&  rec) {
+        if (rec.isFinal()) {
+            cell.set_text(rec.getLabel());
         } else {
-            Str html = get_html_tag(this, "table");
-            for (Record const& r : nested) {
-                if (horizontal) {
-                    html += get_html_tag(&r, "tr") + "<td>"_ss;
-                } else {
-                    html += get_html_tag(&r, "tr");
-                    html += "<td style='writing-mode:vertical-lr'>"_ss;
-                }
-                html += generateCell(r);
-                html += "</td></tr>";
+            cell.push_back(rec.toHtml());
+        }
+    };
+
+    if (!isRecord()) {
+        hstd::XmlNode leaf("span");
+        leaf.set_text(getLabel());
+        return leaf;
+    }
+
+    auto const& nested              = getNested();
+    bool const  is_rectangular_grid = //
+        !nested.empty()
+        && std::ranges::all_of(
+            nested, [](Record const& r) { return r.isRecord(); })
+        && std::ranges::all_of(nested, [&](Record const& row) {
+               return row.isRecord()
+                   && row.getNested().size()
+                          == nested.front().getNested().size();
+           });
+
+    hstd::XmlNode table = make_tag(this, "table");
+
+    if (is_rectangular_grid) {
+        for (Record const& row : nested) {
+            hstd::XmlNode tr = make_tag(&row, "tr");
+            for (Record const& cell_rec : row.getNested()) {
+                hstd::XmlNode td = make_tag(&cell_rec, "td");
+                append_cell_content(td, cell_rec);
+                tr.push_back(std::move(td));
             }
-            html += "</table>";
-            return html;
+            table.push_back(std::move(tr));
         }
     } else {
-        return getLabel();
+        for (Record const& r : nested) {
+            hstd::XmlNode tr = make_tag(&r, "tr");
+            hstd::XmlNode td("td");
+            if (!horizontal) {
+                td.set_attr("style", "writing-mode:vertical-lr");
+            }
+            append_cell_content(td, r);
+            tr.push_back(std::move(td));
+            table.push_back(std::move(tr));
+        }
     }
+
+    return table;
 }
 
 void gv::Record::set(Str const& columnKey, Record const& value) {
@@ -778,6 +778,10 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
 
     return result;
+}
+
+void gv::NodeAttribute::finishHtmlRecord(bool horizontal) {
+    setHtmlAttr("label", getNodeRecord()->toHtml(horizontal).to_string());
 }
 
 gv::NodeAttribute::NodeAttribute(

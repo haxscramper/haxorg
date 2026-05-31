@@ -17,6 +17,10 @@ XmlNode XmlNode::cdata(std::string const& text) {
     return XmlNode(Kind::CData, text);
 }
 
+XmlNode XmlNode::raw(std::string const& data) {
+    return XmlNode(Kind::Raw, data);
+}
+
 void XmlNode::set_attr(std::string const& name, std::string const& value) {
     for (auto& [k, v] : attrs) {
         if (k == name) {
@@ -69,27 +73,30 @@ void XmlNode::serialize_impl(std::ostream& os, int depth, int indent)
     bool has_body = !text.empty() || !subnodes.empty();
 
     if (!has_body) {
-        os << "/>\n";
+        os << "/>";
+        if (indent != 0) { os << "\n"; }
         return;
     }
 
     os << ">";
 
     if (!subnodes.empty()) {
-        os << "\n";
+        if (indent != 0) { os << "\n"; }
         if (!text.empty()) {
             std::string child_pad((depth + 1) * indent, ' ');
             os << child_pad;
             write_escaped(os, text);
-            os << "\n";
+            if (indent != 0) { os << "\n"; }
         }
         for (auto const& child : subnodes) {
             child.serialize_impl(os, depth + 1, indent);
         }
-        os << pad << "</" << tag << ">\n";
+        os << pad << "</" << tag << ">";
+        if (indent != 0) { os << "\n"; }
     } else {
         write_escaped(os, text);
-        os << "</" << tag << ">\n";
+        os << "</" << tag << ">";
+        if (indent != 0) { os << "\n"; }
     }
 }
 
