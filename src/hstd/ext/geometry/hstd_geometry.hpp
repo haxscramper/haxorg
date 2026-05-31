@@ -332,6 +332,8 @@ struct Rect : bg::model::box<Point> {
     Rect() : box(Point(0, 0), Point(0, 0)) {}
     Rect(double x, double y, double w, double h)
         : box(Point(x, y), Point(x + w, y + h)) {}
+    Rect(Point const& min, Point const& max) : box(min, max) {}
+
 
     Rect withOuterPadding(Padding const& pad) const {
         return Rect{

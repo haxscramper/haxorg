@@ -14,7 +14,6 @@
 #include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include "../common.hpp"
 #include <libcola/output_svg.h>
-#include <utility>
 #include <hstd/stdlib/MapSerde.hpp>
 
 template <typename A, typename T>
