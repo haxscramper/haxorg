@@ -472,7 +472,7 @@ Str ParentWrapConstraint::getRepr() const {
         strength);
 }
 
-NestedRelativeToParentConstraint::NestedRelativeToParentConstraint(
+RelativeConstraint::RelativeConstraint(
     Str         nested_rect_id,
     Str         parent_rect_id,
     Opt<double> width_factor,
@@ -496,7 +496,7 @@ NestedRelativeToParentConstraint::NestedRelativeToParentConstraint(
     , nested_x_anchor(nested_x_anchor)
     , nested_y_anchor(nested_y_anchor) {}
 
-Vec<kiwi::Constraint> NestedRelativeToParentConstraint::build(
+Vec<kiwi::Constraint> RelativeConstraint::build(
     std::unordered_map<Str, Rect> const& rects) const {
     Rect const&           child  = rects.at(nested_rect_id);
     Rect const&           parent = rects.at(parent_rect_id);
@@ -531,7 +531,7 @@ Vec<kiwi::Constraint> NestedRelativeToParentConstraint::build(
     return constraints;
 }
 
-Vec<EdgeDesc> NestedRelativeToParentConstraint::describe_edges() const {
+Vec<EdgeDesc> RelativeConstraint::describe_edges() const {
     Vec<EdgeDesc> edges = {
         EdgeDesc{
             parent_rect_id, nested_rect_id, "nested-relative-x", "red"},
@@ -559,7 +559,7 @@ Vec<EdgeDesc> NestedRelativeToParentConstraint::describe_edges() const {
     return edges;
 }
 
-Str NestedRelativeToParentConstraint::getRepr() const {
+Str RelativeConstraint::getRepr() const {
     Str wf = width_factor.has_value()
                ? std::format("{:g}", width_factor.value())
                : "None";

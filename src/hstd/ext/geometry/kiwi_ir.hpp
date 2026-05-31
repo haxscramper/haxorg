@@ -144,9 +144,20 @@ struct AlignItem {
     double offset = 0.0;
 };
 
+/// \brief Aligns multiple rectangles by a common anchor line.
+/// \details Creates equality constraints: for i>0,
+/// anchor_expr(rects[i]) - offset_i == anchor_expr(rects[0]) - offset_0.
+/// All constraints use the specified strength.
+///
+/// The first item serves as the reference; subsequent items are aligned to
+/// it.
 class AlignConstraint : public ConstraintBase {
   public:
-    Anchor         anchor;
+    /// \brief The anchor line (e.g., LEFT, RIGHT, TOP) used to align the
+    /// rectangles.
+    Anchor anchor;
+    /// \brief List of rectangles with optional offsets; the first item is
+    /// the reference.
     Vec<AlignItem> items;
 
     AlignConstraint(
@@ -160,12 +171,23 @@ class AlignConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief Separates two rectangles by a specified offset along a given
+/// anchor axis.
+/// \details Creates a single equality constraint:
+/// anchor_expr(first_rect, first_anchor)
+///  == anchor_expr(second_rect, second_anchor) + offset.
 class SeparateConstraint : public ConstraintBase {
   public:
-    Str    first_rect_id;
+    /// \brief ID of the first rectangle.
+    Str first_rect_id;
+    /// \brief Anchor on the first rectangle.
     Anchor first_anchor;
-    Str    second_rect_id;
+    /// \brief ID of the second rectangle.
+    Str second_rect_id;
+    /// \brief Anchor on the second rectangle.
     Anchor second_anchor;
+    /// \brief Distance between the two anchors; can be positive or
+    /// negative.
     double offset;
 
     SeparateConstraint(
@@ -182,11 +204,19 @@ class SeparateConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief Positions groups of rectangles with a fixed step between
+/// corresponding elements of consecutive groups.
+/// \details The elements are arranged in groups along axis, and then
+/// the axes are separated relative to each other.
 class MultiSeparateConstraint : public ConstraintBase {
   public:
+    /// \brief Groups of rectangle IDs, each group set apart by step.
     Vec<Vec<Str>> groups;
-    Anchor        anchor;
-    double        step;
+    /// \brief Anchor used for measuring distances between groups.
+    Anchor anchor;
+    /// \brief Fixed distance between corresponding rectangles of
+    /// consecutive groups.
+    double step;
 
     MultiSeparateConstraint(
         Vec<Vec<Str>> groups,
@@ -201,14 +231,35 @@ class MultiSeparateConstraint : public ConstraintBase {
 };
 
 /// \brief Ensure the "parent" rectangle fully covers the nested IDs.
+/// \details Creates constraints that ensure each nested rectangle is
+/// within the parent with given padding:
+/// - left <= nested_left - padding_left
+/// - top <= nested_top - padding_top
+/// - right >= nested_right + padding_right
+/// - bottom >= nested_bottom + padding_bottom
+/// Also pins parent edges to the first/last nested edges with padding:
+/// parent.left = first_nested.left - padding_left,
+/// parent.top = first_nested.top - padding_top,
+/// parent.right = last_nested.right + padding_right,
+/// parent.bottom = last_nested.bottom + padding_bottom.
 class ParentWrapConstraint : public ConstraintBase {
   public:
-    Str      parent_rect_id;
+    /// \brief The rectangle that wraps its children.
+    Str parent_rect_id;
+    /// \brief IDs of rectangles that should be inside the parent.
     Vec<Str> nested_rect_ids;
-    double   padding_left;
-    double   padding_top;
-    double   padding_right;
-    double   padding_bottom;
+    /// \brief Minimum distance from parent left edge to children's left
+    /// edges.
+    double padding_left;
+    /// \brief Minimum distance from parent top edge to children's top
+    /// edges.
+    double padding_top;
+    /// \brief Minimum distance from children's right edges to parent right
+    /// edge.
+    double padding_right;
+    /// \brief Minimum distance from children's bottom edges to parent
+    /// bottom edge.
+    double padding_bottom;
 
     ParentWrapConstraint(
         Str      parent_rect_id,
@@ -227,20 +278,39 @@ class ParentWrapConstraint : public ConstraintBase {
 
 /// \brief Constrain the nested rectangle position in relation to the
 /// parent rectangle.
-class NestedRelativeToParentConstraint : public ConstraintBase {
+/// \details Creates constraints:
+/// - if width_factor provided, child.width = parent.width * width_factor
+/// - if height_factor provided, child.height = parent.height *
+/// height_factor
+/// - child.nested_x_anchor = parent.x_anchor + x_offset
+/// - child.nested_y_anchor = parent.y_anchor + y_offset
+/// All with specified strength.
+class RelativeConstraint : public ConstraintBase {
   public:
-    Str         nested_rect_id;
-    Str         parent_rect_id;
+    /// \brief ID of the child rectangle.
+    Str nested_rect_id;
+    /// \brief ID of the parent rectangle used for reference.
+    Str parent_rect_id;
+    /// \brief Optional factor to scale child width relative to parent.
     Opt<double> width_factor;
+    /// \brief Optional factor to scale child height relative to parent.
     Opt<double> height_factor;
-    Anchor      x_anchor;
-    Anchor      y_anchor;
-    double      x_offset;
-    double      y_offset;
-    Anchor      nested_x_anchor;
-    Anchor      nested_y_anchor;
+    /// \brief Anchor on the parent for the X coordinate.
+    Anchor x_anchor;
+    /// \brief Anchor on the parent for the Y coordinate.
+    Anchor y_anchor;
+    /// \brief Offset in the X direction from the parent anchor.
+    double x_offset;
+    /// \brief Offset in the Y direction from the parent anchor.
+    double y_offset;
+    /// \brief Anchor on the child that is aligned to parent x_anchor +
+    /// x_offset.
+    Anchor nested_x_anchor;
+    /// \brief Anchor on the child that is aligned to parent y_anchor +
+    /// y_offset.
+    Anchor nested_y_anchor;
 
-    NestedRelativeToParentConstraint(
+    RelativeConstraint(
         Str         nested_rect_id,
         Str         parent_rect_id,
         Opt<double> width_factor    = std::nullopt,
@@ -261,15 +331,23 @@ class NestedRelativeToParentConstraint : public ConstraintBase {
 
 /// \brief The distance between the diagram elements is equal along the x/y
 /// axis.
+/// \details Creates constraints for a sliding 3-tuple:
+/// (rect[i-1], rect[i], rect[i+1]) such that the gap between
+/// rect[i] and rect[i-1] equals the gap between rect[i+1] and rect[i]:
+/// (anchor_expr(rect[i]) - anchor_expr(rect[i-1]))
+/// == (anchor_expr(rect[i+1]) - anchor_expr(rect[i])).
 ///
 /// \note The distance is not fixed to some specified amount, but only
 /// equalized among the several elements. For fixed gap placement use \ref
 /// MultiSeparateConstraint constraint.
 class EvenGapConstraint : public ConstraintBase {
   public:
+    /// \brief Ordered list of rectangle IDs.
     Vec<Str> rect_ids;
-    Axis     axis;
-    Anchor   anchor;
+    /// \brief Axis along which gaps are equalized (X or Y).
+    Axis axis;
+    /// \brief The anchor point used for measuring positions.
+    Anchor anchor;
 
     EvenGapConstraint(
         Vec<Str> rect_ids,
@@ -284,11 +362,18 @@ class EvenGapConstraint : public ConstraintBase {
 };
 
 /// \brief Ensure the width/height between two rectangles is matched.
+/// \details If match_width: creates constraint
+/// rect_a.width == rect_b.width.
+/// If match_height: rect_a.height == rect_b.height.
 class EqualSizeConstraint : public ConstraintBase {
   public:
-    Str  rect_a_id;
-    Str  rect_b_id;
+    /// \brief ID of the first rectangle.
+    Str rect_a_id;
+    /// \brief ID of the second rectangle.
+    Str rect_b_id;
+    /// \brief If true, constrains widths to be equal.
     bool match_width;
+    /// \brief If true, constrains heights to be equal.
     bool match_height;
 
     EqualSizeConstraint(
@@ -305,11 +390,16 @@ class EqualSizeConstraint : public ConstraintBase {
 };
 
 /// \brief Free-form constraint between different elements on the graph.
+/// \details Creates a single kiwi::Constraint using left and right
+/// expressions with the given relation and strength.
 class LinearConstraint : public ConstraintBase {
   public:
-    Expr     left;
+    /// \brief Left-hand side expression.
+    Expr left;
+    /// \brief Relation: EQ, LE, GE.
     Relation relation;
-    Expr     right;
+    /// \brief Right-hand side expression.
+    Expr right;
 
     LinearConstraint(
         Expr     left,
