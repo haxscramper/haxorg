@@ -773,10 +773,8 @@ hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
 
             auto node = res->addVertex(nesting_id);
             node->setAttr("org_id", imm_id.getReadableId());
-            node->startHtmlRecord();
-            *node->getNodeRecord() = getNodeLabel(
-                ctx->adapt(imm_id), prop);
-            node->finishHtmlRecord();
+            node->setHtmlNodeRecord(
+                getNodeLabel(ctx->adapt(imm_id), prop));
         }
     }
 

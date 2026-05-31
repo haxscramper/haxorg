@@ -780,10 +780,6 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     return result;
 }
 
-void gv::NodeAttribute::finishHtmlRecord(bool horizontal) {
-    setHtmlAttr("label", getNodeRecord()->toHtml(horizontal).to_string());
-}
-
 gv::NodeAttribute::NodeAttribute(
     Agraph_t*     graph,
     Str const&    name,

@@ -562,25 +562,15 @@ class NodeAttribute
 
     _GV_NODE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
-    void startHtmlRecord() {
-        setNodeShape(NodeShape::plaintext);
-        bindPayload<Record>("record");
-        getNodeRecord()->content = Vec<Record>{};
+    void setNodeRecord(Record const& rec, int braceCount = 1) {
+        setLabel(rec.toString(braceCount));
     }
 
-    void startRecord() {
-        setNodeShape(NodeShape::record);
-        bindPayload<Record>("record");
-        getNodeRecord()->content = Vec<Record>{};
+    void setHtmlNodeRecord(Record const& rec) {
+        setHtmlAttr("label", rec.toHtml().to_string());
     }
 
     Record* getNodeRecord() { return getPayload<Record>("record"); }
-
-    void finishRecord(int braceCount = 1) {
-        setLabel(getNodeRecord()->toString(braceCount));
-    }
-
-    void finishHtmlRecord(bool horizontal = false);
 
     NodeAttribute(Agraph_t* graph, Str const& name, Record const& record);
 
