@@ -1,12 +1,9 @@
 #include <hstd/ext/geometry/kiwi_ir.hpp>
 #include <gtest/gtest.h>
 #include "../common.hpp"
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
 
 namespace hstd::ext::kiwi_ir {
-
-static void assert_close(double a, double b, double eps = 1e-6) {
-    EXPECT_NEAR(a, b, eps);
-}
 
 static void write_outputs(Str const& name, Layout& layout) {
     layout.to_svg(getDebugFile(std::format("{}.svg", name)), name);
@@ -37,10 +34,10 @@ TEST(KiwiIr, AlignmentAndRelativePositioning) {
     auto rect_b = solved.at("b").getGeometry();
     auto rect_c = solved.at("c").getGeometry();
 
-    assert_close(rect_a.y(), rect_b.y());
-    assert_close(rect_b.y(), rect_c.y());
-    assert_close(rect_b.x(), rect_a.x() + rect_a.width() + 15);
-    assert_close(rect_c.x(), rect_b.x() + rect_b.width() + 15);
+    EXPECT_NEAR(rect_a.y(), rect_b.y(), 1e-6);
+    EXPECT_NEAR(rect_b.y(), rect_c.y(), 1e-6);
+    EXPECT_NEAR(rect_b.x(), rect_a.x() + rect_a.width() + 15, 1e-6);
+    EXPECT_NEAR(rect_c.x(), rect_b.x() + rect_b.width() + 15, 1e-6);
 }
 
 TEST(KiwiIr, EvenGapShapePlacement) {
@@ -57,20 +54,26 @@ TEST(KiwiIr, EvenGapShapePlacement) {
     auto   solved = layout.solve();
     write_outputs("test_even_gap_shape_placement", layout);
 
-    assert_close(solved.at("b").x.value(), 60.0);
+    auto rect_b = solved.at("b").getGeometry();
+    EXPECT_NEAR(rect_b.x(), 60.0, 1e-6);
 }
 
-TEST(KiwiIr, ParentAndChildRelativeConstraints) {
+TEST(KiwiIr, ParentAndNestedRelativeConstraints) {
     Vec<Rect> rects = {
-        Rect("child1", 20, 30, 30, 10),
-        Rect("child2", 70, 60, 20, 20),
+        Rect("nested1", 20, 30, 30, 10),
+        Rect("nested2", 70, 60, 20, 20),
         Rect("parent"),
         Rect("inner"),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<ParentWrapConstraint>(
-            "parent", Vec<Str>{"child1", "child2"}, 5, 10, 15, 20),
-        std::make_shared<ChildRelativeToParentConstraint>(
+            /*parent_rect_id=*/"parent",
+            /*nested_rect_ids=*/Vec<Str>{"nested1", "nested2"},
+            /*padding_left=*/5,
+            /*padding_top=*/10,
+            /*padding_right=*/15,
+            /*padding_bottom=*/20),
+        std::make_shared<NestedRelativeToParentConstraint>(
             "inner",
             "parent",
             0.2,
@@ -85,21 +88,25 @@ TEST(KiwiIr, ParentAndChildRelativeConstraints) {
     Layout layout(rects, constraints);
     layout.verify_constraints();
     auto solved = layout.solve();
-    write_outputs("test_parent_and_child_relative_constraints", layout);
+    write_outputs("test_parent_and_nested_relative_constraints", layout);
 
     auto parent_rect = solved.at("parent").getGeometry();
     auto inner_rect  = solved.at("inner").getGeometry();
 
-    assert_close(parent_rect.x(), 15.0);
-    assert_close(parent_rect.y(), 20.0);
-    assert_close(parent_rect.width(), 90.0);
-    assert_close(parent_rect.height(), 80.0);
-    assert_close(inner_rect.width(), parent_rect.width() * 0.2);
-    assert_close(inner_rect.height(), parent_rect.height() * 0.5);
-    assert_close(
-        inner_rect.x(), parent_rect.x() + parent_rect.width() * 0.5 + 20);
-    assert_close(
-        inner_rect.y(), parent_rect.y() + parent_rect.height() * 0.5);
+    EXPECT_NEAR(parent_rect.x(), 15.0, 1e-6);
+    EXPECT_NEAR(parent_rect.y(), 20.0, 1e-6);
+    EXPECT_NEAR(parent_rect.width(), 90.0, 1e-6);
+    EXPECT_NEAR(parent_rect.height(), 80.0, 1e-6);
+    EXPECT_NEAR(inner_rect.width(), parent_rect.width() * 0.2, 1e-6);
+    EXPECT_NEAR(inner_rect.height(), parent_rect.height() * 0.5, 1e-6);
+    EXPECT_NEAR(
+        inner_rect.x(),
+        parent_rect.x() + parent_rect.width() * 0.5 + 20,
+        1e-6);
+    EXPECT_NEAR(
+        inner_rect.y(),
+        parent_rect.y() + parent_rect.height() * 0.5,
+        1e-6);
 }
 
 TEST(KiwiIr, LinearConstraintAndEqualSize) {
@@ -127,9 +134,9 @@ TEST(KiwiIr, LinearConstraintAndEqualSize) {
 
     auto rect_b = solved.at("b").getGeometry();
 
-    assert_close(rect_b.x(), 80.0);
-    assert_close(rect_b.width(), 60.0);
-    assert_close(rect_b.height(), 25.0);
+    EXPECT_NEAR(rect_b.x(), 80.0, 1e-6);
+    EXPECT_NEAR(rect_b.width(), 60.0, 1e-6);
+    EXPECT_NEAR(rect_b.height(), 25.0, 1e-6);
 }
 
 TEST(KiwiIr, MultiSeparateSeveralLinesOfEvenlySpacedRectangles) {
@@ -168,9 +175,12 @@ TEST(KiwiIr, MultiSeparateSeveralLinesOfEvenlySpacedRectangles) {
         "test_multi_separate_several_lines_of_evenly_spaced_rectangles",
         layout);
 
-    assert_close(solved.at("r01").x.value(), 40.0);
-    assert_close(solved.at("r10").y.value(), 30.0);
-    assert_close(solved.at("r20").y.value(), 60.0);
+    auto rect_r01 = solved.at("r01").getGeometry();
+    auto rect_r10 = solved.at("r10").getGeometry();
+    auto rect_r20 = solved.at("r20").getGeometry();
+    EXPECT_NEAR(rect_r01.x(), 40.0, 1e-6);
+    EXPECT_NEAR(rect_r10.y(), 30.0, 1e-6);
+    EXPECT_NEAR(rect_r20.y(), 60.0, 1e-6);
 }
 
 TEST(KiwiIr, TwoOrthogonalMultiSeparateGrid) {
@@ -222,13 +232,16 @@ TEST(KiwiIr, TwoOrthogonalMultiSeparateGrid) {
     auto solved = layout.solve();
     write_outputs("test_two_orthogonal_multi_separate_grid", layout);
 
-    assert_close(solved.at("g12").x.value(), 70.0);
-    assert_close(solved.at("g12").y.value(), 25.0);
-    assert_close(solved.at("g21").x.value(), 35.0);
-    assert_close(solved.at("g21").y.value(), 50.0);
+    auto rect_g12 = solved.at("g12").getGeometry();
+    auto rect_g21 = solved.at("g21").getGeometry();
+
+    EXPECT_NEAR(rect_g12.x(), 70.0, 1e-6);
+    EXPECT_NEAR(rect_g12.y(), 25.0, 1e-6);
+    EXPECT_NEAR(rect_g21.x(), 35.0, 1e-6);
+    EXPECT_NEAR(rect_g21.y(), 50.0, 1e-6);
 }
 
-TEST(KiwiIr, EvenGapParentRectanglesAndChildrenRelative) {
+TEST(KiwiIr, EvenGapParentRectanglesAndNestedRelative) {
     Vec<Rect> rects = {
         Rect("p1", 0, 0, 100, 60),
         Rect("p2", std::nullopt, 0, 100, 60),
@@ -240,18 +253,18 @@ TEST(KiwiIr, EvenGapParentRectanglesAndChildrenRelative) {
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
             Vec<Str>{"p1", "p2", "p3"}, Axis::X, Anchor::LEFT),
-        std::make_shared<ChildRelativeToParentConstraint>(
-            "c1",
-            "p1",
-            0.2,
-            0.5,
-            Anchor::HCENTER,
-            Anchor::VCENTER,
-            10,
-            0,
-            Anchor::LEFT,
-            Anchor::TOP),
-        std::make_shared<ChildRelativeToParentConstraint>(
+        std::make_shared<NestedRelativeToParentConstraint>(
+            /*nested_rect_id=*/"c1",
+            /*parent_rect_id=*/"p1",
+            /*width_factor=*/0.2,
+            /*height_factor=*/0.5,
+            /*x_anchor=*/Anchor::HCENTER,
+            /*y_anchor=*/Anchor::VCENTER,
+            /*x_offset=*/10,
+            /*y_offset=*/0,
+            /*nested_x_anchor=*/Anchor::LEFT,
+            /*nested_y_anchor=*/Anchor::TOP),
+        std::make_shared<NestedRelativeToParentConstraint>(
             "c2",
             "p2",
             0.2,
@@ -262,7 +275,7 @@ TEST(KiwiIr, EvenGapParentRectanglesAndChildrenRelative) {
             0,
             Anchor::LEFT,
             Anchor::TOP),
-        std::make_shared<ChildRelativeToParentConstraint>(
+        std::make_shared<NestedRelativeToParentConstraint>(
             "c3",
             "p3",
             0.2,
@@ -274,19 +287,22 @@ TEST(KiwiIr, EvenGapParentRectanglesAndChildrenRelative) {
             Anchor::LEFT,
             Anchor::TOP),
     };
+
     Layout layout(rects, constraints);
     layout.verify_constraints();
     auto solved = layout.solve();
     write_outputs(
-        "test_even_gap_parent_rectangles_and_children_relative", layout);
+        "test_even_gap_parent_rectangles_and_nested_relative", layout);
 
-    assert_close(solved.at("p2").x.value(), 150.0);
-    assert_close(solved.at("c2").width.value(), 20.0);
-    assert_close(solved.at("c2").height.value(), 30.0);
-    assert_close(
-        solved.at("c2").x.value(), solved.at("p2").x.value() + 50 + 10);
-    assert_close(
-        solved.at("c2").y.value(), solved.at("p2").y.value() + 30);
+    auto rect_p2 = solved.at("p2").getGeometry();
+    auto rect_c2 = solved.at("c2").getGeometry();
+    EXPECT_NEAR(rect_p2.x(), 150.0, 1e-6);
+    EXPECT_NEAR(rect_c2.width(), 20.0, 1e-6);
+    EXPECT_NEAR(rect_c2.height(), 30.0, 1e-6);
+    EXPECT_NEAR(rect_c2.x(), rect_p2.x() + 50 + 10, 1e-6);
+    EXPECT_NEAR(rect_c2.y(), rect_p2.y() + 30, 1e-6);
+
+    EXPECT_OUTCOME_OK(geometry::checkFullyCovers(rect_p2, rect_c2));
 }
 
 TEST(KiwiIr, ConstraintVerificationPassesForConsistentConstraints) {

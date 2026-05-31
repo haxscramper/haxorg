@@ -200,10 +200,11 @@ class MultiSeparateConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief Ensure the "parent" rectangle fully covers the nested IDs.
 class ParentWrapConstraint : public ConstraintBase {
   public:
     Str      parent_rect_id;
-    Vec<Str> child_rect_ids;
+    Vec<Str> nested_rect_ids;
     double   padding_left;
     double   padding_top;
     double   padding_right;
@@ -211,7 +212,7 @@ class ParentWrapConstraint : public ConstraintBase {
 
     ParentWrapConstraint(
         Str      parent_rect_id,
-        Vec<Str> child_rect_ids,
+        Vec<Str> nested_rect_ids,
         double   padding_left   = 0.0,
         double   padding_top    = 0.0,
         double   padding_right  = 0.0,
@@ -224,9 +225,11 @@ class ParentWrapConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
-class ChildRelativeToParentConstraint : public ConstraintBase {
+/// \brief Constrain the nested rectangle position in relation to the
+/// parent rectangle.
+class NestedRelativeToParentConstraint : public ConstraintBase {
   public:
-    Str         child_rect_id;
+    Str         nested_rect_id;
     Str         parent_rect_id;
     Opt<double> width_factor;
     Opt<double> height_factor;
@@ -234,21 +237,21 @@ class ChildRelativeToParentConstraint : public ConstraintBase {
     Anchor      y_anchor;
     double      x_offset;
     double      y_offset;
-    Anchor      child_x_anchor;
-    Anchor      child_y_anchor;
+    Anchor      nested_x_anchor;
+    Anchor      nested_y_anchor;
 
-    ChildRelativeToParentConstraint(
-        Str         child_rect_id,
+    NestedRelativeToParentConstraint(
+        Str         nested_rect_id,
         Str         parent_rect_id,
-        Opt<double> width_factor   = std::nullopt,
-        Opt<double> height_factor  = std::nullopt,
-        Anchor      x_anchor       = Anchor::LEFT,
-        Anchor      y_anchor       = Anchor::TOP,
-        double      x_offset       = 0.0,
-        double      y_offset       = 0.0,
-        Anchor      child_x_anchor = Anchor::LEFT,
-        Anchor      child_y_anchor = Anchor::TOP,
-        Strength    strength       = Strength::REQUIRED);
+        Opt<double> width_factor    = std::nullopt,
+        Opt<double> height_factor   = std::nullopt,
+        Anchor      x_anchor        = Anchor::LEFT,
+        Anchor      y_anchor        = Anchor::TOP,
+        double      x_offset        = 0.0,
+        double      y_offset        = 0.0,
+        Anchor      nested_x_anchor = Anchor::LEFT,
+        Anchor      nested_y_anchor = Anchor::TOP,
+        Strength    strength        = Strength::REQUIRED);
 
     Vec<kiwi::Constraint> build(
         std::unordered_map<Str, Rect> const& rects) const override;
@@ -256,6 +259,12 @@ class ChildRelativeToParentConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief The distance between the diagram elements is equal along the x/y
+/// axis.
+///
+/// \note The distance is not fixed to some specified amount, but only
+/// equalized among the several elements. For fixed gap placement use \ref
+/// MultiSeparateConstraint constraint.
 class EvenGapConstraint : public ConstraintBase {
   public:
     Vec<Str> rect_ids;
@@ -274,6 +283,7 @@ class EvenGapConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief Ensure the width/height between two rectangles is matched.
 class EqualSizeConstraint : public ConstraintBase {
   public:
     Str  rect_a_id;
@@ -294,6 +304,7 @@ class EqualSizeConstraint : public ConstraintBase {
     Str           getRepr() const override;
 };
 
+/// \brief Free-form constraint between different elements on the graph.
 class LinearConstraint : public ConstraintBase {
   public:
     Expr     left;

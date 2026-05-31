@@ -355,7 +355,7 @@ Str MultiSeparateConstraint::getRepr() const {
 
 ParentWrapConstraint::ParentWrapConstraint(
     Str      parent_rect_id,
-    Vec<Str> child_rect_ids,
+    Vec<Str> nested_rect_ids,
     double   padding_left,
     double   padding_top,
     double   padding_right,
@@ -363,7 +363,7 @@ ParentWrapConstraint::ParentWrapConstraint(
     Strength strength)
     : ConstraintBase(strength)
     , parent_rect_id(std::move(parent_rect_id))
-    , child_rect_ids(std::move(child_rect_ids))
+    , nested_rect_ids(std::move(nested_rect_ids))
     , padding_left(padding_left)
     , padding_top(padding_top)
     , padding_right(padding_right)
@@ -371,7 +371,7 @@ ParentWrapConstraint::ParentWrapConstraint(
 
 Vec<kiwi::Constraint> ParentWrapConstraint::build(
     std::unordered_map<Str, Rect> const& rects) const {
-    if (child_rect_ids.empty()) { return {}; }
+    if (nested_rect_ids.empty()) { return {}; }
 
     Rect const&           parent = rects.at(parent_rect_id);
     Vec<kiwi::Constraint> constraints;
@@ -381,39 +381,40 @@ Vec<kiwi::Constraint> ParentWrapConstraint::build(
     Vec<Expr> right_exprs;
     Vec<Expr> bottom_exprs;
 
-    for (auto const& child_id : child_rect_ids) {
-        left_exprs.push_back(rects.at(child_id).anchor_expr(Anchor::LEFT));
-        top_exprs.push_back(rects.at(child_id).anchor_expr(Anchor::TOP));
+    for (auto const& nested_id : nested_rect_ids) {
+        left_exprs.push_back(
+            rects.at(nested_id).anchor_expr(Anchor::LEFT));
+        top_exprs.push_back(rects.at(nested_id).anchor_expr(Anchor::TOP));
         right_exprs.push_back(
-            rects.at(child_id).anchor_expr(Anchor::RIGHT));
+            rects.at(nested_id).anchor_expr(Anchor::RIGHT));
         bottom_exprs.push_back(
-            rects.at(child_id).anchor_expr(Anchor::BOTTOM));
+            rects.at(nested_id).anchor_expr(Anchor::BOTTOM));
     }
 
-    for (auto const& child_left : left_exprs) {
+    for (auto const& nested_left : left_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::LEFT).to_kiwi()
-             <= (child_left - padding_left).to_kiwi())
+             <= (nested_left - padding_left).to_kiwi())
             | kiwi_value(strength));
     }
 
-    for (auto const& child_top : top_exprs) {
+    for (auto const& nested_top : top_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::TOP).to_kiwi()
-             <= (child_top - padding_top).to_kiwi())
+             <= (nested_top - padding_top).to_kiwi())
             | kiwi_value(strength));
     }
 
-    for (auto const& child_right : right_exprs) {
+    for (auto const& nested_right : right_exprs) {
         constraints.push_back(
-            ((child_right + padding_right).to_kiwi()
+            ((nested_right + padding_right).to_kiwi()
              <= parent.anchor_expr(Anchor::RIGHT).to_kiwi())
             | kiwi_value(strength));
     }
 
-    for (auto const& child_bottom : bottom_exprs) {
+    for (auto const& nested_bottom : bottom_exprs) {
         constraints.push_back(
-            ((child_bottom + padding_bottom).to_kiwi()
+            ((nested_bottom + padding_bottom).to_kiwi()
              <= parent.anchor_expr(Anchor::BOTTOM).to_kiwi())
             | kiwi_value(strength));
     }
@@ -442,11 +443,11 @@ Vec<kiwi::Constraint> ParentWrapConstraint::build(
 
 Vec<EdgeDesc> ParentWrapConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
-    for (auto const& child_id : child_rect_ids) {
+    for (auto const& nested_id : nested_rect_ids) {
         edges.push_back(
-            EdgeDesc{child_id, parent_rect_id, "wrap-parent-x", "red"});
+            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-x", "red"});
         edges.push_back(
-            EdgeDesc{child_id, parent_rect_id, "wrap-parent-y", "blue"});
+            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-y", "blue"});
     }
     return edges;
 }
@@ -454,9 +455,9 @@ Vec<EdgeDesc> ParentWrapConstraint::describe_edges() const {
 Str ParentWrapConstraint::getRepr() const {
     std::ostringstream children;
     children << "[";
-    for (int i = 0; i < child_rect_ids.size(); ++i) {
-        children << child_rect_ids[i];
-        if (i + 1 < child_rect_ids.size()) { children << ", "; }
+    for (int i = 0; i < nested_rect_ids.size(); ++i) {
+        children << nested_rect_ids[i];
+        if (i + 1 < nested_rect_ids.size()) { children << ", "; }
     }
     children << "]";
     return std::format(
@@ -471,8 +472,8 @@ Str ParentWrapConstraint::getRepr() const {
         strength);
 }
 
-ChildRelativeToParentConstraint::ChildRelativeToParentConstraint(
-    Str         child_rect_id,
+NestedRelativeToParentConstraint::NestedRelativeToParentConstraint(
+    Str         nested_rect_id,
     Str         parent_rect_id,
     Opt<double> width_factor,
     Opt<double> height_factor,
@@ -480,11 +481,11 @@ ChildRelativeToParentConstraint::ChildRelativeToParentConstraint(
     Anchor      y_anchor,
     double      x_offset,
     double      y_offset,
-    Anchor      child_x_anchor,
-    Anchor      child_y_anchor,
+    Anchor      nested_x_anchor,
+    Anchor      nested_y_anchor,
     Strength    strength)
     : ConstraintBase(strength)
-    , child_rect_id(std::move(child_rect_id))
+    , nested_rect_id(std::move(nested_rect_id))
     , parent_rect_id(std::move(parent_rect_id))
     , width_factor(width_factor)
     , height_factor(height_factor)
@@ -492,12 +493,12 @@ ChildRelativeToParentConstraint::ChildRelativeToParentConstraint(
     , y_anchor(y_anchor)
     , x_offset(x_offset)
     , y_offset(y_offset)
-    , child_x_anchor(child_x_anchor)
-    , child_y_anchor(child_y_anchor) {}
+    , nested_x_anchor(nested_x_anchor)
+    , nested_y_anchor(nested_y_anchor) {}
 
-Vec<kiwi::Constraint> ChildRelativeToParentConstraint::build(
+Vec<kiwi::Constraint> NestedRelativeToParentConstraint::build(
     std::unordered_map<Str, Rect> const& rects) const {
-    Rect const&           child  = rects.at(child_rect_id);
+    Rect const&           child  = rects.at(nested_rect_id);
     Rect const&           parent = rects.at(parent_rect_id);
     Vec<kiwi::Constraint> constraints;
 
@@ -508,6 +509,7 @@ Vec<kiwi::Constraint> ChildRelativeToParentConstraint::build(
                     .to_kiwi())
             | kiwi_value(strength));
     }
+
     if (height_factor.has_value()) {
         constraints.push_back(
             (child.expr(RectAttr::HEIGHT).to_kiwi()
@@ -517,43 +519,47 @@ Vec<kiwi::Constraint> ChildRelativeToParentConstraint::build(
     }
 
     constraints.push_back(
-        (child.anchor_expr(child_x_anchor).to_kiwi()
+        (child.anchor_expr(nested_x_anchor).to_kiwi()
          == (parent.anchor_expr(x_anchor) + x_offset).to_kiwi())
         | kiwi_value(strength));
+
     constraints.push_back(
-        (child.anchor_expr(child_y_anchor).to_kiwi()
+        (child.anchor_expr(nested_y_anchor).to_kiwi()
          == (parent.anchor_expr(y_anchor) + y_offset).to_kiwi())
         | kiwi_value(strength));
 
     return constraints;
 }
 
-Vec<EdgeDesc> ChildRelativeToParentConstraint::describe_edges() const {
+Vec<EdgeDesc> NestedRelativeToParentConstraint::describe_edges() const {
     Vec<EdgeDesc> edges = {
-        EdgeDesc{parent_rect_id, child_rect_id, "child-relative-x", "red"},
         EdgeDesc{
-            parent_rect_id, child_rect_id, "child-relative-y", "blue"},
+            parent_rect_id, nested_rect_id, "nested-relative-x", "red"},
+        EdgeDesc{
+            parent_rect_id, nested_rect_id, "nested-relative-y", "blue"},
     };
+
     if (width_factor.has_value()) {
         edges.push_back(
             EdgeDesc{
                 parent_rect_id,
-                child_rect_id,
-                "child-relative-width",
+                nested_rect_id,
+                "nested-relative-width",
                 "red"});
     }
+
     if (height_factor.has_value()) {
         edges.push_back(
             EdgeDesc{
                 parent_rect_id,
-                child_rect_id,
-                "child-relative-height",
+                nested_rect_id,
+                "nested-relative-height",
                 "blue"});
     }
     return edges;
 }
 
-Str ChildRelativeToParentConstraint::getRepr() const {
+Str NestedRelativeToParentConstraint::getRepr() const {
     Str wf = width_factor.has_value()
                ? std::format("{:g}", width_factor.value())
                : "None";
@@ -564,14 +570,14 @@ Str ChildRelativeToParentConstraint::getRepr() const {
         "ChildRelativeToParentConstraint(child={}, parent={}, "
         "width_factor={}, height_factor={}, x={}->{}{:+g}, y={}->{}{:+g}, "
         "strength={})",
-        child_rect_id,
+        nested_rect_id,
         parent_rect_id,
         wf,
         hf,
-        child_x_anchor,
+        nested_x_anchor,
         x_anchor,
         x_offset,
-        child_y_anchor,
+        nested_y_anchor,
         y_anchor,
         y_offset,
         strength);
