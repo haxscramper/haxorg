@@ -1,33 +1,35 @@
 #include <csignal>
 #include <cerrno>
 #include <chrono>
+#include <cctype>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 
 #include <sys/epoll.h>
-#include <sys/inotify.h>
 #include <sys/signalfd.h>
+#include <sys/timerfd.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/timerfd.h>
 
-#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
-#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 using namespace hstd;
 using namespace hstd::log::record;
@@ -40,10 +42,14 @@ struct Conf {
 };
 
 struct ProcInfo {
-    int pid;
-    int ppid;
+    int pid  = 0;
+    int ppid = 0;
     Str cmdline;
     Str cwd;
+};
+
+struct ProcSnapshot {
+    int ppid = 0;
 };
 
 static double now_us() {
@@ -80,45 +86,50 @@ static Str trim(Str const& s) {
     return s.substr(b, e - b);
 }
 
-static Str read_cmdline(int pid) {
+static std::optional<ProcSnapshot> try_read_proc_snapshot(int pid) {
+    Str           path = "/proc/" + std::to_string(pid) + "/stat";
+    std::ifstream in(path);
+    if (!in) { return std::nullopt; }
+
+    Str line;
+    std::getline(in, line);
+    if (line.empty()) { return std::nullopt; }
+
+    auto rparen = line.rfind(')');
+    if (rparen == Str::npos || line.size() <= rparen + 2) {
+        return std::nullopt;
+    }
+
+    std::istringstream tail(line.substr(rparen + 2).toBase());
+    char               state = 0;
+    int                ppid  = 0;
+    if (!(tail >> state >> ppid)) { return std::nullopt; }
+
+    return ProcSnapshot{.ppid = ppid};
+}
+
+static std::optional<Str> try_read_cmdline(int pid) {
     Str           path = "/proc/" + std::to_string(pid) + "/cmdline";
     std::ifstream in(path, std::ios::binary);
-    if (!in) { throw std::runtime_error("failed to open " + path); }
+    if (!in) { return std::nullopt; }
+
     std::string data(
         (std::istreambuf_iterator<char>(in)),
         std::istreambuf_iterator<char>());
+
     for (char& c : data) {
         if (c == '\0') { c = ' '; }
     }
+
     return trim(data);
 }
 
-static int read_ppid(int pid) {
-    Str           path = "/proc/" + std::to_string(pid) + "/status";
-    std::ifstream in(path);
-    if (!in) { throw std::runtime_error("failed to open " + path); }
-    Str line;
-    while (std::getline(in, line)) {
-        if (line.rfind("PPid:", 0) == 0) {
-            auto rest = trim(line.substr(5));
-            return std::stoi(rest);
-        }
-    }
-    throw std::runtime_error("PPid not found in " + path);
-}
-
-static Str read_cwd(int pid) {
-    Str path = "/proc/" + std::to_string(pid) + "/cwd";
-    return std::filesystem::read_symlink(path.toBase()).string();
-}
-
-static ProcInfo read_proc_info(int pid) {
-    ProcInfo info;
-    info.pid     = pid;
-    info.ppid    = read_ppid(pid);
-    info.cmdline = read_cmdline(pid);
-    info.cwd     = read_cwd(pid);
-    return info;
+static std::optional<Str> try_read_cwd(int pid) {
+    std::error_code ec;
+    auto            p = std::filesystem::read_symlink(
+        "/proc/" + std::to_string(pid) + "/cwd", ec);
+    if (ec) { return std::nullopt; }
+    return p.string();
 }
 
 static StructuredValue make_scalar(Str const& repr) {
@@ -176,15 +187,14 @@ class ProcTracker {
     std::ofstream file;
     Conf          conf;
 
-    std::unordered_set<int>           roots;
-    std::unordered_set<int>           tracked;
-    std::unordered_map<int, ProcInfo> infoByPid;
+    std::unordered_set<int>               roots;
+    std::unordered_set<int>               tracked;
+    std::unordered_map<int, ProcInfo>     infoByPid;
+    std::unordered_map<int, ProcSnapshot> seen;
 
     int epollFd  = -1;
     int signalFd = -1;
     int timerFd  = -1;
-
-    std::unordered_set<int> seenPids;
 
     void setup_fds() {
         sigset_t mask;
@@ -202,8 +212,8 @@ class ProcTracker {
         check_syscall(timerFd, "timerfd_create");
 
         itimerspec ts{};
-        ts.it_value.tv_nsec    = 50'000'000; // 50ms initial
-        ts.it_interval.tv_nsec = 50'000'000; // 50ms periodic
+        ts.it_value.tv_nsec    = 5'000'000;
+        ts.it_interval.tv_nsec = 5'000'000;
         check_syscall(
             timerfd_settime(timerFd, 0, &ts, nullptr), "timerfd_settime");
 
@@ -225,36 +235,49 @@ class ProcTracker {
             "epoll_ctl add signalfd");
     }
 
-    Vec<int> list_all_pids() {
-        Vec<int> result;
+    std::unordered_map<int, ProcSnapshot> list_all_proc_snapshots() {
+        std::unordered_map<int, ProcSnapshot> result;
         for (auto const& entry :
              std::filesystem::directory_iterator("/proc")) {
             if (!entry.is_directory()) { continue; }
             Str name = entry.path().filename().string();
             if (!is_numeric(name)) { continue; }
-            result.push_back(std::stoi(name));
+
+            int  pid = std::stoi(name);
+            auto s   = try_read_proc_snapshot(pid);
+            if (s.has_value()) { result.emplace(pid, *s); }
         }
         return result;
     }
 
-    void prime_existing() {
-        std::unordered_map<int, int> ppidByPid;
-        for (int pid : list_all_pids()) {
-            ppidByPid[pid] = read_ppid(pid);
+    void try_enrich_info(int pid) {
+        auto it = infoByPid.find(pid);
+        if (it == infoByPid.end()) { return; }
+
+        if (it->second.cmdline.empty()) {
+            auto c = try_read_cmdline(pid);
+            if (c.has_value()) { it->second.cmdline = *c; }
         }
 
+        if (it->second.cwd.empty()) {
+            auto c = try_read_cwd(pid);
+            if (c.has_value()) { it->second.cwd = *c; }
+        }
+    }
+
+    void prime_existing() {
+        auto snap = list_all_proc_snapshots();
+
         for (int root : roots) {
-            if (ppidByPid.find(root) != ppidByPid.end()) {
-                tracked.insert(root);
-            }
+            if (snap.find(root) != snap.end()) { tracked.insert(root); }
         }
 
         bool changed = true;
         while (changed) {
             changed = false;
-            for (auto const& [pid, ppid] : ppidByPid) {
+            for (auto const& [pid, s] : snap) {
                 if (tracked.find(pid) == tracked.end()
-                    && tracked.find(ppid) != tracked.end()) {
+                    && tracked.find(s.ppid) != tracked.end()) {
                     tracked.insert(pid);
                     changed = true;
                 }
@@ -262,13 +285,95 @@ class ProcTracker {
         }
 
         for (int pid : tracked) {
-            ProcInfo info  = read_proc_info(pid);
+            ProcInfo info;
+            info.pid       = pid;
+            info.ppid      = snap.at(pid).ppid;
+            info.cmdline   = "";
+            info.cwd       = "";
             infoByPid[pid] = info;
-            if (conf.emitExisting) { emit_start(info); }
+
+            try_enrich_info(pid);
+            if (conf.emitExisting) { emit_start(infoByPid[pid]); }
         }
 
-        seenPids.clear();
-        for (auto const& [pid, _] : ppidByPid) { seenPids.insert(pid); }
+        seen = std::move(snap);
+    }
+
+    void poll_proc_snapshot() {
+        auto current = list_all_proc_snapshots();
+
+        std::unordered_set<int> newPids;
+        for (auto const& [pid, _] : current) {
+            if (seen.find(pid) == seen.end()) { newPids.insert(pid); }
+        }
+
+        std::unordered_set<int> toTrack;
+        for (int pid : newPids) {
+            auto const& s = current.at(pid);
+            if (roots.find(pid) != roots.end()
+                || tracked.find(s.ppid) != tracked.end()) {
+                toTrack.insert(pid);
+            }
+        }
+
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            for (int pid : newPids) {
+                if (toTrack.find(pid) != toTrack.end()) { continue; }
+                auto const& s = current.at(pid);
+                if (toTrack.find(s.ppid) != toTrack.end()) {
+                    toTrack.insert(pid);
+                    changed = true;
+                }
+            }
+        }
+
+        for (int pid : toTrack) {
+            tracked.insert(pid);
+
+            ProcInfo info;
+            info.pid       = pid;
+            info.ppid      = current.at(pid).ppid;
+            info.cmdline   = "";
+            info.cwd       = "";
+            infoByPid[pid] = info;
+
+            try_enrich_info(pid);
+            emit_start(infoByPid[pid]);
+        }
+
+        for (int pid : tracked) {
+            if (current.find(pid) != current.end()) {
+                try_enrich_info(pid);
+            }
+        }
+
+        Vec<int> ended;
+        for (int pid : tracked) {
+            if (current.find(pid) == current.end()) {
+                ended.push_back(pid);
+            }
+        }
+
+        for (int pid : ended) {
+            auto it = infoByPid.find(pid);
+            if (it != infoByPid.end()) {
+                emit_end(it->second);
+                infoByPid.erase(it);
+            }
+            tracked.erase(pid);
+        }
+
+        seen = std::move(current);
+    }
+
+    void consume_timer() {
+        uint64_t expirations = 0;
+        ssize_t  rc = read(timerFd, &expirations, sizeof(expirations));
+        if (rc == -1 && errno == EAGAIN) { return; }
+        check_syscall(static_cast<int>(rc), "read timerfd");
+        poll_proc_snapshot();
     }
 
     void event_loop() {
@@ -289,58 +394,6 @@ class ProcTracker {
                 }
             }
         }
-    }
-
-    void consume_timer() {
-        uint64_t expirations = 0;
-        ssize_t  rc = read(timerFd, &expirations, sizeof(expirations));
-        if (rc == -1 && errno == EAGAIN) { return; }
-        check_syscall(static_cast<int>(rc), "read timerfd");
-        poll_proc_snapshot();
-    }
-
-    void poll_proc_snapshot() {
-        std::unordered_set<int> current;
-        for (int pid : list_all_pids()) { current.insert(pid); }
-
-        for (int pid : current) {
-            if (seenPids.find(pid) == seenPids.end()) {
-                on_proc_create(pid);
-            }
-        }
-
-        for (int pid : seenPids) {
-            if (current.find(pid) == current.end()) {
-                on_proc_delete(pid);
-            }
-        }
-
-        seenPids = std::move(current);
-    }
-
-    void on_proc_create(int pid) {
-        if (tracked.find(pid) != tracked.end()) { return; }
-
-        ProcInfo info        = read_proc_info(pid);
-        bool     shouldTrack = roots.find(pid) != roots.end()
-                            || tracked.find(info.ppid) != tracked.end();
-        if (!shouldTrack) { return; }
-
-        tracked.insert(pid);
-        infoByPid[pid] = info;
-        emit_start(info);
-    }
-
-    void on_proc_delete(int pid) {
-        if (tracked.find(pid) == tracked.end()) { return; }
-        auto it = infoByPid.find(pid);
-        if (it == infoByPid.end()) {
-            throw std::runtime_error(
-                "tracked pid missing info: " + std::to_string(pid));
-        }
-        emit_end(it->second);
-        infoByPid.erase(it);
-        tracked.erase(pid);
     }
 
     TraceEventState make_state(ProcInfo const& info) {
