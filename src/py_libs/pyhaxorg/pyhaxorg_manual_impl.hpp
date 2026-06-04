@@ -38,9 +38,12 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
 #include <haxorg/api/ParseContext.hpp>
+// #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC

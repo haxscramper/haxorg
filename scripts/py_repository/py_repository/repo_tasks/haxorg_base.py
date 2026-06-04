@@ -131,6 +131,7 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_BUILD_WITH_QT", conf.use.qt))
     result.append(cmake_opt("ORG_BUILD_IMGUI_GUI", conf.use.imgui))
     result.append(cmake_opt("ORG_BUILD_PYHAXORG_BINDINGS", conf.build_conf.build_python))
+    result.append(cmake_opt("ORG_BUILD_WITH_KIWI", conf.build_conf.use_kiwi))
     result.append(
         cmake_opt("ORG_BUILD_TEXT_LAYOUTER_BINDINGS", conf.build_conf.build_python))
     # result.append(cmake_opt("CMAKE_CXX_INCLUDE_WHAT_YOU_USE", "/home/haxscramper/software/include-what-you-use/build/bin/include-what-you-use;--verbose=7"))

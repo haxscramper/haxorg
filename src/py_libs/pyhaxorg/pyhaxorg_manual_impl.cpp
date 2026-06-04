@@ -6,6 +6,9 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/exporters/exportertree.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 #include <datetime.h>
 
 #include <haxorg/exporters/Exporter.cpp>

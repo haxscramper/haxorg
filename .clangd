@@ -10,5 +10,6 @@ CompileFlags:
     - "-Wno-unknown-attributes"
     - "-Wno-unused-parameter"
     - "-Wno-extra-semi"
+    - "-Wno-deprecated-copy"
     - "-Wno-pedantic"
     - "--log=verbose"

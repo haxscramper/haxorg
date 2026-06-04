@@ -238,8 +238,8 @@ class LayoutRun
     /// \brief Minimal set of graph object collections required to manage
     /// the full layout run.
     struct TrivialState {
-        hstd::SPtr<TrivialHierarchy>      hierarchy;
         hstd::SPtr<TrivialPortCollection> ports;
+        hstd::SPtr<TrivialHierarchy>      hierarchy;
         hstd::SPtr<TrivialGraph>          graph;
 
         TrivialState()

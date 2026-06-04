@@ -408,6 +408,7 @@ endif()
 
 if(${ORG_BUILD_INTERNAL_TOOLS})
   add_subdirectory(scripts/cxx_repository)
+  add_subdirectory(scripts/cxx_executor)
   add_subdirectory(scripts/cxx_codegen)
 endif()
 

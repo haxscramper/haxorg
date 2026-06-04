@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+import subprocess
 import sys
 
 from beartype.typing import Any, Optional
@@ -87,18 +88,47 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
     log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
     log(CAT).info(opts.config_override)
 
-    match cmd:
-        case "run":
-            assert opts.task is not None
-            context.run(opts.task, ctx=context)
-            log(CAT).info("Done")
+    if context.config.force_subprocess_tracking:
+        haxorg_build.configure_cmake_haxorg(ctx=context)
+        haxorg_build.build_targets(ctx=context, targets=["executor_tracker"])
 
-        case "list_tasks":
-            for t in graph.get_tasks():
-                print(t)
+    executor_tracker = get_build_root(context, "haxorg").joinpath("executor_tracker")
+    log(CAT).info(f"executor_tracker = {executor_tracker}")
 
-        case _:
-            raise ValueError(f"Unknown command {cmd}")
+    if executor_tracker.exists():
+        import os
+        tracker_configuration = {
+            "pids": [os.getpid()],
+            "path": "/tmp/execution-log.jsonl",
+        }
+        log(CAT).info(f"Opening executor tracker with {tracker_configuration}")
+        proc = subprocess.Popen([
+            str(executor_tracker),
+            json.dumps(tracker_configuration),
+        ])
+
+    else:
+        proc = None
+
+    try:
+        match cmd:
+            case "run":
+                assert opts.task is not None
+                context.run(opts.task, ctx=context)
+                log(CAT).info("Done")
+
+            case "list_tasks":
+                for t in graph.get_tasks():
+                    print(t)
+
+            case _:
+                raise ValueError(f"Unknown command {cmd}")
+
+    finally:
+        # subprocess.w
+        if proc:
+            proc.kill()
+            proc.wait()
 
 
 if __name__ == "__main__":

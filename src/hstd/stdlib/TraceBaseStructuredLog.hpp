@@ -227,6 +227,7 @@ struct CommonEventArgs {
     /// \brief Structured custom program state payload.
     Opt<TraceEventState> state;
 
+    /// \brief location in the code where the event was generated
     Str      file;
     Str      function;
     int      line;

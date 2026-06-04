@@ -1247,13 +1247,13 @@ node can have subnodes.)RAW")
     .def_rw("activeLevel", &hstd::OperationsTracer::activeLevel)
     .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
     .def("begin_scope_event",
-         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::begin_scope_event),
+         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::begin_scope_event),
          nanobind::arg("value") = std::nullopt,
          nanobind::arg("function") = __builtin_FUNCTION(),
          nanobind::arg("line") = 46,
          nanobind::arg("file") = __builtin_FILE())
     .def("end_scope_event",
-         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)>(&hstd::OperationsTracer::end_scope_event),
+         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::end_scope_event),
          nanobind::arg("value") = std::nullopt,
          nanobind::arg("function") = __builtin_FUNCTION(),
          nanobind::arg("line") = 52,
@@ -1264,7 +1264,7 @@ node can have subnodes.)RAW")
          nanobind::arg("overwrite"),
          R"RAW(\brief Helper method for reflection)RAW")
     .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&)>(&hstd::OperationsTracer::sendMessage),
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage),
          nanobind::arg("value"),
          nanobind::arg("function"),
          nanobind::arg("line"),
@@ -1430,38 +1430,6 @@ node must not be nil)RAW")
     ;
   nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
     ;
-  nanobind::class_<hstd::ext::graph::VertexID>(m, "GraphVertexID")
-    .def("__init__",
-         [](hstd::ext::graph::VertexID* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::ext::graph::VertexID();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](hstd::ext::graph::VertexID const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::ext::graph::VertexID const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::ext::graph::EdgeIDBase>(m, "GraphEdgeIDBase")
-    .def("__init__",
-         [](hstd::ext::graph::EdgeIDBase* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::ext::graph::EdgeIDBase();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](hstd::ext::graph::EdgeIDBase const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::ext::graph::EdgeIDBase const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
   nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
     .def("__init__",
          [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) -> void {
@@ -1583,7 +1551,8 @@ field and other locations outside of standard `.subnodes`)RAW")
     .def_rw("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
 field subset.)RAW")
     .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
+                    return "";
+                     // return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> nanobind::object {
@@ -1772,7 +1741,8 @@ field subset.)RAW")
     .def_rw("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
     .def_rw("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
     .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
+             return "";
+                     // return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> nanobind::object {
@@ -1796,7 +1766,8 @@ field subset.)RAW")
     .def("isTrackedHashtag", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isTrackedHashtag))
     .def("isRadioTarget", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isRadioTarget))
     .def("__repr__", [](org::AstTrackingGroup const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
+             return "";
+                     // return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingGroup const& _self, std::string const& name) -> nanobind::object {
@@ -1830,7 +1801,8 @@ field subset.)RAW")
          static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
          nanobind::arg("id"))
     .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
+             return "";
+                     // return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingMap const& _self, std::string const& name) -> nanobind::object {
@@ -6963,22 +6935,6 @@ and a segment kind.)RAW")
          [](org::imm::ImmCmdInclude::Kind it) -> int {
          return static_cast<int>(it);
          })
-    ;
-  nanobind::class_<hstd::ext::graph::EdgeID, hstd::ext::graph::EdgeIDBase>(m, "GraphEdgeID")
-    .def("__init__",
-         [](hstd::ext::graph::EdgeID* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::ext::graph::EdgeID();
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](hstd::ext::graph::EdgeID const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::ext::graph::EdgeID const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
     ;
