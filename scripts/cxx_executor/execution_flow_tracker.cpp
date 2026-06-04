@@ -15,6 +15,7 @@
 #include <sys/signalfd.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/timerfd.h>
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
@@ -179,10 +180,11 @@ class ProcTracker {
     std::unordered_set<int>           tracked;
     std::unordered_map<int, ProcInfo> infoByPid;
 
-    int epollFd   = -1;
-    int inotifyFd = -1;
-    int signalFd  = -1;
-    int watchFd   = -1;
+    int epollFd  = -1;
+    int signalFd = -1;
+    int timerFd  = -1;
+
+    std::unordered_set<int> seenPids;
 
     void setup_fds() {
         sigset_t mask;
@@ -195,22 +197,25 @@ class ProcTracker {
         signalFd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
         check_syscall(signalFd, "signalfd");
 
-        inotifyFd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
-        check_syscall(inotifyFd, "inotify_init1");
+        timerFd = timerfd_create(
+            CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+        check_syscall(timerFd, "timerfd_create");
 
-        watchFd = inotify_add_watch(
-            inotifyFd, "/proc", IN_CREATE | IN_DELETE);
-        check_syscall(watchFd, "inotify_add_watch /proc");
+        itimerspec ts{};
+        ts.it_value.tv_nsec    = 50'000'000; // 50ms initial
+        ts.it_interval.tv_nsec = 50'000'000; // 50ms periodic
+        check_syscall(
+            timerfd_settime(timerFd, 0, &ts, nullptr), "timerfd_settime");
 
         epollFd = epoll_create1(EPOLL_CLOEXEC);
         check_syscall(epollFd, "epoll_create1");
 
-        epoll_event evIn{};
-        evIn.events  = EPOLLIN;
-        evIn.data.fd = inotifyFd;
+        epoll_event evTimer{};
+        evTimer.events  = EPOLLIN;
+        evTimer.data.fd = timerFd;
         check_syscall(
-            epoll_ctl(epollFd, EPOLL_CTL_ADD, inotifyFd, &evIn),
-            "epoll_ctl add inotify");
+            epoll_ctl(epollFd, EPOLL_CTL_ADD, timerFd, &evTimer),
+            "epoll_ctl add timerfd");
 
         epoll_event evSig{};
         evSig.events  = EPOLLIN;
@@ -261,6 +266,9 @@ class ProcTracker {
             infoByPid[pid] = info;
             if (conf.emitExisting) { emit_start(info); }
         }
+
+        seenPids.clear();
+        for (auto const& [pid, _] : ppidByPid) { seenPids.insert(pid); }
     }
 
     void event_loop() {
@@ -276,31 +284,38 @@ class ProcTracker {
                     if (rc == -1 && errno == EAGAIN) { continue; }
                     check_syscall(static_cast<int>(rc), "read signalfd");
                     return;
-                } else if (fd == inotifyFd) {
-                    consume_inotify();
+                } else if (fd == timerFd) {
+                    consume_timer();
                 }
             }
         }
     }
 
-    void consume_inotify() {
-        char    buffer[64 * 1024];
-        ssize_t len = read(inotifyFd, buffer, sizeof(buffer));
-        if (len == -1 && errno == EAGAIN) { return; }
-        check_syscall(static_cast<int>(len), "read inotify");
-        ssize_t offset = 0;
-        while (offset < len) {
-            auto* ev = reinterpret_cast<inotify_event*>(buffer + offset);
-            if (ev->len > 0) {
-                Str name = ev->name;
-                if (is_numeric(name)) {
-                    int pid = std::stoi(name);
-                    if (ev->mask & IN_CREATE) { on_proc_create(pid); }
-                    if (ev->mask & IN_DELETE) { on_proc_delete(pid); }
-                }
+    void consume_timer() {
+        uint64_t expirations = 0;
+        ssize_t  rc = read(timerFd, &expirations, sizeof(expirations));
+        if (rc == -1 && errno == EAGAIN) { return; }
+        check_syscall(static_cast<int>(rc), "read timerfd");
+        poll_proc_snapshot();
+    }
+
+    void poll_proc_snapshot() {
+        std::unordered_set<int> current;
+        for (int pid : list_all_pids()) { current.insert(pid); }
+
+        for (int pid : current) {
+            if (seenPids.find(pid) == seenPids.end()) {
+                on_proc_create(pid);
             }
-            offset += sizeof(inotify_event) + ev->len;
         }
+
+        for (int pid : seenPids) {
+            if (current.find(pid) == current.end()) {
+                on_proc_delete(pid);
+            }
+        }
+
+        seenPids = std::move(current);
     }
 
     void on_proc_create(int pid) {
