@@ -44,32 +44,144 @@ Str axis_color(Axis axis) {
     }
 }
 
-Expr::Expr(double value) : value(value) {}
 
-Expr::Expr(kiwi::Variable const& value) : value(value) {}
+Expr::Expr(std::shared_ptr<Node const> node) : node(std::move(node)) {}
 
-Expr::Expr(kiwi::Expression const& value) : value(value) {}
+std::shared_ptr<Expr::Node const> Expr::make_constant(double value) {
+    Node n;
+    n.kind     = Node::Kind::Constant;
+    n.constant = value;
+    return std::make_shared<Node>(std::move(n));
+}
 
-kiwi::Expression const& Expr::to_kiwi() const { return value; }
+std::shared_ptr<Expr::Node const> Expr::make_variable(
+    kiwi::Variable const& value) {
+    Node n;
+    n.kind     = Node::Kind::Variable;
+    n.variable = value;
+    return std::make_shared<Node>(std::move(n));
+}
+
+std::shared_ptr<Expr::Node const> Expr::make_kiwi_expr(
+    kiwi::Expression const& value) {
+    Node n;
+    n.kind      = Node::Kind::KiwiExpression;
+    n.kiwi_expr = value;
+    return std::make_shared<Node>(std::move(n));
+}
+
+std::shared_ptr<Expr::Node const> Expr::make_unary(
+    Node::Kind                  kind,
+    std::shared_ptr<Node const> lhs) {
+    Node n;
+    n.kind = kind;
+    n.lhs  = std::move(lhs);
+    return std::make_shared<Node>(std::move(n));
+}
+
+std::shared_ptr<Expr::Node const> Expr::make_binary(
+    Node::Kind                  kind,
+    std::shared_ptr<Node const> lhs,
+    std::shared_ptr<Node const> rhs) {
+    Node n;
+    n.kind = kind;
+    n.lhs  = std::move(lhs);
+    n.rhs  = std::move(rhs);
+    return std::make_shared<Node>(std::move(n));
+}
+
+Expr::Expr(double value) : node(make_constant(value)) {}
+Expr::Expr(kiwi::Variable const& value) : node(make_variable(value)) {}
+Expr::Expr(kiwi::Expression const& value) : node(make_kiwi_expr(value)) {}
 
 Expr Expr::operator+(Expr const& other) const {
-    return Expr(value + other.value);
+    return Expr(make_binary(Node::Kind::Add, node, other.node));
 }
 
 Expr Expr::operator-(Expr const& other) const {
-    return Expr(value - other.value);
+    return Expr(make_binary(Node::Kind::Sub, node, other.node));
 }
 
-Expr Expr::operator*(double other) const { return Expr(value * other); }
+Expr Expr::operator*(double other) const {
+    return Expr(make_binary(Node::Kind::Mul, node, make_constant(other)));
+}
 
-Expr Expr::operator-() const { return Expr(-value); }
+Expr Expr::operator-() const {
+    return Expr(make_unary(Node::Kind::Neg, node));
+}
 
 Expr Expr::operator*(Expr const& other) const {
-    throw std::runtime_error(
-        std::format(
-            "Kiwi supports only linear expressions: {} * {}",
-            value.constant(),
-            other.value.constant()));
+    return Expr(make_binary(Node::Kind::Mul, node, other.node));
+}
+
+Constraint Expr::operator==(Expr const& other) const {
+    return Constraint(*this, other, kiwi::RelationalOperator::OP_EQ);
+}
+
+Constraint Expr::operator<=(Expr const& other) const {
+    return Constraint(*this, other, kiwi::RelationalOperator::OP_LE);
+}
+
+Constraint Expr::operator>=(Expr const& other) const {
+    return Constraint(*this, other, kiwi::RelationalOperator::OP_GE);
+}
+
+Constraint::Constraint(
+    Expr const&              lhs,
+    Expr const&              rhs,
+    kiwi::RelationalOperator op)
+    : lhs(lhs), rhs(rhs), op(op) {}
+
+kiwi::Expression Constraint::fold_expr(
+    std::shared_ptr<Expr::Node const> const& node) {
+    using Kind = Expr::Node::Kind;
+    switch (node->kind) {
+        case Kind::Constant: return kiwi::Expression(node->constant);
+        case Kind::Variable: return kiwi::Expression(*node->variable);
+        case Kind::KiwiExpression: return *node->kiwi_expr;
+        case Kind::Add: return fold_expr(node->lhs) + fold_expr(node->rhs);
+        case Kind::Sub: return fold_expr(node->lhs) - fold_expr(node->rhs);
+        case Kind::Neg: return -fold_expr(node->lhs);
+        case Kind::Mul: {
+            kiwi::Expression left  = fold_expr(node->lhs);
+            kiwi::Expression right = fold_expr(node->rhs);
+
+            bool left_const  = left.terms().empty();
+            bool right_const = right.terms().empty();
+
+            if (left_const && right_const) {
+                return kiwi::Expression(
+                    left.constant() * right.constant());
+            } else if (left_const) {
+                return right * left.constant();
+            } else if (right_const) {
+                return left * right.constant();
+            }
+
+            throw std::runtime_error(
+                "Kiwi supports only linear expressions");
+        }
+    }
+
+    throw std::runtime_error("Invalid expression node");
+}
+
+kiwi::Constraint Constraint::to_kiwi(hstd::Opt<double> str) const {
+    kiwi::Expression left  = fold_expr(lhs.node);
+    kiwi::Expression right = fold_expr(rhs.node);
+
+    auto s = strength ? strength : str;
+
+    switch (op) {
+        case kiwi::RelationalOperator::OP_EQ:
+            return s ? left == right | s.value() : left == right;
+        case kiwi::RelationalOperator::OP_LE:
+            return s ? left <= right | s.value() : left <= right;
+        case kiwi::RelationalOperator::OP_GE:
+            return s ? right <= left | s.value() : right <= left;
+    }
+
+    throw std::runtime_error("Invalid relational operator");
 }
 
 Expr operator+(double left, Expr const& right) {
@@ -128,7 +240,8 @@ ConstraintBase::ConstraintBase(Strength strength) : strength(strength) {}
 AlignConstraint::AlignConstraint(Vec<AlignItem> items, Strength strength)
     : ConstraintBase(strength), items(std::move(items)) {}
 
-Vec<kiwi::Constraint> AlignConstraint::build(RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> AlignConstraint::build(
+    RectMap const& rects) const {
     if (items.size() < 2) {
         throw std::runtime_error(
             "AlignConstraint requires at least 2 items");
@@ -136,14 +249,12 @@ Vec<kiwi::Constraint> AlignConstraint::build(RectMap const& rects) const {
     auto const& base = items[0];
     Expr base_expr   = rects.at(base.rect_id).anchor_expr(base.spec.anchor)
                      - base.spec.offset;
-    Vec<kiwi::Constraint> result;
+    Vec<kiwi_ir::Constraint> result;
     for (int i = 1; i < items.size(); ++i) {
         auto const& item = items[i];
         Expr expr = rects.at(item.rect_id).anchor_expr(item.spec.anchor)
                   - item.spec.offset;
-        result.push_back(
-            (expr.to_kiwi() == base_expr.to_kiwi())
-            | kiwi_value(strength));
+        result.push_back((expr == base_expr) | kiwi_value(strength));
     }
     return result;
 }
@@ -196,12 +307,12 @@ SeparateConstraint::SeparateConstraint(
     , second_anchor(second_anchor)
     , offset(offset) {}
 
-Vec<kiwi::Constraint> SeparateConstraint::build(
+Vec<kiwi_ir::Constraint> SeparateConstraint::build(
     RectMap const& rects) const {
     Expr first  = rects.at(first_rect_id).anchor_expr(first_anchor);
     Expr second = rects.at(second_rect_id).anchor_expr(second_anchor);
-    kiwi::Constraint c = (first.to_kiwi() == (second + offset).to_kiwi())
-                       | kiwi_value(strength);
+    kiwi_ir::Constraint c = (first == (second + offset))
+                          | kiwi_value(strength);
     return {c};
 }
 
@@ -236,9 +347,9 @@ MultiSeparateConstraint::MultiSeparateConstraint(
     , anchor(anchor)
     , step(step) {}
 
-Vec<kiwi::Constraint> MultiSeparateConstraint::build(
+Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
     RectMap const& rects) const {
-    Vec<kiwi::Constraint> constraints;
+    Vec<kiwi_ir::Constraint> constraints;
     for (int idx = 0; idx + 1 < groups.size(); ++idx) {
         auto const& g1 = groups[idx];
         auto const& g2 = groups[idx + 1];
@@ -254,8 +365,7 @@ Vec<kiwi::Constraint> MultiSeparateConstraint::build(
             Expr        expr_a = rects.at(b).anchor_expr(anchor);
             Expr        expr_b = rects.at(a).anchor_expr(anchor);
             constraints.push_back(
-                (expr_a.to_kiwi() == (expr_b + step).to_kiwi())
-                | kiwi_value(strength));
+                (expr_a == (expr_b + step)) | kiwi_value(strength));
         }
     }
     return constraints;
@@ -313,12 +423,12 @@ ParentWrapConstraint::ParentWrapConstraint(
     , nested_rect_ids(std::move(nested_rect_ids))
     , pad{pad} {}
 
-Vec<kiwi::Constraint> ParentWrapConstraint::build(
+Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
     RectMap const& rects) const {
     if (nested_rect_ids.empty()) { return {}; }
 
-    Rect const&           parent = rects.at(parent_rect_id);
-    Vec<kiwi::Constraint> constraints;
+    Rect const&              parent = rects.at(parent_rect_id);
+    Vec<kiwi_ir::Constraint> constraints;
 
     Vec<Expr> left_exprs;
     Vec<Expr> top_exprs;
@@ -337,47 +447,43 @@ Vec<kiwi::Constraint> ParentWrapConstraint::build(
 
     for (auto const& nested_left : left_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::LEFT).to_kiwi()
-             <= (nested_left - pad.left).to_kiwi())
+            (parent.anchor_expr(Anchor::LEFT) <= (nested_left - pad.left))
             | kiwi_value(strength));
     }
 
     for (auto const& nested_top : top_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::TOP).to_kiwi()
-             <= (nested_top - pad.top).to_kiwi())
+            (parent.anchor_expr(Anchor::TOP) <= (nested_top - pad.top))
             | kiwi_value(strength));
     }
 
     for (auto const& nested_right : right_exprs) {
         constraints.push_back(
-            ((nested_right + pad.right).to_kiwi()
-             <= parent.anchor_expr(Anchor::RIGHT).to_kiwi())
+            ((nested_right + pad.right)
+             <= parent.anchor_expr(Anchor::RIGHT))
             | kiwi_value(strength));
     }
 
     for (auto const& nested_bottom : bottom_exprs) {
         constraints.push_back(
-            ((nested_bottom + pad.bottom).to_kiwi()
-             <= parent.anchor_expr(Anchor::BOTTOM).to_kiwi())
+            ((nested_bottom + pad.bottom)
+             <= parent.anchor_expr(Anchor::BOTTOM))
             | kiwi_value(strength));
     }
 
     constraints.push_back(
-        (parent.anchor_expr(Anchor::LEFT).to_kiwi()
-         == (left_exprs[0] - pad.left).to_kiwi())
+        (parent.anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left))
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::TOP).to_kiwi()
-         == (top_exprs[0] - pad.top).to_kiwi())
+        (parent.anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top))
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::RIGHT).to_kiwi()
-         == (right_exprs[right_exprs.size() - 1] + pad.right).to_kiwi())
+        (parent.anchor_expr(Anchor::RIGHT)
+         == (right_exprs[right_exprs.size() - 1] + pad.right))
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::BOTTOM).to_kiwi()
-         == (bottom_exprs[bottom_exprs.size() - 1] + pad.bottom).to_kiwi())
+        (parent.anchor_expr(Anchor::BOTTOM)
+         == (bottom_exprs[bottom_exprs.size() - 1] + pad.bottom))
         | kiwi_value(strength));
 
     return constraints;
@@ -427,32 +533,30 @@ RelativeConstraint::RelativeConstraint(
     , anchor_relative(anchor_relative)
     , anchor_fixed(anchor_fixed) {}
 
-Vec<kiwi::Constraint> RelativeConstraint::build(
+Vec<kiwi_ir::Constraint> RelativeConstraint::build(
     RectMap const& rects) const {
-    Rect const&           rel = rects.at(relative_rect_id);
-    Rect const&           fix = rects.at(fixed_rect_id);
-    Vec<kiwi::Constraint> constraints;
+    Rect const&              rel = rects.at(relative_rect_id);
+    Rect const&              fix = rects.at(fixed_rect_id);
+    Vec<kiwi_ir::Constraint> constraints;
 
     if (x_dim.size_factor.has_value()) {
         constraints.push_back(
-            (rel.expr(RectAttr::WIDTH).to_kiwi()
-             == (fix.expr(RectAttr::WIDTH) * x_dim.size_factor.value())
-                    .to_kiwi())
+            (rel.expr(RectAttr::WIDTH)
+             == (fix.expr(RectAttr::WIDTH) * x_dim.size_factor.value()))
             | kiwi_value(strength));
     }
 
     if (y_dim.size_factor.has_value()) {
         constraints.push_back(
-            (rel.expr(RectAttr::HEIGHT).to_kiwi()
+            (rel.expr(RectAttr::HEIGHT)
              // TODO: See [[configurable-offset-comparison-directions]]
-             == (fix.expr(RectAttr::HEIGHT) * y_dim.size_factor.value())
-                    .to_kiwi())
+             == (fix.expr(RectAttr::HEIGHT) * y_dim.size_factor.value()))
             | kiwi_value(strength));
     }
 
     if (x_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.x).to_kiwi()
+            (rel.anchor_expr(anchor_relative.x)
              == (fix.anchor_expr(anchor_fixed.x)
                  // TODO: NOTE: It would be better to create another IR to
                  // store the expression in a more inspect-able manner and
@@ -461,33 +565,29 @@ Vec<kiwi::Constraint> RelativeConstraint::build(
                  // structure to capture all additional structureal
                  // information and simplify the debugging.
                  + (x_dim.relative_offset.value()
-                    * fix.expr(RectAttr::WIDTH).to_kiwi())
-                 + x_dim.absolute_offset)
-                    .to_kiwi())
+                    * fix.expr(RectAttr::WIDTH))
+                 + x_dim.absolute_offset))
             | kiwi_value(strength));
 
     } else {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.x).to_kiwi()
-             == (fix.anchor_expr(anchor_fixed.x) + x_dim.absolute_offset)
-                    .to_kiwi())
+            (rel.anchor_expr(anchor_relative.x)
+             == (fix.anchor_expr(anchor_fixed.x) + x_dim.absolute_offset))
             | kiwi_value(strength));
     }
 
     if (y_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.y).to_kiwi()
+            (rel.anchor_expr(anchor_relative.y)
              == (fix.anchor_expr(anchor_fixed.y)
                  + (y_dim.relative_offset.value()
-                    * fix.expr(RectAttr::HEIGHT).to_kiwi())
-                 + y_dim.absolute_offset)
-                    .to_kiwi())
+                    * fix.expr(RectAttr::HEIGHT))
+                 + y_dim.absolute_offset))
             | kiwi_value(strength));
     } else {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.y).to_kiwi()
-             == (fix.anchor_expr(anchor_fixed.y) + y_dim.absolute_offset)
-                    .to_kiwi())
+            (rel.anchor_expr(anchor_relative.y)
+             == (fix.anchor_expr(anchor_fixed.y) + y_dim.absolute_offset))
             | kiwi_value(strength));
     }
 
@@ -559,16 +659,16 @@ EvenGapConstraint::EvenGapConstraint(
     , axis(axis)
     , anchor(anchor) {}
 
-Vec<kiwi::Constraint> EvenGapConstraint::build(
+Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
     RectMap const& rects) const {
     if (rect_ids.size() < 3) { return {}; }
-    Vec<kiwi::Constraint> constraints;
+    Vec<kiwi_ir::Constraint> constraints;
     for (int i = 1; i + 1 < rect_ids.size(); ++i) {
         Expr a = rects.at(rect_ids[i - 1]).anchor_expr(anchor);
         Expr b = rects.at(rect_ids[i]).anchor_expr(anchor);
         Expr c = rects.at(rect_ids[i + 1]).anchor_expr(anchor);
         constraints.push_back(
-            (((b - a) - (c - b)).to_kiwi() == 0) | kiwi_value(strength));
+            (((b - a) - (c - b)) == 0) | kiwi_value(strength));
     }
     return constraints;
 }
@@ -615,21 +715,19 @@ EqualSizeConstraint::EqualSizeConstraint(
     , match_width(match_width)
     , match_height(match_height) {}
 
-Vec<kiwi::Constraint> EqualSizeConstraint::build(
+Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(
     RectMap const& rects) const {
-    Rect const&           a = rects.at(rect_a_id);
-    Rect const&           b = rects.at(rect_b_id);
-    Vec<kiwi::Constraint> constraints;
+    Rect const&              a = rects.at(rect_a_id);
+    Rect const&              b = rects.at(rect_b_id);
+    Vec<kiwi_ir::Constraint> constraints;
     if (match_width) {
         constraints.push_back(
-            (a.expr(RectAttr::WIDTH).to_kiwi()
-             == b.expr(RectAttr::WIDTH).to_kiwi())
+            (a.expr(RectAttr::WIDTH) == b.expr(RectAttr::WIDTH))
             | kiwi_value(strength));
     }
     if (match_height) {
         constraints.push_back(
-            (a.expr(RectAttr::HEIGHT).to_kiwi()
-             == b.expr(RectAttr::HEIGHT).to_kiwi())
+            (a.expr(RectAttr::HEIGHT) == b.expr(RectAttr::HEIGHT))
             | kiwi_value(strength));
     }
     return constraints;
@@ -669,15 +767,14 @@ LinearConstraint::LinearConstraint(
     , relation(relation)
     , right(std::move(right)) {}
 
-Vec<kiwi::Constraint> LinearConstraint::build(RectMap const&) const {
-    kiwi::Constraint c = (left.to_kiwi() == right.to_kiwi())
-                       | kiwi_value(strength);
+Vec<kiwi_ir::Constraint> LinearConstraint::build(RectMap const&) const {
+    kiwi_ir::Constraint c = (left == right) | kiwi_value(strength);
     if (relation == Relation::EQ) {
-        c = (left.to_kiwi() == right.to_kiwi()) | kiwi_value(strength);
+        c = (left == right) | kiwi_value(strength);
     } else if (relation == Relation::LE) {
-        c = (left.to_kiwi() <= right.to_kiwi()) | kiwi_value(strength);
+        c = (left <= right) | kiwi_value(strength);
     } else if (relation == Relation::GE) {
-        c = (right.to_kiwi() <= left.to_kiwi()) | kiwi_value(strength);
+        c = (right <= left) | kiwi_value(strength);
     } else {
         throw std::runtime_error("Invalid relation");
     }
@@ -705,40 +802,36 @@ RectMap Layout::solve() {
     kiwi::Solver solver;
 
     for (auto& [rect_id, rect] : rects) {
-        solver.addConstraint(
-            (0 <= rect.expr(RectAttr::WIDTH).to_kiwi())
-            | kiwi::strength::required);
-        solver.addConstraint(
-            (0 <= rect.expr(RectAttr::HEIGHT).to_kiwi())
-            | kiwi::strength::required);
+        solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::WIDTH)))
+                                 .to_kiwi(kiwi::strength::required));
+        solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::HEIGHT)))
+                                 .to_kiwi(kiwi::strength::required));
 
         if (rect.x0.has_value()) {
             solver.addConstraint(
-                (rect.expr(RectAttr::X).to_kiwi() == rect.x0.value())
-                | kiwi::strength::required);
+                (rect.expr(RectAttr::X) == rect.x0.value())
+                    .to_kiwi(kiwi::strength::required));
         }
         if (rect.y0.has_value()) {
             solver.addConstraint(
-                (rect.expr(RectAttr::Y).to_kiwi() == rect.y0.value())
-                | kiwi::strength::required);
+                (rect.expr(RectAttr::Y) == rect.y0.value())
+                    .to_kiwi(kiwi::strength::required));
         }
         if (rect.width0.has_value()) {
             solver.addConstraint(
-                (rect.expr(RectAttr::WIDTH).to_kiwi()
-                 == rect.width0.value())
-                | kiwi::strength::required);
+                (rect.expr(RectAttr::WIDTH) == rect.width0.value())
+                    .to_kiwi(kiwi::strength::required));
         }
         if (rect.height0.has_value()) {
             solver.addConstraint(
-                (rect.expr(RectAttr::HEIGHT).to_kiwi()
-                 == rect.height0.value())
-                | kiwi::strength::required);
+                (rect.expr(RectAttr::HEIGHT) == rect.height0.value())
+                    .to_kiwi(kiwi::strength::required));
         }
     }
 
     for (auto const& item : constraints) {
         for (auto const& c : item->build(rects)) {
-            solver.addConstraint(c);
+            solver.addConstraint(c.to_kiwi());
         }
     }
 
@@ -981,13 +1074,13 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         entries.push_back(
             ConstraintEntry{
                 std::format("Rect({}).width >= 0", rect.rect_id),
-                {(0 <= rect.expr(RectAttr::WIDTH).to_kiwi())
+                {(Expr(0) <= rect.expr(RectAttr::WIDTH))
                  | kiwi::strength::required},
             });
         entries.push_back(
             ConstraintEntry{
                 std::format("Rect({}).height >= 0", rect.rect_id),
-                {(0 <= rect.expr(RectAttr::HEIGHT).to_kiwi())
+                {(Expr(0) <= rect.expr(RectAttr::HEIGHT))
                  | kiwi::strength::required},
             });
 
@@ -998,7 +1091,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
                         "Rect({}).x == {:g}",
                         rect.rect_id,
                         rect.x0.value()),
-                    {(rect.expr(RectAttr::X).to_kiwi() == rect.x0.value())
+                    {(rect.expr(RectAttr::X) == rect.x0.value())
                      | kiwi::strength::required},
                 });
         }
@@ -1009,7 +1102,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
                         "Rect({}).y == {:g}",
                         rect.rect_id,
                         rect.y0.value()),
-                    {(rect.expr(RectAttr::Y).to_kiwi() == rect.y0.value())
+                    {(rect.expr(RectAttr::Y) == rect.y0.value())
                      | kiwi::strength::required},
                 });
         }
@@ -1020,8 +1113,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
                         "Rect({}).width == {:g}",
                         rect.rect_id,
                         rect.width0.value()),
-                    {(rect.expr(RectAttr::WIDTH).to_kiwi()
-                      == rect.width0.value())
+                    {(rect.expr(RectAttr::WIDTH) == rect.width0.value())
                      | kiwi::strength::required},
                 });
         }
@@ -1032,8 +1124,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
                         "Rect({}).height == {:g}",
                         rect.rect_id,
                         rect.height0.value()),
-                    {(rect.expr(RectAttr::HEIGHT).to_kiwi()
-                      == rect.height0.value())
+                    {(rect.expr(RectAttr::HEIGHT) == rect.height0.value())
                      | kiwi::strength::required},
                 });
         }
@@ -1054,7 +1145,8 @@ hstd::Result<std::monostate, Layout::LoweredFailureDescr> Layout::
             auto const& entry = entries.at(entry_idx);
             for (int lowered_idx = 0; lowered_idx < entry.lowered.size();
                  ++lowered_idx) {
-                solver.addConstraint(entry.lowered.at(lowered_idx));
+                solver.addConstraint(
+                    entry.lowered.at(lowered_idx).to_kiwi());
             }
         }
     } catch (kiwi::UnsatisfiableConstraint const&) {
@@ -1157,7 +1249,7 @@ void Layout::verify_constraints() {
     for (auto const& entry : entries) {
         try {
             for (auto const& lowered : entry.lowered) {
-                solver.addConstraint(lowered);
+                solver.addConstraint(lowered.to_kiwi());
             }
         } catch (kiwi::UnsatisfiableConstraint const&) {
             auto conflicts = minimal_conflict_set(active_entries, entry);
@@ -1184,8 +1276,7 @@ void Layout::verify_constraints() {
                                 "adding lowered element {}",
                                 tree_repr(
                                     entries.at(src.desc->entry_idx)
-                                        .lowered.at(src.desc->lowered_idx)
-                                        .expression(),
+                                        .lowered.at(src.desc->lowered_idx),
                                     6)));
                     }
                 }
@@ -1234,6 +1325,90 @@ void repr_impl(
 
     repr_impl(os, c.expression(), 1);
 }
+
+
+void repr_impl(hstd::ColStream& os, Expr::Node const& n, int indent) {
+    os.newline();
+    os.indent(indent);
+
+    using Kind = Expr::Node::Kind;
+    switch (n.kind) {
+        case Kind::Constant:
+            os << hstd::fmt("Const({})", n.constant);
+            break;
+
+        case Kind::Variable:
+            os << hstd::fmt("Var({})", n.variable->name());
+            break;
+
+        case Kind::KiwiExpression: {
+            os << "KiwiExpr";
+            int var_size = 8;
+            for (auto const& t : n.kiwi_expr->terms()) {
+                var_size = std::max<int>(
+                    var_size, t.variable().name().size());
+            }
+
+            for (auto const& t : hstd::enumerator(n.kiwi_expr->terms())) {
+                os.newline();
+                os.indent(indent + 1);
+                os << hstd::fmt(
+                    "{:<{}} {}",
+                    t.value().variable(),
+                    var_size,
+                    t.value().coefficient());
+            }
+
+            os.newline();
+            os.indent(indent + 1);
+            os << hstd::fmt("const {}", n.kiwi_expr->constant());
+            break;
+        }
+
+        case Kind::Add:
+            os << "Add";
+            repr_impl(os, *n.lhs, indent + 1);
+            repr_impl(os, *n.rhs, indent + 1);
+            break;
+
+        case Kind::Sub:
+            os << "Sub";
+            repr_impl(os, *n.lhs, indent + 1);
+            repr_impl(os, *n.rhs, indent + 1);
+            break;
+
+        case Kind::Mul:
+            os << "Mul";
+            repr_impl(os, *n.lhs, indent + 1);
+            repr_impl(os, *n.rhs, indent + 1);
+            break;
+
+        case Kind::Neg:
+            os << "Neg";
+            repr_impl(os, *n.lhs, indent + 1);
+            break;
+    }
+}
+
+void repr_impl(hstd::ColStream& os, Constraint const& c, int indent) {
+    os.newline();
+    os.indent(indent);
+
+    switch (c.op) {
+        case kiwi::RelationalOperator::OP_EQ:
+            os << "Constraint(EQ)";
+            break;
+        case kiwi::RelationalOperator::OP_LE:
+            os << "Constraint(LE)";
+            break;
+        case kiwi::RelationalOperator::OP_GE:
+            os << "Constraint(GE)";
+            break;
+    }
+
+    repr_impl(os, *c.lhs.node, indent + 1);
+    repr_impl(os, *c.rhs.node, indent + 1);
+}
 } // namespace
 
 Str tree_repr(kiwi::Expression const& c, int indent) {
@@ -1264,5 +1439,25 @@ Anchor get_anchor(Axis axis, AnchorAxisRelative rel) {
             return axis == Axis::X ? Anchor::RIGHT : Anchor::BOTTOM;
     }
 }
+
+
+Str tree_repr(Expr const& c, int indent) {
+    hstd::ColStream os;
+    repr_impl(os, *c.node, indent);
+    return os.toString(false);
+}
+
+Str tree_repr(Constraint const& c, int indent) {
+    hstd::ColStream os;
+    repr_impl(os, c, indent);
+    return os.toString(false);
+}
+
+Str tree_repr(Vec<Constraint> const& c, int indent) {
+    hstd::ColStream os;
+    for (auto const& sub_c : c) { repr_impl(os, sub_c, indent); }
+    return os.toString(false);
+}
+
 
 } // namespace hstd::ext::kiwi_ir

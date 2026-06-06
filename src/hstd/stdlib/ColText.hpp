@@ -291,6 +291,8 @@ struct StreamState {
     ~StreamState();
 };
 
+/// \brief Utility class to simplify stream-like formatting of the
+/// structured data.
 struct ColStream : public ColText {
     std::ostream* ostream = nullptr;
     bool          buffered;

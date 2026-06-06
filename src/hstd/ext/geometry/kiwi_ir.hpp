@@ -111,27 +111,98 @@ struct AnchorSpec {
 };
 
 
+class Constraint;
+
 class Expr {
   public:
-    kiwi::Expression value;
-
     Expr(double value);
     Expr(kiwi::Variable const& value);
     Expr(kiwi::Expression const& value);
-
-    kiwi::Expression const& to_kiwi() const;
 
     Expr operator+(Expr const& other) const;
     Expr operator-(Expr const& other) const;
     Expr operator*(double other) const;
     Expr operator-() const;
-
     Expr operator*(Expr const& other) const;
+
+    Constraint operator==(Expr const& other) const;
+    Constraint operator<=(Expr const& other) const;
+    Constraint operator>=(Expr const& other) const;
+
+    struct Node {
+        enum class Kind
+        {
+            Constant,
+            Variable,
+            KiwiExpression,
+            Add,
+            Sub,
+            Mul,
+            Neg
+        };
+
+        Kind                            kind;
+        double                          constant = 0.0;
+        std::optional<kiwi::Variable>   variable;
+        std::optional<kiwi::Expression> kiwi_expr;
+        std::shared_ptr<Node const>     lhs;
+        std::shared_ptr<Node const>     rhs;
+    };
+
+    std::shared_ptr<Node const> node;
+
+  private:
+    explicit Expr(std::shared_ptr<Node const> node);
+
+    static std::shared_ptr<Node const> make_constant(double value);
+    static std::shared_ptr<Node const> make_variable(
+        kiwi::Variable const& value);
+    static std::shared_ptr<Node const> make_kiwi_expr(
+        kiwi::Expression const& value);
+    static std::shared_ptr<Node const> make_unary(
+        Node::Kind                  kind,
+        std::shared_ptr<Node const> lhs);
+    static std::shared_ptr<Node const> make_binary(
+        Node::Kind                  kind,
+        std::shared_ptr<Node const> lhs,
+        std::shared_ptr<Node const> rhs);
+
+    friend class Constraint;
+    friend Str tree_repr(Expr const& c, int indent);
 };
+
+class Constraint {
+  public:
+    Constraint(
+        Expr const&              lhs,
+        Expr const&              rhs,
+        kiwi::RelationalOperator op);
+
+    kiwi::Constraint to_kiwi(hstd::Opt<double> str = std::nullopt) const;
+
+    Constraint& operator|(double str) {
+        this->strength = str;
+        return *this;
+    }
+
+    Expr                     lhs;
+    Expr                     rhs;
+    kiwi::RelationalOperator op;
+    hstd::Opt<double>        strength;
+
+  private:
+    static kiwi::Expression fold_expr(
+        std::shared_ptr<Expr::Node const> const& node);
+};
+
 
 Expr operator+(double left, Expr const& right);
 Expr operator-(double left, Expr const& right);
 Expr operator*(double left, Expr const& right);
+
+Str tree_repr(Expr const& c, int indent = 0);
+Str tree_repr(Constraint const& c, int indent = 0);
+Str tree_repr(Vec<Constraint> const& c, int indent = 0);
 
 struct Rect {
     Str            rect_id;
@@ -176,15 +247,15 @@ class ConstraintBase {
     explicit ConstraintBase(Strength strength = Strength::REQUIRED);
     virtual ~ConstraintBase() = default;
 
-    virtual Vec<kiwi::Constraint> build(RectMap const& rects) const = 0;
-    virtual Vec<EdgeDesc>         describe_edges() const            = 0;
-    virtual Str                   getRepr(
+    virtual Vec<kiwi_ir::Constraint> build(RectMap const& rects) const = 0;
+    virtual Vec<EdgeDesc>            describe_edges() const            = 0;
+    virtual Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
 };
 
 struct ConstraintEntry {
     std::variant<Str, hstd::SPtr<ConstraintBase>> source;
-    Vec<kiwi::Constraint>                         lowered;
+    Vec<kiwi_ir::Constraint>                      lowered;
 };
 
 Str describe_constraint_source(
@@ -222,9 +293,9 @@ class AlignConstraint : public ConstraintBase {
         Vec<AlignItem> items,
         Strength       strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -259,9 +330,9 @@ class SeparateConstraint : public ConstraintBase {
         double   offset,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -285,9 +356,9 @@ class MultiSeparateConstraint : public ConstraintBase {
         double        step,
         Strength      strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -319,9 +390,9 @@ class ParentWrapConstraint : public ConstraintBase {
         geometry::Padding const& pad      = geometry::Padding(),
         Strength                 strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -386,9 +457,9 @@ class RelativeConstraint : public ConstraintBase {
         AnchorSpec       anchor_fixed    = AnchorSpec::UpperLeft(),
         Strength         strength        = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -418,9 +489,9 @@ class EvenGapConstraint : public ConstraintBase {
         Anchor   anchor,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -446,9 +517,9 @@ class EqualSizeConstraint : public ConstraintBase {
         bool     match_height = false,
         Strength strength     = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
@@ -470,9 +541,9 @@ class LinearConstraint : public ConstraintBase {
         Expr     right,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
-    Vec<EdgeDesc>         describe_edges() const override;
-    Str                   getRepr(
+    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>            describe_edges() const override;
+    Str                      getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
