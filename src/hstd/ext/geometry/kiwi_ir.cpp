@@ -666,56 +666,102 @@ Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     //     strength);
 }
 
+
 EvenGapConstraint::EvenGapConstraint(
-    Vec<Str> rect_ids,
-    Axis     axis,
-    Anchor   anchor,
-    Strength strength)
-    : ConstraintBase(strength)
-    , rect_ids(std::move(rect_ids))
-    , axis(axis)
-    , anchor(anchor) {}
+    Vec<RectSpec> rects_spec,
+    Strength      strength)
+    : ConstraintBase(strength), rects_spec(std::move(rects_spec)) {
+    for (auto const& spec : this->rects_spec) {
+        if (anchor_axis(spec.min_anchor) != anchor_axis(spec.max_anchor)) {
+            throw hstd::invalid_argument::init(
+                std::format(
+                    "EvenGapConstraint: min/max anchors of '{}' are on "
+                    "different axes "
+                    "({} vs {})",
+                    spec.rect_id,
+                    spec.min_anchor,
+                    spec.max_anchor));
+        }
+    }
+
+    if (!this->rects_spec.empty()) {
+        Axis common_axis = anchor_axis(
+            this->rects_spec.front().min_anchor);
+        for (auto const& spec : this->rects_spec) {
+            if (anchor_axis(spec.min_anchor) != common_axis) {
+                throw hstd::invalid_argument::init(
+                    std::format(
+                        "EvenGapConstraint: mixed axes are not allowed, "
+                        "'{}' has axis {} "
+                        "while expected {}",
+                        spec.rect_id,
+                        anchor_axis(spec.min_anchor),
+                        common_axis));
+            }
+        }
+    }
+}
 
 Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
     RectMap const& rects) const {
-    if (rect_ids.size() < 3) { return {}; }
+    if (rects_spec.size() < 3) { return {}; }
+
     Vec<kiwi_ir::Constraint> constraints;
-    for (int i = 1; i + 1 < rect_ids.size(); ++i) {
-        Expr a = rects.at(rect_ids[i - 1]).anchor_expr(anchor);
-        Expr b = rects.at(rect_ids[i]).anchor_expr(anchor);
-        Expr c = rects.at(rect_ids[i + 1]).anchor_expr(anchor);
+    for (int i = 1; i + 1 < rects_spec.size(); ++i) {
+        RectSpec const& prev = rects_spec[i - 1];
+        RectSpec const& curr = rects_spec[i];
+        RectSpec const& next = rects_spec[i + 1];
+
+        Expr prev_max = rects.at(prev.rect_id)
+                            .anchor_expr(prev.max_anchor);
+        Expr curr_min = rects.at(curr.rect_id)
+                            .anchor_expr(curr.min_anchor);
+        Expr curr_max = rects.at(curr.rect_id)
+                            .anchor_expr(curr.max_anchor);
+        Expr next_min = rects.at(next.rect_id)
+                            .anchor_expr(next.min_anchor);
+
         constraints.push_back(
-            (((b - a) - (c - b)) == 0) | kiwi_value(strength));
+            (((curr_min - prev_max) - (next_min - curr_max)) == 0)
+            | kiwi_value(strength));
     }
+
     return constraints;
 }
 
 Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
     Vec<EdgeDesc> result;
-    for (int i = 0; i + 1 < rect_ids.size(); ++i) {
+    for (int i = 0; i + 1 < rects_spec.size(); ++i) {
+        RectSpec const& a = rects_spec[i];
+        RectSpec const& b = rects_spec[i + 1];
+
         result.push_back(
             EdgeDesc{
-                rect_ids[i],
-                rect_ids[i + 1],
-                std::format("even-gap:{}", anchor),
-                axis});
+                a.rect_id,
+                b.rect_id,
+                std::format("even-gap:{}->{}", a.max_anchor, b.min_anchor),
+                anchor_axis(a.max_anchor)});
     }
     return result;
 }
 
-Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
+Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const&) const {
     std::ostringstream out;
     out << "[";
-    for (int i = 0; i < rect_ids.size(); ++i) {
-        out << rect_ids[i];
-        if (i + 1 < rect_ids.size()) { out << ", "; }
+    for (int i = 0; i < rects_spec.size(); ++i) {
+        RectSpec const& s = rects_spec[i];
+        out << std::format(
+            "{{id={}, min={}, max={}}}",
+            s.rect_id,
+            s.min_anchor,
+            s.max_anchor);
+        if (i + 1 < rects_spec.size()) { out << ", "; }
     }
     out << "]";
+
     return std::format(
-        "EvenGapConstraint(rect_ids={}, axis={}, anchor={}, strength={})",
+        "EvenGapConstraint(rects_spec={}, strength={})",
         out.str(),
-        axis,
-        anchor,
         strength);
 }
 

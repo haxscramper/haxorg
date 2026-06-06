@@ -472,31 +472,47 @@ class RelativeConstraint : public ConstraintBase {
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
-/// \brief The distance between the diagram elements is equal along the x/y
-/// axis.
-/// \details Creates constraints for a sliding 3-tuple:
-/// (rect[i-1], rect[i], rect[i+1]) such that the gap between
-/// rect[i] and rect[i-1] equals the gap between rect[i+1] and rect[i]:
-/// (anchor_expr(rect[i]) - anchor_expr(rect[i-1]))
-/// == (anchor_expr(rect[i+1]) - anchor_expr(rect[i])).
+/// \brief Equalizes the gaps between consecutive rectangles using
+/// per-rectangle boundary anchors.
 ///
-/// \note The distance is not fixed to some specified amount, but only
-/// equalized among the several elements. For fixed gap placement use \ref
-/// MultiSeparateConstraint constraint.
+/// \details For each sliding 3-tuple of rectangle bounds
+/// (spec[i-1], spec[i], spec[i+1]), this constraint enforces:
+/// (pos(spec[i].min_anchor) - pos(spec[i-1].max_anchor))
+/// ==
+/// (pos(spec[i+1].min_anchor) - pos(spec[i].max_anchor)).
+///
+/// This means the free space between neighboring rectangles is equalized,
+/// where each rectangle can provide its own boundary anchors.
+///
+/// \note No absolute gap size is imposed; only equality between adjacent
+/// gaps is enforced. For fixed-size spacing, use \ref
+/// MultiSeparateConstraint.
 class EvenGapConstraint : public ConstraintBase {
   public:
-    /// \brief Ordered list of rectangle IDs.
-    Vec<Str> rect_ids;
-    /// \brief Axis along which gaps are equalized (X or Y).
-    Axis axis;
-    /// \brief The anchor point used for measuring positions.
-    Anchor anchor;
+    struct RectSpec {
+        Str    rect_id;
+        Anchor min_anchor;
+        Anchor max_anchor;
+
+        RectSpec() {}
+        RectSpec(Str str, Anchor min, Anchor max)
+            : rect_id{str}, min_anchor{min}, max_anchor{max} {}
+
+        static RectSpec HorizontalRectBounds(Str const& str) {
+            return RectSpec(str, Anchor::LEFT, Anchor::RIGHT);
+        }
+
+        static RectSpec VerticalRectBounds(Str const& str) {
+            return RectSpec(str, Anchor::TOP, Anchor::BOTTOM);
+        }
+    };
+
+    /// \brief Ordered list of per-rectangle boundary specifications.
+    Vec<RectSpec> rects_spec;
 
     EvenGapConstraint(
-        Vec<Str> rect_ids,
-        Axis     axis,
-        Anchor   anchor,
-        Strength strength = Strength::REQUIRED);
+        Vec<RectSpec> rects_spec,
+        Strength      strength = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
@@ -505,6 +521,7 @@ class EvenGapConstraint : public ConstraintBase {
 };
 
 /// \brief Ensure the width/height between two rectangles is matched.
+///
 /// \details If match_width: creates constraint
 /// rect_a.width == rect_b.width.
 /// If match_height: rect_a.height == rect_b.height.

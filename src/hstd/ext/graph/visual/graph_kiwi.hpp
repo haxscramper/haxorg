@@ -320,6 +320,35 @@ class RelativeConstraint : public KiwiConstraint {
         const override;
 };
 
+class EvenGapConstraint : public KiwiConstraint {
+    VertexIDVec vertices;
+
+  public:
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return vertices;
+    }
+
+    kiwi_ir::Anchor anchor;
+    kiwi_ir::Axis   axis = kiwi_ir::Axis::X;
+
+    EvenGapConstraint* spaceHorizontally() {
+        axis = kiwi_ir::Axis::X;
+        return this;
+    }
+
+    EvenGapConstraint* addVertex(VertexID const& id) {
+        vertices.push_back(id);
+        return this;
+    }
+
+    EvenGapConstraint(hstd::SPtr<KiwiGroup> const& group)
+        : KiwiConstraint{group} {}
+
+    hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
+        const override;
+};
+
+
 class AlignConstraint : public KiwiConstraint {
   public:
     DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);

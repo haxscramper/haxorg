@@ -55,7 +55,11 @@ TEST(KiwiIr, EvenGapX) {
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
-            Vec<Str>{"a", "b", "c"}, Axis::X, Anchor::LEFT),
+            Vec<EvenGapConstraint::RectSpec>{
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("a"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("b"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("c"),
+            }),
     };
     Layout layout(rects, constraints);
     auto   solved = layout.solve();
@@ -166,7 +170,11 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
     auto                            la = AlignSpec{.anchor = Anchor::LEFT};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
-            Vec<Str>{"r00", "r01", "r02"}, Axis::X, Anchor::LEFT),
+            Vec<EvenGapConstraint::RectSpec>{
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("r00"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("r01"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("r02"),
+            }),
         std::make_shared<AlignConstraint>(
             Vec<AlignItem>{{"r00", la}, {"r10", la}, {"r20", la}}),
         std::make_shared<AlignConstraint>(
@@ -272,7 +280,11 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
-            Vec<Str>{"fix1", "fix2", "fix3"}, Axis::X, Anchor::LEFT),
+            Vec<EvenGapConstraint::RectSpec>{
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix1"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix2"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix3"),
+            }),
         std::make_shared<RelativeConstraint>(
             /*parent_rect_id=*/"fix1",
             /*nested_rect_id=*/"rel1",
@@ -393,7 +405,14 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
     double                          step        = 40.0;
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
-            Vec<Str>{"a", "b", "c", "d", "e", "f"}, Axis::X, Anchor::LEFT),
+            Vec<EvenGapConstraint::RectSpec>{
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("a"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("b"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("c"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("d"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("e"),
+                EvenGapConstraint::RectSpec::HorizontalRectBounds("f"),
+            }),
         std::make_shared<MultiSeparateConstraint>(
             /*groups=*/Vec<Vec<Str>>{{"a"}, {"c"}, {"e"}},
             /*anchor=*/Anchor::LEFT,

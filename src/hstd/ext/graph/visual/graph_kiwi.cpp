@@ -410,3 +410,22 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::RelativeConstraint::
             /*strength=*/strength),
     };
 }
+
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EvenGapConstraint::
+    getKiwi() const {
+    return {
+        std::make_shared<kiwi_ir::EvenGapConstraint>(
+            vertices
+                | rv::transform(
+                    [this](VertexID const& id)
+                        -> kiwi_ir::EvenGapConstraint::RectSpec {
+                        return axis == kiwi_ir::Axis::X
+                                 ? kiwi_ir::EvenGapConstraint::RectSpec::
+                                       HorizontalRectBounds(rectId(id))
+                                 : kiwi_ir::EvenGapConstraint::RectSpec::
+                                       VerticalRectBounds(rectId(id));
+                    })
+                | rs::to<Vec>(),
+            /*strength=*/strength),
+    };
+}
