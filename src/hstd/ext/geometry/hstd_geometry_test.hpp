@@ -278,25 +278,39 @@ GeometryCheckResult checkAlignedVertically(
     double   rtol      = 1e-5,
     double   atol      = 1e-8);
 
+DECL_DESCRIBED_ENUM_STANDALONE(DistanceCheck, Both, XOnly, YOnly);
+
 /// \brief Checks whether the minimal distance between two shapes is large
 /// enough.
 template <typename L, typename R>
 GeometryCheckResult checkMinDistance(
-    L const& first,
-    R const& second,
-    double   minDistance,
-    double   rtol = 1e-5,
-    double   atol = 1e-8);
+    L const&      first,
+    R const&      second,
+    double        minDistance,
+    DistanceCheck check = DistanceCheck::Both,
+    double        rtol  = 1e-5,
+    double        atol  = 1e-8);
 
 /// \brief Checks whether the minimal distance between two shapes stays
 /// below a limit.
 template <typename L, typename R>
 GeometryCheckResult checkMaxDistance(
-    L const& first,
-    R const& second,
-    double   maxDistance,
-    double   rtol = 1e-5,
-    double   atol = 1e-8);
+    L const&      first,
+    R const&      second,
+    double        maxDistance,
+    DistanceCheck check = DistanceCheck::Both,
+    double        rtol  = 1e-5,
+    double        atol  = 1e-8);
+
+template <typename L, typename R>
+GeometryCheckResult checkDistance(
+    L const&      first,
+    R const&      second,
+    double        maxDistance,
+    DistanceCheck check = DistanceCheck::Both,
+    double        rtol  = 1e-5,
+    double        atol  = 1e-8);
+
 
 /// \brief Checks whether two shapes have matching width and height.
 template <typename L, typename R>
@@ -336,86 +350,29 @@ GeometryCheckResult checkEquidistant(
 namespace hstd::ext::geometry {
 namespace detail {
 
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(Rect const& value);
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    Point const& value);
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(Path const& value);
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    visual::VisGroup const& value);
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    hstd::Vec<visual::VisGroup> const& value);
 
-GeometryCheckResult checkPartiallyAboveBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxUnderPercent,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkPartiallyBelowBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxOverPercent,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkPartiallyLeftBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxOverPercent,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkPartiallyRightBounds(
-    Rect const& stationary,
-    Rect const& relative,
-    double      maxOverPercent,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkFullyCoversBounds(
-    Rect const& first,
-    Rect const& second,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkAlignedHorizontallyBounds(
-    Rect const& first,
-    Rect const& second,
-    double      tolerance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkAlignedVerticallyBounds(
-    Rect const& first,
-    Rect const& second,
-    double      tolerance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkMinDistanceBounds(
-    Rect const& first,
-    Rect const& second,
-    double      minDistance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkMaxDistanceBounds(
-    Rect const& first,
-    Rect const& second,
-    double      maxDistance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkSameSizeBounds(
-    Rect const& first,
-    Rect const& second,
-    double      tolerance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkSameWidthBounds(
-    Rect const& first,
-    Rect const& second,
-    double      tolerance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
-GeometryCheckResult checkSameHeightBounds(
-    Rect const& first,
-    Rect const& second,
-    double      tolerance,
-    double      rtol = 1e-5,
-    double      atol = 1e-8);
+// clang-format off
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Rect const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Point const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Path const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(visual::VisGroup const& value);
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(hstd::Vec<visual::VisGroup> const& value);
+
+GeometryCheckResult checkPartiallyAboveBounds(Rect const &stationary, Rect const &relative, double maxUnderPercent, double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkPartiallyBelowBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkPartiallyLeftBounds(Rect const &stationary,  Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkPartiallyRightBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkFullyCoversBounds(Rect const &first,         Rect const &second,   double rtol = 1e-5,     double atol = 1e-8);
+GeometryCheckResult checkAlignedHorizontallyBounds(Rect const &first, Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkAlignedVerticallyBounds(Rect const &first,   Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkMinDistanceBounds(Rect const &first,         Rect const &second,   double minDistance,     DistanceCheck check, double rtol = 1e-5, double atol = 1e-8);
+GeometryCheckResult checkMaxDistanceBounds(Rect const &first,         Rect const &second,   double maxDistance,     DistanceCheck check, double rtol = 1e-5, double atol = 1e-8);
+GeometryCheckResult checkDistanceBounds(Rect const &first,            Rect const &second,   double maxDistance,     DistanceCheck check, double rtol = 1e-5, double atol = 1e-8);
+GeometryCheckResult checkSameSizeBounds(Rect const &first,            Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkSameWidthBounds(Rect const &first,           Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
+GeometryCheckResult checkSameHeightBounds(Rect const &first,          Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
+// clang-format on
+
 GeometryCheckResult checkEquidistantBounds(
     hstd::Vec<Rect> const& items,
     double                 tolerance);
@@ -605,29 +562,46 @@ GeometryCheckResult checkAlignedVertically(
 
 template <typename L, typename R>
 GeometryCheckResult checkMinDistance(
-    L const& first,
-    R const& second,
-    double   minDistance,
-    double   rtol,
-    double   atol) {
+    L const&      first,
+    R const&      second,
+    double        minDistance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
     return detail::runBinaryBoundsCheck(
         "min-distance", first, second, [&](Rect const& a, Rect const& b) {
             return detail::checkMinDistanceBounds(
-                a, b, minDistance, rtol, atol);
+                a, b, minDistance, check, rtol, atol);
         });
 }
 
 template <typename L, typename R>
 GeometryCheckResult checkMaxDistance(
-    L const& first,
-    R const& second,
-    double   maxDistance,
-    double   rtol,
-    double   atol) {
+    L const&      first,
+    R const&      second,
+    double        maxDistance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
     return detail::runBinaryBoundsCheck(
         "max-distance", first, second, [&](Rect const& a, Rect const& b) {
             return detail::checkMaxDistanceBounds(
-                a, b, maxDistance, rtol, atol);
+                a, b, maxDistance, check, rtol, atol);
+        });
+}
+
+template <typename L, typename R>
+GeometryCheckResult checkDistance(
+    L const&      first,
+    R const&      second,
+    double        distance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
+    return detail::runBinaryBoundsCheck(
+        "max-distance", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkDistanceBounds(
+                a, b, distance, check, rtol, atol);
         });
 }
 

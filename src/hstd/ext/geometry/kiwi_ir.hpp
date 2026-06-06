@@ -46,6 +46,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(Axis, X, Y);
 // set of constaints. The "anchor" enum should be broken down into the
 // tuple Axis+AnchorAxisRelative, with the AnchorAxisRelative just being a
 // convenient shorthand for the `[0, 1]` range of values.
+// <<kiwi-arbitrary-anchor-positions>>
 DECL_DESCRIBED_ENUM_STANDALONE(
     Anchor,
     LEFT,
@@ -108,6 +109,8 @@ struct AnchorSpec {
     static AnchorSpec CenterCenter() {
         return AnchorSpec(Anchor::HCENTER, Anchor::VCENTER);
     }
+
+    DESC_FIELDS(AnchorSpec, (x, y));
 };
 
 
@@ -203,6 +206,8 @@ Expr operator*(double left, Expr const& right);
 Str tree_repr(Expr const& c, int indent = 0);
 Str tree_repr(Constraint const& c, int indent = 0);
 Str tree_repr(Vec<Constraint> const& c, int indent = 0);
+Str flat_repr(Expr const& n, bool full_flatten = false);
+Str flat_repr(Constraint const& c, bool full_flatten = false);
 
 struct Rect {
     Str            rect_id;
@@ -234,10 +239,11 @@ struct Rect {
 using RectMap = hstd::UnorderedMap<Str, Rect>;
 
 struct EdgeDesc {
-    Str src;
-    Str dst;
-    Str label;
-    Str color;
+    Str            src;
+    Str            dst;
+    Str            label;
+    Axis           axis;
+    hstd::Opt<Str> color;
 };
 
 class ConstraintBase {
@@ -249,7 +255,10 @@ class ConstraintBase {
 
     virtual Vec<kiwi_ir::Constraint> build(RectMap const& rects) const = 0;
     virtual Vec<EdgeDesc>            describe_edges() const            = 0;
-    virtual Str                      getRepr(
+
+    Vec<Str> getBuildRepr(hstd::Opt<RectMap> const& rects) const;
+
+    virtual Str getRepr(
         hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
 };
 

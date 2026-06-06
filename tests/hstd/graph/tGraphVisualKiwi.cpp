@@ -45,10 +45,22 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
     root->addVertex(addNesting(rg_id, v_relative), Size(6, 6));
 
     root->addConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
-        ->setRelativeOffset(5, 5);
+        ->setAbsoluteOffset(10, 10);
 
     run->runFullLayout();
     writeVisual();
+
+    EXPECT_OUTCOME_OK(checkDistance(
+        run->getAbsoluteBBox(v_fixed).upper_left(),
+        run->getAbsoluteBBox(v_relative).upper_left(),
+        10,
+        DistanceCheck::XOnly));
+
+    EXPECT_OUTCOME_OK(checkDistance(
+        run->getAbsoluteBBox(v_fixed).upper_left(),
+        run->getAbsoluteBBox(v_relative).upper_left(),
+        10,
+        DistanceCheck::YOnly));
 }
 
 TEST_F(GraphKiwi_Test, KiwiAlign) {

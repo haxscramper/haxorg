@@ -211,31 +211,47 @@ Rect::Rect(
     , height(std::format("{}.height", this->rect_id)) {}
 
 Expr Rect::expr(RectAttr name) const {
-    if (name == RectAttr::X) { return Expr(x); }
-    if (name == RectAttr::Y) { return Expr(y); }
-    if (name == RectAttr::WIDTH) { return Expr(width); }
-    if (name == RectAttr::HEIGHT) { return Expr(height); }
-    if (name == RectAttr::LEFT) { return Expr(x); }
-    if (name == RectAttr::HCENTER) { return Expr(x) + 0.5 * Expr(width); }
-    if (name == RectAttr::RIGHT) { return Expr(x) + Expr(width); }
-    if (name == RectAttr::TOP) { return Expr(y); }
-    if (name == RectAttr::VCENTER) { return Expr(y) + 0.5 * Expr(height); }
-    if (name == RectAttr::BOTTOM) { return Expr(y) + Expr(height); }
+    switch (name) {
+        case RectAttr::X: return Expr(x);
+        case RectAttr::Y: return Expr(y);
+        case RectAttr::WIDTH: return Expr(width);
+        case RectAttr::HEIGHT: return Expr(height);
+        case RectAttr::LEFT:
+            return Expr(x);
+            // TODO: See [[kiwi-arbitrary-anchor-positions]]
+        case RectAttr::HCENTER: return Expr(x) + 0.5 * Expr(width);
+        case RectAttr::RIGHT: return Expr(x) + Expr(width);
+        case RectAttr::TOP: return Expr(y);
+        case RectAttr::VCENTER: return Expr(y) + 0.5 * Expr(height);
+        case RectAttr::BOTTOM: return Expr(y) + Expr(height);
+    }
     throw std::runtime_error("Invalid RectAttr");
 }
 
 Expr Rect::anchor_expr(Anchor anchor) const {
-    if (anchor == Anchor::LEFT) { return expr(RectAttr::LEFT); }
-    if (anchor == Anchor::HCENTER) { return expr(RectAttr::HCENTER); }
-    if (anchor == Anchor::RIGHT) { return expr(RectAttr::RIGHT); }
-    if (anchor == Anchor::TOP) { return expr(RectAttr::TOP); }
-    if (anchor == Anchor::VCENTER) { return expr(RectAttr::VCENTER); }
-    if (anchor == Anchor::BOTTOM) { return expr(RectAttr::BOTTOM); }
-    throw std::runtime_error("Invalid Anchor");
+    switch (anchor) {
+        case Anchor::LEFT: return expr(RectAttr::LEFT);
+        case Anchor::HCENTER: return expr(RectAttr::HCENTER);
+        case Anchor::RIGHT: return expr(RectAttr::RIGHT);
+        case Anchor::TOP: return expr(RectAttr::TOP);
+        case Anchor::VCENTER: return expr(RectAttr::VCENTER);
+        case Anchor::BOTTOM: return expr(RectAttr::BOTTOM);
+        default: throw std::runtime_error("Invalid Anchor");
+    }
 }
 
 ConstraintBase::ConstraintBase(Strength strength) : strength(strength) {}
 
+Vec<Str> ConstraintBase::getBuildRepr(
+    hstd::Opt<RectMap> const& rects) const {
+    Vec<Str> joined;
+    if (rects) {
+        for (auto const& c : build(rects.value())) {
+            joined.append(flat_repr(c).split("\n"));
+        }
+    }
+    return joined;
+}
 
 AlignConstraint::AlignConstraint(Vec<AlignItem> items, Strength strength)
     : ConstraintBase(strength), items(std::move(items)) {}
@@ -269,7 +285,7 @@ Vec<EdgeDesc> AlignConstraint::describe_edges() const {
                 base,
                 item.rect_id,
                 std::format("align:{}", item.spec.anchor),
-                axis_color(anchor_axis(item.spec.anchor))});
+                anchor_axis(item.spec.anchor)});
     }
     return edges;
 }
@@ -286,9 +302,7 @@ Str AlignConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
                 item.spec.offset));
     }
 
-    if (rects) {
-        joined.append(tree_repr(build(rects.value())).split("\n"));
-    }
+    joined.append(getBuildRepr(rects));
 
     return hstd::join("\n", joined);
 }
@@ -317,13 +331,12 @@ Vec<kiwi_ir::Constraint> SeparateConstraint::build(
 }
 
 Vec<EdgeDesc> SeparateConstraint::describe_edges() const {
-    Str color = axis_color(anchor_axis(first_anchor));
     return {EdgeDesc{
         second_rect_id,
         first_rect_id,
         std::format(
             "separate:{}->{}+{}", second_anchor, first_anchor, offset),
-        color}};
+        anchor_axis(first_anchor)}};
 }
 
 Str SeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
@@ -372,7 +385,6 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
 }
 
 Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
-    Str           color = axis_color(anchor_axis(anchor));
     Vec<EdgeDesc> edges;
     for (int idx = 0; idx + 1 < groups.size(); ++idx) {
         auto const& g1    = groups[idx];
@@ -384,7 +396,7 @@ Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
                     g1[i],
                     g2[i],
                     std::format("multi-separate:{}+{:g}", anchor, step),
-                    color});
+                    anchor_axis(anchor)});
         }
     }
     return edges;
@@ -493,9 +505,9 @@ Vec<EdgeDesc> ParentWrapConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
     for (auto const& nested_id : nested_rect_ids) {
         edges.push_back(
-            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-x", "red"});
+            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-x", Axis::X});
         edges.push_back(
-            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-y", "blue"});
+            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-y", Axis::Y});
     }
     return edges;
 }
@@ -599,8 +611,8 @@ Vec<EdgeDesc> RelativeConstraint::describe_edges() const {
     // FIXME: Update the edge description for relative constraint based on
     // the relative element positions.
     Vec<EdgeDesc> edges = {
-        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-x", "red"},
-        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-y", "blue"},
+        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-x", Axis::X},
+        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-y", Axis::Y},
     };
 
     // if (x_factor.has_value()) {
@@ -624,8 +636,20 @@ Vec<EdgeDesc> RelativeConstraint::describe_edges() const {
 
 Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     // FIXME: implement repr for relative constraint.
-    return "RelativeConstraint";
+    Vec<Str> joined;
+    joined.push_back(
+        hstd::fmt(
+            "RelativeConstraint fixed:{} relative:{}",
+            fixed_rect_id,
+            relative_rect_id));
 
+    joined.push_back(hstd::fmt("  x_dim           {}", x_dim));
+    joined.push_back(hstd::fmt("  y_dim           {}", y_dim));
+    joined.push_back(hstd::fmt("  anchor_fixed    {}", anchor_fixed));
+    joined.push_back(hstd::fmt("  anchor_relative {}", anchor_relative));
+    joined.append(getBuildRepr(rects));
+
+    return hstd::join("\n", joined);
 
     // Str wf = x_factor.has_value() ? std::format("{:g}",
     // x_factor.value())
@@ -674,7 +698,6 @@ Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
 }
 
 Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
-    Str           color = axis_color(axis);
     Vec<EdgeDesc> result;
     for (int i = 0; i + 1 < rect_ids.size(); ++i) {
         result.push_back(
@@ -682,7 +705,7 @@ Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
                 rect_ids[i],
                 rect_ids[i + 1],
                 std::format("even-gap:{}", anchor),
-                color});
+                axis});
     }
     return result;
 }
@@ -737,11 +760,11 @@ Vec<EdgeDesc> EqualSizeConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
     if (match_width) {
         edges.push_back(
-            EdgeDesc{rect_a_id, rect_b_id, "equal-size:width", "red"});
+            EdgeDesc{rect_a_id, rect_b_id, "equal-size:width", Axis::X});
     }
     if (match_height) {
         edges.push_back(
-            EdgeDesc{rect_a_id, rect_b_id, "equal-size:height", "blue"});
+            EdgeDesc{rect_a_id, rect_b_id, "equal-size:height", Axis::Y});
     }
     return edges;
 }
@@ -1057,10 +1080,10 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         for (auto const& edge : constraint->describe_edges()) {
             auto e1 = result->edge(*rectNodes.at(edge.src), *cnode);
             e1->setLabel(edge.label);
-            e1->setColor(edge.color);
+            e1->setColor(axis_color(edge.axis));
 
             auto e2 = result->edge(*cnode, *rectNodes.at(edge.dst));
-            e2->setColor(edge.color);
+            e2->setColor(axis_color(edge.axis));
         }
     }
 
@@ -1409,6 +1432,262 @@ void repr_impl(hstd::ColStream& os, Constraint const& c, int indent) {
     repr_impl(os, *c.lhs.node, indent + 1);
     repr_impl(os, *c.rhs.node, indent + 1);
 }
+
+
+enum class Prec : int
+{
+    Add   = 1,
+    Mul   = 2,
+    Unary = 3,
+    Atom  = 4
+};
+
+static std::string wrap_if(bool cond, std::string const& s) {
+    return cond ? "(" + s + ")" : s;
+}
+
+static bool is_zero(double v) { return std::abs(v) < 1e-12; }
+static bool is_one(double v) { return std::abs(v - 1.0) < 1e-12; }
+
+struct LinearForm {
+    double                        constant = 0.0;
+    std::map<std::string, double> terms;
+};
+
+static void add_scaled(LinearForm& dst, LinearForm const& src, double k) {
+    dst.constant += src.constant * k;
+    for (auto const& [name, coef] : src.terms) {
+        dst.terms[name] += coef * k;
+    }
+}
+
+static LinearForm scale(LinearForm const& src, double k) {
+    LinearForm out;
+    add_scaled(out, src, k);
+    return out;
+}
+
+static bool has_vars(LinearForm const& f) { return !f.terms.empty(); }
+
+static std::string render_affine(LinearForm const& f) {
+    std::string out;
+    bool        first = true;
+
+    auto append_signed = [&](bool neg, std::string const& body) {
+        if (first) {
+            if (neg) { out += "-"; }
+            out += body;
+            first = false;
+        } else {
+            out += neg ? " - " : " + ";
+            out += body;
+        }
+    };
+
+    for (auto const& [name, coef] : f.terms) {
+        if (is_zero(coef)) { continue; }
+        bool   neg = coef < 0.0;
+        double a   = std::abs(coef);
+
+        if (is_one(a)) {
+            append_signed(neg, name);
+        } else {
+            append_signed(neg, hstd::fmt("{}{}", a, name));
+        }
+    }
+
+    if (!is_zero(f.constant) || first) {
+        bool   neg = f.constant < 0.0;
+        double a   = std::abs(f.constant);
+        append_signed(neg, hstd::fmt("{}", a));
+    }
+
+    return out;
+}
+
+static LinearForm to_linear(Expr::Node const& n) {
+    using Kind = Expr::Node::Kind;
+    switch (n.kind) {
+        case Kind::Constant: {
+            LinearForm out;
+            out.constant = n.constant;
+            return out;
+        }
+        case Kind::Variable: {
+            LinearForm out;
+            out.terms[n.variable->name()] = 1.0;
+            return out;
+        }
+        case Kind::KiwiExpression: {
+            LinearForm out;
+            out.constant = n.kiwi_expr->constant();
+            for (auto const& t : n.kiwi_expr->terms()) {
+                out.terms[t.variable().name()] += t.coefficient();
+            }
+            return out;
+        }
+        case Kind::Add: {
+            LinearForm l = to_linear(*n.lhs);
+            LinearForm r = to_linear(*n.rhs);
+            add_scaled(l, r, 1.0);
+            return l;
+        }
+        case Kind::Sub: {
+            LinearForm l = to_linear(*n.lhs);
+            LinearForm r = to_linear(*n.rhs);
+            add_scaled(l, r, -1.0);
+            return l;
+        }
+        case Kind::Neg: {
+            return scale(to_linear(*n.lhs), -1.0);
+        }
+        case Kind::Mul: {
+            LinearForm l = to_linear(*n.lhs);
+            LinearForm r = to_linear(*n.rhs);
+
+            if (has_vars(l) && has_vars(r)) {
+                throw std::runtime_error(
+                    "flat_repr(full_flatten=true): non-linear "
+                    "multiplication");
+            }
+
+            if (has_vars(l)) { return scale(l, r.constant); }
+            if (has_vars(r)) { return scale(r, l.constant); }
+
+            LinearForm out;
+            out.constant = l.constant * r.constant;
+            return out;
+        }
+    }
+
+    throw std::runtime_error("unreachable");
+}
+
+static int precedence(Expr::Node const& n) {
+    using Kind = Expr::Node::Kind;
+    switch (n.kind) {
+        case Kind::Add:
+        case Kind::Sub: return static_cast<int>(Prec::Add);
+        case Kind::Mul: return static_cast<int>(Prec::Mul);
+        case Kind::Neg: return static_cast<int>(Prec::Unary);
+        case Kind::Constant:
+        case Kind::Variable:
+        case Kind::KiwiExpression: return static_cast<int>(Prec::Atom);
+    }
+    return static_cast<int>(Prec::Atom);
+}
+
+static void collect_add_terms(
+    Expr::Node const&                               n,
+    int                                             sign,
+    std::vector<std::pair<int, Expr::Node const*>>& out) {
+    using Kind = Expr::Node::Kind;
+    switch (n.kind) {
+        case Kind::Add:
+            collect_add_terms(*n.lhs, sign, out);
+            collect_add_terms(*n.rhs, sign, out);
+            break;
+        case Kind::Sub:
+            collect_add_terms(*n.lhs, sign, out);
+            collect_add_terms(*n.rhs, -sign, out);
+            break;
+        case Kind::Neg: collect_add_terms(*n.lhs, -sign, out); break;
+        default: out.push_back({sign, &n}); break;
+    }
+}
+
+static std::string flat_repr_impl(
+    Expr::Node const& n,
+    int               parent_prec,
+    bool              full_flatten);
+
+static std::string render_kiwi_expr(Expr::Node const& n) {
+    LinearForm f;
+    f.constant = n.kiwi_expr->constant();
+    for (auto const& t : n.kiwi_expr->terms()) {
+        f.terms[t.variable().name()] += t.coefficient();
+    }
+    return render_affine(f);
+}
+
+static std::string flat_repr_impl(
+    Expr::Node const& n,
+    int               parent_prec,
+    bool              full_flatten) {
+    using Kind = Expr::Node::Kind;
+
+    if (full_flatten) { return render_affine(to_linear(n)); }
+
+    switch (n.kind) {
+        case Kind::Constant: return hstd::fmt("{}", n.constant);
+        case Kind::Variable: return n.variable->name();
+        case Kind::KiwiExpression: return render_kiwi_expr(n);
+
+        case Kind::Neg: {
+            auto inner = flat_repr_impl(
+                *n.lhs, static_cast<int>(Prec::Unary), false);
+            bool need_paren = precedence(*n.lhs)
+                            < static_cast<int>(Prec::Unary);
+            auto out        = "-" + wrap_if(need_paren, inner);
+            return wrap_if(
+                static_cast<int>(Prec::Unary) < parent_prec, out);
+        }
+
+        case Kind::Mul: {
+            auto l = flat_repr_impl(
+                *n.lhs, static_cast<int>(Prec::Mul), false);
+            auto r = flat_repr_impl(
+                *n.rhs, static_cast<int>(Prec::Mul), false);
+
+            bool lp = precedence(*n.lhs) < static_cast<int>(Prec::Mul);
+            bool rp = precedence(*n.rhs) < static_cast<int>(Prec::Mul);
+
+            auto out = wrap_if(lp, l) + " * " + wrap_if(rp, r);
+            return wrap_if(static_cast<int>(Prec::Mul) < parent_prec, out);
+        }
+
+        case Kind::Add:
+        case Kind::Sub: {
+            std::vector<std::pair<int, Expr::Node const*>> terms;
+            collect_add_terms(n, 1, terms);
+
+            std::string out;
+            bool        first = true;
+
+            for (auto const& [sign, ptr] : terms) {
+                if (ptr->kind == Kind::Constant) {
+                    double v = sign * ptr->constant;
+                    if (first) {
+                        out += hstd::fmt("{}", v);
+                        first = false;
+                    } else if (v < 0.0) {
+                        out += hstd::fmt(" - {}", -v);
+                    } else {
+                        out += hstd::fmt(" + {}", v);
+                    }
+                    continue;
+                }
+
+                auto body = flat_repr_impl(
+                    *ptr, static_cast<int>(Prec::Add), false);
+
+                if (first) {
+                    if (sign < 0) { out += "-"; }
+                    out += body;
+                    first = false;
+                } else {
+                    out += (sign < 0) ? " - " : " + ";
+                    out += body;
+                }
+            }
+
+            return wrap_if(static_cast<int>(Prec::Add) < parent_prec, out);
+        }
+    }
+
+    throw std::runtime_error("unreachable");
+}
+
 } // namespace
 
 Str tree_repr(kiwi::Expression const& c, int indent) {
@@ -1457,6 +1736,25 @@ Str tree_repr(Vec<Constraint> const& c, int indent) {
     hstd::ColStream os;
     for (auto const& sub_c : c) { repr_impl(os, sub_c, indent); }
     return os.toString(false);
+}
+
+Str flat_repr(Expr const& n, bool full_flatten) {
+    return flat_repr_impl(*n.node, 0, full_flatten);
+}
+
+Str flat_repr(Constraint const& c, bool full_flatten) {
+    Str op;
+    switch (c.op) {
+        case kiwi::RelationalOperator::OP_EQ: op = "=="; break;
+        case kiwi::RelationalOperator::OP_LE: op = "<="; break;
+        case kiwi::RelationalOperator::OP_GE: op = ">="; break;
+    }
+
+    return hstd::fmt(
+        "{} {} {}",
+        flat_repr(c.lhs, full_flatten),
+        op,
+        flat_repr(c.rhs, full_flatten));
 }
 
 

@@ -55,6 +55,27 @@ static double overlapArea(Rect const& a, Rect const& b) {
     return x * y;
 }
 
+template <std::size_t Dim, class Box>
+auto box_axis_distance(Box const& a, Box const& b) {
+    auto const a_min = bg::get<bg::min_corner, Dim>(a);
+    auto const a_max = bg::get<bg::max_corner, Dim>(a);
+    auto const b_min = bg::get<bg::min_corner, Dim>(b);
+    auto const b_max = bg::get<bg::max_corner, Dim>(b);
+
+    return std::max({decltype(a_min)(0), b_min - a_max, a_min - b_max});
+}
+
+static double distance(
+    Rect const&   r1,
+    Rect const&   r2,
+    DistanceCheck check) {
+    switch (check) {
+        case DistanceCheck::Both: return bg::distance(r1, r2);
+        case DistanceCheck::XOnly: return box_axis_distance<0>(r1, r2);
+        case DistanceCheck::YOnly: return box_axis_distance<1>(r1, r2);
+    }
+}
+
 static double overlapPercent(double overlap, double full) {
     if (full <= 0.0) { return 0.0; }
     return std::clamp((overlap / full) * 100.0, 0.0, 100.0);
@@ -576,33 +597,51 @@ GeometryCheckResult checkAlignedVerticallyBounds(
 }
 
 GeometryCheckResult checkMinDistanceBounds(
-    Rect const& first,
-    Rect const& second,
-    double      minDistance,
-    double      rtol,
-    double      atol) {
-    double d = bg::distance(first, second);
+    Rect const&   first,
+    Rect const&   second,
+    double        minDistance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
+    double d = distance(first, second, check);
     if (minDistance <= d || isclose(minDistance, d, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(min-distance-bounds)", d, minDistance, first, second);
+        R"(min-distance-bounds)", d, minDistance, check, first, second);
 }
 
 GeometryCheckResult checkMaxDistanceBounds(
-    Rect const& first,
-    Rect const& second,
-    double      maxDistance,
-    double      rtol,
-    double      atol) {
-    double d = bg::distance(first, second);
+    Rect const&   first,
+    Rect const&   second,
+    double        maxDistance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
+    double d = distance(first, second, check);
     if (d <= maxDistance || isclose(maxDistance, d, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(max-distance-bounds)", d, maxDistance, first, second);
+        R"(max-distance-bounds)", d, maxDistance, check, first, second);
+}
+
+GeometryCheckResult checkDistanceBounds(
+    Rect const&   first,
+    Rect const&   second,
+    double        distance,
+    DistanceCheck check,
+    double        rtol,
+    double        atol) {
+    double d = detail::distance(first, second, check);
+    if (d == distance || isclose(distance, d, rtol, atol)) {
+        return boost::outcome_v2::success();
+    }
+
+    return HSDT_GEOMETRY_FAIL_CHECK(
+        R"(distance-bounds)", d, distance, check, first, second);
 }
 
 GeometryCheckResult checkSameWidthBounds(
