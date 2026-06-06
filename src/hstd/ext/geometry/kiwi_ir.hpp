@@ -210,11 +210,12 @@ Str flat_repr(Expr const& n, bool full_flatten = false);
 Str flat_repr(Constraint const& c, bool full_flatten = false);
 
 struct Rect {
-    Str            rect_id;
-    Opt<double>    x0;
-    Opt<double>    y0;
-    Opt<double>    width0;
-    Opt<double>    height0;
+    Str         rect_id;
+    Opt<double> x0;
+    Opt<double> y0;
+    Opt<double> width0;
+    Opt<double> height0;
+    // NOTE: See [[kiwi-rectangle-id-knowledge-direction]]
     kiwi::Variable x;
     kiwi::Variable y;
     kiwi::Variable width;

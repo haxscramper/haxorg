@@ -27,10 +27,10 @@ TEST_F(GraphKiwi_Test, KiwiIr1) {
     ASSERT_TRUE(res.vertices.contains(v2));
     ASSERT_TRUE(res.vertices.contains(rg_id));
 
-    EXPECT_NEAR(run->getLayout(v1)->getBBox().width(), 5, 0.005);
-    EXPECT_NEAR(run->getLayout(v1)->getBBox().height(), 5, 0.005);
-    EXPECT_NEAR(run->getLayout(v2)->getBBox().width(), 6, 0.005);
-    EXPECT_NEAR(run->getLayout(v2)->getBBox().height(), 6, 0.005);
+    EXPECT_NEAR(box(v1).width(), 5, 0.005);
+    EXPECT_NEAR(box(v1).height(), 5, 0.005);
+    EXPECT_NEAR(box(v2).width(), 6, 0.005);
+    EXPECT_NEAR(box(v2).height(), 6, 0.005);
 }
 
 TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
@@ -51,14 +51,14 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
     writeVisual();
 
     EXPECT_OUTCOME_OK(checkDistance(
-        run->getAbsoluteBBox(v_fixed).upper_left(),
-        run->getAbsoluteBBox(v_relative).upper_left(),
+        box(v_fixed).upper_left(),
+        box(v_relative).upper_left(),
         10,
         DistanceCheck::XOnly));
 
     EXPECT_OUTCOME_OK(checkDistance(
-        run->getAbsoluteBBox(v_fixed).upper_left(),
-        run->getAbsoluteBBox(v_relative).upper_left(),
+        box(v_fixed).upper_left(),
+        box(v_relative).upper_left(),
         10,
         DistanceCheck::YOnly));
 }
@@ -81,16 +81,69 @@ TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
     writeVisual();
 
     EXPECT_OUTCOME_OK(checkDistance(
-        run->getAbsoluteBBox(v_fixed).upper_left(),
-        run->getAbsoluteBBox(v_relative).upper_left(),
+        box(v_fixed).upper_left(),
+        box(v_relative).upper_left(),
         50,
         DistanceCheck::XOnly));
 
     EXPECT_OUTCOME_OK(checkDistance(
-        run->getAbsoluteBBox(v_fixed).upper_left(),
-        run->getAbsoluteBBox(v_relative).upper_left(),
+        box(v_fixed).upper_left(),
+        box(v_relative).upper_left(),
         50,
         DistanceCheck::YOnly));
+}
+
+// TODO: Test the same configuration but with the gaps between graph
+// elements.
+TEST_F(GraphKiwi_Test, KiwiLinearConstraintTrivial) {
+    VertexID v_center     = getGraph()->addVertex("v_center");
+    VertexID v_up_left    = getGraph()->addVertex("v_up_left");
+    VertexID v_up_right   = getGraph()->addVertex("v_up_right");
+    VertexID v_down_left  = getGraph()->addVertex("v_down_left");
+    VertexID v_down_right = getGraph()->addVertex("v_down_right");
+    VertexID rg_id        = getGraph()->addVertex("rg");
+
+    hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
+    run->setRootGroupAttribute(rg_id, root);
+
+    root->addVertex(addNesting(rg_id, v_center), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_up_left), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_up_right), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_down_left), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_down_right), Size(50, 50));
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondBelowFirst(v_center, v_down_left);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondBelowFirst(v_center, v_down_right);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondAboveFirst(v_center, v_up_left);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondAboveFirst(v_center, v_up_right);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondLeftOfFirst(v_center, v_down_left);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondLeftOfFirst(v_center, v_up_left);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondRightOfFirst(v_center, v_down_right);
+
+    root->addConstraint<kw::LinearConstraint>(root) //
+        ->setSecondRightOfFirst(v_center, v_up_right);
+
+    run->runFullLayout();
+    writeVisual();
+
+    EXPECT_OUTCOME_OK(checkLeftOf(box(v_center), box(v_up_left)));
+    EXPECT_OUTCOME_OK(checkLeftOf(box(v_center), box(v_down_left)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(v_center), box(v_up_right)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(v_center), box(v_down_right)));
+    EXPECT_OUTCOME_OK(checkLeftOf(box(v_up_right), box(v_up_left)));
 }
 
 
@@ -122,10 +175,8 @@ TEST_F(GraphKiwi_Test, KiwiAlign) {
     run->runFullLayout();
     writeVisual();
 
-    EXPECT_OUTCOME_OK(
-        checkAlignedHorizontally(run->getVisual(v1), run->getVisual(v4)));
-    EXPECT_OUTCOME_OK(
-        checkAlignedVertically(run->getVisual(v1), run->getVisual(v2)));
+    EXPECT_OUTCOME_OK(checkAlignedHorizontally(box(v1), box(v4)));
+    EXPECT_OUTCOME_OK(checkAlignedVertically(box(v1), box(v2)));
 }
 
 class GraphKiwi_BoolParamTest
@@ -166,18 +217,14 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
 
     if (is_vertical) {
         EXPECT_OUTCOME_OK(checkAlignedVertically(
-            run->getVisual(v1).computeBounds().center(),
-            run->getVisual(v2).computeBounds().center() - offset));
+            box(v1).center(), box(v2).center() - offset));
         EXPECT_OUTCOME_OK(checkAlignedVertically(
-            run->getVisual(v2).computeBounds().center(),
-            run->getVisual(v3).computeBounds().center() - offset));
+            box(v2).center(), box(v3).center() - offset));
     } else {
         EXPECT_OUTCOME_OK(checkAlignedHorizontally(
-            run->getVisual(v1).computeBounds().center(),
-            run->getVisual(v2).computeBounds().center() - offset));
+            box(v1).center(), box(v2).center() - offset));
         EXPECT_OUTCOME_OK(checkAlignedHorizontally(
-            run->getVisual(v2).computeBounds().center(),
-            run->getVisual(v3).computeBounds().center() - offset));
+            box(v2).center(), box(v3).center() - offset));
     }
 }
 
@@ -215,10 +262,10 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
     run->runFullLayout();
     writeVisual();
 
-    auto v1_center = run->getVisual(v1).computeBounds().center();
-    auto v2_center = run->getVisual(v2).computeBounds().center();
-    auto v3_center = run->getVisual(v3).computeBounds().center();
-    auto v4_center = run->getVisual(v4).computeBounds().center();
+    auto v1_center = box(v1).center();
+    auto v2_center = box(v2).center();
+    auto v3_center = box(v3).center();
+    auto v4_center = box(v4).center();
 
     if (is_vertical) {
         EXPECT_OUTCOME_OK(checkAlignedHorizontally(v1_center, v2_center));

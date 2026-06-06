@@ -24,9 +24,39 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         logic_todo_impl();
     }
 
-    geometry::Rect rect;
-    explicit KiwiVertexAttribute(geometry::Rect const& rect)
-        : rect{rect} {}
+    KiwiVertexAttribute* setRectWidth(hstd::Opt<double> width) {
+        rect.width0 = width;
+        return this;
+    }
+
+    KiwiVertexAttribute* setRectHeight(hstd::Opt<double> height) {
+        rect.height0 = height;
+        return this;
+    }
+
+    KiwiVertexAttribute* setRectX(hstd::Opt<double> x) {
+        rect.x0 = x;
+        return this;
+    }
+
+    KiwiVertexAttribute* setRectY(hstd::Opt<double> y) {
+        rect.y0 = y;
+        return this;
+    }
+
+    // FIXME: <<kiwi-rectangle-id-knowledge-direction>> The rectangle
+    // object must have access to the stable ID at the construction time,
+    // meaning the kiwi vertex attribute must know which ID it is
+    // associated with -- even though the information is not stored in a
+    // way that can be used to retrieve it back. This breaks the DOD logic
+    // which requires individual objects to be completely oblivious of its
+    // placement in the mapping/collection. I'm not going to work on fixing
+    // this now, because it would require significant rework of the
+    // `geometry::Rect` constructor, hiding the width variable field and
+    // insetad exposing `getWidth(Str const& id)` that would construct it
+    // as needed.
+    kiwi_ir::Rect rect;
+    explicit KiwiVertexAttribute(kiwi_ir::Rect const& rect) : rect{rect} {}
 };
 
 class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
@@ -102,12 +132,7 @@ class KiwiGroup
 
     hstd::SPtr<KiwiVertexAttribute> addVertex(
         EdgeID const&         edge,
-        geometry::Rect const& size) {
-        auto id    = getRun()->getGraph()->getTarget(edge);
-        auto vattr = std::make_shared<KiwiVertexAttribute>(size);
-        getRun()->setNestedVertexAttribute(edge, vattr);
-        return vattr;
-    }
+        geometry::Rect const& size);
 
     hstd::SPtr<KiwiVertexAttribute> addVertex(
         EdgeID const&         edge,
@@ -348,6 +373,121 @@ class EvenGapConstraint : public KiwiConstraint {
         const override;
 };
 
+
+class EqualSizeConstraint : public KiwiConstraint {
+    VertexID vert_a;
+    VertexID vert_b;
+    bool     match_width  = false;
+    bool     match_height = false;
+
+  public:
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return {vert_a, vert_b};
+    }
+
+    EqualSizeConstraint* matchWidth(bool match = true) {
+        this->match_width = match;
+        return this;
+    }
+
+    EqualSizeConstraint* matchHeight(bool match = true) {
+        this->match_height = match;
+        return this;
+    }
+
+    EqualSizeConstraint(
+        hstd::SPtr<KiwiGroup> const& group,
+        VertexID                     a,
+        VertexID                     b)
+        : KiwiConstraint{group}, vert_a{a}, vert_b{b} {}
+
+    hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
+        const override;
+};
+
+class LinearConstraint : public KiwiConstraint {
+    VertexIDSet vertices;
+    // optional to allow deferred construction, all fields are required to
+    // build the final constraint.
+    hstd::Opt<kiwi_ir::Expr> lhs;
+    hstd::Opt<kiwi_ir::Expr> rhs;
+    kiwi_ir::Relation        rel;
+
+  public:
+    kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {
+        vertices.incl(id);
+        return run->getVertex(id)
+            ->getUniqueAttribute<KiwiVertexAttribute>()
+            ->rect.expr(attr);
+    }
+
+    Str use(VertexID const& id) {
+        vertices.incl(id);
+        return rectId(id);
+    }
+
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return vertices.items();
+    }
+
+    void finalize(
+        kiwi_ir::Expr const& lhs,
+        kiwi_ir::Relation    rel,
+        kiwi_ir::Expr const& rhs) {
+        LOGIC_ASSERTION_CHECK(!this->lhs.has_value(), "");
+        LOGIC_ASSERTION_CHECK(!this->rhs.has_value(), "");
+        this->rel = rel;
+        this->lhs = lhs;
+        this->rhs = rhs;
+    }
+
+    LinearConstraint* setSecondLeftOfFirst(
+        VertexID fixed,
+        VertexID relative) {
+        finalize(
+            use(fixed, kiwi_ir::RectAttr::LEFT),
+            kiwi_ir::Relation::LE,
+            use(relative, kiwi_ir::RectAttr::RIGHT));
+        return this;
+    }
+
+    LinearConstraint* setSecondRightOfFirst(
+        VertexID fixed,
+        VertexID relative) {
+        finalize(
+            use(fixed, kiwi_ir::RectAttr::RIGHT),
+            kiwi_ir::Relation::LE,
+            use(relative, kiwi_ir::RectAttr::LEFT));
+        return this;
+    }
+
+    LinearConstraint* setSecondBelowFirst(
+        VertexID fixed,
+        VertexID relative) {
+        finalize(
+            use(fixed, kiwi_ir::RectAttr::BOTTOM),
+            kiwi_ir::Relation::LE,
+            use(relative, kiwi_ir::RectAttr::TOP));
+        return this;
+    }
+
+    LinearConstraint* setSecondAboveFirst(
+        VertexID fixed,
+        VertexID relative) {
+        finalize(
+            use(fixed, kiwi_ir::RectAttr::TOP),
+            kiwi_ir::Relation::LE,
+            use(relative, kiwi_ir::RectAttr::BOTTOM));
+        return this;
+    }
+
+
+    LinearConstraint(hstd::SPtr<KiwiGroup> const& group)
+        : KiwiConstraint{group} {}
+
+    hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
+        const override;
+};
 
 class AlignConstraint : public KiwiConstraint {
   public:

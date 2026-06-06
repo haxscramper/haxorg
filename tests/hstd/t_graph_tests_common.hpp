@@ -53,6 +53,10 @@ class GraphUtils_Test : public ::testing::Test {
         return state.hierarchy;
     }
 
+    geometry::Rect box(VertexID const& id) {
+        return run->getAbsoluteBBox(id);
+    }
+
     hstd::SPtr<TrivialPortCollection> getPorts() const {
         return state.ports;
     }

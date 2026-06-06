@@ -63,16 +63,7 @@ struct single_layout_run_state {
             auto attr = run->getVertexVisualAttribute<
                 kw::KiwiVertexAttribute>(vert);
             solver_nodes.insert(vert);
-            kiwi_rects.push_back(
-                kiwi_ir::Rect(
-                    rect_id(vert),
-                    // TODO: Only set constraint on the rectangle position
-                    // if there is a constraint for it, by default
-                    // rectangles don't have fixed positions.
-                    std::nullopt,
-                    std::nullopt,
-                    attr->rect.width(),
-                    attr->rect.height()));
+            kiwi_rects.push_back(attr->rect);
         }
 
         for (auto const& sub : run->getSubGroups(id)) {
@@ -201,6 +192,25 @@ struct single_layout_run_state {
 
 } // namespace
 
+hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
+    EdgeID const&         edge,
+    geometry::Rect const& size) {
+    auto id = getRun()->getGraph()->getTarget(edge);
+
+    auto vattr = std::make_shared<KiwiVertexAttribute>(kiwi_ir::Rect{
+        // TODO: See [[kiwi-rectangle-id-knowledge-direction]]
+        run->getVertex(id)->getStableId(),
+        // TODO: Only set constraint on the rectangle position
+        // if there is a constraint for it, by default
+        // rectangles don't have fixed positions.
+        std::nullopt,
+        std::nullopt,
+        size.width(),
+        size.height(),
+    });
+    getRun()->setNestedVertexAttribute(edge, vattr);
+    return vattr;
+}
 hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run,
     Str const&                    name) {
@@ -426,6 +436,29 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EvenGapConstraint::
                                        VerticalRectBounds(rectId(id));
                     })
                 | rs::to<Vec>(),
+            /*strength=*/strength),
+    };
+}
+
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EqualSizeConstraint::
+    getKiwi() const {
+    return {
+        std::make_shared<kiwi_ir::EqualSizeConstraint>(
+            rectId(vert_a),
+            rectId(vert_b),
+            match_width,
+            match_height,
+            /*strength=*/strength),
+    };
+}
+
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::
+    getKiwi() const {
+    return {
+        std::make_shared<kiwi_ir::LinearConstraint>(
+            lhs.value(),
+            rel,
+            rhs.value(),
             /*strength=*/strength),
     };
 }
