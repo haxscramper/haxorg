@@ -328,7 +328,9 @@ void for_each_field_with_base_value(
 /// \brief Invoke callback on all fields directly used in the type `T`,
 /// ignoring the fields from bases. Pass field descriptor to the callback.
 template <typename T, typename Func>
-void for_each_field_no_base(Func cb, bool pre_bases = true) {
+void for_each_field_no_base(
+    Func                  cb,
+    [[maybe_unused]] bool pre_bases = true) {
     ::boost::mp11::mp_for_each<::boost::describe::describe_members<
         T,
         ::boost::describe::mod_any_access>>(cb);

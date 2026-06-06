@@ -11,10 +11,11 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 BIN = f"{get_haxorg_repo_root_path()}/build/haxorg/executor_tracker"
 
 
-def _start_tracker(tmp_path: Path) -> subprocess.Popen:
+def _start_tracker(tmp_path: Path) -> tuple[subprocess.Popen, Path]:
+    logfile = tmp_path / "execution-log.jsonl"
     tracker_configuration = {
         "pids": [os.getpid()],
-        "path": str(tmp_path / "execution-log.jsonl"),
+        "path": str(logfile),
         "emitExisting": False,
     }
     proc = subprocess.Popen(
@@ -24,14 +25,14 @@ def _start_tracker(tmp_path: Path) -> subprocess.Popen:
         text=True,
     )
     time.sleep(0.1)
-    return proc
+    return proc, logfile
 
 
-def _stop_tracker(proc: subprocess.Popen) -> list[dict]:
+def _stop_tracker(proc: subprocess.Popen, logfile: Path) -> list[dict]:
     proc.send_signal(signal.SIGTERM)
     out, err = proc.communicate(timeout=10)
     assert proc.returncode == 0, err
-    return [json.loads(line) for line in out.splitlines() if line.strip()]
+    return [json.loads(line) for line in logfile.read_text().splitlines() if line.strip()]
 
 
 def _assert_pid_lifecycle(events: list[dict], pid: int) -> None:
@@ -43,20 +44,20 @@ def _assert_pid_lifecycle(events: list[dict], pid: int) -> None:
 
 
 def test_tracks_subprocess_from_current_script(tmp_path: Path) -> None:
-    tracker = _start_tracker(tmp_path)
+    tracker, logfile = _start_tracker(tmp_path)
 
     child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(0.4)"])
     child_pid = child.pid
     child.wait(timeout=5)
 
     time.sleep(0.2)
-    events = _stop_tracker(tracker)
+    events = _stop_tracker(tracker, logfile)
 
     _assert_pid_lifecycle(events, child_pid)
 
 
 def test_tracks_parallel_subprocesses(tmp_path: Path) -> None:
-    tracker = _start_tracker(tmp_path)
+    tracker, logfile = _start_tracker(tmp_path)
 
     children = [
         subprocess.Popen([sys.executable, "-c", "import time; time.sleep(0.5)"])
@@ -67,7 +68,7 @@ def test_tracks_parallel_subprocesses(tmp_path: Path) -> None:
         proc.wait(timeout=5)
 
     time.sleep(0.2)
-    events = _stop_tracker(tracker)
+    events = _stop_tracker(tracker, logfile)
 
     for pid in child_pids:
         _assert_pid_lifecycle(events, pid)
@@ -92,14 +93,14 @@ int main() {
         check=True,
     )
 
-    tracker = _start_tracker(tmp_path)
+    tracker, logfile = _start_tracker(tmp_path)
 
     child = subprocess.Popen([str(binary)])
     child_pid = child.pid
     child.wait(timeout=5)
 
     time.sleep(0.2)
-    events = _stop_tracker(tracker)
+    events = _stop_tracker(tracker, logfile)
 
     _assert_pid_lifecycle(events, child_pid)
 
@@ -128,7 +129,7 @@ int main() {
     subprocess.run(["cmake", "-S", str(project), "-B", str(build)], check=True)
     subprocess.run(["cmake", "--build", str(build)], check=True)
 
-    tracker = _start_tracker(tmp_path)
+    tracker, logfile = _start_tracker(tmp_path)
 
     exe = build / "cmake_sample"
     child = subprocess.Popen([str(exe)])
@@ -136,6 +137,6 @@ int main() {
     child.wait(timeout=5)
 
     time.sleep(0.2)
-    events = _stop_tracker(tracker)
+    events = _stop_tracker(tracker, logfile)
 
     _assert_pid_lifecycle(events, child_pid)

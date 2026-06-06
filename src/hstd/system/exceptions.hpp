@@ -30,6 +30,23 @@ struct CRTP_hexception
     cpptrace::stacktrace eager;
 #endif
 
+    template <typename... Args>
+    Derived& add_context(
+        std::string const& msg      = "",
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+#if !ORG_BUILD_EMCC
+        this->eager = cpptrace::generate_trace();
+#endif
+        this->msg      = msg;
+        this->line     = line;
+        this->file     = file;
+        this->function = function;
+        return *static_cast<Derived*>(this);
+    }
+
+
     static Derived init(
         std::string const& msg,
         int                line     = __builtin_LINE(),

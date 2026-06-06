@@ -111,7 +111,18 @@ struct [[refl]] OperationsTracer {
 
     SPtr<std::ostream>  getTraceFile();
     hstd::Opt<fs::path> getTraceFileDir() const;
-    void                writeAdjacentToTraceFile(
+
+    hstd::fs::path getAdjacentToTraceFile(hstd::Str const& suffix) const;
+
+    void writeToTraceFile(
+        hstd::fs::path const& path,
+        hstd::Str const&      text,
+        bool                  with_message = true,
+        char const*           function     = __builtin_FUNCTION(),
+        int                   line         = __builtin_LINE(),
+        char const*           file         = __builtin_FILE()) const;
+
+    void writeAdjacentToTraceFile(
         hstd::Str const& suffix,
         hstd::Str const& text,
         bool             with_message = true,

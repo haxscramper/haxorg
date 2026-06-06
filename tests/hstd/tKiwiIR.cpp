@@ -8,7 +8,9 @@ namespace hstd::ext::kiwi_ir {
 static void write_outputs(Layout& layout, Opt<Str> name_r = std::nullopt) {
     auto name = name_r.value_or(
         std::string{getDebugFile().filename().c_str()});
-    layout.to_svg(getDebugFile(std::format("{}.svg", name)), name);
+    writeFile(
+        getDebugFile(std::format("{}.svg", name)),
+        layout.to_svg(name).to_string(2));
     layout.to_graphviz(getDebugFile(std::format("{}-graph", name)));
 }
 
@@ -19,9 +21,10 @@ TEST(KiwiIr, AlignAndSeparate) {
         Rect("c", std::nullopt, std::nullopt, 40, 30),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<AlignConstraint>(
-            Anchor::TOP,
-            Vec<AlignItem>{{"a", 0.0}, {"b", 0.0}, {"c", 0.0}}),
+        std::make_shared<AlignConstraint>(Vec<AlignItem>{
+            {"a", AlignSpec{.anchor = Anchor::TOP}},
+            {"b", AlignSpec{.anchor = Anchor::TOP}},
+            {"c", AlignSpec{.anchor = Anchor::TOP}}}),
         std::make_shared<SeparateConstraint>(
             "b", Anchor::LEFT, "a", Anchor::RIGHT, 15),
         std::make_shared<SeparateConstraint>(
@@ -161,15 +164,16 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
         Rect("r21", std::nullopt, 60, 20, 10),
         Rect("r22", std::nullopt, 60, 20, 10),
     };
+    auto                            la = AlignSpec{.anchor = Anchor::LEFT};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
             Vec<Str>{"r00", "r01", "r02"}, Axis::X, Anchor::LEFT),
         std::make_shared<AlignConstraint>(
-            Anchor::LEFT, Vec<AlignItem>{{"r00"}, {"r10"}, {"r20"}}),
+            Vec<AlignItem>{{"r00", la}, {"r10", la}, {"r20", la}}),
         std::make_shared<AlignConstraint>(
-            Anchor::LEFT, Vec<AlignItem>{{"r01"}, {"r11"}, {"r21"}}),
+            Vec<AlignItem>{{"r01", la}, {"r11", la}, {"r21", la}}),
         std::make_shared<AlignConstraint>(
-            Anchor::LEFT, Vec<AlignItem>{{"r02"}, {"r12"}, {"r22"}}),
+            Vec<AlignItem>{{"r02", la}, {"r12", la}, {"r22", la}}),
         std::make_shared<MultiSeparateConstraint>(
             /*groups=*/
             Vec<Vec<Str>>{
@@ -226,18 +230,20 @@ TEST(KiwiIr, MultiSeparateGrid) {
     for (auto const& row : ids) {
         Vec<AlignItem> row_items;
         for (auto const& r : row) {
-            row_items.push_back(AlignItem{r, 0.0});
+            row_items.push_back(
+                AlignItem{r, AlignSpec{.anchor = Anchor::TOP}});
         }
         constraints.push_back(
-            std::make_shared<AlignConstraint>(Anchor::TOP, row_items));
+            std::make_shared<AlignConstraint>(row_items));
     }
     for (auto const& col : col_groups) {
         Vec<AlignItem> col_items;
         for (auto const& r : col) {
-            col_items.push_back(AlignItem{r, 0.0});
+            col_items.push_back(
+                AlignItem{r, AlignSpec{.anchor = Anchor::LEFT}});
         }
         constraints.push_back(
-            std::make_shared<AlignConstraint>(Anchor::LEFT, col_items));
+            std::make_shared<AlignConstraint>(col_items));
     }
 
     Layout layout(rects, constraints);

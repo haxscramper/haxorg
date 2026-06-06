@@ -44,7 +44,7 @@ std::string fmt1_maybe(T const& t) {
 }
 
 template <typename T>
-std::string fmt1_maybe(T const& t) {
+std::string fmt1_maybe([[maybe_unused]] T const& t) {
     return std::format(
         "[not formattable {}]", hstd::value_metadata<T>::typeName());
 }

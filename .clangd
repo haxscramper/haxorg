@@ -12,4 +12,5 @@ CompileFlags:
     - "-Wno-extra-semi"
     - "-Wno-deprecated-copy"
     - "-Wno-pedantic"
+    - "-Wno-missing-field-initializers"
     - "--log=verbose"

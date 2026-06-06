@@ -6,47 +6,14 @@ using namespace hstd::ext::visual;
 
 namespace {
 
-kiwi_ir::Anchor toCenterAnchor(kw::GraphDimension d) {
+kiwi_ir::Anchor toCenterAnchor(kiwi_ir::Axis d) {
     switch (d) {
-        case kw::GraphDimension::XDIM: return kiwi_ir::Anchor::HCENTER;
-        case kw::GraphDimension::YDIM: return kiwi_ir::Anchor::VCENTER;
-        case kw::GraphDimension::UNSET:
-            throw layout::layout_error::init(
-                "Unset dimension in constraint");
+        case kiwi_ir::Axis::X: return kiwi_ir::Anchor::HCENTER;
+        case kiwi_ir::Axis::Y: return kiwi_ir::Anchor::VCENTER;
     }
     std::unreachable();
 }
 
-kiwi_ir::Anchor toAlignAnchor(
-    kw::GraphDimension             d,
-    kw::AlignConstraint::AxisAlign align) {
-    using AxisAlign = kw::AlignConstraint::AxisAlign;
-    if (d == kw::GraphDimension::XDIM) {
-        switch (align) {
-            case AxisAlign::Center: return kiwi_ir::Anchor::HCENTER;
-            case AxisAlign::Left: return kiwi_ir::Anchor::LEFT;
-            case AxisAlign::Right: return kiwi_ir::Anchor::RIGHT;
-            case AxisAlign::Top:
-            case AxisAlign::Bottom:
-                throw layout::layout_error::init(
-                    "Top/Bottom align can only be used in YDIM");
-        }
-    } else if (d == kw::GraphDimension::YDIM) {
-        switch (align) {
-            case AxisAlign::Center: return kiwi_ir::Anchor::VCENTER;
-            case AxisAlign::Top: return kiwi_ir::Anchor::TOP;
-            case AxisAlign::Bottom: return kiwi_ir::Anchor::BOTTOM;
-            case AxisAlign::Left:
-            case AxisAlign::Right:
-                throw layout::layout_error::init(
-                    "Left/Right align can only be used in XDIM");
-        }
-    } else {
-        throw layout::layout_error::init(
-            "Unset dimension in align constraint");
-    }
-    std::unreachable();
-}
 
 struct single_layout_run_state {
     hstd::SPtr<layout::LayoutRun> run;
@@ -132,6 +99,20 @@ struct single_layout_run_state {
         kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
         layout.verify_constraints();
         auto solved = layout.solve();
+        if (run->TraceState) {
+            static int kiwi_run_counter = 0;
+            run->writeAdjacentToTraceFile(
+                std::format(
+                    "kiwi_solver_run_{}.svg",
+                    hstd::fmt1(kiwi_run_counter)),
+                layout.to_svg(hstd::fmt1(kiwi_run_counter)).to_string(2));
+            layout.to_graphviz(run->getAdjacentToTraceFile(
+                std::format(
+                    "kiwi_solver_run_{}.png",
+                    hstd::fmt1(kiwi_run_counter))));
+            ++kiwi_run_counter;
+        }
+
         for (auto const& id : solver_nodes) {
             absolute_rects.insert_or_assign(
                 id, solved.at(rect_id(id)).getGeometry());
@@ -228,6 +209,38 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     return result;
 }
 
+kw::AlignConstraint* kw::AlignConstraint::addAlignVertex(
+    VertexID const&            id,
+    hstd::Opt<kiwi_ir::Anchor> align,
+    double                     offset) {
+    if (align) {
+        if (dimension == kiwi_ir::Axis::X) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                align == kiwi_ir::Anchor::LEFT
+                    || align == kiwi_ir::Anchor::RIGHT
+                    || align == kiwi_ir::Anchor::VCENTER,
+                "{}",
+                align);
+        } else {
+            LOGIC_ASSERTION_CHECK_FMT(
+                align == kiwi_ir::Anchor::TOP
+                    || align == kiwi_ir::Anchor::BOTTOM
+                    || align == kiwi_ir::Anchor::HCENTER,
+                "{}",
+                align);
+        }
+    }
+    vertices.insert_or_assign(
+        id,
+        kiwi_ir::AlignSpec{
+            .anchor = align.value_or(
+                dimension == kiwi_ir::Axis::X ? kiwi_ir::Anchor::VCENTER
+                                              : kiwi_ir::Anchor::HCENTER),
+            .offset = offset,
+        });
+    return this;
+}
+
 hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::AlignConstraint::
     getKiwi() const {
     if (vertices.empty()) {
@@ -235,17 +248,14 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::AlignConstraint::
             "AlignConstraint expects vertices");
     }
 
-    auto                          anchor = kiwi_ir::Anchor::HCENTER;
     hstd::Vec<kiwi_ir::AlignItem> items;
     for (auto const& [id, spec] : vertices) {
-        anchor = toAlignAnchor(dimension, spec.align);
         items.push_back(
-            kiwi_ir::AlignItem{
-                .rect_id = rectId(id), .offset = spec.offset});
+            kiwi_ir::AlignItem{.rect_id = rectId(id), .spec = spec});
     }
 
     return {std::make_shared<kiwi_ir::AlignConstraint>(
-        anchor, items, kiwi_ir::Strength::REQUIRED)};
+        items, kiwi_ir::Strength::REQUIRED)};
 }
 
 hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::SeparateConstraint::

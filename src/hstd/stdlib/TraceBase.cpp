@@ -23,6 +23,32 @@ hstd::Opt<fs::path> OperationsTracer::getTraceFileDir() const {
     }
 }
 
+hstd::fs::path OperationsTracer::getAdjacentToTraceFile(
+    Str const& suffix) const {
+    auto outdir = getTraceFileDir();
+    LOGIC_ASSERTION_CHECK(outdir.has_value(), "must be writing to file");
+    auto result = outdir.value() / suffix.toBase();
+    createDirectory(result.parent_path(), true, true);
+    return result;
+}
+
+void OperationsTracer::writeToTraceFile(
+    hstd::fs::path const& path,
+    Str const&            text,
+    bool                  with_message,
+    char const*           function,
+    int                   line,
+    char const*           file) const {
+    writeFile(path, text);
+    if (with_message) {
+        message(
+            hstd::fmt("wrote debug file to {}", path),
+            function,
+            line,
+            file);
+    }
+}
+
 void OperationsTracer::writeAdjacentToTraceFile(
     Str const&  suffix,
     Str const&  text,
@@ -31,19 +57,8 @@ void OperationsTracer::writeAdjacentToTraceFile(
     int         line,
     char const* file) const {
     if (TraceState) {
-        auto outdir = getTraceFileDir();
-        LOGIC_ASSERTION_CHECK(
-            outdir.has_value(), "must be writing to file");
-        auto result = outdir.value() / suffix.toBase();
-        createDirectory(result.parent_path(), true, true);
-        writeFile(result, text);
-        if (with_message) {
-            message(
-                hstd::fmt("wrote debug file to {}", result),
-                function,
-                line,
-                file);
-        }
+        auto result = getAdjacentToTraceFile(suffix);
+        writeToTraceFile(result, text, with_message, function, line, file);
     }
 }
 

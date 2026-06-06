@@ -593,7 +593,9 @@ using CVec = Vec<T> const&;
 template <typename T>
 struct value_metadata<Vec<T>> {
     static bool isEmpty(Vec<T> const& value) { return value.empty(); }
-    static bool isNil(Vec<T> const& value) { return false; }
+    static bool isNil([[maybe_unused]] Vec<T> const& value) {
+        return false;
+    }
     static std::string typeName() {
         return std::string{"Vec<"} + value_metadata<T>::typeName()
              + std::string{">"};

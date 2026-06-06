@@ -59,6 +59,7 @@ TEST_F(GraphKiwi_Test, KiwiAlign) {
         ->addAlignVertex(v4);
 
     run->runFullLayout();
+    writeVisual();
 
     EXPECT_OUTCOME_OK(
         checkAlignedHorizontally(run->getVisual(v1), run->getVisual(v4)));
@@ -92,11 +93,12 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
         c->useHorizontalAxis();
     }
 
-    c->addAlignVertex(v1, kw::AlignConstraint::AxisAlign::Center, 0)
-        ->addAlignVertex(v2, kw::AlignConstraint::AxisAlign::Center, 50)
-        ->addAlignVertex(v3, kw::AlignConstraint::AxisAlign::Center, 100);
+    c->addAlignVertex(v1, kiwi_ir::Anchor::VCENTER, 0)
+        ->addAlignVertex(v2, kiwi_ir::Anchor::VCENTER, 50)
+        ->addAlignVertex(v3, kiwi_ir::Anchor::VCENTER, 100);
 
     run->runFullLayout();
+    writeVisual();
 
     auto offset = is_vertical ? geometry::Point{50, 0}
                               : geometry::Point{0, 50};
@@ -150,6 +152,7 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
         ->addRightVertex(v4);
 
     run->runFullLayout();
+    writeVisual();
 
     auto v1_center = run->getVisual(v1).computeBounds().center();
     auto v2_center = run->getVisual(v2).computeBounds().center();
@@ -200,13 +203,11 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
 
     auto sep1 = root->addConstraint<kw::MultiSeparateConstraint>(root)
                     ->setSeparationDistance(90)
-                    ->separateVertically()
-                    ->setIsExactSeparation(true);
+                    ->separateVertically();
 
     auto sep2 = root->addConstraint<kw::MultiSeparateConstraint>(root)
                     ->setSeparationDistance(90)
-                    ->separateHorizontally()
-                    ->setIsExactSeparation(true);
+                    ->separateHorizontally();
 
     hstd::Vec<VertexIDVec>
         grid_T = hstd::rv::iota(0, size)
@@ -224,6 +225,7 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
     for (auto const& col : grid_T) { sep2->addFullLane(col); }
 
     run->runFullLayout();
+    writeVisual();
 
     auto get_c = [&](VertexID const& id) -> geometry::Point {
         return run->getVisual(id).computeBounds().center();

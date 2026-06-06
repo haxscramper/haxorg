@@ -162,12 +162,6 @@ static StructuredValue make_proc_value(ProcInfo const& info) {
     return root;
 }
 
-template <typename T>
-static void emit_event(T const& event) {
-    nlohmann::json j = hstd::to_json_eval(event);
-    std::cout << j.dump() << '\n';
-    std::cout.flush();
-}
 
 class ProcTracker {
   public:
@@ -184,6 +178,12 @@ class ProcTracker {
     }
 
   private:
+    template <typename T>
+    void emit_event(T const& event) {
+        nlohmann::json j = hstd::to_json_eval(event);
+        file << j.dump() << '\n';
+    }
+
     std::ofstream file;
     Conf          conf;
 

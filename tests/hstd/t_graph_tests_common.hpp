@@ -41,6 +41,13 @@ class GraphUtils_Test : public ::testing::Test {
         run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 
+    void writeVisual() {
+        auto visual = run->getVisual();
+        hstd::writeFile(
+            getDebugFile("result.svg"),
+            hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+    }
+
     hstd::SPtr<TrivialGraph>     getGraph() const { return state.graph; }
     hstd::SPtr<TrivialHierarchy> getHierarchy() const {
         return state.hierarchy;

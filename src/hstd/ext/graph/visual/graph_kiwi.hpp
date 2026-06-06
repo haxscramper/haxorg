@@ -9,15 +9,6 @@
 
 namespace hstd::ext::graph::kw {
 
-enum class GraphDimension
-{
-    XDIM  = 0,
-    YDIM  = 1,
-    UNSET = 2,
-};
-
-BOOST_DESCRIBE_ENUM(GraphDimension, XDIM, YDIM, UNSET);
-
 class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexAttribute"; }
@@ -240,16 +231,9 @@ class AlignConstraint : public KiwiConstraint {
   public:
     DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
 
-    struct Spec {
-        Opt<double> fixPos = std::nullopt;
-        AxisAlign   align  = AxisAlign::Center;
-        double      offset = 0.0;
-        DESC_FIELDS(Spec, (fixPos, align, offset));
-    };
-
-    hstd::UnorderedMap<VertexID, Spec> vertices;
+    hstd::UnorderedMap<VertexID, kiwi_ir::AlignSpec> vertices;
     /// Which axis to partition nodes
-    GraphDimension dimension = GraphDimension::UNSET;
+    kiwi_ir::Axis dimension = kiwi_ir::Axis::X;
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
     using KiwiConstraint::KiwiConstraint;
@@ -261,27 +245,17 @@ class AlignConstraint : public KiwiConstraint {
     }
 
     AlignConstraint* addAlignVertex(
-        VertexID const&   id,
-        AxisAlign         align  = AxisAlign::Center,
-        double            offset = 0,
-        hstd::Opt<double> fixPos = std::nullopt) {
-        vertices.insert_or_assign(
-            id,
-            Spec{
-                .fixPos = fixPos,
-                .align  = align,
-                .offset = offset,
-            });
-        return this;
-    }
+        VertexID const&            id,
+        hstd::Opt<kiwi_ir::Anchor> align  = std::nullopt,
+        double                     offset = 0);
 
     AlignConstraint* useVerticalAxis() {
-        dimension = GraphDimension::XDIM;
+        dimension = kiwi_ir::Axis::X;
         return this;
     }
 
     AlignConstraint* useHorizontalAxis() {
-        dimension = GraphDimension::YDIM;
+        dimension = kiwi_ir::Axis::Y;
         return this;
     }
 
@@ -307,7 +281,7 @@ class SeparateConstraint : public KiwiConstraint {
     AlignConstraint right;
     double          separationDistance = 1.0;
     bool            isExactSeparation  = false;
-    GraphDimension  dimension          = GraphDimension::UNSET;
+    kiwi_ir::Axis   dimension          = kiwi_ir::Axis::X;
     DESC_FIELDS(
         SeparateConstraint,
         (left, right, separationDistance, isExactSeparation, dimension));
@@ -327,7 +301,7 @@ class SeparateConstraint : public KiwiConstraint {
     /// \brief The lanes are placed vertically, with the separation
     /// distance configuring the X-offset between the lanes.
     SeparateConstraint* separateHorizontally() {
-        dimension = GraphDimension::XDIM;
+        dimension = kiwi_ir::Axis::X;
         left.useVerticalAxis();
         right.useVerticalAxis();
         return this;
@@ -336,7 +310,7 @@ class SeparateConstraint : public KiwiConstraint {
     /// \brief The lanes are placed horizontally, with the separation
     /// distance configuring the Y-offset between the lanes.
     SeparateConstraint* separateVertically() {
-        dimension = GraphDimension::YDIM;
+        dimension = kiwi_ir::Axis::Y;
         left.useHorizontalAxis();
         right.useHorizontalAxis();
         return this;
@@ -353,12 +327,10 @@ class SeparateConstraint : public KiwiConstraint {
     }
 
     SeparateConstraint* addLeftVertex(
-        VertexID const& id,
-        AlignConstraint::AxisAlign
-                          align  = AlignConstraint::AxisAlign::Center,
-        double            offset = 0,
-        hstd::Opt<double> fixPos = std::nullopt) {
-        left.addAlignVertex(id, align, offset, fixPos);
+        VertexID const&            id,
+        hstd::Opt<kiwi_ir::Anchor> align  = std::nullopt,
+        double                     offset = 0) {
+        left.addAlignVertex(id, align, offset);
         return this;
     }
 
@@ -375,12 +347,10 @@ class SeparateConstraint : public KiwiConstraint {
 
     /// \brief Add vertex to the second alignment lane.
     SeparateConstraint* addRightVertex(
-        VertexID const& id,
-        AlignConstraint::AxisAlign
-                          align  = AlignConstraint::AxisAlign::Center,
-        double            offset = 0,
-        hstd::Opt<double> fixPos = std::nullopt) {
-        right.addAlignVertex(id, align, offset, fixPos);
+        VertexID const&            id,
+        hstd::Opt<kiwi_ir::Anchor> align  = std::nullopt,
+        double                     offset = 0) {
+        right.addAlignVertex(id, align, offset);
         return this;
     }
 
@@ -391,12 +361,11 @@ class SeparateConstraint : public KiwiConstraint {
 class MultiSeparateConstraint : public KiwiConstraint {
   public:
     hstd::Vec<AlignConstraint> lines;
-    GraphDimension             dimension          = GraphDimension::XDIM;
+    kiwi_ir::Axis              dimension          = kiwi_ir::Axis::X;
     double                     separationDistance = 0.0;
-    bool                       isExactSeparation  = false;
     DESC_FIELDS(
         MultiSeparateConstraint,
-        (lines, dimension, separationDistance, isExactSeparation));
+        (lines, dimension, separationDistance));
 
     using KiwiConstraint::KiwiConstraint;
 
@@ -410,11 +379,6 @@ class MultiSeparateConstraint : public KiwiConstraint {
 
     MultiSeparateConstraint* setSeparationDistance(double distance) {
         this->separationDistance = distance;
-        return this;
-    }
-
-    MultiSeparateConstraint* setIsExactSeparation(bool exact) {
-        this->isExactSeparation = exact;
         return this;
     }
 
@@ -435,18 +399,16 @@ class MultiSeparateConstraint : public KiwiConstraint {
     /// \brief Add a vertex to the *existing* lane, with specified offset
     /// parameters.
     MultiSeparateConstraint* addAlignVertex(
-        VertexID const& id,
-        int             lane,
-        AlignConstraint::AxisAlign
-                          align  = AlignConstraint::AxisAlign::Center,
-        double            offset = 0,
-        hstd::Opt<double> fixPos = std::nullopt) {
+        VertexID const&            id,
+        int                        lane,
+        hstd::Opt<kiwi_ir::Anchor> align  = std::nullopt,
+        double                     offset = 0) {
         LOGIC_ASSERTION_CHECK_FMT(
             lines.has(lane),
             "Cannot insert vertext to lane {}, call `addLane()` to match "
             "the lane count",
             lane);
-        lines.at(lane).addAlignVertex(id, align, offset, fixPos);
+        lines.at(lane).addAlignVertex(id, align, offset);
         return this;
     }
 
@@ -460,13 +422,13 @@ class MultiSeparateConstraint : public KiwiConstraint {
     }
 
     MultiSeparateConstraint* separateHorizontally() {
-        dimension = GraphDimension::XDIM;
+        dimension = kiwi_ir::Axis::X;
         for (auto& lane : lines) { lane.useVerticalAxis(); }
         return this;
     }
 
     MultiSeparateConstraint* separateVertically() {
-        dimension = GraphDimension::YDIM;
+        dimension = kiwi_ir::Axis::Y;
         for (auto& lane : lines) { lane.useHorizontalAxis(); }
         return this;
     }

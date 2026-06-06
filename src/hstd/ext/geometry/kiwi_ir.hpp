@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Map.hpp"
 #include <exception>
 #include <optional>
 #include <unordered_map>
@@ -17,6 +18,26 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
+
+template <>
+struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        kiwi::Variable const& p,
+        FormatContext&        ctx) const {
+        return ::hstd::fmt_ctx(p.name(), ctx);
+    }
+};
+
+template <>
+struct std::formatter<kiwi::Term> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(kiwi::Term const& p, FormatContext& ctx)
+        const {
+        return ::hstd::fmt_ctx(p.variable(), ctx);
+    }
+};
+
 
 namespace hstd::ext::kiwi_ir {
 
@@ -47,6 +68,10 @@ DECL_DESCRIBED_ENUM_STANDALONE(Strength, REQUIRED, STRONG, MEDIUM, WEAK);
 double kiwi_value(Strength strength);
 Axis   anchor_axis(Anchor anchor);
 Str    axis_color(Axis axis);
+
+Str tree_repr(kiwi::Constraint const& c, int indent = 0);
+Str tree_repr(Vec<kiwi::Constraint> const& c, int indent = 0);
+
 
 class Expr {
   public:
@@ -97,6 +122,8 @@ struct Rect {
     }
 };
 
+using RectMap = hstd::UnorderedMap<Str, Rect>;
+
 struct EdgeDesc {
     Str src;
     Str dst;
@@ -111,10 +138,10 @@ class ConstraintBase {
     explicit ConstraintBase(Strength strength = Strength::REQUIRED);
     virtual ~ConstraintBase() = default;
 
-    virtual Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const = 0;
-    virtual Vec<EdgeDesc> describe_edges() const          = 0;
-    virtual Str           getRepr() const                 = 0;
+    virtual Vec<kiwi::Constraint> build(RectMap const& rects) const = 0;
+    virtual Vec<EdgeDesc>         describe_edges() const            = 0;
+    virtual Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
 };
 
 struct ConstraintEntry {
@@ -125,23 +152,31 @@ struct ConstraintEntry {
 Str describe_constraint_source(
     std::variant<Str, hstd::SPtr<ConstraintBase>> const& source);
 
-class ConstraintVerificationError : public std::exception {
+class ConstraintVerificationError
+    : public hstd::CRTP_hexception<ConstraintVerificationError> {
   public:
     std::variant<Str, hstd::SPtr<ConstraintBase>>      failing_source;
     Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>> conflicting_sources;
-    Str                                                message;
+    Str                                                message_buf;
 
     ConstraintVerificationError(
         std::variant<Str, hstd::SPtr<ConstraintBase>> failing_source,
         Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>>
             conflicting_sources);
 
-    char const* what() const noexcept override;
+    char const* message() const noexcept override;
+};
+
+struct AlignSpec {
+    /// \brief The anchor line (e.g., LEFT, RIGHT, TOP) used to align the
+    /// rectangles.
+    Anchor anchor;
+    double offset = 0.0;
 };
 
 struct AlignItem {
-    Str    rect_id;
-    double offset = 0.0;
+    Str       rect_id;
+    AlignSpec spec;
 };
 
 /// \brief Aligns multiple rectangles by a common anchor line.
@@ -153,22 +188,18 @@ struct AlignItem {
 /// it.
 class AlignConstraint : public ConstraintBase {
   public:
-    /// \brief The anchor line (e.g., LEFT, RIGHT, TOP) used to align the
-    /// rectangles.
-    Anchor anchor;
     /// \brief List of rectangles with optional offsets; the first item is
     /// the reference.
     Vec<AlignItem> items;
 
     AlignConstraint(
-        Anchor         anchor,
         Vec<AlignItem> items,
         Strength       strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Separate constraint creates to lanes of shapes (with one or more
@@ -202,10 +233,10 @@ class SeparateConstraint : public ConstraintBase {
         double   offset,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Positions groups of rectangles with a fixed step between
@@ -228,10 +259,10 @@ class MultiSeparateConstraint : public ConstraintBase {
         double        step,
         Strength      strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the "parent" rectangle fully covers the nested IDs.
@@ -274,10 +305,10 @@ class ParentWrapConstraint : public ConstraintBase {
         double   padding_bottom = 0.0,
         Strength strength       = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Constrain the nested rectangle position in relation to the
@@ -327,10 +358,10 @@ class RelativeConstraint : public ConstraintBase {
         Anchor      nested_y_anchor = Anchor::TOP,
         Strength    strength        = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief The distance between the diagram elements is equal along the x/y
@@ -359,10 +390,10 @@ class EvenGapConstraint : public ConstraintBase {
         Anchor   anchor,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the width/height between two rectangles is matched.
@@ -387,10 +418,10 @@ class EqualSizeConstraint : public ConstraintBase {
         bool     match_height = false,
         Strength strength     = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Free-form constraint between different elements on the graph.
@@ -411,23 +442,23 @@ class LinearConstraint : public ConstraintBase {
         Expr     right,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi::Constraint> build(
-        std::unordered_map<Str, Rect> const& rects) const override;
-    Vec<EdgeDesc> describe_edges() const override;
-    Str           getRepr() const override;
+    Vec<kiwi::Constraint> build(RectMap const& rects) const override;
+    Vec<EdgeDesc>         describe_edges() const override;
+    Str                   getRepr(
+        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 class Layout {
   public:
-    std::unordered_map<Str, Rect>   rects;
+    RectMap                         rects;
     Vec<hstd::SPtr<ConstraintBase>> constraints;
 
     Layout(Vec<Rect> rects, Vec<hstd::SPtr<ConstraintBase>> constraints);
 
-    std::unordered_map<Str, Rect> solve();
-    void to_svg(hstd::fs::path const& path, Str const& title = "layout");
-    void to_graphviz(hstd::fs::path const& path);
-    void verify_constraints();
+    RectMap       solve();
+    hstd::XmlNode to_svg(Str const& title = "layout");
+    void          to_graphviz(hstd::fs::path const& path);
+    void          verify_constraints();
 
   private:
     Vec<ConstraintEntry> build_constraint_entries() const;

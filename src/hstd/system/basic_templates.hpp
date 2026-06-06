@@ -119,8 +119,8 @@ struct value_metadata_default_type_name {
 
 template <typename T>
 struct value_metadata : public value_metadata_default_type_name<T> {
-    static bool isEmpty(T const& value) { return false; }
-    static bool isNil(T const& value) { return false; }
+    static bool isEmpty([[maybe_unused]] T const& value) { return false; }
+    static bool isNil([[maybe_unused]] T const& value) { return false; }
 };
 
 
