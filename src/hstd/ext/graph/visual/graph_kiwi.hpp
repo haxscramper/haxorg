@@ -265,24 +265,59 @@ class ParentWrapConstraint : public KiwiConstraint {
 
 class RelativeConstraint : public KiwiConstraint {
   public:
+    hstd::Vec<VertexID> getAllVertices() const override {
+        return {fixed.id, relative.id};
+    }
+
     struct VertexRef {
-        VertexID        id       = VertexID::Nil();
-        kiwi_ir::Anchor x_anchor = kiwi_ir::Anchor::LEFT;
-        kiwi_ir::Anchor y_anchor = kiwi_ir::Anchor::TOP;
+        VertexID            id     = VertexID::Nil();
+        kiwi_ir::AnchorSpec anchor = kiwi_ir::AnchorSpec::UpperLeft();
     };
 
-    struct VertexOffset {
-        Opt<double> relative;
-        double      absolute = 0.0;
-    };
+    VertexRef fixed;
+    VertexRef relative;
 
-    VertexRef parent;
-    VertexRef nested;
+    kiwi_ir::RelDimensionSpec x_dim;
+    kiwi_ir::RelDimensionSpec y_dim;
+
+    RelativeConstraint* setRelativeOffset(
+        hstd::Opt<double> x,
+        hstd::Opt<double> y) {
+        x_dim.relative_offset = x;
+        y_dim.relative_offset = y;
+        return this;
+    }
+
+    RelativeConstraint* setRelativeSize(
+        hstd::Opt<double> x,
+        hstd::Opt<double> y) {
+        x_dim.size_factor = x;
+        y_dim.size_factor = y;
+        return this;
+    }
+
+    RelativeConstraint* setAbsoluteOffset(double x, double y) {
+        x_dim.absolute_offset = x;
+        y_dim.absolute_offset = y;
+        return this;
+    }
 
     RelativeConstraint(
         hstd::SPtr<KiwiGroup> const& group,
-        VertexID const&              parent)
-        : KiwiConstraint{group}, parent{parent} {}
+        VertexRef const&             fixed,
+        VertexRef const&             relative)
+        : KiwiConstraint{group}, fixed{fixed}, relative{relative} {}
+
+    RelativeConstraint(
+        hstd::SPtr<KiwiGroup> const& group,
+        VertexID const&              fixed,
+        VertexID const&              relative)
+        : KiwiConstraint{group}
+        , fixed{VertexRef{fixed}}
+        , relative{VertexRef{relative}} {}
+
+    hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
+        const override;
 };
 
 class AlignConstraint : public KiwiConstraint {

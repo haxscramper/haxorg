@@ -33,6 +33,24 @@ TEST_F(GraphKiwi_Test, KiwiIr1) {
     EXPECT_NEAR(run->getLayout(v2)->getBBox().height(), 6, 0.005);
 }
 
+TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
+    VertexID v_fixed    = getGraph()->addVertex("v_fixed");
+    VertexID v_relative = getGraph()->addVertex("v_relative");
+    VertexID rg_id      = getGraph()->addVertex("rg");
+
+    hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
+    run->setRootGroupAttribute(rg_id, root);
+
+    root->addVertex(addNesting(rg_id, v_fixed), Size(5, 5));
+    root->addVertex(addNesting(rg_id, v_relative), Size(6, 6));
+
+    root->addConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
+        ->setRelativeOffset(5, 5);
+
+    run->runFullLayout();
+    writeVisual();
+}
+
 TEST_F(GraphKiwi_Test, KiwiAlign) {
     VertexID v1    = getGraph()->addVertex("v1");
     VertexID v2    = getGraph()->addVertex("v2");

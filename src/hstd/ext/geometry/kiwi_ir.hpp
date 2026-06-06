@@ -91,7 +91,8 @@ struct AnchorSpec {
     Anchor const x;
     Anchor const y;
 
-    AnchorSpec(Anchor x, Anchor y) : x{x}, y{y} {
+    AnchorSpec(Anchor x = Anchor::LEFT, Anchor y = Anchor::TOP)
+        : x{x}, y{y} {
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(x) == Axis::X, "{}", x);
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(y) == Axis::Y, "{}", y);
     }
@@ -325,6 +326,7 @@ class ParentWrapConstraint : public ConstraintBase {
 };
 
 
+// QUESTION: Split this structure into the "offset" and "size" parts?
 struct RelDimensionSpec {
     /// \brief Optional factor to scale nested width/height relative to
     /// fixed rectangle.

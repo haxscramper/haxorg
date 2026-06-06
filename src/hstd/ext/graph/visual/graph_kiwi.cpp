@@ -396,3 +396,17 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::ParentWrapConstraint::
             strength),
     };
 }
+
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::RelativeConstraint::
+    getKiwi() const {
+    return {
+        std::make_shared<kiwi_ir::RelativeConstraint>(
+            /*nested_rect_id=*/rectId(fixed.id),
+            /*parent_rect_id=*/rectId(relative.id),
+            /*x_dim=*/x_dim,
+            /*y_dim=*/y_dim,
+            /*anchor_relative=*/relative.anchor,
+            /*anchor_fixed=*/fixed.anchor,
+            /*strength=*/strength),
+    };
+}
