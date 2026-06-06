@@ -416,31 +416,16 @@ RelativeConstraint::RelativeConstraint(
     Str              parent_rect_id,
     RelDimensionSpec x_dim,
     RelDimensionSpec y_dim,
-    RelAnchorSpec    x_anchor,
-    RelAnchorSpec    y_anchor,
+    AnchorSpec       anchor_relative,
+    AnchorSpec       anchor_fixed,
     Strength         strength)
     : ConstraintBase(strength)
     , relative_rect_id(std::move(relative_rect_id))
     , fixed_rect_id(std::move(parent_rect_id))
     , x_dim(x_dim)
     , y_dim(y_dim)
-    , x_anchor(x_anchor)
-    , y_anchor(y_anchor) {
-
-    LOGIC_ASSERTION_CHECK_FMT(
-        anchor_axis(x_anchor.fixed) == Axis::X, "{}", x_anchor.fixed);
-    LOGIC_ASSERTION_CHECK_FMT(
-        anchor_axis(x_anchor.relative) == Axis::X,
-        "{}",
-        x_anchor.relative);
-
-    LOGIC_ASSERTION_CHECK_FMT(
-        anchor_axis(y_anchor.fixed) == Axis::Y, "{}", y_anchor.fixed);
-    LOGIC_ASSERTION_CHECK_FMT(
-        anchor_axis(y_anchor.relative) == Axis::Y,
-        "{}",
-        y_anchor.relative);
-}
+    , anchor_relative(anchor_relative)
+    , anchor_fixed(anchor_fixed) {}
 
 Vec<kiwi::Constraint> RelativeConstraint::build(
     RectMap const& rects) const {
@@ -467,8 +452,8 @@ Vec<kiwi::Constraint> RelativeConstraint::build(
 
     if (x_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(x_anchor.relative).to_kiwi()
-             == (fix.anchor_expr(x_anchor.fixed)
+            (rel.anchor_expr(anchor_relative.x).to_kiwi()
+             == (fix.anchor_expr(anchor_fixed.x)
                  // TODO: NOTE: It would be better to create another IR to
                  // store the expression in a more inspect-able manner and
                  // defer the conversion to KIWI until the very last
@@ -483,16 +468,16 @@ Vec<kiwi::Constraint> RelativeConstraint::build(
 
     } else {
         constraints.push_back(
-            (rel.anchor_expr(x_anchor.relative).to_kiwi()
-             == (fix.anchor_expr(x_anchor.fixed) + x_dim.absolute_offset)
+            (rel.anchor_expr(anchor_relative.x).to_kiwi()
+             == (fix.anchor_expr(anchor_fixed.x) + x_dim.absolute_offset)
                     .to_kiwi())
             | kiwi_value(strength));
     }
 
     if (y_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(y_anchor.relative).to_kiwi()
-             == (fix.anchor_expr(y_anchor.fixed)
+            (rel.anchor_expr(anchor_relative.y).to_kiwi()
+             == (fix.anchor_expr(anchor_fixed.y)
                  + (y_dim.relative_offset.value()
                     * fix.expr(RectAttr::HEIGHT).to_kiwi())
                  + y_dim.absolute_offset)
@@ -500,8 +485,8 @@ Vec<kiwi::Constraint> RelativeConstraint::build(
             | kiwi_value(strength));
     } else {
         constraints.push_back(
-            (rel.anchor_expr(y_anchor.relative).to_kiwi()
-             == (fix.anchor_expr(y_anchor.fixed) + y_dim.absolute_offset)
+            (rel.anchor_expr(anchor_relative.y).to_kiwi()
+             == (fix.anchor_expr(anchor_fixed.y) + y_dim.absolute_offset)
                     .to_kiwi())
             | kiwi_value(strength));
     }

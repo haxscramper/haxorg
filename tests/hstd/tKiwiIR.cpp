@@ -88,24 +88,11 @@ TEST(KiwiIr, ParentWrapAndRelative) {
             /*nested_rect_id=*/"inner",
             /*parent_rect_id=*/"parent",
             /*x_dim=*/
-            RelDimensionSpec{
-                .size_factor     = 0.2,
-                .absolute_offset = 20,
-            },
+            RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 20},
             /*y_dim=*/
-            RelDimensionSpec{
-                .size_factor = 0.5,
-            },
-            /*x_anchor=*/
-            RelAnchorSpec{
-                .fixed    = Anchor::HCENTER,
-                .relative = Anchor::LEFT,
-            },
-            /*y_anchor=*/
-            RelAnchorSpec{
-                .fixed    = Anchor::VCENTER,
-                .relative = Anchor::TOP,
-            }),
+            RelDimensionSpec{.size_factor = 0.5},
+            /*anchor_relative=*/AnchorSpec::UpperLeft(),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
@@ -291,28 +278,22 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
             /*parent_rect_id=*/"p1",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            RelAnchorSpec{
-                .fixed = Anchor::HCENTER, .relative = Anchor::LEFT},
-            RelAnchorSpec{
-                .fixed = Anchor::VCENTER, .relative = Anchor::TOP}),
+            /*anchor_relative=*/AnchorSpec::UpperLeft(),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
         std::make_shared<RelativeConstraint>(
             /*nested_rect_id=*/"c2",
             /*parent_rect_id=*/"p2",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            RelAnchorSpec{
-                .fixed = Anchor::HCENTER, .relative = Anchor::LEFT},
-            RelAnchorSpec{
-                .fixed = Anchor::VCENTER, .relative = Anchor::TOP}),
+            /*anchor_relative=*/AnchorSpec::UpperLeft(),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
         std::make_shared<RelativeConstraint>(
             /*nested_rect_id=*/"c3",
             /*parent_rect_id=*/"p3",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            RelAnchorSpec{
-                .fixed = Anchor::HCENTER, .relative = Anchor::LEFT},
-            RelAnchorSpec{
-                .fixed = Anchor::VCENTER, .relative = Anchor::TOP}),
+            /*anchor_relative=*/AnchorSpec::UpperLeft(),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
     };
 
     Layout layout(rects, constraints);
@@ -635,14 +616,8 @@ TEST(KiwiIr, RelativeVariations) {
             /*parent_rect_id=*/"p",
             RelDimensionSpec{.size_factor = 0.5},
             RelDimensionSpec{.size_factor = 0.6},
-            RelAnchorSpec{
-                .fixed    = Anchor::RIGHT,
-                .relative = Anchor::RIGHT,
-            },
-            RelAnchorSpec{
-                .fixed    = Anchor::BOTTOM,
-                .relative = Anchor::BOTTOM,
-            }),
+            /*anchor_relative=*/AnchorSpec::LowerRight(),
+            /*anchor_fixed=*/AnchorSpec::LowerRight()),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();

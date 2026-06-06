@@ -86,6 +86,29 @@ Str tree_repr(kiwi::Expression const& c, int indent = 0);
 Str tree_repr(kiwi::Constraint const& c, int indent = 0);
 Str tree_repr(Vec<kiwi::Constraint> const& c, int indent = 0);
 
+struct AnchorSpec {
+  public:
+    Anchor const x;
+    Anchor const y;
+
+    AnchorSpec(Anchor x, Anchor y) : x{x}, y{y} {
+        LOGIC_ASSERTION_CHECK_FMT(anchor_axis(x) == Axis::X, "{}", x);
+        LOGIC_ASSERTION_CHECK_FMT(anchor_axis(y) == Axis::Y, "{}", y);
+    }
+
+    static AnchorSpec UpperLeft() {
+        return AnchorSpec(Anchor::LEFT, Anchor::TOP);
+    }
+
+    static AnchorSpec LowerRight() {
+        return AnchorSpec(Anchor::RIGHT, Anchor::BOTTOM);
+    }
+
+    static AnchorSpec CenterCenter() {
+        return AnchorSpec(Anchor::HCENTER, Anchor::VCENTER);
+    }
+};
+
 
 class Expr {
   public:
@@ -325,15 +348,6 @@ struct RelDimensionSpec {
         (size_factor, relative_offset, absolute_offset));
 };
 
-struct RelAnchorSpec {
-    /// \brief Which anchor element on the fixed entry should be used
-    /// for the constraint?
-    Anchor fixed;
-    Anchor relative;
-    DESC_FIELDS(RelAnchorSpec, (fixed, relative));
-};
-
-
 /// \brief Constrain the nested rectangle position in relation to the
 /// parent rectangle.
 ///
@@ -354,8 +368,8 @@ class RelativeConstraint : public ConstraintBase {
 
     RelDimensionSpec x_dim;
     RelDimensionSpec y_dim;
-    RelAnchorSpec    x_anchor;
-    RelAnchorSpec    y_anchor;
+    AnchorSpec       anchor_fixed;
+    AnchorSpec       anchor_relative;
 
     // FIXME: The constructor API is brittle and hard to reason about, the
     // default constructor for RelAnchorSpec must have two different
@@ -366,11 +380,9 @@ class RelativeConstraint : public ConstraintBase {
         Str              parent_rect_id,
         RelDimensionSpec x_dim,
         RelDimensionSpec y_dim,
-        RelAnchorSpec
-            x_anchor = RelAnchorSpec{.fixed = Anchor::LEFT, .relative = Anchor::LEFT},
-        RelAnchorSpec
-            y_anchor = RelAnchorSpec{.fixed = Anchor::TOP, .relative = Anchor::TOP},
-        Strength strength = Strength::REQUIRED);
+        AnchorSpec       anchor_relative = AnchorSpec::UpperLeft(),
+        AnchorSpec       anchor_fixed    = AnchorSpec::UpperLeft(),
+        Strength         strength        = Strength::REQUIRED);
 
     Vec<kiwi::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>         describe_edges() const override;
