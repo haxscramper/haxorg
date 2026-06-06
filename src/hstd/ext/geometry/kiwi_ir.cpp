@@ -304,20 +304,14 @@ Str MultiSeparateConstraint::getRepr(
 }
 
 ParentWrapConstraint::ParentWrapConstraint(
-    Str      parent_rect_id,
-    Vec<Str> nested_rect_ids,
-    double   padding_left,
-    double   padding_top,
-    double   padding_right,
-    double   padding_bottom,
-    Strength strength)
+    Str                      parent_rect_id,
+    Vec<Str>                 nested_rect_ids,
+    geometry::Padding const& pad,
+    Strength                 strength)
     : ConstraintBase(strength)
     , parent_rect_id(std::move(parent_rect_id))
     , nested_rect_ids(std::move(nested_rect_ids))
-    , padding_left(padding_left)
-    , padding_top(padding_top)
-    , padding_right(padding_right)
-    , padding_bottom(padding_bottom) {}
+    , pad{pad} {}
 
 Vec<kiwi::Constraint> ParentWrapConstraint::build(
     RectMap const& rects) const {
@@ -344,48 +338,46 @@ Vec<kiwi::Constraint> ParentWrapConstraint::build(
     for (auto const& nested_left : left_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::LEFT).to_kiwi()
-             <= (nested_left - padding_left).to_kiwi())
+             <= (nested_left - pad.left).to_kiwi())
             | kiwi_value(strength));
     }
 
     for (auto const& nested_top : top_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::TOP).to_kiwi()
-             <= (nested_top - padding_top).to_kiwi())
+             <= (nested_top - pad.top).to_kiwi())
             | kiwi_value(strength));
     }
 
     for (auto const& nested_right : right_exprs) {
         constraints.push_back(
-            ((nested_right + padding_right).to_kiwi()
+            ((nested_right + pad.right).to_kiwi()
              <= parent.anchor_expr(Anchor::RIGHT).to_kiwi())
             | kiwi_value(strength));
     }
 
     for (auto const& nested_bottom : bottom_exprs) {
         constraints.push_back(
-            ((nested_bottom + padding_bottom).to_kiwi()
+            ((nested_bottom + pad.bottom).to_kiwi()
              <= parent.anchor_expr(Anchor::BOTTOM).to_kiwi())
             | kiwi_value(strength));
     }
 
     constraints.push_back(
         (parent.anchor_expr(Anchor::LEFT).to_kiwi()
-         == (left_exprs[0] - padding_left).to_kiwi())
+         == (left_exprs[0] - pad.left).to_kiwi())
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::TOP).to_kiwi()
-         == (top_exprs[0] - padding_top).to_kiwi())
+         == (top_exprs[0] - pad.top).to_kiwi())
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::RIGHT).to_kiwi()
-         == (right_exprs[right_exprs.size() - 1] + padding_right)
-                .to_kiwi())
+         == (right_exprs[right_exprs.size() - 1] + pad.right).to_kiwi())
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::BOTTOM).to_kiwi()
-         == (bottom_exprs[bottom_exprs.size() - 1] + padding_bottom)
-                .to_kiwi())
+         == (bottom_exprs[bottom_exprs.size() - 1] + pad.bottom).to_kiwi())
         | kiwi_value(strength));
 
     return constraints;
@@ -411,14 +403,11 @@ Str ParentWrapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     }
     children << "]";
     return std::format(
-        "ParentWrapConstraint(parent={}, children={}, padding=({:g}, "
-        "{:g}, {:g}, {:g}), strength={})",
+        "ParentWrapConstraint(parent={}, children={}, padding={}, "
+        "strength={})",
         parent_rect_id,
         children.str(),
-        padding_left,
-        padding_top,
-        padding_right,
-        padding_bottom,
+        pad,
         strength);
 }
 

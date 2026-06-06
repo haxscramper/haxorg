@@ -211,6 +211,7 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 class KiwiConstraint : public layout::IConstraint {
   protected:
     hstd::SPtr<layout::LayoutRun> run;
+    kiwi_ir::Strength             strength = kiwi_ir::Strength::REQUIRED;
 
     Str rectId(VertexID const& id) const {
         return run->getVertex(id)->getStableId();
@@ -224,7 +225,37 @@ class KiwiConstraint : public layout::IConstraint {
 
     virtual hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
         const = 0;
+
+    KiwiConstraint* setStrength(kiwi_ir::Strength strength) {
+        this->strength = strength;
+        return this;
+    }
+
     virtual std::string getRepr() const { return "KiwiConstraint"; }
+};
+
+class ParentWrapContraint : public KiwiConstraint {
+    VertexID          parent;
+    VertexIDVec       nested;
+    geometry::Padding pad;
+
+  public:
+    ParentWrapContraint(
+        hstd::SPtr<KiwiGroup> const& group,
+        VertexID const&              parent)
+        : KiwiConstraint{group}, parent{parent} {}
+
+    ParentWrapContraint* setPadding(geometry::Padding const& pad) {
+        this->pad = pad;
+        return this;
+    }
+
+    hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
+        const override;
+
+    VertexIDVec getAllVertices() const override {
+        return nested + VertexIDVec{parent};
+    }
 };
 
 class AlignConstraint : public KiwiConstraint {
@@ -436,6 +467,7 @@ class MultiSeparateConstraint : public KiwiConstraint {
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi()
         const override;
 };
+
 
 class KiwiLayoutAlgorithm : public layout::IPlacementAlgorithm {
   public:

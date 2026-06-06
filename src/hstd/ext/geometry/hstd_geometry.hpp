@@ -35,6 +35,26 @@ struct Padding {
     double getLeft() const { return left; }
     double getRight() const { return right; }
 
+    Padding& setTop(double top) {
+        this->top = top;
+        return *this;
+    }
+
+    Padding& setBottom(double bottom) {
+        this->bottom = bottom;
+        return *this;
+    }
+
+    Padding& setLeft(double left) {
+        this->left = left;
+        return *this;
+    }
+
+    Padding& setRight(double right) {
+        this->right = right;
+        return *this;
+    }
+
     DESC_FIELDS(Padding, (top, bottom, left, right));
 };
 

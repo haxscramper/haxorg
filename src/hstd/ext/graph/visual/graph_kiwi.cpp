@@ -1,4 +1,5 @@
 #include "graph_kiwi.hpp"
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
 using namespace hstd::ext;
@@ -376,4 +377,22 @@ hstd::ext::visual::VisGroup kw::KiwiGroupLayoutAttribute::getVisual(
         "inkscape:label", hstd::fmt("KIWI GROUP:{}", group->local.name));
 
     return res;
+}
+
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::ParentWrapContraint::
+    getKiwi() const {
+    if (nested.empty()) {
+        throw layout::layout_error::init(
+            "ParentWrapContraint expects vertices");
+    }
+
+    return {
+        std::make_shared<kiwi_ir::ParentWrapConstraint>(
+            rectId(parent),
+            nested | rv::transform([this](VertexID const& id) -> Str {
+                return rectId(id);
+            }) | rs::to<Vec>(),
+            pad,
+            strength),
+    };
 }

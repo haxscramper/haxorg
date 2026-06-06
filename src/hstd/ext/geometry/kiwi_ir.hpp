@@ -267,31 +267,19 @@ class MultiSeparateConstraint : public ConstraintBase {
 /// parent.bottom = last_nested.bottom + padding_bottom.
 class ParentWrapConstraint : public ConstraintBase {
   public:
-    /// \brief The rectangle that wraps its children.
+    /// \brief The rectangle that wraps its nestedren.
     Str parent_rect_id;
     /// \brief IDs of rectangles that should be inside the parent.
     Vec<Str> nested_rect_ids;
-    /// \brief Minimum distance from parent left edge to children's left
-    /// edges.
-    double padding_left;
-    /// \brief Minimum distance from parent top edge to children's top
-    /// edges.
-    double padding_top;
-    /// \brief Minimum distance from children's right edges to parent right
-    /// edge.
-    double padding_right;
-    /// \brief Minimum distance from children's bottom edges to parent
-    /// bottom edge.
-    double padding_bottom;
+    /// \brief Minimum distance from the parent's edges to the nested
+    /// elements.
+    geometry::Padding pad;
 
     ParentWrapConstraint(
-        Str      parent_rect_id,
-        Vec<Str> nested_rect_ids,
-        double   padding_left   = 0.0,
-        double   padding_top    = 0.0,
-        double   padding_right  = 0.0,
-        double   padding_bottom = 0.0,
-        Strength strength       = Strength::REQUIRED);
+        Str                      parent_rect_id,
+        Vec<Str>                 nested_rect_ids,
+        geometry::Padding const& pad      = geometry::Padding(),
+        Strength                 strength = Strength::REQUIRED);
 
     Vec<kiwi::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>         describe_edges() const override;
@@ -302,21 +290,21 @@ class ParentWrapConstraint : public ConstraintBase {
 /// \brief Constrain the nested rectangle position in relation to the
 /// parent rectangle.
 /// \details Creates constraints:
-/// - if width_factor provided, child.width = parent.width * width_factor
-/// - if height_factor provided, child.height = parent.height *
+/// - if width_factor provided, nested.width = parent.width * width_factor
+/// - if height_factor provided, nested.height = parent.height *
 /// height_factor
-/// - child.nested_x_anchor = parent.x_anchor + x_offset
-/// - child.nested_y_anchor = parent.y_anchor + y_offset
+/// - nested.nested_x_anchor = parent.x_anchor + x_offset
+/// - nested.nested_y_anchor = parent.y_anchor + y_offset
 /// All with specified strength.
 class RelativeConstraint : public ConstraintBase {
   public:
-    /// \brief ID of the child rectangle.
+    /// \brief ID of the nested rectangle.
     Str nested_rect_id;
     /// \brief ID of the parent rectangle used for reference.
     Str parent_rect_id;
-    /// \brief Optional factor to scale child width relative to parent.
+    /// \brief Optional factor to scale nested width relative to parent.
     Opt<double> width_factor;
-    /// \brief Optional factor to scale child height relative to parent.
+    /// \brief Optional factor to scale nested height relative to parent.
     Opt<double> height_factor;
     /// \brief Anchor on the parent for the X coordinate.
     Anchor x_anchor;
@@ -326,10 +314,10 @@ class RelativeConstraint : public ConstraintBase {
     double x_offset;
     /// \brief Offset in the Y direction from the parent anchor.
     double y_offset;
-    /// \brief Anchor on the child that is aligned to parent x_anchor +
+    /// \brief Anchor on the nested that is aligned to parent x_anchor +
     /// x_offset.
     Anchor nested_x_anchor;
-    /// \brief Anchor on the child that is aligned to parent y_anchor +
+    /// \brief Anchor on the nested that is aligned to parent y_anchor +
     /// y_offset.
     Anchor nested_y_anchor;
 

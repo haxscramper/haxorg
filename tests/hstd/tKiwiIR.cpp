@@ -79,10 +79,11 @@ TEST(KiwiIr, ParentWrapAndRelative) {
         std::make_shared<ParentWrapConstraint>(
             /*parent_rect_id=*/"parent",
             /*nested_rect_ids=*/Vec<Str>{"nested1", "nested2"},
-            /*padding_left=*/5,
-            /*padding_top=*/10,
-            /*padding_right=*/15,
-            /*padding_bottom=*/20),
+            geometry::Padding(
+                /*top=*/10,
+                /*bottom=*/20,
+                /*left=*/5,
+                /*right=*/15)),
         std::make_shared<RelativeConstraint>(
             /*nested_rect_id=*/"inner",
             /*parent_rect_id=*/"parent",
@@ -663,11 +664,7 @@ TEST(KiwiIr, EqualSizeWithParentWrap) {
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<ParentWrapConstraint>(
             /*parent_rect_id=*/"parent",
-            /*nested_rect_ids=*/Vec<Str>{"nested"},
-            /*padding_left=*/0,
-            /*padding_top=*/0,
-            /*padding_right=*/0,
-            /*padding_bottom=*/0),
+            /*nested_rect_ids=*/Vec<Str>{"nested"}),
         std::make_shared<EqualSizeConstraint>(
             "nested",
             "other",
