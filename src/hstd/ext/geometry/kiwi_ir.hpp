@@ -1,9 +1,8 @@
 #pragma once
 
 #include "hstd/stdlib/Map.hpp"
-#include <exception>
+#include "hstd/stdlib/Outcome.hpp"
 #include <optional>
-#include <unordered_map>
 #include <variant>
 
 #include <hstd/stdlib/Filesystem.hpp>
@@ -69,6 +68,7 @@ double kiwi_value(Strength strength);
 Axis   anchor_axis(Anchor anchor);
 Str    axis_color(Axis axis);
 
+Str tree_repr(kiwi::Expression const& c, int indent = 0);
 Str tree_repr(kiwi::Constraint const& c, int indent = 0);
 Str tree_repr(Vec<kiwi::Constraint> const& c, int indent = 0);
 
@@ -153,19 +153,7 @@ Str describe_constraint_source(
     std::variant<Str, hstd::SPtr<ConstraintBase>> const& source);
 
 class ConstraintVerificationError
-    : public hstd::CRTP_hexception<ConstraintVerificationError> {
-  public:
-    std::variant<Str, hstd::SPtr<ConstraintBase>>      failing_source;
-    Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>> conflicting_sources;
-    Str                                                message_buf;
-
-    ConstraintVerificationError(
-        std::variant<Str, hstd::SPtr<ConstraintBase>> failing_source,
-        Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>>
-            conflicting_sources);
-
-    char const* message() const noexcept override;
-};
+    : public hstd::CRTP_hexception<ConstraintVerificationError> {};
 
 struct AlignSpec {
     /// \brief The anchor line (e.g., LEFT, RIGHT, TOP) used to align the
@@ -462,8 +450,22 @@ class Layout {
 
   private:
     Vec<ConstraintEntry> build_constraint_entries() const;
-    bool is_satisfiable(Vec<ConstraintEntry> const& entries) const;
-    Vec<ConstraintEntry> minimal_conflict_set(
+
+    struct LoweredFailureDescr {
+        int entry_idx   = -1;
+        int lowered_idx = -1;
+    };
+
+    struct ConstraintFailure {
+        ConstraintEntry                entry;
+        hstd::Opt<LoweredFailureDescr> desc;
+    };
+
+
+    hstd::Result<std::monostate, Layout::LoweredFailureDescr> is_satisfiable(
+        Vec<ConstraintEntry> const& entries) const;
+
+    Vec<ConstraintFailure> minimal_conflict_set(
         Vec<ConstraintEntry> const& active_entries,
         ConstraintEntry const&      failing_entry) const;
 };

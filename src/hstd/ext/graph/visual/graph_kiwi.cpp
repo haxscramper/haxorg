@@ -218,24 +218,26 @@ kw::AlignConstraint* kw::AlignConstraint::addAlignVertex(
             LOGIC_ASSERTION_CHECK_FMT(
                 align == kiwi_ir::Anchor::LEFT
                     || align == kiwi_ir::Anchor::RIGHT
-                    || align == kiwi_ir::Anchor::VCENTER,
-                "{}",
-                align);
+                    || align == kiwi_ir::Anchor::HCENTER,
+                "cannot use anchor {} with align constraint {}",
+                align,
+                dimension);
         } else {
             LOGIC_ASSERTION_CHECK_FMT(
                 align == kiwi_ir::Anchor::TOP
                     || align == kiwi_ir::Anchor::BOTTOM
-                    || align == kiwi_ir::Anchor::HCENTER,
-                "{}",
-                align);
+                    || align == kiwi_ir::Anchor::VCENTER,
+                "cannot use anchor {} with align constraint {}",
+                align,
+                dimension);
         }
     }
     vertices.insert_or_assign(
         id,
         kiwi_ir::AlignSpec{
             .anchor = align.value_or(
-                dimension == kiwi_ir::Axis::X ? kiwi_ir::Anchor::VCENTER
-                                              : kiwi_ir::Anchor::HCENTER),
+                dimension == kiwi_ir::Axis::X ? kiwi_ir::Anchor::HCENTER
+                                              : kiwi_ir::Anchor::VCENTER),
             .offset = offset,
         });
     return this;

@@ -93,9 +93,9 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
         c->useHorizontalAxis();
     }
 
-    c->addAlignVertex(v1, kiwi_ir::Anchor::VCENTER, 0)
-        ->addAlignVertex(v2, kiwi_ir::Anchor::VCENTER, 50)
-        ->addAlignVertex(v3, kiwi_ir::Anchor::VCENTER, 100);
+    c->addAlignVertex(v1, std::nullopt, 0)
+        ->addAlignVertex(v2, std::nullopt, 50)
+        ->addAlignVertex(v3, std::nullopt, 100);
 
     run->runFullLayout();
     writeVisual();

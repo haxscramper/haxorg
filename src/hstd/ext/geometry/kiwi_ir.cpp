@@ -13,8 +13,9 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
-namespace hstd::ext::kiwi_ir {
+namespace hstd::ext ::kiwi_ir {
 
 double kiwi_value(Strength strength) {
     switch (strength) {
@@ -123,48 +124,6 @@ Expr Rect::anchor_expr(Anchor anchor) const {
 
 ConstraintBase::ConstraintBase(Strength strength) : strength(strength) {}
 
-Str describe_constraint_source(
-    std::variant<Str, hstd::SPtr<ConstraintBase>> const& source) {
-    if (std::holds_alternative<Str>(source)) {
-        return std::get<Str>(source);
-    } else {
-        return std::get<hstd::SPtr<ConstraintBase>>(source)->getRepr();
-    }
-}
-
-ConstraintVerificationError::ConstraintVerificationError(
-    std::variant<Str, hstd::SPtr<ConstraintBase>>      failing_source,
-    Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>> conflicting_sources)
-    : failing_source(std::move(failing_source))
-    , conflicting_sources(std::move(conflicting_sources)) {
-    Vec<Str> lines;
-    lines.push_back("Unsatisfiable layout constraints detected.");
-    lines.push_back(
-        std::format(
-            "Failing constraint: {}",
-            describe_constraint_source(this->failing_source)));
-    if (!this->conflicting_sources.empty()) {
-        lines.push_back("Conflicts with:");
-        for (auto const& src : this->conflicting_sources) {
-            lines.push_back(
-                std::format("  - {}", describe_constraint_source(src)));
-        }
-    } else {
-        lines.push_back(
-            "The failing constraint is internally inconsistent.");
-    }
-
-    std::ostringstream out;
-    for (int i = 0; i < lines.size(); ++i) {
-        out << lines[i];
-        if (i + 1 < lines.size()) { out << '\n'; }
-    }
-    message_buf = out.str();
-}
-
-char const* ConstraintVerificationError::message() const noexcept {
-    return message_buf.c_str();
-}
 
 AlignConstraint::AlignConstraint(Vec<AlignItem> items, Strength strength)
     : ConstraintBase(strength), items(std::move(items)) {}
@@ -180,7 +139,7 @@ Vec<kiwi::Constraint> AlignConstraint::build(RectMap const& rects) const {
     Vec<kiwi::Constraint> result;
     for (int i = 1; i < items.size(); ++i) {
         auto const& item = items[i];
-        Expr expr = rects.at(item.rect_id).anchor_expr(base.spec.anchor)
+        Expr expr = rects.at(item.rect_id).anchor_expr(item.spec.anchor)
                   - item.spec.offset;
         result.push_back(
             (expr.to_kiwi() == base_expr.to_kiwi())
@@ -1071,49 +1030,113 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
     return entries;
 }
 
-bool Layout::is_satisfiable(Vec<ConstraintEntry> const& entries) const {
+hstd::Result<std::monostate, Layout::LoweredFailureDescr> Layout::
+    is_satisfiable(Vec<ConstraintEntry> const& entries) const {
     kiwi::Solver solver;
     try {
-        for (auto const& entry : entries) {
-            for (auto const& lowered : entry.lowered) {
-                solver.addConstraint(lowered);
+        for (int entry_idx = 0; entry_idx < entries.size(); ++entry_idx) {
+            auto const& entry = entries.at(entry_idx);
+            for (int lowered_idx = 0; lowered_idx < entry.lowered.size();
+                 ++lowered_idx) {
+                solver.addConstraint(entry.lowered.at(lowered_idx));
             }
         }
-    } catch (kiwi::UnsatisfiableConstraint const&) { return false; }
-    return true;
+    } catch (kiwi::UnsatisfiableConstraint const&) {
+        return LoweredFailureDescr{
+            .entry_idx   = 0,
+            .lowered_idx = 0,
+        };
+    }
+    return std::monostate{};
 }
 
-Vec<ConstraintEntry> Layout::minimal_conflict_set(
+Vec<Layout::ConstraintFailure> Layout::minimal_conflict_set(
     Vec<ConstraintEntry> const& active_entries,
     ConstraintEntry const&      failing_entry) const {
-    if (!is_satisfiable({failing_entry})) { return {}; }
+    auto make_trial = [&](Vec<ConstraintEntry> const& conflict,
+                          int skip_idx) -> Vec<ConstraintEntry> {
+        Vec<ConstraintEntry> trial;
+        for (int idx = 0; idx < conflict.size(); ++idx) {
+            if (idx != skip_idx) { trial.push_back(conflict.at(idx)); }
+        }
+        trial.push_back(failing_entry);
+        return trial;
+    };
+
+    auto single_failure =
+        [&](ConstraintEntry const& entry) -> hstd::Opt<ConstraintFailure> {
+        auto sat = is_satisfiable({entry});
+        if (!sat.has_error()) {
+            return std::nullopt;
+        } else {
+            auto const& descr = sat.assume_error();
+            return ConstraintFailure{
+                .entry = entry,
+                .desc =
+                LoweredFailureDescr{
+                    .entry_idx   = 0,
+                    .lowered_idx = descr.lowered_idx,
+                },
+            };
+        }
+    };
+
+    if (auto fail = single_failure(failing_entry)) { return {}; }
 
     Vec<ConstraintEntry> conflict = active_entries;
     int                  idx      = 0;
     while (idx < conflict.size()) {
-        ConstraintEntry const& candidate = conflict[idx];
-        Vec<ConstraintEntry>   trial;
-        for (auto const& entry : conflict) {
-            if (&entry != &candidate) { trial.push_back(entry); }
-        }
-        trial.push_back(failing_entry);
-        if (!is_satisfiable(trial)) {
+        Vec<ConstraintEntry> trial = make_trial(conflict, idx);
+        if (!is_satisfiable(trial).has_value()) {
             Vec<ConstraintEntry> reduced;
-            for (auto const& entry : conflict) {
-                if (&entry != &candidate) { reduced.push_back(entry); }
+            for (int j = 0; j < conflict.size(); ++j) {
+                if (j != idx) { reduced.push_back(conflict.at(j)); }
             }
             conflict = std::move(reduced);
         } else {
             ++idx;
         }
     }
-    return conflict;
+
+    Vec<ConstraintFailure> result;
+    for (int entry_idx = 0; entry_idx < conflict.size(); ++entry_idx) {
+        Vec<ConstraintEntry> trial;
+        for (int idx = 0; idx < conflict.size(); ++idx) {
+            trial.push_back(conflict.at(idx));
+        }
+        trial.push_back(failing_entry);
+
+        auto sat = is_satisfiable(trial);
+        result.push_back(
+            ConstraintFailure{
+                .entry = conflict.at(entry_idx),
+                .desc  = //
+                sat.has_value()
+                    ? std::nullopt
+                    : hstd::Opt<LoweredFailureDescr>(LoweredFailureDescr{
+                          .entry_idx   = sat.assume_error().entry_idx,
+                          .lowered_idx = sat.assume_error().lowered_idx,
+                      }),
+            });
+    }
+
+    return result;
 }
 
 void Layout::verify_constraints() {
     Vec<ConstraintEntry> entries = build_constraint_entries();
     kiwi::Solver         solver;
     Vec<ConstraintEntry> active_entries;
+
+    auto describe_constraint_source =
+        [&](std::variant<Str, hstd::SPtr<ConstraintBase>> const& source)
+        -> Str {
+        if (std::holds_alternative<Str>(source)) {
+            return std::get<Str>(source);
+        } else {
+            return std::get<hstd::SPtr<ConstraintBase>>(source)->getRepr();
+        }
+    };
 
     for (auto const& entry : entries) {
         try {
@@ -1122,18 +1145,67 @@ void Layout::verify_constraints() {
             }
         } catch (kiwi::UnsatisfiableConstraint const&) {
             auto conflicts = minimal_conflict_set(active_entries, entry);
-            Vec<std::variant<Str, hstd::SPtr<ConstraintBase>>> sources;
-            for (auto const& c : conflicts) {
-                sources.push_back(c.source);
+            Vec<Str> lines;
+            lines.push_back("Unsatisfiable layout constraints detected.");
+            lines.push_back(
+                std::format(
+                    "Failing constraint: {}",
+                    describe_constraint_source(entry.source)));
+            if (conflicts.empty()) {
+                lines.push_back(
+                    "The failing constraint is internally inconsistent.");
+            } else {
+                lines.push_back("Conflicts with:");
+                for (auto const& src : conflicts) {
+                    lines.push_back(
+                        std::format(
+                            "  - {}",
+                            describe_constraint_source(src.entry.source)));
+                    if (src.desc.has_value()) {
+                        lines.push_back(
+                            std::format(
+                                "    - first conflict detected when "
+                                "adding lowered element {}",
+                                tree_repr(
+                                    entries.at(src.desc->entry_idx)
+                                        .lowered.at(src.desc->lowered_idx)
+                                        .expression(),
+                                    6)));
+                    }
+                }
             }
-            throw ConstraintVerificationError(entry.source, sources)
-                .add_context();
+
+            lines.push_back("");
+            throw ConstraintVerificationError::init(
+                hstd::join("\n", lines));
         }
         active_entries.push_back(entry);
     }
 }
 
 namespace {
+
+void repr_impl(
+    hstd::ColStream&        os,
+    kiwi::Expression const& e,
+    int                     indent) {
+
+    int var_size = 8;
+    for (auto const& t : e.terms()) {
+        var_size = std::max<int>(var_size, t.variable().name().size());
+    }
+
+    for (auto const& t : hstd::enumerator(e.terms())) {
+        os.newline();
+        os.indent(indent);
+        os << hstd::fmt(
+            "{:<{}} {}",
+            t.value().variable(),
+            var_size,
+            t.value().coefficient());
+    }
+}
+
 void repr_impl(
     hstd::ColStream&        os,
     kiwi::Constraint const& c,
@@ -1144,18 +1216,15 @@ void repr_impl(
         case kiwi::RelationalOperator::OP_LE: os << "LE"; break;
     }
 
-    int var_size = 8;
-    for (auto const& t : c.expression().terms()) {
-        var_size = std::max<int>(var_size, t.variable().name().size());
-    }
-
-    for (auto const& t : c.expression().terms()) {
-        os.newline();
-        os << hstd::fmt(
-            " {:<{}} {}", t.variable(), var_size, t.coefficient());
-    }
+    repr_impl(os, c.expression(), 1);
 }
 } // namespace
+
+Str tree_repr(kiwi::Expression const& c, int indent) {
+    hstd::ColStream os;
+    repr_impl(os, c, indent);
+    return os.toString(false);
+}
 
 Str tree_repr(kiwi::Constraint const& c, int indent) {
     hstd::ColStream os;
