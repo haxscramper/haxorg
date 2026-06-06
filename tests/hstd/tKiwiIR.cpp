@@ -85,14 +85,14 @@ TEST(KiwiIr, ParentWrapAndRelative) {
                 /*left=*/5,
                 /*right=*/15)),
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"inner",
             /*parent_rect_id=*/"parent",
+            /*nested_rect_id=*/"inner",
             /*x_dim=*/
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 20},
             /*y_dim=*/
             RelDimensionSpec{.size_factor = 0.5},
-            /*anchor_relative=*/AnchorSpec::UpperLeft(),
-            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter(),
+            /*anchor_relative=*/AnchorSpec::UpperLeft()),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
@@ -263,37 +263,37 @@ TEST(KiwiIr, MultiSeparateGrid) {
 
 TEST(KiwiIr, EvenGapParentsAndRelative) {
     Vec<Rect> rects = {
-        Rect("p1", 0, 0, 100, 60),
-        Rect("p2", std::nullopt, 0, 100, 60),
-        Rect("p3", 300, 0, 100, 60),
-        Rect("c1"),
-        Rect("c2"),
-        Rect("c3"),
+        Rect("fix1", 0, 0, 100, 60),
+        Rect("fix2", std::nullopt, 0, 100, 60),
+        Rect("fix3", 300, 0, 100, 60),
+        Rect("rel1"),
+        Rect("rel2"),
+        Rect("rel3"),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(
-            Vec<Str>{"p1", "p2", "p3"}, Axis::X, Anchor::LEFT),
+            Vec<Str>{"fix1", "fix2", "fix3"}, Axis::X, Anchor::LEFT),
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"c1",
-            /*parent_rect_id=*/"p1",
+            /*parent_rect_id=*/"fix1",
+            /*nested_rect_id=*/"rel1",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            /*anchor_relative=*/AnchorSpec::UpperLeft(),
-            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter(),
+            /*anchor_relative=*/AnchorSpec::UpperLeft()),
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"c2",
-            /*parent_rect_id=*/"p2",
+            /*parent_rect_id=*/"fix2",
+            /*nested_rect_id=*/"rel2",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            /*anchor_relative=*/AnchorSpec::UpperLeft(),
-            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter(),
+            /*anchor_relative=*/AnchorSpec::UpperLeft()),
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"c3",
-            /*parent_rect_id=*/"p3",
+            /*parent_rect_id=*/"fix3",
+            /*nested_rect_id=*/"rel3",
             RelDimensionSpec{.size_factor = 0.2, .absolute_offset = 10},
             RelDimensionSpec{.size_factor = 0.5},
-            /*anchor_relative=*/AnchorSpec::UpperLeft(),
-            /*anchor_fixed=*/AnchorSpec::CenterCenter()),
+            /*anchor_fixed=*/AnchorSpec::CenterCenter(),
+            /*anchor_relative=*/AnchorSpec::UpperLeft()),
     };
 
     Layout layout(rects, constraints);
@@ -301,8 +301,8 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
     auto solved = layout.solve();
     write_outputs(layout);
 
-    auto rect_p2 = solved.at("p2").getGeometry();
-    auto rect_c2 = solved.at("c2").getGeometry();
+    auto rect_p2 = solved.at("fix2").getGeometry();
+    auto rect_c2 = solved.at("rel2").getGeometry();
     EXPECT_NEAR(rect_p2.x(), 150.0, 1e-6);
     EXPECT_NEAR(rect_c2.width(), 20.0, 1e-6);
     EXPECT_NEAR(rect_c2.height(), 30.0, 1e-6);
@@ -583,12 +583,12 @@ TEST(KiwiIr, BoundedAllSides) {
 TEST(KiwiIr, RelativeOutsideParent) {
     Vec<Rect> rects = {
         Rect("parent", 50, 50, 100, 100),
-        Rect("child"),
+        Rect("nested"),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"child",
             /*parent_rect_id=*/"parent",
+            /*nested_rect_id=*/"nested",
             RelDimensionSpec{.absolute_offset = -20},
             RelDimensionSpec{.absolute_offset = -30}),
     };
@@ -597,34 +597,34 @@ TEST(KiwiIr, RelativeOutsideParent) {
     auto solved = layout.solve();
     write_outputs(layout);
     auto rect_parent = solved.at("parent").getGeometry();
-    auto rect_child  = solved.at("child").getGeometry();
-    EXPECT_NEAR(rect_child.x(), rect_parent.x() - 20, 1e-6);
-    EXPECT_NEAR(rect_child.y(), rect_parent.y() - 30, 1e-6);
-    EXPECT_TRUE(rect_child.x() < rect_parent.x());
-    EXPECT_TRUE(rect_child.y() < rect_parent.y());
+    auto rect_nested = solved.at("nested").getGeometry();
+    EXPECT_NEAR(rect_nested.x(), rect_parent.x() - 20, 1e-6);
+    EXPECT_NEAR(rect_nested.y(), rect_parent.y() - 30, 1e-6);
+    EXPECT_TRUE(rect_nested.x() < rect_parent.x());
+    EXPECT_TRUE(rect_nested.y() < rect_parent.y());
 }
 
 TEST(KiwiIr, RelativeVariations) {
     Vec<Rect> rects = {
-        Rect("p", 0, 0, 100, 80),
-        Rect("c"),
+        Rect("fix", 0, 0, 100, 80),
+        Rect("rel"),
     };
     // width factor 0.5, height factor 0.6, right-bottom anchors on both
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<RelativeConstraint>(
-            /*nested_rect_id=*/"c",
-            /*parent_rect_id=*/"p",
+            /*parent_rect_id=*/"fix",
+            /*nested_rect_id=*/"rel",
             RelDimensionSpec{.size_factor = 0.5},
             RelDimensionSpec{.size_factor = 0.6},
-            /*anchor_relative=*/AnchorSpec::LowerRight(),
-            /*anchor_fixed=*/AnchorSpec::LowerRight()),
+            /*anchor_fixed=*/AnchorSpec::LowerRight(),
+            /*anchor_relative=*/AnchorSpec::LowerRight()),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
     auto solved = layout.solve();
     write_outputs(layout);
-    auto rect_p = solved.at("p").getGeometry();
-    auto rect_c = solved.at("c").getGeometry();
+    auto rect_p = solved.at("fix").getGeometry();
+    auto rect_c = solved.at("rel").getGeometry();
     EXPECT_NEAR(rect_c.width(), rect_p.width() * 0.5, 1e-6);
     EXPECT_NEAR(rect_c.height(), rect_p.height() * 0.6, 1e-6);
     EXPECT_NEAR(

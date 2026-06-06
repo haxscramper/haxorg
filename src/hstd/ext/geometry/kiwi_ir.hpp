@@ -458,12 +458,12 @@ class RelativeConstraint : public ConstraintBase {
     // parameter sets to work correctly. Need to come up with a better
     // design here.
     RelativeConstraint(
-        Str              nested_rect_id,
         Str              parent_rect_id,
+        Str              nested_rect_id,
         RelDimensionSpec x_dim,
         RelDimensionSpec y_dim,
-        AnchorSpec       anchor_relative = AnchorSpec::UpperLeft(),
         AnchorSpec       anchor_fixed    = AnchorSpec::UpperLeft(),
+        AnchorSpec       anchor_relative = AnchorSpec::UpperLeft(),
         Strength         strength        = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;

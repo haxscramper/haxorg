@@ -63,6 +63,37 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
         DistanceCheck::YOnly));
 }
 
+TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
+    VertexID v_fixed    = getGraph()->addVertex("v_fixed");
+    VertexID v_relative = getGraph()->addVertex("v_relative");
+    VertexID rg_id      = getGraph()->addVertex("rg");
+
+    hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
+    run->setRootGroupAttribute(rg_id, root);
+
+    root->addVertex(addNesting(rg_id, v_fixed), Size(5, 5));
+    root->addVertex(addNesting(rg_id, v_relative), Size(6, 6));
+
+    root->addConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
+        ->setRelativeOffset(10, 10);
+
+    run->runFullLayout();
+    writeVisual();
+
+    EXPECT_OUTCOME_OK(checkDistance(
+        run->getAbsoluteBBox(v_fixed).upper_left(),
+        run->getAbsoluteBBox(v_relative).upper_left(),
+        50,
+        DistanceCheck::XOnly));
+
+    EXPECT_OUTCOME_OK(checkDistance(
+        run->getAbsoluteBBox(v_fixed).upper_left(),
+        run->getAbsoluteBBox(v_relative).upper_left(),
+        50,
+        DistanceCheck::YOnly));
+}
+
+
 TEST_F(GraphKiwi_Test, KiwiAlign) {
     VertexID v1    = getGraph()->addVertex("v1");
     VertexID v2    = getGraph()->addVertex("v2");

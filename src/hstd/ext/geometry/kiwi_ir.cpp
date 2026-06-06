@@ -529,12 +529,12 @@ Str ParentWrapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 }
 
 RelativeConstraint::RelativeConstraint(
-    Str              relative_rect_id,
     Str              parent_rect_id,
+    Str              relative_rect_id,
     RelDimensionSpec x_dim,
     RelDimensionSpec y_dim,
-    AnchorSpec       anchor_relative,
     AnchorSpec       anchor_fixed,
+    AnchorSpec       anchor_relative,
     Strength         strength)
     : ConstraintBase(strength)
     , relative_rect_id(std::move(relative_rect_id))
@@ -569,12 +569,6 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
         constraints.push_back(
             (rel.anchor_expr(anchor_relative.x)
              == (fix.anchor_expr(anchor_fixed.x)
-                 // TODO: NOTE: It would be better to create another IR to
-                 // store the expression in a more inspect-able manner and
-                 // defer the conversion to KIWI until the very last
-                 // moment. The expression would have a more tree-like
-                 // structure to capture all additional structureal
-                 // information and simplify the debugging.
                  + (x_dim.relative_offset.value()
                     * fix.expr(RectAttr::WIDTH))
                  + x_dim.absolute_offset))
