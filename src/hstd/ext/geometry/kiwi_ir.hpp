@@ -41,6 +41,11 @@ struct std::formatter<kiwi::Term> : std::formatter<std::string> {
 namespace hstd::ext::kiwi_ir {
 
 DECL_DESCRIBED_ENUM_STANDALONE(Axis, X, Y);
+
+// TODO: API should allow for arbitrary relative anchors instead of a fixed
+// set of constaints. The "anchor" enum should be broken down into the
+// tuple Axis+AnchorAxisRelative, with the AnchorAxisRelative just being a
+// convenient shorthand for the `[0, 1]` range of values.
 DECL_DESCRIBED_ENUM_STANDALONE(
     Anchor,
     LEFT,
@@ -49,6 +54,13 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     TOP,
     VCENTER,
     BOTTOM);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    AnchorAxisRelative,
+    MIN_POS,
+    MID_POS,
+    MAX_POS);
+
 DECL_DESCRIBED_ENUM_STANDALONE(
     RectAttr,
     X,
@@ -61,12 +73,14 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     TOP,
     VCENTER,
     BOTTOM);
+
 DECL_DESCRIBED_ENUM_STANDALONE(Relation, EQ, LE, GE);
 DECL_DESCRIBED_ENUM_STANDALONE(Strength, REQUIRED, STRONG, MEDIUM, WEAK);
 
 double kiwi_value(Strength strength);
 Axis   anchor_axis(Anchor anchor);
 Str    axis_color(Axis axis);
+Anchor get_anchor(Axis axis, AnchorAxisRelative rel);
 
 Str tree_repr(kiwi::Expression const& c, int indent = 0);
 Str tree_repr(kiwi::Constraint const& c, int indent = 0);
@@ -287,52 +301,76 @@ class ParentWrapConstraint : public ConstraintBase {
         hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
+
+struct RelDimensionSpec {
+    /// \brief Optional factor to scale nested width/height relative to
+    /// fixed rectangle.
+    Opt<double> size_factor = std::nullopt;
+    /// \brief Optional factor to configure position of the element
+    /// relative to the fixed entry.
+    Opt<double> relative_offset = std::nullopt;
+    // TODO: Ideally, all of these coordinates must be specified in a
+    // way where user could control the exact relation generated from
+    // the variable. Instead of specifying the absolute offset as
+    // strictly equal to some value, it might be possible to instead
+    // specify the relative offset as "no closer than" or "no farther
+    // than" to allow more space for the other constraints in the
+    // problem. For now it is good enough, but this change should be
+    // handled before the final branch is merged.
+    // <<configurable-offset-comparison-directions>>
+    /// \brief Offset of the nested element compared to the target
+    double absolute_offset = 0.0;
+    DESC_FIELDS(
+        RelDimensionSpec,
+        (size_factor, relative_offset, absolute_offset));
+};
+
+struct RelAnchorSpec {
+    /// \brief Which anchor element on the fixed entry should be used
+    /// for the constraint?
+    Anchor fixed;
+    Anchor relative;
+    DESC_FIELDS(RelAnchorSpec, (fixed, relative));
+};
+
+
 /// \brief Constrain the nested rectangle position in relation to the
 /// parent rectangle.
+///
 /// \details Creates constraints:
-/// - if width_factor provided, nested.width = parent.width * width_factor
-/// - if height_factor provided, nested.height = parent.height *
-/// height_factor
+///
+/// - if x_factor provided, nested.width = parent.width * x_factor
+/// - if y_factor provided, nested.height = parent.height * y_factor
 /// - nested.nested_x_anchor = parent.x_anchor + x_offset
 /// - nested.nested_y_anchor = parent.y_anchor + y_offset
+///
 /// All with specified strength.
 class RelativeConstraint : public ConstraintBase {
   public:
     /// \brief ID of the nested rectangle.
-    Str nested_rect_id;
+    Str relative_rect_id;
     /// \brief ID of the parent rectangle used for reference.
-    Str parent_rect_id;
-    /// \brief Optional factor to scale nested width relative to parent.
-    Opt<double> width_factor;
-    /// \brief Optional factor to scale nested height relative to parent.
-    Opt<double> height_factor;
-    /// \brief Anchor on the parent for the X coordinate.
-    Anchor x_anchor;
-    /// \brief Anchor on the parent for the Y coordinate.
-    Anchor y_anchor;
-    /// \brief Offset in the X direction from the parent anchor.
-    double x_offset;
-    /// \brief Offset in the Y direction from the parent anchor.
-    double y_offset;
-    /// \brief Anchor on the nested that is aligned to parent x_anchor +
-    /// x_offset.
-    Anchor nested_x_anchor;
-    /// \brief Anchor on the nested that is aligned to parent y_anchor +
-    /// y_offset.
-    Anchor nested_y_anchor;
+    Str fixed_rect_id;
 
+    RelDimensionSpec x_dim;
+    RelDimensionSpec y_dim;
+    RelAnchorSpec    x_anchor;
+    RelAnchorSpec    y_anchor;
+
+    // FIXME: The constructor API is brittle and hard to reason about, the
+    // default constructor for RelAnchorSpec must have two different
+    // parameter sets to work correctly. Need to come up with a better
+    // design here.
     RelativeConstraint(
-        Str         nested_rect_id,
-        Str         parent_rect_id,
-        Opt<double> width_factor    = std::nullopt,
-        Opt<double> height_factor   = std::nullopt,
-        Anchor      x_anchor        = Anchor::LEFT,
-        Anchor      y_anchor        = Anchor::TOP,
-        double      x_offset        = 0.0,
-        double      y_offset        = 0.0,
-        Anchor      nested_x_anchor = Anchor::LEFT,
-        Anchor      nested_y_anchor = Anchor::TOP,
-        Strength    strength        = Strength::REQUIRED);
+        Str              nested_rect_id,
+        Str              parent_rect_id,
+        RelDimensionSpec x_dim,
+        RelDimensionSpec y_dim,
+        RelAnchorSpec
+            x_anchor = RelAnchorSpec{.fixed = Anchor::LEFT, .relative = Anchor::LEFT},
+        RelAnchorSpec
+            y_anchor = RelAnchorSpec{.fixed = Anchor::TOP, .relative = Anchor::TOP},
+        Strength strength = Strength::REQUIRED);
 
     Vec<kiwi::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>         describe_edges() const override;

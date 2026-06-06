@@ -379,7 +379,7 @@ hstd::ext::visual::VisGroup kw::KiwiGroupLayoutAttribute::getVisual(
     return res;
 }
 
-hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::ParentWrapContraint::
+hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::ParentWrapConstraint::
     getKiwi() const {
     if (nested.empty()) {
         throw layout::layout_error::init(

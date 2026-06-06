@@ -13,4 +13,5 @@ CompileFlags:
     - "-Wno-deprecated-copy"
     - "-Wno-pedantic"
     - "-Wno-missing-field-initializers"
+    - "-Wno-reorder-init-list"
     - "--log=verbose"

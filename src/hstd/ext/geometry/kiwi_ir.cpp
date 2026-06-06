@@ -395,131 +395,173 @@ Vec<EdgeDesc> ParentWrapConstraint::describe_edges() const {
 }
 
 Str ParentWrapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    std::ostringstream children;
-    children << "[";
+    std::ostringstream nested;
+    nested << "[";
     for (int i = 0; i < nested_rect_ids.size(); ++i) {
-        children << nested_rect_ids[i];
-        if (i + 1 < nested_rect_ids.size()) { children << ", "; }
+        nested << nested_rect_ids[i];
+        if (i + 1 < nested_rect_ids.size()) { nested << ", "; }
     }
-    children << "]";
+    nested << "]";
     return std::format(
-        "ParentWrapConstraint(parent={}, children={}, padding={}, "
+        "ParentWrapConstraint(parent={}, nested={}, padding={}, "
         "strength={})",
         parent_rect_id,
-        children.str(),
+        nested.str(),
         pad,
         strength);
 }
 
 RelativeConstraint::RelativeConstraint(
-    Str         nested_rect_id,
-    Str         parent_rect_id,
-    Opt<double> width_factor,
-    Opt<double> height_factor,
-    Anchor      x_anchor,
-    Anchor      y_anchor,
-    double      x_offset,
-    double      y_offset,
-    Anchor      nested_x_anchor,
-    Anchor      nested_y_anchor,
-    Strength    strength)
+    Str              relative_rect_id,
+    Str              parent_rect_id,
+    RelDimensionSpec x_dim,
+    RelDimensionSpec y_dim,
+    RelAnchorSpec    x_anchor,
+    RelAnchorSpec    y_anchor,
+    Strength         strength)
     : ConstraintBase(strength)
-    , nested_rect_id(std::move(nested_rect_id))
-    , parent_rect_id(std::move(parent_rect_id))
-    , width_factor(width_factor)
-    , height_factor(height_factor)
+    , relative_rect_id(std::move(relative_rect_id))
+    , fixed_rect_id(std::move(parent_rect_id))
+    , x_dim(x_dim)
+    , y_dim(y_dim)
     , x_anchor(x_anchor)
-    , y_anchor(y_anchor)
-    , x_offset(x_offset)
-    , y_offset(y_offset)
-    , nested_x_anchor(nested_x_anchor)
-    , nested_y_anchor(nested_y_anchor) {}
+    , y_anchor(y_anchor) {
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        anchor_axis(x_anchor.fixed) == Axis::X, "{}", x_anchor.fixed);
+    LOGIC_ASSERTION_CHECK_FMT(
+        anchor_axis(x_anchor.relative) == Axis::X,
+        "{}",
+        x_anchor.relative);
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        anchor_axis(y_anchor.fixed) == Axis::Y, "{}", y_anchor.fixed);
+    LOGIC_ASSERTION_CHECK_FMT(
+        anchor_axis(y_anchor.relative) == Axis::Y,
+        "{}",
+        y_anchor.relative);
+}
 
 Vec<kiwi::Constraint> RelativeConstraint::build(
     RectMap const& rects) const {
-    Rect const&           child  = rects.at(nested_rect_id);
-    Rect const&           parent = rects.at(parent_rect_id);
+    Rect const&           rel = rects.at(relative_rect_id);
+    Rect const&           fix = rects.at(fixed_rect_id);
     Vec<kiwi::Constraint> constraints;
 
-    if (width_factor.has_value()) {
+    if (x_dim.size_factor.has_value()) {
         constraints.push_back(
-            (child.expr(RectAttr::WIDTH).to_kiwi()
-             == (parent.expr(RectAttr::WIDTH) * width_factor.value())
+            (rel.expr(RectAttr::WIDTH).to_kiwi()
+             == (fix.expr(RectAttr::WIDTH) * x_dim.size_factor.value())
                     .to_kiwi())
             | kiwi_value(strength));
     }
 
-    if (height_factor.has_value()) {
+    if (y_dim.size_factor.has_value()) {
         constraints.push_back(
-            (child.expr(RectAttr::HEIGHT).to_kiwi()
-             == (parent.expr(RectAttr::HEIGHT) * height_factor.value())
+            (rel.expr(RectAttr::HEIGHT).to_kiwi()
+             // TODO: See [[configurable-offset-comparison-directions]]
+             == (fix.expr(RectAttr::HEIGHT) * y_dim.size_factor.value())
                     .to_kiwi())
             | kiwi_value(strength));
     }
 
-    constraints.push_back(
-        (child.anchor_expr(nested_x_anchor).to_kiwi()
-         == (parent.anchor_expr(x_anchor) + x_offset).to_kiwi())
-        | kiwi_value(strength));
+    if (x_dim.relative_offset) {
+        constraints.push_back(
+            (rel.anchor_expr(x_anchor.relative).to_kiwi()
+             == (fix.anchor_expr(x_anchor.fixed)
+                 // TODO: NOTE: It would be better to create another IR to
+                 // store the expression in a more inspect-able manner and
+                 // defer the conversion to KIWI until the very last
+                 // moment. The expression would have a more tree-like
+                 // structure to capture all additional structureal
+                 // information and simplify the debugging.
+                 + (x_dim.relative_offset.value()
+                    * fix.expr(RectAttr::WIDTH).to_kiwi())
+                 + x_dim.absolute_offset)
+                    .to_kiwi())
+            | kiwi_value(strength));
 
-    constraints.push_back(
-        (child.anchor_expr(nested_y_anchor).to_kiwi()
-         == (parent.anchor_expr(y_anchor) + y_offset).to_kiwi())
-        | kiwi_value(strength));
+    } else {
+        constraints.push_back(
+            (rel.anchor_expr(x_anchor.relative).to_kiwi()
+             == (fix.anchor_expr(x_anchor.fixed) + x_dim.absolute_offset)
+                    .to_kiwi())
+            | kiwi_value(strength));
+    }
+
+    if (y_dim.relative_offset) {
+        constraints.push_back(
+            (rel.anchor_expr(y_anchor.relative).to_kiwi()
+             == (fix.anchor_expr(y_anchor.fixed)
+                 + (y_dim.relative_offset.value()
+                    * fix.expr(RectAttr::HEIGHT).to_kiwi())
+                 + y_dim.absolute_offset)
+                    .to_kiwi())
+            | kiwi_value(strength));
+    } else {
+        constraints.push_back(
+            (rel.anchor_expr(y_anchor.relative).to_kiwi()
+             == (fix.anchor_expr(y_anchor.fixed) + y_dim.absolute_offset)
+                    .to_kiwi())
+            | kiwi_value(strength));
+    }
+
 
     return constraints;
 }
 
 Vec<EdgeDesc> RelativeConstraint::describe_edges() const {
+    // FIXME: Update the edge description for relative constraint based on
+    // the relative element positions.
     Vec<EdgeDesc> edges = {
-        EdgeDesc{
-            parent_rect_id, nested_rect_id, "nested-relative-x", "red"},
-        EdgeDesc{
-            parent_rect_id, nested_rect_id, "nested-relative-y", "blue"},
+        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-x", "red"},
+        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-y", "blue"},
     };
 
-    if (width_factor.has_value()) {
-        edges.push_back(
-            EdgeDesc{
-                parent_rect_id,
-                nested_rect_id,
-                "nested-relative-width",
-                "red"});
-    }
+    // if (x_factor.has_value()) {
+    //     edges.push_back(
+    //         EdgeDesc{
+    //             fixed_rect_id, relative_rect_id, "relative-width",
+    //             "red"});
+    // }
 
-    if (height_factor.has_value()) {
-        edges.push_back(
-            EdgeDesc{
-                parent_rect_id,
-                nested_rect_id,
-                "nested-relative-height",
-                "blue"});
-    }
+    // if (y_factor.has_value()) {
+    //     edges.push_back(
+    //         EdgeDesc{
+    //             fixed_rect_id,
+    //             relative_rect_id,
+    //             "relative-height",
+    //             "blue"});
+    // }
+
     return edges;
 }
 
 Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    Str wf = width_factor.has_value()
-               ? std::format("{:g}", width_factor.value())
-               : "None";
-    Str hf = height_factor.has_value()
-               ? std::format("{:g}", height_factor.value())
-               : "None";
-    return std::format(
-        "ChildRelativeToParentConstraint(child={}, parent={}, "
-        "width_factor={}, height_factor={}, x={}->{}{:+g}, y={}->{}{:+g}, "
-        "strength={})",
-        nested_rect_id,
-        parent_rect_id,
-        wf,
-        hf,
-        nested_x_anchor,
-        x_anchor,
-        x_offset,
-        nested_y_anchor,
-        y_anchor,
-        y_offset,
-        strength);
+    // FIXME: implement repr for relative constraint.
+    return "RelativeConstraint";
+
+
+    // Str wf = x_factor.has_value() ? std::format("{:g}",
+    // x_factor.value())
+    //                               : "None";
+    // Str hf = y_factor.has_value() ? std::format("{:g}",
+    // y_factor.value())
+    //                               : "None";
+    // return std::format(
+    //     "nestedRelativeToParentConstraint(nested={}, parent={}, "
+    //     "width_factor={}, height_factor={}, x={}->{}{:+g},
+    //     y={}->{}{:+g}, " "strength={})", relative_rect_id,
+    //     fixed_rect_id,
+    //     wf,
+    //     hf,
+    //     nested_x_anchor,
+    //     x_anchor,
+    //     x_offset,
+    //     nested_y_anchor,
+    //     y_anchor,
+    //     y_offset,
+    //     strength);
 }
 
 EvenGapConstraint::EvenGapConstraint(
@@ -1225,6 +1267,17 @@ Str tree_repr(Vec<kiwi::Constraint> const& c, int indent) {
     hstd::ColStream os;
     for (auto const& sub_c : c) { repr_impl(os, sub_c, indent); }
     return os.toString(false);
+}
+
+Anchor get_anchor(Axis axis, AnchorAxisRelative rel) {
+    switch (rel) {
+        case AnchorAxisRelative::MIN_POS:
+            return axis == Axis::X ? Anchor::LEFT : Anchor::TOP;
+        case AnchorAxisRelative::MID_POS:
+            return axis == Axis::X ? Anchor::HCENTER : Anchor::VCENTER;
+        case AnchorAxisRelative::MAX_POS:
+            return axis == Axis::X ? Anchor::RIGHT : Anchor::BOTTOM;
+    }
 }
 
 } // namespace hstd::ext::kiwi_ir

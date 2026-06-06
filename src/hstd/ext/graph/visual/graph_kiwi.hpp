@@ -234,19 +234,24 @@ class KiwiConstraint : public layout::IConstraint {
     virtual std::string getRepr() const { return "KiwiConstraint"; }
 };
 
-class ParentWrapContraint : public KiwiConstraint {
+class ParentWrapConstraint : public KiwiConstraint {
     VertexID          parent;
     VertexIDVec       nested;
     geometry::Padding pad;
 
   public:
-    ParentWrapContraint(
+    ParentWrapConstraint(
         hstd::SPtr<KiwiGroup> const& group,
         VertexID const&              parent)
         : KiwiConstraint{group}, parent{parent} {}
 
-    ParentWrapContraint* setPadding(geometry::Padding const& pad) {
+    ParentWrapConstraint* setPadding(geometry::Padding const& pad) {
         this->pad = pad;
+        return this;
+    }
+
+    ParentWrapConstraint* addVertex(VertexID const& id) {
+        nested.push_back(id);
         return this;
     }
 
@@ -256,6 +261,28 @@ class ParentWrapContraint : public KiwiConstraint {
     VertexIDVec getAllVertices() const override {
         return nested + VertexIDVec{parent};
     }
+};
+
+class RelativeConstraint : public KiwiConstraint {
+  public:
+    struct VertexRef {
+        VertexID        id       = VertexID::Nil();
+        kiwi_ir::Anchor x_anchor = kiwi_ir::Anchor::LEFT;
+        kiwi_ir::Anchor y_anchor = kiwi_ir::Anchor::TOP;
+    };
+
+    struct VertexOffset {
+        Opt<double> relative;
+        double      absolute = 0.0;
+    };
+
+    VertexRef parent;
+    VertexRef nested;
+
+    RelativeConstraint(
+        hstd::SPtr<KiwiGroup> const& group,
+        VertexID const&              parent)
+        : KiwiConstraint{group}, parent{parent} {}
 };
 
 class AlignConstraint : public KiwiConstraint {
