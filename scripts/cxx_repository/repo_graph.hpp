@@ -5,6 +5,7 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <absl/log/log.h>
+#include <hstd/ext/graph/visual/graph_graphviz.hpp>
 
 #include "git_interface.hpp"
 
@@ -31,6 +32,7 @@ struct CommitEdge {};
 
 
 struct CommitGraph {
+    // TODO: Use `IGraph` interface here instead of the custom boost graph.
     using Graph = boost::adjacency_list<
         boost::vecS,
         boost::vecS,
@@ -77,5 +79,5 @@ struct CommitGraph {
     VDesc get_desc(git_oid const& oid);
     CommitGraph(hstd::SPtr<git_repository> repo, hstd::Str const& branch);
 
-    std::string toGraphviz() const;
+    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz() const;
 };

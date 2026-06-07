@@ -179,11 +179,12 @@ DocRootId EditableOrgDocGroup::addRoot(
     int history_idx = addHistory(history);
     gr_log(hstd::log::l_trace)
         .fmt_message("Added history as index {}", history_idx);
-    return DocRootId::FromMaskedIdx(root_idx, history_idx);
+    return DocRootId{DocRootId::FromMaskedIdx(root_idx, history_idx)};
 }
 
 DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
-    return DocRootId::FromMaskedIdx(id.getMask(), history.high());
+    return DocRootId{
+        DocRootId::FromMaskedIdx(id.getMask(), history.high())};
 }
 
 Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
@@ -205,9 +206,9 @@ Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
                 for (auto const& item : prev.roots) {
                     if (auto migrated = history.at(next).getTransition(
                             item.getIndex())) {
-                        updated.push_back(
+                        updated.push_back(DocRootId(
                             DocRootId::FromMaskedIdx(
-                                migrated.value(), next));
+                                migrated.value(), next)));
                         gr_log(hstd::log::l_trace)
                             .fmt_message(
                                 "Item {} migrated to {}",

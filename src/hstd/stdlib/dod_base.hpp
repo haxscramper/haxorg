@@ -242,6 +242,14 @@ struct [[nodiscard]] Id {
 };
 
 
+// FIXME: This should be a CRTP base derived from main ID instead of this
+// abomination with copy-pasted templates. `::FromMaskedIdx` is already
+// suffering from this, I either need to cast the return type to the
+// derived, or add the passthrough method to the derived class, which is
+// just another variation of the hack. This code could likely be written
+// using CRTP method. In this case the need for "with attr" part will
+// disapper as well, the end consumer can annotate the derived types with
+// all the required attributes.
 #define DECL_ID_TYPE_MASKED_WITH_ATTR(                                    \
     __value, __name, __type, __mask, __attr)                              \
     struct __value;                                                       \

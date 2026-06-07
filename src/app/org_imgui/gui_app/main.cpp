@@ -11,16 +11,14 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 
 #include <org_imgui/gui_lib/sem_tree_render.hpp>
-#include <org_imgui/gui_lib/story_grid.hpp>
 #include <org_imgui/gui_lib/imgui_utils.hpp>
-#include <org_imgui/gui_lib/block_graph.hpp>
-#include <org_imgui/gui_lib/doc_editor.hpp>
 #include <org_imgui/gui_lib/dir_explorer.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
+#include <haxorg/api/ParseContext.hpp>
 
 
 struct Config {
@@ -28,9 +26,7 @@ struct Config {
         Mode,
         SemTree,
         Outline,
-        StoryGrid,
         Test,
-        StoryGridAnnotated,
         DirectoryExplorer,
         DocEditor);
 
@@ -448,51 +444,6 @@ int main(int argc, char** argv) {
             auto path = hstd::fs::path{conf.file.front().toBase()};
             auto node = parse_context->parseFile(path);
             outline_tree_loop(window, node);
-            break;
-        }
-        case Config::Mode::DocEditor: {
-            auto path = hstd::fs::path{conf.file.front().toBase()};
-            auto node = parse_context->parseFile(path);
-            doc_editor_loop(window, node, parse_context);
-            break;
-        }
-
-        case Config::Mode::StoryGridAnnotated:
-        case Config::Mode::StoryGrid: {
-            StoryGridConfig storyGridConf;
-            using Col                   = TreeGridColumn;
-            storyGridConf.getDefaultDoc = []() -> TreeGridDocument {
-                TreeGridDocument doc;
-                doc.columns = {
-                    Col{.name = "title", .width = 200},
-                    Col{.name = "event", .width = 400},
-                    Col{.name = "note", .width = 400},
-                    Col{.name = "turning_point", .width = 300},
-                    Col{.name = "value", .width = 200},
-                    Col{
-                        .name  = "location",
-                        .width = 240,
-                        .edit  = EditableOrgText::Mode::SingleLine,
-                    },
-                    Col{.name = "pov", .width = 100},
-                };
-                return doc;
-            };
-
-
-            storyGridConf.blockGraphConf.getDefaultLaneMargin =
-                [](int lane) -> hstd::Pair<int, int> {
-                if (lane == 0) {
-                    return std::make_pair(0, 25);
-                } else {
-                    return std::make_pair(25, 25);
-                }
-            };
-            storyGridConf.mouseScrollMultiplier = 20;
-            storyGridConf.annotated             = true;
-
-            appstate = story_grid_loop(
-                window, conf.file, appstate, storyGridConf);
             break;
         }
         case Config::Mode::Test: {
