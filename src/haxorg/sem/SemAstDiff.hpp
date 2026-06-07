@@ -1,5 +1,5 @@
 #pragma once
-#include <hstd/ext/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/ext/bimap_wrap.hpp>

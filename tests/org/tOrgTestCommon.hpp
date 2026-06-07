@@ -5,7 +5,7 @@
 
 
 #include <haxorg/lexbase/AstSpec.hpp>
-#include <hstd/ext/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff.hpp>
 #include <haxorg/test/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>

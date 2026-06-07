@@ -1,5 +1,6 @@
 #include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/ext/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff_eager.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
@@ -235,4 +236,151 @@ TEST(AstDiff, PointerBasedNodes) {
         DstStore->getToStr());
 
     writeDebugFile(os.getBuffer().toString(false), "txt");
+}
+
+namespace {
+TestNode::Ptr cloneTree(TestNode const* node) {
+    Vec<TestNode::Ptr> sub;
+    sub.reserve(node->subnodes.size());
+    for (auto const& it : node->subnodes) {
+        sub.push_back(cloneTree(it.get()));
+    }
+    return n(node->value, node->kind, sub);
+}
+
+bool structurallyEqual(TestNode const* lhs, TestNode const* rhs) {
+    if (lhs->kind != rhs->kind || lhs->value != rhs->value) {
+        return false;
+    }
+    if (lhs->subnodes.size() != rhs->subnodes.size()) { return false; }
+    for (int i = 0; i < lhs->subnodes.size(); ++i) {
+        if (!structurallyEqual(
+                lhs->subnodes.at(i).get(), rhs->subnodes.at(i).get())) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void applyEditsAtRoot(
+    TestNode::Ptr const&      root,
+    hstd::Vec<DiaEdit> const& edits) {
+    for (auto const& e : edits) {
+        if (e.isUpdate()) {
+            auto dst = e.getUpdate().dstNode.ToPtr<TestNode>();
+            if (e.getUpdate().srcNode.ToPtr<TestNode>() == root.get()) {
+                root->value = dst->value;
+                root->kind  = dst->kind;
+            } else {
+                auto idx                      = e.getUpdate().srcIndex;
+                root->subnodes.at(idx)->value = dst->value;
+                root->subnodes.at(idx)->kind  = dst->kind;
+            }
+        } else if (e.isMove()) {
+            int  src  = e.getMove().srcIndex;
+            int  dst  = e.getMove().dstIndex;
+            auto item = root->subnodes.at(src);
+            root->subnodes.erase(root->subnodes.begin() + src);
+            if (src < dst) { --dst; }
+            root->subnodes.insert(root->subnodes.begin() + dst, item);
+        } else if (e.isInsert()) {
+            auto dstNode = e.getInsert().dstNode.ToPtr<TestNode>();
+            root->subnodes.insert(
+                root->subnodes.begin() + e.getInsert().dstIndex,
+                cloneTree(dstNode));
+        } else if (e.isDelete()) {
+            root->subnodes.erase(
+                root->subnodes.begin() + e.getDelete().srcIndex);
+        }
+    }
+}
+} // namespace
+
+TEST(AstDiff_GetDiff, IdenticalTrees_NoEdits) {
+    auto src = n("root", 1, {n("a", 2), n("b", 2)});
+    auto dst = cloneTree(src.get());
+
+    TestNodeStore srcStore(src.get());
+    TestNodeStore dstStore(dst.get());
+
+    auto edits = getEdits(
+        srcStore,
+        dstStore,
+        [](NodeStore::Id const& a, NodeStore::Id const& b) {
+            return a.ToPtr<TestNode>()->value
+                == b.ToPtr<TestNode>()->value;
+        });
+
+    EXPECT_TRUE(edits.empty());
+}
+
+TEST(AstDiff_GetDiff, ReorderSubnodes_ProducesMove) {
+    auto a   = n("a", 2);
+    auto b   = n("b", 2);
+    auto src = n("root", 1, {a, b});
+    auto dst = n("root", 1, {cloneTree(b.get()), cloneTree(a.get())});
+
+    TestNodeStore srcStore(src.get());
+    TestNodeStore dstStore(dst.get());
+
+    auto edits = getEdits(
+        srcStore,
+        dstStore,
+        [](NodeStore::Id const& x, NodeStore::Id const& y) {
+            return x.ToPtr<TestNode>()->value
+                == y.ToPtr<TestNode>()->value;
+        });
+
+    EXPECT_TRUE(
+        std::any_of(edits.begin(), edits.end(), [](DiaEdit const& e) {
+            return e.isMove();
+        }));
+}
+
+// TODO: extend the tests with more basic coverage elements, diff the
+// simple trees etc.
+
+TEST(AstDiff_ApplyEdits, SyntheticEdits_TransformTree) {
+    auto src = n("root", 1, {n("a", 2), n("b", 2)});
+    auto ins = n("x", 2);
+
+    hstd::Vec<DiaEdit> edits;
+    edits.push_back(
+        DiaEdit{DiaEdit::Move{
+            .srcNode  = NodeStore::Id::FromPtr(src->subnodes.at(0).get()),
+            .dstNode  = NodeStore::Id::FromPtr(src->subnodes.at(0).get()),
+            .srcIndex = 0,
+            .dstIndex = 2}});
+    edits.push_back(
+        DiaEdit{DiaEdit::Insert{
+            .dstNode = NodeStore::Id::FromPtr(ins.get()), .dstIndex = 1}});
+    edits.push_back(
+        DiaEdit{DiaEdit::Delete{
+            .srcNode  = NodeStore::Id::FromPtr(src->subnodes.at(1).get()),
+            .srcIndex = 0}});
+
+    applyEditsAtRoot(src, edits);
+
+    auto expected = n("root", 1, {n("x", 2), n("a", 2)});
+    EXPECT_TRUE(structurallyEqual(src.get(), expected.get()));
+}
+
+TEST(AstDiff_ApplyEdits, DiffThenApply_ProducesDestinationStructure) {
+    auto src = n("root", 1, {n("a", 2), n("b", 2), n("c", 2)});
+    auto dst = n("root", 1, {n("b", 2), n("x", 2), n("c", 2)});
+
+    TestNodeStore srcStore(src.get());
+    TestNodeStore dstStore(dst.get());
+
+    auto edits = getEdits(
+        srcStore,
+        dstStore,
+        [](NodeStore::Id const& x, NodeStore::Id const& y) {
+            return x.ToPtr<TestNode>()->value
+                == y.ToPtr<TestNode>()->value;
+        });
+
+    applyEditsAtRoot(src, edits);
+
+    EXPECT_TRUE(structurallyEqual(src.get(), dst.get()));
 }
