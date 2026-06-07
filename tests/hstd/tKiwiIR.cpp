@@ -11,7 +11,7 @@ static void write_outputs(Layout& layout, Opt<Str> name_r = std::nullopt) {
     writeFile(
         getDebugFile(std::format("{}.svg", name)),
         layout.to_svg(name).to_string(2));
-    layout.to_graphviz(getDebugFile(std::format("{}-graph", name)));
+    layout.to_graphviz(getDebugFile(std::format("{}-graph.png", name)));
 }
 
 TEST(KiwiIr, AlignAndSeparate) {
@@ -437,6 +437,8 @@ TEST(KiwiIr, VerifyFailMutuallyExclusiveSeparate) {
 
 // Additional tests
 
+/// \brief Verify the even gap constraint can be linked with other
+/// constraint that provides a fixed spacing between the nodes.
 TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
     Vec<Rect> rects = {
         Rect("a", 0, 0, 10, 10),
@@ -460,8 +462,8 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
             /*groups=*/
             Vec<Vec<RectSpec1Side>>{
                 {RectSpec1Side::Left("a")},
-                {RectSpec1Side::Left("c")},
-                {RectSpec1Side::Left("e")}},
+                {RectSpec1Side::Left("b")},
+                {RectSpec1Side::Left("c")}},
             /*step=*/step),
     };
     Layout layout(rects, constraints);
@@ -476,15 +478,13 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
     auto rect_e = solved.at("e").getGeometry();
     auto rect_f = solved.at("f").getGeometry();
 
-    double expected_gap = step / 2.0; // because even gap forces 2 gaps per
-                                      // step
-    EXPECT_NEAR(rect_b.x() - rect_a.x(), expected_gap, 1e-6);
-    EXPECT_NEAR(rect_c.x() - rect_b.x(), expected_gap, 1e-6);
-    EXPECT_NEAR(rect_d.x() - rect_c.x(), expected_gap, 1e-6);
-    EXPECT_NEAR(rect_e.x() - rect_d.x(), expected_gap, 1e-6);
-    EXPECT_NEAR(rect_f.x() - rect_e.x(), expected_gap, 1e-6);
-    EXPECT_NEAR(rect_c.x() - rect_a.x(), step, 1e-6);
-    EXPECT_NEAR(rect_e.x() - rect_c.x(), step, 1e-6);
+    EXPECT_NEAR(rect_a.x() + step, rect_b.x(), 1e-6);
+    EXPECT_NEAR(rect_b.x() + step, rect_c.x(), 1e-6);
+    EXPECT_NEAR(rect_c.x() + step, rect_d.x(), 1e-6);
+    EXPECT_NEAR(rect_d.x() + step, rect_e.x(), 1e-6);
+    EXPECT_NEAR(rect_e.x() + step, rect_f.x(), 1e-6);
+    EXPECT_NEAR(rect_a.x() + step, rect_b.x(), 1e-6);
+    EXPECT_NEAR(rect_b.x() + step, rect_c.x(), 1e-6);
 
     // Change step and verify new layout
     double new_step = 60.0;
@@ -528,7 +528,9 @@ TEST(KiwiIr, ConflictingMultiSeparate) {
         std::make_shared<MultiSeparateConstraint>(
             /*groups=*/
             Vec<Vec<RectSpec1Side>>{
-                {RectSpec1Side::Left("x")}, {RectSpec1Side::Left("y")}},
+                {RectSpec1Side::Left("x")},
+                {RectSpec1Side::Left("y")},
+            },
             /*step=*/30),
     };
     Layout layout(rects, constraints);

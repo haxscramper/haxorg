@@ -303,7 +303,7 @@ TEST_F(GraphKiwi_Test, KiwiSeparateMultiSeparate) {
     root->addConstraint<kw::MultiSeparateConstraint>(root)
         ->separateHorizontally()
         ->setSeparationDistance(60)
-        ->addFullLane({g1, g2})
+        ->addFullLane({g1, g5})
         ->addFullLane({g2, g6})
         ->addFullLane({g3, g7})
         ->addFullLane({g4, g8});

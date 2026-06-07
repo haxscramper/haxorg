@@ -312,6 +312,10 @@ static std::string render_kiwi_expr(Expr::Node const& n) {
     return render_affine(f);
 }
 
+namespace {
+bool wrap_all = false;
+}
+
 static std::string flat_repr_impl(
     Expr::Node const& n,
     int               parent_prec,
@@ -330,9 +334,10 @@ static std::string flat_repr_impl(
                 *n.lhs, static_cast<int>(Prec::Unary), false);
             bool need_paren = precedence(*n.lhs)
                             < static_cast<int>(Prec::Unary);
-            auto out        = "-" + wrap_if(need_paren, inner);
+            auto out        = "-" + wrap_if(wrap_all || need_paren, inner);
             return wrap_if(
-                static_cast<int>(Prec::Unary) < parent_prec, out);
+                wrap_all || static_cast<int>(Prec::Unary) < parent_prec,
+                out);
         }
 
         case Kind::Mul: {
@@ -344,8 +349,11 @@ static std::string flat_repr_impl(
             bool lp = precedence(*n.lhs) < static_cast<int>(Prec::Mul);
             bool rp = precedence(*n.rhs) < static_cast<int>(Prec::Mul);
 
-            auto out = wrap_if(lp, l) + " * " + wrap_if(rp, r);
-            return wrap_if(static_cast<int>(Prec::Mul) < parent_prec, out);
+            auto out = wrap_if(wrap_all || lp, l) + " * "
+                     + wrap_if(wrap_all || rp, r);
+            return wrap_if(
+                wrap_all || static_cast<int>(Prec::Mul) < parent_prec,
+                out);
         }
 
         case Kind::Add:
@@ -383,7 +391,9 @@ static std::string flat_repr_impl(
                 }
             }
 
-            return wrap_if(static_cast<int>(Prec::Add) < parent_prec, out);
+            return wrap_if(
+                wrap_all || static_cast<int>(Prec::Add) < parent_prec,
+                out);
         }
     }
 

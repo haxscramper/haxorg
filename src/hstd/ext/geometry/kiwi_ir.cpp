@@ -1,4 +1,5 @@
 #include "kiwi_ir.hpp"
+#include "hstd/stdlib/Debug.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -369,7 +370,30 @@ MultiSeparateConstraint::MultiSeparateConstraint(
     Vec<Vec<RectSpec1Side>> groups,
     double                  step,
     Strength                strength)
-    : ConstraintBase(strength), groups(std::move(groups)), step(step) {}
+    : ConstraintBase(strength), groups(std::move(groups)), step(step) {
+    hstd::UnorderedMap<Str, Pair<int, int>> s;
+    for (auto const& [idx, lane] : hstd::enumerate(groups)) {
+        for (auto const& [item_idx, item] : hstd::enumerate(lane)) {
+            if (auto prev = s.get(item.rect_id)) {
+                throw hstd::invalid_argument::init(
+                    hstd::fmt(
+                        "Multi-separate constraint cannot reuse vertex ID "
+                        "across multiple lanes or multiple times in "
+                        "the same row. Rect ID '{}' has already been "
+                        "encountered at [{}][{}] and was reused at "
+                        "[{}][{}]",
+                        item.rect_id,
+                        prev->first,
+                        prev->second,
+                        idx,
+                        item_idx));
+            }
+
+            s.insert_or_assign(
+                item.rect_id, Pair<int, int>{idx, item_idx});
+        }
+    }
+}
 
 Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
     RectMap const& rects) const {
@@ -386,16 +410,39 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
         Expr expr_b //
             = rects.at(g2[0].rect_id).anchor_expr(g2[0].anchor).loc();
 
+        // align anchor positions on the individual rectangles.
+        // ┌────┐     ┌────┐
+        // │ a  │     │ b  │
+        // └────┘     └────┘
+        // ▲          ▲
+        // └──────────┘
+        //  a + step = b
         constraints.push_back(
-            (expr_a == (expr_b + step)).loc() | kiwi_value(strength));
+            ((expr_a + step) == expr_b).loc() | kiwi_value(strength));
     }
 
     for (auto const& g : groups) {
-        for (auto const& [a, b] : g | hstd::rv_sliding_tuple2) {
-            Expr expr_a = rects.at(a.rect_id).anchor_expr(a.anchor);
-            Expr expr_b = rects.at(b.rect_id).anchor_expr(b.anchor);
+        for (auto const& [g_prev, g_next] : g | hstd::rv_sliding_tuple2) {
+            // align individual elements in the stack.
+            //
+            //         │
+            // ┌───────┼───┐
+            // │g_prev │   │
+            // └───────┼───┘
+            //         │
+            //         ▲
+            //         ▼
+            //         │
+            // ┌───────┼───┐
+            // │g_next │   │
+            // └───────┼───┘
+            //         │
+            Expr expr_g_prev //
+                = rects.at(g_prev.rect_id).anchor_expr(g_prev.anchor);
+            Expr expr_g_next //
+                = rects.at(g_next.rect_id).anchor_expr(g_next.anchor);
             constraints.push_back(
-                (expr_a == expr_b).loc() | kiwi_value(strength));
+                (expr_g_prev == expr_g_next).loc() | kiwi_value(strength));
         }
     }
 
@@ -422,7 +469,7 @@ Str MultiSeparateConstraint::getRepr(
     std::ostringstream out;
     Vec<Vec<Str>>      g_fmt;
     for (int i = 0; i < groups.size(); ++i) {
-        g_fmt.push_back({});
+        g_fmt.push_back({hstd::fmt("GR {}", i)});
         for (int j = 0; j < groups[i].size(); ++j) {
             g_fmt.back().push_back(
                 hstd::fmt(
@@ -739,7 +786,7 @@ Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
             = rects.at(next.rect_id).anchor_expr(next.min_anchor);
 
         constraints.push_back(
-            (((curr_min - prev_max) - (next_min - curr_max)) == 0)
+            ((curr_min - prev_max) == (next_min - curr_max)).loc()
             | kiwi_value(strength));
     }
 
@@ -758,24 +805,24 @@ Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
     return result;
 }
 
-Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const&) const {
-    std::ostringstream out;
-    out << "[";
+Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
+    Vec<Str> joined;
+
+    joined.push_back(
+        std::format("EvenGapConstraint(strength={})", strength));
+
     for (int i = 0; i < rects_spec.size(); ++i) {
         RectSpec2Side const& s = rects_spec[i];
-        out << std::format(
-            "{{id={}, min={}, max={}}}",
-            s.rect_id,
-            s.min_anchor,
-            s.max_anchor);
-        if (i + 1 < rects_spec.size()) { out << ", "; }
+        joined.push_back(
+            std::format(
+                "  id={}, min={}, max={}",
+                s.rect_id,
+                s.min_anchor,
+                s.max_anchor));
     }
-    out << "]";
 
-    return std::format(
-        "EvenGapConstraint(rects_spec={}, strength={})",
-        out.str(),
-        strength);
+    joined.append(getBuildRepr(rects));
+    return hstd::join("\n", joined);
 }
 
 EqualSizeConstraint::EqualSizeConstraint(
@@ -1381,9 +1428,11 @@ void Layout::verify_constraints() {
                 describe_constraint_source(entry.source));
 
             auto describe_failure = [&](SatisfyFail const& fail) {
-                if (!fail.preceding.empty()) {
+                if (1 < fail.preceding.size()) {
                     os.indent(4);
                     os << "- preceding constraints OK\n";
+                } else {
+                    os << "- no preceding constraints\n";
                 }
 
                 for (auto const& it : hstd::enumerator(fail.preceding)) {
@@ -1405,8 +1454,10 @@ void Layout::verify_constraints() {
                         };
 
                     if (it.is_last()) {
-                        write_lowered(it.value().lowered.at(
-                            hstd::slice(0, fail.failing - 1)));
+                        if (0 < fail.failing) {
+                            write_lowered(it.value().lowered.at(
+                                hstd::slice(0, fail.failing - 1)));
+                        }
                     } else {
                         write_lowered(it.value().lowered.toSpan());
                     }

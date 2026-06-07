@@ -122,7 +122,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     kiwi_sub1->addConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
         ->separateHorizontally()
         ->setSeparationDistance(60)
-        ->addFullLane({g1, g2})
+        ->addFullLane({g1, g5})
         ->addFullLane({g2, g6})
         ->addFullLane({g3, g7})
         ->addFullLane({g4, g8});
