@@ -193,27 +193,37 @@ class Expr {
         double                          constant = 0.0;
         std::optional<kiwi::Variable>   variable;
         std::optional<kiwi::Expression> kiwi_expr;
-        std::shared_ptr<Node const>     lhs;
-        std::shared_ptr<Node const>     rhs;
+        std::shared_ptr<Node>           lhs;
+        std::shared_ptr<Node>           rhs;
+        int                             origin_line     = -1;
+        char const*                     origin_function = nullptr;
     };
 
-    std::shared_ptr<Node const> node;
+    std::shared_ptr<Node> node;
+
+    Expr& loc(
+        char const* function = __builtin_FUNCTION(),
+        int         line     = __builtin_LINE()) {
+        node->origin_line     = line;
+        node->origin_function = function;
+        return *this;
+    }
 
   private:
-    explicit Expr(std::shared_ptr<Node const> node);
+    explicit Expr(std::shared_ptr<Node> node);
 
-    static std::shared_ptr<Node const> make_constant(double value);
-    static std::shared_ptr<Node const> make_variable(
+    static std::shared_ptr<Node> make_constant(double value);
+    static std::shared_ptr<Node> make_variable(
         kiwi::Variable const& value);
-    static std::shared_ptr<Node const> make_kiwi_expr(
+    static std::shared_ptr<Node> make_kiwi_expr(
         kiwi::Expression const& value);
-    static std::shared_ptr<Node const> make_unary(
-        Node::Kind                  kind,
-        std::shared_ptr<Node const> lhs);
-    static std::shared_ptr<Node const> make_binary(
-        Node::Kind                  kind,
-        std::shared_ptr<Node const> lhs,
-        std::shared_ptr<Node const> rhs);
+    static std::shared_ptr<Node> make_unary(
+        Node::Kind            kind,
+        std::shared_ptr<Node> lhs);
+    static std::shared_ptr<Node> make_binary(
+        Node::Kind            kind,
+        std::shared_ptr<Node> lhs,
+        std::shared_ptr<Node> rhs);
 
     friend class Constraint;
     friend Str tree_repr(Expr const& c, int indent);
@@ -237,6 +247,17 @@ class Constraint {
     Expr                     rhs;
     kiwi::RelationalOperator op;
     hstd::Opt<double>        strength;
+
+    int         origin_line     = -1;
+    char const* origin_function = nullptr;
+
+    Constraint& loc(
+        char const* function = __builtin_FUNCTION(),
+        int         line     = __builtin_LINE()) {
+        origin_line     = line;
+        origin_function = function;
+        return *this;
+    }
 
   private:
     static kiwi::Expression fold_expr(
@@ -601,24 +622,6 @@ class Layout {
 
   private:
     Vec<ConstraintEntry> build_constraint_entries() const;
-
-    struct LoweredFailureDescr {
-        int entry_idx   = -1;
-        int lowered_idx = -1;
-    };
-
-    struct ConstraintFailure {
-        ConstraintEntry                entry;
-        hstd::Opt<LoweredFailureDescr> desc;
-    };
-
-
-    hstd::Result<std::monostate, Layout::LoweredFailureDescr> is_satisfiable(
-        Vec<ConstraintEntry> const& entries) const;
-
-    Vec<ConstraintFailure> minimal_conflict_set(
-        Vec<ConstraintEntry> const& active_entries,
-        ConstraintEntry const&      failing_entry) const;
 };
 
 } // namespace hstd::ext::kiwi_ir

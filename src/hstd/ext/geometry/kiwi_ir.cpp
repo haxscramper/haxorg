@@ -45,16 +45,16 @@ Str axis_color(Axis axis) {
 }
 
 
-Expr::Expr(std::shared_ptr<Node const> node) : node(std::move(node)) {}
+Expr::Expr(std::shared_ptr<Node> node) : node(std::move(node)) {}
 
-std::shared_ptr<Expr::Node const> Expr::make_constant(double value) {
+std::shared_ptr<Expr::Node> Expr::make_constant(double value) {
     Node n;
     n.kind     = Node::Kind::Constant;
     n.constant = value;
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node const> Expr::make_variable(
+std::shared_ptr<Expr::Node> Expr::make_variable(
     kiwi::Variable const& value) {
     Node n;
     n.kind     = Node::Kind::Variable;
@@ -62,7 +62,7 @@ std::shared_ptr<Expr::Node const> Expr::make_variable(
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node const> Expr::make_kiwi_expr(
+std::shared_ptr<Expr::Node> Expr::make_kiwi_expr(
     kiwi::Expression const& value) {
     Node n;
     n.kind      = Node::Kind::KiwiExpression;
@@ -70,19 +70,19 @@ std::shared_ptr<Expr::Node const> Expr::make_kiwi_expr(
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node const> Expr::make_unary(
-    Node::Kind                  kind,
-    std::shared_ptr<Node const> lhs) {
+std::shared_ptr<Expr::Node> Expr::make_unary(
+    Node::Kind            kind,
+    std::shared_ptr<Node> lhs) {
     Node n;
     n.kind = kind;
     n.lhs  = std::move(lhs);
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node const> Expr::make_binary(
-    Node::Kind                  kind,
-    std::shared_ptr<Node const> lhs,
-    std::shared_ptr<Node const> rhs) {
+std::shared_ptr<Expr::Node> Expr::make_binary(
+    Node::Kind            kind,
+    std::shared_ptr<Node> lhs,
+    std::shared_ptr<Node> rhs) {
     Node n;
     n.kind = kind;
     n.lhs  = std::move(lhs);
@@ -242,12 +242,20 @@ Expr Rect::anchor_expr(Anchor anchor) const {
 
 ConstraintBase::ConstraintBase(Strength strength) : strength(strength) {}
 
+namespace {
+const bool verbose_build_repr = false;
+}
+
 Vec<Str> ConstraintBase::getBuildRepr(
     hstd::Opt<RectMap> const& rects) const {
     Vec<Str> joined;
     if (rects) {
         for (auto const& c : build(rects.value())) {
-            joined.append(flat_repr(c).split("\n"));
+            if (verbose_build_repr) {
+                joined.append(tree_repr(c).split("\n"));
+            } else {
+                joined.append(flat_repr(c).split("\n"));
+            }
         }
     }
     return joined;
@@ -373,18 +381,21 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
                 "each group");
         }
 
-        Expr expr_a = rects.at(g1[0].rect_id).anchor_expr(g1[0].anchor);
-        Expr expr_b = rects.at(g2[0].rect_id).anchor_expr(g2[0].anchor);
+        Expr expr_a //
+            = rects.at(g1[0].rect_id).anchor_expr(g1[0].anchor).loc();
+        Expr expr_b //
+            = rects.at(g2[0].rect_id).anchor_expr(g2[0].anchor).loc();
 
         constraints.push_back(
-            (expr_a == (expr_b + step)) | kiwi_value(strength));
+            (expr_a == (expr_b + step)).loc() | kiwi_value(strength));
     }
 
     for (auto const& g : groups) {
         for (auto const& [a, b] : g | hstd::rv_sliding_tuple2) {
             Expr expr_a = rects.at(a.rect_id).anchor_expr(a.anchor);
             Expr expr_b = rects.at(b.rect_id).anchor_expr(b.anchor);
-            constraints.push_back(expr_a == expr_b | kiwi_value(strength));
+            constraints.push_back(
+                (expr_a == expr_b).loc() | kiwi_value(strength));
         }
     }
 
@@ -418,11 +429,21 @@ Str MultiSeparateConstraint::getRepr(
                     "{} {}", groups[i][j].rect_id, groups[i][j].anchor));
         }
     }
-    return std::format(
-        "MultiSeparateConstraint(step={:g} strength={})\n{}",
-        step,
-        strength,
-        hstd::format_table(g_fmt));
+
+    Vec<Str> joined;
+    joined.push_back(
+        std::format(
+            "MultiSeparateConstraint(step={:g} strength={})",
+            step,
+            strength));
+
+    auto     t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
+    auto     ind   = hstd::indent(t_1, 2);
+    Vec<Str> table = ind.split('\n');
+    joined.append(table);
+    joined.append(getBuildRepr(rects));
+
+    return hstd::join("\n", joined);
 }
 
 ParentWrapConstraint::ParentWrapConstraint(
@@ -460,12 +481,14 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
     for (auto const& nested_left : left_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::LEFT) <= (nested_left - pad.left))
+                .loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_top : top_exprs) {
         constraints.push_back(
             (parent.anchor_expr(Anchor::TOP) <= (nested_top - pad.top))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -473,6 +496,7 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
         constraints.push_back(
             ((nested_right + pad.right)
              <= parent.anchor_expr(Anchor::RIGHT))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -480,22 +504,26 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
         constraints.push_back(
             ((nested_bottom + pad.bottom)
              <= parent.anchor_expr(Anchor::BOTTOM))
+                .loc()
             | kiwi_value(strength));
     }
 
     constraints.push_back(
         (parent.anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left))
+            .loc()
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top))
+        (parent.anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top)).loc()
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::RIGHT)
          == (right_exprs[right_exprs.size() - 1] + pad.right))
+            .loc()
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::BOTTOM)
          == (bottom_exprs[bottom_exprs.size() - 1] + pad.bottom))
+            .loc()
         | kiwi_value(strength));
 
     return constraints;
@@ -555,6 +583,7 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
         constraints.push_back(
             (rel.expr(RectAttr::WIDTH)
              == (fix.expr(RectAttr::WIDTH) * x_dim.size_factor.value()))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -563,6 +592,7 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
             (rel.expr(RectAttr::HEIGHT)
              // TODO: See [[configurable-offset-comparison-directions]]
              == (fix.expr(RectAttr::HEIGHT) * y_dim.size_factor.value()))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -573,12 +603,14 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
                  + (x_dim.relative_offset.value()
                     * fix.expr(RectAttr::WIDTH))
                  + x_dim.absolute_offset))
+                .loc()
             | kiwi_value(strength));
 
     } else {
         constraints.push_back(
             (rel.anchor_expr(anchor_relative.x)
              == (fix.anchor_expr(anchor_fixed.x) + x_dim.absolute_offset))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -589,11 +621,13 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
                  + (y_dim.relative_offset.value()
                     * fix.expr(RectAttr::HEIGHT))
                  + y_dim.absolute_offset))
+                .loc()
             | kiwi_value(strength));
     } else {
         constraints.push_back(
             (rel.anchor_expr(anchor_relative.y)
              == (fix.anchor_expr(anchor_fixed.y) + y_dim.absolute_offset))
+                .loc()
             | kiwi_value(strength));
     }
 
@@ -763,12 +797,12 @@ Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(
     Vec<kiwi_ir::Constraint> constraints;
     if (match_width) {
         constraints.push_back(
-            (a.expr(RectAttr::WIDTH) == b.expr(RectAttr::WIDTH))
+            (a.expr(RectAttr::WIDTH) == b.expr(RectAttr::WIDTH)).loc()
             | kiwi_value(strength));
     }
     if (match_height) {
         constraints.push_back(
-            (a.expr(RectAttr::HEIGHT) == b.expr(RectAttr::HEIGHT))
+            (a.expr(RectAttr::HEIGHT) == b.expr(RectAttr::HEIGHT)).loc()
             | kiwi_value(strength));
     }
     return constraints;
@@ -811,11 +845,11 @@ LinearConstraint::LinearConstraint(
 Vec<kiwi_ir::Constraint> LinearConstraint::build(RectMap const&) const {
     kiwi_ir::Constraint c = (left == right) | kiwi_value(strength);
     if (relation == Relation::EQ) {
-        c = (left == right) | kiwi_value(strength);
+        c = (left == right).loc() | kiwi_value(strength);
     } else if (relation == Relation::LE) {
-        c = (left <= right) | kiwi_value(strength);
+        c = (left <= right).loc() | kiwi_value(strength);
     } else if (relation == Relation::GE) {
-        c = (right <= left) | kiwi_value(strength);
+        c = (right <= left).loc() | kiwi_value(strength);
     } else {
         throw std::runtime_error("Invalid relation");
     }
@@ -850,28 +884,34 @@ RectMap Layout::solve() {
 
     for (auto& [rect_id, rect] : rects) {
         solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::WIDTH)))
+                                 .loc()
                                  .to_kiwi(kiwi::strength::required));
         solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::HEIGHT)))
+                                 .loc()
                                  .to_kiwi(kiwi::strength::required));
 
         if (rect.x0.has_value()) {
             solver.addConstraint(
                 (rect.expr(RectAttr::X) == rect.x0.value())
+                    .loc()
                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.y0.has_value()) {
             solver.addConstraint(
                 (rect.expr(RectAttr::Y) == rect.y0.value())
+                    .loc()
                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.width0.has_value()) {
             solver.addConstraint(
                 (rect.expr(RectAttr::WIDTH) == rect.width0.value())
+                    .loc()
                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.height0.has_value()) {
             solver.addConstraint(
                 (rect.expr(RectAttr::HEIGHT) == rect.height0.value())
+                    .loc()
                     .to_kiwi(kiwi::strength::required));
         }
     }
@@ -1070,10 +1110,15 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         hstd::SPtr<graph::gv::NodeAttribute>>
         rectNodes;
 
+    auto cluster_x = result->newSubgraph("x_constraint");
+    auto cluster_y = result->newSubgraph("y_constraint");
+
     for (auto const& axis : as_vec(Axis::X, Axis::Y)) {
         for (auto const& [rect_id, rect] : rects) {
-            auto node = result->node(
-                std::format("rect-{}-{}", rect_id, axis));
+            auto node = //
+                (axis == Axis::X ? cluster_x : cluster_y)
+                    ->node(std::format("rect-{}-{}", rect_id, axis));
+
             hstd::Vec<Str> rect_info;
             rect_info.push_back(hstd::fmt("{} {}", rect_id, axis));
             if (rect.x0) {
@@ -1100,11 +1145,13 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         }
     }
 
+    auto cluster_center = result->newSubgraph("center_constraint");
+    cluster_center->setRank(graph::gv::Rank::same);
 
     for (int idx = 0; idx < constraints.size(); ++idx) {
         auto const& constraint = constraints[idx];
         Str         cid        = std::format("constraint-{}", idx);
-        auto        cnode      = result->node(cid);
+        auto        cnode      = cluster_center->node(cid);
         cnode->setLabel(constraint->getRepr(rects));
         cnode->setNodeShape(graph::gv::NodeShape::rectangle);
 
@@ -1118,10 +1165,8 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
                           *cnode);
 
             if (edge.axis == Axis::Y) {
-                constraint_to_rect_edge->setArrowTail(
-                    graph::gv::NodeArrowType::normal);
-                constraint_to_rect_edge->setArrowHead(
-                    graph::gv::NodeArrowType::empty);
+                constraint_to_rect_edge->setEdgeDir(
+                    graph::gv::EdgeDir::back);
             }
 
             constraint_to_rect_edge->setColor(axis_color(edge.axis));
@@ -1204,30 +1249,45 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
     return entries;
 }
 
-hstd::Result<std::monostate, Layout::LoweredFailureDescr> Layout::
-    is_satisfiable(Vec<ConstraintEntry> const& entries) const {
+struct SatisfyFail {
+    Vec<ConstraintEntry> preceding;
+    int                  failing;
+};
+
+struct ConstraintFailure {
+    ConstraintEntry        entry;
+    hstd::Opt<SatisfyFail> desc;
+};
+
+
+namespace {
+hstd::Result<std::monostate, SatisfyFail> is_satisfiable(
+    Vec<ConstraintEntry> const& entries) {
     kiwi::Solver solver;
-    try {
-        for (int entry_idx = 0; entry_idx < entries.size(); ++entry_idx) {
-            auto const& entry = entries.at(entry_idx);
-            for (int lowered_idx = 0; lowered_idx < entry.lowered.size();
-                 ++lowered_idx) {
-                solver.addConstraint(
-                    entry.lowered.at(lowered_idx).to_kiwi());
+
+    Vec<ConstraintEntry> preceding;
+    for (int eidx = 0; eidx < entries.size(); ++eidx) {
+        auto const& entry = entries.at(eidx);
+        preceding.push_back(entry);
+        for (int lidx = 0; lidx < entry.lowered.size(); ++lidx) {
+            try {
+                solver.addConstraint(entry.lowered.at(lidx).to_kiwi());
+            } catch (kiwi::UnsatisfiableConstraint const&) {
+                return SatisfyFail{preceding, lidx};
             }
         }
-    } catch (kiwi::UnsatisfiableConstraint const&) {
-        return LoweredFailureDescr{
-            .entry_idx   = 0,
-            .lowered_idx = 0,
-        };
     }
+
     return std::monostate{};
 }
 
-Vec<Layout::ConstraintFailure> Layout::minimal_conflict_set(
+struct ConflictSet {
+    Vec<ConstraintFailure> failures;
+};
+
+ConflictSet minimal_conflict_set(
     Vec<ConstraintEntry> const& active_entries,
-    ConstraintEntry const&      failing_entry) const {
+    ConstraintEntry const&      failing_entry) {
     auto make_trial = [&](Vec<ConstraintEntry> const& conflict,
                           int skip_idx) -> Vec<ConstraintEntry> {
         Vec<ConstraintEntry> trial;
@@ -1241,18 +1301,13 @@ Vec<Layout::ConstraintFailure> Layout::minimal_conflict_set(
     auto single_failure =
         [&](ConstraintEntry const& entry) -> hstd::Opt<ConstraintFailure> {
         auto sat = is_satisfiable({entry});
-        if (!sat.has_error()) {
-            return std::nullopt;
-        } else {
-            auto const& descr = sat.assume_error();
+        if (sat.has_error()) {
             return ConstraintFailure{
                 .entry = entry,
-                .desc =
-                LoweredFailureDescr{
-                    .entry_idx   = 0,
-                    .lowered_idx = descr.lowered_idx,
-                },
+                .desc  = sat.assume_error(),
             };
+        } else {
+            return std::nullopt;
         }
     };
 
@@ -1273,7 +1328,7 @@ Vec<Layout::ConstraintFailure> Layout::minimal_conflict_set(
         }
     }
 
-    Vec<ConstraintFailure> result;
+    ConflictSet result;
     for (int entry_idx = 0; entry_idx < conflict.size(); ++entry_idx) {
         Vec<ConstraintEntry> trial;
         for (int idx = 0; idx < conflict.size(); ++idx) {
@@ -1282,21 +1337,18 @@ Vec<Layout::ConstraintFailure> Layout::minimal_conflict_set(
         trial.push_back(failing_entry);
 
         auto sat = is_satisfiable(trial);
-        result.push_back(
+        result.failures.push_back(
             ConstraintFailure{
                 .entry = conflict.at(entry_idx),
                 .desc  = //
-                sat.has_value()
-                    ? std::nullopt
-                    : hstd::Opt<LoweredFailureDescr>(LoweredFailureDescr{
-                          .entry_idx   = sat.assume_error().entry_idx,
-                          .lowered_idx = sat.assume_error().lowered_idx,
-                      }),
+                sat.has_error() ? std::make_optional(sat.assume_error())
+                                : std::nullopt,
             });
     }
 
     return result;
 }
+} // namespace
 
 void Layout::verify_constraints() {
     Vec<ConstraintEntry> entries = build_constraint_entries();
@@ -1320,38 +1372,71 @@ void Layout::verify_constraints() {
             }
         } catch (kiwi::UnsatisfiableConstraint const&) {
             auto conflicts = minimal_conflict_set(active_entries, entry);
-            Vec<Str> lines;
-            lines.push_back("Unsatisfiable layout constraints detected.");
-            lines.push_back(
-                std::format(
-                    "Failing constraint: {}",
-                    describe_constraint_source(entry.source)));
-            if (conflicts.empty()) {
-                lines.push_back(
-                    "The failing constraint is internally inconsistent.");
-            } else {
-                lines.push_back("Conflicts with:");
-                for (auto const& src : conflicts) {
-                    lines.push_back(
-                        std::format(
-                            "  - {}",
-                            describe_constraint_source(src.entry.source)));
-                    if (src.desc.has_value()) {
-                        lines.push_back(
-                            std::format(
-                                "    - first conflict detected when "
-                                "adding lowered element {}",
-                                tree_repr(
-                                    entries.at(src.desc->entry_idx)
-                                        .lowered.at(src.desc->lowered_idx),
-                                    6)));
+            hstd::ColStream os;
+            // NOTE: primary candidate for tree-like data representation
+            // optimization. [[f69705c4-9013-4919-a540-3c473bbadbaf]]
+            os << "Unsatisfiable layout constraints detected.\n";
+            os << std::format(
+                "Failing constraint: {}\n",
+                describe_constraint_source(entry.source));
+
+            auto describe_failure = [&](SatisfyFail const& fail) {
+                if (!fail.preceding.empty()) {
+                    os.indent(4);
+                    os << "- preceding constraints OK\n";
+                }
+
+                for (auto const& it : hstd::enumerator(fail.preceding)) {
+                    os.indent(6);
+                    os << "- ";
+                    os.write_indented_after_first(
+                        describe_constraint_source(it.value().source), 8);
+                    os.newline();
+
+                    auto write_lowered =
+                        [&](hstd::Span<kiwi_ir::Constraint> const& c) {
+                            for (auto const& sub : c) {
+                                os.indent(8);
+                                os << "- ";
+                                os.write_indented_after_first(
+                                    flat_repr(sub), 10);
+                                os.newline();
+                            }
+                        };
+
+                    if (it.is_last()) {
+                        write_lowered(it.value().lowered.at(
+                            hstd::slice(0, fail.failing - 1)));
+                    } else {
+                        write_lowered(it.value().lowered.toSpan());
                     }
+                }
+
+                os << std::format(
+                    "    - first conflict detected when "
+                    "adding lowered element {}\n",
+                    flat_repr(
+                        fail.preceding.back().lowered.at(fail.failing)));
+            };
+
+            if (conflicts.failures.empty()) {
+                os << "The failing constraint is internally "
+                      "inconsistent.\n";
+
+                auto sat_fail = is_satisfiable({entry});
+                describe_failure(sat_fail.assume_error());
+            } else {
+                os << "Conflicts with:\n";
+                for (auto const& src : conflicts.failures) {
+                    os << std::format(
+                        "  - {}\n",
+                        describe_constraint_source(src.entry.source));
+                    describe_failure(src.desc.value());
                 }
             }
 
-            lines.push_back("");
-            throw ConstraintVerificationError::init(
-                hstd::join("\n", lines));
+            os.newline();
+            throw ConstraintVerificationError::init(os.toString(false));
         }
         active_entries.push_back(entry);
     }

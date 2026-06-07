@@ -30,7 +30,7 @@ void hstd::ext::graph::layout::LayoutRun::setNestedGroupAttribute(
 
     // LOGIC_ASSERTION_CHECK(
     //     !getGraph()
-    //         1 ->getVertex(nested)
+    //          ->getVertex(nested)
     //          ->getOptionalAttribute<IVertexVisualAttribute>()
     //          .has_value(),
     //     "Cannot assign group visual attribute to a vertex that "

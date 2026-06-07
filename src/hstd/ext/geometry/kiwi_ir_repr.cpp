@@ -45,18 +45,25 @@ void repr_impl(hstd::ColStream& os, Expr::Node const& n, int indent) {
     os.newline();
     os.indent(indent);
 
+    auto write_head = [&](Str const& h) {
+        os << h;
+        if (n.origin_line != -1) {
+            os << hstd::fmt(" {}:{}", n.origin_function, n.origin_line);
+        }
+    };
+
     using Kind = Expr::Node::Kind;
     switch (n.kind) {
         case Kind::Constant:
-            os << hstd::fmt("Const({})", n.constant);
+            write_head(hstd::fmt("Const({})", n.constant));
             break;
 
         case Kind::Variable:
-            os << hstd::fmt("Var({})", n.variable->name());
+            write_head(hstd::fmt("Var({})", n.variable->name()));
             break;
 
         case Kind::KiwiExpression: {
-            os << "KiwiExpr";
+            write_head("KiwiExpr");
             int var_size = 8;
             for (auto const& t : n.kiwi_expr->terms()) {
                 var_size = std::max<int>(
@@ -80,25 +87,25 @@ void repr_impl(hstd::ColStream& os, Expr::Node const& n, int indent) {
         }
 
         case Kind::Add:
-            os << "Add";
+            write_head("Add");
             repr_impl(os, *n.lhs, indent + 1);
             repr_impl(os, *n.rhs, indent + 1);
             break;
 
         case Kind::Sub:
-            os << "Sub";
+            write_head("Sub");
             repr_impl(os, *n.lhs, indent + 1);
             repr_impl(os, *n.rhs, indent + 1);
             break;
 
         case Kind::Mul:
-            os << "Mul";
+            write_head("Mul");
             repr_impl(os, *n.lhs, indent + 1);
             repr_impl(os, *n.rhs, indent + 1);
             break;
 
         case Kind::Neg:
-            os << "Neg";
+            write_head("Neg");
             repr_impl(os, *n.lhs, indent + 1);
             break;
     }
@@ -118,6 +125,10 @@ void repr_impl(hstd::ColStream& os, Constraint const& c, int indent) {
         case kiwi::RelationalOperator::OP_GE:
             os << "Constraint(GE)";
             break;
+    }
+
+    if (c.origin_line != -1) {
+        os << hstd::fmt(" {}:{}", c.origin_function, c.origin_line);
     }
 
     repr_impl(os, *c.lhs.node, indent + 1);
@@ -441,11 +452,17 @@ Str flat_repr(Constraint const& c, bool full_flatten) {
         case kiwi::RelationalOperator::OP_GE: op = ">="; break;
     }
 
-    return hstd::fmt(
+    std::string result = hstd::fmt(
         "{} {} {}",
         flat_repr(c.lhs, full_flatten),
         op,
         flat_repr(c.rhs, full_flatten));
+
+    if (c.origin_line != -1) {
+        result += hstd::fmt(" {}:{}", c.origin_function, c.origin_line);
+    }
+
+    return result;
 }
 
 

@@ -158,7 +158,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     lace,
     ilace);
 
-DECL_DESCRIBED_ENUM_STANDALONE(NodeDir, forward, back, both, none);
+DECL_DESCRIBED_ENUM_STANDALONE(EdgeDir, forward, back, both, none);
 DECL_DESCRIBED_ENUM_STANDALONE(Rank, none, same, source, sink);
 DECL_DESCRIBED_ENUM_STANDALONE(RankDirection, LR, TB, BT, RL);
 DECL_DESCRIBED_ENUM_STANDALONE(Splines, Ortho, Polyline, Curved);
@@ -232,7 +232,6 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __eattr_use_impl(NodeAttribute, NodeShape, shape, gv::NodeShape); \
         __eattr_use_impl(                                                 \
             NodeAttribute, NodeArrowSize, arrowsize, gv::NodeArrowSize);  \
-        __eattr_use_impl(NodeAttribute, NodeDir, dir, gv::NodeDir);       \
         __eattr_use_impl(NodeAttribute, Style, style, gv::Style);         \
         __attr_impl(NodeAttribute, PenWidth, penwidth, double);           \
         __attr_impl(NodeAttribute, Color, color, Str);                    \
@@ -253,6 +252,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
         __attr_impl(EdgeAttribute, Constraint, constraint, bool);         \
         __attr_impl(EdgeAttribute, Color, color, Str /*Str*/);            \
+        __eattr_use_impl(EdgeAttribute, EdgeDir, dir, gv::EdgeDir);       \
         __attr_impl(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);    \
         __attr_impl(EdgeAttribute, FontName, fontname, Str);              \
         __attr_impl(EdgeAttribute, FontSize, fontsize, double);           \

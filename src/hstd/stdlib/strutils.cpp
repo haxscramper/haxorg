@@ -1138,7 +1138,7 @@ Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
     }
-    return Str{"\n"}.join(lines);
+    return join("\n", lines);
 }
 
 Str hstd::normalize(Str const& in) {
@@ -1639,12 +1639,14 @@ std::string hstd::format_table(
             out << '\n';
         }
 
-        if (row_idx + 1 < rows.size()) {
-            for (int col = 0; col < col_count; ++col) {
-                out << Str(col_widths[col], row_underline);
-                if (col + 1 < col_count) { out << inter_row_spacing; }
+        if (!inter_row_spacing.empty()) {
+            if (row_idx + 1 < rows.size()) {
+                for (int col = 0; col < col_count; ++col) {
+                    out << Str(col_widths[col], row_underline);
+                    if (col + 1 < col_count) { out << inter_row_spacing; }
+                }
+                out << '\n';
             }
-            out << '\n';
         }
     }
 
