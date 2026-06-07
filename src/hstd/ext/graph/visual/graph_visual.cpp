@@ -28,13 +28,13 @@ void hstd::ext::graph::layout::LayoutRun::setNestedGroupAttribute(
     getGroups()->assertTrackingEdge(edge);
     auto [parent, nested] = getGroups()->getParentAndNested(edge);
 
-    LOGIC_ASSERTION_CHECK(
-        !getGraph()
-             ->getVertex(nested)
-             ->getOptionalAttribute<IVertexVisualAttribute>()
-             .has_value(),
-        "Cannot assign group visual attribute to a vertex that "
-        "already has vertex visual attribute.");
+    // LOGIC_ASSERTION_CHECK(
+    //     !getGraph()
+    //          ->getVertex(nested)
+    //          ->getOptionalAttribute<IVertexVisualAttribute>()
+    //          .has_value(),
+    //     "Cannot assign group visual attribute to a vertex that "
+    //     "already has vertex visual attribute.");
 
     graph->getMVertex(nested)->addUniqueAttribute(attr);
 }
@@ -46,10 +46,10 @@ void hstd::ext::graph::layout::LayoutRun::setNestedVertexAttribute(
     getGroups()->assertTrackingEdge(edge);
     auto [parent, nested] = getGroups()->getParentAndNested(edge);
 
-    LOGIC_ASSERTION_CHECK(
-        isGroupVertex(parent),
-        "Cannot assign non-group visual attribute to the vertex "
-        "already annotated with the group visual attribute.");
+    // LOGIC_ASSERTION_CHECK(
+    //     isGroupVertex(parent),
+    //     "Cannot assign non-group visual attribute to the vertex "
+    //     "already annotated with the group visual attribute.");
 
     LOGIC_ASSERTION_CHECK(
         std::dynamic_pointer_cast<IGroupVisualAttribute>(attr) == nullptr,

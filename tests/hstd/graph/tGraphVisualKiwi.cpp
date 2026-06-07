@@ -146,6 +146,76 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintTrivial) {
     EXPECT_OUTCOME_OK(checkLeftOf(box(v_up_right), box(v_up_left)));
 }
 
+TEST_F(GraphKiwi_Test, KiwiLinearConstraintPartialInset) {
+    VertexID v_center     = getGraph()->addVertex("v_center");
+    VertexID v_up_left    = getGraph()->addVertex("v_up_left");
+    VertexID v_up_right   = getGraph()->addVertex("v_up_right");
+    VertexID v_down_left  = getGraph()->addVertex("v_down_left");
+    VertexID v_down_right = getGraph()->addVertex("v_down_right");
+    VertexID rg_id        = getGraph()->addVertex("rg");
+
+    hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
+    run->setRootGroupAttribute(rg_id, root);
+
+
+    double inset = 10.0;
+    double size  = 50.0;
+
+    root->addVertex(addNesting(rg_id, v_center), Size(size, size));
+    root->addVertex(addNesting(rg_id, v_up_left), Size(size, size));
+    root->addVertex(addNesting(rg_id, v_up_right), Size(size, size));
+    root->addVertex(addNesting(rg_id, v_down_left), Size(size, size));
+    root->addVertex(addNesting(rg_id, v_down_right), Size(size, size));
+
+    auto add_inset = [&](VertexID const&   relative,
+                         kiwi_ir::RectAttr fixed_anchor,
+                         kiwi_ir::RectAttr relative_anchor,
+                         double            relative_inset) {
+        auto c = root->addConstraint<kw::LinearConstraint>(root);
+        c->finalize(
+            c->use(v_center, fixed_anchor),
+            kiwi_ir::Relation::EQ,
+            c->use(relative, relative_anchor) + relative_inset);
+    };
+
+
+    // clang-format off
+    add_inset(v_up_left,    kiwi_ir::RectAttr::TOP,    kiwi_ir::RectAttr::BOTTOM, -inset);
+    add_inset(v_up_left,    kiwi_ir::RectAttr::LEFT,   kiwi_ir::RectAttr::RIGHT,  -inset);
+    add_inset(v_up_right,   kiwi_ir::RectAttr::TOP,    kiwi_ir::RectAttr::BOTTOM, -inset);
+    add_inset(v_up_right,   kiwi_ir::RectAttr::RIGHT,  kiwi_ir::RectAttr::LEFT,   inset);
+    add_inset(v_down_left,  kiwi_ir::RectAttr::BOTTOM, kiwi_ir::RectAttr::TOP,    inset);
+    add_inset(v_down_left,  kiwi_ir::RectAttr::LEFT,   kiwi_ir::RectAttr::RIGHT,  -inset);
+    add_inset(v_down_right, kiwi_ir::RectAttr::BOTTOM, kiwi_ir::RectAttr::TOP,    inset);
+    add_inset(v_down_right, kiwi_ir::RectAttr::RIGHT,  kiwi_ir::RectAttr::LEFT,   inset);
+    // clang-format on
+
+    run->runFullLayout();
+    writeVisual();
+
+    double line_percent    = (inset / size) * 100.0;
+    double overlap_percent = (inset * inset) / (size * size) * 100.0;
+
+    EXPECT_OUTCOME_OK(
+        checkPartiallyLeft(box(v_center), box(v_up_left), line_percent));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyLeft(box(v_center), box(v_down_left), line_percent));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyRight(box(v_center), box(v_up_right), line_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyRight(
+        box(v_center), box(v_down_right), line_percent));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyLeft(box(v_up_right), box(v_up_left), line_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(
+        box(v_center), box(v_up_right), overlap_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(
+        box(v_center), box(v_up_left), overlap_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(
+        box(v_center), box(v_down_left), overlap_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(
+        box(v_center), box(v_down_right), overlap_percent));
+}
+
 
 TEST_F(GraphKiwi_Test, KiwiAlign) {
     VertexID v1    = getGraph()->addVertex("v1");
@@ -178,6 +248,70 @@ TEST_F(GraphKiwi_Test, KiwiAlign) {
     EXPECT_OUTCOME_OK(checkAlignedHorizontally(box(v1), box(v4)));
     EXPECT_OUTCOME_OK(checkAlignedVertically(box(v1), box(v2)));
 }
+
+TEST_F(GraphKiwi_Test, KiwiSeparateMultiSeparate) {
+    VertexID rg_id = getGraph()->addVertex("rg");
+    VertexID g1    = getGraph()->addVertex("g1");
+    VertexID g2    = getGraph()->addVertex("g2");
+    VertexID g3    = getGraph()->addVertex("g3");
+    VertexID g4    = getGraph()->addVertex("g4");
+    VertexID g5    = getGraph()->addVertex("g5");
+    VertexID g6    = getGraph()->addVertex("g6");
+    VertexID g7    = getGraph()->addVertex("g7");
+    VertexID g8    = getGraph()->addVertex("g8");
+
+    hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
+    run->setRootGroupAttribute(rg_id, root);
+
+    root->addVertex(addNesting(rg_id, g1), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g2), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g3), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g4), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g5), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g6), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g7), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g8), Size(30, 30));
+
+    auto e_g1_g5 = addEdge(g1, g5, "e_g1_g5");
+    auto e_g2_g6 = addEdge(g2, g6, "e_g2_g6");
+    auto e_g3_g7 = addEdge(g3, g7, "e_g3_g7");
+    auto e_g4_g8 = addEdge(g4, g8, "e_g4_g8");
+    auto e_g5_g6 = addEdge(g5, g6, "e_g5_g6");
+    auto e_g6_g7 = addEdge(g6, g7, "e_g6_g7");
+    auto e_g7_g8 = addEdge(g7, g8, "e_g7_g8");
+
+    root->addEdge(e_g1_g5);
+    root->addEdge(e_g2_g6);
+    root->addEdge(e_g3_g7);
+    root->addEdge(e_g4_g8);
+    root->addEdge(e_g5_g6);
+    root->addEdge(e_g6_g7);
+    root->addEdge(e_g7_g8);
+
+    root->addConstraint<kw::SeparateConstraint>(root)
+        ->separateVertically()
+        ->setSeparationDistance(40)
+        ->addLeftVertex(g1)
+        ->addLeftVertex(g2)
+        ->addLeftVertex(g3)
+        ->addLeftVertex(g4)
+        ->addRightVertex(g5)
+        ->addRightVertex(g6)
+        ->addRightVertex(g7)
+        ->addRightVertex(g8);
+
+    root->addConstraint<kw::MultiSeparateConstraint>(root)
+        ->separateHorizontally()
+        ->setSeparationDistance(60)
+        ->addFullLane({g1, g2})
+        ->addFullLane({g2, g6})
+        ->addFullLane({g3, g7})
+        ->addFullLane({g4, g8});
+
+    run->runFullLayout();
+    writeVisual();
+}
+
 
 class GraphKiwi_BoolParamTest
     : public GraphKiwi_Test

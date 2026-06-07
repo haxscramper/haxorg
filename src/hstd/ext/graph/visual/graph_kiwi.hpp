@@ -130,6 +130,10 @@ class KiwiGroup
         return outerPadding;
     }
 
+    /// \brief add vertex to the kiwi group without specifying any
+    /// width/rect elements.
+    hstd::SPtr<KiwiVertexAttribute> addVertex(EdgeID const& edge);
+
     hstd::SPtr<KiwiVertexAttribute> addVertex(
         EdgeID const&         edge,
         geometry::Rect const& size);
@@ -417,7 +421,7 @@ class LinearConstraint : public KiwiConstraint {
     kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {
         vertices.incl(id);
         return run->getVertex(id)
-            ->getUniqueAttribute<KiwiVertexAttribute>()
+            ->getUniqueAttribute<KiwiVertexAttribute>(run->getDebug(id))
             ->rect.expr(attr);
     }
 

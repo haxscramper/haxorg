@@ -831,8 +831,6 @@ class GraphGroup
     GVContext::Ptr context() { return ctx.context; }
 
     hstd::SPtr<NodeAttribute> addVertex(EdgeID const& edge);
-
-
     hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id);
 
     /// \brief Legacy method for constructing graph group without the use

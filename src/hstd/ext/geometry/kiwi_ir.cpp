@@ -846,11 +846,17 @@ Vec<kiwi_ir::Constraint> LinearConstraint::build(RectMap const&) const {
 Vec<EdgeDesc> LinearConstraint::describe_edges() const { return {}; }
 
 Str LinearConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    Str rel = relation == Relation::EQ
-                ? "=="
-                : (relation == Relation::LE ? "<=" : ">=");
-    return std::format(
-        "LinearConstraint({} ..., strength={})", rel, strength);
+    Str      rel = relation == Relation::EQ
+                     ? "=="
+                     : (relation == Relation::LE ? "<=" : ">=");
+    Vec<Str> joined;
+    joined.push_back(
+        std::format(
+            "LinearConstraint({} ..., strength={})", rel, strength));
+
+    joined.append(getBuildRepr(rects));
+
+    return hstd::join("\n", joined);
 }
 
 Layout::Layout(

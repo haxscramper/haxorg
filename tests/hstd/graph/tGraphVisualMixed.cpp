@@ -8,24 +8,24 @@ Size              rect{size, size};
 geometry::Padding pad{12};
 
 TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
-    auto cola_root_id  = addVertex("cola_root");
-    auto cola_sub1_id  = addVertex("cola_sub1");
+    auto kiwi_root_id  = addVertex("kiwi_root");
+    auto kiwi_sub1_id  = addVertex("kiwi_sub1");
     auto dot_sub1_id   = addVertex("dot_sub1");
     auto circo_sub2_id = addVertex("circo_sub2");
     auto dot_sub2_id   = addVertex("dot_sub2");
 
     // main cola wrapper
-    hstd::SPtr<kw::KiwiGroup> cola_root = kw::KiwiGroup::newRootGraph(
-        run, "cola_root");
+    hstd::SPtr<kw::KiwiGroup> kiwi_root = kw::KiwiGroup::newRootGraph(
+        run, "kiwi_root");
 
-    run->setRootGroupAttribute(cola_root_id, cola_root);
+    run->setRootGroupAttribute(kiwi_root_id, kiwi_root);
 
     // sidebar dot layout
     hstd::SPtr<gv::GraphGroup> dot_sub1 = gv::GraphGroup::newRootGraph(
         run, "dot_sub1");
 
-    run->setNestedGroupAttribute(
-        addNesting(cola_root_id, dot_sub1_id), dot_sub1);
+    auto dot_sub1_id_nesting = addNesting(kiwi_root_id, dot_sub1_id);
+    run->setNestedGroupAttribute(dot_sub1_id_nesting, dot_sub1);
 
     auto l1 = addVertex("l1");
     auto l2 = addVertex("l2");
@@ -67,11 +67,11 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub1->setOuterPadding(pad);
 
     // intermediate cola layout
-    hstd::SPtr<kw::KiwiGroup> cola_sub1 = kw::KiwiGroup::newRootGraph(
-        run, "cola_sub1");
+    hstd::SPtr<kw::KiwiGroup> kiwi_sub1 = kw::KiwiGroup::newRootGraph(
+        run, "kiwi_sub1");
 
-    run->setNestedGroupAttribute(
-        addNesting(cola_root_id, cola_sub1_id), cola_sub1);
+    auto kiwi_sub1_id_nesting = addNesting(kiwi_root_id, kiwi_sub1_id);
+    run->setNestedGroupAttribute(kiwi_sub1_id_nesting, kiwi_sub1);
 
     auto g1 = addVertex("g1");
     auto g2 = addVertex("g2");
@@ -82,14 +82,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto g7 = addVertex("g7");
     auto g8 = addVertex("g8");
 
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g1), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g2), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g3), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g4), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g5), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g6), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g7), rect);
-    cola_sub1->addVertex(addNesting(cola_sub1_id, g8), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g1), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g2), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g3), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g4), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g5), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g6), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g7), rect);
+    kiwi_sub1->addVertex(addNesting(kiwi_sub1_id, g8), rect);
 
     auto e_g1_g5 = addEdge(g1, g5, "e_g1_g5");
     auto e_g2_g6 = addEdge(g2, g6, "e_g2_g6");
@@ -99,25 +99,34 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto e_g6_g7 = addEdge(g6, g7, "e_g6_g7");
     auto e_g7_g8 = addEdge(g7, g8, "e_g7_g8");
 
-    cola_sub1->addEdge(e_g1_g5);
-    cola_sub1->addEdge(e_g2_g6);
-    cola_sub1->addEdge(e_g3_g7);
-    cola_sub1->addEdge(e_g4_g8);
-    cola_sub1->addEdge(e_g5_g6);
-    cola_sub1->addEdge(e_g6_g7);
-    cola_sub1->addEdge(e_g7_g8);
+    kiwi_sub1->addEdge(e_g1_g5);
+    kiwi_sub1->addEdge(e_g2_g6);
+    kiwi_sub1->addEdge(e_g3_g7);
+    kiwi_sub1->addEdge(e_g4_g8);
+    kiwi_sub1->addEdge(e_g5_g6);
+    kiwi_sub1->addEdge(e_g6_g7);
+    kiwi_sub1->addEdge(e_g7_g8);
 
-    // cola_sub1->addConstraint<cst::SeparateConstraint>(cola_sub1)
-    //     ->separateVertically()
-    //     ->setSeparationDistance(40)
-    //     ->addLeftVertex(g1)
-    //     ->addLeftVertex(g2)
-    //     ->addLeftVertex(g3)
-    //     ->addLeftVertex(g4)
-    //     ->addRightVertex(g5)
-    //     ->addRightVertex(g6)
-    //     ->addRightVertex(g7)
-    //     ->addRightVertex(g8);
+    kiwi_sub1->addConstraint<kw::SeparateConstraint>(kiwi_sub1)
+        ->separateVertically()
+        ->setSeparationDistance(40)
+        ->addLeftVertex(g1)
+        ->addLeftVertex(g2)
+        ->addLeftVertex(g3)
+        ->addLeftVertex(g4)
+        ->addRightVertex(g5)
+        ->addRightVertex(g6)
+        ->addRightVertex(g7)
+        ->addRightVertex(g8);
+
+    kiwi_sub1->addConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
+        ->separateHorizontally()
+        ->setSeparationDistance(60)
+        ->addFullLane({g1, g2})
+        ->addFullLane({g2, g6})
+        ->addFullLane({g3, g7})
+        ->addFullLane({g4, g8});
+
 
     // circo layout sub-group
     hstd::SPtr<gv::GraphGroup> circo_sub2 = gv::GraphGroup::newRootGraph(
@@ -126,8 +135,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
     circo_sub2->setOuterPadding(geometry::Padding{5});
 
-    run->setNestedGroupAttribute(
-        addNesting(cola_sub1_id, circo_sub2_id), circo_sub2);
+    auto circo_sub2_id_nesting = addNesting(kiwi_sub1_id, circo_sub2_id);
+    run->setNestedGroupAttribute(circo_sub2_id_nesting, circo_sub2);
 
     auto c1 = addVertex("c1");
     auto c2 = addVertex("c2");
@@ -179,8 +188,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     dot_sub2->setOuterPadding(geometry::Padding{5});
 
-    run->setNestedGroupAttribute(
-        addNesting(cola_sub1_id, dot_sub2_id), dot_sub2);
+    auto dot_sub2_id_nesting = addNesting(kiwi_sub1_id, dot_sub2_id);
+    run->setNestedGroupAttribute(dot_sub2_id_nesting, dot_sub2);
 
     auto d1 = addVertex("d1");
     auto d2 = addVertex("d2");
@@ -211,7 +220,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto ex3  = addEdge(c7, g1, "ex3");
     auto ex4  = addEdge(c6, g2, "ex4");
     auto ex5  = addEdge(c2, g3, "ex5");
-    auto ex6  = addEdge(dot_sub2_id, cola_sub1_id, "ex6");
+    auto ex6  = addEdge(dot_sub2_id, kiwi_sub1_id, "ex6");
     auto ex7  = addEdge(dot_sub2_id, dot_sub1_id, "ex7");
     auto ex8  = addEdge(d3, l2, "ex8");
     auto ex9  = addEdge(g8, l6, "ex9");
@@ -230,8 +239,21 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     run->addUnboundEdge(ex10);
     run->addUnboundEdge(ex11);
 
-    run->runFullLayout();
+    // Adding the vertex to the kiwi group explicitly, see
+    // [[kw/layout/reuse-existing-vertices]]. Otherwise linear constraint
+    // would not have access to the rectangle for the expression
+    // construction.
+    kiwi_sub1->addVertex(dot_sub2_id_nesting);
+    kiwi_sub1->addVertex(circo_sub2_id_nesting);
+    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondLeftOfFirst(dot_sub2_id, circo_sub2_id);
 
+    kiwi_root->addVertex(kiwi_sub1_id_nesting);
+    kiwi_root->addVertex(dot_sub1_id_nesting);
+    kiwi_root->addConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondRightOfFirst(kiwi_sub1_id, dot_sub1_id);
+
+    run->runFullLayout();
 
     hstd::writeFile(
         getDebugFile("repr.txt"), run->treeRepr().toString(false));

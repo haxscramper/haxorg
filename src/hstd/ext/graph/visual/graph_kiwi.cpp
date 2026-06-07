@@ -48,13 +48,26 @@ struct single_layout_run_state {
                 rect = rect.withOuterPadding(pad.value());
             }
             solver_nodes.insert(id);
-            kiwi_rects.push_back(
-                kiwi_ir::Rect(
-                    rect_id(id),
-                    rect.x(),
-                    rect.y(),
-                    rect.width(),
-                    rect.height()));
+            // <<kw/layout/reuse-existing-vertices>>
+            if (auto kiwi_attr = run->getVertex(id)
+                                     ->getOptionalAttribute<
+                                         kw::KiwiVertexAttribute>()) {
+                kiwi_attr.value()->setRectWidth(rect.width());
+                kiwi_attr.value()->setRectHeight(rect.height());
+                kiwi_rects.push_back(kiwi_attr.value()->rect);
+            } else {
+                kiwi_rects.push_back(
+                    kiwi_ir::Rect(
+                        rect_id(id),
+                        // sub-group placement is controlled by the current
+                        // single layout run, so any x/y coordinates from
+                        // the sub-layout runs would only interfere here.
+                        std::nullopt,
+                        std::nullopt,
+                        rect.width(),
+                        rect.height()));
+            }
+
             return;
         }
 
@@ -89,21 +102,27 @@ struct single_layout_run_state {
 
     void run_solver() {
         kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
+
+        static int kiwi_run_counter = 0;
+        if (run->TraceState) {
+            layout.to_graphviz(run->getAdjacentToTraceFile(
+                std::format(
+                    "kiwi_solver_run_{}.png",
+                    hstd::fmt1(kiwi_run_counter))));
+        }
+
+
         layout.verify_constraints();
         auto solved = layout.solve();
+
         if (run->TraceState) {
-            static int kiwi_run_counter = 0;
             run->writeAdjacentToTraceFile(
                 std::format(
                     "kiwi_solver_run_{}.svg",
                     hstd::fmt1(kiwi_run_counter)),
                 layout.to_svg(hstd::fmt1(kiwi_run_counter)).to_string(2));
-            layout.to_graphviz(run->getAdjacentToTraceFile(
-                std::format(
-                    "kiwi_solver_run_{}.png",
-                    hstd::fmt1(kiwi_run_counter))));
-            ++kiwi_run_counter;
         }
+        ++kiwi_run_counter;
 
         for (auto const& id : solver_nodes) {
             absolute_rects.insert_or_assign(
@@ -193,6 +212,16 @@ struct single_layout_run_state {
 } // namespace
 
 hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
+    EdgeID const& edge) {
+    auto id    = getRun()->getGraph()->getTarget(edge);
+    auto vattr = std::make_shared<KiwiVertexAttribute>(
+        kiwi_ir::Rect{run->getVertex(id)->getStableId()});
+
+    getRun()->setNestedVertexAttribute(edge, vattr);
+    return vattr;
+}
+
+hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
     EdgeID const&         edge,
     geometry::Rect const& size) {
     auto id = getRun()->getGraph()->getTarget(edge);
@@ -208,9 +237,11 @@ hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
         size.width(),
         size.height(),
     });
+
     getRun()->setNestedVertexAttribute(edge, vattr);
     return vattr;
 }
+
 hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run,
     Str const&                    name) {

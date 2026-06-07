@@ -485,9 +485,10 @@ GeometryCheckResult checkPartiallyRightBounds(
         relative);
 }
 
-GeometryCheckResult checkFullyCoversBounds(
+GeometryCheckResult checkCoversBounds(
     Rect const& main,
     Rect const& nested,
+    double      overlapPercent,
     double      rtol,
     double      atol) {
     double mainMinX = bg::get<bg::min_corner, 0>(main);
@@ -501,27 +502,29 @@ GeometryCheckResult checkFullyCoversBounds(
     double nestedMaxY = bg::get<bg::max_corner, 1>(nested);
 
 
-    double interArea    = overlapArea(main, nested);
-    double mainArea     = rectArea(main);
-    double nestedArea   = rectArea(nested);
-    double mainByNested = overlapPercent(interArea, mainArea);
-    double nestedByMain = overlapPercent(interArea, nestedArea);
+    double interArea             = overlapArea(main, nested);
+    double mainArea              = rectArea(main);
+    double nestedArea            = rectArea(nested);
+    double overlapOfMainByNested = detail::overlapPercent(
+        interArea, mainArea);
+    double overlapOfNestedByMain = detail::overlapPercent(
+        interArea, nestedArea);
 
-    auto expected = 100.0;
-    if (hstd::isclose(nestedByMain, expected, rtol, atol)) {
+    auto expected = overlapPercent;
+    if (hstd::isclose(overlapOfNestedByMain, expected, rtol, atol)) {
         return boost::outcome_v2::success();
     }
 
     auto relative = hstd::fmt(
         "sdt::abs({} - {}) = {} !<= {} :: rtol * abs(b) = {}",
-        nestedByMain,
+        overlapOfNestedByMain,
         expected,
-        std::abs(nestedByMain - expected),
+        std::abs(overlapOfNestedByMain - expected),
         atol + rtol * std::abs(expected),
         rtol * std::abs(expected));
 
     return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(fully-covers-bounds)",
+        R"(covers-bounds)",
         mainMinX,
         mainMinY,
         mainMaxX,
@@ -533,8 +536,9 @@ GeometryCheckResult checkFullyCoversBounds(
         interArea,
         mainArea,
         nestedArea,
-        mainByNested,
-        nestedByMain,
+        overlapPercent,
+        overlapOfMainByNested,
+        overlapOfNestedByMain,
         main,
         nested,
         detail::FailVerbatimLine{relative});

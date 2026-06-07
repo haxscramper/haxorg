@@ -260,6 +260,14 @@ GeometryCheckResult checkFullyCovers(
     double   rtol = 1e-5,
     double   atol = 1e-8);
 
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyCovers(
+    L const& first,
+    R const& second,
+    double   overlapPercent,
+    double   rtol = 1e-5,
+    double   atol = 1e-8);
+
 /// \brief Checks whether two shapes are horizontally center-aligned.
 template <typename L, typename R>
 GeometryCheckResult checkAlignedHorizontally(
@@ -362,7 +370,7 @@ GeometryCheckResult checkPartiallyAboveBounds(Rect const &stationary, Rect const
 GeometryCheckResult checkPartiallyBelowBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkPartiallyLeftBounds(Rect const &stationary,  Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkPartiallyRightBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
-GeometryCheckResult checkFullyCoversBounds(Rect const &first,         Rect const &second,   double rtol = 1e-5,     double atol = 1e-8);
+GeometryCheckResult checkCoversBounds(Rect const &first,         Rect const &second, double overlapPercent,   double rtol = 1e-5,     double atol = 1e-8);
 GeometryCheckResult checkAlignedHorizontallyBounds(Rect const &first, Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkAlignedVerticallyBounds(Rect const &first,   Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkMinDistanceBounds(Rect const &first,         Rect const &second,   double minDistance,     DistanceCheck check, double rtol = 1e-5, double atol = 1e-8);
@@ -522,9 +530,24 @@ GeometryCheckResult checkFullyCovers(
     double   atol) {
     return detail::runBinaryBoundsCheck(
         "fully-covers", main, nested, [&](Rect const& a, Rect const& b) {
-            return detail::checkFullyCoversBounds(a, b, rtol, atol);
+            return detail::checkCoversBounds(a, b, 100.0, rtol, atol);
         });
 }
+
+template <typename L, typename R>
+GeometryCheckResult checkPartiallyCovers(
+    L const& main,
+    R const& nested,
+    double   overlapPercent,
+    double   rtol,
+    double   atol) {
+    return detail::runBinaryBoundsCheck(
+        "fully-covers", main, nested, [&](Rect const& a, Rect const& b) {
+            return detail::checkCoversBounds(
+                a, b, overlapPercent, rtol, atol);
+        });
+}
+
 
 template <typename L, typename R>
 GeometryCheckResult checkAlignedHorizontally(
