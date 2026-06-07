@@ -90,6 +90,10 @@ option(ORG_BUILD_TEXT_LAYOUTER_BINDINGS "Build text layouter python module libra
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_BUILD_IMGUI_GUI "Build imgui apps and API" OFF)
+# TODO: ORG_BUILD_QT_GUI and ORG_BUILD_WITH_QT are not fully represented in the HaxorgConfig options
+# list. Ideally, there should be one source of truth for all configuration parameters in the
+# repository instead of the current random jumble of options scattered across different python and
+# cmake files.
 option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
 
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
@@ -426,7 +430,6 @@ endif()
 
 if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
-  add_subdirectory(src/app/org_diagram)
 endif()
 
 if(${ORG_BUILD_IMGUI_GUI})

@@ -14,22 +14,10 @@
 #include <hstd/ext/logger.hpp>
 
 struct MainArgs {
-    std::string infile;
-    std::string graph_path   = "/tmp/immutable_graph_dump.bin";
-    std::string context_path = "/tmp/immutable_ast_dump.bin";
-    std::string epoch_path   = "/tmp/immutable_epoch_dump.bin";
-    std::string cache_file = "/tmp/file_agenda_cache.org_files_cache.json";
-    std::optional<std::string> log_path  = "/tmp/org_viewer.log";
-    bool                       use_cache = true;
+    std::string                infile;
+    std::optional<std::string> log_path = "/tmp/org_viewer.log";
 
-    DESC_FIELDS(
-        MainArgs,
-        (infile,
-         graph_path,
-         context_path,
-         epoch_path,
-         cache_file,
-         use_cache));
+    DESC_FIELDS(MainArgs, (infile));
 };
 
 int main(int argc, char* argv[]) {
@@ -44,14 +32,7 @@ int main(int argc, char* argv[]) {
 
     HSLOG_INFO("Started org_viewer");
 
-    auto node = loadCachedImmNode(
-        config.infile,
-        config.graph_path,
-        config.context_path,
-        config.epoch_path,
-        config.cache_file,
-        parse_context,
-        config.use_cache);
+    auto node = loadCachedImmNode(config.infile, parse_context);
 
     QApplication a(argc, argv);
     MainWindow   w;

@@ -1,6 +1,8 @@
 #include "repo_graph.hpp"
 
 #include <boost/graph/graphml.hpp>
+// FIXME: Remove usage of the ABSL logging from the repository graph, use
+// the hstd logger or operations tracer instead.
 #include <absl/log/log.h>
 #include <hstd/stdlib/Formatter.hpp>
 
@@ -125,6 +127,6 @@ auto CommitGraph::commit_pairs() const -> Vec<Pair<VDesc, Opt<VDesc>>> {
         }
     }
 
-    std::reverse(result.begin(), result.end());
+    std::ranges::reverse(result);
     return result;
 }

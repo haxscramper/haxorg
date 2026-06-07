@@ -1,5 +1,4 @@
 #include "shared_org_logic.hpp"
-#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/ext/logger.hpp>
 
@@ -22,72 +21,18 @@ const SemSet AGENDA_NODE_TYPES = {
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
     fs::path const&               infile,
-    fs::path const&               graph_path,
-    fs::path const&               context_path,
-    fs::path const&               epoch_path,
-    fs::path const&               cache_file,
-    org::parse::ParseContext::Ptr parse_context,
-    bool                          use_cache) {
+    org::parse::ParseContext::Ptr parse_context) {
     auto dir_opts   = org::parse::OrgDirectoryParseParameters::shared();
     auto parse_opts = org::parse::OrgParseParameters::shared();
 
-    if (!use_cache || checkOrgFilesChanged(infile, cache_file)
-        || !fs::exists(graph_path) || !fs::exists(context_path)
-        || !fs::exists(epoch_path)) {
+    dir_opts->getParsedNode =
+        [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
+        return parse_context->parseFileOpts(
+            hstd::readFile(path), parse_opts);
+    };
 
-        dir_opts->getParsedNode = [&](std::string const& path)
-            -> org::sem::SemId<org::sem::Org> {
-            // try {
-            return parse_context->parseFileOpts(
-                hstd::readFile(path), parse_opts);
-            // } catch (const std::exception& e) {
-            //     return org::sem::SemId<org::sem::Empty>::New();
-            // }
-        };
-
-        auto node = parse_context->parseDirectoryOpts(
-            infile.string(), dir_opts);
-        auto initial_context = org::initImmutableAstContext();
-        auto version         = initial_context->addRoot(node.value());
-
-        auto graph_state = org::graph::MapGraphState::FromAstContext(
-            version.getContext());
-        auto conf = org::graph::MapConfig::shared();
-        auto root = version.getRootAdapter();
-
-        graph_state->addNodeRec(version.getContext(), root, conf);
-
-        hstd::writeFile(
-            graph_path, org::imm::serializeToText(graph_state->graph));
-        hstd::writeFile(
-            context_path, org::imm::serializeToText(version.getContext()));
-        hstd::writeFile(
-            epoch_path, org::imm::serializeToText(version.getEpoch()));
-
-        writeOrgFileCache(infile, cache_file);
-
-        return node.value();
-    } else {
-        auto initial_context = org::initImmutableAstContext();
-
-        std::string context_data = hstd::readFile(context_path);
-        org::imm::serializeFromText(context_data, initial_context);
-
-        auto version = initial_context->getEmptyVersion();
-
-        std::string epoch_data = hstd::readFile(epoch_path);
-        org::imm::serializeFromText(epoch_data, version.getEpoch());
-
-        auto node = initial_context->get(version.getRoot());
-
-        auto graph_state = org::graph::MapGraphState::FromAstContext(
-            version.getContext());
-
-        std::string graph_data = hstd::readFile(graph_path);
-        org::imm::serializeFromText(graph_data, graph_state->graph);
-
-        return node;
-    }
+    return parse_context->parseDirectoryOpts(infile.string(), dir_opts)
+        .value();
 }
 
 hstd::Str OrgAgendaNode::getAgeDisplay() const {
