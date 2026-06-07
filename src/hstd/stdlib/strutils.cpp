@@ -1581,3 +1581,72 @@ std::string hstd::format_integer_bits(
     }
     return prefix + grouped;
 }
+
+std::string hstd::format_table(
+    Vec<Vec<Str>> const& rows,
+    Str const&           inter_cell_spacing,
+    Str const&           inter_row_spacing,
+    char                 row_underline) {
+    int col_count = 0;
+    for (const auto& row : rows) {
+        col_count = std::max(col_count, row.size());
+    }
+
+    if (col_count == 0 || rows.empty()) { return ""; }
+
+    Vec<int> col_widths(col_count, 0);
+
+    for (const auto& row : rows) {
+        for (int col = 0; col < row.size(); ++col) {
+            for (const auto& line : row[col].split('\n')) {
+                col_widths[col] = std::max(col_widths[col], line.size());
+            }
+        }
+    }
+
+    std::ostringstream out;
+
+    for (int row_idx = 0; row_idx < rows.size(); ++row_idx) {
+        auto const& row = rows[row_idx];
+
+        Vec<Vec<Str>> cell_lines(col_count);
+        int           row_height = 1;
+
+        for (int col = 0; col < col_count; ++col) {
+            if (col < row.size()) {
+                cell_lines[col] = row[col].split('\n');
+            } else {
+                cell_lines[col] = {""};
+            }
+            row_height = std::max(row_height, cell_lines[col].size());
+        }
+
+        for (int line_idx = 0; line_idx < row_height; ++line_idx) {
+            for (int col = 0; col < col_count; ++col) {
+                std::string_view
+                    cell_line = line_idx < cell_lines[col].size()
+                                  ? std::string_view(
+                                        cell_lines[col][line_idx])
+                                  : std::string_view("");
+
+                out << cell_line;
+
+                int padding = col_widths[col] - cell_line.size();
+                out << Str(padding, ' ');
+
+                if (col + 1 < col_count) { out << inter_cell_spacing; }
+            }
+            out << '\n';
+        }
+
+        if (row_idx + 1 < rows.size()) {
+            for (int col = 0; col < col_count; ++col) {
+                out << Str(col_widths[col], row_underline);
+                if (col + 1 < col_count) { out << inter_row_spacing; }
+            }
+            out << '\n';
+        }
+    }
+
+    return out.str();
+}

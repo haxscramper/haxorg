@@ -113,6 +113,51 @@ struct AnchorSpec {
     DESC_FIELDS(AnchorSpec, (x, y));
 };
 
+struct RectSpec2Side {
+    Str    rect_id;
+    Anchor min_anchor;
+    Anchor max_anchor;
+
+    DESC_FIELDS(RectSpec2Side, (rect_id, min_anchor, max_anchor));
+
+    RectSpec2Side() {}
+    RectSpec2Side(Str str, Anchor min, Anchor max)
+        : rect_id{str}, min_anchor{min}, max_anchor{max} {}
+
+    static RectSpec2Side HorizontalRectBounds(Str const& str) {
+        return RectSpec2Side(str, Anchor::LEFT, Anchor::RIGHT);
+    }
+
+    static RectSpec2Side VerticalRectBounds(Str const& str) {
+        return RectSpec2Side(str, Anchor::TOP, Anchor::BOTTOM);
+    }
+};
+
+struct RectSpec1Side {
+    Str    rect_id;
+    Anchor anchor;
+
+    DESC_FIELDS(RectSpec1Side, (rect_id, anchor));
+
+    static RectSpec1Side Left(Str const& id) {
+        return RectSpec1Side(id, Anchor::LEFT);
+    }
+
+    static RectSpec1Side Right(Str const& id) {
+        return RectSpec1Side(id, Anchor::RIGHT);
+    }
+
+    static RectSpec1Side Top(Str const& id) {
+        return RectSpec1Side(id, Anchor::TOP);
+    }
+
+    static RectSpec1Side Bottom(Str const& id) {
+        return RectSpec1Side(id, Anchor::BOTTOM);
+    }
+
+    RectSpec1Side() {}
+    RectSpec1Side(Str str, Anchor anchor) : rect_id{str}, anchor{anchor} {}
+};
 
 class Constraint;
 
@@ -240,8 +285,7 @@ struct Rect {
 using RectMap = hstd::UnorderedMap<Str, Rect>;
 
 struct EdgeDesc {
-    Str            src;
-    Str            dst;
+    Str            rect_id;
     Str            label;
     Axis           axis;
     hstd::Opt<Str> color;
@@ -320,25 +364,15 @@ class AlignConstraint : public ConstraintBase {
 class SeparateConstraint : public ConstraintBase {
   public:
     // TODO: Replace direct usage of the basic ID with the Align
-    /// \brief ID of the first rectangle.
-    Str first_rect_id;
-    /// \brief Anchor on the first rectangle.
-    Anchor first_anchor;
-    /// \brief ID of the second rectangle.
-    Str second_rect_id;
-    /// \brief Anchor on the second rectangle.
-    Anchor second_anchor;
-    /// \brief Distance between the two anchors; can be positive or
-    /// negative.
-    double offset;
+    RectSpec1Side rect_a;
+    RectSpec1Side rect_b;
+    double        offset;
 
     SeparateConstraint(
-        Str      first_rect_id,
-        Anchor   first_anchor,
-        Str      second_rect_id,
-        Anchor   second_anchor,
-        double   offset,
-        Strength strength = Strength::REQUIRED);
+        RectSpec1Side const& rect_a,
+        RectSpec1Side const& rect_b,
+        double               offset,
+        Strength             strength = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
@@ -353,18 +387,15 @@ class SeparateConstraint : public ConstraintBase {
 class MultiSeparateConstraint : public ConstraintBase {
   public:
     /// \brief Groups of rectangle IDs, each group set apart by step.
-    Vec<Vec<Str>> groups;
-    /// \brief Anchor used for measuring distances between groups.
-    Anchor anchor;
+    Vec<Vec<RectSpec1Side>> groups;
     /// \brief Fixed distance between corresponding rectangles of
     /// consecutive groups.
     double step;
 
     MultiSeparateConstraint(
-        Vec<Vec<Str>> groups,
-        Anchor        anchor,
-        double        step,
-        Strength      strength = Strength::REQUIRED);
+        Vec<Vec<RectSpec1Side>> groups,
+        double                  step,
+        Strength                strength = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
@@ -490,30 +521,12 @@ class RelativeConstraint : public ConstraintBase {
 /// MultiSeparateConstraint.
 class EvenGapConstraint : public ConstraintBase {
   public:
-    struct RectSpec {
-        Str    rect_id;
-        Anchor min_anchor;
-        Anchor max_anchor;
-
-        RectSpec() {}
-        RectSpec(Str str, Anchor min, Anchor max)
-            : rect_id{str}, min_anchor{min}, max_anchor{max} {}
-
-        static RectSpec HorizontalRectBounds(Str const& str) {
-            return RectSpec(str, Anchor::LEFT, Anchor::RIGHT);
-        }
-
-        static RectSpec VerticalRectBounds(Str const& str) {
-            return RectSpec(str, Anchor::TOP, Anchor::BOTTOM);
-        }
-    };
-
     /// \brief Ordered list of per-rectangle boundary specifications.
-    Vec<RectSpec> rects_spec;
+    Vec<RectSpec2Side> rects_spec;
 
     EvenGapConstraint(
-        Vec<RectSpec> rects_spec,
-        Strength      strength = Strength::REQUIRED);
+        Vec<RectSpec2Side> rects_spec,
+        Strength           strength = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;

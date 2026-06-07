@@ -13,6 +13,7 @@
 #include <boost/graph/topological_sort.hpp>
 #include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 namespace hstd::ext::kiwi_ir {
 
@@ -276,12 +277,9 @@ Vec<kiwi_ir::Constraint> AlignConstraint::build(
 
 Vec<EdgeDesc> AlignConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
-    Str           base = items[0].rect_id;
-    for (int i = 1; i < items.size(); ++i) {
-        auto const& item = items[i];
+    for (auto const& item : items) {
         edges.push_back(
             EdgeDesc{
-                base,
                 item.rect_id,
                 std::format("align:{}", item.spec.anchor),
                 anchor_axis(item.spec.anchor)});
@@ -307,95 +305,102 @@ Str AlignConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 }
 
 SeparateConstraint::SeparateConstraint(
-    Str      first_rect_id,
-    Anchor   first_anchor,
-    Str      second_rect_id,
-    Anchor   second_anchor,
-    double   offset,
-    Strength strength)
+    RectSpec1Side const& rect_a,
+    RectSpec1Side const& rect_b,
+    double               offset,
+    Strength             strength)
     : ConstraintBase(strength)
-    , first_rect_id(std::move(first_rect_id))
-    , first_anchor(first_anchor)
-    , second_rect_id(std::move(second_rect_id))
-    , second_anchor(second_anchor)
+    , rect_a(rect_a)
+    , rect_b(rect_b)
     , offset(offset) {}
 
 Vec<kiwi_ir::Constraint> SeparateConstraint::build(
     RectMap const& rects) const {
-    Expr first  = rects.at(first_rect_id).anchor_expr(first_anchor);
-    Expr second = rects.at(second_rect_id).anchor_expr(second_anchor);
+    Expr first  = rects.at(rect_a.rect_id).anchor_expr(rect_a.anchor);
+    Expr second = rects.at(rect_b.rect_id).anchor_expr(rect_b.anchor);
     kiwi_ir::Constraint c = (first == (second + offset))
                           | kiwi_value(strength);
     return {c};
 }
 
 Vec<EdgeDesc> SeparateConstraint::describe_edges() const {
-    return {EdgeDesc{
-        second_rect_id,
-        first_rect_id,
-        std::format(
-            "separate:{}->{}+{}", second_anchor, first_anchor, offset),
-        anchor_axis(first_anchor)}};
+    return {
+        EdgeDesc{
+            rect_b.rect_id,
+            std::format(
+                "separate:{}->{}+{}",
+                rect_b.anchor,
+                rect_b.anchor,
+                offset),
+            anchor_axis(rect_b.anchor),
+        },
+        EdgeDesc{
+            rect_a.rect_id,
+            std::format(
+                "separate:{}->{}+{}",
+                rect_b.anchor,
+                rect_a.anchor,
+                offset),
+            anchor_axis(rect_a.anchor),
+        },
+    };
 }
 
 Str SeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     return std::format(
         "SeparateConstraint({}.{} == {}.{} + {:g}, strength={})",
-        first_rect_id,
-        first_anchor,
-        second_rect_id,
-        second_anchor,
+        rect_a.rect_id,
+        rect_a.anchor,
+        rect_b.rect_id,
+        rect_b.anchor,
         offset,
         strength);
 }
 
 MultiSeparateConstraint::MultiSeparateConstraint(
-    Vec<Vec<Str>> groups,
-    Anchor        anchor,
-    double        step,
-    Strength      strength)
-    : ConstraintBase(strength)
-    , groups(std::move(groups))
-    , anchor(anchor)
-    , step(step) {}
+    Vec<Vec<RectSpec1Side>> groups,
+    double                  step,
+    Strength                strength)
+    : ConstraintBase(strength), groups(std::move(groups)), step(step) {}
 
 Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
     RectMap const& rects) const {
     Vec<kiwi_ir::Constraint> constraints;
-    for (int idx = 0; idx + 1 < groups.size(); ++idx) {
-        auto const& g1 = groups[idx];
-        auto const& g2 = groups[idx + 1];
-        if (g1.empty() || g2.empty()) { continue; }
-        if (g1.size() != g2.size()) {
-            throw std::runtime_error(
-                "MultiSeparateConstraint requires corresponding group "
-                "sizes");
+    for (auto const& [g1, g2] : groups | hstd::rv_sliding_tuple2) {
+        if (g1.empty() || g2.empty()) {
+            throw hstd::runtime_error::init(
+                "MultiSeparateConstraint requires at least one element in "
+                "each group");
         }
-        for (int i = 0; i < g1.size(); ++i) {
-            auto const& a      = g1[i];
-            auto const& b      = g2[i];
-            Expr        expr_a = rects.at(b).anchor_expr(anchor);
-            Expr        expr_b = rects.at(a).anchor_expr(anchor);
-            constraints.push_back(
-                (expr_a == (expr_b + step)) | kiwi_value(strength));
+
+        Expr expr_a = rects.at(g1[0].rect_id).anchor_expr(g1[0].anchor);
+        Expr expr_b = rects.at(g2[0].rect_id).anchor_expr(g2[0].anchor);
+
+        constraints.push_back(
+            (expr_a == (expr_b + step)) | kiwi_value(strength));
+    }
+
+    for (auto const& g : groups) {
+        for (auto const& [a, b] : g | hstd::rv_sliding_tuple2) {
+            Expr expr_a = rects.at(a.rect_id).anchor_expr(a.anchor);
+            Expr expr_b = rects.at(b.rect_id).anchor_expr(b.anchor);
+            constraints.push_back(expr_a == expr_b | kiwi_value(strength));
         }
     }
+
     return constraints;
 }
 
 Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
     for (int idx = 0; idx + 1 < groups.size(); ++idx) {
-        auto const& g1    = groups[idx];
-        auto const& g2    = groups[idx + 1];
-        int         count = std::min(g1.size(), g2.size());
-        for (int i = 0; i < count; ++i) {
+        for (auto const& rect : groups[idx]) {
             edges.push_back(
                 EdgeDesc{
-                    g1[i],
-                    g2[i],
-                    std::format("multi-separate:{}+{:g}", anchor, step),
-                    anchor_axis(anchor)});
+                    rect.rect_id,
+                    std::format(
+                        "multi-separate:{}+{:g}", rect.anchor, step),
+                    anchor_axis(rect.anchor)});
         }
     }
     return edges;
@@ -404,24 +409,20 @@ Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
 Str MultiSeparateConstraint::getRepr(
     hstd::Opt<RectMap> const& rects) const {
     std::ostringstream out;
-    out << "[";
+    Vec<Vec<Str>>      g_fmt;
     for (int i = 0; i < groups.size(); ++i) {
-        out << "[";
+        g_fmt.push_back({});
         for (int j = 0; j < groups[i].size(); ++j) {
-            out << groups[i][j];
-            if (j + 1 < groups[i].size()) { out << ", "; }
+            g_fmt.back().push_back(
+                hstd::fmt(
+                    "{} {}", groups[i][j].rect_id, groups[i][j].anchor));
         }
-        out << "]";
-        if (i + 1 < groups.size()) { out << ", "; }
     }
-    out << "]";
     return std::format(
-        "MultiSeparateConstraint(anchor={}, step={:g}, groups={}, "
-        "strength={})",
-        anchor,
+        "MultiSeparateConstraint(step={:g} strength={})\n{}",
         step,
-        out.str(),
-        strength);
+        strength,
+        hstd::format_table(g_fmt));
 }
 
 ParentWrapConstraint::ParentWrapConstraint(
@@ -502,11 +503,11 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
 
 Vec<EdgeDesc> ParentWrapConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
+    edges.push_back(EdgeDesc{parent_rect_id, "wrap-parent-x", Axis::X});
+    edges.push_back(EdgeDesc{parent_rect_id, "wrap-parent-y", Axis::Y});
     for (auto const& nested_id : nested_rect_ids) {
-        edges.push_back(
-            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-x", Axis::X});
-        edges.push_back(
-            EdgeDesc{nested_id, parent_rect_id, "wrap-parent-y", Axis::Y});
+        edges.push_back(EdgeDesc{nested_id, "wrap-parent-x", Axis::X});
+        edges.push_back(EdgeDesc{nested_id, "wrap-parent-y", Axis::Y});
     }
     return edges;
 }
@@ -601,28 +602,13 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
 }
 
 Vec<EdgeDesc> RelativeConstraint::describe_edges() const {
-    // FIXME: Update the edge description for relative constraint based on
-    // the relative element positions.
     Vec<EdgeDesc> edges = {
-        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-x", Axis::X},
-        EdgeDesc{fixed_rect_id, relative_rect_id, "relative-y", Axis::Y},
+        EdgeDesc{fixed_rect_id, "fixed-x", Axis::X},
+        EdgeDesc{fixed_rect_id, "fixed-y", Axis::Y},
+        EdgeDesc{relative_rect_id, "relative-x", Axis::X},
+        EdgeDesc{relative_rect_id, "relative-y", Axis::Y},
     };
 
-    // if (x_factor.has_value()) {
-    //     edges.push_back(
-    //         EdgeDesc{
-    //             fixed_rect_id, relative_rect_id, "relative-width",
-    //             "red"});
-    // }
-
-    // if (y_factor.has_value()) {
-    //     edges.push_back(
-    //         EdgeDesc{
-    //             fixed_rect_id,
-    //             relative_rect_id,
-    //             "relative-height",
-    //             "blue"});
-    // }
 
     return edges;
 }
@@ -668,8 +654,8 @@ Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 
 
 EvenGapConstraint::EvenGapConstraint(
-    Vec<RectSpec> rects_spec,
-    Strength      strength)
+    Vec<RectSpec2Side> rects_spec,
+    Strength           strength)
     : ConstraintBase(strength), rects_spec(std::move(rects_spec)) {
     for (auto const& spec : this->rects_spec) {
         if (anchor_axis(spec.min_anchor) != anchor_axis(spec.max_anchor)) {
@@ -707,19 +693,16 @@ Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
     if (rects_spec.size() < 3) { return {}; }
 
     Vec<kiwi_ir::Constraint> constraints;
-    for (int i = 1; i + 1 < rects_spec.size(); ++i) {
-        RectSpec const& prev = rects_spec[i - 1];
-        RectSpec const& curr = rects_spec[i];
-        RectSpec const& next = rects_spec[i + 1];
-
-        Expr prev_max = rects.at(prev.rect_id)
-                            .anchor_expr(prev.max_anchor);
-        Expr curr_min = rects.at(curr.rect_id)
-                            .anchor_expr(curr.min_anchor);
-        Expr curr_max = rects.at(curr.rect_id)
-                            .anchor_expr(curr.max_anchor);
-        Expr next_min = rects.at(next.rect_id)
-                            .anchor_expr(next.min_anchor);
+    for (auto const& [prev, curr, next] :
+         hstd::rv_sliding_tuple3(rects_spec)) {
+        Expr prev_max //
+            = rects.at(prev.rect_id).anchor_expr(prev.max_anchor);
+        Expr curr_min //
+            = rects.at(curr.rect_id).anchor_expr(curr.min_anchor);
+        Expr curr_max //
+            = rects.at(curr.rect_id).anchor_expr(curr.max_anchor);
+        Expr next_min //
+            = rects.at(next.rect_id).anchor_expr(next.min_anchor);
 
         constraints.push_back(
             (((curr_min - prev_max) - (next_min - curr_max)) == 0)
@@ -731,16 +714,12 @@ Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
 
 Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
     Vec<EdgeDesc> result;
-    for (int i = 0; i + 1 < rects_spec.size(); ++i) {
-        RectSpec const& a = rects_spec[i];
-        RectSpec const& b = rects_spec[i + 1];
-
+    for (auto const& g : rects_spec) {
         result.push_back(
             EdgeDesc{
-                a.rect_id,
-                b.rect_id,
-                std::format("even-gap:{}->{}", a.max_anchor, b.min_anchor),
-                anchor_axis(a.max_anchor)});
+                g.rect_id,
+                std::format("even-gap:{}->{}", g.max_anchor, g.min_anchor),
+                anchor_axis(g.max_anchor)});
     }
     return result;
 }
@@ -749,7 +728,7 @@ Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const&) const {
     std::ostringstream out;
     out << "[";
     for (int i = 0; i < rects_spec.size(); ++i) {
-        RectSpec const& s = rects_spec[i];
+        RectSpec2Side const& s = rects_spec[i];
         out << std::format(
             "{{id={}, min={}, max={}}}",
             s.rect_id,
@@ -798,12 +777,12 @@ Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(
 Vec<EdgeDesc> EqualSizeConstraint::describe_edges() const {
     Vec<EdgeDesc> edges;
     if (match_width) {
-        edges.push_back(
-            EdgeDesc{rect_a_id, rect_b_id, "equal-size:width", Axis::X});
+        edges.push_back(EdgeDesc{rect_b_id, "equal-size:width", Axis::X});
+        edges.push_back(EdgeDesc{rect_a_id, "equal-size:width", Axis::X});
     }
     if (match_height) {
-        edges.push_back(
-            EdgeDesc{rect_a_id, rect_b_id, "equal-size:height", Axis::Y});
+        edges.push_back(EdgeDesc{rect_b_id, "equal-size:height", Axis::Y});
+        edges.push_back(EdgeDesc{rect_a_id, "equal-size:height", Axis::Y});
     }
     return edges;
 }
@@ -1085,6 +1064,7 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
     std::filesystem::create_directories(path.parent_path());
 
     auto result = graph::gv::GraphGroup::newStandaloneRootGraph("G");
+    result->setRankDirection(graph::gv::RankDirection::LR);
     std::unordered_map<Str, hstd::SPtr<graph::gv::NodeAttribute>>
         rectNodes;
 
@@ -1123,12 +1103,10 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         cnode->setNodeShape(graph::gv::NodeShape::rectangle);
 
         for (auto const& edge : constraint->describe_edges()) {
-            auto e1 = result->edge(*rectNodes.at(edge.src), *cnode);
-            e1->setLabel(edge.label);
-            e1->setColor(axis_color(edge.axis));
-
-            auto e2 = result->edge(*cnode, *rectNodes.at(edge.dst));
-            e2->setColor(axis_color(edge.axis));
+            auto constraint_to_rect_edge = result->edge(
+                *cnode, *rectNodes.at(edge.rect_id));
+            constraint_to_rect_edge->setColor(axis_color(edge.axis));
+            constraint_to_rect_edge->setLabel(edge.label);
         }
     }
 

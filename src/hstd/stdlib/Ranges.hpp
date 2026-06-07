@@ -175,6 +175,22 @@ inline auto rv_transform_pair_second = hstd::rv::transform(
         return it.second;
     });
 
+inline auto rv_sliding_tuple2 //
+    = hstd::rv::sliding(2) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1]);
+      });
+
+inline auto rv_sliding_tuple3 //
+    = hstd::rv::sliding(3) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1], it[2]);
+      });
+
+
+inline auto rv_sliding_tuple4 //
+    = hstd::rv::sliding(3) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1], it[2], it[3]);
+      });
+
 inline auto rv_intersperse_newline_join //
     = hstd::rv::intersperse("\n")       //
     | hstd::rv::join                    //

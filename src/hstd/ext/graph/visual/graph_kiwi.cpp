@@ -319,10 +319,8 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::SeparateConstraint::
 
     res.push_back(
         std::make_shared<kiwi_ir::SeparateConstraint>(
-            rectId(right_first),
-            anchor,
-            rectId(left_first),
-            anchor,
+            kiwi_ir::RectSpec1Side(rectId(right_first), anchor),
+            kiwi_ir::RectSpec1Side(rectId(left_first), anchor),
             separationDistance,
             kiwi_ir::Strength::REQUIRED));
 
@@ -337,7 +335,7 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::
     }
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> res;
-    hstd::Vec<hstd::Vec<Str>>                      groups;
+    hstd::Vec<hstd::Vec<kiwi_ir::RectSpec1Side>>   groups;
 
     for (auto const& lane : lines) {
         if (lane.dimension != dimension) {
@@ -345,19 +343,18 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::
                 "MultiSeparateConstraint dimension mismatch");
         }
         res.append(lane.getKiwi());
-        hstd::Vec<Str> lane_ids;
+        hstd::Vec<kiwi_ir::RectSpec1Side> lane_ids;
         for (auto const& id : lane.getAllVertices()) {
-            lane_ids.push_back(rectId(id));
+            lane_ids.push_back(
+                kiwi_ir::RectSpec1Side(
+                    rectId(id), toCenterAnchor(dimension)));
         }
         groups.push_back(lane_ids);
     }
 
     res.push_back(
         std::make_shared<kiwi_ir::MultiSeparateConstraint>(
-            groups,
-            toCenterAnchor(dimension),
-            separationDistance,
-            kiwi_ir::Strength::REQUIRED));
+            groups, separationDistance, kiwi_ir::Strength::REQUIRED));
 
     return res;
 }
@@ -458,12 +455,11 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EvenGapConstraint::
         std::make_shared<kiwi_ir::EvenGapConstraint>(
             vertices
                 | rv::transform(
-                    [this](VertexID const& id)
-                        -> kiwi_ir::EvenGapConstraint::RectSpec {
+                    [this](VertexID const& id) -> kiwi_ir::RectSpec2Side {
                         return axis == kiwi_ir::Axis::X
-                                 ? kiwi_ir::EvenGapConstraint::RectSpec::
+                                 ? kiwi_ir::RectSpec2Side::
                                        HorizontalRectBounds(rectId(id))
-                                 : kiwi_ir::EvenGapConstraint::RectSpec::
+                                 : kiwi_ir::RectSpec2Side::
                                        VerticalRectBounds(rectId(id));
                     })
                 | rs::to<Vec>(),

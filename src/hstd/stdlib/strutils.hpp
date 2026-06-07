@@ -50,6 +50,11 @@ std::vector<std::string> rune_chunks(std::string const& str);
 bool iequals(std::string const& a, std::string const& b);
 
 std::string format_number(double value);
+std::string format_table(
+    Vec<Vec<Str>> const& rows,
+    Str const&           inter_cell_spacing = " | ",
+    Str const&           inter_row_spacing  = "-+-",
+    char                 row_underline      = '-');
 
 
 /// \brief Escape string literal, converting newline and other (TODO)

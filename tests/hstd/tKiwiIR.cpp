@@ -26,9 +26,13 @@ TEST(KiwiIr, AlignAndSeparate) {
             {"b", AlignSpec{.anchor = Anchor::TOP}},
             {"c", AlignSpec{.anchor = Anchor::TOP}}}),
         std::make_shared<SeparateConstraint>(
-            "b", Anchor::LEFT, "a", Anchor::RIGHT, 15),
+            RectSpec1Side("b", Anchor::LEFT),
+            RectSpec1Side("a", Anchor::RIGHT),
+            15),
         std::make_shared<SeparateConstraint>(
-            "c", Anchor::LEFT, "b", Anchor::RIGHT, 15),
+            RectSpec1Side("c", Anchor::LEFT),
+            RectSpec1Side("b", Anchor::RIGHT),
+            15),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
@@ -54,12 +58,11 @@ TEST(KiwiIr, EvenGapX) {
         Rect("c", 110, 10, 20, 20),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<EvenGapConstraint>(
-            Vec<EvenGapConstraint::RectSpec>{
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("a"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("b"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("c"),
-            }),
+        std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
+            RectSpec2Side::HorizontalRectBounds("a"),
+            RectSpec2Side::HorizontalRectBounds("b"),
+            RectSpec2Side::HorizontalRectBounds("c"),
+        }),
     };
     Layout layout(rects, constraints);
     auto   solved = layout.solve();
@@ -169,12 +172,11 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
     };
     auto                            la = AlignSpec{.anchor = Anchor::LEFT};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<EvenGapConstraint>(
-            Vec<EvenGapConstraint::RectSpec>{
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("r00"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("r01"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("r02"),
-            }),
+        std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
+            RectSpec2Side::HorizontalRectBounds("r00"),
+            RectSpec2Side::HorizontalRectBounds("r01"),
+            RectSpec2Side::HorizontalRectBounds("r02"),
+        }),
         std::make_shared<AlignConstraint>(
             Vec<AlignItem>{{"r00", la}, {"r10", la}, {"r20", la}}),
         std::make_shared<AlignConstraint>(
@@ -183,11 +185,22 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
             Vec<AlignItem>{{"r02", la}, {"r12", la}, {"r22", la}}),
         std::make_shared<MultiSeparateConstraint>(
             /*groups=*/
-            Vec<Vec<Str>>{
-                {"r00", "r01", "r02"},
-                {"r10", "r11", "r12"},
-                {"r20", "r21", "r22"}},
-            /*anchor=*/Anchor::TOP,
+            Vec<Vec<RectSpec1Side>>{
+                {
+                    RectSpec1Side::Top("r00"),
+                    RectSpec1Side::Top("r01"),
+                    RectSpec1Side::Top("r02"),
+                },
+                {
+                    RectSpec1Side::Top("r10"),
+                    RectSpec1Side::Top("r11"),
+                    RectSpec1Side::Top("r12"),
+                },
+                {
+                    RectSpec1Side::Top("r20"),
+                    RectSpec1Side::Top("r21"),
+                    RectSpec1Side::Top("r22"),
+                }},
             /*step=*/30),
     };
     Layout layout(rects, constraints);
@@ -208,37 +221,63 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
 }
 
 TEST(KiwiIr, MultiSeparateGrid) {
-    Vec<Vec<Str>> ids = {
-        {"g00", "g01", "g02"},
-        {"g10", "g11", "g12"},
-        {"g20", "g21", "g22"},
+    Vec<Vec<RectSpec1Side>> ids = {
+        {
+            RectSpec1Side::Top("g00"),
+            RectSpec1Side::Top("g01"),
+            RectSpec1Side::Top("g02"),
+        },
+        {
+            RectSpec1Side::Top("g10"),
+            RectSpec1Side::Top("g11"),
+            RectSpec1Side::Top("g12"),
+        },
+        {
+            RectSpec1Side::Top("g20"),
+            RectSpec1Side::Top("g21"),
+            RectSpec1Side::Top("g22"),
+        },
     };
     Vec<Rect> rects = {Rect("g00", 0, 0, 10, 10)};
     for (auto const& row : ids) {
         for (auto const& rid : row) {
-            if (rid != "g00") {
+            if (rid.rect_id != "g00") {
                 rects.push_back(
-                    Rect(rid, std::nullopt, std::nullopt, 10, 10));
+                    Rect(rid.rect_id, std::nullopt, std::nullopt, 10, 10));
             }
         }
     }
 
     Vec<hstd::SPtr<ConstraintBase>> constraints;
     constraints.push_back(
-        std::make_shared<MultiSeparateConstraint>(ids, Anchor::TOP, 25));
-    Vec<Vec<Str>> col_groups = {
-        {ids[0][0], ids[1][0], ids[2][0]},
-        {ids[0][1], ids[1][1], ids[2][1]},
-        {ids[0][2], ids[1][2], ids[2][2]},
+        std::make_shared<MultiSeparateConstraint>(ids, 25));
+
+    Vec<Vec<RectSpec1Side>> col_groups = {
+        {
+            RectSpec1Side::Left(ids[0][0].rect_id),
+            RectSpec1Side::Left(ids[1][0].rect_id),
+            RectSpec1Side::Left(ids[2][0].rect_id),
+        },
+        {
+            RectSpec1Side::Left(ids[0][1].rect_id),
+            RectSpec1Side::Left(ids[1][1].rect_id),
+            RectSpec1Side::Left(ids[2][1].rect_id),
+        },
+        {
+            RectSpec1Side::Left(ids[0][2].rect_id),
+            RectSpec1Side::Left(ids[1][2].rect_id),
+            RectSpec1Side::Left(ids[2][2].rect_id),
+        },
     };
+
     constraints.push_back(
-        std::make_shared<MultiSeparateConstraint>(
-            col_groups, Anchor::LEFT, 35));
+        std::make_shared<MultiSeparateConstraint>(col_groups, 35));
+
     for (auto const& row : ids) {
         Vec<AlignItem> row_items;
         for (auto const& r : row) {
             row_items.push_back(
-                AlignItem{r, AlignSpec{.anchor = Anchor::TOP}});
+                AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::TOP}});
         }
         constraints.push_back(
             std::make_shared<AlignConstraint>(row_items));
@@ -247,7 +286,7 @@ TEST(KiwiIr, MultiSeparateGrid) {
         Vec<AlignItem> col_items;
         for (auto const& r : col) {
             col_items.push_back(
-                AlignItem{r, AlignSpec{.anchor = Anchor::LEFT}});
+                AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::LEFT}});
         }
         constraints.push_back(
             std::make_shared<AlignConstraint>(col_items));
@@ -279,12 +318,11 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
         Rect("rel3"),
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<EvenGapConstraint>(
-            Vec<EvenGapConstraint::RectSpec>{
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix1"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix2"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("fix3"),
-            }),
+        std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
+            RectSpec2Side::HorizontalRectBounds("fix1"),
+            RectSpec2Side::HorizontalRectBounds("fix2"),
+            RectSpec2Side::HorizontalRectBounds("fix3"),
+        }),
         std::make_shared<RelativeConstraint>(
             /*parent_rect_id=*/"fix1",
             /*nested_rect_id=*/"rel1",
@@ -331,7 +369,9 @@ TEST(KiwiIr, VerifyPass) {
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
-            "b", Anchor::LEFT, "a", Anchor::RIGHT, 5),
+            RectSpec1Side("b", Anchor::LEFT),
+            RectSpec1Side("a", Anchor::RIGHT),
+            5),
     };
     Layout layout(rects, constraints);
     EXPECT_NO_THROW(layout.verify_constraints());
@@ -374,9 +414,13 @@ TEST(KiwiIr, VerifyFailMutuallyExclusiveSeparate) {
     Vec<Rect>                       rects       = {Rect("a"), Rect("b")};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
-            "b", Anchor::LEFT, "a", Anchor::RIGHT, 5),
+            RectSpec1Side("b", Anchor::LEFT),
+            RectSpec1Side("a", Anchor::RIGHT),
+            5),
         std::make_shared<SeparateConstraint>(
-            "b", Anchor::LEFT, "a", Anchor::RIGHT, 7),
+            RectSpec1Side("b", Anchor::LEFT),
+            RectSpec1Side("a", Anchor::RIGHT),
+            7),
     };
     Layout layout(rects, constraints);
 
@@ -404,18 +448,20 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
     };
     double                          step        = 40.0;
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<EvenGapConstraint>(
-            Vec<EvenGapConstraint::RectSpec>{
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("a"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("b"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("c"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("d"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("e"),
-                EvenGapConstraint::RectSpec::HorizontalRectBounds("f"),
-            }),
+        std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
+            RectSpec2Side::HorizontalRectBounds("a"),
+            RectSpec2Side::HorizontalRectBounds("b"),
+            RectSpec2Side::HorizontalRectBounds("c"),
+            RectSpec2Side::HorizontalRectBounds("d"),
+            RectSpec2Side::HorizontalRectBounds("e"),
+            RectSpec2Side::HorizontalRectBounds("f"),
+        }),
         std::make_shared<MultiSeparateConstraint>(
-            /*groups=*/Vec<Vec<Str>>{{"a"}, {"c"}, {"e"}},
-            /*anchor=*/Anchor::LEFT,
+            /*groups=*/
+            Vec<Vec<RectSpec1Side>>{
+                {RectSpec1Side::Left("a")},
+                {RectSpec1Side::Left("c")},
+                {RectSpec1Side::Left("e")}},
             /*step=*/step),
     };
     Layout layout(rects, constraints);
@@ -443,7 +489,11 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
     // Change step and verify new layout
     double new_step = 60.0;
     constraints[1]  = std::make_shared<MultiSeparateConstraint>(
-        Vec<Vec<Str>>{{"a"}, {"c"}, {"e"}}, Anchor::LEFT, new_step);
+        Vec<Vec<RectSpec1Side>>{
+            {RectSpec1Side::Left("a")},
+            {RectSpec1Side::Left("c")},
+            {RectSpec1Side::Left("e")}},
+        new_step);
     Layout layout2(rects, constraints);
     layout2.verify_constraints();
     auto solved2 = layout2.solve();
@@ -469,12 +519,16 @@ TEST(KiwiIr, ConflictingMultiSeparate) {
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<MultiSeparateConstraint>(
-            /*groups=*/Vec<Vec<Str>>{{"x"}, {"y"}, {"z"}},
-            /*anchor=*/Anchor::LEFT,
+            /*groups=*/
+            Vec<Vec<RectSpec1Side>>{
+                {RectSpec1Side::Left("x")},
+                {RectSpec1Side::Left("y")},
+                {RectSpec1Side::Left("z")}},
             /*step=*/20),
         std::make_shared<MultiSeparateConstraint>(
-            /*groups=*/Vec<Vec<Str>>{{"x"}, {"y"}},
-            /*anchor=*/Anchor::LEFT,
+            /*groups=*/
+            Vec<Vec<RectSpec1Side>>{
+                {RectSpec1Side::Left("x")}, {RectSpec1Side::Left("y")}},
             /*step=*/30),
     };
     Layout layout(rects, constraints);
