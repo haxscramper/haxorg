@@ -248,6 +248,18 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)
         ->setSecondLeftOfFirst(dot_sub2_id, circo_sub2_id);
 
+    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondBelowFirst(circo_sub2_id, g1);
+
+    {
+        auto under_nodes = kiwi_sub1->addConstraint<kw::LinearConstraint>(
+            kiwi_root);
+        under_nodes->finalize(
+            under_nodes->use(g1, kiwi_ir::RectAttr::LEFT),
+            kiwi_ir::Relation::EQ,
+            under_nodes->use(circo_sub2_id, kiwi_ir::RectAttr::LEFT));
+    }
+
     kiwi_root->addVertex(kiwi_sub1_id_nesting);
     kiwi_root->addVertex(dot_sub1_id_nesting);
     kiwi_root->addConstraint<kw::LinearConstraint>(kiwi_root)
@@ -262,6 +274,29 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::writeFile(
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+
+    // the final graph looks like an absolute shit with the edge routing,
+    // but the rectangles are properly fixed in place.
+    EXPECT_OUTCOME_OK(checkBelow(box(circo_sub2_id), box(g2)));
+    EXPECT_OUTCOME_OK(checkBelow(box(circo_sub2_id), box(g6)));
+    EXPECT_OUTCOME_OK(checkBelow(box(g1), box(g5)));
+    EXPECT_OUTCOME_OK(checkBelow(box(g1), box(g6)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(g1), box(g2)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(g1), box(g3)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(g1), box(g4)));
+    EXPECT_OUTCOME_OK(checkRightOf(box(g1), box(g8)));
+
+    EXPECT_OUTCOME_OK(checkBelow(box(l1), box(l2)));
+    EXPECT_OUTCOME_OK(checkBelow(box(l1), box(l7)));
+    EXPECT_OUTCOME_OK(checkBelow(box(d1), box(d2)));
+
+    EXPECT_OUTCOME_OK(checkRightOf(box(circo_sub2_id), box(dot_sub2_id)));
+    EXPECT_OUTCOME_OK(
+        checkFullyCovers(box(kiwi_sub1_id), box(circo_sub2_id)));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyCovers(box(circo_sub2_id), box(dot_sub2_id), 0.0));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyCovers(box(dot_sub2_id), box(dot_sub1_id), 0.0));
 }
 
 TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
