@@ -1065,35 +1065,41 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
 
     auto result = graph::gv::GraphGroup::newStandaloneRootGraph("G");
     result->setRankDirection(graph::gv::RankDirection::LR);
-    std::unordered_map<Str, hstd::SPtr<graph::gv::NodeAttribute>>
+    std::unordered_map<
+        Pair<Str, Axis>,
+        hstd::SPtr<graph::gv::NodeAttribute>>
         rectNodes;
 
-    for (auto const& [rect_id, rect] : rects) {
-        auto node = result->node(std::format("rect-{}", rect_id));
-        hstd::Vec<Str> rect_info;
-        rect_info.push_back(rect_id);
-        if (rect.x0) {
-            rect_info.push_back(hstd::fmt("  x0 {}", rect.x0.value()));
-        }
+    for (auto const& axis : as_vec(Axis::X, Axis::Y)) {
+        for (auto const& [rect_id, rect] : rects) {
+            auto node = result->node(
+                std::format("rect-{}-{}", rect_id, axis));
+            hstd::Vec<Str> rect_info;
+            rect_info.push_back(hstd::fmt("{} {}", rect_id, axis));
+            if (rect.x0) {
+                rect_info.push_back(hstd::fmt("  x0 {}", rect.x0.value()));
+            }
 
-        if (rect.y0) {
-            rect_info.push_back(hstd::fmt("  y0 {}", rect.y0.value()));
-        }
+            if (rect.y0) {
+                rect_info.push_back(hstd::fmt("  y0 {}", rect.y0.value()));
+            }
 
-        if (rect.width0) {
-            rect_info.push_back(
-                hstd::fmt("  width0  {}", rect.width0.value()));
-        }
+            if (rect.width0) {
+                rect_info.push_back(
+                    hstd::fmt("  width0  {}", rect.width0.value()));
+            }
 
-        if (rect.height0) {
-            rect_info.push_back(
-                hstd::fmt("  height0 {}", rect.height0.value()));
-        }
+            if (rect.height0) {
+                rect_info.push_back(
+                    hstd::fmt("  height0 {}", rect.height0.value()));
+            }
 
-        node->setLabel(hstd::join("\n", rect_info));
-        node->setNodeShape(graph::gv::NodeShape::rectangle);
-        rectNodes.emplace(rect_id, node);
+            node->setLabel(hstd::join("\n", rect_info));
+            node->setNodeShape(graph::gv::NodeShape::rectangle);
+            rectNodes.insert_or_assign({rect_id, axis}, node);
+        }
     }
+
 
     for (int idx = 0; idx < constraints.size(); ++idx) {
         auto const& constraint = constraints[idx];
@@ -1103,10 +1109,25 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         cnode->setNodeShape(graph::gv::NodeShape::rectangle);
 
         for (auto const& edge : constraint->describe_edges()) {
-            auto constraint_to_rect_edge = result->edge(
-                *cnode, *rectNodes.at(edge.rect_id));
+            auto constraint_to_rect_edge = //
+                edge.axis == Axis::X
+                    ? result->edge(
+                          *cnode, *rectNodes.at({edge.rect_id, edge.axis}))
+                    : result->edge(
+                          *rectNodes.at({edge.rect_id, edge.axis}),
+                          *cnode);
+
+            if (edge.axis == Axis::Y) {
+                constraint_to_rect_edge->setArrowTail(
+                    graph::gv::NodeArrowType::normal);
+                constraint_to_rect_edge->setArrowHead(
+                    graph::gv::NodeArrowType::empty);
+            }
+
             constraint_to_rect_edge->setColor(axis_color(edge.axis));
-            constraint_to_rect_edge->setLabel(edge.label);
+            if (!edge.label.empty()) {
+                constraint_to_rect_edge->setLabel(edge.label);
+            }
         }
     }
 

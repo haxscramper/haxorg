@@ -591,15 +591,6 @@ class NodeAttribute
 
     std::string getPropertiesAsString() const;
 
-
-    void setArrowHead(NodeArrowType type) {
-        setAttr("arrowhead", enum_serde<NodeArrowType>::to_string(type));
-    };
-
-    void setArrowTail(NodeArrowType type) {
-        setAttr("arrowtail", enum_serde<NodeArrowType>::to_string(type));
-    };
-
     NodeAttribute* setInchWidth(double inches) {
         setAttr("width", inches);
         return this;
@@ -690,9 +681,17 @@ class EdgeAttribute
     NodeAttribute head() { return NodeAttribute(graph, AGHEAD(edge_)); }
     NodeAttribute tail() { return NodeAttribute(graph, AGTAIL(edge_)); }
 
-
     void setLHead(NodeAttribute node) { setLHead(node.name()); }
     void setLTail(NodeAttribute node) { setLTail(node.name()); }
+
+
+    void setArrowHead(NodeArrowType type) {
+        setAttr("arrowhead", enum_serde<NodeArrowType>::to_string(type));
+    };
+
+    void setArrowTail(NodeArrowType type) {
+        setAttr("arrowtail", enum_serde<NodeArrowType>::to_string(type));
+    };
 
     Agedgeinfo_t*       info() { return (Agedgeinfo_t*)AGDATA(edge_); }
     Agedgeinfo_t const* info() const {
