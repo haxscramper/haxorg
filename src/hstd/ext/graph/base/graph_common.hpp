@@ -248,7 +248,7 @@ concept IsGraphObject = std::derived_from<T, IGraphObjectBase>;
 DECL_ID_TYPE_MASKED(IVertex, VertexID, hstd::u64, 16);
 DECL_ID_TYPE_MASKED(IEdge, EdgeIDBase, hstd::u64, 16);
 
-struct [[refl]] EdgeID : public EdgeIDBase {
+struct EdgeID : public EdgeIDBase {
     using EdgeIDBase::EdgeIDBase;
 
     EdgeID(EdgeIDBase base) : EdgeIDBase{base} {}

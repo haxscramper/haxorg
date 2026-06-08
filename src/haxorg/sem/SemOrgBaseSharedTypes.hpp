@@ -63,21 +63,22 @@ namespace hstd {
 using back_inserter_string_format_context = std::basic_format_context<std::back_insert_iterator<std::basic_string<char>>, char>;
 }
 
+
 template <>
 struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
-    std::format_context::iterator format(OrgTokenKind const&, std::format_context&) const;
-    hstd::back_inserter_string_format_context::iterator format(OrgTokenKind const&, hstd::back_inserter_string_format_context&) const;
+    template <class FormatContext>
+    auto format(OrgTokenKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
 };
 
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
-    std::format_context::iterator format(OrgSemKind const&, std::format_context&) const;
-    hstd::back_inserter_string_format_context::iterator format(OrgSemKind const&, hstd::back_inserter_string_format_context&) const;
+    template <class FormatContext>
+    auto format(OrgSemKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
 };
 
 template <>
 struct std::formatter<OrgNodeKind> : std::formatter<std::string> {
-    std::format_context::iterator format(OrgNodeKind const&, std::format_context&) const;
-    hstd::back_inserter_string_format_context::iterator format(OrgNodeKind const&, hstd::back_inserter_string_format_context&) const;
+    template <class FormatContext>
+    auto format(OrgNodeKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
 };
 // clang-format on

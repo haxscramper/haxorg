@@ -383,10 +383,6 @@ struct haxorg_ImmId;
 
 struct haxorg_ImmOrg;
 
-struct haxorg_GraphVertexID;
-
-struct haxorg_GraphEdgeIDBase;
-
 struct haxorg_ImmPathStep;
 
 struct haxorg_ImmPath;
@@ -824,8 +820,6 @@ struct haxorg_ImmCmdIncludeCustom;
 struct haxorg_ImmCmdIncludeSrc;
 
 struct haxorg_ImmCmdIncludeOrgDocument;
-
-struct haxorg_GraphEdgeID;
 
 struct haxorg_ImmAdapterOrgAPI;
 
@@ -1879,16 +1873,6 @@ struct haxorg_ImmId {
 
 /// \brief ['org', 'imm', 'ImmOrg']
 struct haxorg_ImmOrg {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'ext', 'graph', 'VertexID']
-struct haxorg_GraphVertexID {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'ext', 'graph', 'EdgeIDBase']
-struct haxorg_GraphEdgeIDBase {
   haxorg_ptr_payload data;
 };
 
@@ -2990,11 +2974,6 @@ struct haxorg_ImmCmdIncludeOrgDocument {
 
 /// \brief ['org', 'imm', 'ImmCmdInclude']
 struct haxorg_ImmCmdInclude {
-  haxorg_ptr_payload data;
-};
-
-/// \brief ['hstd', 'ext', 'graph', 'EdgeID']
-struct haxorg_GraphEdgeID {
   haxorg_ptr_payload data;
 };
 
@@ -4690,10 +4669,10 @@ HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceStructured(OrgContext
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceColored(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE int haxorg_OperationsTracer_get_activeLevel(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OperationsTracer_get_traceBuffer(OrgContext* org_context, haxorg_OperationsTracer __this);
-HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_begin_scope_event(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file);
-HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_end_scope_event(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file);
+HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_begin_scope_event_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file);
+HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_end_scope_event_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_setTraceFileStr(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString outfile, bool overwrite);
-HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_sendMessage(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file);
+HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file);
 HAXORG_C_API_LINKAGE void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Report(OrgContext* org_context, haxorg_Report* obj);
@@ -4729,8 +4708,6 @@ HAXORG_C_API_LINKAGE haxorg_ImmIdNodeIdxT haxorg_ImmId_getNodeIndex_const(OrgCon
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_ImmId_getReadableId_const(OrgContext* org_context, haxorg_ImmId __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmId(OrgContext* org_context, haxorg_ImmId* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphVertexID(OrgContext* org_context, haxorg_GraphVertexID* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphEdgeIDBase(OrgContext* org_context, haxorg_GraphEdgeIDBase* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmPath_get_root(OrgContext* org_context, haxorg_ImmPath __this);
 HAXORG_C_API_LINKAGE haxorg_ImmPathStore haxorg_ImmPath_get_path(OrgContext* org_context, haxorg_ImmPath __this);
@@ -5980,7 +5957,6 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmCmdIncludeOrgDocument_get_cust
 HAXORG_C_API_LINKAGE bool haxorg_ImmCmdIncludeOrgDocument___eq___const(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument __this, haxorg_ImmCmdIncludeOrgDocument other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdIncludeOrgDocument(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmCmdInclude(OrgContext* org_context, haxorg_ImmCmdInclude* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_GraphEdgeID(OrgContext* org_context, haxorg_GraphEdgeID* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAdapterOrgAPI(OrgContext* org_context, haxorg_ImmAdapterOrgAPI* obj);
 HAXORG_C_API_LINKAGE haxorg_AttrGroup haxorg_Cmd_get_attrs(OrgContext* org_context, haxorg_Cmd __this);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfAttrValue haxorg_Cmd_getAttrs_const(OrgContext* org_context, haxorg_Cmd __this, haxorg_StdOptional key);

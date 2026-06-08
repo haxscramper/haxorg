@@ -84,7 +84,20 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
-    build_targets(ctx=ctx, targets=["reflection_tool"])
+    build_targets(
+        ctx=ctx,
+        targets=["reflection_tool"] + [
+            # trigger protobuf file generation to allow for clang semantic
+            # analysis to properly resolve all headers
+            f"{it}_generate_files" for it in [
+                "haxorg_sem_protobuf",
+                "haxorg_imm_graph_protobuf",
+                "hstd_proto_base_graph",
+                "hstd_proto_graphviz_graph",
+            ]
+        ],
+    )
+
     from py_codegen.refl_read import open_proto_file
 
     task = "pyhaxorg"

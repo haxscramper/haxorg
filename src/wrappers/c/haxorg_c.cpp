@@ -447,13 +447,13 @@ int haxorg_OperationsTracer_get_activeLevel(OrgContext* org_context, haxorg_Oper
 
 haxorg_StdString haxorg_OperationsTracer_get_traceBuffer(OrgContext* org_context, haxorg_OperationsTracer __this) { return org::bind::c::get_cpp_field<haxorg_StdString, hstd::OperationsTracer, std::string, haxorg_OperationsTracer>(org_context, __this, &hstd::OperationsTracer::traceBuffer); }
 
-void haxorg_OperationsTracer_begin_scope_event(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*)const >(&hstd::OperationsTracer::begin_scope_event), org_context, __this, value, function, line, file); }
+void haxorg_OperationsTracer_begin_scope_event_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::begin_scope_event), org_context, __this, value, function, line, file); }
 
-void haxorg_OperationsTracer_end_scope_event(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::end_scope_event), org_context, __this, value, function, line, file); }
+void haxorg_OperationsTracer_end_scope_event_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdOptional value, char const* function, int line, char const* file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::end_scope_event), org_context, __this, value, function, line, file); }
 
 void haxorg_OperationsTracer_setTraceFileStr(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString outfile, bool overwrite) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr), org_context, __this, outfile, overwrite); }
 
-void haxorg_OperationsTracer_sendMessage(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage), org_context, __this, value, function, line, file); }
+void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file) { return org::bind::c::execute_cpp<void>(static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage), org_context, __this, value, function, line, file); }
 
 void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj) { org::bind::c::execute_destroy<hstd::OperationsTracer>(org_context, obj); }
 
@@ -524,10 +524,6 @@ haxorg_StdString haxorg_ImmId_getReadableId_const(OrgContext* org_context, haxor
 void haxorg_destroy_ImmId(OrgContext* org_context, haxorg_ImmId* obj) { org::bind::c::execute_destroy<org::imm::ImmId>(org_context, obj); }
 
 void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj) { org::bind::c::execute_destroy<org::imm::ImmOrg>(org_context, obj); }
-
-void haxorg_destroy_GraphVertexID(OrgContext* org_context, haxorg_GraphVertexID* obj) { org::bind::c::execute_destroy<hstd::ext::graph::VertexID>(org_context, obj); }
-
-void haxorg_destroy_GraphEdgeIDBase(OrgContext* org_context, haxorg_GraphEdgeIDBase* obj) { org::bind::c::execute_destroy<hstd::ext::graph::EdgeIDBase>(org_context, obj); }
 
 void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj) { org::bind::c::execute_destroy<org::imm::ImmPathStep>(org_context, obj); }
 
@@ -3026,8 +3022,6 @@ bool haxorg_ImmCmdIncludeOrgDocument___eq___const(OrgContext* org_context, haxor
 void haxorg_destroy_ImmCmdIncludeOrgDocument(OrgContext* org_context, haxorg_ImmCmdIncludeOrgDocument* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude::OrgDocument>(org_context, obj); }
 
 void haxorg_destroy_ImmCmdInclude(OrgContext* org_context, haxorg_ImmCmdInclude* obj) { org::bind::c::execute_destroy<org::imm::ImmCmdInclude>(org_context, obj); }
-
-void haxorg_destroy_GraphEdgeID(OrgContext* org_context, haxorg_GraphEdgeID* obj) { org::bind::c::execute_destroy<hstd::ext::graph::EdgeID>(org_context, obj); }
 
 void haxorg_destroy_ImmAdapterOrgAPI(OrgContext* org_context, haxorg_ImmAdapterOrgAPI* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapterOrgAPI>(org_context, obj); }
 

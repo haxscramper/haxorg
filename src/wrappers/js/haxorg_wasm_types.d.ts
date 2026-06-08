@@ -575,8 +575,6 @@ export interface haxorg_wasm_module_auto {
   ImmReflFieldId: ImmReflFieldIdConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
-  GraphVertexID: GraphVertexIDConstructor;
-  GraphEdgeIDBase: GraphEdgeIDBaseConstructor;
   ImmPathStep: ImmPathStepConstructor;
   ImmPath: ImmPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
@@ -1170,7 +1168,6 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: ImmCmdIncludeKind,
   }
   format_ImmCmdIncludeKind(value: ImmCmdIncludeKind): string;
-  GraphEdgeID: GraphEdgeIDConstructor;
   ImmAdapterOrgAPI: ImmAdapterOrgAPIConstructor;
   Cmd: CmdConstructor;
   CmdCustomRaw: CmdCustomRawConstructor;
@@ -2148,10 +2145,6 @@ export interface ImmId {
 }
 export interface ImmOrgConstructor { new(): ImmOrg; }
 export interface ImmOrg {  }
-export interface GraphVertexIDConstructor { new(): GraphVertexID; }
-export interface GraphVertexID {  }
-export interface GraphEdgeIDBaseConstructor { new(): GraphEdgeIDBase; }
-export interface GraphEdgeIDBase {  }
 export interface ImmPathStepConstructor { new(): ImmPathStep; }
 export interface ImmPathStep {  }
 export interface ImmPathConstructor { new(): ImmPath; }
@@ -4378,8 +4371,6 @@ export enum ImmCmdIncludeKind {
   Src,
   OrgDocument,
 }
-export interface GraphEdgeIDConstructor { new(): GraphEdgeID; }
-export interface GraphEdgeID {  }
 export interface ImmAdapterOrgAPIConstructor { new(): ImmAdapterOrgAPI; }
 export interface ImmAdapterOrgAPI {  }
 export interface CmdConstructor { new(): Cmd; }

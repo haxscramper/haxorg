@@ -1551,8 +1551,7 @@ field and other locations outside of standard `.subnodes`)RAW")
     .def_rw("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
 field subset.)RAW")
     .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
-                    return "";
-                     // return org::bind::python::py_repr_impl(_self);
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> nanobind::object {
@@ -1741,8 +1740,7 @@ field subset.)RAW")
     .def_rw("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
     .def_rw("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
     .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
-             return "";
-                     // return org::bind::python::py_repr_impl(_self);
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> nanobind::object {
@@ -1766,8 +1764,7 @@ field subset.)RAW")
     .def("isTrackedHashtag", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isTrackedHashtag))
     .def("isRadioTarget", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isRadioTarget))
     .def("__repr__", [](org::AstTrackingGroup const& _self) -> std::string {
-             return "";
-                     // return org::bind::python::py_repr_impl(_self);
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingGroup const& _self, std::string const& name) -> nanobind::object {
@@ -1801,8 +1798,7 @@ field subset.)RAW")
          static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
          nanobind::arg("id"))
     .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
-             return "";
-                     // return org::bind::python::py_repr_impl(_self);
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](org::AstTrackingMap const& _self, std::string const& name) -> nanobind::object {
