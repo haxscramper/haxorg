@@ -1,5 +1,6 @@
 #pragma once
 
+#include <google/protobuf/message.h>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/ext/logger.hpp>
@@ -234,3 +235,9 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
 #define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)             \
     EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(               \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
+
+namespace google::protobuf {
+class Message;
+}
+
+std::string getJString(google::protobuf::Message const& message);

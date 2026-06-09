@@ -1,5 +1,7 @@
 #include "common.hpp"
 
+#include <google/protobuf/util/json_util.h>
+
 namespace {
 hstd::fs::path getDebugPath(hstd::Str const& suffix) {
     auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
@@ -124,4 +126,15 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
             lhs.split('\n'), lhs.split('\n')),
         lhs,
         rhs);
+}
+
+std::string getJString(google::protobuf::Message const& message) {
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status           = google::protobuf::util::MessageToJsonString(
+        message, &json, j_opts);
+
+    EXPECT_TRUE(status.ok());
+    return json;
 }

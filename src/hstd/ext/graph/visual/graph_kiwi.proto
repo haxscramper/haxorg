@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/geometry/hstd_visual.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
+
+package hstd.ext.graph.kiwi.proto;
+
+
+message KiwiPortVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IPortVisualAttributePayload base = 1;
+}
+
+message KiwiPortLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IPortLayoutAttributePayload base = 1;
+}
+
+message KiwiEdgeVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeVisualAttributePayload base = 1;
+}
+
+message KiwiEdgeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload base = 1;
+}
+
+message KiwiNodeVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
+}
+
+message KiwiGroupVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+}
+
+message KiwiNodeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexLayoutAttributePayload base = 1;
+}
+
+message KiwiGroupLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload base = 1;
+}

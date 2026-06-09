@@ -12,10 +12,12 @@ namespace hstd::ext::graph::kw {
 class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexAttribute"; }
-    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
+
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
         logic_todo_impl();
     }
+
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
@@ -495,6 +497,16 @@ class LinearConstraint : public KiwiConstraint {
 
 class AlignConstraint : public KiwiConstraint {
   public:
+    void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
+
+    void readSerial(proto::IConstraint const* in, IGraph const* graph)
+        override {
+        logic_todo_impl();
+    }
+
     DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
 
     hstd::UnorderedMap<VertexID, kiwi_ir::AlignSpec> vertices;

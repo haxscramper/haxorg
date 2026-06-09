@@ -11,16 +11,6 @@
 
 using namespace hstd::ext::graph;
 
-std::string getJString(google::protobuf::Message const& message) {
-    std::string                          json;
-    google::protobuf::json::PrintOptions j_opts;
-    j_opts.add_whitespace = true;
-    auto status           = google::protobuf::util::MessageToJsonString(
-        message, &json, j_opts);
-
-    EXPECT_TRUE(status.ok());
-    return json;
-}
 
 class TestFactory : public IGraphSerialReaderFactory {
   public:

@@ -134,6 +134,13 @@ class IPlacementAlgorithm {
 class IConstraint {
   public:
     virtual hstd::Vec<VertexID> getAllVertices() const = 0;
+
+    virtual void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const = 0;
+
+    virtual void readSerial(
+        proto::IConstraint const* in,
+        IGraph const*             graph) = 0;
 };
 
 

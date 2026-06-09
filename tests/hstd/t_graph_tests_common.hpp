@@ -46,6 +46,10 @@ class GraphUtils_Test : public ::testing::Test {
         hstd::writeFile(
             getDebugFile("result.svg"),
             hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+
+        hstd::ext::graph::proto::IGraphProto out;
+        state.graph->writeSerial(&out);
+        hstd::writeFile(getDebugFile("serial.json"), getJString(out));
     }
 
     hstd::SPtr<TrivialGraph>     getGraph() const { return state.graph; }
