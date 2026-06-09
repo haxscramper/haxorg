@@ -7,6 +7,8 @@
 #    include <hstd/ext/bimap_wrap.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
 #    include <src/hstd/ext/graph/visual/graph_elk.pb.h>
+#    include <hstd/ext/geometry/hstd_visual_serde.hpp>
+#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 
 
 using namespace hstd;

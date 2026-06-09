@@ -12,6 +12,8 @@
 #include <hstd/ext/graph/visual/graph_vpsc.hpp>
 
 #include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
+#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#include <hstd/ext/geometry/hstd_visual_serde.hpp>
 
 namespace hstd::ext::graph::cst {
 
