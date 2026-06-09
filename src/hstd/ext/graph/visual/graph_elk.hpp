@@ -2,6 +2,7 @@
 
 #if ORG_BUILD_WITH_ELK
 
+#    include <hstd/ext/hstd_serde.hpp>
 #    include "elk_jni_wrapper.hpp"
 #    include <memory>
 #    include <hstd/stdlib/Exception.hpp>
@@ -241,17 +242,13 @@ class ElkPortVisualAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 };
 
 class ElkPortLayoutAttribute
@@ -263,17 +260,13 @@ class ElkPortLayoutAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 
     Rect getBBox() const override {
         // port placement may omit some values if they are zeroed out, and
@@ -356,17 +349,13 @@ class ElkEdgeVisualAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 };
 
 class ElkEdgeLayoutAttribute
@@ -388,17 +377,13 @@ class ElkEdgeLayoutAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 };
 
 class NodeElkLayoutData {
@@ -475,18 +460,15 @@ class ElkNodeVisualAttribute
     std::string getRepr() const override {
         return "ElkNodeVisualAttribute";
     }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 };
 
 class ElkGroupVisualAttribute
@@ -496,18 +478,15 @@ class ElkGroupVisualAttribute
     std::string getRepr() const override {
         return "ElkGroupVisualAttribute";
     }
+
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 
     void setOuterPadding(geometry::Padding const& pad) override {
         logic_todo_impl();
@@ -582,17 +561,13 @@ class ElkNodeLayoutAttribute
     }
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 
     hstd::SPtr<layout::LayoutRun> run;
 
@@ -636,17 +611,13 @@ class ElkGroupLayoutAttribute
         return "ElkGroupLayoutAttribute";
     }
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override;
 
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*    vertex) override;
 
     geometry::Rect bbox;
 

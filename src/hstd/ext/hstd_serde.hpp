@@ -18,4 +18,14 @@ void json_to_struct(json const& in, ::google::protobuf::Struct* out);
 json value_to_json(::google::protobuf::Value const& in);
 json struct_to_json(::google::protobuf::Struct const& in);
 
+template <typename Proto, typename T>
+void write_serde(Proto* out, T const& in) {
+    proto_serde<Proto, T>::write(out, in);
+}
+
+template <typename Proto, typename T>
+void read_serde(Proto const& in, T* out) {
+    proto_serde<Proto, T>::read(in, out);
+}
+
 } // namespace hstd::serde

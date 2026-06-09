@@ -6,6 +6,7 @@
 #    include <hstd/stdlib/JsonSerde.hpp>
 #    include <hstd/ext/bimap_wrap.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
+#    include <src/hstd/ext/graph/visual/graph_elk.pb.h>
 
 
 using namespace hstd;
@@ -461,4 +462,789 @@ hstd::ext::visual::VisGroup hstd::ext::graph::elk::
 
     return res;
 }
+
+
+namespace hstd::serde {
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::Options,
+    hstd::ext::graph::elk::Options> {
+    static void write(
+        hstd::ext::graph::elk::proto::Options* out,
+        hstd::ext::graph::elk::Options const&  in) {
+        json_to_value(in.data, out->mutable_data());
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::Options const& in,
+        hstd::ext::graph::elk::Options*              out) {
+        out->data = value_to_json(in.data());
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::PortProperties,
+    hstd::ext::graph::elk::PortProperties> {
+    static void write(
+        hstd::ext::graph::elk::proto::PortProperties* out,
+        hstd::ext::graph::elk::PortProperties const&  in) {
+        if (in.port.has_value()) {
+            json_to_value(*in.port, out->mutable_port());
+        }
+        if (in.portConstraints.has_value()) {
+            out->set_port_constraints(*in.portConstraints);
+        }
+        if (in.portAlignment.has_value()) {
+            out->set_port_alignment(*in.portAlignment);
+        }
+        if (in.allowNonFlowPortsToSwitchSides.has_value()) {
+            out->set_allow_non_flow_ports_to_switch_sides(
+                *in.allowNonFlowPortsToSwitchSides);
+        }
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::PortProperties const& in,
+        hstd::ext::graph::elk::PortProperties*              out) {
+        if (in.has_port()) {
+            out->port = value_to_json(in.port());
+        } else {
+            out->port.reset();
+        }
+        if (in.has_port_constraints()) {
+            out->portConstraints = in.port_constraints();
+        } else {
+            out->portConstraints.reset();
+        }
+        if (in.has_port_alignment()) {
+            out->portAlignment = in.port_alignment();
+        } else {
+            out->portAlignment.reset();
+        }
+        if (in.has_allow_non_flow_ports_to_switch_sides()) {
+            out->allowNonFlowPortsToSwitchSides = in.allow_non_flow_ports_to_switch_sides();
+        } else {
+            out->allowNonFlowPortsToSwitchSides.reset();
+        }
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::NodeProperties,
+    hstd::ext::graph::elk::NodeProperties> {
+    static void write(
+        hstd::ext::graph::elk::proto::NodeProperties* out,
+        hstd::ext::graph::elk::NodeProperties const&  in) {
+        if (in.portConstraints.has_value()) {
+            out->set_port_constraints(*in.portConstraints);
+        }
+        if (in.portAlignment.has_value()) {
+            out->set_port_alignment(*in.portAlignment);
+        }
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::NodeProperties const& in,
+        hstd::ext::graph::elk::NodeProperties*              out) {
+        if (in.has_port_constraints()) {
+            out->portConstraints = in.port_constraints();
+        } else {
+            out->portConstraints.reset();
+        }
+        if (in.has_port_alignment()) {
+            out->portAlignment = in.port_alignment();
+        } else {
+            out->portAlignment.reset();
+        }
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::Label,
+    hstd::ext::graph::elk::Label> {
+    static void write(
+        hstd::ext::graph::elk::proto::Label* out,
+        hstd::ext::graph::elk::Label const&  in) {
+        if (in.id.has_value()) { out->set_id(*in.id); }
+        if (in.x.has_value()) { out->set_x(*in.x); }
+        if (in.y.has_value()) { out->set_y(*in.y); }
+        if (in.width.has_value()) { out->set_width(*in.width); }
+        if (in.height.has_value()) { out->set_height(*in.height); }
+        if (in.text.has_value()) { out->set_text(*in.text); }
+
+        for (auto const& it : in.labels) {
+            write_serde(out->add_labels(), it);
+        }
+
+        write_serde(out->mutable_layout_options(), in.layoutOptions);
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::Label const& in,
+        hstd::ext::graph::elk::Label*              out) {
+        if (in.has_id()) {
+            out->id = in.id();
+        } else {
+            out->id.reset();
+        }
+        if (in.has_x()) {
+            out->x = in.x();
+        } else {
+            out->x.reset();
+        }
+        if (in.has_y()) {
+            out->y = in.y();
+        } else {
+            out->y.reset();
+        }
+        if (in.has_width()) {
+            out->width = in.width();
+        } else {
+            out->width.reset();
+        }
+        if (in.has_height()) {
+            out->height = in.height();
+        } else {
+            out->height.reset();
+        }
+        if (in.has_text()) {
+            out->text = in.text();
+        } else {
+            out->text.reset();
+        }
+
+        out->labels.clear();
+        for (auto const& it : in.labels()) {
+            hstd::ext::graph::elk::Label value;
+            read_serde(it, &value);
+            out->labels.push_back(value);
+        }
+
+        read_serde(in.layout_options(), &out->layoutOptions);
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::ElkPortData,
+    hstd::ext::graph::elk::ElkPortData> {
+    static void write(
+        hstd::ext::graph::elk::proto::ElkPortData* out,
+        hstd::ext::graph::elk::ElkPortData const&  in) {
+        out->set_id(in.id);
+        if (in.x.has_value()) { out->set_x(*in.x); }
+        if (in.y.has_value()) { out->set_y(*in.y); }
+        if (in.width.has_value()) { out->set_width(*in.width); }
+        if (in.height.has_value()) { out->set_height(*in.height); }
+
+        for (auto const& it : in.labels) {
+            write_serde(out->add_labels(), it);
+        }
+
+        if (in.properties.has_value()) {
+            write_serde(out->mutable_properties(), *in.properties);
+        }
+        write_serde(out->mutable_layout_options(), in.layoutOptions);
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::ElkPortData const& in,
+        hstd::ext::graph::elk::ElkPortData*              out) {
+        out->id = in.id();
+        if (in.has_x()) {
+            out->x = in.x();
+        } else {
+            out->x.reset();
+        }
+        if (in.has_y()) {
+            out->y = in.y();
+        } else {
+            out->y.reset();
+        }
+        if (in.has_width()) {
+            out->width = in.width();
+        } else {
+            out->width.reset();
+        }
+        if (in.has_height()) {
+            out->height = in.height();
+        } else {
+            out->height.reset();
+        }
+
+        out->labels.clear();
+        for (auto const& it : in.labels()) {
+            hstd::ext::graph::elk::Label value;
+            read_serde(it, &value);
+            out->labels.push_back(value);
+        }
+
+        if (in.has_properties()) {
+            hstd::ext::graph::elk::PortProperties value;
+            read_serde(in.properties(), &value);
+            out->properties = value;
+        } else {
+            out->properties.reset();
+        }
+
+        read_serde(in.layout_options(), &out->layoutOptions);
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::EdgeSection,
+    hstd::ext::graph::elk::EdgeSection> {
+    static void write(
+        hstd::ext::graph::elk::proto::EdgeSection* out,
+        hstd::ext::graph::elk::EdgeSection const&  in) {
+        if (in.id.has_value()) { out->set_id(*in.id); }
+        write_serde(out->mutable_start_point(), in.startPoint);
+        write_serde(out->mutable_end_point(), in.endPoint);
+
+        for (auto const& it : in.bendPoints) {
+            write_serde(out->add_bend_points(), it);
+        }
+        if (in.incomingShape.has_value()) {
+            out->set_incoming_shape(*in.incomingShape);
+        }
+        if (in.outgoingShape.has_value()) {
+            out->set_outgoing_shape(*in.outgoingShape);
+        }
+        for (auto const& it : in.incomingSections) {
+            out->add_incoming_sections(it);
+        }
+        for (auto const& it : in.outgoingSections) {
+            out->add_outgoing_sections(it);
+        }
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::EdgeSection const& in,
+        hstd::ext::graph::elk::EdgeSection*              out) {
+        if (in.has_id()) {
+            out->id = in.id();
+        } else {
+            out->id.reset();
+        }
+
+        read_serde(in.start_point(), &out->startPoint);
+        read_serde(in.end_point(), &out->endPoint);
+
+        out->bendPoints.clear();
+        for (auto const& it : in.bend_points()) {
+            hstd::ext::graph::Point value;
+            read_serde(it, &value);
+            out->bendPoints.push_back(value);
+        }
+
+        if (in.has_incoming_shape()) {
+            out->incomingShape = in.incoming_shape();
+        } else {
+            out->incomingShape.reset();
+        }
+        if (in.has_outgoing_shape()) {
+            out->outgoingShape = in.outgoing_shape();
+        } else {
+            out->outgoingShape.reset();
+        }
+
+        out->incomingSections.clear();
+        for (auto const& it : in.incoming_sections()) {
+            out->incomingSections.push_back(it);
+        }
+
+        out->outgoingSections.clear();
+        for (auto const& it : in.outgoing_sections()) {
+            out->outgoingSections.push_back(it);
+        }
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::ElkEdgeData,
+    hstd::ext::graph::elk::ElkEdgeData> {
+    static void write(
+        hstd::ext::graph::elk::proto::ElkEdgeData* out,
+        hstd::ext::graph::elk::ElkEdgeData const&  in) {
+        out->set_id(in.id);
+        if (in.source.has_value()) { out->set_source(*in.source); }
+        if (in.sourcePort.has_value()) {
+            out->set_source_port(*in.sourcePort);
+        }
+        if (in.target.has_value()) { out->set_target(*in.target); }
+        if (in.targetPort.has_value()) {
+            out->set_target_port(*in.targetPort);
+        }
+
+        for (auto const& it : in.sources) { out->add_sources(it); }
+        for (auto const& it : in.targets) { out->add_targets(it); }
+        for (auto const& it : in.sections) {
+            write_serde(out->add_sections(), it);
+        }
+        for (auto const& it : in.labels) {
+            write_serde(out->add_labels(), it);
+        }
+        for (auto const& it : in.junctionPoints) {
+            write_serde(out->add_junction_points(), it);
+        }
+
+        write_serde(out->mutable_layout_options(), in.layoutOptions);
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::ElkEdgeData const& in,
+        hstd::ext::graph::elk::ElkEdgeData*              out) {
+        out->id = in.id();
+        if (in.has_source()) {
+            out->source = in.source();
+        } else {
+            out->source.reset();
+        }
+        if (in.has_source_port()) {
+            out->sourcePort = in.source_port();
+        } else {
+            out->sourcePort.reset();
+        }
+        if (in.has_target()) {
+            out->target = in.target();
+        } else {
+            out->target.reset();
+        }
+        if (in.has_target_port()) {
+            out->targetPort = in.target_port();
+        } else {
+            out->targetPort.reset();
+        }
+
+        out->sources.clear();
+        for (auto const& it : in.sources()) { out->sources.push_back(it); }
+
+        out->targets.clear();
+        for (auto const& it : in.targets()) { out->targets.push_back(it); }
+
+        out->sections.clear();
+        for (auto const& it : in.sections()) {
+            hstd::ext::graph::elk::EdgeSection value;
+            read_serde(it, &value);
+            out->sections.push_back(value);
+        }
+
+        out->labels.clear();
+        for (auto const& it : in.labels()) {
+            hstd::ext::graph::elk::Label value;
+            read_serde(it, &value);
+            out->labels.push_back(value);
+        }
+
+        out->junctionPoints.clear();
+        for (auto const& it : in.junction_points()) {
+            hstd::ext::graph::Point value;
+            read_serde(it, &value);
+            out->junctionPoints.push_back(value);
+        }
+
+        read_serde(in.layout_options(), &out->layoutOptions);
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::NodeElkLayoutData,
+    hstd::ext::graph::elk::NodeElkLayoutData> {
+    static void write(
+        hstd::ext::graph::elk::proto::NodeElkLayoutData* out,
+        hstd::ext::graph::elk::NodeElkLayoutData const&  in) {
+        out->set_id(in.id);
+        if (in.x.has_value()) { out->set_x(*in.x); }
+        if (in.y.has_value()) { out->set_y(*in.y); }
+        if (in.width.has_value()) { out->set_width(*in.width); }
+        if (in.height.has_value()) { out->set_height(*in.height); }
+        if (in.type.has_value()) { out->set_type(*in.type); }
+
+        for (auto const& it : in.ports) {
+            write_serde(out->add_ports(), it);
+        }
+        for (auto const& it : in.labels) {
+            write_serde(out->add_labels(), it);
+        }
+        for (auto const& it : in.children) {
+            write_serde(out->add_children(), it);
+        }
+        for (auto const& it : in.edges) {
+            write_serde(out->add_edges(), it);
+        }
+
+        if (in.properties.has_value()) {
+            write_serde(out->mutable_properties(), *in.properties);
+        }
+        write_serde(out->mutable_layout_options(), in.layoutOptions);
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::NodeElkLayoutData const& in,
+        hstd::ext::graph::elk::NodeElkLayoutData*              out) {
+        out->id = in.id();
+        if (in.has_x()) {
+            out->x = in.x();
+        } else {
+            out->x.reset();
+        }
+        if (in.has_y()) {
+            out->y = in.y();
+        } else {
+            out->y.reset();
+        }
+        if (in.has_width()) {
+            out->width = in.width();
+        } else {
+            out->width.reset();
+        }
+        if (in.has_height()) {
+            out->height = in.height();
+        } else {
+            out->height.reset();
+        }
+        if (in.has_type()) {
+            out->type = in.type();
+        } else {
+            out->type.reset();
+        }
+
+        out->ports.clear();
+        for (auto const& it : in.ports()) {
+            hstd::ext::graph::elk::ElkPortData value;
+            read_serde(it, &value);
+            out->ports.push_back(value);
+        }
+
+        out->labels.clear();
+        for (auto const& it : in.labels()) {
+            hstd::ext::graph::elk::Label value;
+            read_serde(it, &value);
+            out->labels.push_back(value);
+        }
+
+        out->children.clear();
+        for (auto const& it : in.children()) {
+            hstd::ext::graph::elk::NodeElkLayoutData value;
+            read_serde(it, &value);
+            out->children.push_back(value);
+        }
+
+        out->edges.clear();
+        for (auto const& it : in.edges()) {
+            hstd::ext::graph::elk::ElkEdgeData value;
+            read_serde(it, &value);
+            out->edges.push_back(value);
+        }
+
+        if (in.has_properties()) {
+            hstd::ext::graph::elk::NodeProperties value;
+            read_serde(in.properties(), &value);
+            out->properties = value;
+        } else {
+            out->properties.reset();
+        }
+
+        read_serde(in.layout_options(), &out->layoutOptions);
+    }
+};
+
+template <>
+struct proto_serde<
+    hstd::ext::graph::elk::proto::GraphElkLayoutData,
+    hstd::ext::graph::elk::GraphElkLayoutData> {
+    static void write(
+        hstd::ext::graph::elk::proto::GraphElkLayoutData* out,
+        hstd::ext::graph::elk::GraphElkLayoutData const&  in) {
+        out->set_id(in.id);
+        if (in.x.has_value()) { out->set_x(*in.x); }
+        if (in.y.has_value()) { out->set_y(*in.y); }
+        if (in.width.has_value()) { out->set_width(*in.width); }
+        if (in.height.has_value()) { out->set_height(*in.height); }
+
+        write_serde(out->mutable_layout_options(), in.layoutOptions);
+        for (auto const& it : in.children) {
+            write_serde(out->add_children(), it);
+        }
+        for (auto const& it : in.edges) {
+            write_serde(out->add_edges(), it);
+        }
+        for (auto const& it : in.ports) {
+            write_serde(out->add_ports(), it);
+        }
+        for (auto const& it : in.labels) {
+            write_serde(out->add_labels(), it);
+        }
+    }
+
+    static void read(
+        hstd::ext::graph::elk::proto::GraphElkLayoutData const& in,
+        hstd::ext::graph::elk::GraphElkLayoutData*              out) {
+        out->id = in.id();
+        if (in.has_x()) {
+            out->x = in.x();
+        } else {
+            out->x.reset();
+        }
+        if (in.has_y()) {
+            out->y = in.y();
+        } else {
+            out->y.reset();
+        }
+        if (in.has_width()) {
+            out->width = in.width();
+        } else {
+            out->width.reset();
+        }
+        if (in.has_height()) {
+            out->height = in.height();
+        } else {
+            out->height.reset();
+        }
+
+        read_serde(in.layout_options(), &out->layoutOptions);
+
+        out->children.clear();
+        for (auto const& it : in.children()) {
+            hstd::ext::graph::elk::NodeElkLayoutData value;
+            read_serde(it, &value);
+            out->children.push_back(value);
+        }
+
+        out->edges.clear();
+        for (auto const& it : in.edges()) {
+            hstd::ext::graph::elk::ElkEdgeData value;
+            read_serde(it, &value);
+            out->edges.push_back(value);
+        }
+
+        out->ports.clear();
+        for (auto const& it : in.ports()) {
+            hstd::ext::graph::elk::ElkPortData value;
+            read_serde(it, &value);
+            out->ports.push_back(value);
+        }
+
+        out->labels.clear();
+        for (auto const& it : in.labels()) {
+            hstd::ext::graph::elk::Label value;
+            read_serde(it, &value);
+            out->labels.push_back(value);
+        }
+    }
+};
+
+} // namespace hstd::serde
+
+
+namespace hstd::ext::graph::elk {
+namespace {
+
+template <typename Payload>
+Payload unpack_attr_payload(
+    ::hstd::ext::graph::proto::IAttribute const* in) {
+    Payload payload;
+    if (!in->payload().UnpackTo(&payload)) {
+        throw std::logic_error("Failed to unpack attribute payload");
+    }
+    return payload;
+}
+
+} // namespace
+
+void ElkPortVisualAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkPortVisualAttributePayload load;
+    load.mutable_base();
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<ElkPortData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkPortVisualAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkPortVisualAttributePayload>(in);
+    hstd::serde::read_serde(load.data(), static_cast<ElkPortData*>(this));
+}
+
+void ElkPortLayoutAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkPortLayoutAttributePayload load;
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_group(), getVisual(PortID::Nil()));
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<ElkPortData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkPortLayoutAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkPortLayoutAttributePayload>(in);
+    hstd::serde::read_serde(load.data(), static_cast<ElkPortData*>(this));
+}
+
+void ElkEdgeVisualAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkEdgeVisualAttributePayload load;
+    load.mutable_base();
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkEdgeVisualAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkEdgeVisualAttributePayload>(in);
+    hstd::serde::read_serde(load.data(), static_cast<ElkEdgeData*>(this));
+}
+
+void ElkEdgeLayoutAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkEdgeLayoutAttributePayload load;
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_group(), getVisual(EdgeID::Nil()));
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_path(), getPath());
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkEdgeLayoutAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkEdgeLayoutAttributePayload>(in);
+    hstd::serde::read_serde(load.data(), static_cast<ElkEdgeData*>(this));
+}
+
+void ElkNodeVisualAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkNodeVisualAttributePayload load;
+    load.mutable_base();
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<NodeElkLayoutData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkNodeVisualAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkNodeVisualAttributePayload>(in);
+    hstd::serde::read_serde(
+        load.data(), static_cast<NodeElkLayoutData*>(this));
+}
+
+void ElkGroupVisualAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkGroupVisualAttributePayload load;
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<NodeElkLayoutData const&>(*this));
+
+    hstd::ext::graph::elk::proto::NodeElkLayoutData algorithm;
+    hstd::serde::write_serde(
+        &algorithm, static_cast<NodeElkLayoutData const&>(*this));
+    load.mutable_base()->mutable_algorithm_payload()->PackFrom(algorithm);
+
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkGroupVisualAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkGroupVisualAttributePayload>(in);
+    hstd::serde::read_serde(
+        load.data(), static_cast<NodeElkLayoutData*>(this));
+}
+
+void ElkNodeLayoutAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkNodeLayoutAttributePayload load;
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_group(), getVisual(VertexID::Nil()));
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<NodeElkLayoutData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkNodeLayoutAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkNodeLayoutAttributePayload>(in);
+    hstd::serde::read_serde(
+        load.data(), static_cast<NodeElkLayoutData*>(this));
+}
+
+void ElkGroupLayoutAttribute::writeSerial(
+    ::hstd::ext::graph::proto::IAttribute* out,
+    IGraph const*) const {
+    hstd::ext::graph::elk::proto::ElkGroupLayoutAttributePayload load;
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(
+        load.mutable_base()->mutable_group(), getVisual(VertexID::Nil()));
+    hstd::serde::write_serde(
+        load.mutable_data(), static_cast<NodeElkLayoutData const&>(*this));
+    out->mutable_payload()->PackFrom(load);
+}
+
+void ElkGroupLayoutAttribute::readSerial(
+    ::hstd::ext::graph::proto::IAttribute const* in,
+    IGraph const*,
+    IGraphSerialReaderFactory*,
+    IAttributeObject const*) {
+    auto load = unpack_attr_payload<
+        hstd::ext::graph::elk::proto::ElkGroupLayoutAttributePayload>(in);
+    hstd::serde::read_serde(
+        load.data(), static_cast<NodeElkLayoutData*>(this));
+
+    geometry::Rect bbox_value;
+    hstd::serde::read_serde(load.base().bbox(), &bbox_value);
+    bbox = bbox_value;
+}
+
+} // namespace hstd::ext::graph::elk
+
+
 #endif

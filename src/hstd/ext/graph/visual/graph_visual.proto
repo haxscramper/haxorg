@@ -1,10 +1,11 @@
 syntax = "proto3";
 
-package hstd.ext.graph.layout.proto;
 
 import "google/protobuf/any.proto";
 import "src/hstd/ext/geometry/hstd_geometry.proto";
 import "src/hstd/ext/geometry/hstd_visual.proto";
+
+package hstd.ext.graph.layout.proto;
 
 message IPortLayoutAttributePayload {
   hstd.ext.geometry.proto.Rect bbox = 1;
@@ -28,4 +29,13 @@ message IGroupLayoutAttributePayload {
 
 message IGroupVisualAttributePayload {
   google.protobuf.Any algorithm_payload = 2;
+}
+
+message IPortVisualAttributePayload {
+}
+
+message IEdgeVisualAttributePayload {
+}
+
+message IVertexVisualAttributePayload {
 }

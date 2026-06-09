@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/ext/hstd_serde.hpp"
 #include "hstd/system/exceptions.hpp"
 #include <hstd/ext/graph/base/graph_base.hpp>
 #include <hstd/ext/graph/visual/graph_visual.hpp>
@@ -56,8 +57,16 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
+        avoid::proto::EdgeLayoutAttributePayload load;
+        hstd::serde::write_serde(
+            load.mutable_base()->mutable_group(),
+            // TODO: See [[nil-visual-id-for-serialization]]
+            getVisual(EdgeID::Nil()));
 
-        logic_todo_impl();
+        hstd::serde::write_serde(
+            load.mutable_base()->mutable_path(), getPath());
+
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
@@ -81,7 +90,23 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
-        logic_todo_impl();
+        avoid::proto::PortLayoutAttributePayload load;
+
+        hstd::serde::write_serde(
+            load.mutable_base()->mutable_group(),
+            getVisual(
+                // FIXME: using port ID Nil as a temporary replacement. Not
+                // clear if attribute serialization has any reason to know
+                // the parent element ID in the first place. Additionally,
+                // this will mess up the signature of the writeSerial
+                // method for the attribute: I either need to pass a
+                // Variant of different ID types, or erase types, or do
+                // something similar. It is a mess. The port ID in the
+                // visualization is primarily intended to be used for
+                // debugging purposes, to know which ID is being shown.
+                // <<nil-visual-id-for-serialization>>
+                PortID::Nil()));
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(

@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/geometry/hstd_visual.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
+
+package hstd.ext.graph.elk.proto;
+
+message PortProperties {
+  google.protobuf.Value port = 1;
+  optional string port_constraints = 2;
+  optional string port_alignment = 3;
+  optional bool allow_non_flow_ports_to_switch_sides = 4;
+}
+
+message NodeProperties {
+  optional string port_constraints = 1;
+  optional string port_alignment = 2;
+}
+
+message Options {
+  google.protobuf.Value data = 1;
+}
+
+message Label {
+  optional string id = 1;
+  optional double x = 2;
+  optional double y = 3;
+  optional double width = 4;
+  optional double height = 5;
+  optional string text = 6;
+  repeated Label labels = 7;
+  Options layout_options = 8;
+}
+
+message ElkPortData {
+  string id = 1;
+  optional double x = 2;
+  optional double y = 3;
+  optional double width = 4;
+  optional double height = 5;
+  repeated Label labels = 6;
+  optional PortProperties properties = 7;
+  Options layout_options = 8;
+}
+
+message EdgeSection {
+  optional string id = 1;
+  hstd.ext.geometry.proto.Point start_point = 2;
+  hstd.ext.geometry.proto.Point end_point = 3;
+  repeated hstd.ext.geometry.proto.Point bend_points = 4;
+  optional string incoming_shape = 5;
+  optional string outgoing_shape = 6;
+  repeated string incoming_sections = 7;
+  repeated string outgoing_sections = 8;
+}
+
+message ElkEdgeData {
+  string id = 1;
+  optional string source = 2;
+  optional string source_port = 3;
+  optional string target = 4;
+  optional string target_port = 5;
+  repeated string sources = 6;
+  repeated string targets = 7;
+  repeated EdgeSection sections = 8;
+  repeated Label labels = 9;
+  repeated hstd.ext.geometry.proto.Point junction_points = 10;
+  Options layout_options = 11;
+}
+
+message NodeElkLayoutData {
+  string id = 1;
+  optional double x = 2;
+  optional double y = 3;
+  optional double width = 4;
+  optional double height = 5;
+  optional string type = 6;
+  repeated ElkPortData ports = 7;
+  repeated Label labels = 8;
+  repeated NodeElkLayoutData children = 9;
+  repeated ElkEdgeData edges = 10;
+  optional NodeProperties properties = 11;
+  Options layout_options = 12;
+}
+
+message GraphElkLayoutData {
+  string id = 1;
+  optional double x = 2;
+  optional double y = 3;
+  optional double width = 4;
+  optional double height = 5;
+  Options layout_options = 6;
+  repeated NodeElkLayoutData children = 7;
+  repeated ElkEdgeData edges = 8;
+  repeated ElkPortData ports = 9;
+  repeated Label labels = 10;
+}
+
+message ElkPortVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IPortVisualAttributePayload base = 1;
+  ElkPortData data = 2;
+}
+
+message ElkPortLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IPortLayoutAttributePayload base = 1;
+  ElkPortData data = 2;
+}
+
+message ElkEdgeVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeVisualAttributePayload base = 1;
+  ElkEdgeData data = 2;
+}
+
+message ElkEdgeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload base = 1;
+  ElkEdgeData data = 2;
+}
+
+message ElkNodeVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
+  NodeElkLayoutData data = 2;
+}
+
+message ElkGroupVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+  NodeElkLayoutData data = 2;
+}
+
+message ElkNodeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexLayoutAttributePayload base = 1;
+  NodeElkLayoutData data = 2;
+}
+
+message ElkGroupLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload base = 1;
+  NodeElkLayoutData data = 2;
+}
