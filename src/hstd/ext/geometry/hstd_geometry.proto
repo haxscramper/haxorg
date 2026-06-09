@@ -2,6 +2,13 @@ syntax = "proto3";
 
 package hstd.ext.geometry.proto;
 
+message Padding {
+  double top = 1;
+  double bottom = 2;
+  double left = 3;
+  double right = 4;
+}
+
 message Rect {
   double x = 1;
   double y = 2;

@@ -4,26 +4,7 @@ package hstd.ext.visual.proto;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
-
-message Point {
-  double x = 1;
-  double y = 2;
-}
-
-message Rect {
-  double x = 1;
-  double y = 2;
-  double width = 3;
-  double height = 4;
-}
-
-message Path {
-  repeated Point points = 1;
-}
-
-message Polygon {
-  repeated Point points = 1;
-}
+import "src/hstd/ext/geometry/hstd_geometry.proto";
 
 message VisColor {
   uint32 r = 1;
@@ -123,40 +104,40 @@ message VisCustom {
 }
 
 message RectShape {
-  Rect geometry = 1;
+  hstd.ext.geometry.proto.Rect geometry = 1;
   VisPen pen = 2;
   VisBrush brush = 3;
   google.protobuf.DoubleValue corner_radius = 4;
 }
 
 message EllipseShape {
-  Rect geometry = 1;
+  hstd.ext.geometry.proto.Rect geometry = 1;
   VisPen pen = 2;
   VisBrush brush = 3;
 }
 
 message LineShape {
-  Point p1 = 1;
-  Point p2 = 2;
+  hstd.ext.geometry.proto.Point p1 = 1;
+  hstd.ext.geometry.proto.Point p2 = 2;
   VisPen pen = 3;
 }
 
 message PathShape {
-  Path path = 1;
+  hstd.ext.geometry.proto.Path path = 1;
   VisPen pen = 2;
   VisBrush brush = 3;
 }
 
 message PolygonShape {
-  Polygon points = 1;
+  hstd.ext.geometry.proto.Polygon points = 1;
   VisPen pen = 2;
   VisBrush brush = 3;
 }
 
 message TextShape {
   string content = 1;
-  Point anchor = 2;
-  optional Rect bounding_box = 3;
+  hstd.ext.geometry.proto.Point anchor = 2;
+  optional hstd.ext.geometry.proto.Rect bounding_box = 3;
   VisFont font = 5;
   VisTextAlign alignment = 6;
   VisColor color = 7;
@@ -164,17 +145,17 @@ message TextShape {
 
 message PixmapShape {
   string path = 1;
-  Rect geometry = 2;
+  hstd.ext.geometry.proto.Rect geometry = 2;
 }
 
 message PointShape {
-  Point position = 1;
+  hstd.ext.geometry.proto.Point position = 1;
   VisPen pen = 2;
   VisBrush brush = 3;
   double radius = 4;
 }
 
-message VisElement {
+message VisElementData {
   oneof data {
     RectShape rect = 1;
     EllipseShape ellipse = 2;
@@ -185,16 +166,19 @@ message VisElement {
     PixmapShape pixmap = 7;
     PointShape point = 8;
   }
+}
 
-  VisCustom custom = 9;
+message VisElement {
+  VisElementData data = 1;
+  VisCustom custom = 2;
 }
 
 message VisGroup {
-  Point offset = 1;
+  hstd.ext.geometry.proto.Point offset = 1;
   repeated VisElement elements = 2;
   repeated VisGroup subgroups = 3;
   VisCustom custom = 4;
-  optional Point max_point = 5;
+  optional hstd.ext.geometry.proto.Point max_point = 5;
   google.protobuf.UInt64Value original_id = 7;
   google.protobuf.UInt64Value original_type = 8;
 }

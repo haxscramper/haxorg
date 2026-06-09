@@ -10,6 +10,8 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/ext/graph/visual/graph_vpsc.hpp>
 
+#include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
+
 namespace hstd::ext::graph::cst {
 
 class AvoidPort
@@ -21,6 +23,26 @@ class AvoidPort
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
   public:
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
+        const override {
+        hstd::ext::graph::avoid::proto::PortVisualAttributePayload load;
+        load.set_visibility(
+            static_cast<avoid::proto::EdgeVisibility>(visibility));
+        if (edgeOffset) { load.set_edge_offset(edgeOffset.value()); }
+        out->mutable_payload()->PackFrom(load);
+    }
+
+    void readSerial(
+        proto::IAttribute const*   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory,
+        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::avoid::proto::PortVisualAttributePayload load;
+        in->payload().UnpackTo(&load);
+        visibility = static_cast<VisibilityDirection>(load.visibility());
+        if (load.has_edge_offset()) { edgeOffset = load.edge_offset(); }
+    }
+
     DECL_DESCRIBED_ENUM(VisibilityDirection, Left, Right, Top, Bottom);
     VisibilityDirection visibility;
     hstd::Opt<double>   edgeOffset;
@@ -34,6 +56,7 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
+
         logic_todo_impl();
     }
 

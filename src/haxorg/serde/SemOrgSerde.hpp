@@ -174,6 +174,8 @@ struct proto_serde<hstd::Opt<Proto>, hstd::Opt<T>> {
     }
 };
 
+// TODO: Extract this to the hstd/ext/hstd_serde.hpp file for general use.
+// <<proto-serde-extract-to-general>>
 template <>
 struct proto_serde<
     gpb::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>,
@@ -195,6 +197,7 @@ struct proto_serde<
     static void read(
         gpb::RepeatedPtrField<Proto> const& out,
         proto_write_accessor<hstd::Vec<T>>  in) {
+        in.get().reserve(out.size());
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
@@ -204,6 +207,7 @@ struct proto_serde<
     static void read(
         gpb::RepeatedField<int> const&     out,
         proto_write_accessor<hstd::Vec<T>> in) {
+        in.get().reserve(out.size());
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
