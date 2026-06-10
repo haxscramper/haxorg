@@ -180,6 +180,16 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
     virtual std::string getStableId() const = 0;
 
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
+
+    void writeSerialConstraints(
+        google::protobuf::RepeatedPtrField<proto::IConstraint>* out,
+        IGraph const* graph) const;
+
+    void readSerialConstraints(
+        google::protobuf::RepeatedField<proto::IConstraint> const* in,
+        IGraph const*                                              graph,
+        IGraphSerialReaderFactory*                                 factory,
+        IAttributeObject const*                                    vertex);
 };
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {

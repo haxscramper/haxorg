@@ -387,7 +387,6 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
     }
 
     c->setSeparationDistance(90)
-        ->setIsExactSeparation(true)
         ->addLeftVertex(v1)
         ->addLeftVertex(v2)
         ->addRightVertex(v3)

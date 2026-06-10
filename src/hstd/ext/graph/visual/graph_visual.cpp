@@ -299,6 +299,27 @@ hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
     return run->getGraph();
 }
 
+void layout::IGroupVisualAttribute::writeSerialConstraints(
+    google::protobuf::RepeatedPtrField<
+        hstd::ext::graph::proto::IConstraint>* out,
+    IGraph const*                              graph) const {
+    for (auto const& c : constraints) {
+        c->writeSerial(out->Add(), graph);
+    }
+}
+
+void layout::IGroupVisualAttribute::readSerialConstraints(
+    google::protobuf::RepeatedField<proto::IConstraint> const* in,
+    IGraph const*                                              graph,
+    IGraphSerialReaderFactory*                                 factory,
+    IAttributeObject const*                                    vertex) {
+    for (auto const& c : *in) {
+        auto new_constraint = factory->newConstraint(&c);
+        new_constraint->readSerial(&c, graph);
+        constraints.push_back(new_constraint);
+    }
+}
+
 hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
     EdgeIteration::getEdgesForGroup(VertexID const& id) {
     // collect list of edges between explicit sub-vertices for a

@@ -63,6 +63,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         }
     }
 
+
     hstd::SPtr<layout::LayoutRun> run;
     hstd::SPtr<IGraph>            graph;
 
@@ -160,6 +161,23 @@ class TestFactory : public IGraphSerialReaderFactory {
             res = std::make_shared<org::graph::MapNode>();
         } else if (in->payload().Is<proto::TrivialVertexPayload>()) {
             res = std::make_shared<TrivialVertex>(in->stable_id());
+        } else {
+            throw hstd::logic_unhandled_kind_error::init(
+                in->payload().type_url());
+        }
+
+        return res;
+    }
+
+    hstd::SPtr<layout::IConstraint> newConstraint(
+        proto::IConstraint const* in) override {
+        LOGIC_ASSERTION_CHECK_FMT(
+            in->has_payload(),
+            "De-serialization input does not have payload object {}",
+            getJString(*in));
+        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+        hstd::SPtr<layout::IConstraint> res;
+        if (false) {
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());

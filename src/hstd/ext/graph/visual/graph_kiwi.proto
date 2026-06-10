@@ -6,9 +6,9 @@ import "src/hstd/ext/geometry/hstd_geometry.proto";
 import "src/hstd/ext/geometry/hstd_visual.proto";
 import "src/hstd/ext/graph/base/graph_base.proto";
 import "src/hstd/ext/graph/visual/graph_visual.proto";
+import "src/hstd/ext/geometry/kiwi_ir.proto";
 
-package hstd.ext.graph.kiwi.proto;
-
+package hstd.ext.graph.kw.proto;
 
 message KiwiPortVisualAttributePayload {
   hstd.ext.graph.layout.proto.IPortVisualAttributePayload base = 1;
@@ -26,7 +26,7 @@ message KiwiEdgeLayoutAttributePayload {
   hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload base = 1;
 }
 
-message KiwiNodeVisualAttributePayload {
+message KiwiVertexVisualAttributePayload {
   hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
 }
 
@@ -34,10 +34,47 @@ message KiwiGroupVisualAttributePayload {
   hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
 }
 
-message KiwiNodeLayoutAttributePayload {
+message KiwiVertexLayoutAttributePayload {
   hstd.ext.graph.layout.proto.IVertexLayoutAttributePayload base = 1;
 }
 
 message KiwiGroupLayoutAttributePayload {
   hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload base = 1;
+}
+
+message KiwiConstraintPayload {
+
+}
+
+
+
+message KiwiAlignConstraint {
+  message Spec {
+    string stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AlignSpec spec = 2;
+  }
+
+  KiwiConstraintPayload base = 1;
+}
+
+message KiwiSeparateConstraint {
+  KiwiConstraintPayload base = 1;
+  KiwiAlignConstraint left = 2;
+  KiwiAlignConstraint right = 3;
+  double separationDistance = 4;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 5;
+}
+
+message KiwiMultiSeparateConstraint {
+  KiwiConstraintPayload base = 1;
+  repeated KiwiAlignConstraint lines = 2;
+  double separationDistance = 3;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 4;
+}
+
+message KiwiLinearConstraint {
+  KiwiConstraintPayload base = 1;
+  htsd.ext.kiwi_ir.proto.Expr lhs = 2;
+  htsd.ext.kiwi_ir.proto.Expr rhs = 3;
+  htsd.ext.kiwi_ir.proto.Relation op = 4;
 }

@@ -297,6 +297,10 @@ class IAttribute;
 class IVertex;
 class IAttributeObject;
 
+namespace layout {
+class IConstraint;
+}
+
 class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
     virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
@@ -313,6 +317,8 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
     virtual hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) = 0;
     virtual hstd::SPtr<IEdge>   newEdge(proto::IEdge const* edge)   = 0;
     virtual hstd::SPtr<IPort>   newPort(proto::IPort const* port)   = 0;
+    virtual hstd::SPtr<layout::IConstraint> newConstraint(
+        proto::IConstraint const* constraint) = 0;
 };
 
 } // namespace hstd::ext::graph

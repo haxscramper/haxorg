@@ -6,6 +6,8 @@
 #include <hstd/ext/graph/visual/graph_avoid.hpp>
 #include <hstd/ext/graph/visual/graph_visual.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
+
 
 namespace hstd::ext::graph::kw {
 
@@ -95,10 +97,16 @@ class KiwiGroup
     };
 
     std::string getRepr() const override { return "KiwiGroup"; }
-    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
+
+    void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
-        logic_todo_impl();
+        layout::IGroupVisualAttribute::writeSerial(out, graph);
+        kiwi::kw::KiwiGroupVisualAttributePayload load;
+        layout::IGroupVisualAttribute::writeSerialConstraints(
+            load.mutable_base()->mutable_constraints(), graph);
+        out->mutable_payload()->PackFrom(&load);
     }
+
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
@@ -173,6 +181,7 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
+        layout::IVertexLayoutAttribute::writeSerial(out, graph);
         logic_todo_impl();
     }
 
@@ -311,6 +320,16 @@ class RelativeConstraint : public KiwiConstraint {
     kiwi_ir::RelDimensionSpec x_dim;
     kiwi_ir::RelDimensionSpec y_dim;
 
+    void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
+
+    void readSerial(proto::IConstraint const* in, IGraph const* graph)
+        override {
+        logic_todo_impl();
+    }
+
     RelativeConstraint* setRelativeOffset(
         hstd::Opt<double> x,
         hstd::Opt<double> y) {
@@ -420,6 +439,16 @@ class LinearConstraint : public KiwiConstraint {
     kiwi_ir::Relation        rel;
 
   public:
+    void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
+
+    void readSerial(proto::IConstraint const* in, IGraph const* graph)
+        override {
+        logic_todo_impl();
+    }
+
     kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {
         vertices.incl(id);
         return run->getVertex(id)
@@ -507,8 +536,6 @@ class AlignConstraint : public KiwiConstraint {
         logic_todo_impl();
     }
 
-    DECL_DESCRIBED_ENUM(AxisAlign, Center, Top, Bottom, Left, Right);
-
     hstd::UnorderedMap<VertexID, kiwi_ir::AlignSpec> vertices;
     /// Which axis to partition nodes
     kiwi_ir::Axis dimension = kiwi_ir::Axis::X;
@@ -558,14 +585,23 @@ class SeparateConstraint : public KiwiConstraint {
     /// \brief Second lane to align
     AlignConstraint right;
     double          separationDistance = 1.0;
-    bool            isExactSeparation  = false;
     kiwi_ir::Axis   dimension          = kiwi_ir::Axis::X;
     DESC_FIELDS(
         SeparateConstraint,
-        (left, right, separationDistance, isExactSeparation, dimension));
+        (left, right, separationDistance, dimension));
 
     explicit SeparateConstraint(hstd::SPtr<KiwiGroup> const& group)
         : KiwiConstraint(group), left(group), right(group) {}
+
+    void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
+
+    void readSerial(proto::IConstraint const* in, IGraph const* graph)
+        override {
+        logic_todo_impl();
+    }
 
     VertexIDVec getAllVertices() const override {
         return left.getAllVertices() + right.getAllVertices();
@@ -596,11 +632,6 @@ class SeparateConstraint : public KiwiConstraint {
 
     SeparateConstraint* setSeparationDistance(double distance) {
         this->separationDistance = distance;
-        return this;
-    }
-
-    SeparateConstraint* setIsExactSeparation(bool exact) {
-        this->isExactSeparation = exact;
         return this;
     }
 
@@ -646,6 +677,16 @@ class MultiSeparateConstraint : public KiwiConstraint {
         (lines, dimension, separationDistance));
 
     using KiwiConstraint::KiwiConstraint;
+
+    void writeSerial(proto::IConstraint* out, IGraph const* graph)
+        const override {
+        logic_todo_impl();
+    }
+
+    void readSerial(proto::IConstraint const* in, IGraph const* graph)
+        override {
+        logic_todo_impl();
+    }
 
     VertexIDVec getAllVertices() const override {
         VertexIDVec res;

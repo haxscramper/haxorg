@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package htsd.ext.kiwi_ir.proto;
+
+enum Axis {
+  AXIS_X = 0;
+  AXIS_Y = 1;
+}
+
+enum Anchor {
+    ANCHOR_LEFT = 0;
+    ANCHOR_HCENTER = 1;
+    ANCHOR_RIGHT = 2;
+    ANCHOR_TOP = 3;
+    ANCHOR_VCENTER = 4;
+    ANCHOR_BOTTO = 5;
+}
+
+enum AnchorAxisRelative {
+  ANCHOR_AXIS_RELATIVE_MIN_POS = 0;
+  ANCHOR_AXIS_RELATIVE_MID_POS = 1;
+  ANCHOR_AXIS_RELATIVE_MAX_POS = 2;
+}
+
+enum RectAttr {
+    RECT_ATTR_X = 0;
+    RECT_ATTR_Y = 1;
+    RECT_ATTR_WIDTH = 2;
+    RECT_ATTR_HEIGHT = 3;
+    RECT_ATTR_LEFT = 4;
+    RECT_ATTR_HCENTER = 5;
+    RECT_ATTR_RIGHT = 6;
+    RECT_ATTR_TOP = 7;
+    RECT_ATTR_VCENTER = 8;
+    RECT_ATTR_BOTTOM = 9;
+}
+
+enum Relation {
+  RELATION_EQ = 0;
+  RELATION_LE = 1;
+  RELATION_GE = 2;
+}
+
+enum Strength {
+  STRENGTH_REQUIRED = 0;
+  STRENGTH_STRONG = 1;
+  STRENGTH_MEDIUM = 2;
+  STRENGTH_WEAK = 3;
+}
+
+message AnchorSpec {
+  Anchor x = 1;
+  Anchor y = 2;
+}
+
+message RectSpec2Side {
+  string rect_id = 1;
+  Anchor min_anchor = 2;
+  Anchor max_anchor = 3;
+}
+
+message RectSpec1Side {
+  string rect_id = 1;
+  Anchor anchor = 2;
+}
+
+message Expr {
+  message Node {
+    enum Kind {
+        EXPR_KIND_CONSTANT = 0;
+        EXPR_KIND_VARIABLE = 1;
+        EXPR_KIND_KIWI_EXPRESSION = 2;
+        EXPR_KIND_ADD = 3;
+        EXPR_KIND_SUB = 4;
+        EXPR_KIND_MUL = 5;
+        EXPR_KIND_NEG = 6;
+    };
+
+    Kind kind = 1;
+    double constant = 2;
+    repeated Node nested = 3;
+  }
+
+  Node node = 1;
+}
+
+message Constraint {
+  Expr lhs = 1;
+  Expr rhs = 2;
+  Relation op = 3;
+  optional double strenght = 4;
+}
+
+message Rect {
+  string rect_id = 1;
+  optional double x0 = 2;
+  optional double y0 = 3;
+  optional double width0 = 4;
+  optional double height0 = 5;
+}
+
+message AlignSpec {
+  Anchor anchor = 1;
+  double offset = 2;
+}
