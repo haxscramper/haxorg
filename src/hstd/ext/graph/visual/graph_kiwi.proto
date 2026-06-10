@@ -28,6 +28,7 @@ message KiwiEdgeLayoutAttributePayload {
 
 message KiwiVertexVisualAttributePayload {
   hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
+  htsd.ext.kiwi_ir.proto.Rect rect = 2;
 }
 
 message KiwiGroupVisualAttributePayload {
@@ -48,31 +49,33 @@ message KiwiConstraintPayload {
 
 
 
-message KiwiAlignConstraint {
+message KiwiAlignConstraintPayload {
   message Spec {
     string stable_vertex_id = 1;
     htsd.ext.kiwi_ir.proto.AlignSpec spec = 2;
   }
 
   KiwiConstraintPayload base = 1;
+  repeated Spec vertices  = 2;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 3;
 }
 
-message KiwiSeparateConstraint {
+message KiwiSeparateConstraintPayload {
   KiwiConstraintPayload base = 1;
-  KiwiAlignConstraint left = 2;
-  KiwiAlignConstraint right = 3;
+  KiwiAlignConstraintPayload left = 2;
+  KiwiAlignConstraintPayload right = 3;
   double separationDistance = 4;
   htsd.ext.kiwi_ir.proto.Axis dimension = 5;
 }
 
-message KiwiMultiSeparateConstraint {
+message KiwiMultiSeparateConstraintPayload {
   KiwiConstraintPayload base = 1;
-  repeated KiwiAlignConstraint lines = 2;
+  repeated KiwiAlignConstraintPayload lines = 2;
   double separationDistance = 3;
   htsd.ext.kiwi_ir.proto.Axis dimension = 4;
 }
 
-message KiwiLinearConstraint {
+message KiwiLinearConstraintPayload {
   KiwiConstraintPayload base = 1;
   htsd.ext.kiwi_ir.proto.Expr lhs = 2;
   htsd.ext.kiwi_ir.proto.Expr rhs = 3;

@@ -15,16 +15,23 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexAttribute"; }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        IGraph const*                        graph) const override {
+        kw::proto::KiwiVertexVisualAttributePayload load;
+        auto mr = load.mutable_rect();
+        if (rect.x0) { mr->set_x0(rect.x0.value()); }
+        if (rect.y0) { mr->set_y0(rect.y0.value()); }
+        if (rect.width0) { mr->set_width0(rect.width0.value()); }
+        if (rect.height0) { mr->set_height0(rect.height0.value()); }
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
@@ -66,15 +73,16 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
 class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiEdgeAttribute"; }
-    void        writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void        writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        IGraph const*                        graph) const override {
         logic_todo_impl();
     }
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 };
@@ -98,20 +106,21 @@ class KiwiGroup
 
     std::string getRepr() const override { return "KiwiGroup"; }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        IGraph const*                        graph) const override {
         layout::IGroupVisualAttribute::writeSerial(out, graph);
-        kiwi::kw::KiwiGroupVisualAttributePayload load;
+        kw::proto::KiwiGroupVisualAttributePayload load;
         layout::IGroupVisualAttribute::writeSerialConstraints(
             load.mutable_base()->mutable_constraints(), graph);
-        out->mutable_payload()->PackFrom(&load);
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
@@ -179,17 +188,18 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         return "KiwiVertexLayoutAttribute";
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        IGraph const*                        graph) const override {
         layout::IVertexLayoutAttribute::writeSerial(out, graph);
         logic_todo_impl();
     }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
@@ -223,16 +233,17 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         return "KiwiGroupLayoutAttribute";
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IAttribute* out,
+        IGraph const*                        graph) const override {
         logic_todo_impl();
     }
 
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
@@ -320,13 +331,15 @@ class RelativeConstraint : public KiwiConstraint {
     kiwi_ir::RelDimensionSpec x_dim;
     kiwi_ir::RelDimensionSpec y_dim;
 
-    void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const override {
         logic_todo_impl();
     }
 
-    void readSerial(proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph) override {
         logic_todo_impl();
     }
 
@@ -439,13 +452,15 @@ class LinearConstraint : public KiwiConstraint {
     kiwi_ir::Relation        rel;
 
   public:
-    void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const override {
         logic_todo_impl();
     }
 
-    void readSerial(proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph) override {
         logic_todo_impl();
     }
 
@@ -526,13 +541,28 @@ class LinearConstraint : public KiwiConstraint {
 
 class AlignConstraint : public KiwiConstraint {
   public:
-    void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const override {
+    void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const override {
         logic_todo_impl();
     }
 
-    void readSerial(proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void writePayload(
+        hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload* load,
+        IGraph const* graph) const {
+        for (auto const& v : vertices) {
+            auto spec = load->mutable_vertices()->Add();
+            spec->set_stable_vertex_id(rectId(v.first));
+            spec->mutable_spec()->set_offset(v.second.offset);
+            spec->mutable_spec()->set_anchor(
+                static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(
+                    v.second.anchor));
+        }
+    }
+
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph) override {
         logic_todo_impl();
     }
 
@@ -593,13 +623,21 @@ class SeparateConstraint : public KiwiConstraint {
     explicit SeparateConstraint(hstd::SPtr<KiwiGroup> const& group)
         : KiwiConstraint(group), left(group), right(group) {}
 
-    void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
+    void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const override {
+        kw::proto::KiwiSeparateConstraintPayload load;
+        left.writePayload(load.mutable_left(), graph);
+        right.writePayload(load.mutable_right(), graph);
+        load.set_separationdistance(separationDistance);
+        load.set_dimension(
+            static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        out->mutable_payload()->PackFrom(load);
     }
 
-    void readSerial(proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph) override {
         logic_todo_impl();
     }
 
@@ -678,13 +716,22 @@ class MultiSeparateConstraint : public KiwiConstraint {
 
     using KiwiConstraint::KiwiConstraint;
 
-    void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
+    void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const override {
+        kw::proto::KiwiMultiSeparateConstraintPayload load;
+        for (auto const& line : lines) {
+            line.writePayload(load.add_lines(), graph);
+        }
+        load.set_dimension(
+            static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        load.set_separationdistance(separationDistance);
+        out->mutable_payload()->PackFrom(load);
     }
 
-    void readSerial(proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph) override {
         logic_todo_impl();
     }
 
