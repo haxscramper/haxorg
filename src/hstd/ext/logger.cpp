@@ -168,33 +168,13 @@ class log_sink_manager {
 hstd::log::log_sink_scope::log_sink_scope()
     : previous_sinks_(log_sink_manager::instance().get_sinks()) {}
 
-hstd::log::log_sink_scope::~log_sink_scope() { restore(); }
-
-hstd::log::log_sink_scope::log_sink_scope(log_sink_scope&& other) noexcept
-    : active_(other.active_)
-    , previous_sinks_(std::move(other.previous_sinks_)) {
-    other.active_ = false;
-}
-
-hstd::log::log_sink_scope& hstd::log::log_sink_scope::operator=(
-    log_sink_scope&& other) noexcept {
-    if (this != &other) {
-        restore();
-        active_         = other.active_;
-        previous_sinks_ = std::move(other.previous_sinks_);
-        other.active_   = false;
-    }
-    return *this;
-}
-
-void hstd::log::log_sink_scope::restore() noexcept {
-    if (active_) {
+hstd::log::log_sink_scope::~log_sink_scope() {
+    if (!moved) {
         log_sink_manager::instance().set_sinks(previous_sinks_);
-        active_ = false;
     }
 }
 
-log_sink_scope& hstd::log::log_sink_scope::drop_current_sinks() {
+log_sink_scope& log_sink_scope::drop_current_sinks() {
     clear_sink_backends();
     return *this;
 }

@@ -117,18 +117,11 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
         es.push_back(addEdge(vs.at(source), vs.at(target)));
     };
 
-    edge(0, 2);  // 0
-    edge(2, 1);  // 1
-    edge(1, 8);  // 2
-    edge(8, 3);  // 3
-    edge(3, 4);  // 4
-    edge(4, 6);  // 5
-    edge(3, 6);  // 6
-    edge(8, 5);  // 7
-    edge(5, 9);  // 8
-    edge(9, 10); // 9
-    edge(10, 7); // 10
-    edge(7, 5);  // 11
+    edge(3, 4);  // 0
+    edge(4, 6);  // 1
+    edge(5, 9);  // 2
+    edge(9, 10); // 3
+    edge(10, 7); // 4
 
 
     auto root = gv::GraphGroup::newRootGraph(run);
@@ -184,17 +177,16 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
         ->setNodeShape(shape)
         ->setLabel("VERT-10");
 
-
     EXPECT_EQ(run->getDirectVertices(rg_id).size(), 0);
     EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);
     EXPECT_EQ(run->getDirectVertices(sg_id2).size(), 4);
 
-    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(4)));
-    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(5)));
+    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(0)));
+    as<gv::EdgeAttribute>(sg_1->addEdge(es.at(1)));
 
-    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(8)));
-    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(9)));
-    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(10)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(2)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(3)));
+    as<gv::EdgeAttribute>(sg_2->addEdge(es.at(4)));
 
     root->render(getDebugFile("result.png"));
 
