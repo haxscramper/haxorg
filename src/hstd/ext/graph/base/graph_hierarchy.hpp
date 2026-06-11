@@ -232,6 +232,8 @@ struct TrivialHierarchy : public IVertexHierarchy {
         return edgeStore.contains(id);
     }
 
+    void addEdge(EdgeID const& id, TrivialEdge const& init_vertex);
+
     EdgeID trackSubVertexRelation(
         VertexID const&               parent,
         VertexID const&               sub,

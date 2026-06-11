@@ -323,6 +323,14 @@ class RelativeConstraint : public KiwiConstraint {
     struct VertexRef {
         VertexID            id     = VertexID::Nil();
         kiwi_ir::AnchorSpec anchor = kiwi_ir::AnchorSpec::UpperLeft();
+
+        void writeSerial(
+            hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::
+                VertexRef* vr,
+            IGraph const*  graph) const {
+            vr->set_stable_vertex_id(graph->getStableId(id));
+            anchor.writeSerial(vr->mutable_anchor());
+        }
     };
 
     VertexRef fixed;
@@ -334,7 +342,12 @@ class RelativeConstraint : public KiwiConstraint {
     void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const override {
-        logic_todo_impl();
+        hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload load;
+        fixed.writeSerial(load.mutable_fixed(), graph);
+        relative.writeSerial(load.mutable_relative(), graph);
+        x_dim.writeSerial(load.mutable_x_dim());
+        y_dim.writeSerial(load.mutable_y_dim());
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
@@ -455,7 +468,12 @@ class LinearConstraint : public KiwiConstraint {
     void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const override {
-        logic_todo_impl();
+        hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
+        load.set_op(
+            static_cast<::htsd::ext::kiwi_ir::proto::Relation>(rel));
+        lhs.value().writeSerial(load.mutable_lhs());
+        rhs.value().writeSerial(load.mutable_rhs());
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
@@ -541,10 +559,24 @@ class LinearConstraint : public KiwiConstraint {
 
 class AlignConstraint : public KiwiConstraint {
   public:
+    hstd::UnorderedMap<VertexID, kiwi_ir::AlignSpec> vertices;
+    /// Which axis to partition nodes
+    kiwi_ir::Axis dimension = kiwi_ir::Axis::X;
+    DESC_FIELDS(AlignConstraint, (vertices, dimension));
+
     void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const override {
-        logic_todo_impl();
+        hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload load;
+        for (auto const& [id, spec] : vertices) {
+            auto added = load.mutable_vertices()->Add();
+            spec.writeSerial(added->mutable_spec());
+            added->set_stable_vertex_id(rectId(id));
+        }
+
+        load.set_dimension(
+            static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        out->mutable_payload()->PackFrom(load);
     }
 
     void writePayload(
@@ -566,10 +598,6 @@ class AlignConstraint : public KiwiConstraint {
         logic_todo_impl();
     }
 
-    hstd::UnorderedMap<VertexID, kiwi_ir::AlignSpec> vertices;
-    /// Which axis to partition nodes
-    kiwi_ir::Axis dimension = kiwi_ir::Axis::X;
-    DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
     using KiwiConstraint::KiwiConstraint;
 

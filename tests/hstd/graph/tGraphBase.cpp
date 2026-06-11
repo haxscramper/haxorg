@@ -117,6 +117,7 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
     h->trackVertex(b);
 
     auto e = h->getNestingEdgeID(a, b);
+    h->addEdge(e, TrivialEdge{"trivial-edge-1"});
 
     g.trackSubVertexRelation(
         h->getCollectionID(), e, /*parent=*/a, /*sub=*/b);

@@ -81,3 +81,15 @@ message KiwiLinearConstraintPayload {
   htsd.ext.kiwi_ir.proto.Expr rhs = 3;
   htsd.ext.kiwi_ir.proto.Relation op = 4;
 }
+
+message KiwiRelativeConstraintPayload {
+  message VertexRef {
+    string stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AnchorSpec anchor = 2;
+  }
+
+  VertexRef fixed = 1;
+  VertexRef relative = 2;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec x_dim = 3;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec y_dim = 4;
+}

@@ -78,7 +78,9 @@ message Expr {
 
     Kind kind = 1;
     double constant = 2;
-    repeated Node nested = 3;
+    optional Node lhs = 4;
+    optional Node rhs = 5;
+    optional string variable = 6;
   }
 
   Node node = 1;
@@ -102,4 +104,19 @@ message Rect {
 message AlignSpec {
   Anchor anchor = 1;
   double offset = 2;
+}
+
+message RelDimensionSpec {
+  optional double size_factor = 1;
+  optional double relative_offset = 2;
+  double absolute_offset = 3;
+}
+
+message RelativeConstraint {
+  string relative_rect_id = 1;
+  string fixed_rect_id = 2;
+  RelDimensionSpec x_dim = 3;
+  RelDimensionSpec y_dim = 4;
+  AnchorSpec anchor_fixed = 5;
+  AnchorSpec anchor_relative = 6;
 }

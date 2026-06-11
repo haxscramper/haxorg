@@ -17,6 +17,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>
 struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
@@ -110,6 +111,11 @@ struct AnchorSpec {
         return AnchorSpec(Anchor::HCENTER, Anchor::VCENTER);
     }
 
+    void writeSerial(htsd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
+        anc->set_x(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(x));
+        anc->set_y(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(y));
+    }
+
     DESC_FIELDS(AnchorSpec, (x, y));
 };
 
@@ -197,6 +203,17 @@ class Expr {
         std::shared_ptr<Node>           rhs;
         int                             origin_line     = -1;
         char const*                     origin_function = nullptr;
+
+        void writeSerial(
+            ::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
+            if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
+            if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
+            n->set_constant(constant);
+            n->set_kind(
+                static_cast<::htsd::ext::kiwi_ir::proto::Expr::Node::Kind>(
+                    kind));
+            n->set_variable(variable->name());
+        }
     };
 
     std::shared_ptr<Node> node;
@@ -208,6 +225,8 @@ class Expr {
         node->origin_function = function;
         return *this;
     }
+
+    void writeSerial(::htsd::ext::kiwi_ir::proto::Expr* e) const {}
 
   private:
     explicit Expr(std::shared_ptr<Node> node);
@@ -344,6 +363,12 @@ struct AlignSpec {
     /// rectangles.
     Anchor anchor;
     double offset = 0.0;
+
+    void writeSerial(::htsd::ext::kiwi_ir::proto::AlignSpec* as) const {
+        as->set_anchor(
+            static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
+        as->set_offset(offset);
+    }
 };
 
 struct AlignItem {
@@ -481,6 +506,19 @@ struct RelDimensionSpec {
     DESC_FIELDS(
         RelDimensionSpec,
         (size_factor, relative_offset, absolute_offset));
+
+    void writeSerial(
+        ::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
+        if (size_factor.has_value()) {
+            rd->set_size_factor(size_factor.value());
+        }
+
+        if (relative_offset.has_value()) {
+            rd->set_relative_offset(relative_offset.value());
+        }
+
+        rd->set_absolute_offset(absolute_offset);
+    }
 };
 
 /// \brief Constrain the nested rectangle position in relation to the

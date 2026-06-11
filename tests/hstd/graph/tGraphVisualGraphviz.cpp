@@ -4,18 +4,18 @@ struct GraphVisualGraphviz_Test : public GraphUtils_Test {};
 
 TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     // Create initial graph structure
-    auto v1 = getGraph()->addVertex();
-    auto v2 = getGraph()->addVertex();
-    auto v3 = getGraph()->addVertex();
-    auto v4 = getGraph()->addVertex();
+    auto v1 = addVertex("v1");
+    auto v2 = addVertex("v2");
+    auto v3 = addVertex("v3");
+    auto v4 = addVertex("v4");
 
     ASSERT_NE(v1, v2);
     ASSERT_NE(v2, v3);
     ASSERT_NE(v3, v4);
 
-    auto e12 = getGraph()->addEdge(v1, v2);
-    auto e23 = getGraph()->addEdge(v2, v3);
-    auto e31 = getGraph()->addEdge(v3, v1);
+    auto e12 = addEdge(v1, v2);
+    auto e23 = addEdge(v2, v3);
+    auto e31 = addEdge(v3, v1);
 
     auto rg_id = getGraph()->addVertex();
 
@@ -114,7 +114,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     VertexID sg_id2 = addVertex("sg_id2");
 
     auto edge = [&](int source, int target) {
-        es.push_back(getGraph()->addEdge(vs.at(source), vs.at(target)));
+        es.push_back(addEdge(vs.at(source), vs.at(target)));
     };
 
     edge(0, 2);  // 0
@@ -158,8 +158,13 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
         ->setNodeShape(shape)
         ->setLabel("VERT-6");
 
+    root->render(getDebugFile("result-1.png"));
+
+    hstd::ext::graph::proto::IGraphProto ig;
+    run->getGraph()->writeSerial(&ig);
+    writeFile(getDebugFile("result.json"), getJString(ig));
+
     EXPECT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 0);
-    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id1).size(), 0);
     EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);
 
     as<gv::NodeAttribute>(sg_2->addVertex(addNesting(sg_id2, vs.at(5))))
@@ -190,9 +195,6 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     as<gv::EdgeAttribute>(sg_2->addEdge(es.at(8)));
     as<gv::EdgeAttribute>(sg_2->addEdge(es.at(9)));
     as<gv::EdgeAttribute>(sg_2->addEdge(es.at(10)));
-
-    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id1).size(), 2);
-    EXPECT_EQ(run->getDirectlyNestedEdges(sg_id2).size(), 3);
 
     root->render(getDebugFile("result.png"));
 

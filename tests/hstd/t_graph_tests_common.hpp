@@ -78,7 +78,13 @@ class GraphUtils_Test : public ::testing::Test {
     EdgeID addNesting(VertexID const& parent, VertexID const& sub) {
         trackHierarchyVertex(parent);
         trackHierarchyVertex(sub);
-        return getHierarchy()->trackSubVertexRelation(parent, sub);
+        return getHierarchy()->trackSubVertexRelation(
+            parent,
+            sub,
+            TrivialEdge{hstd::fmt(
+                "{}-{}",
+                state.graph->getStableId(parent),
+                state.graph->getStableId(sub))});
     }
 
     PortID addPort(
@@ -106,6 +112,16 @@ class GraphUtils_Test : public ::testing::Test {
         VertexID const&  target,
         hstd::Str const& id_override) {
         return getGraph()->addEdge(source, target, id_override);
+    }
+
+    EdgeID addEdge(VertexID const& source, VertexID const& target) {
+        return addEdge(
+            source,
+            target,
+            hstd::fmt(
+                "{}-{}",
+                state.graph->getStableId(source),
+                state.graph->getStableId(target)));
     }
 
     hstd::SPtr<layout::LayoutRun>   run;

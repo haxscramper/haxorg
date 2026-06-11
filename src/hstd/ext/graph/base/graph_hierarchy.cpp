@@ -145,14 +145,6 @@ void IVertexHierarchy::trackSubVertexRelation(
     VertexID const& parent,
     VertexID const& sub) {
 
-    LOGIC_ASSERTION_CHECK_FMT(
-        hasEdge(edge),
-        "Edge nesting tracking must be done after the edge ID is "
-        "already associated with an object in the edge collection. "
-        "hasEdge({}) = false",
-        edge);
-
-
     if (!vertexIDs.contains(parent)) {
         throw graph_error::init(
             std::format(vertex_not_found_msg, "parent ", parent));
@@ -162,6 +154,14 @@ void IVertexHierarchy::trackSubVertexRelation(
         throw graph_error::init(
             std::format(vertex_not_found_msg, "sub ", sub));
     }
+
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        hasEdge(edge),
+        "Edge nesting tracking must be done after the edge ID is "
+        "already associated with an object in the edge collection. "
+        "hasEdge({}) = false",
+        edge);
 
     if (parentMap.contains(sub)) {
         throw graph_error::init(
@@ -524,18 +524,22 @@ hstd::Vec<PortID> hstd::ext::graph::AutoSegmentingCollection::
          | hstd::rs::to<Vec>();
 }
 
+void hstd::ext::graph::TrivialHierarchy::addEdge(
+    EdgeID const&      id,
+    TrivialEdge const& init_vertex) {
+    edgeStore.insert_or_assign(id, init_vertex);
+}
+
 EdgeID TrivialHierarchy::trackSubVertexRelation(
     VertexID const&               parent,
     VertexID const&               sub,
     hstd::Opt<TrivialEdge> const& init_vertex) {
     auto id = getNestingEdgeID(parent, sub);
-    edgeStore.insert_or_assign(
+    addEdge(
         id,
         init_vertex.has_value()
             ? init_vertex.value()
             : TrivialEdge{hstd::fmt("{}-{}", parent, sub)});
-
     IVertexHierarchy::trackSubVertexRelation(id, parent, sub);
-
     return id;
 }
