@@ -1,5 +1,7 @@
 #include "adaptagrams_common.hpp"
 
+#if ORG_BUILD_WITH_ADAPTAGRAMS
+
 namespace hstd::ext::graph::adapt {
 
 
@@ -51,3 +53,5 @@ geometry::Path to_hstd_path(Avoid::Polygon const& input) {
 
 
 } // namespace hstd::ext::graph::adapt
+
+#endif

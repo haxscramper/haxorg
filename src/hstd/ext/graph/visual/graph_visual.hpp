@@ -181,6 +181,7 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerialConstraints(
         google::protobuf::RepeatedPtrField<proto::IConstraint>* out,
         IGraph const* graph) const;
@@ -190,6 +191,7 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         IGraph const*                                              graph,
         IGraphSerialReaderFactory*                                 factory,
         IAttributeObject const*                                    vertex);
+#endif
 };
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
@@ -197,6 +199,7 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
     std::string getRepr() const override {
         return "UnboundEdgeVisualAttr";
     }
+#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
@@ -209,10 +212,12 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
         const override {
         logic_todo_impl();
     }
+#endif
 };
 
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
+#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
@@ -225,6 +230,7 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
         const override {
         logic_todo_impl();
     }
+#endif
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}

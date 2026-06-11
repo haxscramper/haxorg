@@ -49,6 +49,7 @@ struct TrivialEdge
     using IEdge::IEdge;
 
   public:
+#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         proto::IEdge const*        in,
         IGraph const*              graph,
@@ -56,6 +57,7 @@ struct TrivialEdge
         IAttributeObject::readSerial(
             &in->attributes(), graph, factory, this);
     }
+#endif
 };
 
 
@@ -169,6 +171,7 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
+#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         proto::IEdgeCollection* out,
         IGraph const*           graph) const = 0;
@@ -177,6 +180,7 @@ class IEdgeCollection : public IEdgeProvider {
         proto::IEdgeCollection const* in,
         IGraph const*                 graph,
         IGraphSerialReaderFactory*    factory) = 0;
+#endif
 
     bool isTrackingEdge(EdgeID const& id) const override {
         bool res = source_target.contains(id);
@@ -305,6 +309,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         IEdgeCollection::trackEdge(id, source, target);
     }
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
         const override {
         IEdgeCollection::writeSerial(out, graph);
@@ -316,6 +321,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         proto::IEdgeCollection const* in,
         IGraph const*                 graph,
         IGraphSerialReaderFactory*    factory) override;
+#endif
 };
 
 struct IdOnlyEdgeCollection : public IEdgeCollection {

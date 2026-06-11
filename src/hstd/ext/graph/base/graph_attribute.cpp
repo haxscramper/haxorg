@@ -19,6 +19,7 @@ hstd::Vec<hstd::Str> hstd::ext::graph::IAttributeObject::getAttributeRepr()
     return result;
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IAttributeObject::writeSerial(
     ::google::protobuf::RepeatedPtrField<proto::IAttribute>* out,
     IGraph const*                                            graph) const {
@@ -43,3 +44,5 @@ void hstd::ext::graph::IAttributeObject::readSerial(
     OP_TRACER_MESSAGE(factory, "Read {} attributes", attrs.size());
     setAttributes(attrs);
 }
+
+#endif

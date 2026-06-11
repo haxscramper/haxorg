@@ -1,7 +1,9 @@
 #include "kiwi_ir.hpp"
 
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
+#if ORG_BUILD_WITH_KIWI
+
+#    include <hstd/stdlib/ColText.hpp>
+#    include <hstd/stdlib/Enumerate.hpp>
 
 namespace hstd::ext::kiwi_ir {
 namespace {
@@ -477,3 +479,4 @@ Str flat_repr(Constraint const& c, bool full_flatten) {
 
 
 } // namespace hstd::ext::kiwi_ir
+#endif ORG_BUILD_WITH_KIWI

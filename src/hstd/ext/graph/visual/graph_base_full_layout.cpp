@@ -1,3 +1,4 @@
+#include <hstd/ext/graph/visual/graph_visual.hpp>
 #include <hstd/ext/graph/base/graph_base.hpp>
 
 #include <hstd/stdlib/algorithms.hpp>
@@ -136,6 +137,7 @@ void layout_run_full_layout(layout::LayoutRun* run) {
     //     run->getDebug(missing_graph_vertices));
 }
 
+#if ORG_BUILD_WITH_ADAPTAGRAMS
 void run_placement_with_subset(
     layout::LayoutRun* run,
     EdgeIDSet const&   edge_set,
@@ -176,6 +178,7 @@ void run_placement_with_subset(
         run->result.edges.insert_or_assign(edge, attr);
     }
 }
+#endif
 
 void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
     auto __scope = run->begin_scope(
@@ -204,6 +207,7 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         }
     }
 
+#if ORG_BUILD_WITH_ADAPTAGRAMS
     hstd::logic_assertion_check_not_nil(run);
     run_placement_with_subset(
         run, vertex_vertex_edges, vertex_set, "vertex_only_routing");
@@ -213,11 +217,14 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         group_vertex_edges,
         group_set + vertex_set,
         "vertex_and_group_routing");
+#endif
 }
 
 } // namespace
 
 void layout::LayoutRun::runFullLayout() {
     layout_run_full_layout(this);
+#if ORG_BUILD_WITH_ADAPTAGRAMS
     layout_run_unbound_edge_placement(this);
+#endif
 }

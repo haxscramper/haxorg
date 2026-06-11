@@ -1,5 +1,6 @@
 #include "graph_vertex.hpp"
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IVertex::writeSerial(
     proto::IVertex* out,
     IGraph const*   graph,
@@ -17,3 +18,5 @@ void hstd::ext::graph::IVertex::readSerial(
     OP_TRACER_MESSAGE(
         factory, "read {} attributes", getAttributes().size());
 }
+
+#endif

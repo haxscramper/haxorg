@@ -121,6 +121,7 @@ void hstd::ext::graph::IPortCollection::connectPort(
     }
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IPortCollection::writeSerial(
     proto::IPortCollection* out,
     IGraph const*           graph) const {}
@@ -129,6 +130,7 @@ void hstd::ext::graph::IPortCollection::readSerial(
     proto::IPortCollection const* in,
     IGraph const*                 graph,
     IGraphSerialReaderFactory*    factory) {}
+#endif
 
 bool hstd::ext::graph::IPortCollection::isSourcePort(PortID pid) const {
     getPortIterator(pid);

@@ -54,7 +54,6 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
     use_protobuf: bool = True
-    use_msgpack: bool = True
     use_cgraph: bool = Field(default=True, description="Enable features using cgraph")
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"

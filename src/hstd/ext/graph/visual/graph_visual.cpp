@@ -299,6 +299,7 @@ hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
     return run->getGraph();
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void layout::IGroupVisualAttribute::writeSerialConstraints(
     google::protobuf::RepeatedPtrField<
         hstd::ext::graph::proto::IConstraint>* out,
@@ -319,6 +320,7 @@ void layout::IGroupVisualAttribute::readSerialConstraints(
         constraints.push_back(new_constraint);
     }
 }
+#endif
 
 hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
     EdgeIteration::getEdgesForGroup(VertexID const& id) {

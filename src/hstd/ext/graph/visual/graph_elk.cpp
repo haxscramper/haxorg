@@ -1061,6 +1061,7 @@ Payload unpack_attr_payload(
 
 } // namespace
 
+#    if ORG_BUILD_WITH_PROTOBUF
 void ElkPortVisualAttribute::writeSerial(
     ::hstd::ext::graph::proto::IAttribute* out,
     IGraph const*) const {
@@ -1245,6 +1246,8 @@ void ElkGroupLayoutAttribute::readSerial(
     hstd::serde::read_serde(load.base().bbox(), &bbox_value);
     bbox = bbox_value;
 }
+
+#    endif
 
 } // namespace hstd::ext::graph::elk
 

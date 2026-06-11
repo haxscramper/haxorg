@@ -37,6 +37,7 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
+#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         proto::IVertexHierarchy* out,
         IGraph const*            graph) const;
@@ -45,6 +46,8 @@ class IVertexHierarchy : public IEdgeProvider {
         proto::IVertexHierarchy const* in,
         IGraph const*                  graph,
         IGraphSerialReaderFactory*     factory);
+#endif
+
 
     int getVertexCount() const { return vertexIDs.size(); }
 
@@ -312,6 +315,7 @@ class AutoSegmentingCollection : public IEdgeCollection {
         return segmented_edges->hasEdge(id);
     }
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
         const override {
         IEdgeCollection::writeSerial(out, graph);
@@ -325,6 +329,7 @@ class AutoSegmentingCollection : public IEdgeCollection {
         IGraphSerialReaderFactory*    factory) override {
         IEdgeCollection::readSerial(in, graph, factory);
     }
+#endif
 };
 
 } // namespace hstd::ext::graph

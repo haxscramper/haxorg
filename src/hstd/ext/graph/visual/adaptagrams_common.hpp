@@ -1,15 +1,17 @@
 #pragma once
 
-#pragma clang diagnostic ignored "-Wunknown-attributes"
+#if ORG_BUILD_WITH_ADAPTAGRAMS
 
-#pragma warning(push, 0)
-#include <libavoid/libavoid.h>
-#include <libdialect/graphs.h>
-#pragma warning(pop)
+#    pragma clang diagnostic ignored "-Wunknown-attributes"
 
-#include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <hstd/ext/geometry/hstd_visual.hpp>
-#include <hstd/ext/graph/base/graph_base.hpp>
+#    pragma warning(push, 0)
+#    include <libavoid/libavoid.h>
+#    include <libdialect/graphs.h>
+#    pragma warning(pop)
+
+#    include <hstd/ext/geometry/hstd_geometry.hpp>
+#    include <hstd/ext/geometry/hstd_visual.hpp>
+#    include <hstd/ext/graph/base/graph_base.hpp>
 
 namespace hstd::ext::graph::adapt {
 
@@ -82,3 +84,5 @@ struct std::formatter<vpsc::Rectangle> : std::formatter<std::string> {
             ctx);
     }
 };
+
+#endif

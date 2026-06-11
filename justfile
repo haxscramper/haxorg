@@ -44,7 +44,7 @@ run_uv_install_test:
   uv run ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg --test-package tests/vendor/haxorg_py_test_package
 
 run_github_ci:
-  act push  --container-options "--cpus 24"
+  act push  --container-options "--cpus 24" --reuse
 
 run_haxorg_codegen_and_tests: run_haxorg_only_source_generation run_py_tests
 

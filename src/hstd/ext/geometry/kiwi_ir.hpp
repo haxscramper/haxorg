@@ -1,23 +1,25 @@
 #pragma once
 
-#include "hstd/stdlib/Map.hpp"
-#include "hstd/stdlib/Outcome.hpp"
-#include <optional>
-#include <variant>
+#if ORG_BUILD_WITH_KIWI
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Xml.hpp>
-#include <hstd/system/reflection.hpp>
-#include <kiwi/constraint.h>
-#include <kiwi/expression.h>
-#include <kiwi/solver.h>
-#include <kiwi/symbolics.h>
-#include <kiwi/variable.h>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <src/hstd/ext/geometry/kiwi_ir.pb.h>
+#    include "hstd/stdlib/Map.hpp"
+#    include "hstd/stdlib/Outcome.hpp"
+#    include <optional>
+#    include <variant>
+
+#    include <hstd/stdlib/Filesystem.hpp>
+#    include <hstd/stdlib/Xml.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <kiwi/constraint.h>
+#    include <kiwi/expression.h>
+#    include <kiwi/solver.h>
+#    include <kiwi/symbolics.h>
+#    include <kiwi/variable.h>
+#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/Variant.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/ext/geometry/hstd_geometry.hpp>
+#    include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>
 struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
@@ -111,10 +113,13 @@ struct AnchorSpec {
         return AnchorSpec(Anchor::HCENTER, Anchor::VCENTER);
     }
 
+
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(htsd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
         anc->set_x(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(x));
         anc->set_y(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(y));
     }
+#    endif
 
     DESC_FIELDS(AnchorSpec, (x, y));
 };
@@ -204,6 +209,7 @@ class Expr {
         int                             origin_line     = -1;
         char const*                     origin_function = nullptr;
 
+#    if ORG_BUILD_WITH_PROTOBUF
         void writeSerial(
             ::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
             if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
@@ -214,6 +220,7 @@ class Expr {
                     kind));
             n->set_variable(variable->name());
         }
+#    endif
     };
 
     std::shared_ptr<Node> node;
@@ -226,7 +233,9 @@ class Expr {
         return *this;
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::htsd::ext::kiwi_ir::proto::Expr* e) const {}
+#    endif
 
   private:
     explicit Expr(std::shared_ptr<Node> node);
@@ -364,11 +373,13 @@ struct AlignSpec {
     Anchor anchor;
     double offset = 0.0;
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::htsd::ext::kiwi_ir::proto::AlignSpec* as) const {
         as->set_anchor(
             static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
         as->set_offset(offset);
     }
+#    endif
 };
 
 struct AlignItem {
@@ -507,6 +518,7 @@ struct RelDimensionSpec {
         RelDimensionSpec,
         (size_factor, relative_offset, absolute_offset));
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         ::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
         if (size_factor.has_value()) {
@@ -519,6 +531,7 @@ struct RelDimensionSpec {
 
         rd->set_absolute_offset(absolute_offset);
     }
+#    endif
 };
 
 /// \brief Constrain the nested rectangle position in relation to the
@@ -663,3 +676,4 @@ class Layout {
 };
 
 } // namespace hstd::ext::kiwi_ir
+#endif

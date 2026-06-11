@@ -55,6 +55,7 @@ struct MapNodeProp
 
     std::string getRepr() const override { return "MapNodeProp"; }
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         hstd::ext::graph::IGraph const*      graph) const override {}
@@ -69,6 +70,7 @@ struct MapNodeProp
             "Construct immutable AST context and rebuild the graph from "
             "it");
     }
+#endif
 };
 
 struct MapEdgeProp
@@ -79,6 +81,8 @@ struct MapEdgeProp
 
     std::string getRepr() const override { return "MapEdgeProp"; }
 
+
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         hstd::ext::graph::IGraph const*      graph) const override {
@@ -92,6 +96,7 @@ struct MapEdgeProp
         hstd::ext::graph::IAttributeObject const*    vertex) override {
         logic_todo_impl();
     }
+#endif
 };
 
 
@@ -150,6 +155,7 @@ struct MapNode
 
 
   public:
+#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IVertex const*      in,
         hstd::ext::graph::IGraph const*              graph,
@@ -162,6 +168,7 @@ struct MapNode
         hgraph::proto::IVertex* out,
         hgraph::IGraph const*   graph,
         hgraph::VertexID const& self_id) const override;
+#endif
 };
 
 struct MapEdge
@@ -170,6 +177,8 @@ struct MapEdge
     DESC_FIELDS(MapEdge, ());
     using hgraph::IEdge::IEdge;
 
+
+#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IEdge const*        in,
         hstd::ext::graph::IGraph const*              graph,
@@ -178,6 +187,7 @@ struct MapEdge
             "imm org map graph does not support de-serialization, build "
             "immutable AST context and build the graph from it.");
     }
+#endif
 };
 
 
@@ -205,6 +215,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
     DESC_FIELDS(MapEdgeCollection, ());
 
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IEdgeCollection* out,
         hstd::ext::graph::IGraph const*           graph) const override;
@@ -213,6 +224,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
         hstd::ext::graph::proto::IEdgeCollection const* in,
         hstd::ext::graph::IGraph const*                 graph,
         hstd::ext::graph::IGraphSerialReaderFactory*    factory) override;
+#endif
 };
 
 } // namespace org::graph

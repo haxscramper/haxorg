@@ -36,6 +36,7 @@ struct TrivialVertex
         return hstd::fmt("IVertex({})", getStableId());
     }
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         proto::IVertex* out,
         IGraph const*   graph,
@@ -50,6 +51,7 @@ struct TrivialVertex
         IGraphSerialReaderFactory* factory) override {
         IVertex::readSerial(in, graph, factory);
     }
+#endif
 };
 
 

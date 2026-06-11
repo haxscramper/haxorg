@@ -154,6 +154,7 @@ class IAttributeObject {
         setAttributes(new_list);
     }
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         ::google::protobuf::RepeatedPtrField<
             ::hstd::ext::graph::proto::IAttribute>* out,
@@ -165,6 +166,7 @@ class IAttributeObject {
         IGraph const*                                     graph,
         IGraphSerialReaderFactory*                        factory,
         IAttributeObject const*                           vertex);
+#endif
 };
 
 class TrivialAttributeObject : public virtual IAttributeObject {

@@ -1,19 +1,20 @@
 #pragma once
 
-#include "hstd/ext/hstd_serde.hpp"
-#include "hstd/system/exceptions.hpp"
-#include <hstd/ext/graph/base/graph_base.hpp>
-#include <hstd/ext/graph/visual/graph_visual.hpp>
-#include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#include <libdialect/hola.h>
-#include <hstd/ext/bimap_wrap.hpp>
-#include <hstd/stdlib/algorithms.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/ext/graph/visual/graph_vpsc.hpp>
+#if ORG_BUILD_WITH_ADAPTAGRAMS
 
-#include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
-#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
-#include <hstd/ext/geometry/hstd_visual_serde.hpp>
+#    include "hstd/ext/hstd_serde.hpp"
+#    include "hstd/system/exceptions.hpp"
+#    include <hstd/ext/graph/base/graph_base.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd/ext/bimap_wrap.hpp>
+#    include <hstd/stdlib/algorithms.hpp>
+#    include <hstd/ext/logger.hpp>
+#    include <hstd/ext/graph/visual/graph_vpsc.hpp>
+
+#    include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
+#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#    include <hstd/ext/geometry/hstd_visual_serde.hpp>
 
 namespace hstd::ext::graph::cst {
 
@@ -26,6 +27,7 @@ class AvoidPort
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
   public:
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override {
         hstd::ext::graph::avoid::proto::PortVisualAttributePayload load;
@@ -45,6 +47,7 @@ class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
         visibility = static_cast<VisibilityDirection>(load.visibility());
         if (load.has_edge_offset()) { edgeOffset = load.edge_offset(); }
     }
+#    endif
 
     DECL_DESCRIBED_ENUM(VisibilityDirection, Left, Right, Top, Bottom);
     VisibilityDirection visibility;
@@ -207,3 +210,4 @@ class AvoidRouterAlgorithm {
     Result routeEdges();
 };
 } // namespace hstd::ext::graph::cst
+#endif

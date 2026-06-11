@@ -1,20 +1,22 @@
 #include "kiwi_ir.hpp"
-#include "hstd/stdlib/Debug.hpp"
+#if ORG_BUILD_WITH_KIWI
 
-#include <algorithm>
-#include <filesystem>
-#include <format>
-#include <sstream>
-#include <stdexcept>
+#    include "hstd/stdlib/Debug.hpp"
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topological_sort.hpp>
-#include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
-#include <hstd/stdlib/Ranges.hpp>
+#    include <algorithm>
+#    include <filesystem>
+#    include <format>
+#    include <sstream>
+#    include <stdexcept>
+
+#    include <boost/geometry.hpp>
+#    include <boost/geometry/geometries/box.hpp>
+#    include <boost/geometry/geometries/point.hpp>
+#    include <boost/graph/adjacency_list.hpp>
+#    include <boost/graph/topological_sort.hpp>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd/stdlib/Enumerate.hpp>
+#    include <hstd/stdlib/Ranges.hpp>
 
 namespace hstd::ext::kiwi_ir {
 
@@ -1495,3 +1497,5 @@ void Layout::verify_constraints() {
 
 
 } // namespace hstd::ext::kiwi_ir
+
+#endif

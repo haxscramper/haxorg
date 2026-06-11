@@ -1,12 +1,14 @@
 #pragma once
 
-#include <hstd/ext/geometry/kiwi_ir.hpp>
-#include <hstd/ext/graph/base/graph_base.hpp>
-#include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#include <hstd/ext/graph/visual/graph_avoid.hpp>
-#include <hstd/ext/graph/visual/graph_visual.hpp>
-#include <hstd/stdlib/algorithms.hpp>
-#include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
+#if ORG_BUILD_WITH_KIWI
+
+#    include <hstd/ext/geometry/kiwi_ir.hpp>
+#    include <hstd/ext/graph/base/graph_base.hpp>
+#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd/ext/graph/visual/graph_avoid.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/stdlib/algorithms.hpp>
+#    include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 
 namespace hstd::ext::graph::kw {
@@ -15,6 +17,7 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexAttribute"; }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         IGraph const*                        graph) const override {
@@ -34,6 +37,7 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     KiwiVertexAttribute* setRectWidth(hstd::Opt<double> width) {
         rect.width0 = width;
@@ -73,7 +77,8 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
 class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiEdgeAttribute"; }
-    void        writeSerial(
+#    if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         IGraph const*                        graph) const override {
         logic_todo_impl();
@@ -85,6 +90,7 @@ class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
+#    endif
 };
 
 class KiwiConstraint;
@@ -106,6 +112,7 @@ class KiwiGroup
 
     std::string getRepr() const override { return "KiwiGroup"; }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         IGraph const*                        graph) const override {
@@ -123,6 +130,7 @@ class KiwiGroup
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     hstd::SPtr<SharedCtx>        shared;
     LocalCtx                     local;
@@ -188,6 +196,7 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         return "KiwiVertexLayoutAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         IGraph const*                        graph) const override {
@@ -202,6 +211,7 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     geometry::Rect rect;
     std::string    text;
@@ -233,6 +243,7 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         return "KiwiGroupLayoutAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         IGraph const*                        graph) const override {
@@ -246,6 +257,7 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     visual::VisGroup getVisual(VertexID const& id) const override;
 
@@ -324,6 +336,7 @@ class RelativeConstraint : public KiwiConstraint {
         VertexID            id     = VertexID::Nil();
         kiwi_ir::AnchorSpec anchor = kiwi_ir::AnchorSpec::UpperLeft();
 
+#    if ORG_BUILD_WITH_PROTOBUF
         void writeSerial(
             hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::
                 VertexRef* vr,
@@ -331,6 +344,7 @@ class RelativeConstraint : public KiwiConstraint {
             vr->set_stable_vertex_id(graph->getStableId(id));
             anchor.writeSerial(vr->mutable_anchor());
         }
+#    endif
     };
 
     VertexRef fixed;
@@ -339,6 +353,7 @@ class RelativeConstraint : public KiwiConstraint {
     kiwi_ir::RelDimensionSpec x_dim;
     kiwi_ir::RelDimensionSpec y_dim;
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const override {
@@ -355,6 +370,7 @@ class RelativeConstraint : public KiwiConstraint {
         IGraph const*                               graph) override {
         logic_todo_impl();
     }
+#    endif
 
     RelativeConstraint* setRelativeOffset(
         hstd::Opt<double> x,
@@ -465,6 +481,7 @@ class LinearConstraint : public KiwiConstraint {
     kiwi_ir::Relation        rel;
 
   public:
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const override {
@@ -481,6 +498,7 @@ class LinearConstraint : public KiwiConstraint {
         IGraph const*                               graph) override {
         logic_todo_impl();
     }
+#    endif
 
     kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {
         vertices.incl(id);
@@ -592,11 +610,13 @@ class AlignConstraint : public KiwiConstraint {
         }
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IConstraint const* in,
         IGraph const*                               graph) override {
         logic_todo_impl();
     }
+#    endif
 
 
     using KiwiConstraint::KiwiConstraint;
@@ -851,3 +871,5 @@ class KiwiLayoutAlgorithm : public layout::IPlacementAlgorithm {
 };
 
 } // namespace hstd::ext::graph::kw
+
+#endif

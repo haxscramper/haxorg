@@ -1,7 +1,6 @@
 #include "hstd/stdlib/Ranges.hpp"
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "hstd_visual.hpp"
-#include <fmt/format.h>
 #include <hstd/stdlib/Xml.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>

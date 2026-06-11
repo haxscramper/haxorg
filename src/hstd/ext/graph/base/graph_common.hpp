@@ -13,7 +13,9 @@
 #include <hstd/ext/geometry/hstd_visual.hpp>
 #include <boost/bimap.hpp>
 #include "hstd/stdlib/TraceBase.hpp"
-#include "src/hstd/ext/graph/base/graph_base.pb.h"
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/hstd/ext/graph/base/graph_base.pb.h"
+#endif
 
 namespace hstd {
 template <typename ID, typename T>
@@ -301,6 +303,7 @@ namespace layout {
 class IConstraint;
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
     virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
@@ -320,6 +323,7 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
     virtual hstd::SPtr<layout::IConstraint> newConstraint(
         proto::IConstraint const* constraint) = 0;
 };
+#endif
 
 } // namespace hstd::ext::graph
 

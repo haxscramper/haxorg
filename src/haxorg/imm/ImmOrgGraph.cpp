@@ -956,6 +956,7 @@ void write_sem_to_proto(Out* out, org::imm::ImmAdapter const& ad) {
 }
 } // namespace
 
+#if ORG_BUILD_WITH_PROTOBUF
 void org::graph::MapNode::writeSerial(
     hgraph::proto::IVertex* out,
     hgraph::IGraph const*   graph,
@@ -970,6 +971,7 @@ void org::graph::MapNode::writeSerial(
 
     out->mutable_payload()->PackFrom(payload);
 }
+#endif
 
 
 hstd::Opt<Str> MapNode::getSubtreeId(
@@ -982,6 +984,7 @@ hstd::Opt<Str> MapNode::getSubtreeId(
     }
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void MapEdgeCollection::writeSerial(
     hstd::ext::graph::proto::IEdgeCollection* out,
     hstd::ext::graph::IGraph const*           graph) const {
@@ -996,3 +999,4 @@ void MapEdgeCollection::readSerial(
     hstd::ext::graph::IGraphSerialReaderFactory*    factory) {
     IEdgeCollection::readSerial(in, graph, factory);
 }
+#endif

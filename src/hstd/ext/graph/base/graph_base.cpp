@@ -334,6 +334,7 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
           hstd::UnorderedMap<std::string, V>> {};
 
 
+#if ORG_BUILD_WITH_PROTOBUF
 void IGraph::writeSerial(proto::IGraphProto* out) const {
     for (auto const& [_, collection] : collections) {
         collection->writeSerial(out->add_collections(), this);
@@ -348,7 +349,9 @@ void IGraph::writeSerial(proto::IGraphProto* out) const {
         getVertex(vertex)->writeSerial(out->add_vertices(), this, vertex);
     }
 }
+#endif
 
+#if ORG_BUILD_WITH_PROTOBUF
 void IGraph::readSerial(
     proto::IGraphProto const*  in,
     IGraphSerialReaderFactory* factory) {
@@ -406,12 +409,15 @@ void IGraph::readSerial(
         entry->readSerial(&coll, this, factory);
     }
 }
+#endif
 
+#if ORG_BUILD_WITH_PROTOBUF
 std::unique_ptr<proto::IGraphProto> IGraph::get_serial() const {
     auto result = std::make_unique<proto::IGraphProto>();
     writeSerial(result.get());
     return std::move(result);
 }
+#endif
 
 std::string hstd::ext::graph::IGraph::getDebug(
     VertexIDSet const& vert) const {

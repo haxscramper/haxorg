@@ -249,6 +249,7 @@ hstd::Opt<VertexID> IVertexHierarchy::getParentVertex(
     return hstd::Opt<VertexID>{};
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IVertexHierarchy::writeSerial(
     proto::IVertexHierarchy* out,
     IGraph const*            graph) const {
@@ -366,6 +367,7 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
         }
     }
 }
+#endif
 
 std::optional<VertexID> hstd::ext::graph::IVertexHierarchy::
     getCommonAncestor(VertexIDSet const& ids) const {

@@ -646,6 +646,7 @@ class NodeAttribute
     Agnode_t* node;
     Agraph_t* graph;
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
         const override;
 
@@ -654,6 +655,7 @@ class NodeAttribute
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
         IAttributeObject const*         vertex) override;
+#    endif
 };
 
 class EdgeAttribute
@@ -702,6 +704,7 @@ class EdgeAttribute
     Agraph_t* graph;
     Agedge_t* edge_;
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
         const override;
     void readSerial(
@@ -709,6 +712,7 @@ class EdgeAttribute
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
         IAttributeObject const*         vertex) override;
+#    endif
 };
 
 class Layout;
@@ -852,6 +856,7 @@ class GraphGroup
         return hstd::fmt("graph-group-{}", name());
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -860,6 +865,7 @@ class GraphGroup
         IGraph const*                   graph,
         IGraphSerialReaderFactory*      factory,
         IAttributeObject const*         vertex) override;
+#    endif
 };
 
 class Graphviz;
@@ -896,6 +902,7 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         logic_todo_impl();
@@ -908,6 +915,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     NodeAttribute node;
     GraphGroup    graph;
@@ -961,6 +969,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         logic_todo_impl();
@@ -973,6 +982,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;

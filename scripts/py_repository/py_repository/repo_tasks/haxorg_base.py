@@ -122,7 +122,6 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_BUILD_WITH_PERFETTO", conf.instrument.perfetto))
-    result.append(cmake_opt("ORG_BUILD_WITH_MSGPACK", conf.build_conf.use_msgpack))
     result.append(cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS",
                             conf.build_conf.use_adaptagrams))
     result.append(cmake_opt("ORG_BUILD_WITH_ELK", conf.build_conf.use_elk))

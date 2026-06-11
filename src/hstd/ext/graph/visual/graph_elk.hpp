@@ -241,6 +241,7 @@ class ElkPortVisualAttribute
         return "ElkPortVisualAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -249,6 +250,7 @@ class ElkPortVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 };
 
 class ElkPortLayoutAttribute
@@ -259,6 +261,7 @@ class ElkPortLayoutAttribute
         return "ElkPortLayoutAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -267,6 +270,7 @@ class ElkPortLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 
     Rect getBBox() const override {
         // port placement may omit some values if they are zeroed out, and
@@ -348,6 +352,7 @@ class ElkEdgeVisualAttribute
         return "ElkPortVisualAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -356,6 +361,7 @@ class ElkEdgeVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 };
 
 class ElkEdgeLayoutAttribute
@@ -376,6 +382,7 @@ class ElkEdgeLayoutAttribute
         return res;
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -384,6 +391,7 @@ class ElkEdgeLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 };
 
 class NodeElkLayoutData {
@@ -461,6 +469,7 @@ class ElkNodeVisualAttribute
         return "ElkNodeVisualAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -469,6 +478,7 @@ class ElkNodeVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 };
 
 class ElkGroupVisualAttribute
@@ -479,6 +489,7 @@ class ElkGroupVisualAttribute
         return "ElkGroupVisualAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -487,6 +498,7 @@ class ElkGroupVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 
     void setOuterPadding(geometry::Padding const& pad) override {
         logic_todo_impl();
@@ -560,6 +572,7 @@ class ElkNodeLayoutAttribute
         return "ElkNodeLayoutAttribute";
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -568,6 +581,7 @@ class ElkNodeLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 
     hstd::SPtr<layout::LayoutRun> run;
 
@@ -610,6 +624,8 @@ class ElkGroupLayoutAttribute
     std::string getRepr() const override {
         return "ElkGroupLayoutAttribute";
     }
+
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const override;
 
@@ -618,6 +634,7 @@ class ElkGroupLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
+#    endif
 
     geometry::Rect bbox;
 

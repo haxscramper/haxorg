@@ -83,6 +83,7 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
 }
 
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IEdgeCollection::writeSerial(
     proto::IEdgeCollection* out,
     IGraph const*           graph) const {
@@ -97,6 +98,7 @@ void hstd::ext::graph::IEdgeCollection::readSerial(
     proto::IEdgeCollection const* in,
     IGraph const*                 graph,
     IGraphSerialReaderFactory*    factory) {}
+#endif
 
 void hstd::ext::graph::IEdgeCollection::trackEdge(
     EdgeID const&   id,
@@ -196,6 +198,7 @@ EdgeIDSet IEdgeCollection::getEdges() const {
     return result;
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IEdge::writeSerial(
     proto::IEdge* out,
     IGraph const* graph,
@@ -206,7 +209,9 @@ void hstd::ext::graph::IEdge::writeSerial(
     out->set_target_vertex_id(
         graph->getStableId(graph->getTarget(self_id)));
 }
+#endif
 
+#if ORG_BUILD_WITH_PROTOBUF
 void TrivialEdgeCollection::readSerial(
     proto::IEdgeCollection const* in,
     IGraph const*                 graph,
@@ -232,3 +237,4 @@ void TrivialEdgeCollection::readSerial(
         edgeStore.at(id).readSerial(&e, graph, factory);
     }
 }
+#endif

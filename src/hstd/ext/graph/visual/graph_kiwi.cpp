@@ -1,5 +1,8 @@
 #include "graph_kiwi.hpp"
-#include <hstd/stdlib/Ranges.hpp>
+
+#if ORG_BUILD_WITH_KIWI
+
+#    include <hstd/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
 using namespace hstd::ext;
@@ -489,3 +492,5 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::
             /*strength=*/strength),
     };
 }
+
+#endif

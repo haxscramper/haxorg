@@ -3,6 +3,7 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <hstd/stdlib/Outcome.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 
 namespace org::imm {
 bool isDescriptionItem(org::imm::ImmAdapter const& node);

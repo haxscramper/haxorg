@@ -12,6 +12,7 @@
 using namespace hstd::ext::graph;
 
 
+#if ORG_BUILD_WITH_PROTOBUF
 class TestFactory : public IGraphSerialReaderFactory {
   public:
     hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
@@ -42,7 +43,8 @@ class TestFactory : public IGraphSerialReaderFactory {
         } else if (
             in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
             return std::make_shared<TrivialEdgeCollection>(
-                EdgeCollectionID{in->collection_id()});
+                EdgeCollectionID{
+                    static_cast<hstd::u16>(in->collection_id())});
         } else {
             throw hstd::logic_unhandled_kind_error::init(
                 in->payload().type_url());
@@ -215,6 +217,7 @@ class TestFactory : public IGraphSerialReaderFactory {
     }
 };
 
+#endif
 
 std::unique_ptr<proto::IGraphProto> get_layout_structure(
     std::unique_ptr<proto::IGraphProto> const& in) {
@@ -275,6 +278,7 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
     return out;
 }
 
+#if ORG_BUILD_WITH_PROTOBUF
 std::unique_ptr<proto::IGraphProto> run_layout(
     std::unique_ptr<proto::IGraphProto> const& proto) {
     TestFactory factory;
@@ -306,6 +310,7 @@ std::unique_ptr<proto::IGraphProto> run_layout(
         getDebugFile("serial_layout_result.json"), getJString(*result));
     return result;
 }
+#endif
 
 struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapConfig::Ptr     conf;
@@ -436,8 +441,10 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void runExternalizedLayoutPipeline() {
-        auto serial           = state->graph->get_serial();
+        auto serial = state->graph->get_serial();
+#if ORG_BUILD_WITH_PROTOBUF
         auto completed_layout = run_layout(serial);
+#endif
     }
 
     auto getGraphviz() {

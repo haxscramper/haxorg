@@ -1487,6 +1487,7 @@ void readAttrs(Attr* self, Payload const& payload) {
 }
 } // namespace
 
+#    if ORG_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
@@ -1532,6 +1533,6 @@ void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
     readAttrs(this, in->payload());
 }
-
+#    endif
 
 #endif

@@ -22,13 +22,7 @@
 
 
 struct Config {
-    DECL_DESCRIBED_ENUM(
-        Mode,
-        SemTree,
-        Outline,
-        Test,
-        DirectoryExplorer,
-        DocEditor);
+    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, Test, DirectoryExplorer);
 
     hstd::Vec<hstd::Str> file;
     Mode                 mode = Mode::SemTree;
