@@ -181,6 +181,9 @@ opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_QT_GUI)
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
+message(
+  STATUS
+    "ORG_USE_CONAN_INSTALL = ${ORG_USE_CONAN_INSTALL} ORG_IS_CONAN_BUILD = ${ORG_IS_CONAN_BUILD}")
 
 if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   add_definitions(-DORG_USE_CONAN_INSTALL=1)
@@ -188,23 +191,22 @@ if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   set(CONAN_TOOLCHAIN
       "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake")
 
-  if(NOT EXISTS "${CONAN_TOOLCHAIN}")
-    message(STATUS "Running Conan install...")
+  # if(NOT EXISTS "${CONAN_TOOLCHAIN}")
+  message(STATUS "Running Conan install...")
 
-    execute_process(
-      COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
-              -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
-      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-      RESULT_VARIABLE CONAN_RESULT
-      OUTPUT_VARIABLE CONAN_STDOUT
-      ERROR_VARIABLE CONAN_STDERR
-      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
+  execute_process(
+    COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
+            -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    RESULT_VARIABLE CONAN_RESULT
+    OUTPUT_VARIABLE CONAN_STDOUT
+    ERROR_VARIABLE CONAN_STDERR
+    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
 
-    if(NOT CONAN_RESULT EQUAL 0)
-      message(
-        FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
-                    "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
-    endif()
+  if(NOT CONAN_RESULT EQUAL 0)
+    message(FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
+                        "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
+    # endif()
   endif()
 
   include("${CONAN_TOOLCHAIN}")

@@ -1,12 +1,14 @@
 #include "hstd_visual_serde.hpp"
 
-#include <stdexcept>
-#include <google/protobuf/struct.pb.h>
-#include <google/protobuf/wrappers.pb.h>
-#include <hstd/stdlib/Json.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
 
-#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
-#include <hstd/ext/hstd_serde.hpp>
+#    include <stdexcept>
+#    include <google/protobuf/struct.pb.h>
+#    include <google/protobuf/wrappers.pb.h>
+#    include <hstd/stdlib/Json.hpp>
+
+#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#    include <hstd/ext/hstd_serde.hpp>
 
 using namespace hstd;
 
@@ -713,3 +715,5 @@ void proto_serde<ext::visual::proto::VisGroup, ext::visual::VisGroup>::
 }
 
 } // namespace hstd::serde
+
+#endif

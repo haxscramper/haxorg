@@ -1,5 +1,7 @@
 #include "hstd_geometry_serde.hpp"
 
+#if ORG_BUILD_WITH_PROTOBUF
+
 using namespace hstd::ext::geometry;
 
 
@@ -130,3 +132,5 @@ void hstd::serde::proto_serde<proto::Padding, Padding>::read(
     Padding*              out) {
     *out = Padding(in.top(), in.bottom(), in.left(), in.right());
 }
+
+#endif

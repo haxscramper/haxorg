@@ -7,8 +7,8 @@ High-level overview of the design:
 
 - All graph elements follow the DOD-like design, with the values accessible
   both using ID and the pointers. The value itself is managed by the
-derived classes, this file mainly provides virtual methods to `get*` or
-`add*`.
+  derived classes, this file mainly provides virtual methods to `get*` or
+  `add*`.
 - The grap stores a single collection of vertices, but the edges are split
   into different collections, with explicit distinction between "hierarchy"
   edge collections (acyclic tree with a set of starting/parent nodes) and

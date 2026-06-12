@@ -135,12 +135,14 @@ class IConstraint {
   public:
     virtual hstd::Vec<VertexID> getAllVertices() const = 0;
 
+#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IConstraint* out, IGraph const* graph)
         const = 0;
 
     virtual void readSerial(
         proto::IConstraint const* in,
         IGraph const*             graph) = 0;
+#endif
 };
 
 
@@ -237,6 +239,7 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
     Path getPath() const override { return path; }
 };
 
+// DOC: unbound edges
 class LayoutRun
     : public OperationsTracer
     , public hstd::SharedPtrApi<LayoutRun> {
@@ -282,6 +285,11 @@ class LayoutRun
         }
     };
 
+
+    /// \brief Run full layout of the provided graph structure. This method
+    /// will recursively call to the \ref
+    /// IPlacementAlgorithm::runSingleLayout in the DFS order, starting
+    /// from the leaf nodes.
     void runFullLayout();
 
     /// \brief Full store for the layout results of all recursive runs.

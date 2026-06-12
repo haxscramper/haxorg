@@ -13,7 +13,9 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include "ImmGetterApi.hpp"
-#include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#endif
 #include "hstd/stdlib/Debug.hpp"
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
@@ -947,14 +949,6 @@ hstd::Opt<Str> MapNode::getFootnoteName(
         return std::nullopt;
     }
 }
-
-namespace {
-template <typename Out, typename Imm>
-void write_sem_to_proto(Out* out, org::imm::ImmAdapter const& ad) {
-    org::algo::proto_serde<Out, Imm>::write(
-        out, *org::imm::sem_from_immer(ad.id, *ad.ctx.lock()).as<Imm>());
-}
-} // namespace
 
 #if ORG_BUILD_WITH_PROTOBUF
 void org::graph::MapNode::writeSerial(

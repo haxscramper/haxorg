@@ -1,8 +1,10 @@
 #pragma once
 
-#include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <src/hstd/ext/geometry/hstd_geometry.pb.h>
-#include <hstd/ext/hstd_serde.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include <hstd/ext/geometry/hstd_geometry.hpp>
+#    include <src/hstd/ext/geometry/hstd_geometry.pb.h>
+#    include <hstd/ext/hstd_serde.hpp>
 
 namespace hstd::serde {
 
@@ -78,3 +80,5 @@ struct proto_serde<ext::geometry::proto::Padding, ext::geometry::Padding> {
         ext::geometry::Padding*              out);
 };
 } // namespace hstd::serde
+
+#endif

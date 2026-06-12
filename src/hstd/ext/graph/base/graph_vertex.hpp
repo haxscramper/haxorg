@@ -13,7 +13,7 @@ struct IVertex
 
     using IGraphObjectBase::IGraphObjectBase;
 
-#ifdef ORG_BUILD_WITH_PROTOBUF
+#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         proto::IVertex* out,
         IGraph const*   graph,

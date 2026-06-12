@@ -1,7 +1,9 @@
 #pragma once
 
-#include <hstd/ext/geometry/hstd_visual.hpp>
-#include <src/hstd/ext/geometry/hstd_visual.pb.h>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include <hstd/ext/geometry/hstd_visual.hpp>
+#    include <src/hstd/ext/geometry/hstd_visual.pb.h>
 
 namespace hstd::serde {
 
@@ -201,3 +203,5 @@ struct proto_serde<ext::visual::proto::VisGroup, ext::visual::VisGroup> {
 };
 
 } // namespace hstd::serde
+
+#endif

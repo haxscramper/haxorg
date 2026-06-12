@@ -210,6 +210,7 @@ function(haxorg_add_protobuf)
   cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET" "IMPORT_DIRS;PROTO_SOURCES" ${ARGN})
 
   set(PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
+  file(MAKE_DIRECTORY "${PROTO_OUT_DIR}")
 
   protobuf_generate(
     LANGUAGE

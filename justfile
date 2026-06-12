@@ -38,7 +38,7 @@ run_haxorg_reflection_snapshot_generation:
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
 
 run_conan_create_test:
-  conan create . --test-folder=tests/vendor/conan_test_package
+  conan create . --test-folder=tests/vendor/conan_test_package --build=missing
 
 run_uv_install_test:
   uv run ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg --test-package tests/vendor/haxorg_py_test_package

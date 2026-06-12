@@ -20,7 +20,7 @@ struct IAttribute {
         return dynamic_cast<T const*>(this) != nullptr;
     }
 
-#ifdef ORG_BUILD_WITH_PROTOBUF
+#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IAttribute* out, IGraph const* graph)
         const = 0;
     virtual void readSerial(
