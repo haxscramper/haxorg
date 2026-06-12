@@ -64,7 +64,7 @@ enum class KindProxy
 BOOST_DESCRIBE_ENUM_BEGIN(KindProxy)
 #define NODE(NodeKind) BOOST_DESCRIBE_ENUM_ENTRY(KindProxy, NodeKind)
 #include <llvm/Demangle/ItaniumNodes.def>
-BOOST_DESCRIBE_ENUM_END()
+BOOST_DESCRIBE_ENUM_END(KindProxy)
 
 BOOST_DESCRIBE_ENUM(
     llvm::itanium_demangle::Node::Prec,

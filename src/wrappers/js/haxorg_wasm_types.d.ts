@@ -597,16 +597,6 @@ export interface haxorg_wasm_module_auto {
   SequenceSegmentGroup: SequenceSegmentGroupConstructor;
   SequenceAnnotationTag: SequenceAnnotationTagConstructor;
   SequenceAnnotation: SequenceAnnotationConstructor;
-  GraphMapLink: GraphMapLinkConstructor;
-  GraphMapLinkLink: GraphMapLinkLinkConstructor;
-  GraphMapLinkRadio: GraphMapLinkRadioConstructor;
-  GraphMapNodeProp: GraphMapNodePropConstructor;
-  GraphMapEdgeProp: GraphMapEdgePropConstructor;
-  GraphMapNode: GraphMapNodeConstructor;
-  GraphMapEdge: GraphMapEdgeConstructor;
-  GraphMapGraph: GraphMapGraphConstructor;
-  GraphMapConfig: GraphMapConfigConstructor;
-  GraphMapGraphState: GraphMapGraphStateConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
   LispCodeList: LispCodeListConstructor;
@@ -1487,14 +1477,6 @@ export interface haxorg_wasm_module_auto {
   getAstTrackingMap(nodes: haxorg_wasm.HstdVec<Org>): AstTrackingMap;
   getSubnodeGroups(node: Org, map: AstTrackingMap): haxorg_wasm.HstdVec<AstTrackingGroup>;
   annotateSequence(groups: haxorg_wasm.HstdVec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.HstdVec<SequenceAnnotation>;
-  initMapGraphState(ast: ImmAstContext): GraphMapGraphState;
-  serializeAstContextToText(store: ImmAstContext): string;
-  serializeAstContextFromText(binary: string, store: ImmAstContext): void;
-  serializeAstEpochToText(store: ImmAstReplaceEpoch): string;
-  serializeAstEpochFromText(binary: string, store: ImmAstReplaceEpoch): void;
-  serializeMapGraphToText(store: GraphMapGraph): string;
-  serializeMapGraphFromText(binary: string, store: GraphMapGraph): void;
-  serializeFromTextToTreeDump(binary: string): string;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
 export enum CheckboxState {
@@ -2105,6 +2087,8 @@ export interface Org {
 }
 export interface OperationsTracerConstructor { new(): OperationsTracer; }
 export interface OperationsTracer {
+  begin_scope_event(value: haxorg_wasm.Optional<string>, function_: string, line: number, file: string): void;
+  end_scope_event(value: haxorg_wasm.Optional<string>, function_: string, line: number, file: string): void;
   setTraceFileStr(outfile: string, overwrite: boolean): void;
   sendMessage(value: string, function_: string, line: number, file: string): void;
   TraceState: boolean
@@ -2305,93 +2289,9 @@ export interface SequenceAnnotation {
   last: number
   annotations: haxorg_wasm.HstdVec<SequenceAnnotationTag>
 }
-export interface GraphMapLinkConstructor { new(): GraphMapLink; }
-export interface GraphMapLink {
-  getRadio(): GraphMapLinkRadio;
-  getRadio(): GraphMapLinkRadio;
-  isRadio(): boolean;
-  getLink(): GraphMapLinkLink;
-  getLink(): GraphMapLinkLink;
-  isLink(): boolean;
-  getKind(): GraphMapLinkKind;
-}
-export interface GraphMapLinkLinkConstructor { new(): GraphMapLinkLink; }
-export interface GraphMapLinkLink {
-  link: ImmUniqId
-  description: haxorg_wasm.HstdVec<ImmUniqId>
-}
-export interface GraphMapLinkRadioConstructor { new(): GraphMapLinkRadio; }
-export interface GraphMapLinkRadio { target: ImmUniqId }
-export interface GraphMapNodePropConstructor { new(): GraphMapNodeProp; }
-export interface GraphMapNodeProp {
-  getAdapter(context: ImmAstContext): ImmAdapter;
-  getSubtreeId(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  getFootnoteName(context: ImmAstContext): haxorg_wasm.Optional<Str>;
-  id: ImmUniqId
-  unresolved: haxorg_wasm.HstdVec<GraphMapLink>
-}
-export interface GraphMapEdgePropConstructor { new(): GraphMapEdgeProp; }
-export interface GraphMapEdgeProp { link: GraphMapLink }
-export interface GraphMapNodeConstructor { new(): GraphMapNode; }
-export interface GraphMapNode {
-  __eq__(other: GraphMapNode): boolean;
-  __lt__(other: GraphMapNode): boolean;
-  id: ImmUniqId
-}
-export interface GraphMapEdgeConstructor { new(): GraphMapEdge; }
-export interface GraphMapEdge {
-  source: GraphMapNode
-  target: GraphMapNode
-}
-export interface GraphMapGraphConstructor { new(): GraphMapGraph; }
-export interface GraphMapGraph {
-  nodeCount(): number;
-  edgeCount(): number;
-  outNodes(node: GraphMapNode): GraphAdjNodesList;
-  inNodes(node: GraphMapNode): GraphAdjNodesList;
-  adjEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  adjNodes(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapNode>;
-  outEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  inEdges(node: GraphMapNode): haxorg_wasm.HstdVec<GraphMapEdge>;
-  outDegree(node: GraphMapNode): number;
-  inDegree(node: GraphMapNode): number;
-  isRegisteredNode(id: GraphMapNode): boolean;
-  isRegisteredNodeById(id: ImmUniqId): boolean;
-  atMapNode(node: GraphMapNode): GraphMapNodeProp;
-  atMapEdge(edge: GraphMapEdge): GraphMapEdgeProp;
-  addEdge(edge: GraphMapEdge): void;
-  addEdgeWithProp(edge: GraphMapEdge, prop: GraphMapEdgeProp): void;
-  addNode(node: GraphMapNode): void;
-  addNodeWithProp(node: GraphMapNode, prop: GraphMapNodeProp): void;
-  hasEdge(source: GraphMapNode, target: GraphMapNode): boolean;
-  hasNode(node: GraphMapNode): boolean;
-  has2AdapterEdge(source: ImmAdapter, target: ImmAdapter): boolean;
-  nodeProps: GraphNodeProps
-  edgeProps: GraphEdgeProps
-  adjList: GraphAdjList
-  adjListIn: GraphAdjList
-}
-export interface GraphMapConfigConstructor { new(): GraphMapConfig; }
-export interface GraphMapConfig { dbg: OperationsTracer }
-export interface GraphMapGraphStateConstructor { new(): GraphMapGraphState; }
-export interface GraphMapGraphState {
-  getGraph(): GraphMapGraph;
-  FromAstContext(ast: ImmAstContext): GraphMapGraphState;
-  registerNode(node: GraphMapNodeProp, conf: GraphMapConfig): void;
-  addNode(node: ImmAdapter, conf: GraphMapConfig): void;
-  addNodeRec(ast: ImmAstContext, node: ImmAdapter, conf: GraphMapConfig): void;
-  getUnresolvedSubtreeLinks(node: ImmAdapterT<ImmSubtree>, conf: GraphMapConfig): haxorg_wasm.HstdVec<GraphMapLink>;
-  getUnresolvedLink(node: ImmAdapterT<ImmLink>, conf: GraphMapConfig): haxorg_wasm.Optional<GraphMapLink>;
-  graph: GraphMapGraph
-  ast: ImmAstContext
-}
 export type ImmIdIdType = U64;
 export type ImmIdNodeIdxT = U32;
 export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
-export type GraphNodeProps = haxorg_wasm.HstdMap<GraphMapNode, GraphMapNodeProp>;
-export type GraphEdgeProps = haxorg_wasm.HstdMap<GraphMapEdge, GraphMapEdgeProp>;
-export type GraphAdjNodesList = haxorg_wasm.HstdVec<GraphMapNode>;
-export type GraphAdjList = haxorg_wasm.HstdMap<GraphMapNode, GraphAdjNodesList>;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;

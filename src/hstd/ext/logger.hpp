@@ -150,6 +150,7 @@ class log_sink_scope {
   public:
     log_sink_scope();
     ~log_sink_scope();
+
     log_sink_scope(log_sink_scope const&)            = delete;
     log_sink_scope& operator=(log_sink_scope const&) = delete;
 
@@ -182,7 +183,20 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
         ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
-sink_ptr            init_file_sink(hstd::Str const& log_file_name);
+sink_ptr init_file_sink(hstd::Str const& log_file_name);
+
+inline sink_ptr init_file_sink(std::string const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name});
+}
+
+inline sink_ptr init_file_sink(fs::path const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name.native()});
+}
+
+inline sink_ptr init_file_sink(char const* const& log_file_name) {
+    return init_file_sink(hstd::Str{log_file_name});
+}
+
 void                push_sink(sink_ptr const& sink);
 hstd::Opt<sink_ptr> get_last_sink();
 hstd::Vec<sink_ptr> get_sink_list();
@@ -388,7 +402,7 @@ log_sink_scope log_sink_scoped_factory(Generator&& gen) {
     sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
     log_sink_scope scope;
     push_sink(sink);
-    return std::move(scope);
+    return scope;
 }
 
 

@@ -172,6 +172,23 @@ json hstd::to_formatting_json(Vec<ColRune> const& runes) {
     return result;
 }
 
+
+ColStream& ColStream::indent(int level) {
+    write(ColText(ColStyle{}, repeat(" ", level)));
+    return *this;
+}
+
+ColStream& ColStream::newline(int repeat) {
+    write(ColText{Str{"\n"}.repeated(repeat)});
+    return *this;
+}
+
+
+ColStream& ColStream::space(int repeat) {
+    write(ColText{Str{" "}.repeated(repeat)});
+    return *this;
+}
+
 void hstd::ColStream::flush() {
     if (!buffered) { ostream->flush(); }
 }

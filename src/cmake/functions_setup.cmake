@@ -55,15 +55,7 @@ function(set_target_flags_impl)
   if(${ORG_DISABLE_WARNINGS})
     add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
   elseif(${ORG_BUILD_ASSUME_CLANG})
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unknown-attributes")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+    # FIXME: Adding attribute configurations here does not propagate them to the compiler.
   endif()
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
@@ -212,4 +204,40 @@ function(haxorg_add_library TARGET)
   set_common_files("${TARGET}")
   set_target_output("${TARGET}")
   set_target_flags("${TARGET}")
+endfunction()
+
+function(haxorg_add_protobuf)
+  cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET" "IMPORT_DIRS;PROTO_SOURCES" ${ARGN})
+
+  set(PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
+  file(MAKE_DIRECTORY "${PROTO_OUT_DIR}")
+
+  protobuf_generate(
+    LANGUAGE
+    cpp
+    OUT_VAR
+    HAP_GENERATED_FILES
+    PROTOC_EXE
+    "${PROTOC_PATH}"
+    IMPORT_DIRS
+    ${HAP_IMPORT_DIRS}
+    PROTOS
+    ${HAP_PROTO_SOURCES}
+    PROTOC_OUT_DIR
+    "${PROTO_OUT_DIR}")
+
+  add_custom_target(
+    ${HAP_UNIQUE_TARGET}_generate_files
+    DEPENDS ${HAP_GENERATED_FILES}
+    COMMENT "Generating protobuf files")
+
+  target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_FILES})
+  add_dependencies(${HAP_TARGET} ${HAP_UNIQUE_TARGET}_generate_files)
+
+  target_include_directories(${HAP_TARGET} PUBLIC $<BUILD_INTERFACE:${PROTO_OUT_DIR}>
+                                                  $<INSTALL_INTERFACE:include>)
+
+  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+
+  install(FILES ${HAP_GENERATED_FILES} DESTINATION include)
 endfunction()

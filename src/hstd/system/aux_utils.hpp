@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "macros.hpp"
+#include <cmath>
 
 namespace hstd {
 
@@ -87,6 +88,37 @@ bool is_pointer_valid(T const* ptr, T const* start, std::size_t size) {
 template <typename T>
 std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
+}
+
+inline bool isclose(
+    double a,
+    double b,
+    double rtol = 1e-5,
+    double atol = 1e-8) {
+    return std::abs(a - b) <= atol + rtol * std::abs(b);
+}
+
+template <typename T>
+concept UnsignedInteger = std::unsigned_integral<T>;
+
+template <UnsignedInteger T>
+constexpr bool masked_equals(T base, T mask, T set_value) {
+    return (base & mask) == set_value;
+}
+
+template <UnsignedInteger T>
+constexpr T assign_masked(T base, T mask, T set_value) {
+    return (base & ~mask) | (set_value & mask);
+}
+
+template <UnsignedInteger T>
+constexpr T without_masked_bits(T base, T mask) {
+    return base & ~mask;
+}
+
+template <UnsignedInteger T>
+constexpr T masked_bits_right(T value, T mask, unsigned mask_size) {
+    return (value & mask) >> (sizeof(T) * 8 - mask_size);
 }
 
 } // namespace hstd

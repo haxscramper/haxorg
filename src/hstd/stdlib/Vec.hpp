@@ -303,6 +303,10 @@ class [[refl(R"({
     using Base::end;
     using Base::insert;
 
+    void insert(int index, T const& value) {
+        Base::insert(begin() + index, value);
+    }
+
     [[refl]] using Base::push_back;
 
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
@@ -459,6 +463,11 @@ class [[refl(R"({
     }
 };
 
+template <typename T, typename... Args>
+hstd::Vec<T> as_vec(T const& value, Args&&... args) {
+    return Vec<T>::Splice(value, std::forward<Args>(args)...);
+}
+
 template <typename T, int StartSize>
 struct SmallVec
     :
@@ -584,7 +593,9 @@ using CVec = Vec<T> const&;
 template <typename T>
 struct value_metadata<Vec<T>> {
     static bool isEmpty(Vec<T> const& value) { return value.empty(); }
-    static bool isNil(Vec<T> const& value) { return false; }
+    static bool isNil([[maybe_unused]] Vec<T> const& value) {
+        return false;
+    }
     static std::string typeName() {
         return std::string{"Vec<"} + value_metadata<T>::typeName()
              + std::string{">"};

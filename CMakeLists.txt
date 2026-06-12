@@ -27,7 +27,19 @@ set(TOOLCHAIN_DIR "${BASE}/toolchain")
 set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-attributes")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder-init-list")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c99-designator")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-attributes")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-macro-redefined")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-defaulted-function-deleted")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ambiguous-reversed-operator")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
 
 # Describe relative paths to the shared and header libraries packaged with LLVM in order for the
 # code to compile, link and execute correctly. Note that runtime execution will use these library
@@ -61,9 +73,10 @@ option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cm
 
 # Optional features in the haxorg library
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
-option(ORG_BUILD_WITH_MSGPACK "Include msgpack serialization functionality in the build" ON)
 option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
 option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
+option(ORG_BUILD_WITH_KIWI "Enable kiwisolver graph layout" OFF)
+option(ORG_BUILD_WITH_ELK "Enable JNI-ELK graph layout" OFF)
 option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
 option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
@@ -77,10 +90,23 @@ option(ORG_BUILD_TEXT_LAYOUTER_BINDINGS "Build text layouter python module libra
 option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
 option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
 option(ORG_BUILD_IMGUI_GUI "Build imgui apps and API" OFF)
+# TODO: ORG_BUILD_QT_GUI and ORG_BUILD_WITH_QT are not fully represented in the HaxorgConfig options
+# list. Ideally, there should be one source of truth for all configuration parameters in the
+# repository instead of the current random jumble of options scattered across different python and
+# cmake files.
 option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
 
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
 option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
+
+if(ORG_BUILD_WITH_CGRAPH
+   OR ORG_BUILD_WITH_ADAPTAGRAMS
+   OR ORG_BUILD_WITH_ELK
+   OR ORG_BUILD_WITH_KIWI)
+  set(ORG_BUILD_WITH_GRAPH_VISUAL ON)
+else()
+  set(ORG_BUILD_WITH_GRAPH_VISUAL OFF)
+endif()
 
 if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_WITH_CGRAPH})
   message(FATAL_ERROR "Adaptagrams features require cgraph to be enabled")
@@ -93,23 +119,18 @@ if(${ORG_BUILD_QT_GUI} AND NOT ${ORG_BUILD_WITH_QT})
   )
 endif()
 
-if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_WITH_MSGPACK})
-  message(FATAL_ERROR "py-haxorg bindings were enabled, but msgpack option was disabled. "
-                      "Python wrappers require msgpack features.")
-endif()
-
 if(${ORG_BUILD_TESTS}
    OR ${ORG_BUILD_QT_GUI}
    OR ${ORG_BUILD_IMGUI_GUI})
   if(NOT ${ORG_BUILD_WITH_ADAPTAGRAMS}
      OR NOT ${ORG_BUILD_WITH_CGRAPH}
-     OR NOT ${ORG_BUILD_WITH_MSGPACK}
+     OR NOT ${ORG_BUILD_WITH_KIWI}
      OR NOT ${ORG_BUILD_WITH_PROTOBUF})
     message(
       STATUS "ORG_BUILD_WITH_ADAPTAGRAMS = ${ORG_BUILD_WITH_ADAPTAGRAMS} -- must be ON\n"
              "-- ORG_BUILD_WITH_CGRAPH = ${ORG_BUILD_WITH_CGRAPH} -- must be ON\n"
-             "-- ORG_BUILD_WITH_MSGPACK = ${ORG_BUILD_WITH_MSGPACK} -- must be ON\n"
              "-- ORG_BUILD_WITH_PROTOBUF = ${ORG_BUILD_WITH_PROTOBUF} -- must be ON\n"
+             "-- ORG_BUILD_WITH_KIWI = ${ORG_BUILD_WITH_KIWI} -- must be ON\n"
              "-- Alternatively, disable test/example compilation:\n"
              "-- ORG_BUILD_TESTS = ${ORG_BUILD_TESTS} -- must be OFF\n"
              "-- ORG_BUILD_WITH_QT = ${ORG_BUILD_WITH_QT} -- must be OFF\n"
@@ -129,6 +150,12 @@ if(${ORG_BUILD_WITH_TRACY} AND ${ORG_BUILD_WITH_PERFETTO})
   )
 endif()
 
+function(opt_1_excludes_opt_2 opt1 opt2)
+  if(${opt1} AND ${opt2})
+    message(FATAL_ERROR "${opt2} cannot be enabled when ${opt1} is enabled")
+  endif()
+endfunction()
+
 if(${ORG_BUILD_EMCC})
   if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
     message(
@@ -136,12 +163,27 @@ if(${ORG_BUILD_EMCC})
         "CMAKE_SIZEOF_VOID_P is not '4' (set to '${CMAKE_SIZEOF_VOID_P}') -- wasm build expects 32-bit compile"
     )
   endif()
-
 endif()
+
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PROTOBUF)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ADAPTAGRAMS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_KIWI)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PERFETTO)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_TESTS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_INTERNAL_TOOLS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_PYHAXORG_BINDINGS)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_TRACY)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WRAPPERS_C)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_IMGUI_GUI)
+opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_IMGUI_GUI)
+opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_QT_GUI)
 
 set(DEPS_DIR "${BASE}/thirdparty")
 message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
 message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
+message(
+  STATUS
+    "ORG_USE_CONAN_INSTALL = ${ORG_USE_CONAN_INSTALL} ORG_IS_CONAN_BUILD = ${ORG_IS_CONAN_BUILD}")
 
 if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   add_definitions(-DORG_USE_CONAN_INSTALL=1)
@@ -149,23 +191,22 @@ if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
   set(CONAN_TOOLCHAIN
       "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake")
 
-  if(NOT EXISTS "${CONAN_TOOLCHAIN}")
-    message(STATUS "Running Conan install...")
+  # if(NOT EXISTS "${CONAN_TOOLCHAIN}")
+  message(STATUS "Running Conan install...")
 
-    execute_process(
-      COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
-              -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
-      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-      RESULT_VARIABLE CONAN_RESULT
-      OUTPUT_VARIABLE CONAN_STDOUT
-      ERROR_VARIABLE CONAN_STDERR
-      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
+  execute_process(
+    COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
+            -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    RESULT_VARIABLE CONAN_RESULT
+    OUTPUT_VARIABLE CONAN_STDOUT
+    ERROR_VARIABLE CONAN_STDERR
+    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
 
-    if(NOT CONAN_RESULT EQUAL 0)
-      message(
-        FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
-                    "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
-    endif()
+  if(NOT CONAN_RESULT EQUAL 0)
+    message(FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
+                        "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
+    # endif()
   endif()
 
   include("${CONAN_TOOLCHAIN}")
@@ -188,7 +229,7 @@ if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
   pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 endif()
 
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 endif()
 
@@ -239,14 +280,7 @@ endif()
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 
-if(${ORG_BUILD_WITH_MSGPACK})
-  add_definitions(-DORG_BUILD_WITH_MSGPACK=1)
-  find_package(msgpack-cxx CONFIG REQUIRED)
-else()
-  add_definitions(-DORG_BUILD_WITH_MSGPACK=0)
-endif()
-
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   find_package(SQLiteCpp CONFIG REQUIRED)
 endif()
 
@@ -254,7 +288,7 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(absl CONFIG REQUIRED)
 endif()
 
-if(${ORG_BUILD_TESTS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_TESTS})
   find_package(GTest CONFIG REQUIRED)
   find_package(benchmark CONFIG REQUIRED)
 endif()
@@ -265,14 +299,14 @@ endif()
 find_package(nlohmann_json CONFIG REQUIRED)
 
 find_package(lexy CONFIG REQUIRED)
-if(${ORG_BUILD_WITH_PERFETTO} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_PERFETTO})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   find_package(BoostDescribe CONFIG REQUIRED)
   find_package(BoostPreprocessor CONFIG REQUIRED)
 endif()
-if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
   find_package(Adaptagrams CONFIG REQUIRED)
 endif()
 if(NOT ${ORG_BUILD_EMCC})
@@ -289,12 +323,36 @@ else()
   add_definitions(-DORG_BUILD_EMCC=0)
 endif()
 
-if(${ORG_BUILD_WITH_PROTOBUF} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_WITH_ELK})
+  add_definitions(-DORG_BUILD_WITH_ELK=1)
+else()
+  add_definitions(-DORG_BUILD_WITH_ELK=0)
+endif()
+
+if(${ORG_BUILD_WITH_KIWI})
+  add_subdirectory(thirdparty/kiwi)
+  add_definitions(-DORG_BUILD_WITH_KIWI=1)
+else()
+  add_definitions(-DORG_BUILD_WITH_KIWI=0)
+endif()
+
+if(${ORG_BUILD_WITH_PROTOBUF})
+  message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
+
   if(NOT ${ORG_IS_CONAN_BUILD})
     include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
   endif()
+
+  get_target_property(PROTOC_PATH protobuf::protoc IMPORTED_LOCATION_RELWITHDEBINFO)
+  message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
+
+  execute_process(
+    COMMAND "${PROTOC_PATH}" --version
+    OUTPUT_VARIABLE PROTOC_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
 else()
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
 endif()
@@ -305,17 +363,55 @@ set(JSON_BuildTests
     OFF
     CACHE INTERNAL "")
 
-add_subdirectory(src/hstd)
 if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS)
-  add_subdirectory(src/adaptagrams)
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=1)
+
+  set(COLA_DIR "${DEPS_DIR}/adaptagrams/cola")
+  include(CMakeParseArguments)
+
+  add_library(adaptagrams)
+  haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
+  target_link_libraries(
+    adaptagrams
+    PUBLIC Adaptagrams::dialect
+           Adaptagrams::cola
+           Adaptagrams::avoid
+           Adaptagrams::topology
+           Adaptagrams::vpsc
+           hstd
+           absl::log
+           absl::base)
+
+  target_include_directories(adaptagrams PUBLIC $<BUILD_INTERFACE:${COLA_DIR}>
+                                                $<INSTALL_INTERFACE:include>)
+
+  install(
+    DIRECTORY ${COLA_DIR}/
+    DESTINATION include
+    FILES_MATCHING
+    PATTERN "*.h")
+
+  glob_add_sources2(
+    TARGET
+    "adaptagrams"
+    LS_REGEX
+    "${CMAKE_CURRENT_SOURCE_DIR}/.*"
+    SEARCH_BASE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    RECURSE
+    OFF)
+
+else()
+  add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=0)
 endif()
+
+add_subdirectory(src/hstd)
 
 if(${ORG_BUILD_EMCC})
   add_subdirectory(src/wrappers/js)
 endif()
 
-if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WRAPPERS_C})
+if(${ORG_BUILD_WRAPPERS_C})
   add_definitions(-DORG_BUILD_WRAPPERS_C=1)
   add_subdirectory(src/wrappers/c)
 else()
@@ -324,29 +420,75 @@ endif()
 
 add_subdirectory(src/haxorg)
 
-if(NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_PYHAXORG_BINDINGS})
   add_subdirectory(src/py_libs)
 endif()
 
-if(${ORG_BUILD_INTERNAL_TOOLS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_INTERNAL_TOOLS})
   add_subdirectory(scripts/cxx_repository)
+  add_subdirectory(scripts/cxx_executor)
   add_subdirectory(scripts/cxx_codegen)
 endif()
 
 if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
-  add_subdirectory(src/app/org_diagram)
 endif()
 
 if(${ORG_BUILD_IMGUI_GUI})
+
+  find_package(glfw3 CONFIG REQUIRED)
+  find_package(OpenGL REQUIRED)
+
+  set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
+  set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
+  message(STATUS "IMGUI_ORG_ROOT = ${IMGUI_ORG_ROOT}")
+
+  # external dependency for imgui library
+
+  set(IMCONFIG_TEMPLATE_PATH "${IMGUI_ORG_ROOT}/imconfig.h")
+  set(IMCONFIG_FILE_PATH "${IMGUI_DEP_ROOT}/imconfig.h")
+
+  configure_file("${IMCONFIG_TEMPLATE_PATH}" "${IMCONFIG_FILE_PATH}" @ONLY)
+
+  file(GLOB IMGUI_SOURCES "${IMGUI_DEP_ROOT}/*.cpp")
+
+  add_library(
+    imgui STATIC
+    ${IMGUI_SOURCES} "${IMGUI_DEP_ROOT}/backends/imgui_impl_glfw.cpp"
+    "${IMGUI_DEP_ROOT}/misc/cpp/imgui_stdlib.cpp" #
+    "${IMGUI_DEP_ROOT}/backends/imgui_impl_opengl3.cpp" #
+  )
+
+  target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
+  target_include_directories(
+    imgui
+    PUBLIC "${IMGUI_ORG_ROOT}" "${DEPS_DIR}" "${IMGUI_DEP_ROOT}" "${IMGUI_DEP_ROOT}/backends"
+           "${FONTCONFIG_INCLUDE_DIRS}" "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+  file(GLOB IMGUI_TEST_ENGINE_SOURCES
+       "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
+  add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
+  target_include_directories(
+    imgui_test_engine PUBLIC "${IMGUI_DEP_ROOT}" "${BASE}/thirdparty/imgui_test_engine"
+                             "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine")
+
   add_subdirectory(src/app/org_imgui)
+  add_subdirectory(src/app/log_viewer)
 endif()
 
 # Build the list of "CMake package" targets (no pyhaxorg here)
-if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_EMCC})
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd adaptagrams)
-else()
-  set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+set(ORG_INSTALL_TARGET_LIST haxorg hstd)
+
+if(${ORG_BUILD_WITH_ADAPTAGRAMS})
+  list(APPEND ORG_INSTALL_TARGET_LIST adaptagrams)
+endif()
+
+if(${ORG_BUILD_WITH_KIWI})
+  list(APPEND ORG_INSTALL_TARGET_LIST kiwi)
+endif()
+
+if(${ORG_BUILD_WITH_ELK})
+  list(APPEND ORG_INSTALL_TARGET_LIST jni_elk_lib)
 endif()
 
 # Install normal libs into lib/, export them, etc.
@@ -360,7 +502,7 @@ install(
   DESTINATION include)
 
 # Install the Python extension into the *platlib root* (site-packages/)
-if(${ORG_BUILD_PYHAXORG_BINDINGS} AND NOT ${ORG_BUILD_EMCC})
+if(${ORG_BUILD_PYHAXORG_BINDINGS})
   install(TARGETS pyhaxorg py_textlayout_cpp LIBRARY DESTINATION ".")
 endif()
 

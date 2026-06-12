@@ -62,6 +62,8 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     ReflectionCLI const&                        cli) {
     clang::tooling::CommandLineArguments filteredArgs;
 
+    HSLOG_INFO("Running drop reflection plugin");
+
     auto push = [&](std::string const& value,
                     int                line = __builtin_LINE()) {
         if (cli.verbose_log) { HSLOG_TRACE("+++ Adding {}", value); }
@@ -171,16 +173,12 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     // std include causes issues with `cstdddef`), but the message above
     // should stay there regardless.
 
-    if (cli.verbose_log) {
-        HSLOG_TRACE("Filtered command line arguments");
-        for (auto const& arg : filteredArgs) {
-            HSLOG_TRACE("[ ] {}", arg);
-        }
+    HSLOG_TRACE("Filtered command line arguments");
+    for (auto const& arg : filteredArgs) { HSLOG_TRACE("[ ] {}", arg); }
 
-        HSLOG_TRACE(":: ");
-        for (auto const& arg : filteredArgs) { HSLOG_TRACE(" {}", arg); }
-        HSLOG_TRACE("");
-    }
+    HSLOG_TRACE(":: ");
+    for (auto const& arg : filteredArgs) { HSLOG_TRACE(" {}", arg); }
+    HSLOG_TRACE("");
 
     return filteredArgs;
 }

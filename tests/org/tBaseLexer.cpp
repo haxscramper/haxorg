@@ -10,7 +10,6 @@
 #include <haxorg/test/corpusrunner.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/serde/SemOrgCereal.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include "../common.hpp"
 #include "hstd/ext/logger.hpp"
@@ -19,6 +18,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <google/protobuf/util/json_util.h>
 
 
 using namespace hstd;
@@ -145,9 +145,6 @@ TEST(ManualFileRun, TestDoc1) {
                         .withReflFields = true,
                     })
                 .toString(false));
-
-        writeFile(
-            "/tmp/cereal_dump.bin", org::imm::serializeToText(n.context));
     }
 }
 
@@ -255,83 +252,50 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
     LOG(INFO) << "Generating mind map";
     auto conf = org::graph::MapConfig::shared();
-    if (trace) { conf->dbg.setTraceFile(getDebugFile("graph_trace.log")); }
 
-    auto graph = org::graph::MapGraphState::FromAstContext(
+    auto state = org::graph::MapGraphState::FromAstContext(
         initial_version.getContext());
-    graph->addNodeRec(
+
+    if (trace) {
+        state->graph->setTraceFile(getDebugFile("graph_trace.log"));
+    }
+
+    state->addNodeRec(
         initial_version.getContext(),
         initial_version.getRootAdapter(),
         conf);
-    auto gv = graph->graph->toGraphviz(
-        initial_version.getContext(),
-        org::graph::MapGraph::GvConfig{
-            .acceptNode = [&](org::graph::MapNode const& node) -> bool {
-                // return true;
-                return 0 < graph->graph->inDegree(node)
-                    || 0 < graph->graph->outDegree(node);
-            },
-        });
 
+    org::graph::MapGraph::GvConfigCallbackFilters gvc{};
+    gvc.accept_node_cb =
+        [&](hstd::ext::graph::VertexID const& node) -> bool {
+        return 0 < state->graph->getInDegree(node)
+            || 0 < state->graph->getOutDegree(node);
+    };
+
+    auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph)
+                  ->setDirectionLR();
+
+    gv->render(getDebugFile("result.png"));
     auto const context_path = getDebugFile("context.bin");
     auto const graph_path   = getDebugFile("graph.bin");
     auto const epoch_path   = getDebugFile("epoch.bin");
 
-    {
-        __perf_trace("cli", "Serialize initial context to container");
-        writeFile(
-            context_path,
-            org::imm::serializeToText(initial_version.getContext()));
-    }
-
-    {
-        __perf_trace("cli", "Serialize mind map to container");
-        writeFile(graph_path, org::imm::serializeToText(graph->graph));
-    }
-
-    {
-        __perf_trace("cli", "Serialize current epoch to container");
-        writeFile(
-            epoch_path,
-            org::imm::serializeToText(initial_version.getEpoch()));
-    }
-
-    auto deserialized_context = imm::ImmAstContext::init_start_context();
-    auto deserialized_version = deserialized_context->getEmptyVersion();
-
-    {
-        org::imm::serializeFromText(
-            readFile(context_path), deserialized_version.getContext());
-    }
-
-    {
-        org::imm::serializeFromText(
-            readFile(epoch_path), deserialized_version.getEpoch());
-    }
-
-    {
-        auto graph_tmp = org::graph::MapGraphState::FromAstContext(
-            deserialized_context);
-        org::imm::serializeFromText(
-            readFile(graph_path), graph_tmp->graph);
-
-        EXPECT_EQ(
-            graph->graph->edgeCount(), graph_tmp->graph->edgeCount());
-        EXPECT_EQ(
-            graph->graph->nodeCount(), graph_tmp->graph->nodeCount());
-    }
-
     if (trace) {
         __perf_trace("cli", "Export mind map as graphviz");
-        hstd::ext::Graphviz gvc;
-        gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
-        gvc.writeFile(getDebugFile("mind_map.dot"), gv);
-        gvc.renderToFile(
-            getDebugFile("mind_map.png"),
-            gv,
-            hstd::ext::Graphviz::RenderFormat::PNG,
-            hstd::ext::Graphviz::LayoutType::Dot);
+        gv->setRankDirection(hstd::ext::graph::gv::RankDirection::LR);
+        gv->render(getDebugFile("mind_map.dot"));
+        gv->render(getDebugFile("mind_map.png"));
     }
+
+    auto serial = state->graph->get_serial();
+
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status           = google::protobuf::util::MessageToJsonString(
+        *serial, &json, j_opts);
+    EXPECT_TRUE(status.ok());
+    writeFile(getDebugFile("serial.json"), json);
 }
 
 TEST(ManualFileRun, TestDirCorpus) {

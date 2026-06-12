@@ -94,7 +94,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         Func<Opt<ImmAstReplace>(ImmAdapter const&)> aux;
         aux = [&](ImmAdapter const& target) -> Opt<ImmAstReplace> {
             for (auto const& sub : target.sub()) {
-                auto __scope = ctx.debug()->scopeLevel();
+                auto __scope = ctx.debug()->begin_scope();
                 aux(sub);
             }
 
@@ -129,7 +129,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                         update.replaced,
                         node));
 
-                auto __scope = ctx.debug()->scopeLevel();
+                auto __scope = ctx.debug()->begin_scope();
                 edits.incl(dropSubnode(*parent, node.id, ctx));
                 edits.incl(
                     appendSubnode(*adjacent, update.replaced.id, ctx));
@@ -172,7 +172,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
 
         {
-            auto __scope = ctx.debug()->scopeLevel();
+            auto __scope = ctx.debug()->begin_scope();
             auto update  = ctx.store().updateNode<org::imm::ImmSubtree>(
                 node, ctx, [&](org::imm::ImmSubtree value) {
                     value.subnodes = edits.newSubnodes(
@@ -367,7 +367,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
             node));
-    auto __scope = ctx.sel->scopeLevel();
+    auto __scope = ctx.sel->begin_scope();
 
     if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
         ctx.sel->message(

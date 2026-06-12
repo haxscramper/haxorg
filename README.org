@@ -12,6 +12,8 @@ Org-mode parser with focus on scripting, structured data processing and ease of 
 
 Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second phase]] of the Python API, improving the ergonomics and adding more tests. Next step is to implement the CI for testing, documentation and artifact builds.
 
+
+
 | Phase      | Status   | Notes                                                   |
 |------------+----------+---------------------------------------------------------|
 | C++ core   | [WIP] Alpha | Whole pipeline is complete, working on testing          |

@@ -10,7 +10,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #endif
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
@@ -244,6 +244,8 @@ struct [[refl]] ImmUniqId {
     ImmId   id;
     ImmPath path;
     DESC_FIELDS(ImmUniqId, (id, path));
+
+    std::string getReadableId() const { return id.getReadableId(); }
 
     /// \brief Create a new unique ID with different final target.
     ImmUniqId update(ImmId id) const {
@@ -850,7 +852,7 @@ void switch_node_fields(
 
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-hstd::ext::Graphviz::Graph toGraphviz(
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
     hstd::Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const&       conf = ImmAstGraphvizConf{});
 #endif

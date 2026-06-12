@@ -21,6 +21,7 @@ TYPES: dict[str, str] = {
     "test": "Adding missing tests, refactoring tests; no production code change",
     "chore": "Updating grunt tasks etc; no production code change",
     "wip": "Intermediate commit",
+    "clean": "Simplification of the code",
 }
 
 SCOPES: dict[str, str] = {
@@ -188,6 +189,10 @@ def main() -> int:
             continue
 
         if not ln.strip():
+            continue
+
+        # ignore comment lines
+        if ln.startswith("#"):
             continue
 
         if BODY_LINE_MAX < len(ln):

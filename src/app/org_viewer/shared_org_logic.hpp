@@ -29,12 +29,7 @@ void writeOrgFileCache(fs::path const& infile, fs::path const& cache_file);
 
 org::sem::SemId<org::sem::Org> loadCachedImmNode(
     fs::path const&               infile,
-    fs::path const&               graph_path,
-    fs::path const&               context_path,
-    fs::path const&               epoch_path,
-    fs::path const&               cache_file,
-    org::parse::ParseContext::Ptr parse_context,
-    bool                          use_cache = true);
+    org::parse::ParseContext::Ptr parse_context);
 
 class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
   public:

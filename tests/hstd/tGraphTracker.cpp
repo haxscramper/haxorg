@@ -11,6 +11,7 @@
 #include <hstd/ext/log_graph_tracker.hpp>
 
 using namespace hstd::log;
+using namespace hstd::ext::graph;
 
 using testing::_;
 
@@ -203,18 +204,20 @@ struct LogGraphTracker : public ::testing::Test {
 
     void finalize_files() {
         {
+            layout::LayoutRun::TrivialState state;
+            auto                            run = state.init();
 
             hstd::fs::path path = getDebugFile("result.png");
-            processor->get_graphviz().render(path);
+            processor->get_graphviz(run)->render(path);
             std::ifstream file{path};
             EXPECT_TRUE(file.good());
         }
         {
+            layout::LayoutRun::TrivialState state;
+            auto                            run = state.init();
             hstd::fs::path path = getDebugFile("result.dot");
-            processor->get_graphviz().render(
-                path,
-                hstd::ext::Graphviz::LayoutType::Dot,
-                hstd::ext::Graphviz::RenderFormat::DOT);
+            processor->get_graphviz(run)->render(
+                path, gv::LayoutType::Dot, gv::RenderFormat::DOT);
             std::ifstream file{path};
             EXPECT_TRUE(file.good());
         }
@@ -534,5 +537,8 @@ TEST(LogGraphTrackerManual, real_usage_test) {
     tracker->start_tracing();
     real_usage_test_func::a<2>(tracker);
     tracker->end_tracing();
-    processor->get_graphviz().render(getDebugFile("result.png"));
+
+    layout::LayoutRun::TrivialState state{};
+    auto                            run = state.init();
+    processor->get_graphviz(run)->render(getDebugFile("result.png"));
 }

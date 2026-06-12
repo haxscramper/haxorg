@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <cpptrace/cpptrace.hpp>
@@ -12,6 +14,53 @@
 using namespace hstd;
 
 SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
+
+hstd::Opt<fs::path> OperationsTracer::getTraceFileDir() const {
+    if (traceFile) {
+        return traceFile->parent_path();
+    } else {
+        return std::nullopt;
+    }
+}
+
+hstd::fs::path OperationsTracer::getAdjacentToTraceFile(
+    Str const& suffix) const {
+    auto outdir = getTraceFileDir();
+    LOGIC_ASSERTION_CHECK(outdir.has_value(), "must be writing to file");
+    auto result = outdir.value() / suffix.toBase();
+    createDirectory(result.parent_path(), true, true);
+    return result;
+}
+
+void OperationsTracer::writeToTraceFile(
+    hstd::fs::path const& path,
+    Str const&            text,
+    bool                  with_message,
+    char const*           function,
+    int                   line,
+    char const*           file) const {
+    writeFile(path, text);
+    if (with_message) {
+        message(
+            hstd::fmt("wrote debug file to {}", path),
+            function,
+            line,
+            file);
+    }
+}
+
+void OperationsTracer::writeAdjacentToTraceFile(
+    Str const&  suffix,
+    Str const&  text,
+    bool        with_message,
+    char const* function,
+    int         line,
+    char const* file) const {
+    if (TraceState) {
+        auto result = getAdjacentToTraceFile(suffix);
+        writeToTraceFile(result, text, with_message, function, line, file);
+    }
+}
 
 void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
     TraceState   = true;
@@ -25,6 +74,7 @@ void OperationsTracer::setTraceFile(
     LOGIC_ASSERTION_CHECK(
         outfile.native().size() != 0,
         "Expected non-empty filename for the output");
+    traceFile   = outfile;
     TraceState  = true;
     traceToFile = true;
     createDirectory(outfile.parent_path(), true, true);
@@ -86,7 +136,11 @@ void OperationsTracer::message(OperationsMsg const& value) const {
     if (TraceState) {
         auto os = getStream();
         if (traceStructured) {
-            os << to_json_eval(value).dump();
+            log::record::InstantEvent event;
+            event.init_ids();
+            event.init_location(value.function, value.line, value.file);
+            event.args.message = value.msg;
+            os << log::record::format_event_to_json(event).dump();
         } else {
             std::string prefix = fmt(
                 "{0}{1}{2}{3} @{4}",
@@ -148,10 +202,54 @@ void OperationsTracer::stacktraceMessage() const {
 #endif
 }
 
-finally_std OperationsTracer::scopeLevel() const {
-    ++(const_cast<OperationsTracer*>(this)->activeLevel);
-    return finally_std{
-        [&]() { --(const_cast<OperationsTracer*>(this)->activeLevel); }};
+
+void OperationsTracer::begin_scope_event(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) const {
+    if (traceStructured) {
+        auto                            os = getStream();
+        log::record::DurationBeginEvent e;
+        e.init_ids();
+        e.init_location(function, line, file);
+        e.args.message = value;
+        os << log::record::format_event_to_json(e).dump();
+        endStream(os);
+    } else {
+        if (value) { message(value.value(), function, line, file); }
+        ++activeLevel;
+    }
+}
+
+void OperationsTracer::end_scope_event(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) const {
+    if (traceStructured) {
+        auto                          os = getStream();
+        log::record::DurationEndEvent e;
+        e.init_ids();
+        e.init_location(function, line, file);
+        e.args.message = value;
+        os << log::record::format_event_to_json(e).dump();
+        endStream(os);
+    } else {
+        --activeLevel;
+        if (value) { message(value.value(), function, line, file); }
+    }
+}
+
+hstd::OperationsTracer::ScopeHandle OperationsTracer::begin_scope(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) const {
+
+    ScopeHandle res{const_cast<OperationsTracer*>(this)};
+    res.start(value, function, line, file);
+    return res;
 }
 
 finally_std OperationsTracer::scopeTrace(bool state) {
@@ -161,18 +259,25 @@ finally_std OperationsTracer::scopeTrace(bool state) {
         [initialTrace, this]() { TraceState = initialTrace; }};
 }
 
-finally_std OperationsTracer::scopeLevelMsg(
-    std::string const& value,
-    char const*        function,
-    int                line,
-    char const*        file) const {
-    message(value, function, line, file);
-    return scopeLevel();
-}
-
-
 void OperationsMsg::use_stacktrace_as_msg() {
 #if !ORG_BUILD_EMCC
     this->msg = cpptrace::generate_trace().to_string(false);
 #endif
+}
+
+void hstd::OperationsTracer::ScopeHandle::start(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    tracer->begin_scope_event(value, function, line, file);
+}
+
+void hstd::OperationsTracer::ScopeHandle::end(
+    Opt<std::string> const& value,
+    char const*             function,
+    int                     line,
+    char const*             file) {
+    tracer->end_scope_event(value, function, line, file);
+    tracer = nullptr;
 }

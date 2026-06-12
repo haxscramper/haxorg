@@ -2,29 +2,70 @@
 #include <hstd/stdlib/JsonUse.hpp>
 
 // clang-format off
-std::format_context::iterator std::formatter<OrgTokenKind>::format(OrgTokenKind const& p, std::format_context& ctx) const {
+template <class FormatContext>
+auto std::formatter<OrgTokenKind>::format(OrgTokenKind const& p, FormatContext& ctx) const
+    -> typename FormatContext::iterator
+{
     return std::formatter<std::string>{}.format(hstd::enum_serde<OrgTokenKind>::to_string(p), ctx);
 }
 
-std::format_context::iterator std::formatter<OrgSemKind>::format(OrgSemKind const& p, std::format_context& ctx) const {
+template <class FormatContext>
+auto std::formatter<OrgSemKind>::format(OrgSemKind const& p, FormatContext& ctx) const
+    -> typename FormatContext::iterator
+{
     return std::formatter<std::string>{}.format(hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
 }
 
-std::format_context::iterator std::formatter<OrgNodeKind>::format(OrgNodeKind const& p, std::format_context& ctx) const {
+template <class FormatContext>
+auto std::formatter<OrgNodeKind>::format(OrgNodeKind const& p, FormatContext& ctx) const
+    -> typename FormatContext::iterator
+{
     return std::formatter<std::string>{}.format(hstd::enum_serde<OrgNodeKind>::to_string(p), ctx);
 }
 
-hstd::back_inserter_string_format_context::iterator std::formatter<OrgTokenKind>::format(OrgTokenKind const& p, hstd::back_inserter_string_format_context& ctx) const {
-    return std::formatter<std::string>{}.format(hstd::enum_serde<OrgTokenKind>::to_string(p), ctx);
-}
+template
+    auto std::formatter<OrgTokenKind>::format<std::format_context>(OrgTokenKind const&, std::format_context&) const
+    -> std::format_context::iterator;
 
-hstd::back_inserter_string_format_context::iterator std::formatter<OrgSemKind>::format(OrgSemKind const& p, hstd::back_inserter_string_format_context& ctx) const {
-    return std::formatter<std::string>{}.format(hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
-}
+template
+    auto std::formatter<OrgTokenKind>::format<hstd::back_inserter_string_format_context>(
+        OrgTokenKind const&, hstd::back_inserter_string_format_context&) const
+    -> hstd::back_inserter_string_format_context::iterator;
 
-hstd::back_inserter_string_format_context::iterator std::formatter<OrgNodeKind>::format(OrgNodeKind const& p, hstd::back_inserter_string_format_context& ctx) const {
-    return std::formatter<std::string>{}.format(hstd::enum_serde<OrgNodeKind>::to_string(p), ctx);
-}
+template
+    auto std::formatter<OrgTokenKind>::format<std::basic_format_context<std::__format::_Drop_iter<char>, char>>(
+        OrgTokenKind const&, std::basic_format_context<std::__format::_Drop_iter<char>, char>&) const
+    -> std::basic_format_context<std::__format::_Drop_iter<char>, char>::iterator;
+
+
+template
+    auto std::formatter<OrgSemKind>::format<std::format_context>(OrgSemKind const&, std::format_context&) const
+    -> std::format_context::iterator;
+
+template
+    auto std::formatter<OrgSemKind>::format<hstd::back_inserter_string_format_context>(
+        OrgSemKind const&, hstd::back_inserter_string_format_context&) const
+    -> hstd::back_inserter_string_format_context::iterator;
+
+template
+    auto std::formatter<OrgSemKind>::format<std::basic_format_context<std::__format::_Drop_iter<char>, char>>(
+        OrgSemKind const&, std::basic_format_context<std::__format::_Drop_iter<char>, char>&) const
+    -> std::basic_format_context<std::__format::_Drop_iter<char>, char>::iterator;
+
+
+template
+    auto std::formatter<OrgNodeKind>::format<std::format_context>(OrgNodeKind const&, std::format_context&) const
+    -> std::format_context::iterator;
+
+template
+    auto std::formatter<OrgNodeKind>::format<hstd::back_inserter_string_format_context>(
+        OrgNodeKind const&, hstd::back_inserter_string_format_context&) const
+    -> hstd::back_inserter_string_format_context::iterator;
+
+template
+    auto std::formatter<OrgNodeKind>::format<std::basic_format_context<std::__format::_Drop_iter<char>, char>>(
+        OrgNodeKind const&, std::basic_format_context<std::__format::_Drop_iter<char>, char>&) const
+    -> std::basic_format_context<std::__format::_Drop_iter<char>, char>::iterator;
 // clang-format on
 
 

@@ -5,6 +5,25 @@
 namespace hstd {
 struct logic_unhandled_kind_error
     : CRTP_hexception<logic_unhandled_kind_error> {
+
+
+    static logic_unhandled_kind_error init(
+        std::string const& kind,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+        auto result = logic_unhandled_kind_error{};
+#if !ORG_BUILD_EMCC
+        result.eager = cpptrace::generate_trace();
+#endif
+        result.msg = "Unexpected kind ";
+        result.msg += kind;
+        result.line     = line;
+        result.file     = file;
+        result.function = function;
+        return result;
+    }
+
     template <IsEnum E>
     static logic_unhandled_kind_error init(
         E           kind,
@@ -74,4 +93,27 @@ void logic_assertion_check_not_nil(
             msg, line, function, file);
     }
 }
+
+template <typename T, typename Other>
+T* validated_dynamic_cast(Other* other) {
+    auto res = dynamic_cast<T*>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
+template <typename T, typename Other>
+T const* validated_dynamic_cast(Other const* other) {
+    auto res = dynamic_cast<T const*>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
+template <typename T, typename Other>
+std::shared_ptr<T> validated_dynamic_cast(
+    std::shared_ptr<Other> const& other) {
+    auto res = std::dynamic_pointer_cast<T>(other);
+    hstd::logic_assertion_check_not_nil(res);
+    return res;
+}
+
 } // namespace hstd

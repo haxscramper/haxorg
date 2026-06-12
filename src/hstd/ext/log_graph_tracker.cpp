@@ -9,7 +9,7 @@
 
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/ext/graphviz.hpp>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaObject>
@@ -114,7 +114,7 @@ void graphviz_processor::track_function_start(function_info const& info) {
         std::string parent = get_parent();
         if (parent != info.name) {
             add_edge(parent, info.name);
-            nodes.at(parent).children.push_back(info.name);
+            nodes.at(parent).subnodes.push_back(info.name);
             nodes.at(parent).is_cluster = true;
         }
     }
@@ -157,31 +157,40 @@ void graphviz_processor::track_named_jump(named_jump_info const& info) {
     pending_jump = info.description;
 }
 
-hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
+    get_graphviz(
+        hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run) {
     using namespace hstd::ext;
-    Graphviz::Graph                                  graph{"g"_ss};
-    std::unordered_map<std::string, Graphviz::Node>  graph_nodes{};
-    std::unordered_map<std::string, Graphviz::Graph> clusters{};
+    using namespace hstd::ext::graph;
+    auto graph = gv::GraphGroup::newStandaloneRootGraph("g"_ss);
+    std::unordered_map<std::string, hstd::SPtr<gv::NodeAttribute>>
+        graph_nodes{};
+    std::unordered_map<std::string, hstd::SPtr<gv::GraphGroup>> clusters{};
 
-    graph.defaultNode.setShape(Graphviz::Node::Shape::rect);
+    graph->defaultNode.setNodeShape(gv::NodeShape::rect);
+
+    auto get_node = [&](hstd::SPtr<gv::GraphGroup> const& g,
+                        std::string const&                name) {
+        if (!graph_nodes.contains(name)) {
+            graph_nodes.insert_or_assign(name, g->node(name));
+        }
+        return graph_nodes.at(name);
+    };
 
     for (auto const& [name, info] : nodes) {
         if (info.is_cluster) {
-            std::string     cluster_name = std::format("cluster_{}", name);
-            Graphviz::Graph cluster      = graph.newSubgraph(cluster_name);
-            cluster.setLabel(name);
+            std::string cluster_name = std::format("cluster_{}", name);
+            auto        cluster      = graph->newSubgraph(cluster_name);
+            cluster->setLabel(name);
             clusters.insert_or_assign(name, cluster);
 
-            Graphviz::Node node = cluster.node(name);
-            graph_nodes.insert_or_assign(name, node);
+            auto node = get_node(cluster, name);
 
-            for (auto const& child : info.children) {
-                Graphviz::Node child_node = cluster.node(child);
-                graph_nodes.insert_or_assign(child, child_node);
+            for (auto const& sub : info.subnodes) {
+                get_node(cluster, sub);
             }
-        } else if (graph_nodes.find(name) == graph_nodes.end()) {
-            Graphviz::Node node = graph.node(name);
-            graph_nodes.insert_or_assign(name, node);
+        } else {
+            get_node(graph, name);
         }
     }
 
@@ -190,10 +199,9 @@ hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
         std::string from = edge_key.substr(0, pos);
         std::string to   = edge_key.substr(pos + 4);
 
-        Graphviz::Node from_node = graph_nodes.at(from);
-        Graphviz::Node to_node   = graph_nodes.at(to);
-
-        Graphviz::Edge edge = graph.edge(from_node, to_node);
+        auto from_node = graph_nodes.at(from);
+        auto to_node   = graph_nodes.at(to);
+        auto edge      = graph->edge(*from_node, *to_node);
 
         std::string label{};
         if (!call.jump_description.empty() && call.count > 1) {
@@ -205,7 +213,7 @@ hstd::ext::Graphviz::Graph graphviz_processor::get_graphviz() {
             label = std::format("({})", call.count);
         }
 
-        if (!label.empty()) { edge.setLabel(label); }
+        if (!label.empty()) { edge->setLabel(label); }
     }
 
     return graph;

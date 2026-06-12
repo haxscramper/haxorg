@@ -3,6 +3,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
 #include <unordered_set>
+#include <hstd/stdlib/Vec.hpp>
 
 namespace hstd {
 
@@ -39,6 +40,19 @@ struct UnorderedSet
     void excl(UnorderedSet<T> const& value) {
         for (const auto& it : value) { this->erase(it); }
     }
+
+    hstd::Vec<T> items() const { return hstd::Vec<T>{begin(), end()}; }
+
+    static UnorderedSet<T> FromVec(hstd::Vec<T> const& v) {
+        return UnorderedSet<T>{v.begin(), v.end()};
+    }
+
+    template <typename It>
+    static UnorderedSet<T> FromIterable(It&& v) {
+        UnorderedSet<T> res{};
+        for (auto const& it : v) { res.incl(it); }
+        return res;
+    }
 };
 
 
@@ -51,5 +65,7 @@ struct value_metadata<hstd::UnorderedSet<T>> {
     static bool isEmpty(UnorderedSet<T> const& value) {
         return value.empty();
     }
+
+    static bool isNil(UnorderedSet<T> const& value) { return false; }
 };
 } // namespace hstd

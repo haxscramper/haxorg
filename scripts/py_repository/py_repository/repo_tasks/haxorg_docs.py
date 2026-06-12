@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 import sys
 
 from beartype.typing import List, Optional
@@ -22,8 +23,10 @@ CAT = __name__
 
 @haxorg_task()
 def docs_doxygen(ctx: TaskContext) -> None:
-    "Build docunentation for the project using doxygen"
-    out_dir = get_script_root(ctx, "/tmp/doxygen")
+    """
+    Build docunentation for the project using doxygen
+    """
+    out_dir = get_script_root(ctx, "build/docs")
     # if out_dir.exists():
     #     shutil.rmtree(out_dir)
 
@@ -35,8 +38,8 @@ def docs_doxygen(ctx: TaskContext) -> None:
         [str(get_script_root(ctx, "docs/Doxyfile"))],
         stdout_debug=get_build_root(ctx).joinpath("doxygen_stdout.log"),
         stderr_debug=get_build_root(ctx).joinpath("doxygen_stderr.log"),
-        # run_mode="bg",
     )
+
     log(CAT).info("Completed CXX docs build")
 
 

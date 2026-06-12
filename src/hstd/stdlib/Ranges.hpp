@@ -10,6 +10,7 @@ namespace hstd {
 
 namespace rv = ranges::views;
 namespace rs = ranges;
+namespace ra = ranges::actions;
 using ranges::operator|;
 
 template <class T>
@@ -60,56 +61,32 @@ generator_view<T> gen_view(generator<T>&& gen) {
 }
 
 template <class T>
-struct owning_range : rs::view_facade<owning_range<T>> {
-    using iterator = std::remove_cvref_t<
-        decltype(std::declval<T>().begin())>;
-    using value_type = iterator::value_type;
+struct owning_range : rs::view_interface<owning_range<T>> {
+    T gen_;
 
-  private:
-    friend rs::range_access;
-    struct Data {
-        T        gen_;
-        iterator iter;
-        explicit Data(T&& gen)
-            : gen_(std::move(gen)), iter(gen_.begin()) {}
-    };
-
-    SPtr<Data> data;
-
-    struct cursor {
-      private:
-        friend rs::range_access;
-        using single_pass  = std::true_type;
-        owning_range* rng_ = nullptr;
-
-      public:
-        cursor() = default;
-        explicit cursor(owning_range* rng) : rng_(rng) {}
-
-        void        next() { rng_->next(); }
-        value_type& read() const noexcept { return rng_->cached(); }
-        bool        equal(rs::default_sentinel_t) const {
-            return rng_->data->iter == rng_->data->gen_.end();
-        }
-    };
-
-    void next() { ++data->iter; }
-
-    cursor begin_cursor() { return cursor{this}; }
-
-  public:
     owning_range() = default;
-    explicit owning_range(T&& gen)
-        : data(std::make_shared<Data>(std::move(gen))) {}
+    explicit owning_range(T&& gen) : gen_(std::move(gen)) {}
 
-    value_type& cached() noexcept { return *data->iter; }
+    auto begin() { return gen_.begin(); }
+    auto end() { return gen_.end(); }
+
+    auto begin() const
+        requires requires(T const& t) { t.begin(); }
+    {
+        return gen_.begin();
+    }
+
+    auto end() const
+        requires requires(T const& t) { t.end(); }
+    {
+        return gen_.end();
+    }
 };
 
 template <typename T>
-owning_range<T> own_view(T&& gen) {
-    return owning_range<T>(std::move(gen));
+owning_range<std::remove_cvref_t<T>> own_view(T&& gen) {
+    return owning_range<std::remove_cvref_t<T>>(std::forward<T>(gen));
 }
-
 
 template <class Rng>
 struct collector_view
@@ -197,6 +174,22 @@ inline auto rv_transform_pair_second = hstd::rv::transform(
     []<typename A, typename B>(hstd::Pair<A, B> const& it) {
         return it.second;
     });
+
+inline auto rv_sliding_tuple2 //
+    = hstd::rv::sliding(2) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1]);
+      });
+
+inline auto rv_sliding_tuple3 //
+    = hstd::rv::sliding(3) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1], it[2]);
+      });
+
+
+inline auto rv_sliding_tuple4 //
+    = hstd::rv::sliding(3) | hstd::rv::transform([](auto const& it) {
+          return std::tuple(it[0], it[1], it[2], it[3]);
+      });
 
 inline auto rv_intersperse_newline_join //
     = hstd::rv::intersperse("\n")       //

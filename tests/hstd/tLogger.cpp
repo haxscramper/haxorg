@@ -47,10 +47,11 @@ log::sink_ptr init_buffer_sink(Vec<log::log_record>* buffer) {
     return sink;
 }
 
-struct LoggerTest : public ::testing::Test {
+struct TestScope {
     Vec<log::log_record> buffer;
     log::log_sink_scope  scope;
-    LoggerTest() {
+
+    TestScope() {
         scope = HSLOG_SINK_FACTORY_SCOPED(
             [&]() { return init_buffer_sink(&buffer); });
     }
@@ -62,9 +63,12 @@ struct LoggerTest : public ::testing::Test {
     }
 };
 
+struct LoggerTest : public ::testing::Test {};
+
 const hstd::log::log_category _cat = hstd::log::log_category{"cat"};
 
 TEST_F(LoggerTest, SimpleLog) {
+    TestScope s;
     HSLOG_TRACE("trace");
     HSLOG_DEBUG("debug"); // hook-ignore
     HSLOG_INFO("info");
@@ -73,10 +77,10 @@ TEST_F(LoggerTest, SimpleLog) {
     HSLOG_ERROR("fatal");
 
     // debug();
-    auto const& b = buffer;
+    auto const& b = s.buffer;
+    ASSERT_EQ(b.size(), 6);
     EXPECT_EQ(b.at(0).data.severity, log::l_trace);
     EXPECT_EQ(b.at(1).data.severity, log::l_debug);
-    EXPECT_EQ(b.size(), 6);
 }
 
 TEST_F(LoggerTest, DifferentialDebug) {

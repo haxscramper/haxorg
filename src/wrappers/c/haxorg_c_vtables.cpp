@@ -39,42 +39,6 @@ haxorg_HstdMap_vtable const* org::bind::c::VTable<hstd::UnorderedMap<org::sem::H
                                             .destroy = &VtableType::destroy,};
   return &vtable;
 }
-haxorg_ptr_payload org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>>::keys_const(OrgContext* org_context, haxorg_HstdMap __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(static_cast<hstd::Vec<org::graph::MapNode>(hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>::*)() const>(&hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>::keys), org_context, __self);
-}
-void org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>>::destroy(OrgContext* org_context, haxorg_HstdMap* __self) {
-  org::bind::c::execute_destroy<hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>, haxorg_HstdMap>(org_context, __self);
-}
-haxorg_HstdMap_vtable const* org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::MapNodeProp, std::hash<org::graph::MapNode>>>;
-  static haxorg_HstdMap_vtable const vtable{.keys_const = &VtableType::keys_const,
-                                            .destroy = &VtableType::destroy,};
-  return &vtable;
-}
-haxorg_ptr_payload org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>>::keys_const(OrgContext* org_context, haxorg_HstdMap __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(static_cast<hstd::Vec<org::graph::MapEdge>(hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>::*)() const>(&hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>::keys), org_context, __self);
-}
-void org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>>::destroy(OrgContext* org_context, haxorg_HstdMap* __self) {
-  org::bind::c::execute_destroy<hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>, haxorg_HstdMap>(org_context, __self);
-}
-haxorg_HstdMap_vtable const* org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapEdge, org::graph::MapEdgeProp, std::hash<org::graph::MapEdge>>>;
-  static haxorg_HstdMap_vtable const vtable{.keys_const = &VtableType::keys_const,
-                                            .destroy = &VtableType::destroy,};
-  return &vtable;
-}
-haxorg_ptr_payload org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>>::keys_const(OrgContext* org_context, haxorg_HstdMap __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(static_cast<hstd::Vec<org::graph::MapNode>(hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>::*)() const>(&hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>::keys), org_context, __self);
-}
-void org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>>::destroy(OrgContext* org_context, haxorg_HstdMap* __self) {
-  org::bind::c::execute_destroy<hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>, haxorg_HstdMap>(org_context, __self);
-}
-haxorg_HstdMap_vtable const* org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<hstd::UnorderedMap<org::graph::MapNode, org::graph::AdjNodesList, std::hash<org::graph::MapNode>>>;
-  static haxorg_HstdMap_vtable const vtable{.keys_const = &VtableType::keys_const,
-                                            .destroy = &VtableType::destroy,};
-  return &vtable;
-}
 haxorg_ptr_payload org::bind::c::VTable<hstd::UnorderedMap<hstd::Str, org::sem::AttrList, std::hash<hstd::Str>>>::keys_const(OrgContext* org_context, haxorg_HstdMap __self) {
   return org::bind::c::execute_cpp<haxorg_ptr_payload>(static_cast<hstd::Vec<hstd::Str>(hstd::UnorderedMap<hstd::Str, org::sem::AttrList, std::hash<hstd::Str>>::*)() const>(&hstd::UnorderedMap<hstd::Str, org::sem::AttrList, std::hash<hstd::Str>>::keys), org_context, __self);
 }
@@ -171,30 +135,6 @@ haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::AstTrac
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
 }
-haxorg_ptr_payload org::bind::c::VTable<std::optional<hstd::Str>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<hstd::Str> const& __self) -> hstd::Str const& { return __self.value(); }, org_context, __self);
-}
-void org::bind::c::VTable<std::optional<hstd::Str>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
-  org::bind::c::execute_destroy<std::optional<hstd::Str>, haxorg_StdOptional>(org_context, __self);
-}
-haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<hstd::Str>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<std::optional<hstd::Str>>;
-  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
-                                                .destroy = &VtableType::destroy,};
-  return &vtable;
-}
-haxorg_ptr_payload org::bind::c::VTable<std::optional<org::graph::MapLink>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<org::graph::MapLink> const& __self) -> org::graph::MapLink const& { return __self.value(); }, org_context, __self);
-}
-void org::bind::c::VTable<std::optional<org::graph::MapLink>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
-  org::bind::c::execute_destroy<std::optional<org::graph::MapLink>, haxorg_StdOptional>(org_context, __self);
-}
-haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::graph::MapLink>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<std::optional<org::graph::MapLink>>;
-  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
-                                                .destroy = &VtableType::destroy,};
-  return &vtable;
-}
 haxorg_ptr_payload org::bind::c::VTable<std::optional<org::sem::Tblfm::Expr::AxisRef::Position>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
   return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<org::sem::Tblfm::Expr::AxisRef::Position> const& __self) -> org::sem::Tblfm::Expr::AxisRef::Position const& { return __self.value(); }, org_context, __self);
 }
@@ -239,6 +179,18 @@ void org::bind::c::VTable<std::optional<double>>::destroy(OrgContext* org_contex
 }
 haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<double>>::get_vtable() {
   using VtableType = org::bind::c::VTable<std::optional<double>>;
+  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
+                                                .destroy = &VtableType::destroy,};
+  return &vtable;
+}
+haxorg_ptr_payload org::bind::c::VTable<std::optional<hstd::Str>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
+  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<hstd::Str> const& __self) -> hstd::Str const& { return __self.value(); }, org_context, __self);
+}
+void org::bind::c::VTable<std::optional<hstd::Str>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
+  org::bind::c::execute_destroy<std::optional<hstd::Str>, haxorg_StdOptional>(org_context, __self);
+}
+haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<hstd::Str>>::get_vtable() {
+  using VtableType = org::bind::c::VTable<std::optional<hstd::Str>>;
   static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
                                                 .destroy = &VtableType::destroy,};
   return &vtable;

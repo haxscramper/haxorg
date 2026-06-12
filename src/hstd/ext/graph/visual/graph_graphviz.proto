@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+package hstd.ext.graph.gv.proto;
+
+
+enum TextAlign {
+  TEXTALIGN_LEFT = 0;
+  TEXTALIGN_CENTER = 1;
+  TEXTALIGN_RIGHT = 2;
+}
+
+enum Style {
+  STYLE_SOLID = 0;
+  STYLE_DASHED = 1;
+  STYLE_DOTTED = 2;
+  STYLE_BOLD = 3;
+  STYLE_INVIS = 4;
+  STYLE_TAPERED = 5;
+  STYLE_FILLED = 6;
+  STYLE_STRIPED = 7;
+  STYLE_WEDGED = 8;
+  STYLE_DIAGONALS = 9;
+  STYLE_ROUNDED = 10;
+}
+
+enum NodeArrowSize {
+  NODEARROWSIZE_TINY = 0;
+  NODEARROWSIZE_SMALL = 1;
+  NODEARROWSIZE_NORMAL = 2;
+  NODEARROWSIZE_LARGE = 3;
+  NODEARROWSIZE_HUGE = 4;
+}
+
+enum NodeDir {
+  NODEDIR_FORWARD = 0;
+  NODEDIR_BACK = 1;
+  NODEDIR_BOTH = 2;
+  NODEDIR_NONE = 3;
+}
+
+enum Rank {
+  RANK_NONE = 0;
+  RANK_SAME = 1;
+  RANK_SOURCE = 2;
+  RANK_SINK = 3;
+}
+
+enum RankDirection {
+  RANKDIRECTION_LR = 0;
+  RANKDIRECTION_TB = 1;
+  RANKDIRECTION_BT = 2;
+  RANKDIRECTION_RL = 3;
+}
+
+enum NodeShape {
+  NODESHAPE_BOX = 0;
+  NODESHAPE_POLYGON = 1;
+  NODESHAPE_ELLIPSE = 2;
+  NODESHAPE_OVAL = 3;
+  NODESHAPE_CIRCLE = 4;
+  NODESHAPE_POINT = 5;
+  NODESHAPE_EGG = 6;
+  NODESHAPE_TRIANGLE = 7;
+  NODESHAPE_PLAINTEXT = 8;
+  NODESHAPE_PLAIN = 9;
+  NODESHAPE_DIAMOND = 10;
+  NODESHAPE_TRAPEZIUM = 11;
+  NODESHAPE_PARALLELOGRAM = 12;
+  NODESHAPE_HOUSE = 13;
+  NODESHAPE_PENTAGON = 14;
+  NODESHAPE_HEXAGON = 15;
+  NODESHAPE_SEPTAGON = 16;
+  NODESHAPE_OCTAGON = 17;
+  NODESHAPE_DOUBLECIRCLE = 18;
+  NODESHAPE_DOUBLEOCTAGON = 19;
+  NODESHAPE_TRIPLEOCTAGON = 20;
+  NODESHAPE_INVTRIANGLE = 21;
+  NODESHAPE_INVTRAPEZIUM = 22;
+  NODESHAPE_INVHOUSE = 23;
+  NODESHAPE_MDIAMOND = 24;
+  NODESHAPE_MSQUARE = 25;
+  NODESHAPE_MCIRCLE = 26;
+  NODESHAPE_RECT = 27;
+  NODESHAPE_RECTANGLE = 28;
+  NODESHAPE_SQUARE = 29;
+  NODESHAPE_STAR = 30;
+  NODESHAPE_NONE = 31;
+  NODESHAPE_UNDERLINE = 32;
+  NODESHAPE_CYLINDER = 33;
+  NODESHAPE_NOTE = 34;
+  NODESHAPE_TAB = 35;
+  NODESHAPE_FOLDER = 36;
+  NODESHAPE_BOX3D = 37;
+  NODESHAPE_COMPONENT = 38;
+  NODESHAPE_PROMOTER = 39;
+  NODESHAPE_CDS = 40;
+  NODESHAPE_TERMINATOR = 41;
+  NODESHAPE_UTR = 42;
+  NODESHAPE_PRIMERSITE = 43;
+  NODESHAPE_RESTRICTIONSITE = 44;
+  NODESHAPE_FIVEPOVERHANG = 45;
+  NODESHAPE_THREEPOVERHANG = 46;
+  NODESHAPE_NOVERHANG = 47;
+  NODESHAPE_ASSEMBLY = 48;
+  NODESHAPE_SIGNATURE = 49;
+  NODESHAPE_INSULATOR = 50;
+  NODESHAPE_RIBOSITE = 51;
+  NODESHAPE_RECORD = 52;
+  NODESHAPE_RNASTAB = 53;
+  NODESHAPE_PROTEASESITE = 54;
+  NODESHAPE_PROTEINSTAB = 55;
+  NODESHAPE_RPROMOTER = 56;
+  NODESHAPE_RARROW = 57;
+  NODESHAPE_LARROW = 58;
+  NODESHAPE_LPROMOTER = 59;
+}
+
+message PointPayload {
+  optional double x = 1;
+  optional double y = 2;
+}
+
+
+
+message NodeAttributePayload {
+  optional NodeShape shape = 1;
+  optional NodeArrowSize arrowsize = 2;
+  optional NodeDir dir = 3;
+  optional Style style = 4;
+  optional double penwidth = 5;
+  optional string color = 6;
+  optional string fillcolor = 7;
+  optional string fontcolor = 8;
+  optional string fontname = 9;
+  optional double fontsize = 10;
+  optional double height = 11;
+  optional string label = 12;
+  optional TextAlign label_align = 13;
+  optional PointPayload pos = 14;
+  optional string URL = 15;
+  optional double width = 16;
+  optional string xlabel = 17;
+  optional TextAlign xlabel_align = 18;
+  optional PointPayload xlabelpos = 19;
+  optional PointPayload margin = 20;
+  string parent_stable_id = 21;
+}
+
+message EdgeAttributePayload {
+  optional bool constraint = 1;
+  optional string color = 2;
+  optional string fontcolor = 3;
+  optional string fontname = 4;
+  optional double fontsize = 5;
+  optional string label = 6;
+  optional TextAlign label_align = 7;
+  optional PointPayload lp = 8;
+  optional double penwidth = 9;
+  optional Style style = 10;
+  optional string URL = 11;
+  optional string lhead = 12;
+  optional string ltail = 13;
+  string parent_stable_id = 14;
+}
+
+message GroupAttributePayload {
+  optional RankDirection rankdir = 1;
+  optional Rank rank = 2;
+  optional double Damping = 3;
+  optional double K = 4;
+  optional string URL = 5;
+  optional double aspect = 6;
+  optional string bgcolor = 7;
+  optional double defaultdist = 8;
+  optional string defaultNodeColor = 9;
+  optional string defaultEdgeColor = 10;
+  optional string fontcolor = 11;
+  optional string color = 12;
+  optional double penwidth = 13;
+  optional string fillcolor = 14;
+  optional Style style = 15;
+  optional string fontname = 16;
+  optional double fontsize = 17;
+  optional string label = 18;
+  optional TextAlign label_align = 19;
+  optional string labelURL = 20;
+  optional TextAlign labelURL_align = 21;
+  optional string labeljust = 22;
+  optional string labelloc = 23;
+  optional string layersep = 24;
+  optional string layers = 25;
+  optional PointPayload margin = 26;
+  optional PointPayload pad = 27;
+  optional double nodesep = 28;
+  optional string outputorder = 29;
+  optional string pagedir = 30;
+  optional double pageheight = 31;
+  optional double pagewidth = 32;
+  optional double quantum = 33;
+  optional double ranksep = 34;
+  optional double resolution = 35;
+  optional int32 searchsize = 36;
+  optional PointPayload size = 37;
+  optional string splines = 38;
+  optional string stylesheet = 39;
+  optional bool truecolor = 40;
+  optional PointPayload viewport = 41;
+  optional bool compound = 42;
+  optional bool concentrate = 43;
+  optional string parent_stable_id = 44;
+}

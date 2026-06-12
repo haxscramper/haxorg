@@ -146,6 +146,13 @@ def get_external_deps_list(
     # present.
 
     dep(
+        build_name="graphviz",
+        deps_name="graphviz",
+        cmake_dirs=[("graphviz", make_lib("graphviz/lib/cmake/graphviz"))],
+        configure_args=[],
+    )
+
+    dep(
         build_name="benchmark",
         deps_name="benchmark",
         is_emcc_ready=False,
@@ -153,6 +160,8 @@ def get_external_deps_list(
         configure_args=[
             opt("BENCHMARK_ENABLE_TESTING", False),
             opt("BENCHMARK_ENABLE_GTEST_TESTS", False),
+            opt("BENCHMARK_ENABLE_WERROR", False),
+            opt("BENCHMARK_FORCE_WERROR", False),
         ],
     )
 

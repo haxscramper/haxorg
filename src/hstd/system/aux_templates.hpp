@@ -28,24 +28,13 @@ struct pow_v<N, 0> {
 /// partially specialized type name.
 template <template <typename...> class Base, typename Derived>
 struct is_base_of_template {
-    // A function which can only be called by something convertible to a
-    // Base<Ts...>*
     template <typename... Ts>
-    static auto constexpr is_callable(Base<Ts...>*) -> arg_pack<Ts...>;
+    static std::true_type test(Base<Ts...> const volatile*);
 
-    // Detector, will return type of calling is_callable, or it won't
-    // compile if that can't be done
-    template <typename T>
-    using is_callable_t = decltype(is_callable(std::declval<T*>()));
+    static std::false_type test(...);
 
-    // Is it possible to call is_callable which the Derived type
-    static inline constexpr bool
-        value = std::experimental::is_detected_v<is_callable_t, Derived>;
-
-    // If it is possible to call is_callable with the Derived type what
-    // would it return, if not type is a void
-    using type = std::experimental::
-        detected_or_t<void, is_callable_t, Derived>;
+    static constexpr bool value = decltype(test(
+        std::declval<Derived const volatile*>()))::value;
 };
 
 template <template <typename...> class Base, typename Derived>

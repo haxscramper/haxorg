@@ -63,6 +63,13 @@ struct JsonSerde<int> {
 };
 
 template <>
+struct JsonSerde<uint8_t> {
+    static json    to_json(uint8_t const& it) { return json(it); }
+    static uint8_t from_json(json const& j) { return j.get<uint8_t>(); }
+};
+
+
+template <>
 struct JsonSerde<double> {
     static json   to_json(double const& it) { return json(it); }
     static double from_json(json const& j) { return j.get<double>(); }
@@ -283,6 +290,44 @@ struct JsonSerde<std::shared_ptr<T>> {
     }
 };
 
+template <
+    DescribedRecord T,
+    bool            WithNullFields  = false,
+    bool            WithEmptyFields = false>
+struct JsonSerdeDescribedRecordBaseEx {
+    static json to_json(T const& obj) {
+        json result = json::object();
+
+        hstd::for_each_field_value_with_bases(
+            obj, [&]<typename F>(char const* name, F const& value) {
+                using cvf = std::remove_cvref_t<F>;
+                if (!hstd::value_metadata<cvf>::isNil(value)
+                    || !hstd::value_metadata<cvf>::isEmpty(value)
+                    || (hstd::value_metadata<cvf>::isNil(value)
+                        && WithNullFields)
+                    || (hstd::value_metadata<cvf>::isEmpty(value)
+                        && WithEmptyFields)) {
+                    result[name] = JsonSerde<cvf>::to_json(value);
+                }
+            });
+
+        return result;
+    }
+
+    static T from_json(json const& j) {
+        T result = SerdeDefaultProvider<T>::get();
+        for_each_field_with_bases<T>([&](auto const& field) {
+            if (j.contains(field.name)) {
+                result.*field.pointer = JsonSerde<
+                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
+                    from_json(j[field.name]);
+            }
+        });
+
+        return result;
+    }
+};
+
 template <DescribedRecord T>
 struct JsonSerdeDescribedRecordBase {
     static json to_json(T const& obj) {
@@ -313,7 +358,6 @@ struct JsonSerdeDescribedRecordBase {
 
 template <DescribedRecord T>
 struct JsonSerde<T> : JsonSerdeDescribedRecordBase<T> {};
-
 
 template <DescribedEnum E>
 struct JsonSerde<E> {

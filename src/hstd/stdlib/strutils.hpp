@@ -49,11 +49,21 @@ int      rune_length(std::string const& str);
 std::vector<std::string> rune_chunks(std::string const& str);
 bool iequals(std::string const& a, std::string const& b);
 
+std::string format_number(double value);
+std::string format_table(
+    Vec<Vec<Str>> const& rows,
+    Str const&           inter_cell_spacing = " | ",
+    Str const&           inter_row_spacing  = "-+-",
+    char                 row_underline      = '-');
+
+
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);
 std::string escape_literal(std::string_view const& in);
 void        validate_utf8(std::string const& str);
+
+std::string format_integer_bits(uint64_t value, char fmt, int pad_to = 0);
 
 
 void replace_all(

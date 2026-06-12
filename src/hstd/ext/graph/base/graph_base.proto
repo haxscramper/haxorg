@@ -1,0 +1,83 @@
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
+
+package hstd.ext.graph.proto;
+
+
+message IAttribute {
+  string type = 1;
+  google.protobuf.Any payload = 2;
+}
+
+message TrivialVertexPayload {};
+message IVertex {
+  string stable_id = 1;
+  string type = 2;
+  repeated IAttribute attributes = 3;
+  google.protobuf.Any payload = 4;
+}
+
+message TrivialEdgePayload {}
+message IEdge {
+  string stable_id = 1;
+  string type = 2;
+  string source_vertex_id = 3;
+  string target_vertex_id = 4;
+  repeated IAttribute attributes = 5;
+  google.protobuf.Any payload = 6;
+}
+
+message IEdgeCollection {
+  string stable_id = 1;
+  string type = 2;
+  repeated IEdge edges = 3;
+  uint32 collection_id = 4;
+  google.protobuf.Any payload = 5;
+}
+
+message TrivialEdgeCollectionPayload {};
+message IdOnlyEdgeCollectionPayload {};
+message AutoSegmentingCollectioneCollection {};
+
+message VertexIDVec {
+  repeated string vertices = 1;
+}
+
+message TrivialVertexHierarchyPayload {};
+
+message IVertexHierarchy {
+  string stable_id = 1;
+  string type = 2;
+  repeated string root_vertex_ids = 3;
+  map<string, string> parent_map = 4;
+  map<string, bool> vertex_set = 5;
+  map<string, VertexIDVec> nested_in_map = 6;
+  repeated IEdge edges = 7;
+  google.protobuf.Any payload = 8;
+}
+
+message IPort {
+  string port_id = 1;
+  string edge_id = 2;
+  bool is_target = 3;
+  string vertex_id = 4;
+  google.protobuf.Any payload = 5;
+}
+
+message IConstraint {
+  google.protobuf.Any payload = 5;
+}
+
+message IPortCollection {
+  repeated IPort ports = 1;
+  google.protobuf.Any payload = 2;
+}
+
+message IGraphProto {
+  repeated IEdgeCollection collections = 1;
+  repeated IVertexHierarchy hierarchies = 2;
+  repeated IVertex vertices = 3;
+  repeated IPortCollection ports = 4;
+  google.protobuf.Any payload = 5;
+}

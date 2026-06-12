@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+
+import "google/protobuf/any.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/geometry/hstd_visual.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+
+package hstd.ext.graph.layout.proto;
+
+message IPortLayoutAttributePayload {
+  hstd.ext.geometry.proto.Rect bbox = 1;
+  hstd.ext.visual.proto.VisGroup group = 2;
+}
+
+message IEdgeLayoutAttributePayload {
+  hstd.ext.geometry.proto.Path path = 1;
+  hstd.ext.visual.proto.VisGroup group = 2;
+}
+
+message IVertexLayoutAttributePayload {
+  hstd.ext.geometry.proto.Rect bbox = 1;
+  hstd.ext.visual.proto.VisGroup group = 2;
+}
+
+message IGroupLayoutAttributePayload {
+  hstd.ext.geometry.proto.Rect bbox = 1;
+  hstd.ext.visual.proto.VisGroup group = 2;
+}
+
+message IGroupVisualAttributePayload {
+  google.protobuf.Any algorithm_payload = 2;
+  repeated hstd.ext.graph.proto.IConstraint constraints = 5;
+}
+
+message IPortVisualAttributePayload {
+}
+
+message IEdgeVisualAttributePayload {
+}
+
+message IVertexVisualAttributePayload {
+}

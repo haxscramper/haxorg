@@ -289,8 +289,8 @@ int main(int argc, char** argv) {
     Vec<ir::CommitId> commits{};
     CommitGraph       result = build_repo_graph(oid, state.get());
     if (config->cli.out.graphviz) {
-        std::string graph_repr = result.toGraphviz();
-        writeFile(fs::path(*config->cli.out.graphviz), graph_repr);
+        auto graph_repr = result.toGraphviz();
+        graph_repr->render(fs::path(*config->cli.out.graphviz));
     }
 
     for_each_commit(result, state.get());

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
+
+package hstd.ext.graph.avoid.proto;
+
+enum EdgeVisibility {
+  LEFT = 0;
+  RIGHT = 1;
+  TOP = 2;
+  BOTTOM = 3;
+}
+
+message PortVisualAttributePayload {
+  EdgeVisibility visibility = 1;
+  optional double edge_offset = 2;
+};
+
+message PortLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IPortLayoutAttributePayload base = 1;
+};
+
+message EdgeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload base = 1;
+}

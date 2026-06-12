@@ -5,7 +5,7 @@
 
 
 #include <haxorg/lexbase/AstSpec.hpp>
-#include <hstd/ext/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff.hpp>
 #include <haxorg/test/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
@@ -20,9 +20,8 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgEdit.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/imm/ImmOrgGraphBoost.hpp>
+#include <haxorg/imm/ImmGetterApi.hpp>
 #include <boost/graph/graphml.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 
@@ -48,9 +47,7 @@ bool is_full_trace_on_cli_enabled();
 void writeTreeRepr(
     imm::ImmAdapter               n,
     fs::path const&               path,
-    imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{
-        .withAuxFields = true,
-    });
+    imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{});
 
 void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full);
 
@@ -534,9 +531,8 @@ struct ImmOrgApiTestBase : public ::testing::Test {
             .withAuxNodes    = true,
             .withEditHistory = true,
         }) {
-        hstd::ext::Graphviz gvc;
-        auto                gv = imm::toGraphviz(history, conf);
-        gvc.writeFile(getDebugFile(suffix + ".dot"), gv);
-        gvc.renderToFile(getDebugFile(suffix + ".png"), gv);
+        auto gv = imm::toGraphviz(history, conf);
+        gv->render(getDebugFile(suffix + ".dot"));
+        gv->render(getDebugFile(suffix + ".png"));
     }
 };

@@ -44,7 +44,7 @@ std::string fmt1_maybe(T const& t) {
 }
 
 template <typename T>
-std::string fmt1_maybe(T const& t) {
+std::string fmt1_maybe([[maybe_unused]] T const& t) {
     return std::format(
         "[not formattable {}]", hstd::value_metadata<T>::typeName());
 }
@@ -152,6 +152,17 @@ struct std_unordered_sequence_formatter : std::formatter<std::string> {
             fmt_ctx(it, ctx);
         }
         return fmt.format("}", ctx);
+    }
+};
+
+template <typename T>
+struct std_strong_typedef_formatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(T const& p, FormatContext& ctx) const {
+        hstd::fmt_ctx(hstd::value_metadata<T>::typeName(), ctx);
+        hstd::fmt_ctx("(", ctx);
+        hstd::fmt_ctx(p.t, ctx);
+        return hstd::fmt_ctx(")", ctx);
     }
 };
 

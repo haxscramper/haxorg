@@ -1,7 +1,7 @@
 /* clang-format off */
 syntax = "proto3";
 package orgproto;
-import "SemOrgProtoManual.proto";
+import "src/haxorg/serde/SemOrgProtoManual.proto";
 enum CheckboxState {
   CheckboxState_None_f                                                              = 0;
   CheckboxState_Done_f                                                              = 1;

@@ -54,7 +54,6 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
     use_protobuf: bool = True
-    use_msgpack: bool = True
     use_cgraph: bool = Field(default=True, description="Enable features using cgraph")
     cxx_compiler: str = "clang++"
     c_compiler: str = "clang"
@@ -62,8 +61,10 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     use_warnings: bool = True
     real_time_output_print: bool = Field(
         default=False, description="Print the build output in real time")
+    use_kiwi: bool = Field(default=True)
     use_adaptagrams: bool = Field(
         default=True, description="Build the project with adaptagrams support")
+    use_elk: bool = Field(default=True, description="Build the project with elk support")
     build_python: bool = Field(default=True, description="Build python bindings")
     build_tests: bool = Field(default=True,
                               description="Build tests for hstd/haxorg project")
@@ -225,6 +226,10 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     "Main workflow script configuration object"
     log_level: HaxorgLogLevel = Field(default=HaxorgLogLevel.NORMAL)
     debug: bool = Field(default=False)
+    force_subprocess_tracking: bool = Field(
+        default=False,
+        description=
+        "Force build of the execution tracker script at the very start of the workflow")
 
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     use_unchanged_tasks: bool = Field(default=False)

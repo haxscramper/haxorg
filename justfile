@@ -38,13 +38,13 @@ run_haxorg_reflection_snapshot_generation:
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_only_source_generate.json
 
 run_conan_create_test:
-  conan create . --test-folder=tests/vendor/conan_test_package
+  conan create . --test-folder=tests/vendor/conan_test_package --build=missing
 
 run_uv_install_test:
   uv run ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg --test-package tests/vendor/haxorg_py_test_package
 
 run_github_ci:
-  act push  --container-options "--cpus 24"
+  act push  --container-options "--cpus 24" --reuse
 
 run_haxorg_codegen_and_tests: run_haxorg_only_source_generation run_py_tests
 
@@ -55,3 +55,15 @@ run_haxorg_builder_codegen_and_tests: build_haxorg run_haxorg_reflection_snapsho
 run_haxorg_builder_and_tests: build_haxorg run_haxorg_only_source_generation run_py_tests
 
 run_pytest_and_coverage_docs: run_py_tests run_coverage_merge run_custom_docs_gen
+
+run_doxygen_docs_build:
+  {{workflow_run}} --task docs_doxygen \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
+run_include_graph_generation:
+  {{workflow_run}} --task generate_include_graph \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
+
+run_codechecker:
+  {{workflow_run}} --task docs_doxygen \
+    run_codechecker_analysis

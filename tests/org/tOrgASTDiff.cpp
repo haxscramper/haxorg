@@ -1,6 +1,6 @@
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/ext/astdiff.hpp>
+#include <hstd/ext/astdiff/astdiff.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>

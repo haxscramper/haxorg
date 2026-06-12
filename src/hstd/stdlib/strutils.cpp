@@ -1138,7 +1138,7 @@ Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
     }
-    return Str{"\n"}.join(lines);
+    return join("\n", lines);
 }
 
 Str hstd::normalize(Str const& in) {
@@ -1363,6 +1363,36 @@ bool hstd::iequals(std::string const& a, std::string const& b) {
     }
 }
 
+std::string hstd::format_number(double value) {
+    if (value == 0.0) { return "0"; }
+
+    double abs_value = std::abs(value);
+    double int_part  = 0.0;
+    double frac_part = std::modf(abs_value, &int_part);
+
+    if (frac_part == 0.0) { return std::format("{}", value); }
+
+    if (int_part != 0.0) {
+        double      scaled = std::trunc(value * 1000.0) / 1000.0;
+        std::string s      = std::format("{:.3f}", scaled);
+
+        while (!s.empty() && s.back() == '0') { s.pop_back(); }
+        if (!s.empty() && s.back() == '.') { s.pop_back(); }
+
+        return s;
+    }
+
+    int exponent  = static_cast<int>(std::floor(std::log10(abs_value)));
+    int decimals  = std::clamp(-exponent + 2, 0, 9);
+    std::string s = std::format("{:.{}f}", value, decimals);
+
+    while (!s.empty() && s.back() == '0') { s.pop_back(); }
+    if (!s.empty() && s.back() == '.') { s.pop_back(); }
+
+    return s;
+}
+
+
 std::string hstd::escape_literal(std::string_view const& in) {
     std::string res;
     res.reserve(in.size() + 2);
@@ -1488,4 +1518,137 @@ void hstd::validate_utf8(std::string const& str) {
                     i));
         }
     }
+}
+
+std::string hstd::format_integer_bits(
+    uint64_t value,
+    char     fmt,
+    int      pad_to) {
+    std::string raw;
+    switch (fmt) {
+        case 'b': {
+            if (value == 0) {
+                raw = "0";
+            } else {
+                uint64_t v = value;
+                while (v) {
+                    raw = (char)('0' + (v & 1)) + raw;
+                    v >>= 1;
+                }
+            }
+            break;
+        }
+        case 'o': {
+            std::ostringstream os;
+            os << std::oct << value;
+            raw = os.str();
+            break;
+        }
+        case 'x': {
+            std::ostringstream os;
+            os << std::hex << value;
+            raw = os.str();
+            break;
+        }
+        default: {
+            raw = std::to_string(value);
+            if (pad_to > 0 && (int)raw.size() < pad_to) {
+                raw = std::string(pad_to - raw.size(), '0') + raw;
+            }
+            return raw;
+        }
+    }
+
+    if (pad_to > 0 && (int)raw.size() < pad_to) {
+        raw = std::string(pad_to - raw.size(), '0') + raw;
+    }
+
+    // Insert ' every 4 digits from the right
+    std::string grouped;
+    int         count = 0;
+    for (int i = (int)raw.size() - 1; 0 <= i; --i) {
+        if (count > 0 && count % 4 == 0) { grouped = '\'' + grouped; }
+        grouped = raw[i] + grouped;
+        ++count;
+    }
+
+    std::string prefix;
+    switch (fmt) {
+        case 'b': prefix = "0b"; break;
+        case 'o': prefix = "0o"; break;
+        case 'x': prefix = "0x"; break;
+        default: break;
+    }
+    return prefix + grouped;
+}
+
+std::string hstd::format_table(
+    Vec<Vec<Str>> const& rows,
+    Str const&           inter_cell_spacing,
+    Str const&           inter_row_spacing,
+    char                 row_underline) {
+    int col_count = 0;
+    for (const auto& row : rows) {
+        col_count = std::max(col_count, row.size());
+    }
+
+    if (col_count == 0 || rows.empty()) { return ""; }
+
+    Vec<int> col_widths(col_count, 0);
+
+    for (const auto& row : rows) {
+        for (int col = 0; col < row.size(); ++col) {
+            for (const auto& line : row[col].split('\n')) {
+                col_widths[col] = std::max(col_widths[col], line.size());
+            }
+        }
+    }
+
+    std::ostringstream out;
+
+    for (int row_idx = 0; row_idx < rows.size(); ++row_idx) {
+        auto const& row = rows[row_idx];
+
+        Vec<Vec<Str>> cell_lines(col_count);
+        int           row_height = 1;
+
+        for (int col = 0; col < col_count; ++col) {
+            if (col < row.size()) {
+                cell_lines[col] = row[col].split('\n');
+            } else {
+                cell_lines[col] = {""};
+            }
+            row_height = std::max(row_height, cell_lines[col].size());
+        }
+
+        for (int line_idx = 0; line_idx < row_height; ++line_idx) {
+            for (int col = 0; col < col_count; ++col) {
+                std::string_view
+                    cell_line = line_idx < cell_lines[col].size()
+                                  ? std::string_view(
+                                        cell_lines[col][line_idx])
+                                  : std::string_view("");
+
+                out << cell_line;
+
+                int padding = col_widths[col] - cell_line.size();
+                out << Str(padding, ' ');
+
+                if (col + 1 < col_count) { out << inter_cell_spacing; }
+            }
+            out << '\n';
+        }
+
+        if (!inter_row_spacing.empty()) {
+            if (row_idx + 1 < rows.size()) {
+                for (int col = 0; col < col_count; ++col) {
+                    out << Str(col_widths[col], row_underline);
+                    if (col + 1 < col_count) { out << inter_row_spacing; }
+                }
+                out << '\n';
+            }
+        }
+    }
+
+    return out.str();
 }

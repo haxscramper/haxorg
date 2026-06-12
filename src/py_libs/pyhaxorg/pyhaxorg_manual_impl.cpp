@@ -6,6 +6,9 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/exporters/exportertree.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 #include <datetime.h>
 
 #include <haxorg/exporters/Exporter.cpp>
@@ -246,45 +249,4 @@ void org::bind::python::setGetParsedNode(
         [callback](std::string const& fullPath) -> sem::SemId<sem::Org> {
         return nanobind::cast<sem::SemId<sem::Org>>(callback(fullPath));
     };
-}
-
-nanobind::bytes org::bind::python::serializeAstContextToText(
-    std::shared_ptr<imm::ImmAstContext> const& store) {
-    auto str = org::imm::serializeToText(store);
-    return nanobind::bytes(str.data(), str.size());
-}
-
-std::string bytes_to_string(nanobind::bytes const& bytes) {
-    return std::string{bytes.c_str(), bytes.size()};
-}
-
-void org::bind::python::serializeAstContextFromText(
-    nanobind::bytes const&                     binary,
-    std::shared_ptr<imm::ImmAstContext> const& store) {
-    org::imm::serializeFromText(bytes_to_string(binary), store);
-}
-
-nanobind::bytes org::bind::python::serializeAstReplaceEpochToText(
-    std::shared_ptr<imm::ImmAstReplaceEpoch> const& store) {
-    auto tmp = org::imm::serializeToText(store);
-    return nanobind::bytes(tmp.c_str(), tmp.size());
-}
-
-void org::bind::python::serializeAstReplaceEpochFromText(
-    nanobind::bytes const&                          binary,
-    std::shared_ptr<imm::ImmAstReplaceEpoch> const& store) {
-    org::imm::serializeFromText(bytes_to_string(binary), store);
-}
-
-
-nanobind::bytes org::bind::python::serializeMapGraphToText(
-    std::shared_ptr<graph::MapGraph> const& store) {
-    std::string tmp = org::imm::serializeToText(store);
-    return nanobind::bytes(tmp.c_str(), tmp.size());
-}
-
-void org::bind::python::serializeMapGraphFromText(
-    nanobind::bytes const&                  binary,
-    std::shared_ptr<graph::MapGraph> const& store) {
-    org::imm::serializeFromText(bytes_to_string(binary), store);
 }

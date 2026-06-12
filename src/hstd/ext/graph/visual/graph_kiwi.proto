@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/geometry/hstd_visual.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
+import "src/hstd/ext/geometry/kiwi_ir.proto";
+
+package hstd.ext.graph.kw.proto;
+
+message KiwiPortVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IPortVisualAttributePayload base = 1;
+}
+
+message KiwiPortLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IPortLayoutAttributePayload base = 1;
+}
+
+message KiwiEdgeVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeVisualAttributePayload base = 1;
+}
+
+message KiwiEdgeLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload base = 1;
+}
+
+message KiwiVertexVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
+  htsd.ext.kiwi_ir.proto.Rect rect = 2;
+}
+
+message KiwiGroupVisualAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+}
+
+message KiwiVertexLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IVertexLayoutAttributePayload base = 1;
+}
+
+message KiwiGroupLayoutAttributePayload {
+  hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload base = 1;
+}
+
+message KiwiConstraintPayload {
+
+}
+
+
+
+message KiwiAlignConstraintPayload {
+  message Spec {
+    string stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AlignSpec spec = 2;
+  }
+
+  KiwiConstraintPayload base = 1;
+  repeated Spec vertices  = 2;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 3;
+}
+
+message KiwiSeparateConstraintPayload {
+  KiwiConstraintPayload base = 1;
+  KiwiAlignConstraintPayload left = 2;
+  KiwiAlignConstraintPayload right = 3;
+  double separationDistance = 4;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 5;
+}
+
+message KiwiMultiSeparateConstraintPayload {
+  KiwiConstraintPayload base = 1;
+  repeated KiwiAlignConstraintPayload lines = 2;
+  double separationDistance = 3;
+  htsd.ext.kiwi_ir.proto.Axis dimension = 4;
+}
+
+message KiwiLinearConstraintPayload {
+  KiwiConstraintPayload base = 1;
+  htsd.ext.kiwi_ir.proto.Expr lhs = 2;
+  htsd.ext.kiwi_ir.proto.Expr rhs = 3;
+  htsd.ext.kiwi_ir.proto.Relation op = 4;
+}
+
+message KiwiRelativeConstraintPayload {
+  message VertexRef {
+    string stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AnchorSpec anchor = 2;
+  }
+
+  VertexRef fixed = 1;
+  VertexRef relative = 2;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec x_dim = 3;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec y_dim = 4;
+}

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <google/protobuf/message.h>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/Outcome.hpp>
+#include <boost/preprocessor/facilities/overload.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
@@ -137,3 +140,104 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
                           .toString(false);                               \
         }                                                                 \
     }
+
+
+#define EXPECT_OUTCOME_OK(...)                                            \
+    BOOST_PP_OVERLOAD(EXPECT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
+
+#define EXPECT_OUTCOME_OK_1(expr)                                         \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        EXPECT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message();                         \
+    } while (0)
+
+#define EXPECT_OUTCOME_OK_2(expr, extra)                                  \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        EXPECT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message() << " " << (extra);       \
+    } while (0)
+
+#define ASSERT_OUTCOME_OK(...)                                            \
+    BOOST_PP_OVERLOAD(ASSERT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
+
+#define ASSERT_OUTCOME_OK_1(expr)                                         \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        ASSERT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message();                         \
+    } while (0)
+
+#define ASSERT_OUTCOME_OK_2(expr, extra)                                  \
+    do {                                                                  \
+        auto _outcome_result = (expr);                                    \
+        ASSERT_TRUE(_outcome_result.has_value())                          \
+            << "Expected success, got failure: "                          \
+            << _outcome_result.error().message() << " " << (extra);       \
+    } while (0)
+
+
+inline ::testing::AssertionResult TextContainsAll(
+    std::string_view                        text,
+    std::initializer_list<std::string_view> substrings) {
+    for (std::string_view part : substrings) {
+        if (text.find(part) == std::string_view::npos) {
+            std::ostringstream out;
+            out << "expected text to contain substring: \"" << part
+                << "\"\n"
+                << "text was:\n"
+                << text;
+            return ::testing::AssertionFailure() << out.str();
+        }
+    }
+
+    return ::testing::AssertionSuccess();
+}
+
+#define EXPECT_TEXT_CONTAINS(text, ...)                                   \
+    EXPECT_TRUE(TextContainsAll((text), {__VA_ARGS__}))
+
+template <typename E>
+inline std::string_view ExceptionText(E const& ex) {
+    if constexpr (requires { ex.message(); }) {
+        return ex.message();
+    } else {
+        return ex.what();
+    }
+}
+
+template <typename Exception, typename Fn>
+inline ::testing::AssertionResult ThrowsWithTextContainsAll(
+    Fn&&                                    fn,
+    std::initializer_list<std::string_view> substrings) {
+    try {
+        std::forward<Fn>(fn)();
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but no exception was thrown";
+    } catch (Exception const& ex) {
+        return TextContainsAll(ExceptionText(ex), substrings);
+    } catch (std::exception const& ex) {
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but got std::exception: " << ex.what();
+    } catch (...) {
+        return ::testing::AssertionFailure()
+            << "expected exception of type " << typeid(Exception).name()
+            << " but got a non-std exception";
+    }
+}
+
+#define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)             \
+    EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(               \
+        [&]() { (void)(expr); }, {__VA_ARGS__})))
+
+namespace google::protobuf {
+class Message;
+}
+
+std::string getJString(google::protobuf::Message const& message);

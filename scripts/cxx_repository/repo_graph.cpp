@@ -1,7 +1,8 @@
 #include "repo_graph.hpp"
 
 #include <boost/graph/graphml.hpp>
-#include <boost/graph/graphviz.hpp>
+// FIXME: Remove usage of the ABSL logging from the repository graph, use
+// the hstd logger or operations tracer instead.
 #include <absl/log/log.h>
 #include <hstd/stdlib/Formatter.hpp>
 
@@ -46,38 +47,43 @@ CommitGraph::CommitGraph(
 }
 
 
-std::string CommitGraph::toGraphviz() const {
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> CommitGraph::toGraphviz()
+    const {
     std::stringstream         os;
     boost::dynamic_properties dp;
+    using namespace hstd::ext::graph;
 
-    dp //
-        .property("node_id", get(boost::vertex_index, g))
-        .property(
-            "splines",
-            boost::make_constant_property<Graph*>(std::string("polyline")))
-        .property(
-            "shape",
-            boost::make_constant_property<Graph::vertex_descriptor>(
-                std::string("rect")))
-        .property(
-            "color",
-            make_transform_value_property_map<std::string>(
-                [&](CommitInfo const& prop) -> std::string {
-                    return prop.is_main ? "green" : "yellow";
-                },
-                get(boost::vertex_bundle, g)))
-        .property(
-            "label",
-            make_transform_value_property_map<std::string>(
-                [&](CommitInfo const& prop) -> std::string {
-                    return fmt("{}", prop.oid).substr(0, 8);
-                },
-                get(boost::vertex_bundle, g)));
+    auto result = gv::GraphGroup::newStandaloneRootGraph("G");
 
+    hstd::UnorderedMap<VDesc, hstd::SPtr<gv::NodeAttribute>> nodes;
 
-    write_graphviz_dp(os, g, dp);
+    for (auto [vi, ve] = vertices(g); vi != ve; ++vi) {
+        VDesc             v    = *vi;
+        CommitInfo const& info = g[v];
 
-    return os.str();
+        auto n = result->node(hstd::fmt("{}", info.oid));
+
+        n //
+            ->setColor(info.is_main ? "green" : "yellow")
+            ->setLabel(fmt("{}", info.oid).substr(0, 8));
+
+        nodes.insert_or_assign(v, n);
+    }
+
+    for (auto [ei, ee] = edges(g); ei != ee; ++ei) {
+        Graph::edge_descriptor e = *ei;
+
+        VDesc src = source(e);
+        VDesc dst = target(e);
+
+        CommitEdge const& edge_info = g[e];
+        CommitInfo const& src_info  = g[src];
+        CommitInfo const& dst_info  = g[dst];
+
+        result->edge(*nodes.at(src), *nodes.at(dst));
+    }
+
+    return result;
 }
 
 CommitGraph::VDesc CommitGraph::get_desc(git_oid const& oid) {
@@ -121,6 +127,6 @@ auto CommitGraph::commit_pairs() const -> Vec<Pair<VDesc, Opt<VDesc>>> {
         }
     }
 
-    std::reverse(result.begin(), result.end());
+    std::ranges::reverse(result);
     return result;
 }

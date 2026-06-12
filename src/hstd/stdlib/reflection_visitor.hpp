@@ -443,8 +443,6 @@ struct ReflPathComparator {
     std::size_t operator()(
         ReflPath<Tag> const& lhs,
         ReflPath<Tag> const& rhs) const noexcept {
-        std::size_t result = 0;
-
         typename ReflTypeTraits<Tag>::AnyEqualType anyEq;
         if (lhs.path.size() == rhs.path.size()) {
             for (int i = 0; i < lhs.path.size(); ++i) {
@@ -799,7 +797,9 @@ struct ReflVisitor<T, Tag> {
         Func const&              cb) {
         LOGIC_ASSERTION_CHECK_FMT(step.isIndex(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK_FMT(
-            value.index() == step.getIndex().index, "{}", value.index());
+            static_cast<int>(value.index()) == step.getIndex().index,
+            "{}",
+            value.index());
         std::visit([&](auto const& it) { cb(it); }, value);
     }
 

@@ -29,14 +29,41 @@ struct OperationsMsg {
 struct OperationsTracer;
 
 struct [[refl]] OperationsTracer {
-    [[refl]] bool TraceState      = false;
-    [[refl]] bool traceToFile     = false;
-    [[refl]] bool traceToBuffer   = false;
-    [[refl]] bool traceStructured = false;
-    [[refl]] bool traceColored    = true;
-    [[refl]] int  activeLevel     = 0;
+    [[refl]] bool              TraceState      = false;
+    [[refl]] bool              traceToFile     = false;
+    [[refl]] bool              traceToBuffer   = false;
+    [[refl]] bool              traceStructured = false;
+    [[refl]] bool              traceColored    = true;
+    [[refl]] mutable int       activeLevel     = 0;
+    hstd::Opt<fs::path>        traceFile;
+    [[refl]] std::string       traceBuffer;
+    mutable SPtr<std::ostream> stream;
 
-    [[refl]] std::string traceBuffer;
+
+    [[refl]] void begin_scope_event(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE()) const;
+
+    [[refl]] void end_scope_event(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE()) const;
+
+
+    template <typename... _Args>
+    [[nodiscard]] inline std::string fmt_message(
+        std::format_string<_Args...> __fmt,
+        _Args&&... __args) const {
+        if (TraceState) {
+            return std::vformat(
+                __fmt.get(), std::make_format_args(__args...));
+        } else {
+            return "";
+        }
+    }
 
     DESC_FIELDS(
         OperationsTracer,
@@ -47,21 +74,64 @@ struct [[refl]] OperationsTracer {
          traceStructured,
          traceColored));
 
-    finally_std scopeLevel() const;
-    finally_std scopeTrace(bool state);
-    finally_std scopeLevelMsg(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) const;
+    struct ScopeHandle {
+        OperationsTracer* tracer;
+        void              start(
+            Opt<std::string> const& value    = std::nullopt,
+            char const*             function = __builtin_FUNCTION(),
+            int                     line     = __builtin_LINE(),
+            char const*             file     = __builtin_FILE());
 
+        void end(
+            Opt<std::string> const& value    = std::nullopt,
+            char const*             function = __builtin_FUNCTION(),
+            int                     line     = __builtin_LINE(),
+            char const*             file     = __builtin_FILE());
+
+        ~ScopeHandle() {
+            if (tracer != nullptr) {
+                end(std::nullopt, nullptr, -1, nullptr);
+            }
+        }
+    };
+
+    ScopeHandle begin_scope_nop() const { return ScopeHandle{nullptr}; }
+
+
+    ScopeHandle begin_scope(
+        Opt<std::string> const& value    = std::nullopt,
+        char const*             function = __builtin_FUNCTION(),
+        int                     line     = __builtin_LINE(),
+        char const*             file     = __builtin_FILE()) const;
+
+
+    finally_std scopeTrace(bool state);
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
-    SPtr<std::ostream> stream;
+    SPtr<std::ostream>  getTraceFile();
+    hstd::Opt<fs::path> getTraceFileDir() const;
 
-    SPtr<std::ostream> getTraceFile();
-    void               setTraceFile(SPtr<std::ostream> stream);
+    hstd::fs::path getAdjacentToTraceFile(hstd::Str const& suffix) const;
+
+    void writeToTraceFile(
+        hstd::fs::path const& path,
+        hstd::Str const&      text,
+        bool                  with_message = true,
+        char const*           function     = __builtin_FUNCTION(),
+        int                   line         = __builtin_LINE(),
+        char const*           file         = __builtin_FILE()) const;
+
+    void writeAdjacentToTraceFile(
+        hstd::Str const& suffix,
+        hstd::Str const& text,
+        bool             with_message = true,
+        char const*      function     = __builtin_FUNCTION(),
+        int              line         = __builtin_LINE(),
+        char const*      file         = __builtin_FILE()) const;
+
+
+    void      setTraceFile(SPtr<std::ostream> stream);
     void      setTraceFile(fs::path const& outfile, bool overwrite = true);
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;
@@ -79,7 +149,7 @@ struct [[refl]] OperationsTracer {
         std::string const& value,
         std::string const& function,
         int                line,
-        std::string const& file) {
+        std::string const& file) const {
         message(value, function.c_str(), line, file.c_str());
     }
 
@@ -90,6 +160,35 @@ struct [[refl]] OperationsTracer {
         char const*        file     = __builtin_FILE()) const;
 };
 
+
+namespace {
+inline bool __is_trace_state(hstd::OperationsTracer const& t) {
+    return t.TraceState;
+}
+inline bool __is_trace_state(hstd::OperationsTracer const* t) {
+    return t->TraceState;
+}
+inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
+    return t->TraceState;
+}
+} // namespace
+
+#define OP_TRACER_MESSAGE(__tracer, __format, ...)                        \
+    if (::hstd::__is_trace_state(__tracer)) {                             \
+        __tracer->message(                                                \
+            __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
+    }
+
+#define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)           \
+    ::hstd::__is_trace_state(__tracer)                                    \
+        ? __tracer->begin_scope(                                          \
+              __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
+        : __tracer->begin_scope();
+
+#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                     \
+    auto                                                                     \
+        BOOST_PP_CAT(__scope, __COUNTER__) = OP_TRACER_MESSAGE_SCOPE_HANDLE( \
+            __tracer, __format __VA_OPT__(, ) __VA_ARGS__);
 
 template <typename Derived, typename Msg>
 struct OperationsMsgBulder : CRTP_this_method<Derived> {

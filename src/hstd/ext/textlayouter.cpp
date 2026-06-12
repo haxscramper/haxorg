@@ -1013,7 +1013,7 @@ std::string BlockStore::toTreeRepr(
             case Block::Kind::Empty: name = "Em"; break;
         }
 
-        os << fmt("{}{} {}: ", pref2, name, blId.format(""));
+        os << fmt("{}{} {}: ", pref2, name, blId.format());
         if (blId.isNil()) {
             os << "<nil>";
             return;

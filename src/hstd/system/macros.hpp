@@ -23,49 +23,21 @@
 #define FOR_EACH_CALL_WITH_PASS(macro, pass, ...)                         \
     __VA_OPT__(EXPAND(__FOR_EACH_HELPER(macro, pass, __VA_ARGS__)))
 
-/// \internal Generate getter methods for SUB_VARIANTS
 
-#define __SUB_VARIANT_GETTER(fieldName, Type)                             \
-    Type& get##Type() {                                                   \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    Type const& get##Type() const {                                       \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    bool is##Type() const {                                               \
-        return std::holds_alternative<Type>(fieldName);                   \
-    }
-
-
-#define __SUB_VARIANT_GETTER_REFL(fieldName, Type)                        \
-    [[refl]] Type& get##Type() {                                          \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    [[refl]] Type const& get##Type() const {                              \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    [[refl]] bool is##Type() const {                                      \
-        return std::holds_alternative<Type>(fieldName);                   \
-    }
-
-/// \internal Generate kind getter lambda for SUB_VARIANTS
-#define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                         \
-    [](Type const&) -> EnumName { return EnumName::Type; },
+/// \brief Utility method to list fields for class.
+///
+/// `DESC_FIELDS(<class-name>, (<field1>, <field2>, ...)`
+#define DESC_FIELDS(classname, arg)                                       \
+    BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())
 
 /// \brief Declare enum \arg Name with all it's fields and pass them to
 /// BOOST_DESCRIBE_NESTED_ENUM to generate reflection information.
+///
+/// `DECL_DESCRIBED_ENUM(EnumName, F1, F2)`, will declare an `num class
+/// EnumName` with the specified fields.
+///
+/// To declare enum outside of the class, use \ref
+/// DECL_DESCRIBED_ENUM_STANDALONE with the same API.
 #define DECL_DESCRIBED_ENUM(Name, ...)                                    \
     enum class Name : unsigned short int                                  \
     {                                                                     \
@@ -81,80 +53,6 @@
         __VA_ARGS__                                                       \
     };                                                                    \
     BOOST_DESCRIBE_ENUM(Name, __VA_ARGS__);
-
-#define __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                              \
-    EnumName, VariantName, fieldName, kindGetterName)                     \
-    using variant_enum_type = EnumName;                                   \
-    using variant_data_type = VariantName;                                \
-    EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
-    VariantName const& sub_variant_get_data() const { return fieldName; } \
-    char const*        sub_variant_get_name() const { return #fieldName; }
-
-/// \brief Helper macro for better API when working with discriminant
-/// objects.
-///
-/// \arg EnumName name of the enumeration that is defined to list possible
-///      variant values
-/// \arg VariantName Name of the variant type for wrapping
-///      all results
-/// \arg fieldName Name of the field that is used to store
-///      variant value for a type
-/// \arg kindGetterName name of the method for getting kind from the field.
-///      Also defines static function that can be used to access the kind
-///      of the raw variant value.
-///
-/// \snippet sem/SemOrg.hpp declare variant field for subtree properties
-///
-/// This will generate `getKind()` and `static getKind(Data const&)`
-/// methods, define `Data` as `std::variant<Ordered, ...>` and implement
-/// `getOrdered()`, `getTrigger()` etc. for all provided types
-
-#define SUB_VARIANTS_REFL(                                                \
-    EnumName, VariantName, fieldName, kindGetterName, ...)                \
-    enum class [[refl]] EnumName : unsigned short int                     \
-    {                                                                     \
-        __VA_ARGS__                                                       \
-    };                                                                    \
-    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
-    using VariantName = std::variant<__VA_ARGS__>;                        \
-    FOR_EACH_CALL_WITH_PASS(                                              \
-        __SUB_VARIANT_GETTER_REFL, (fieldName), __VA_ARGS__)              \
-    static EnumName kindGetterName(VariantName const& __input) {          \
-        return std::visit(                                                \
-            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
-                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
-            __input);                                                     \
-    }                                                                     \
-    [[refl]] EnumName kindGetterName() const {                            \
-        return kindGetterName(fieldName);                                 \
-    }                                                                     \
-    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
-        EnumName, VariantName, fieldName, kindGetterName)
-
-
-#define SUB_VARIANTS(                                                     \
-    EnumName, VariantName, fieldName, kindGetterName, ...)                \
-    enum class EnumName : unsigned short int                              \
-    {                                                                     \
-        __VA_ARGS__                                                       \
-    };                                                                    \
-    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
-    using VariantName = std::variant<__VA_ARGS__>;                        \
-    FOR_EACH_CALL_WITH_PASS(                                              \
-        __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
-    static EnumName kindGetterName(VariantName const& __input) {          \
-        return std::visit(                                                \
-            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
-                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
-            __input);                                                     \
-    }                                                                     \
-    EnumName kindGetterName() const { return kindGetterName(fieldName); } \
-    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
-        EnumName, VariantName, fieldName, kindGetterName)
-
-
-#define DESC_FIELDS(classname, arg)                                       \
-    BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())
 
 
 #define DEFINE_VISITOR_BASE_STRUCT(                                       \

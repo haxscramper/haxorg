@@ -25,6 +25,17 @@ struct MapBase : public CRTP_this_method<Map> {
         return _this()->at(key);
     }
 
+    void insert_unqiue(K const& key, V const& value) {
+        if (contains(key)) {
+            throw hstd::key_error::init(
+                hstd::fmt(
+                    "key {} already present in the map",
+                    hstd::fmt1_maybe(key)));
+        } else {
+            _this()->insert_or_assign(key, value);
+        }
+    }
+
     std::optional<V> pop_opt(K const& key) {
         auto res = get(key);
         if (res) { _this()->erase(key); }
@@ -43,6 +54,24 @@ struct MapBase : public CRTP_this_method<Map> {
         Vec<K> result;
         for (const auto& [key, value] : *_this()) {
             result.push_back(key);
+        }
+
+        return result;
+    }
+
+    Vec<V> values() const {
+        Vec<V> result;
+        for (const auto& [key, value] : *_this()) {
+            result.push_back(value);
+        }
+
+        return result;
+    }
+
+    Vec<V const&> values_ref() const {
+        Vec<V const&> result;
+        for (const auto& [key, value] : *_this()) {
+            result.push_back(value);
         }
 
         return result;
@@ -66,12 +95,32 @@ struct [[refl(R"({
     using API::contains;
     using API::get;
     using API::keys;
+    using Base::at;
     using Base::Base;
     using Base::begin;
     using Base::end;
+    using Base::find;
     using Base::operator[];
 
     [[refl]] Vec<K> keys() const { return API::keys(); }
+
+    V& at(K const& key) {
+        auto it = find(key);
+        if (it == end()) {
+            throw hstd::range_error::init("key not present");
+        } else {
+            return it->second;
+        }
+    }
+
+    V const& at(K const& key) const {
+        auto it = find(key);
+        if (it == end()) {
+            throw hstd::range_error::init("key not present");
+        } else {
+            return it->second;
+        }
+    }
 };
 
 
@@ -102,6 +151,8 @@ struct value_metadata<hstd::UnorderedMap<K, V>> {
     static bool isEmpty(UnorderedMap<K, V> const& value) {
         return value.empty();
     }
+
+    static bool isNil(UnorderedMap<K, V> const& value) { return false; }
 
     static std::string typeName() {
         return std::string{"UnorderedMap<"} + value_metadata<K>::typeName()

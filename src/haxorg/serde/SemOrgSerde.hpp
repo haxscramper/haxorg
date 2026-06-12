@@ -5,7 +5,7 @@
 namespace org::algo {}
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
-#    include <SemOrgProto.pb.h>
+#    include <src/haxorg/serde/SemOrgProto.pb.h>
 #    include <concepts>
 
 namespace org::algo {
@@ -174,6 +174,8 @@ struct proto_serde<hstd::Opt<Proto>, hstd::Opt<T>> {
     }
 };
 
+// TODO: Extract this to the hstd/ext/hstd_serde.hpp file for general use.
+// <<proto-serde-extract-to-general>>
 template <>
 struct proto_serde<
     gpb::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>,
@@ -195,6 +197,7 @@ struct proto_serde<
     static void read(
         gpb::RepeatedPtrField<Proto> const& out,
         proto_write_accessor<hstd::Vec<T>>  in) {
+        in.get().reserve(out.size());
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
@@ -204,6 +207,7 @@ struct proto_serde<
     static void read(
         gpb::RepeatedField<int> const&     out,
         proto_write_accessor<hstd::Vec<T>> in) {
+        in.get().reserve(out.size());
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
@@ -473,12 +477,14 @@ struct proto_serde<Proto, sem::Org> {
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(
             static_cast<orgproto::OrgSemKind>(in.getKind()));
+#    if false
         if (in.loc) {
             proto_serde<
                 orgproto::org_parse_SourceLoc,
                 org::parse::SourceLoc>::
                 write(out->mutable_loc(), in.loc.value());
         }
+#    endif
     }
 
     static void read(Proto const& out, proto_write_accessor<sem::Org> in) {
@@ -650,6 +656,7 @@ struct proto_serde<Out, sem::CmdInclude::IncludeBase> {
         Out const&                                         out,
         proto_write_accessor<sem::CmdInclude::IncludeBase> in) {}
 };
+
 
 } // namespace org::algo
 

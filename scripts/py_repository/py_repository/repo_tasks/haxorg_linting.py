@@ -114,6 +114,7 @@ def run_codechecker_analysis(ctx: TaskContext):
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     analysis_artifact_outdir = get_script_root(ctx, "build/codechecker_result")
     analysis_artifact_structured = get_script_root(ctx, "build/codechecker_structured")
+    clang_tidy_config = get_script_root(ctx, ".clang-tidy")
     ensure_existing_dir(ctx, analysis_artifact_outdir)
 
     run_cmd = [
@@ -133,6 +134,13 @@ def run_codechecker_analysis(ctx: TaskContext):
         str(tool_dir.joinpath("skip.txt")),
     ]
 
+    tidy_cmd = [
+        "--analyzers",
+        "clang-tidy",
+        "--tidy-config",
+        str(clang_tidy_config),
+    ]
+
     assert _is_http_up(
     ), "Analysis commands requires a working codechecker server to upload results run the server with `run_codechecker_server` command"
 
@@ -145,6 +153,7 @@ def run_codechecker_analysis(ctx: TaskContext):
             compile_commands,
             "--ctu-collect",
             *skip_cmd,
+            *tidy_cmd,
             "--output",
             analysis_artifact_outdir,
             *jobs_cmd,
@@ -161,6 +170,7 @@ def run_codechecker_analysis(ctx: TaskContext):
             compile_commands,
             "--ctu-analyze",
             *skip_cmd,
+            *tidy_cmd,
             "--output",
             analysis_artifact_outdir,
             *jobs_cmd,

@@ -24,10 +24,7 @@ from py_codegen.codegen_type_groups import (
 )
 from py_codegen.codegen_wrapper_c import gen_haxorg_c_wrappers
 from py_codegen.codegen_wrapper_embind import gen_pyhaxorg_napi_wrappers
-from py_codegen.codegen_wrapper_nanobind import (
-    gen_adaptagrams_wrappers,
-    gen_pyhaxorg_python_wrappers,
-)
+from py_codegen.codegen_wrapper_nanobind import gen_pyhaxorg_python_wrappers
 from py_codegen.org_codegen_data import *
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_repository.repo_tasks.config import get_tmpdir
@@ -207,7 +204,7 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
         GenUnit(header=GenTu("{base}/serde/SemOrgProto.proto", [
             GenTuPass('syntax = "proto3";'),
             GenTuPass("package orgproto;"),
-            GenTuPass('import "SemOrgProtoManual.proto";'),
+            GenTuPass('import "src/haxorg/serde/SemOrgProtoManual.proto";'),
             GenTuPass(protobuf),
         ])),
         GenUnit(
@@ -442,26 +439,6 @@ def _write_files_group(
 
 
 @beartype
-def run_codegen_adaptagrams(
-    is_tmp_codegen: bool,
-    builder: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-    reflection_path: Path,
-    t: TextLayout,
-) -> None:
-    _write_files_group(
-        gen_adaptagrams_wrappers(
-            builder,
-            pyast,
-            reflection_path=Path(reflection_path),
-        ),
-        is_tmp_codegen=is_tmp_codegen,
-        builder=builder,
-        t=t,
-    )
-
-
-@beartype
 def run_codegen_pyhaxorg(
     is_tmp_codegen: bool,
     builder: cpp.ASTBuilder,
@@ -538,7 +515,6 @@ def run_codegen_pyhaxorg(
 
 @beartype
 def run_codegen_task(
-    task: Literal["adaptagrams", "pyhaxorg"],
     reflection_path: Path,
     is_tmp_codegen: bool,
     manual_tu_path: Path,
@@ -547,23 +523,12 @@ def run_codegen_task(
     pyast = pya.ASTBuilder(t)
     builder = cpp.ASTBuilder(t)
 
-    with ExceptionContextNote(f"reflection_path:{reflection_path}, task: {task}"):
-        match task:
-            case "adaptagrams":
-                run_codegen_adaptagrams(
-                    is_tmp_codegen=is_tmp_codegen,
-                    reflection_path=reflection_path,
-                    builder=builder,
-                    pyast=pyast,
-                    t=t,
-                )
-
-            case "pyhaxorg":
-                run_codegen_pyhaxorg(
-                    is_tmp_codegen=is_tmp_codegen,
-                    reflection_path=reflection_path,
-                    builder=builder,
-                    pyast=pyast,
-                    t=t,
-                    manual_tu_path=manual_tu_path,
-                )
+    with ExceptionContextNote(f"reflection_path:{reflection_path}"):
+        run_codegen_pyhaxorg(
+            is_tmp_codegen=is_tmp_codegen,
+            reflection_path=reflection_path,
+            builder=builder,
+            pyast=pyast,
+            t=t,
+            manual_tu_path=manual_tu_path,
+        )

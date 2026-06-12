@@ -1,3 +1,4 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <haxorg/parse/OrgParser.hpp>
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
@@ -7,6 +8,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 
@@ -2077,7 +2079,35 @@ OrgParser::ParseResult OrgParser::parseSubtreeTimes(OrgLexer& lex) {
             ++it;
 
             if (it == lex_end) { goto not_a_timestamp; }
-            if (it->kind == otk::Date) {
+            if (it->kind == otk::Date
+                // to distinguish edge cases where the paragraph after the
+                // subtree starts with the date, vs the time range date
+                // annotation for the subtree itself.
+                //
+                // ```
+                // * subtree
+                // [2525-02-03] is a random date
+                // ```
+                //
+                // ```
+                // * subtree
+                // [2525-02-03]
+                // ```
+                && lex.ahead(
+                    // TODO: Test the edge case with the subtree time
+                    // ranges annotations.
+                    OrgTokSet{
+                        otk::BraceBegin,
+                        otk::BraceEnd,
+                        otk::AngleBegin,
+                        otk::AngleEnd,
+                        otk::InactiveDynamicTimeContent,
+                        otk::ActiveDynamicTimeContent,
+                        otk::TimeRepeaterSpec,
+                    },
+                    Newline,
+                    1)) {
+                print("starting with a timestamp");
                 lex.skip(otk::Newline);
                 space(lex);
                 auto stmtGuard = start(onk::InlineStmtList);
@@ -2574,8 +2604,14 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
                 sub.add(lex.pop());
             }
 
-            sub.start();
-            return parseParagraph(sub);
+            if (sub.empty()) {
+                lex.next();
+                auto paragraphGuard = start(onk::Paragraph);
+                return paragraphGuard->end();
+            } else {
+                sub.start();
+                return parseParagraph(sub);
+            }
         }
     }
 

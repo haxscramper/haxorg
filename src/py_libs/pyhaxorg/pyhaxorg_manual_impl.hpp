@@ -38,13 +38,16 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
 #include <haxorg/api/ParseContext.hpp>
+// #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
-#    include <SemOrgProto.pb.h>
+#    include <src/haxorg/serde/SemOrgProto.pb.h>
 #endif
 #include <py_libs/py_type_casters.hpp>
 #include <py_libs/nanobind_utils.hpp>
@@ -53,7 +56,6 @@
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/serde/SemOrgCereal.hpp>
 
 
 template <>
@@ -144,76 +146,6 @@ PyCodeEvalParameters {
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setShouldProcessPath(
     org::parse::OrgDirectoryParseParameters* parameters,
     nanobind::callable                       callback);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstContextToText"
-})")]] nanobind::bytes
-    serializeAstContextToText(
-        std::shared_ptr<imm::ImmAstContext> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstContextFromText"
-})")]] void
-    serializeAstContextFromText(
-        nanobind::bytes const&                     binary,
-        std::shared_ptr<imm::ImmAstContext> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstReplaceEpochToText"
-})")]] nanobind::bytes
-    serializeAstReplaceEpochToText(
-        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeAstReplaceEpochFromText"
-})")]] void
-    serializeAstReplaceEpochFromText(
-        nanobind::bytes const&                          binary,
-        std::shared_ptr<imm::ImmAstReplaceEpoch> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeMapGraphFromText"
-})")]] void
-    serializeMapGraphFromText(
-        nanobind::bytes const&                       binary,
-        std::shared_ptr<org::graph::MapGraph> const& store);
-
-[[refl(R"({
-  "backend": {
-    "target-backends": [
-      "python"
-    ]
-  },
-  "unique-name": "serializeMapGraphToText"
-})")]] nanobind::bytes
-    serializeMapGraphToText(
-        std::shared_ptr<org::graph::MapGraph> const& store);
-
 
 [[refl(R"({"backend": {"target-backends": ["python"]}})")]] void setGetParsedNode(
     parse::OrgDirectoryParseParameters* params,
